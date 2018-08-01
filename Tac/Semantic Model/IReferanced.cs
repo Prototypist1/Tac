@@ -1,10 +1,11 @@
 ﻿namespace Tac.Semantic_Model
 {
-    internal interface IReferanced
+    public interface IReferanced
     {
     }
 
-    internal interface IReferanced<TKey> {
+    public interface IReferanced<TKey>: IReferanced
+    {
         TKey Key { get; }
     }
 }

@@ -4,11 +4,13 @@ using System.Text;
 
 namespace Tac.Semantic_Model
 {
-    public class MethodDefinition
+    public class MethodDefinition: BlockDefinition
     {
-        public Referance<TypeDefinition> InputType { get; }
-        public Referance<TypeDefinition> OutputType { get; }
+        public TypeReferance InputType { get => ParameterDefinition.Type; }
+        public TypeReferance OutputType { get; }
         public ParameterDefinition ParameterDefinition { get; }
-        public MethodBodyDefinition MethodBodyDefinition { get; }
+        public BlockDefinition MethodBodyDefinition { get; }
+
+        public override TReferanced Get<TKey, TReferanced>(TKey key) => throw new NotImplementedException();
     }
 }

@@ -4,9 +4,10 @@ using System.Text;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class TypeDefinition
+    // you can totally have anonymous types...
+    public sealed class TypeDefinition: IReferanced<TypeName>
     {
         public IReadOnlyList<MemberDefinition> MemberDefinitions { get; }
-        public TypeName TypeNameDefinition { get;}
+        public TypeName Key { get;}
     }
 }
