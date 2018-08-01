@@ -2,7 +2,7 @@
 
 namespace Tac.Semantic_Model
 {
-    public class TypeName : AbstractName
+    public class TypeName : Name
     {
         protected TypeName(string name) : base(name)
         {

@@ -3,32 +3,36 @@
 namespace Tac.Semantic_Model
 {
     public abstract class StaticScope : AbstractScope {
-        public bool TryAddStaticMethod(MethodDefinition methodDefinition) {
 
-        }
-        public void TryAddStaticMember(MemberDefinition memberDefinition)
+        public bool TryAddStaticMethod(StaticMethodDefinition definition)
         {
-
+            return TryAdd(DefintionLifetime.Static,definition);
         }
-        public void TryAddStaticImplementation(ImplementationDefinition implementationDefinition)
+        
+        public bool TryAddStaticMember(MemberDefinition definition)
         {
+            return TryAdd(DefintionLifetime.Static, definition);
+        }
 
+        public bool TryAddStaticImplementation(ImplementationDefinition definition)
+        {
+            return TryAdd(DefintionLifetime.Static, definition);
         }
     }
 
     public abstract class LocalScope : StaticScope
     {
-        public void TryAddLocalMember(MemberDefinition memberDefinition)
+        public bool TryAddLocalMember(MemberDefinition definition)
         {
-
+            return TryAdd(DefintionLifetime.Local, definition);
         }
     }
 
-    public abstract class ClosureScope : StaticScope
+    public abstract class InstanceScope : StaticScope
     {
-        public void TryAddClouseMember(MemberDefinition memberDefinition)
+        public bool TryAddInstanceMember(MemberDefinition definition)
         {
-
+            return TryAdd(DefintionLifetime.Instance, definition);
         }
     }
     

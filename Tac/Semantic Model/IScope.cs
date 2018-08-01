@@ -3,7 +3,6 @@
     public interface IScope
     {
         IScope EnclosingScope { get; }
-        TReferanced Get<TKey, TReferanced>(TKey key)
-            where TReferanced : IReferanced<TKey>;
+        TReferanced Get<TReferanced>(IName key) where TReferanced : IReferanced;
     }
 }

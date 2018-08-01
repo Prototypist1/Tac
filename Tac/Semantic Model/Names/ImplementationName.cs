@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Tac.Semantic_Model.Names
 {
-    public class ImplementationName : AbstractName
+    public class ImplementationName : Name
     {
         protected ImplementationName(string name) : base(name)
         {

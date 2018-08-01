@@ -2,10 +2,8 @@
 {
     public interface IReferanced
     {
+
+        IName Key { get; }
     }
 
-    public interface IReferanced<TKey>: IReferanced
-    {
-        TKey Key { get; }
-    }
 }
