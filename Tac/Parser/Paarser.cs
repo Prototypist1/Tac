@@ -16,9 +16,10 @@ namespace Tac.Parser
 
 
         public delegate bool MustExitDelegate(out string error);
-        public delegate bool TryExitDelegate(ref string current);
+        public delegate bool TryExitDelegate(string current);
 
-        public static TokenFactory CurlyBracketTokenFactory() {
+        public static TokenFactory CurlyBracketTokenFactory()
+        {
 
         }
 
@@ -27,10 +28,11 @@ namespace Tac.Parser
 
         }
 
-        public static TokenFactory SquareBracketTokenFactory() {
+        public static TokenFactory SquareBracketTokenFactory()
+        {
 
         }
-        
+
         public static TokenFactory ParenthesisTokenFactory()
         {
 
@@ -43,8 +45,9 @@ namespace Tac.Parser
 
     }
 
-    public interface IToken {
-        
+    public interface IToken
+    {
+
     }
 
     public class AtomicToken : IToken
@@ -54,8 +57,9 @@ namespace Tac.Parser
         public AtomicToken(string item) => this.Item = item ?? throw new ArgumentNullException(nameof(item));
     }
 
-    public class CompositToken: IToken {
-        
+    public class CompositToken : IToken
+    {
+
         public IEnumerable<IToken> Tokens { get; }
 
         public CompositToken(IEnumerable<IToken> tokens) => this.Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
@@ -106,7 +110,6 @@ namespace Tac.Parser
             }
         }
 
-        public static CodeElement[] ParseBlock(this string s) => s.SmartSplit(";").Select(x => ParseLine(x)).ToArray();
         public static CodeElement ParseLine(this string s)
         {
             var elements = s.SmartSplitInclusive(AllOperationKeys).ToArray();
@@ -142,8 +145,8 @@ namespace Tac.Parser
         {
             var enumerator = s.GetEnumerator();
             return Inner(TokenFactory.CompositTokenFactory());
-            
-            IToken Inner(TokenFactory tokenFactory )
+
+            IToken Inner(TokenFactory tokenFactory)
             {
                 var tokens = new List<IToken>();
                 var current = "";
@@ -170,35 +173,51 @@ namespace Tac.Parser
                         tokens.Add(Inner(TokenFactory.BrokenBracketTokenFactory()));
                     }
 
-                    current += enumerator.Current;
-                    if (tokenFactory.TryExit(ref current))
+                    else if (enumerator.Current == ';')
                     {
-                        tokens.AddRange(WhiteSpaceSplit(current));
+                        tokens.Add(TokenFactory.CompositTokenFactory().MakeToken(WhiteSpaceSplit(current)));
+                        tokens.Add(Inner(TokenFactory.BrokenBracketTokenFactory()));
+                    }
+
+
+                    if (tokenFactory.TryExit(current))
+                    {
+                        var whiteSpaceTokens = WhiteSpaceSplit(current);
+                        if (whiteSpaceTokens.Any())
+                        {
+                            tokens.Add(TokenFactory.CompositTokenFactory().MakeToken(whiteSpaceTokens));
+                        }
                         return tokenFactory.MakeToken(tokens);
                     }
-                    else
+
+                    current += enumerator.Current;
+                    foreach (var special in specials)
                     {
-                        foreach (var special in specials)
+                        if (current.EndsWith(special))
                         {
-                            if (current.EndsWith(special))
+                            var startsAt = current.IndexOf(special);
+                            if (startsAt != 0)
                             {
-                                var startsAt = current.IndexOf(special);
-                                if (startsAt != 0)
+                                var whiteSpaceTokens = WhiteSpaceSplit(current.Substring(0, startsAt));
+                                if (whiteSpaceTokens.Any())
                                 {
-                                    tokens.AddRange(WhiteSpaceSplit(current.Substring(0, startsAt)));
+                                    tokens.Add(TokenFactory.CompositTokenFactory().MakeToken(whiteSpaceTokens));
                                 }
+                                tokens.Add(new AtomicToken(special));
                             }
                         }
                     }
                 }
-                if (tokenFactory.MustExit(out var error)) {
+                if (tokenFactory.MustExit(out var error))
+                {
                     throw new Exception(error);
                 }
                 return tokenFactory.MakeToken(WhiteSpaceSplit(current));
             }
         }
 
-        private static IToken[] WhiteSpaceSplit(string current) {
+        private static IToken[] WhiteSpaceSplit(string current)
+        {
             return current.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).Select(x => new AtomicToken(x)).ToArray();
         }
 
