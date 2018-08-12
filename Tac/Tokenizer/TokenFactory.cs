@@ -44,22 +44,47 @@ namespace Tac.Parser
         
         public static TokenFactory CurlyBracketTokenFactory()
         {
-            return new TokenFactory(x => new BacketCompositToken('{', '}', x), CharacterExit('}'), ExitRequired("} not found"));
+            return new TokenFactory(innerList => {
+                var list = new List<IToken>();
+                list.Add(new AtomicToken("{"));
+                list.AddRange(innerList);
+                list.Add(new AtomicToken("}"));
+                return new CompositToken(list);
+            }
+            , CharacterExit('}'), ExitRequired("} not found"));
         }
 
         public static TokenFactory BrokenBracketTokenFactory()
         {
-            return new TokenFactory(x => new BacketCompositToken('<', '>', x), CharacterExit('>'), ExitRequired("> not found"));
+            return new TokenFactory(innerList => {
+                var list = new List<IToken>();
+                list.Add(new AtomicToken("<"));
+                list.AddRange(innerList);
+                list.Add(new AtomicToken(">"));
+                return new CompositToken(list);
+            }, CharacterExit('>'), ExitRequired("> not found"));
         }
 
         public static TokenFactory SquareBracketTokenFactory()
         {
-            return new TokenFactory(x => new BacketCompositToken('[', ']', x), CharacterExit(']'), ExitRequired("] not found"));
+            return new TokenFactory(innerList => {
+                var list = new List<IToken>();
+                list.Add(new AtomicToken("["));
+                list.AddRange(innerList);
+                list.Add(new AtomicToken("]"));
+                return new CompositToken(list);
+            }, CharacterExit(']'), ExitRequired("] not found"));
         }
 
         public static TokenFactory ParenthesisTokenFactory()
         {
-            return new TokenFactory(x => new BacketCompositToken('(', ')', x), CharacterExit(')'), ExitRequired(") not found"));
+            return new TokenFactory(innerList => {
+                var list = new List<IToken>();
+                list.Add(new AtomicToken("("));
+                list.AddRange(innerList);
+                list.Add(new AtomicToken(")"));
+                return new CompositToken(list);
+            }, CharacterExit(')'), ExitRequired(") not found"));
         }
 
         public static TokenFactory CompositTokenFactory()

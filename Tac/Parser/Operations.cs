@@ -45,6 +45,7 @@ namespace Tac.Parser
                     {"minus", (last, next) => new SubtractOperation(last.ToCodeElement(),next.ToCodeElement()) },
                     {"times", (last, next) => new MultiplyOperation(last.ToCodeElement(),next.ToCodeElement()) },
                     {"if-true", (last, next) => new IfTrueOperation(last.ToCodeElement(),next.ToCodeElement()) },
+                    {"else", (last, next) => new ElseOperation(last.ToCodeElement(),next.ToCodeElement()) },
                     {"less-then", (last, next) => new LessThanOperation(last.ToCodeElement(),next.ToCodeElement()) },
                     {"next-call", (last, next) => new NextCallOperation(last.ToCodeElement(),next.ToCodeElement()) },
                     {"assign", (last, next) => new AssignOperation(last.ToCodeElement(),next.ToCodeElement()) },

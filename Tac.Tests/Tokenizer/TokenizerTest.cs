@@ -10,8 +10,7 @@ namespace Tac.Tests.Tokenizer
         [Fact]
         public void Test1() {
             var text =
-@"
-var fac is-static method|int|int input {
+@"var fac is-static method|int|int input {
     input less-then 2 if-true {
         1 return;
     } else {
