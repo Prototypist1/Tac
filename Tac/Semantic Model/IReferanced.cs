@@ -1,9 +1,10 @@
-﻿namespace Tac.Semantic_Model
+﻿using Tac.Semantic_Model.Names;
+
+namespace Tac.Semantic_Model
 {
     public interface IReferanced
     {
-
-        IName Key { get; }
+        AbstractName Key { get; }
     }
 
 }

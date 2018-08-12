@@ -3,9 +3,9 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ParameterDefinition: IReferanced
+    public sealed class LocalDefinition : IReferanced
     {
-        public ParameterDefinition(bool readOnly, TypeReferance type, AbstractName key)
+        public LocalDefinition(bool readOnly, TypeReferance type, AbstractName key)
         {
             ReadOnly = readOnly;
             Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -16,4 +16,5 @@ namespace Tac.Semantic_Model
         public TypeReferance Type { get; }
         public AbstractName Key { get; }
     }
+
 }

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public abstract class AbstractScope : IScope
+    public class Scope : IScope
     {
         protected bool TryAdd(DefintionLifetime defintionLifetime, IReferanced definition)
         {
@@ -33,22 +31,13 @@ namespace Tac.Semantic_Model
             public IReferanced Definition { get; }
         }
 
-        private readonly ConcurrentDictionary<IName, ConcurrentSet<Visiblity>> referanced = new ConcurrentDictionary<IName, ConcurrentSet<Visiblity>>();
+        private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity>> referanced = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity>>();
 
         public IScope EnclosingScope { get; }
 
-        public abstract TReferanced Get<TReferanced>(IName key) where TReferanced : IReferanced;
-    }
-    
-    // TODO, this does not go here
-    // and I would like to use parallel flow
-    public class ConcurrentSet<T> : IEnumerable<T> {
-        protected readonly ConcurrentDictionary<T, T> backing = new ConcurrentDictionary<T, T>();
-        public int Count => backing.Count;
-        public bool TryAdd(T item) => backing.TryAdd(item,item);
-        public bool Contains(T item) => backing.ContainsKey(item);
-        public IEnumerator<T> GetEnumerator() => backing.Keys.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => backing.Keys.GetEnumerator();
+        public TReferanced Get<TReferanced>(NamePath key) where TReferanced : IReferanced {
+            throw new NotImplementedException();
+        }
     }
 
 }
