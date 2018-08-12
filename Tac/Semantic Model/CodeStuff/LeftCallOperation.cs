@@ -5,9 +5,9 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class LeftCallOperation : BinaryOperation
+    public class NextCallOperation : BinaryOperation
     {
-        public LeftCallOperation(CodeElement left, CodeElement right) : base(left, right)
+        public NextCallOperation(CodeElement left, CodeElement right) : base(left, right)
         {
         }
     }

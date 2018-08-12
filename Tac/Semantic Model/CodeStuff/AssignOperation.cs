@@ -11,4 +11,11 @@ namespace Tac.Semantic_Model.Operations
         {
         }
     }
+
+    public class IsStaticOperation : BinaryOperation
+    {
+        public IsStaticOperation(CodeElement left, CodeElement right) : base(left, right)
+        {
+        }
+    }
 }

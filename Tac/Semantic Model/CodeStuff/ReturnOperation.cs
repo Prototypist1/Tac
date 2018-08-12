@@ -15,6 +15,16 @@ namespace Tac.Semantic_Model.Operations
         public CodeElement Result { get; }
     }
 
+    public class VarOperation : CodeElement
+    {
+        public VarOperation(CodeElement varDef)
+        {
+            VarDef = varDef;
+        }
+
+        public CodeElement VarDef { get; }
+    }
+
     public class Constant : CodeElement {
         public Constant(string value) {
             Value = value;

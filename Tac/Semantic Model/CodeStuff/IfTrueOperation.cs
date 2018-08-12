@@ -11,4 +11,11 @@ namespace Tac.Semantic_Model.Operations
         {
         }
     }
+
+    public class ElseOperation : BinaryOperation
+    {
+        public ElseOperation(CodeElement left, CodeElement right) : base(left, right)
+        {
+        }
+    }
 }

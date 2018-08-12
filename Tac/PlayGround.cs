@@ -47,7 +47,7 @@ namespace Tac
                             })),
                     new ReturnOperation(
                         new AddOperation(
-                            new LeftCallOperation(
+                            new NextCallOperation(
                                 new SubtractOperation(
                                     new ParameterReferance(
                                         new NamePath(
@@ -57,7 +57,7 @@ namespace Tac
                                     new NamePath(
                                         new[] {
                                             new ExplicitName("Fib") }))),
-                            new LeftCallOperation(
+                            new NextCallOperation(
                                 new SubtractOperation(
                                     new ParameterReferance(
                                         new NamePath(
