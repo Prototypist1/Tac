@@ -54,7 +54,6 @@ namespace Tac.Parser
                 },
                 new Dictionary<string, Func<ParseContext, CodeElement>>
                 {
-                    {"var", (next) => new VarOperation(next.ToCodeElement()) },
                 },
                 new Dictionary<string, Func<ParseContext, CodeElement>>
                 {
