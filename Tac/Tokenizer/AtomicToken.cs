@@ -10,19 +10,9 @@ namespace Tac.Parser
 
         public AtomicToken(string item) => this.Item = item ?? throw new ArgumentNullException(nameof(item));
 
-        public override string ToString()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-
-        public override bool Equals(object obj)
-        {
-            var token = obj as AtomicToken;
-            return token != null &&
-                   Item == token.Item;
-        }
-
-        public override int GetHashCode() => -979861770 + EqualityComparer<string>.Default.GetHashCode(Item);
+        public override string ToString()=> $"Atom({Item})";
+        public override bool Equals(object obj)=> ToString() == obj.ToString();
+        public override int GetHashCode() => ToString().GetHashCode();
     }
 
 }

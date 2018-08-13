@@ -60,12 +60,18 @@ namespace Tac.Parser
             }
         }
 
-        private ResultAndExitString OuterTokenzie(CharEnumerator enumerator, Func<CharEnumerator, ResultAndExitString> inner, Func<string, bool> isExit, Func<IEnumerable<IToken>, IToken> makeToken, bool alwaysMake)
+        private ResultAndExitString OuterTokenzie(
+            CharEnumerator enumerator, 
+            Func<CharEnumerator, ResultAndExitString> inner, 
+            Func<string, bool> isExit, 
+            Func<IEnumerable<IToken>, IToken> makeToken, 
+            bool alwaysMake,
+            bool addExitString)
         {
             var elements = new List<IToken>();
             while (true)
             {
-                var res = TokenzieLine(enumerator);
+                var res = inner(enumerator);
                 if (res.TryGetToken(out var token))
                 {
                     elements.Add(token);
@@ -85,7 +91,10 @@ namespace Tac.Parser
                     }
                     else
                     {
-                        elements.Add(new AtomicToken(exitString));
+                        if (addExitString)
+                        {
+                            elements.Add(new AtomicToken(exitString));
+                        }
                     }
                 }
                 else
@@ -157,7 +166,7 @@ namespace Tac.Parser
         private ResultAndExitString TokenzieLine(CharEnumerator enumerator)
         {
 
-            return OuterTokenzie(enumerator, TokenizeElement, IsExit, x => new LineToken(x), false);
+            return OuterTokenzie(enumerator, TokenizeElement, IsExit, x => new LineToken(x), false, true);
 
             bool IsExit(string str)
             {
@@ -172,7 +181,7 @@ namespace Tac.Parser
 
         private ResultAndExitString TokenzieCurleyBrackets(CharEnumerator enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new CurleyBacketToken(x), true);
+            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new CurleyBacketToken(x), true, false);
 
             bool IsExit(string str)
             {
@@ -183,7 +192,7 @@ namespace Tac.Parser
 
         private ResultAndExitString TokenzieSquareBrackets(CharEnumerator enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new SquareBacketToken(x), true);
+            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new SquareBacketToken(x), true, false);
 
             bool IsExit(string str)
             {
@@ -194,7 +203,7 @@ namespace Tac.Parser
 
         private ResultAndExitString TokenzieBrokenBrackets(CharEnumerator enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new BrokenBracketToken(x), true);
+            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new BrokenBracketToken(x), true, false);
 
             bool IsExit(string str)
             {
@@ -205,7 +214,7 @@ namespace Tac.Parser
 
         private ResultAndExitString TokenzieParenthesis(CharEnumerator enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new ParentThesisToken(x), true);
+            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new ParentThesisToken(x), true, false);
 
             bool IsExit(string str)
             {
@@ -216,7 +225,7 @@ namespace Tac.Parser
 
         private ResultAndExitString TokenzieFile(CharEnumerator enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new FileToken(x), true);
+            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new FileToken(x), true, false);
 
             bool IsExit(string str)
             {

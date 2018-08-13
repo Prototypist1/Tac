@@ -9,14 +9,36 @@ namespace Tac.Tests.Tokenizer
 {
     public class TokenizerTest
     {
-        private static IToken CT(params IToken[] tokens) {
-
-            return new CompositToken(tokens);
-        }
-
-        private static IToken AT(string s)
+        private static IToken Ele(params IToken[] tokens)
         {
-
+            return new ElementToken(tokens);
+        }
+        private static IToken Par(params IToken[] tokens)
+        {
+            return new ParentThesisToken(tokens);
+        }
+        private static IToken Broke(params IToken[] tokens)
+        {
+            return new BrokenBracketToken(tokens);
+        }
+        private static IToken Curl(params IToken[] tokens)
+        {
+            return new CurleyBacketToken(tokens);
+        }
+        private static IToken File(params IToken[] tokens)
+        {
+            return new FileToken(tokens);
+        }
+        private static IToken Line(params IToken[] tokens)
+        {
+            return new LineToken(tokens);
+        }
+        private static IToken Square(params IToken[] tokens)
+        {
+            return new SquareBacketToken(tokens);
+        }
+        private static IToken Atom(string s)
+        {
             return new AtomicToken(s);
         }
 
@@ -25,55 +47,47 @@ namespace Tac.Tests.Tokenizer
             var text =
 @"var fac is-static method|int|int input {
     input less-then 2 if-true {
-        1 return;
+        1 return ;
     } else {
-        input minus 1 next-call fac times input return;      
-    };
-};";
-            var operations = Tac.Parser.Operations.StandardOperations.Value;
+        input minus 1 next-call fac times input return ;      
+    } ;
+} ;";
             var tokenizer = new Tac.Parser.Tokenizer();
-            var res = tokenizer.SmartSplitBase(text, operations.AllOperationKeys);
+            var res = tokenizer.Tokenize(text);
 
             var target =
-                CT(
-                    CT(
-                        AT("var"),
-                        AT("fac")),
-                    AT("is-static"),
-                    CT(
-                        AT("method|int|int"),
-                        AT("input"),
-                        CT(
-                            AT("{"),
-                            CT(
-                                CT(AT("input")),
-                                AT("less-then"),
-                                CT(AT("2")),
-                                AT("if-true"),
-                                CT(
-                                    AT("{"),
-                                    CT(
-                                        CT(AT("1")),
-                                        AT("return"),
-                                        AT(";")),
-                                    AT("}")),
-                                AT("else"),
-                                CT(
-                                    AT("{"),
-                                    CT(
-                                        CT(AT("input")),
-                                        AT("minus"),
-                                        CT(AT("1")),
-                                        AT("next-call"),
-                                        CT(AT("fac")),
-                                        AT("times"),
-                                        CT(AT("input")),
-                                        AT("return"),
-                                        AT(";")),
-                                    AT("}")),
-                                AT(";")),
-                            AT("}"))),
-                    AT(";"));
+                File(
+                    Line(
+                        Ele(
+                            Atom("var"),
+                            Atom("fac")),
+                        Atom("is-static"),
+                    Ele(
+                        Atom("method|int|int"),
+                        Atom("input"),
+                        Curl(
+                            Line(
+                                Ele(Atom("input")),
+                                Atom("less-then"),
+                                Ele(Atom("2")),
+                                Atom("if-true"),
+                                Ele(
+                                    Curl(
+                                        Line(
+                                            Ele(Atom("1")),
+                                            Atom("return")))),
+                                Atom("else"),
+                                Ele(
+                                    Curl(
+                                        Line(
+                                            Ele(Atom("input")),
+                                            Atom("minus"),
+                                            Ele(Atom("1")),
+                                            Atom("next-call"),
+                                            Ele(Atom("fac")),
+                                            Atom("times"),
+                                            Ele(Atom("input")),
+                                            Atom("return")))))))));
             
             Assert.Equal(target, res);
         }
