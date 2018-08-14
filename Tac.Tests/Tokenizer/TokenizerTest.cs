@@ -62,32 +62,32 @@ namespace Tac.Tests.Tokenizer
                             Atom("var"),
                             Atom("fac")),
                         Atom("is-static"),
-                    Ele(
-                        Atom("method|int|int"),
-                        Atom("input"),
-                        Curl(
-                            Line(
-                                Ele(Atom("input")),
-                                Atom("less-then"),
-                                Ele(Atom("2")),
-                                Atom("if-true"),
-                                Ele(
-                                    Curl(
-                                        Line(
-                                            Ele(Atom("1")),
-                                            Atom("return")))),
-                                Atom("else"),
-                                Ele(
-                                    Curl(
-                                        Line(
-                                            Ele(Atom("input")),
-                                            Atom("minus"),
-                                            Ele(Atom("1")),
-                                            Atom("next-call"),
-                                            Ele(Atom("fac")),
-                                            Atom("times"),
-                                            Ele(Atom("input")),
-                                            Atom("return")))))))));
+                        Ele(
+                            Atom("method|int|int"),
+                            Atom("input"),
+                            Curl(
+                                Line(
+                                    Ele(Atom("input")),
+                                    Atom("less-then"),
+                                    Ele(Atom("2")),
+                                    Atom("if-true"),
+                                    Ele(
+                                        Curl(
+                                            Line(
+                                                Ele(Atom("1")),
+                                                Atom("return")))),
+                                    Atom("else"),
+                                    Ele(
+                                        Curl(
+                                            Line(
+                                                Ele(Atom("input")),
+                                                Atom("minus"),
+                                                Ele(Atom("1")),
+                                                Atom("next-call"),
+                                                Ele(Atom("fac")),
+                                                Atom("times"),
+                                                Ele(Atom("input")),
+                                                Atom("return")))))))));
             
             Assert.Equal(target, res);
         }
@@ -95,45 +95,28 @@ namespace Tac.Tests.Tokenizer
         [Fact]
         public void Test2()
         {
-            var text = @"( 2 + 5 ) * ( 2 + 7 ) ;";
+            var text = @"( 2 plus 5 ) times ( 2 plus 7 ) ;";
             var tokenizer = new Tac.Parser.Tokenizer();
             var res = tokenizer.Tokenize(text);
 
-            //var target =
-            //    File(
-            //        Line(
-            //            Ele(
-            //                Atom("var"),
-            //                Atom("fac")),
-            //            Atom("is-static"),
-            //        Ele(
-            //            Atom("method|int|int"),
-            //            Atom("input"),
-            //            Curl(
-            //                Line(
-            //                    Ele(Atom("input")),
-            //                    Atom("less-then"),
-            //                    Ele(Atom("2")),
-            //                    Atom("if-true"),
-            //                    Ele(
-            //                        Curl(
-            //                            Line(
-            //                                Ele(Atom("1")),
-            //                                Atom("return")))),
-            //                    Atom("else"),
-            //                    Ele(
-            //                        Curl(
-            //                            Line(
-            //                                Ele(Atom("input")),
-            //                                Atom("minus"),
-            //                                Ele(Atom("1")),
-            //                                Atom("next-call"),
-            //                                Ele(Atom("fac")),
-            //                                Atom("times"),
-            //                                Ele(Atom("input")),
-            //                                Atom("return")))))))));
+            var target =
+                File(
+                    Line(
+                        Ele(
+                            Par(
+                                Line(
+                                    Ele(Atom("2")),
+                                    Atom("plus"),
+                                    Ele(Atom("5"))))),
+                        Atom("times"),
+                         Ele(
+                            Par(
+                                Line(
+                                    Ele(Atom("2")),
+                                    Atom("plus"),
+                                    Ele(Atom("7")))))));
 
-            //Assert.Equal(target, res);
+            Assert.Equal(target, res);
         }
     }
 }

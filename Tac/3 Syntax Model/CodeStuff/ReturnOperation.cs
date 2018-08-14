@@ -13,6 +13,8 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public ICodeElement Result { get; }
+
+        public bool ContainsInTree(ICodeElement element) => Equals(element) || Result.Equals(element);
     }
 
     public class VarOperation : ICodeElement
@@ -23,6 +25,8 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public ICodeElement VarDef { get; }
+
+        public bool ContainsInTree(ICodeElement element) => Equals(element);
     }
 
     public class Constant : ICodeElement {
@@ -31,5 +35,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public string Value { get; }
+
+        public bool ContainsInTree(ICodeElement element) => Equals(element);
     }
 }

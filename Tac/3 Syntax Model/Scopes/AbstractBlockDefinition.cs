@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model
@@ -12,5 +13,9 @@ namespace Tac.Semantic_Model
         
         public TScope Scope { get; }
         public ICodeElement[] Body { get; }
+
+        public bool ContainsInTree(ICodeElement element) => Equals(element) || Body.Any(x => x.ContainsInTree(element));
+
+
     }
 }

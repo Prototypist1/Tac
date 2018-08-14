@@ -12,6 +12,8 @@ namespace Tac.Semantic_Model
 
         public Referance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
 
+        public bool ContainsInTree(ICodeElement element) => Equals(element);
+
         public IReferanced GetOrThrow(IScope compilation)
         {
             return compilation.Get<IReferanced>(key);

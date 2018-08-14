@@ -16,6 +16,8 @@ namespace Tac.Semantic_Model
         public bool ReadOnly { get; }
         public TypeReferance Type { get; }
         public AbstractName Key { get; }
+
+        public bool ContainsInTree(ICodeElement element) => Equals(element);
     }
 
 }

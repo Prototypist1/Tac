@@ -15,7 +15,7 @@ namespace Tac.Parser
         public override string ToString() => Tokens.Aggregate("",(x,y)=>x + y.ToString() + ",");
         public override bool Equals(object obj)
         {
-            return obj is CompositToken token && base.Equals(token);
+            return obj is CompositToken other && Tokens.SequenceEqual(other.Tokens);
         }
         public override int GetHashCode()
         {
