@@ -5,7 +5,7 @@ using System.Text;
 namespace Tac.Semantic_Model.CodeStuff
 {
     public abstract class CodeElement {
-
+        public abstract bool ContainsInTree(CodeElement element);
     }
 
     public class NoELement: CodeElement

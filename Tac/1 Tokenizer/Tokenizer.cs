@@ -214,7 +214,7 @@ namespace Tac.Parser
 
         private ResultAndExitString TokenzieParenthesis(CharEnumerator enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new ParentThesisToken(x), true, false);
+            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new ParenthesisToken(x), true, false);
 
             bool IsExit(string str)
             {

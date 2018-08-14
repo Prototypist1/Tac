@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Syntactic Model\" />
+    <Folder Include="4 Conceptual Model\" />
   </ItemGroup>
 
   <ItemGroup>
