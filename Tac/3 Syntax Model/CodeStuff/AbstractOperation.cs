@@ -8,9 +8,9 @@ namespace Tac.Semantic_Model.CodeStuff
          bool ContainsInTree(ICodeElement element);
     }
 
-    public class NoELement: ICodeElement
+    public class NoELement : ICodeElement
     {
-
+        public bool ContainsInTree(ICodeElement element) => element.Equals(this);
     }
 
     public abstract class BinaryOperation: ICodeElement
@@ -22,6 +22,16 @@ namespace Tac.Semantic_Model.CodeStuff
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
+        }
+
+        public bool ContainsInTree(ICodeElement element) {
+            if (element.Equals(this))
+            {
+                return true;
+            }
+            else {
+                return left.ContainsInTree(element) || right.ContainsInTree(element);
+            }
         }
     }
     

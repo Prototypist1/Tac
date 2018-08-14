@@ -70,6 +70,15 @@ namespace Tac.Parser
                 return CodeElement;
             }
 
+            public ICodeElement GetCodeElementOrThrow()
+            {
+                if (CodeElement == null)
+                {
+                    throw new Exception("Code element does not exist");
+                }
+                return CodeElement;
+            }
+
             public bool TryGetNext(out IParseStateView parseStateView)
             {
                 if (Next == default && ParseState.TryGetNextToken(out var token))
@@ -79,6 +88,8 @@ namespace Tac.Parser
                 parseStateView = Next;
                 return Next != default;
             }
+
+
 
             public bool TryGetLast(out IParseStateView parseStateView)
             {

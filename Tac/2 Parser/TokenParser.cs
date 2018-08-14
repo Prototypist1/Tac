@@ -14,7 +14,7 @@ namespace Tac.Parser
         public static ICodeElement ParseLine(IParseStateView view) {
             do
             {
-                ParseLineElementOrThrow(view);
+                return ParseLineElementOrThrow(view);
             } while (view.TryGetNext(out view));
         }
 
@@ -84,6 +84,14 @@ namespace Tac.Parser
 
         public static ICodeElement[] ParseBlock(CurleyBacketToken token)
         {
+            return token.Tokens.Select(x =>
+            {
+                if (x is LineToken lineToken)
+                {
+                    return ParseLine(lineToken.Tokens);
+                }
+                throw new Exception("unexpected token type");
+            }).ToArray();
         }
 
         public static bool TryParseElement(IParseStateView view)
