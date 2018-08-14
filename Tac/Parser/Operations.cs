@@ -50,7 +50,7 @@ namespace Tac.Parser
                     {"next-call", (last, next) => new NextCallOperation(last.ToCodeElement(),next.ToCodeElement()) },
                     {"assign", (last, next) => new AssignOperation(last.ToCodeElement(),next.ToCodeElement()) },
                     {"last-call", (last, next) => new LastCallOperation(last.ToCodeElement(),next.ToCodeElement()) },
-                    { "is-static", (last, next) => new IsStaticOperation(last.ToCodeElement(),next.ToCodeElement()) },
+                    {"is-static", (last, next) => new IsStaticOperation(last.ToCodeElement(),next.ToCodeElement()) },
                 },
                 new Dictionary<string, Func<ParseContext, CodeElement>>
                 {
