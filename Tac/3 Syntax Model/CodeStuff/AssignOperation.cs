@@ -7,14 +7,14 @@ namespace Tac.Semantic_Model.Operations
 {
     public class AssignOperation : BinaryOperation
     {
-        public AssignOperation(CodeElement left, CodeElement right) : base(left, right)
+        public AssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
     }
 
     public class IsStaticOperation : BinaryOperation
     {
-        public IsStaticOperation(CodeElement left, CodeElement right) : base(left, right)
+        public IsStaticOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
     }

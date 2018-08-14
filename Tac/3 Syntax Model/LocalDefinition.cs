@@ -1,9 +1,10 @@
 ﻿using System;
+using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class LocalDefinition : IReferanced
+    public sealed class LocalDefinition : IReferanced, ICodeElement
     {
         public LocalDefinition(bool readOnly, TypeReferance type, AbstractName key)
         {

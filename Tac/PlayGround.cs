@@ -33,7 +33,7 @@ namespace Tac
                         new NamePath(
                             new[] { new ExplicitName("int") })),
                     new ExplicitName("x")),
-                new CodeElement [] {
+                new ICodeElement [] {
                     new IfTrueOperation(
                         new LessThanOperation(
                             new ParameterReferance(

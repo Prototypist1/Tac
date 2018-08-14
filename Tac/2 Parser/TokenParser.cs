@@ -9,23 +9,23 @@ namespace Tac.Parser
     public static class TokenParser
     {
 
-        private static CodeElement ParseLine(IEnumerable<IToken> tokens) => throw new NotImplementedException();
+        private static ICodeElement ParseLine(IEnumerable<IToken> tokens) => throw new NotImplementedException();
 
-        public static CodeElement ParseLine(IParseStateView view) {
+        public static ICodeElement ParseLine(IParseStateView view) {
             do
             {
                 ParseLineElementOrThrow(view);
             } while (view.TryGetNext(out view));
         }
 
-        private static CodeElement ParseLineElementOrThrow(IParseStateView view)
+        private static ICodeElement ParseLineElementOrThrow(IParseStateView view)
         {
             if (TryParseAtomic(view)) { }
             else if (TryParseElement(view)) { }
             return view.GetCodeElementOrThrow();
         }
 
-        private static CodeElement WalkBackwords(IParseStateView view) {
+        private static ICodeElement WalkBackwords(IParseStateView view) {
             var viewElement = view.GetCodeElement(() => ParseLineElementOrThrow(view));
 
             while (view.TryGetNext(out var lastView)) {
@@ -80,6 +80,10 @@ namespace Tac.Parser
                 return true;
             }
             return false;
+        }
+
+        public static ICodeElement[] ParseBlock(CurleyBacketToken token)
+        {
         }
 
         public static bool TryParseElement(IParseStateView view)

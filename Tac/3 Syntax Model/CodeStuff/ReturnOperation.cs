@@ -5,27 +5,27 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class ReturnOperation : CodeElement
+    public class ReturnOperation : ICodeElement
     {
-        public ReturnOperation(CodeElement result)
+        public ReturnOperation(ICodeElement result)
         {
             Result = result;
         }
 
-        public CodeElement Result { get; }
+        public ICodeElement Result { get; }
     }
 
-    public class VarOperation : CodeElement
+    public class VarOperation : ICodeElement
     {
-        public VarOperation(CodeElement varDef)
+        public VarOperation(ICodeElement varDef)
         {
             VarDef = varDef;
         }
 
-        public CodeElement VarDef { get; }
+        public ICodeElement VarDef { get; }
     }
 
-    public class Constant : CodeElement {
+    public class Constant : ICodeElement {
         public Constant(string value) {
             Value = value;
         }

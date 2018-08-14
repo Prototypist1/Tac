@@ -28,7 +28,7 @@ namespace Tac.Parser
             }
         }
 
-        public CodeElement Whatever(string value, Operations operations, ParseContext context)
+        public ICodeElement Whatever(string value, Operations operations, ParseContext context)
         {
             if (Operations.StandardOperations.Value.BinaryOperations.ContainsKey(value))
             {
@@ -49,7 +49,7 @@ namespace Tac.Parser
             return ParseElement(value);
         }
 
-        public CodeElement ParseElement(string s) => throw new NotImplementedException();
+        public ICodeElement ParseElement(string s) => throw new NotImplementedException();
 
         internal ParseContext GetContext(int i)
         {

@@ -6,7 +6,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class Referance: CodeElement
+    public class Referance: ICodeElement
     {
         public readonly NamePath key;
 
@@ -27,41 +27,6 @@ namespace Tac.Semantic_Model
 
         public new TReferanced GetOrThrow(IScope compilation) {
             return compilation.Get<TReferanced>(key);
-        }
-    }
-
-    public class TypeReferance : Referance<TypeDefinition>
-    {
-        public TypeReferance(NamePath key) : base(key)
-        {
-        }
-    }
-
-    public class StaticMethodReferance : Referance<StaticMethodDefinition>
-    {
-        public StaticMethodReferance(NamePath key) : base(key)
-        {
-        }
-    }
-
-    public class MemberReferance : Referance<MemberDefinition>
-    {
-        public MemberReferance(NamePath key) : base(key)
-        {
-        }
-    }
-
-    public class LocalReferance : Referance<LocalDefinition>
-    {
-        public LocalReferance(NamePath key) : base(key)
-        {
-        }
-    }
-
-    public class ParameterReferance : Referance<ParameterDefinition>
-    {
-        public ParameterReferance(NamePath key) : base(key)
-        {
         }
     }
 }

@@ -9,8 +9,8 @@ namespace Tac.Parser
 
     public interface IParseStateView
     {
-        CodeElement GetCodeElementOrThrow();
-        CodeElement GetCodeElement(Func<CodeElement> generator);
+        ICodeElement GetCodeElementOrThrow();
+        ICodeElement GetCodeElement(Func<ICodeElement> generator);
         bool TryGetNext(out IParseStateView parseStateView);
         bool TryGetLast(out IParseStateView parseStateView);
         IToken Token { get; }
@@ -59,11 +59,11 @@ namespace Tac.Parser
 
             private ParseState ParseState { get; }
             public IToken Token { get; }
-            private CodeElement CodeElement { get; set; }
+            private ICodeElement CodeElement { get; set; }
             private ParseStateView Next { get; set; }
             private ParseStateView Last { get; }
 
-            public CodeElement GetCodeElement(Func<CodeElement> generator) {
+            public ICodeElement GetCodeElement(Func<ICodeElement> generator) {
                 if (CodeElement == null) {
                     CodeElement = generator();
                 }

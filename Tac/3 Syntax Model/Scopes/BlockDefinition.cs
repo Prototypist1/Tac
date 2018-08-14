@@ -6,6 +6,6 @@ namespace Tac.Semantic_Model
 
     public  class BlockDefinition: AbstractBlockDefinition<LocalStaticScope> 
     {
-        public BlockDefinition(CodeElement[] body) : base(new LocalStaticScope(), body) { }
+        public BlockDefinition(ICodeElement[] body) : base(new LocalStaticScope(), body) { }
     }
 }

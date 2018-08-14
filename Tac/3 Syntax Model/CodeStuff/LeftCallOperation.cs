@@ -7,7 +7,7 @@ namespace Tac.Semantic_Model.Operations
 {
     public class NextCallOperation : BinaryOperation
     {
-        public NextCallOperation(CodeElement left, CodeElement right) : base(left, right)
+        public NextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
     }

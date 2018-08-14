@@ -4,21 +4,21 @@ using System.Text;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
-    public abstract class CodeElement {
-        public abstract bool ContainsInTree(CodeElement element);
+    public interface ICodeElement {
+         bool ContainsInTree(ICodeElement element);
     }
 
-    public class NoELement: CodeElement
+    public class NoELement: ICodeElement
     {
 
     }
 
-    public abstract class BinaryOperation: CodeElement
+    public abstract class BinaryOperation: ICodeElement
     {
-        public readonly CodeElement left;
-        public readonly CodeElement right;
+        public readonly ICodeElement left;
+        public readonly ICodeElement right;
 
-        public BinaryOperation(CodeElement left, CodeElement right)
+        public BinaryOperation(ICodeElement left, ICodeElement right)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));

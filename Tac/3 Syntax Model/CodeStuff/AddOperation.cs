@@ -7,21 +7,21 @@ namespace Tac.Semantic_Model.Operations
 {
     public class AddOperation : BinaryOperation
     {
-        public AddOperation(CodeElement left, CodeElement right) : base(left, right)
+        public AddOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
     }
 
     public class SubtractOperation : BinaryOperation
     {
-        public SubtractOperation(CodeElement left, CodeElement right) : base(left, right)
+        public SubtractOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
     }
 
     public class MultiplyOperation : BinaryOperation
     {
-        public MultiplyOperation(CodeElement left, CodeElement right) : base(left, right)
+        public MultiplyOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
     }

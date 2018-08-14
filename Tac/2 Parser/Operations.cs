@@ -8,10 +8,10 @@ namespace Tac.Parser
     public class Operations
     {
 
-        public Dictionary<string, Func<CodeElement, CodeElement, CodeElement>> BinaryOperations { get; }
-        public Dictionary<string, Func<CodeElement, CodeElement>> NextOperations { get; }
-        public Dictionary<string, Func<CodeElement, CodeElement>> LastOperations { get; }
-        public Dictionary<string, Func<CodeElement>> ConstantOperations { get; }
+        public Dictionary<string, Func<ICodeElement, ICodeElement, ICodeElement>> BinaryOperations { get; }
+        public Dictionary<string, Func<ICodeElement, ICodeElement>> NextOperations { get; }
+        public Dictionary<string, Func<ICodeElement, ICodeElement>> LastOperations { get; }
+        public Dictionary<string, Func<ICodeElement>> ConstantOperations { get; }
 
         public IEnumerable<string> AllOperationKeys
         {
@@ -39,7 +39,7 @@ namespace Tac.Parser
         public static Lazy<Operations> StandardOperations = new Lazy<Operations>(() =>
         {
             return new Operations(
-                new Dictionary<string, Func<CodeElement, CodeElement, CodeElement>>
+                new Dictionary<string, Func<ICodeElement, ICodeElement, ICodeElement>>
                 {
                     {"plus", (last, next) => new AddOperation(last,next) },
                     {"minus", (last, next) => new SubtractOperation(last,next) },
@@ -52,23 +52,23 @@ namespace Tac.Parser
                     {"last-call", (last, next) => new LastCallOperation(last,next) },
                     {"is-static", (last, next) => new IsStaticOperation(last,next) },
                 },
-                new Dictionary<string, Func<CodeElement, CodeElement>>
+                new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {
                 },
-                new Dictionary<string, Func<CodeElement, CodeElement>>
+                new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {
                     {"return", (last) => new ReturnOperation(last) },
                 }, 
-                new Dictionary<string, Func<CodeElement>>
+                new Dictionary<string, Func<ICodeElement>>
                 {
                 });
         });
 
         public Operations(
-            Dictionary<string, Func<CodeElement, CodeElement, CodeElement>> binaryOperations, 
-            Dictionary<string, Func<CodeElement, CodeElement>> nextOperations, 
-            Dictionary<string, Func<CodeElement, CodeElement>> lastOperations, 
-            Dictionary<string, Func<CodeElement>> constantOperations)
+            Dictionary<string, Func<ICodeElement, ICodeElement, ICodeElement>> binaryOperations, 
+            Dictionary<string, Func<ICodeElement, ICodeElement>> nextOperations, 
+            Dictionary<string, Func<ICodeElement, ICodeElement>> lastOperations, 
+            Dictionary<string, Func<ICodeElement>> constantOperations)
         {
             BinaryOperations = binaryOperations ?? throw new ArgumentNullException(nameof(binaryOperations));
             NextOperations = nextOperations ?? throw new ArgumentNullException(nameof(nextOperations));
