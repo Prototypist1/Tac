@@ -12,7 +12,18 @@ namespace Tac.Semantic_Model
 
         public Referance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
 
+        public Referance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) })) { }
+
         public bool ContainsInTree(ICodeElement element) => Equals(element);
+
+        public override bool Equals(object obj)
+        {
+            var referance = obj as Referance;
+            return referance != null &&
+                   EqualityComparer<NamePath>.Default.Equals(key, referance.key);
+        }
+
+        public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(key);
 
         public IReferanced GetOrThrow(IScope compilation)
         {
@@ -26,6 +37,9 @@ namespace Tac.Semantic_Model
         public Referance(NamePath key) : base(key)
         {
         }
+
+        public override bool Equals(object obj) => obj is Referance<TReferanced> && base.Equals(obj);
+        public override int GetHashCode() => base.GetHashCode();
 
         public new TReferanced GetOrThrow(IScope compilation) {
             return compilation.Get<TReferanced>(key);

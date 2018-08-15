@@ -26,18 +26,21 @@ namespace Tac.Parser
                     MatchMethodDefinition,
                     MatchBlockDefinition,
                     MatchConstantNumber,
-                    MatchMemberReferance
+                    MatchReferance
                 });
         });
 
         public static bool MatchLocalDefinition_Var(ElementToken elementToken, out ICodeElement element){
-            if ((elementToken.Tokens.Count() == 2 || elementToken.Tokens.Count() == 3) && elementToken.Tokens.First() is AtomicToken atomicToken && atomicToken.Item == "var") {
+            if ((elementToken.Tokens.Count() == 2 || elementToken.Tokens.Count() == 3) &&
+                elementToken.Tokens.First() is AtomicToken atomicToken &&
+                atomicToken.Item == "var" &&
+                elementToken.Tokens.Last() is AtomicToken nameToken) {
 
                 var readOnly = elementToken.Tokens.Count() == 3 && 
                     elementToken.Tokens.ElementAt(1) is AtomicToken readOnlyToken &&
                     readOnlyToken.Item == "readonly";
 
-                element = new LocalDefinition(readOnly, new ImplicitTypeReferance(), new ExplicitName("var"));
+                element = new LocalDefinition(readOnly, new ImplicitTypeReferance(), new ExplicitName(nameToken.Item));
 
                 return true;
             }
@@ -108,7 +111,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchMemberReferance(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchReferance(ElementToken elementToken, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1 &&
@@ -116,7 +119,7 @@ namespace Tac.Parser
                 !double.TryParse(first.Item, out var _)
                 )
             {
-                element = new MemberReferance(first.Item);
+                element = new Referance(first.Item);
 
                 return true;
             }

@@ -4,6 +4,9 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+    // TODO this is not really a thing... 
+    // static members exist, some of them are mothods
+
     public sealed class StaticMethodDefinition : MethodDefinition, IReferanced
     {
         public StaticMethodDefinition(TypeReferance outputType, ParameterDefinition parameterDefinition, ICodeElement[] body, AbstractName key) : base(outputType, parameterDefinition, body)

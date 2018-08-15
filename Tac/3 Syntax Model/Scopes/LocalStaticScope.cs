@@ -2,6 +2,9 @@
 {
     public class LocalStaticScope : StaticScope
     {
+        public override bool Equals(object obj) => obj is LocalStaticScope && base.Equals(obj);
+        public override int GetHashCode() => base.GetHashCode();
+
         public bool TryAddLocal(LocalDefinition definition)
         {
             return TryAdd(DefintionLifetime.Local, definition);

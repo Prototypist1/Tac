@@ -4,14 +4,6 @@ using System.Text;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
-    public interface ICodeElement {
-         bool ContainsInTree(ICodeElement element);
-    }
-
-    public class NoELement : ICodeElement
-    {
-        public bool ContainsInTree(ICodeElement element) => element.Equals(this);
-    }
 
     public abstract class BinaryOperation: ICodeElement
     {
@@ -36,8 +28,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
         public override bool Equals(object obj)
         {
-            var operation = obj as BinaryOperation;
-            return operation != null &&
+            return obj is BinaryOperation operation &&
                    EqualityComparer<ICodeElement>.Default.Equals(left, operation.left) &&
                    EqualityComparer<ICodeElement>.Default.Equals(right, operation.right);
         }

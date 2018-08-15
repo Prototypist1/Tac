@@ -10,5 +10,8 @@ namespace Tac.Semantic_Model
         public TypeReferance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) }))
         {
         }
+
+        public override bool Equals(object obj) => obj is TypeReferance && base.Equals(obj);
+        public override int GetHashCode() => base.GetHashCode();
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Tac.Semantic_Model.Names
 {
@@ -12,5 +14,13 @@ namespace Tac.Semantic_Model.Names
         public readonly AbstractName[] names;
 
         public NamePath(AbstractName[] names) => this.names = names ?? throw new ArgumentNullException(nameof(names));
+
+        public override bool Equals(object obj)
+        {
+            return obj is NamePath path &&
+                   names.SequenceEqual(path.names);
+        }
+
+        public override int GetHashCode() => 149859047 + names.Sum(x=>x.GetHashCode());
     }
 }

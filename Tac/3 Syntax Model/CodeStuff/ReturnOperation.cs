@@ -19,8 +19,7 @@ namespace Tac.Semantic_Model.Operations
 
         public override bool Equals(object obj)
         {
-            var operation = obj as ReturnOperation;
-            return operation != null &&
+            return obj is ReturnOperation operation &&
                    EqualityComparer<ICodeElement>.Default.Equals(Result, operation.Result);
         }
 

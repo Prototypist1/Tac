@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
@@ -37,6 +39,21 @@ namespace Tac.Semantic_Model
 
         public TReferanced Get<TReferanced>(NamePath key) where TReferanced : IReferanced {
             throw new NotImplementedException();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Scope scope &&
+                   referanced.Count == scope.referanced.Count && !referanced.Except(scope.referanced).Any() &&
+                   EqualityComparer<IScope>.Default.Equals(EnclosingScope, scope.EnclosingScope);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1365954579;
+            hashCode = hashCode * -1521134295 + referanced.Sum(x=>x.GetHashCode());
+            hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(EnclosingScope);
+            return hashCode;
         }
     }
 

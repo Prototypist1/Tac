@@ -19,17 +19,16 @@ namespace Tac.Semantic_Model
 
         public override bool Equals(object obj)
         {
-            var definition = obj as AbstractBlockDefinition<TScope>;
-            return definition != null &&
+            return obj is AbstractBlockDefinition<TScope> definition &&
                    EqualityComparer<TScope>.Default.Equals(Scope, definition.Scope) &&
-                   EqualityComparer<ICodeElement[]>.Default.Equals(Body, definition.Body);
+                   Body.SequenceEqual(definition.Body);
         }
 
         public override int GetHashCode()
         {
             var hashCode = 273578712;
             hashCode = hashCode * -1521134295 + EqualityComparer<TScope>.Default.GetHashCode(Scope);
-            hashCode = hashCode * -1521134295 + EqualityComparer<ICodeElement[]>.Default.GetHashCode(Body);
+            hashCode = hashCode * -1521134295 + Body.Sum(x => x.GetHashCode());
             return hashCode;
         }
     }

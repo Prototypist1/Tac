@@ -15,8 +15,7 @@ namespace Tac.Semantic_Model.Operations
 
         public override bool Equals(object obj)
         {
-            var number = obj as ConstantNumber;
-            return number != null &&
+            return obj is ConstantNumber number &&
                    Value == number.Value;
         }
 

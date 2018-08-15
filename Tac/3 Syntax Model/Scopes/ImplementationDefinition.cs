@@ -28,12 +28,22 @@ namespace Tac.Semantic_Model
 
         public override bool Equals(object obj)
         {
-            throw new NotImplementedException();
+            return obj is ImplementationDefinition implementation &&
+                ContextType.Equals(implementation.ContextType) &&
+                OutputType.Equals(implementation.OutputType) &&
+                ParameterDefinition.Equals(implementation.ParameterDefinition) &&
+                MethodBodyDefinition.Equals(implementation.MethodBodyDefinition);
         }
 
         public override int GetHashCode()
         {
-            throw new NotImplementedException();
+            unchecked
+            {
+                return ContextType.GetHashCode() +
+                    OutputType.GetHashCode() +
+                    ParameterDefinition.GetHashCode() +
+                    MethodBodyDefinition.GetHashCode();
+            }
         }
     }
 }

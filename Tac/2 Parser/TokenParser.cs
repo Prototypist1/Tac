@@ -70,7 +70,7 @@ namespace Tac.Parser
                     if (view.TryGetLast(out var last) && view.TryGetNext(out var next))
                     {
                         view.GetCodeElement(() => binaryFunc(
-                            last.GetCodeElement(() => WalkBackwords(last)),
+                            WalkBackwords(last),
                             next.GetCodeElement(() => ParseLineElementOrThrow(next))));
                     }
                 }
@@ -79,7 +79,7 @@ namespace Tac.Parser
                     if (view.TryGetLast(out var last))
                     {
                         view.GetCodeElement(() => lastFunc(
-                            last.GetCodeElement(() => WalkBackwords(last))));
+                            WalkBackwords(last)));
                     }
                 }
                 else if (Operations.StandardOperations.Value.NextOperations.TryGetValue(atomicToken.Item, out var nextFunc))
