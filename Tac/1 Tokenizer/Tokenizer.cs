@@ -178,7 +178,18 @@ namespace Tac.Parser
                     str == ">";
             }
         }
+        
+        private ResultAndExitString TokenzieParenthesis(CharEnumerator enumerator)
+        {
+            return OuterTokenzie(enumerator, TokenizeElement, IsExit, x => new ParenthesisToken(x), false, true);
 
+            bool IsExit(string str)
+            {
+                return
+                    str == ")";
+            }
+        }
+        
         private ResultAndExitString TokenzieCurleyBrackets(CharEnumerator enumerator)
         {
             return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new CurleyBacketToken(x), true, false);
@@ -209,17 +220,6 @@ namespace Tac.Parser
             {
                 return
                     str == ">";
-            }
-        }
-
-        private ResultAndExitString TokenzieParenthesis(CharEnumerator enumerator)
-        {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new ParenthesisToken(x), true, false);
-
-            bool IsExit(string str)
-            {
-                return
-                    str == ")";
             }
         }
 

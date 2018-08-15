@@ -9,13 +9,34 @@ namespace Tac.Parser
     public static class TokenParser
     {
 
-        private static ICodeElement ParseLine(IEnumerable<IToken> tokens) => throw new NotImplementedException();
+        public static ICodeElement[] ParseFile(FileToken file)
+        {
+            return file.Tokens.Select(x => ParseLine((LineToken)x)).ToArray();
+        }
+        
+
+        public static ICodeElement ParseLine(LineToken tokens)
+        {
+            return ParseLine(tokens.Tokens);
+        }
+
+        public static ICodeElement ParseLine(IEnumerable<IToken> tokens) {
+            
+            var state = new ParseState(tokens);
+            if (state.TryGetStart(out var view)) {
+                return ParseLine(view);
+            }
+            throw new Exception("there was nothing in that line!");
+        }
 
         public static ICodeElement ParseLine(IParseStateView view) {
+            IParseStateView lastView;
             do
             {
-                return ParseLineElementOrThrow(view);
+                lastView = view;
+                ParseLineElementOrThrow(view);
             } while (view.TryGetNext(out view));
+            return WalkBackwords(lastView);
         }
 
         private static ICodeElement ParseLineElementOrThrow(IParseStateView view)
@@ -28,8 +49,8 @@ namespace Tac.Parser
         private static ICodeElement WalkBackwords(IParseStateView view) {
             var viewElement = view.GetCodeElement(() => ParseLineElementOrThrow(view));
 
-            while (view.TryGetNext(out var lastView)) {
-                var lastViewElement = lastView.GetCodeElement(() => ParseLineElementOrThrow(lastView));
+            while (view.TryGetLast(out view)) {
+                var lastViewElement = view.GetCodeElementOrThrow();
 
                 if (lastViewElement.ContainsInTree(viewElement))
                 {

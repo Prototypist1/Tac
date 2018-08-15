@@ -1,4 +1,5 @@
-﻿using Tac.Semantic_Model.CodeStuff;
+﻿using System.Collections.Generic;
+using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
@@ -11,5 +12,21 @@ namespace Tac.Semantic_Model
         }
 
         public AbstractName Key { get; }
+
+        public override bool Equals(object obj)
+        {
+            var definition = obj as StaticMethodDefinition;
+            return definition != null &&
+                   base.Equals(obj) &&
+                   EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -229860446;
+            hashCode = hashCode * -1521134295 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
+            return hashCode;
+        }
     }
 }

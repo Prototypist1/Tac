@@ -10,12 +10,8 @@ namespace Tac.Semantic_Model.Operations
         public IfTrueOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-    }
-
-    public class ElseOperation : BinaryOperation
-    {
-        public ElseOperation(ICodeElement left, ICodeElement right) : base(left, right)
-        {
-        }
+        
+        public override bool Equals(object obj) => obj is IfTrueOperation other && base.Equals(other);
+        public override int GetHashCode() => base.GetHashCode();
     }
 }

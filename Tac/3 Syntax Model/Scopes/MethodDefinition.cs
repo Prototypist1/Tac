@@ -16,5 +16,25 @@ namespace Tac.Semantic_Model
         public TypeReferance InputType { get => ParameterDefinition.Type; }
         public TypeReferance OutputType { get; }
         public ParameterDefinition ParameterDefinition { get; }
+
+        public override bool Equals(object obj)
+        {
+            var definition = obj as MethodDefinition;
+            return definition != null &&
+                   base.Equals(obj) &&
+                   EqualityComparer<TypeReferance>.Default.Equals(InputType, definition.InputType) &&
+                   EqualityComparer<TypeReferance>.Default.Equals(OutputType, definition.OutputType) &&
+                   EqualityComparer<ParameterDefinition>.Default.Equals(ParameterDefinition, definition.ParameterDefinition);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -814421114;
+            hashCode = hashCode * -1521134295 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<TypeReferance>.Default.GetHashCode(InputType);
+            hashCode = hashCode * -1521134295 + EqualityComparer<TypeReferance>.Default.GetHashCode(OutputType);
+            hashCode = hashCode * -1521134295 + EqualityComparer<ParameterDefinition>.Default.GetHashCode(ParameterDefinition);
+            return hashCode;
+        }
     }
 }

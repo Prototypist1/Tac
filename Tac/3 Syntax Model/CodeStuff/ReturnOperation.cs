@@ -13,29 +13,17 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public ICodeElement Result { get; }
+        
 
         public bool ContainsInTree(ICodeElement element) => Equals(element) || Result.Equals(element);
-    }
 
-    public class VarOperation : ICodeElement
-    {
-        public VarOperation(ICodeElement varDef)
+        public override bool Equals(object obj)
         {
-            VarDef = varDef;
+            var operation = obj as ReturnOperation;
+            return operation != null &&
+                   EqualityComparer<ICodeElement>.Default.Equals(Result, operation.Result);
         }
 
-        public ICodeElement VarDef { get; }
-
-        public bool ContainsInTree(ICodeElement element) => Equals(element);
-    }
-
-    public class Constant : ICodeElement {
-        public Constant(string value) {
-            Value = value;
-        }
-
-        public string Value { get; }
-
-        public bool ContainsInTree(ICodeElement element) => Equals(element);
+        public override int GetHashCode() => 1482362596 + EqualityComparer<ICodeElement>.Default.GetHashCode(Result);
     }
 }

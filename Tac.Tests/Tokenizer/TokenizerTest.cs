@@ -2,45 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Tac.Parser;
 using Xunit;
 
 namespace Tac.Tests.Tokenizer
 {
+
     public class TokenizerTest
     {
-        private static IToken Ele(params IToken[] tokens)
-        {
-            return new ElementToken(tokens);
-        }
-        private static IToken Par(params IToken[] tokens)
-        {
-            return new ParenthesisToken(tokens);
-        }
-        private static IToken Broke(params IToken[] tokens)
-        {
-            return new BrokenBracketToken(tokens);
-        }
-        private static IToken Curl(params IToken[] tokens)
-        {
-            return new CurleyBacketToken(tokens);
-        }
-        private static IToken File(params IToken[] tokens)
-        {
-            return new FileToken(tokens);
-        }
-        private static IToken Line(params IToken[] tokens)
-        {
-            return new LineToken(tokens);
-        }
-        private static IToken Square(params IToken[] tokens)
-        {
-            return new SquareBacketToken(tokens);
-        }
-        private static IToken Atom(string s)
-        {
-            return new AtomicToken(s);
-        }
+        
 
         [Fact]
         public void Test1() {
@@ -56,38 +25,38 @@ namespace Tac.Tests.Tokenizer
             var res = tokenizer.Tokenize(text);
 
             var target =
-                File(
-                    Line(
-                        Ele(
-                            Atom("var"),
-                            Atom("fac")),
-                        Atom("is-static"),
-                        Ele(
-                            Atom("method|int|int"),
-                            Atom("input"),
-                            Curl(
-                                Line(
-                                    Ele(Atom("input")),
-                                    Atom("less-then"),
-                                    Ele(Atom("2")),
-                                    Atom("if-true"),
-                                    Ele(
-                                        Curl(
-                                            Line(
-                                                Ele(Atom("1")),
-                                                Atom("return")))),
-                                    Atom("else"),
-                                    Ele(
-                                        Curl(
-                                            Line(
-                                                Ele(Atom("input")),
-                                                Atom("minus"),
-                                                Ele(Atom("1")),
-                                                Atom("next-call"),
-                                                Ele(Atom("fac")),
-                                                Atom("times"),
-                                                Ele(Atom("input")),
-                                                Atom("return")))))))));
+                TokenHelp.File(
+                    TokenHelp.Line(
+                        TokenHelp.Ele(
+                            TokenHelp.Atom("var"),
+                            TokenHelp.Atom("fac")),
+                        TokenHelp.Atom("is-static"),
+                        TokenHelp.Ele(
+                            TokenHelp.Atom("method|int|int"),
+                            TokenHelp.Atom("input"),
+                            TokenHelp.Curl(
+                                TokenHelp.Line(
+                                    TokenHelp.Ele(TokenHelp.Atom("input")),
+                                    TokenHelp.Atom("less-then"),
+                                    TokenHelp.Ele(TokenHelp.Atom("2")),
+                                    TokenHelp.Atom("if-true"),
+                                    TokenHelp.Ele(
+                                        TokenHelp.Curl(
+                                            TokenHelp.Line(
+                                                TokenHelp.Ele(TokenHelp.Atom("1")),
+                                                TokenHelp.Atom("return")))),
+                                    TokenHelp.Atom("else"),
+                                    TokenHelp.Ele(
+                                        TokenHelp.Curl(
+                                            TokenHelp.Line(
+                                                TokenHelp.Ele(TokenHelp.Atom("input")),
+                                                TokenHelp.Atom("minus"),
+                                                TokenHelp.Ele(TokenHelp.Atom("1")),
+                                                TokenHelp.Atom("next-call"),
+                                                TokenHelp.Ele(TokenHelp.Atom("fac")),
+                                                TokenHelp.Atom("times"),
+                                                TokenHelp.Ele(TokenHelp.Atom("input")),
+                                                TokenHelp.Atom("return")))))))));
             
             Assert.Equal(target, res);
         }
@@ -100,21 +69,19 @@ namespace Tac.Tests.Tokenizer
             var res = tokenizer.Tokenize(text);
 
             var target =
-                File(
-                    Line(
-                        Ele(
-                            Par(
-                                Line(
-                                    Ele(Atom("2")),
-                                    Atom("plus"),
-                                    Ele(Atom("5"))))),
-                        Atom("times"),
-                         Ele(
-                            Par(
-                                Line(
-                                    Ele(Atom("2")),
-                                    Atom("plus"),
-                                    Ele(Atom("7")))))));
+                TokenHelp.File(
+                    TokenHelp.Line(
+                        TokenHelp.Ele(
+                            TokenHelp.Par(
+                                    TokenHelp.Ele(TokenHelp.Atom("2")),
+                                    TokenHelp.Atom("plus"),
+                                    TokenHelp.Ele(TokenHelp.Atom("5")))),
+                        TokenHelp.Atom("times"),
+                        TokenHelp.Ele(
+                            TokenHelp.Par(
+                                    TokenHelp.Ele(TokenHelp.Atom("2")),
+                                    TokenHelp.Atom("plus"),
+                                    TokenHelp.Ele(TokenHelp.Atom("7"))))));
 
             Assert.Equal(target, res);
         }

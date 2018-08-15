@@ -15,5 +15,21 @@ namespace Tac.Semantic_Model
         public AbstractName Key { get; }
 
         public StaticScope Scope { get; } = new StaticScope();
+
+        public override bool Equals(object obj)
+        {
+            var definition = obj as ModuleDefinition;
+            return definition != null &&
+                   EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key) &&
+                   EqualityComparer<StaticScope>.Default.Equals(Scope, definition.Scope);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1628597129;
+            hashCode = hashCode * -1521134295 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
+            hashCode = hashCode * -1521134295 + EqualityComparer<StaticScope>.Default.GetHashCode(Scope);
+            return hashCode;
+        }
     }
 }

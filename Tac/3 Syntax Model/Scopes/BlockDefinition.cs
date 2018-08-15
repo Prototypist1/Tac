@@ -7,5 +7,8 @@ namespace Tac.Semantic_Model
     public  class BlockDefinition: AbstractBlockDefinition<LocalStaticScope> 
     {
         public BlockDefinition(ICodeElement[] body) : base(new LocalStaticScope(), body) { }
+
+        public override bool Equals(object obj) => obj is BlockDefinition && base.Equals(obj);
+        public override int GetHashCode() => base.GetHashCode();
     }
 }

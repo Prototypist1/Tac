@@ -1,13 +1,13 @@
-﻿using System;
-using Tac.Semantic_Model.CodeStuff;
+﻿//using System;
+//using Tac.Semantic_Model.CodeStuff;
 
-namespace Tac.Parser
-{
-    public class Parser
-    {
+//namespace Tac.Parser
+//{
+//    public class Parser
+//    {
 
 
 
-    }
+//    }
 
-}
+//}

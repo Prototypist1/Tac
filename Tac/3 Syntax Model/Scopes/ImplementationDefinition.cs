@@ -25,5 +25,15 @@ namespace Tac.Semantic_Model
         public AbstractName Key { get; }
 
         public InstanceScope Scope => ((IScoped<InstanceScope>)MethodBodyDefinition).Scope;
+
+        public override bool Equals(object obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

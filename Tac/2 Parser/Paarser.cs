@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Semantic_Model.CodeStuff;
-using static Tac.Parser.Parser;
 
 namespace Tac.Parser
 {
@@ -18,7 +18,7 @@ namespace Tac.Parser
     
     public class ParseState
     {
-        public ParseState(IToken[] tokens) => Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+        public ParseState(IEnumerable<IToken> tokens) => Tokens = tokens?.ToArray() ?? throw new ArgumentNullException(nameof(tokens));
 
         private IToken[] Tokens { get; }
         private int At { get; set; } = 0;
@@ -54,7 +54,7 @@ namespace Tac.Parser
             {
                 ParseState = parseState ?? throw new ArgumentNullException(nameof(parseState));
                 Token = token ?? throw new ArgumentNullException(nameof(token));
-                Last = last ?? throw new ArgumentNullException(nameof(last));
+                Last = last;
             }
 
             private ParseState ParseState { get; }

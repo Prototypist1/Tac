@@ -10,5 +10,8 @@ namespace Tac.Semantic_Model.Operations
         public LastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
+        
+        public override bool Equals(object obj) => obj is LastCallOperation other && base.Equals(other);
+        public override int GetHashCode() => base.GetHashCode();
     }
 }
