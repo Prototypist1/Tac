@@ -19,8 +19,7 @@ namespace Tac.Semantic_Model
 
         public override bool Equals(object obj)
         {
-            var definition = obj as ParameterDefinition;
-            return definition != null &&
+            return obj is ParameterDefinition definition && definition != null &&
                    ReadOnly == definition.ReadOnly &&
                    EqualityComparer<TypeReferance>.Default.Equals(Type, definition.Type) &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key);

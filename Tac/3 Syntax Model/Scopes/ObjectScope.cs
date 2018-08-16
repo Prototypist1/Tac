@@ -2,6 +2,10 @@
 {
     public class ObjectScope : Scope
     {
+        public ObjectScope(IScope enclosingScope) : base(enclosingScope)
+        {
+        }
+
         public override bool Equals(object obj) => obj is ObjectScope && base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
 

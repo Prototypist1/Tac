@@ -13,7 +13,7 @@ namespace Tac.Parser
     {
         public Elements(List<TryMatch> elementBuilders) => ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
 
-        public delegate bool TryMatch(ElementToken elementToken, out ICodeElement element);
+        public delegate bool TryMatch(ElementToken elementToken, IScope enclosingScope , out ICodeElement element);
 
         public List<TryMatch> ElementBuilders { get; }
 
@@ -30,7 +30,7 @@ namespace Tac.Parser
                 });
         });
 
-        public static bool MatchLocalDefinition_Var(ElementToken elementToken, out ICodeElement element){
+        public static bool MatchLocalDefinition_Var(ElementToken elementToken, IScope enclosingScope, out ICodeElement element){
             if ((elementToken.Tokens.Count() == 2 || elementToken.Tokens.Count() == 3) &&
                 elementToken.Tokens.First() is AtomicToken atomicToken &&
                 atomicToken.Item == "var" &&
@@ -49,7 +49,7 @@ namespace Tac.Parser
             return false;
         }
         
-        public static bool MatchMethodDefinition(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchMethodDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 3 && 
@@ -62,13 +62,16 @@ namespace Tac.Parser
                 )
             {
                 var split = first.Item.Split('|');
+
+                var methodScope = new MethodScope(enclosingScope);
+
                 element = new MethodDefinition(
                     new TypeReferance(split[2]),
                     new ParameterDefinition(
                         false, // TODO, the way this is hard coded is something to think about, readonly should be encoded somewhere!
                         new TypeReferance(split[1]),
                         new ExplicitName(second.Item)),
-                    TokenParser.ParseBlock(third));
+                    TokenParser.ParseBlock(third, methodScope), methodScope);
 
                 return true;
             }
@@ -77,15 +80,17 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchBlockDefinition(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchBlockDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1  &&
                 elementToken.Tokens.First() is CurleyBacketToken first
                 )
             {
+                var scope = new LocalStaticScope(enclosingScope);
+
                 element = new BlockDefinition(
-                    TokenParser.ParseBlock(first));
+                    TokenParser.ParseBlock(first, scope), scope);
 
                 return true;
             }
@@ -94,7 +99,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchConstantNumber(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchConstantNumber(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1 &&
@@ -111,7 +116,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchReferance(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchReferance(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1 &&

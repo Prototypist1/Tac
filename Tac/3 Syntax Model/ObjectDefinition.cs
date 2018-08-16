@@ -8,10 +8,13 @@ namespace Tac.Semantic_Model
 {
     public sealed class ObjectDefinition: IScoped<ObjectScope>
     {
-        public ObjectDefinition(IReadOnlyList<(Referance<MemberDefinition>, Referance)> initializers) => Initializers = initializers ?? throw new ArgumentNullException(nameof(initializers));
+        public ObjectDefinition(IReadOnlyList<(Referance<MemberDefinition>, Referance)> initializers, IScope enclosingScope) {
+            Initializers = initializers ?? throw new ArgumentNullException(nameof(initializers));
+            Scope = new ObjectScope(enclosingScope);
+        }
 
         public IReadOnlyList<(Referance<MemberDefinition>, Referance)> Initializers { get; }
-        public ObjectScope Scope { get; } = new ObjectScope();
+        public ObjectScope Scope { get; }
 
         public override bool Equals(object obj)
         {

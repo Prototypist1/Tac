@@ -9,16 +9,19 @@ namespace Tac.Semantic_Model
     // that is why we have anonymous keys...
     public sealed class TypeDefinition: IScoped<ObjectScope>, IReferanced
     {
-        public TypeDefinition(AbstractName key) => Key = key ?? throw new ArgumentNullException(nameof(key));
+        public TypeDefinition(AbstractName key, IScope enclosingScope)
+        {
+            Scope = new ObjectScope(enclosingScope);
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+        }
 
         public AbstractName Key { get; }
 
-        public ObjectScope Scope { get; } = new ObjectScope();
+        public ObjectScope Scope { get; }
 
         public override bool Equals(object obj)
         {
-            var definition = obj as TypeDefinition;
-            return definition != null &&
+            return obj is TypeDefinition definition && definition != null &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key) &&
                    EqualityComparer<ObjectScope>.Default.Equals(Scope, definition.Scope);
         }

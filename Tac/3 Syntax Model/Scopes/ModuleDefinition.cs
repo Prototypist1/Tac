@@ -7,19 +7,24 @@ namespace Tac.Semantic_Model
 {
     public sealed class ModuleDefinition : IReferanced, IScoped<StaticScope>
     {
-        public ModuleDefinition(AbstractName key)
+        public ModuleDefinition(AbstractName key, IScope scope)
         {
+            if (scope == null)
+            {
+                throw new ArgumentNullException(nameof(scope));
+            }
+
             Key = key ?? throw new ArgumentNullException(nameof(key));
+            Scope = new StaticScope(scope);
         }
 
         public AbstractName Key { get; }
 
-        public StaticScope Scope { get; } = new StaticScope();
+        public StaticScope Scope { get; }
 
         public override bool Equals(object obj)
         {
-            var definition = obj as ModuleDefinition;
-            return definition != null &&
+            return obj is ModuleDefinition definition && definition != null &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key) &&
                    EqualityComparer<StaticScope>.Default.Equals(Scope, definition.Scope);
         }

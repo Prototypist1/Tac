@@ -18,8 +18,7 @@ namespace Tac.Semantic_Model
 
         public override bool Equals(object obj)
         {
-            var referance = obj as Referance;
-            return referance != null &&
+            return obj is Referance referance && referance != null &&
                    EqualityComparer<NamePath>.Default.Equals(key, referance.key);
         }
 
@@ -27,7 +26,13 @@ namespace Tac.Semantic_Model
 
         public IReferanced GetOrThrow(IScope compilation)
         {
-            return compilation.Get<IReferanced>(key);
+            if (compilation.TryGet<IReferanced>(key, out var referanced))
+            {
+                return referanced;
+            }
+            else {
+                throw new Exception($"{key} not found");
+            }
         }
     }
 
@@ -42,7 +47,14 @@ namespace Tac.Semantic_Model
         public override int GetHashCode() => base.GetHashCode();
 
         public new TReferanced GetOrThrow(IScope compilation) {
-            return compilation.Get<TReferanced>(key);
+            if (compilation.TryGet<TReferanced>(key, out var referanced))
+            {
+                return referanced;
+            }
+            else
+            {
+                throw new Exception($"{key} not found");
+            }
         }
     }
 }

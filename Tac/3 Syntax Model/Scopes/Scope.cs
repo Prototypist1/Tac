@@ -6,6 +6,16 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+    // dead end!
+    public class RootScope : IScope
+    {
+        public bool TryGet<TReferanced>(NamePath key, out TReferanced item) where TReferanced : IReferanced
+        {
+            item = default;
+            return false;
+        }
+    }
+
     public class Scope : IScope
     {
         protected bool TryAdd(DefintionLifetime defintionLifetime, IReferanced definition)
@@ -35,12 +45,10 @@ namespace Tac.Semantic_Model
 
         private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity>> referanced = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity>>();
 
-        public IScope EnclosingScope { get; }
+        public Scope(IScope enclosingScope) => EnclosingScope = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
 
-        public TReferanced Get<TReferanced>(NamePath key) where TReferanced : IReferanced {
-            throw new NotImplementedException();
-        }
-
+        private IScope EnclosingScope { get; }
+        
         public override bool Equals(object obj)
         {
             return obj is Scope scope &&
@@ -55,6 +63,8 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(EnclosingScope);
             return hashCode;
         }
+
+        public bool TryGet<TReferanced>(NamePath key, out TReferanced item) where TReferanced : IReferanced => throw new NotImplementedException();
     }
 
 }

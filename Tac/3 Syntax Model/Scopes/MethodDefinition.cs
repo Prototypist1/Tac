@@ -7,7 +7,7 @@ namespace Tac.Semantic_Model
 {
     public class MethodDefinition: AbstractBlockDefinition<MethodScope>
     {
-        public MethodDefinition(TypeReferance outputType, ParameterDefinition parameterDefinition, ICodeElement[] body) : base(new MethodScope(), body)
+        public MethodDefinition(TypeReferance outputType, ParameterDefinition parameterDefinition, ICodeElement[] body, MethodScope scope) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -19,8 +19,7 @@ namespace Tac.Semantic_Model
 
         public override bool Equals(object obj)
         {
-            var definition = obj as MethodDefinition;
-            return definition != null &&
+            return obj is MethodDefinition definition && definition != null &&
                    base.Equals(obj) &&
                    EqualityComparer<TypeReferance>.Default.Equals(InputType, definition.InputType) &&
                    EqualityComparer<TypeReferance>.Default.Equals(OutputType, definition.OutputType) &&

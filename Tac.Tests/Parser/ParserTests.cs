@@ -52,6 +52,11 @@ namespace Tac.Tests.Parser
 
             var res = TokenParser.ParseFile(token);
 
+            var rootScope = new StaticScope(new RootScope());
+            var methodScope = new MethodScope(rootScope);
+            var ifBlock = new LocalStaticScope(methodScope);
+            var elseBlock = new LocalStaticScope(methodScope);
+
             var target = new[] {
                 new IsStaticOperation(
                     new LocalDefinition(
@@ -73,7 +78,8 @@ namespace Tac.Tests.Parser
                                     new BlockDefinition(
                                         new ICodeElement[]{
                                             new ReturnOperation(
-                                                new ConstantNumber(1))})),
+                                                new ConstantNumber(1))},
+                                        ifBlock)),
                                 new BlockDefinition(
                                     new ICodeElement[]{
                                         new ReturnOperation(
@@ -83,7 +89,9 @@ namespace Tac.Tests.Parser
                                                         new Referance("input"),
                                                         new ConstantNumber(1)),
                                                     new Referance("fac")),
-                                                new Referance("input")))}))}))};
+                                                new Referance("input")))},
+                                    elseBlock))},
+                        methodScope))};
 
             Assert.Equal(target.Length, target.Length);
             for (int i = 0; i < target.Length; i++)
