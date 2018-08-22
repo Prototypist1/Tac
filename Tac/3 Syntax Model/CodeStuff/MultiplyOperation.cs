@@ -4,7 +4,7 @@ namespace Tac.Semantic_Model.Operations
 {
     public class MultiplyOperation : BinaryOperation
     {
-        public MultiplyOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public MultiplyOperation(ICodeElement left, ICodeElement right) : base(left.TakeReferance(), right.TakeReferance())
         {
         }
         

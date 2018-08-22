@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ModuleDefinition : IReferanced, IScoped<StaticScope>
+    public sealed class ModuleDefinition : IReferanced, IScoped<StaticScope>, ICodeElement 
     {
-        public ModuleDefinition(AbstractName key, IScope scope)
+        public ModuleDefinition(AbstractName key, StaticScope scope)
         {
             if (scope == null)
             {
@@ -15,13 +16,13 @@ namespace Tac.Semantic_Model
             }
 
             Key = key ?? throw new ArgumentNullException(nameof(key));
-            Scope = new StaticScope(scope);
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public AbstractName Key { get; }
 
         public StaticScope Scope { get; }
-
+        
         public override bool Equals(object obj)
         {
             return obj is ModuleDefinition definition && definition != null &&

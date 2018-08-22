@@ -5,11 +5,16 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class LocalDefinition : IReferanced, ICodeElement
+    // it is possible members are single instances with look up
+    // up I don't think so
+    // it is easier just to have simple value objects
+    // it is certaianly true at somepoint we will need a flattened list 
+    public sealed class MemberDefinition: IReferanced, ICodeElement
     {
-        public LocalDefinition(bool readOnly, TypeReferance type, AbstractName key)
+        public MemberDefinition(bool readOnly, bool isStatic, TypeReferance type, AbstractName key)
         {
             ReadOnly = readOnly;
+            IsStatic = isStatic;
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
@@ -17,12 +22,11 @@ namespace Tac.Semantic_Model
         public bool ReadOnly { get; }
         public TypeReferance Type { get; }
         public AbstractName Key { get; }
-
-        public bool ContainsInTree(ICodeElement element) => Equals(element);
-
+        public bool IsStatic { get; }
+        
         public override bool Equals(object obj)
         {
-            return obj is LocalDefinition definition &&
+            return obj is MemberDefinition definition &&
                    ReadOnly == definition.ReadOnly &&
                    EqualityComparer<TypeReferance>.Default.Equals(Type, definition.Type) &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key);

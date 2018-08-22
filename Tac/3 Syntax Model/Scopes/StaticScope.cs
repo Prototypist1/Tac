@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
@@ -11,7 +12,7 @@ namespace Tac.Semantic_Model
         public override bool Equals(object obj) => obj is StaticScope && base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
 
-        public bool TryAddStaticMember(MemberDefinition definition)
+        public bool TryAddStaticMember(IsDefininition definition)
         {
             return TryAdd(DefintionLifetime.Static, definition);
         }

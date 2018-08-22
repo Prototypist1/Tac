@@ -7,7 +7,7 @@ namespace Tac.Semantic_Model.Operations
 {
     public class LastCallOperation : BinaryOperation
     {
-        public LastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public LastCallOperation(ICodeElement left, ICodeElement right) : base(left.TakeReferance(), right.TakeReferance())
         {
         }
         

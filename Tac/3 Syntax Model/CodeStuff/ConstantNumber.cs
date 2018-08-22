@@ -10,9 +10,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public double Value { get; }
-
-        public bool ContainsInTree(ICodeElement element) => Equals(element);
-
+        
         public override bool Equals(object obj)
         {
             return obj is ConstantNumber number &&

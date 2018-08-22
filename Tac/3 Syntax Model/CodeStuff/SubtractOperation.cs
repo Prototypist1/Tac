@@ -4,7 +4,7 @@ namespace Tac.Semantic_Model.Operations
 {
     public class SubtractOperation : BinaryOperation
     {
-        public SubtractOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public SubtractOperation(ICodeElement left, ICodeElement right) : base(left.TakeReferance(), right.TakeReferance())
         {
         }
         

@@ -12,95 +12,107 @@ namespace Tac.Parser
 
         public static ICodeElement[] ParseFile(FileToken file)
         {
-            return file.Tokens.Select(x => ParseLine((LineToken)x,new StaticScope(new RootScope()))).ToArray();
+            return file.Tokens.Select(x => ParseLine((LineToken)x, new StaticScope(new RootScope()))).ToArray();
         }
-        
+
 
         public static ICodeElement ParseLine(LineToken tokens, IScope enclosingScope)
         {
             return ParseLine(tokens.Tokens, enclosingScope);
         }
 
-        public static ICodeElement ParseLine(IEnumerable<IToken> tokens, IScope enclosingScope) {
-            
+        public static ICodeElement ParseLine(IEnumerable<IToken> tokens, IScope enclosingScope)
+        {
+
             var state = new ParseState(tokens);
-            if (state.TryGetStart(out var view)) {
+            if (state.TryGetStart(out var view))
+            {
                 return ParseLine(view, enclosingScope);
             }
             throw new Exception("there was nothing in that line!");
         }
 
-        public static ICodeElement ParseLine(IParseStateView view, IScope enclosingScope) {
-            IParseStateView lastView;
+        public static ICodeElement ParseLine(IParseStateView view, IScope enclosingScope)
+        {
+            ICodeElement lastElement = default;
             do
             {
-                lastView = view;
-                ParseLineElementOrThrow(view, enclosingScope);
+                lastElement = ParseLineElementOrThrow(view, enclosingScope, lastElement);
             } while (view.TryGetNext(out view));
-            return WalkBackwords(lastView);
+            return lastElement;
         }
 
-        private static ICodeElement ParseLineElementOrThrow(IParseStateView view, IScope enclosingScope)
+        private static ICodeElement ParseLineElementOrThrow(IParseStateView view, IScope enclosingScope, ICodeElement last)
         {
-            if (TryParseAtomic(view,enclosingScope)) { }
-            else if (TryParseElement(view, enclosingScope)) { }
-            return view.GetCodeElementOrThrow();
-        }
-
-        private static ICodeElement WalkBackwords(IParseStateView view) {
-            var viewElement = view.GetCodeElementOrThrow();
-
-            while (view.TryGetLast(out view)) {
-                var lastViewElement = view.GetCodeElementOrThrow();
-
-                if (lastViewElement.ContainsInTree(viewElement))
-                {
-                    viewElement = lastViewElement;
-                }
-                
+            if (TryParseAtomic(view, enclosingScope, last, out var codeElement))
+            {
+                return codeElement;
             }
-            return viewElement;
-
+            else if (TryParseElement(view, enclosingScope, out codeElement))
+            {
+                return codeElement;
+            }
+            else {
+                throw new Exception($"could not parse {view.Token}");
+            }
         }
 
-        public static bool TryParseAtomic(IParseStateView view, IScope scope) {
-            if (view.Token is AtomicToken atomicToken) {
+
+        public static bool TryParseAtomic(IParseStateView view, IScope scope, ICodeElement last, out ICodeElement codeElement)
+        {
+            if (view.Token is AtomicToken atomicToken)
+            {
 
                 if (Operations.StandardOperations.Value.BinaryOperations.TryGetValue(atomicToken.Item, out var binaryFunc))
                 {
-                    if (view.TryGetLast(out var last) && view.TryGetNext(out var next))
+                    if (last == null)
                     {
-                        view.GetCodeElement(() => binaryFunc(
-                            WalkBackwords(last),
-                            next.GetCodeElement(() => ParseLineElementOrThrow(next, scope))));
+                        throw new Exception("last required but not provied");
+                    }
+                    if (view.TryGetNext(out var next))
+                    {
+                        codeElement = binaryFunc(
+                            last,
+                            ParseLineElementOrThrow(next, scope, last));
                     }
                 }
                 else if (Operations.StandardOperations.Value.LastOperations.TryGetValue(atomicToken.Item, out var lastFunc))
                 {
-                    if (view.TryGetLast(out var last))
+
+                    if (last == null)
                     {
-                        view.GetCodeElement(() => lastFunc(
-                            WalkBackwords(last)));
+                        throw new Exception("last required but not provied");
                     }
+                    codeElement = lastFunc(
+                        last);
+                    return true;
+
                 }
                 else if (Operations.StandardOperations.Value.NextOperations.TryGetValue(atomicToken.Item, out var nextFunc))
                 {
                     if (view.TryGetNext(out var next))
                     {
-                        view.GetCodeElement(() => nextFunc(
-                            next.GetCodeElement(() => ParseLineElementOrThrow(next, scope))));
+                        codeElement = nextFunc(
+                            ParseLineElementOrThrow(next, scope, last));
+
+                        return true;
+                    }
+                    else
+                    {
+                        throw new Exception($"Operation: {atomicToken.Item}, requires next. next is not defined");
                     }
                 }
                 else if (Operations.StandardOperations.Value.ConstantOperations.TryGetValue(atomicToken.Item, out var action))
                 {
-                    view.GetCodeElement(action);
+                    codeElement = action();
+                    return true;
                 }
-                else {
+                else
+                {
                     throw new Exception($"Operation: {atomicToken.Item}, not known");
                 }
-
-                return true;
             }
+            codeElement = default;
             return false;
         }
 
@@ -115,27 +127,28 @@ namespace Tac.Parser
                 throw new Exception("unexpected token type");
             }).ToArray();
         }
-
-        public static bool TryParseElement(IParseStateView view, IScope enclosingScope)
+        
+        public static bool TryParseElement(IParseStateView view, IScope enclosingScope, out ICodeElement codeElement)
         {
-            if (view.Token is ElementToken elementToken) {
+            if (view.Token is ElementToken elementToken)
+            {
                 // smells 
-                if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken) {
-                    view.GetCodeElement(() => ParseLine(parenthesisToken.Tokens, enclosingScope));
+                if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken)
+                {
+                    codeElement = ParseLine(parenthesisToken.Tokens, enclosingScope);
+                    return true;
                 }
-
-                view.GetCodeElement(() => {
-                    foreach (var tryMatch in Elements.StandardElements.Value.ElementBuilders)
+                
+                foreach (var tryMatch in Elements.StandardElements.Value.ElementBuilders)
+                {
+                    if (tryMatch(elementToken, enclosingScope, out codeElement))
                     {
-                        if (tryMatch(elementToken, enclosingScope, out var codeElement)){
-                            return codeElement;
-                        }
+                        return true;
                     }
-                    throw new Exception("no match found");
-                });
-
-                return true;
+                }
             }
+
+            codeElement = default;
             return false;
         }
     }

@@ -9,7 +9,7 @@
         public override bool Equals(object obj) => obj is LocalStaticScope && base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
 
-        public bool TryAddLocal(LocalDefinition definition)
+        public bool TryAddLocal(VariableDefinition definition)
         {
             return TryAdd(DefintionLifetime.Local, definition);
         }

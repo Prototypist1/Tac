@@ -2,9 +2,11 @@
 
 namespace Tac.Semantic_Model.Operations
 {
+    // really an if not
     public class ElseOperation : BinaryOperation
     {
-        public ElseOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        // right should have more validation
+        public ElseOperation(ICodeElement left, ICodeElement right) : base(left.TakeReferance(), right)
         {
         }
         

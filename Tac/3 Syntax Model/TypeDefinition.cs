@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
     // you can totally have anonymous types...
     // that is why we have anonymous keys...
-    public sealed class TypeDefinition: IScoped<ObjectScope>, IReferanced
+    public sealed class TypeDefinition: IScoped<ObjectScope>, IReferanced, ICodeElement 
     {
         public TypeDefinition(AbstractName key, IScope enclosingScope)
         {

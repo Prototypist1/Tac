@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
 
@@ -46,11 +47,11 @@ namespace Tac.Parser
                     {"times", (last, next) => new MultiplyOperation(last,next) },
                     {"if-true", (last, next) => new IfTrueOperation(last,next) },
                     {"else", (last, next) => new ElseOperation(last,next) },
-                    {"less-then", (last, next) => new LessThanOperation(last,next) },
+                    {"less-than", (last, next) => new LessThanOperation(last,next) },
                     {"next-call", (last, next) => new NextCallOperation(last,next) },
                     {"assign", (last, next) => new AssignOperation(last,next) },
                     {"last-call", (last, next) => new LastCallOperation(last,next) },
-                    {"is-static", (last, next) => new IsStaticOperation(last,next) },
+                    {"is", (last, next) => new IsDefininition((MemberDefinition)last,next) },
                 },
                 new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {

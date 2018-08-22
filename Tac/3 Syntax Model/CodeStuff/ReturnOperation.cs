@@ -9,14 +9,11 @@ namespace Tac.Semantic_Model.Operations
     {
         public ReturnOperation(ICodeElement result)
         {
-            Result = result;
+            Result = result.TakeReferance();
         }
 
         public ICodeElement Result { get; }
         
-
-        public bool ContainsInTree(ICodeElement element) => Equals(element) || Result.Equals(element);
-
         public override bool Equals(object obj)
         {
             return obj is ReturnOperation operation &&

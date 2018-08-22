@@ -5,8 +5,32 @@ using System.Text;
 namespace Tac.Semantic_Model.CodeStuff
 {
 
+    public static class CodeElementExtensions {
+
+        public static ICodeElement TakeReferance(this ICodeElement codeElement)
+        {
+            if (codeElement is ReferanceOrMemberDef referanceOrMemberDef)
+            {
+                return referanceOrMemberDef.Referance;
+            }
+            return codeElement;
+        }
+
+        public static ICodeElement TakeMemberDef(this ICodeElement codeElement)
+        {
+            if (codeElement is ReferanceOrMemberDef referanceOrMemberDef)
+            {
+                return referanceOrMemberDef.MemberDefinition;
+            }
+            return codeElement;
+        }
+    }
+
+
     public abstract class BinaryOperation: ICodeElement
     {
+        
+
         public readonly ICodeElement left;
         public readonly ICodeElement right;
 
@@ -15,17 +39,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
-
-        public bool ContainsInTree(ICodeElement element) {
-            if (element.Equals(this))
-            {
-                return true;
-            }
-            else {
-                return left.ContainsInTree(element) || right.ContainsInTree(element);
-            }
-        }
-
+        
         public override bool Equals(object obj)
         {
             return obj is BinaryOperation operation &&

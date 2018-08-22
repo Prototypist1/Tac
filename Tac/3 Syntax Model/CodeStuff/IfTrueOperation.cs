@@ -7,7 +7,8 @@ namespace Tac.Semantic_Model.Operations
 {
     public class IfTrueOperation : BinaryOperation
     {
-        public IfTrueOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        // right should have more validation
+        public IfTrueOperation(ICodeElement left, ICodeElement right) : base(left.TakeReferance(), right)
         {
         }
         

@@ -14,9 +14,7 @@ namespace Tac.Semantic_Model
         
         public TScope Scope { get; }
         public ICodeElement[] Body { get; }
-
-        public bool ContainsInTree(ICodeElement element) => Equals(element) || Body.Any(x => x.ContainsInTree(element));
-
+        
         public override bool Equals(object obj)
         {
             return obj is AbstractBlockDefinition<TScope> definition &&

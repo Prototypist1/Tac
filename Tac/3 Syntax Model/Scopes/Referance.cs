@@ -6,6 +6,19 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+
+    public class ReferanceOrMemberDef : ICodeElement{
+        public ReferanceOrMemberDef(Referance referance, MemberDefinition memberDefinition)
+        {
+            Referance = referance ?? throw new ArgumentNullException(nameof(referance));
+            MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
+        }
+
+        public Referance Referance { get; }
+        public MemberDefinition MemberDefinition { get; }
+
+    }
+
     public class Referance: ICodeElement
     {
         public readonly NamePath key;
@@ -13,9 +26,7 @@ namespace Tac.Semantic_Model
         public Referance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
 
         public Referance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) })) { }
-
-        public bool ContainsInTree(ICodeElement element) => Equals(element);
-
+        
         public override bool Equals(object obj)
         {
             return obj is Referance referance && referance != null &&

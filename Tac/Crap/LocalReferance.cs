@@ -2,7 +2,7 @@
 
 namespace Tac.Semantic_Model
 {
-    public class LocalReferance : Referance<LocalDefinition>
+    public class LocalReferance : Referance<VariableDefinition>
     {
         public LocalReferance(NamePath key) : base(key)
         {

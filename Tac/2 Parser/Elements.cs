@@ -9,6 +9,10 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
+    public class ParsingContext {
+
+    }
+
     public class Elements
     {
         public Elements(List<TryMatch> elementBuilders) => ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
@@ -16,20 +20,21 @@ namespace Tac.Parser
         public delegate bool TryMatch(ElementToken elementToken, IScope enclosingScope , out ICodeElement element);
 
         public List<TryMatch> ElementBuilders { get; }
-
-        // TODO different commands are allowed in different scopes 
+        
         public static Lazy<Elements> StandardElements = new Lazy<Elements>(() =>
         {
             return new Elements(
                 new List<TryMatch> {
+                    MatchStaticMemberDefinition,
+                    MatchObjectDefinition,
                     MatchLocalDefinition_Var,
                     MatchMethodDefinition,
                     MatchBlockDefinition,
                     MatchConstantNumber,
-                    MatchReferance
+                    MatchReferanceOrMemberDef
                 });
         });
-
+        
         public static bool MatchLocalDefinition_Var(ElementToken elementToken, IScope enclosingScope, out ICodeElement element){
             if ((elementToken.Tokens.Count() == 2 || elementToken.Tokens.Count() == 3) &&
                 elementToken.Tokens.First() is AtomicToken atomicToken &&
@@ -40,7 +45,7 @@ namespace Tac.Parser
                     elementToken.Tokens.ElementAt(1) is AtomicToken readOnlyToken &&
                     readOnlyToken.Item == "readonly";
 
-                element = new LocalDefinition(readOnly, new ImplicitTypeReferance(), new ExplicitName(nameToken.Item));
+                element = new VariableDefinition(readOnly, new ImplicitTypeReferance(), new ExplicitName(nameToken.Item));
 
                 return true;
             }
@@ -48,7 +53,91 @@ namespace Tac.Parser
             element = default;
             return false;
         }
+
+        public static bool MatchStaticMemberDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
+        {
+            if ((elementToken.Tokens.Count() == 2 || elementToken.Tokens.Count() == 3) &&
+                elementToken.Tokens.First() is AtomicToken atomicToken &&
+                atomicToken.Item == "static" &&
+                elementToken.Tokens.Last() is AtomicToken nameToken)
+            {
+
+                var readOnly = elementToken.Tokens.Count() == 3 &&
+                    elementToken.Tokens.ElementAt(1) is AtomicToken readOnlyToken &&
+                    readOnlyToken.Item == "readonly";
+
+                element = new MemberDefinition(readOnly,true, new ImplicitTypeReferance(), new ExplicitName(nameToken.Item));
+
+                return true;
+            }
+
+            element = default;
+            return false;
+        }
         
+        public static bool MatchObjectDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element) {
+            if (elementToken.Tokens.Count() == 3 &&
+                elementToken.Tokens.First() is AtomicToken first &&
+                    first.Item.StartsWith("object") &&
+                elementToken.Tokens.ElementAt(1) is CurleyBacketToken block)
+            {
+                var scope = new ObjectScope(enclosingScope);
+
+                var elements = TokenParser.ParseBlock(block,scope);
+                
+                var localDefininitions = elements.OfType<IsDefininition>().Where(x => !x.MemberDef.IsStatic).ToArray();
+
+                if (!elements.All(x => x is IsDefininition isDef && !isDef.MemberDef.IsStatic)) {
+                    throw new Exception("all lines in an object should be none static");
+                }
+
+                foreach (var loaclDefinition in localDefininitions)
+                {
+                    scope.TryAddLocalMember(loaclDefinition.MemberDef);
+                }
+                
+                element = new ObjectDefinition(scope, localDefininitions);
+                return true;
+            }
+            element = default;
+            return false;
+        }
+
+        public static bool MatchModuleDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element) {
+            if (elementToken.Tokens.Count() == 3 &&
+                elementToken.Tokens.First() is AtomicToken first &&
+                    first.Item.StartsWith("module") &&
+                elementToken.Tokens.ElementAt(1) is AtomicToken second &&
+                elementToken.Tokens.ElementAt(2) is CurleyBacketToken third) {
+
+                var scope = new StaticScope(enclosingScope);
+
+                var elements = TokenParser.ParseBlock(third, scope);
+
+                var staticDefininitions = elements.OfType<IsDefininition>().Where(x => x.MemberDef.IsStatic).ToArray();
+                var types = elements.OfType<TypeDefinition>().ToArray();
+
+                if (!elements.All(x=> x is IsDefininition || x is TypeDefinition)) {
+                    throw new Exception($"all elements should be a {nameof(IsDefininition)} or a {nameof(TypeDefinition)}");
+                }
+
+                foreach (var staticDefinition in staticDefininitions)
+                {
+                    scope.TryAddStaticMember(staticDefinition);
+                }
+
+                foreach (var type in types)
+                {
+                    scope.TryAddStaticType(type);
+                }
+                
+                element = new ModuleDefinition(new ExplicitName(second.Item), scope);
+
+            }
+            element = default;
+            return false;
+        }
+
         public static bool MatchMethodDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
         {
             if (
@@ -58,12 +147,26 @@ namespace Tac.Parser
                     first.Item.Split('|').Count() == 3 &&
                     first.Item.Split('|').All(x=>x.Length!=0) &&
                 elementToken.Tokens.ElementAt(1) is AtomicToken second &&
-                elementToken.Tokens.ElementAt(2) is CurleyBacketToken third
-                )
-            {
+                elementToken.Tokens.ElementAt(2) is CurleyBacketToken third){
+
                 var split = first.Item.Split('|');
 
                 var methodScope = new MethodScope(enclosingScope);
+
+                var lines = TokenParser.ParseBlock(third, methodScope);
+
+                var staticDefininitions = lines.OfType<IsDefininition>().Where(x => x.MemberDef.IsStatic).ToArray();
+                var types = lines.OfType<TypeDefinition>().ToArray();
+
+                foreach (var staticDefinition in staticDefininitions)
+                {
+                    methodScope.TryAddStaticMember(staticDefinition);
+                }
+
+                foreach (var type in types)
+                {
+                    methodScope.TryAddStaticType(type);
+                }
 
                 element = new MethodDefinition(
                     new TypeReferance(split[2]),
@@ -71,7 +174,7 @@ namespace Tac.Parser
                         false, // TODO, the way this is hard coded is something to think about, readonly should be encoded somewhere!
                         new TypeReferance(split[1]),
                         new ExplicitName(second.Item)),
-                    TokenParser.ParseBlock(third, methodScope), methodScope);
+                    lines.Except(staticDefininitions).Except(types).ToArray(), methodScope);
 
                 return true;
             }
@@ -89,8 +192,23 @@ namespace Tac.Parser
             {
                 var scope = new LocalStaticScope(enclosingScope);
 
+                var lines = TokenParser.ParseBlock(first, scope);
+
+                var staticDefininitions = lines.OfType<IsDefininition>().Where(x => x.MemberDef.IsStatic).ToArray();
+                var types = lines.OfType<TypeDefinition>().ToArray();
+                
+                foreach (var staticDefinition in staticDefininitions)
+                {
+                    scope.TryAddStaticMember(staticDefinition);
+                }
+
+                foreach (var type in types)
+                {
+                    scope.TryAddStaticType(type);
+                }
+                
                 element = new BlockDefinition(
-                    TokenParser.ParseBlock(first, scope), scope);
+                    lines.Except(staticDefininitions).Except(types).ToArray(), scope);
 
                 return true;
             }
@@ -116,7 +234,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchReferance(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
+        public static bool MatchReferanceOrMemberDef(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1 &&
@@ -124,7 +242,7 @@ namespace Tac.Parser
                 !double.TryParse(first.Item, out var _)
                 )
             {
-                element = new Referance(first.Item);
+                element = new ReferanceOrMemberDef(new Referance(first.Item), new MemberDefinition(false,false,new ImplicitTypeReferance(), new ExplicitName(first.Item)));
 
                 return true;
             }
