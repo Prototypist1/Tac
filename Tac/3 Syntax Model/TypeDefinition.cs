@@ -6,9 +6,15 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+
+    public interface ITypeDefinition: ICodeElement
+    {
+
+    }
+
     // you can totally have anonymous types...
     // that is why we have anonymous keys...
-    public sealed class TypeDefinition: IScoped<ObjectScope>, IReferanced, ICodeElement 
+    public class TypeDefinition: IScoped<ObjectScope>, IReferanced,  ITypeDefinition
     {
         public TypeDefinition(AbstractName key, IScope enclosingScope)
         {
@@ -34,6 +40,8 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + EqualityComparer<ObjectScope>.Default.GetHashCode(Scope);
             return hashCode;
         }
+
+        public ITypeDefinition ReturnType(IScope scope) => this;
     }
     
 }

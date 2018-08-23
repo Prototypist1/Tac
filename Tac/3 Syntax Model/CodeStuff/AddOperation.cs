@@ -5,7 +5,8 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class AddOperation : BinaryOperation
+
+    public class AddOperation : BinaryOperation<ICodeElement,ICodeElement>
     {
         public AddOperation(ICodeElement left, ICodeElement right) : base(left.TakeReferance(), right.TakeReferance())
         {
@@ -13,5 +14,20 @@ namespace Tac.Semantic_Model.Operations
 
         public override bool Equals(object obj) => obj is AddOperation other &&  base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
+
+        public override ITypeDefinition ReturnType() {
+            if (left.ReturnType() == RootScope.NumberType && right.ReturnType() == RootScope.NumberType)
+            {
+                return RootScope.NumberType;
+            }
+            else if (left.ReturnType() == RootScope.StringType && right.ReturnType() == RootScope.StringType)
+            {
+                return RootScope.NumberType;
+            }
+            else
+            {
+                throw new Exception("add expects string and int");
+            }
+        }
     }
 }

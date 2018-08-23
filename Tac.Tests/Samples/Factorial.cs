@@ -13,20 +13,16 @@ namespace Tac.Tests.Samples
     public class Factorial : ISample
     {
         public string Text =>
-@"static fac is method ( int ; int ) input {
+@"method ( int ; int ) input {
     input less-than 2 if-true {
         1 return ;
     } else {
         input minus 1 next-call fac times input return ;      
     } ;
-} ;";
+} assign static fac ;";
 
         public IToken Token => TokenHelp.File(
                     TokenHelp.Line(
-                        TokenHelp.Ele(
-                            TokenHelp.Atom("var"),
-                            TokenHelp.Atom("fac")),
-                        TokenHelp.Atom("is"),
                         TokenHelp.Ele(
                             TokenHelp.Atom("method|int|int"),
                             TokenHelp.Atom("input"),
@@ -52,13 +48,18 @@ namespace Tac.Tests.Samples
                                                 TokenHelp.Ele(TokenHelp.Atom("fac")),
                                                 TokenHelp.Atom("times"),
                                                 TokenHelp.Ele(TokenHelp.Atom("input")),
-                                                TokenHelp.Atom("return")))))))));
+                                                TokenHelp.Atom("return"))))))),
+                        TokenHelp.Atom("assign"),
+                        TokenHelp.Ele(
+                            TokenHelp.Atom("static"),
+                            TokenHelp.Atom("fac"))
+                        ));
 
         public IEnumerable<ICodeElement> CodeElements
         {
             get
             {
-                var rootScope = new StaticScope(new RootScope());
+                var rootScope = new StaticScope(RootScope.Root);
                 var methodScope = new MethodScope(rootScope);
                 var ifBlock = new LocalStaticScope(methodScope);
                 var elseBlock = new LocalStaticScope(methodScope);

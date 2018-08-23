@@ -27,14 +27,16 @@ namespace Tac.Semantic_Model.CodeStuff
     }
 
 
-    public abstract class BinaryOperation: ICodeElement
+    public abstract class BinaryOperation<TLeft,TRight>: ICodeElement
+        where TLeft: class, ICodeElement
+        where TRight: class, ICodeElement
     {
         
 
-        public readonly ICodeElement left;
-        public readonly ICodeElement right;
+        public readonly TLeft left;
+        public readonly TRight right;
 
-        public BinaryOperation(ICodeElement left, ICodeElement right)
+        public BinaryOperation(TLeft left, TRight right)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
@@ -42,7 +44,7 @@ namespace Tac.Semantic_Model.CodeStuff
         
         public override bool Equals(object obj)
         {
-            return obj is BinaryOperation operation &&
+            return obj is BinaryOperation<TLeft, TRight> operation &&
                    EqualityComparer<ICodeElement>.Default.Equals(left, operation.left) &&
                    EqualityComparer<ICodeElement>.Default.Equals(right, operation.right);
         }
@@ -54,6 +56,8 @@ namespace Tac.Semantic_Model.CodeStuff
             hashCode = hashCode * -1521134295 + EqualityComparer<ICodeElement>.Default.GetHashCode(right);
             return hashCode;
         }
+
+        public abstract ITypeDefinition ReturnType(IScope scope);
     }
     
 }

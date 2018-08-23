@@ -8,7 +8,7 @@ namespace Tac.Semantic_Model
 {
     public sealed class ModuleDefinition : IReferanced, IScoped<StaticScope>, ICodeElement 
     {
-        public ModuleDefinition(AbstractName key, StaticScope scope)
+        public ModuleDefinition(AbstractName key, StaticScope scope, IEnumerable<ICodeElement> staticInitialization)
         {
             if (scope == null)
             {

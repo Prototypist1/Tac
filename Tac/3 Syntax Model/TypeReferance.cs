@@ -13,5 +13,8 @@ namespace Tac.Semantic_Model
 
         public override bool Equals(object obj) => obj is TypeReferance && base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
+
+        public static TypeReferance StringType = new TypeReferance("String");
+        public static TypeReferance NumberType = new TypeReferance("Number");
     }
 }

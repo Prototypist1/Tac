@@ -49,9 +49,8 @@ namespace Tac.Parser
                     {"else", (last, next) => new ElseOperation(last,next) },
                     {"less-than", (last, next) => new LessThanOperation(last,next) },
                     {"next-call", (last, next) => new NextCallOperation(last,next) },
-                    {"assign", (last, next) => new AssignOperation(last,next) },
+                    {"assign", (last, next) => new AssignOperation(last, (ReferanceOrMemberDef)next) },
                     {"last-call", (last, next) => new LastCallOperation(last,next) },
-                    {"is", (last, next) => new IsDefininition((MemberDefinition)last,next) },
                 },
                 new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {

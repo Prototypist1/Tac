@@ -7,7 +7,7 @@ namespace Tac.Semantic_Model
 {
     public class MethodDefinition: AbstractBlockDefinition<MethodScope>
     {
-        public MethodDefinition(TypeReferance outputType, ParameterDefinition parameterDefinition, ICodeElement[] body, MethodScope scope) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body)
+        public MethodDefinition(TypeReferance outputType, ParameterDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -35,5 +35,7 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + EqualityComparer<ParameterDefinition>.Default.GetHashCode(ParameterDefinition);
             return hashCode;
         }
+
+        public override TypeReferance ReturnType() => OutputType;
     }
 }
