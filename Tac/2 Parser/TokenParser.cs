@@ -12,7 +12,7 @@ namespace Tac.Parser
 
         public static ICodeElement[] ParseFile(FileToken file)
         {
-            return file.Tokens.Select(x => ParseLine((LineToken)x, new StaticScope(new RootScope()))).ToArray();
+            return file.Tokens.Select(x => ParseLine((LineToken)x, new StaticScope(RootScope.Root))).ToArray();
         }
 
 
