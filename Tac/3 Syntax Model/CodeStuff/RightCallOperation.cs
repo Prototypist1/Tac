@@ -13,5 +13,6 @@ namespace Tac.Semantic_Model.Operations
         
         public override bool Equals(object obj) => obj is LastCallOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
+        public override ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();
     }
 }

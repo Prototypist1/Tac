@@ -11,7 +11,7 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     public sealed class MemberDefinition: IReferanced, ICodeElement
     {
-        public MemberDefinition(bool readOnly, bool isStatic, TypeReferance type, AbstractName key)
+        public MemberDefinition(bool readOnly, bool isStatic, IReferance type, AbstractName key)
         {
             ReadOnly = readOnly;
             IsStatic = isStatic;
@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model
         }
 
         public bool ReadOnly { get; }
-        public TypeReferance Type { get; }
+        public IReferance Type { get; }
         public AbstractName Key { get; }
         public bool IsStatic { get; }
         
@@ -28,7 +28,7 @@ namespace Tac.Semantic_Model
         {
             return obj is MemberDefinition definition &&
                    ReadOnly == definition.ReadOnly &&
-                   EqualityComparer<TypeReferance>.Default.Equals(Type, definition.Type) &&
+                   EqualityComparer<IReferance>.Default.Equals(Type, definition.Type) &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key);
         }
 
@@ -36,9 +36,18 @@ namespace Tac.Semantic_Model
         {
             var hashCode = 1232917096;
             hashCode = hashCode * -1521134295 + ReadOnly.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<TypeReferance>.Default.GetHashCode(Type);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IReferance>.Default.GetHashCode(Type);
             hashCode = hashCode * -1521134295 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
             return hashCode;
+        }
+
+        public ITypeDefinition ReturnType(IScope scope) {
+            if (scope.TryGet(Type, out var res) && res is TypeDefinition type)
+            {
+                return type;
+            }
+
+            throw new Exception("Type not found");
         }
     }
 

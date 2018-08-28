@@ -173,10 +173,10 @@ namespace Tac.Parser
                 }
 
                 element = new MethodDefinition(
-                    new TypeReferance(inputType.Item),
+                    new Referance(inputType.Item),
                     new ParameterDefinition(
                         false, // TODO, the way this is hard coded is something to think about, readonly should be encoded somewhere!
-                        new TypeReferance(inputType.Item),
+                        new Referance(inputType.Item),
                         new ExplicitName(second.Item)),
                     lines.Except(staticDefininitions).Except(types).ToArray(),
                     methodScope,

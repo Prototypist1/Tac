@@ -55,7 +55,8 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public bool TryGet<TReferanced>(NamePath key, out TReferanced item) where TReferanced : IReferanced => throw new NotImplementedException();
+        public bool TryGet(IReferance key, out IReferanced item) {
+        }
     }
 
 }

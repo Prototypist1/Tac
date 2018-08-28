@@ -15,12 +15,12 @@ namespace Tac.Semantic_Model.Operations
         public override bool Equals(object obj) => obj is AddOperation other &&  base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
 
-        public override ITypeDefinition ReturnType() {
-            if (left.ReturnType() == RootScope.NumberType && right.ReturnType() == RootScope.NumberType)
+        public override ITypeDefinition ReturnType(IScope scope) {
+            if (left.ReturnType(scope) == RootScope.NumberType && right.ReturnType(scope) == RootScope.NumberType)
             {
                 return RootScope.NumberType;
             }
-            else if (left.ReturnType() == RootScope.StringType && right.ReturnType() == RootScope.StringType)
+            else if (left.ReturnType(scope) == RootScope.StringType && right.ReturnType(scope) == RootScope.StringType)
             {
                 return RootScope.NumberType;
             }

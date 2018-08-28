@@ -13,17 +13,21 @@ namespace Tac.Semantic_Model.Operations
 
         public override bool Equals(object obj) => obj is NextCallOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(IScope scope) {
-            if (right is Referance referance && 
-                scope.TryGet<MemberDefinition>(referance.key, out var member) &&
-                scope.TryGet<TypeDefinition>(member.Type.key, out var typeDefinition)) {
-                
+        public override ITypeDefinition ReturnType(IScope scope)
+        {
+            if (right is Referance referance &&
+                scope.TryGet(referance, out var member) &&
+                member is MemberDefinition memberDefinition &&
+                scope.TryGet(memberDefinition.Type, out var typeDefinition))
+            {
+                return typeDefinition.ReturnType(scope);
             }
             else if (right is MethodDefinition methodDefinition)
             {
-                return right.ReturnType(scope);
+                return methodDefinition.ReturnType(scope);
             }
-            throw new Exception("");
+            return right.ReturnType(scope);
+
         }
     }
 }

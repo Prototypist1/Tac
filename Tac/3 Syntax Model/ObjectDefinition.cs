@@ -30,5 +30,7 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + EqualityComparer<ObjectScope>.Default.GetHashCode(Scope);
             return hashCode;
         }
+
+        public ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();
     }
 }

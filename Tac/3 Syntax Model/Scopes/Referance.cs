@@ -7,19 +7,25 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class ReferanceOrMemberDef : ICodeElement{
-        public ReferanceOrMemberDef(Referance referance, MemberDefinition memberDefinition)
+    public class ReferanceOrMemberDef {
+        public ReferanceOrMemberDef(IReferance referance, MemberDefinition memberDefinition)
         {
             Referance = referance ?? throw new ArgumentNullException(nameof(referance));
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
-        public Referance Referance { get; }
+        public IReferance Referance { get; }
         public MemberDefinition MemberDefinition { get; }
+
+        // smells 
+        public ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();
+    }
+
+    public interface IReferance : ICodeElement {
 
     }
 
-    public class Referance: ICodeElement
+    public sealed class Referance: IReferance 
     {
         public readonly NamePath key;
 
@@ -34,38 +40,14 @@ namespace Tac.Semantic_Model
         }
 
         public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(key);
-
-        public IReferanced GetOrThrow(IScope compilation)
+        public ITypeDefinition ReturnType(IScope scope)
         {
-            if (compilation.TryGet<IReferanced>(key, out var referanced))
+            if (scope.TryGet(this, out var res))
             {
-                return referanced;
+                return res.ReturnType(scope);
             }
-            else {
-                throw new Exception($"{key} not found");
-            }
-        }
-    }
 
-    public class Referance<TReferanced>: Referance
-        where TReferanced : IReferanced
-    {
-        public Referance(NamePath key) : base(key)
-        {
-        }
-
-        public override bool Equals(object obj) => obj is Referance<TReferanced> && base.Equals(obj);
-        public override int GetHashCode() => base.GetHashCode();
-
-        public new TReferanced GetOrThrow(IScope compilation) {
-            if (compilation.TryGet<TReferanced>(key, out var referanced))
-            {
-                return referanced;
-            }
-            else
-            {
-                throw new Exception($"{key} not found");
-            }
+            throw new Exception("Referance Not resolved");
         }
     }
 }

@@ -5,11 +5,14 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class AssignOperation : BinaryOperation<ICodeElement, ReferanceOrMemberDef>
+    public class AssignOperation : BinaryOperation<ICodeElement, Referance>, IScoped<AssignmentScope>
     {
-        public AssignOperation(ICodeElement left, ReferanceOrMemberDef right) : base(left.TakeReferance(), right)
+        public AssignOperation(ICodeElement left, Referance right, AssignmentScope assignmentScope) : base(left.TakeReferance(), right)
         {
+            Scope = assignmentScope ?? throw new ArgumentNullException(nameof(assignmentScope));
         }
+
+        public AssignmentScope Scope { get; }
 
         public override bool Equals(object obj) => obj is AssignOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();

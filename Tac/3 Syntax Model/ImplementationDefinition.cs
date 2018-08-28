@@ -7,7 +7,7 @@ namespace Tac.Semantic_Model
 {
     public sealed class ImplementationDefinition: IScoped<InstanceScope>, IReferanced
     {
-        public ImplementationDefinition(TypeReferance contextType, TypeReferance outputType, ParameterDefinition parameterDefinition, AbstractBlockDefinition<InstanceScope> methodBodyDefinition, AbstractName key)
+        public ImplementationDefinition(Referance contextType, Referance outputType, ParameterDefinition parameterDefinition, AbstractBlockDefinition<InstanceScope> methodBodyDefinition, AbstractName key)
         {
             ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -16,9 +16,9 @@ namespace Tac.Semantic_Model
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public TypeReferance ContextType { get; }
-        public TypeReferance InputType { get => ParameterDefinition.Type; }
-        public TypeReferance OutputType { get; }
+        public Referance ContextType { get; }
+        public Referance InputType { get => ParameterDefinition.Type; }
+        public Referance OutputType { get; }
         public ParameterDefinition ParameterDefinition { get; }
         public AbstractBlockDefinition<InstanceScope> MethodBodyDefinition { get; }
 
@@ -45,5 +45,7 @@ namespace Tac.Semantic_Model
                     MethodBodyDefinition.GetHashCode();
             }
         }
+
+        public ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();
     }
 }

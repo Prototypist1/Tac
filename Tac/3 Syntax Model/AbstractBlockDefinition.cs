@@ -33,7 +33,6 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + StaticInitailizers.Sum(x => x.GetHashCode());
             return hashCode;
         }
-
-        public abstract TypeReferance ReturnType();
+        public abstract ITypeDefinition ReturnType(IScope scope);
     }
 }
