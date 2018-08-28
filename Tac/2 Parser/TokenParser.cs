@@ -73,7 +73,8 @@ namespace Tac.Parser
                     {
                         codeElement = binaryFunc(
                             last,
-                            ParseLineElementOrThrow(next, scope, last));
+                            ParseLineElementOrThrow(next, scope, last), 
+                            scope);
                     }
                 }
                 else if (Operations.StandardOperations.Value.LastOperations.TryGetValue(atomicToken.Item, out var lastFunc))
@@ -84,7 +85,8 @@ namespace Tac.Parser
                         throw new Exception("last required but not provied");
                     }
                     codeElement = lastFunc(
-                        last);
+                        last,
+                        scope);
                     return true;
 
                 }
@@ -93,7 +95,8 @@ namespace Tac.Parser
                     if (view.TryGetNext(out var next))
                     {
                         codeElement = nextFunc(
-                            ParseLineElementOrThrow(next, scope, last));
+                            ParseLineElementOrThrow(next, scope, last),
+                            scope);
 
                         return true;
                     }
@@ -104,7 +107,7 @@ namespace Tac.Parser
                 }
                 else if (Operations.StandardOperations.Value.ConstantOperations.TryGetValue(atomicToken.Item, out var action))
                 {
-                    codeElement = action();
+                    codeElement = action(scope);
                     return true;
                 }
                 else
