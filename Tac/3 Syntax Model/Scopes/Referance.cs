@@ -22,24 +22,23 @@ namespace Tac.Semantic_Model
     }
 
     public interface IReferance : ICodeElement {
-
     }
 
     public sealed class Referance: IReferance 
     {
-        public readonly NamePath key;
+        public NamePath Key { get; }
 
-        public Referance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
+        public Referance(NamePath key) => this.Key = key ?? throw new ArgumentNullException(nameof(key));
 
         public Referance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) })) { }
         
         public override bool Equals(object obj)
         {
             return obj is Referance referance && referance != null &&
-                   EqualityComparer<NamePath>.Default.Equals(key, referance.key);
+                   EqualityComparer<NamePath>.Default.Equals(Key, referance.Key);
         }
 
-        public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(key);
+        public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(Key);
         public ITypeDefinition ReturnType(IScope scope)
         {
             if (scope.TryGet(this, out var res))

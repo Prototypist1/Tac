@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
     {
         // referance.key.names.Single() is interesting
         // is it worth making a simple referance??
-        public MemberDefinition(Referance referance, bool isStatic) : this (false, isStatic, new ImplicitTypeReferance(),referance.key.names.Single())
+        public MemberDefinition(Referance referance, bool isStatic) : this (false, isStatic, new ImplicitTypeReferance(),referance.Key.names.Single())
         {
         }
 

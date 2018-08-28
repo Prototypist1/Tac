@@ -56,6 +56,7 @@ namespace Tac.Semantic_Model
         }
 
         public bool TryGet(IReferance key, out IReferanced item) {
+            throw new NotImplementedException();
         }
     }
 
