@@ -5,9 +5,13 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class AssignOperation : BinaryOperation<ICodeElement, Referance>, IScoped<AssignmentScope>
+    public class AssignOperation : BinaryOperation<ICodeElement, ICodeElement>, IScoped<AssignmentScope>
     {
-        public AssignOperation(ICodeElement left, Referance right, AssignmentScope assignmentScope) : base(left.TakeReferance(), right)
+        public AssignOperation(ICodeElement left, Referance right, AssignmentScope assignmentScope) : this(left, (ICodeElement)right, assignmentScope) { }
+
+        public AssignOperation(ICodeElement left, MemberDefinition right, AssignmentScope assignmentScope) : this(left, (ICodeElement)right , assignmentScope) { }
+
+        private AssignOperation(ICodeElement left, ICodeElement right, AssignmentScope assignmentScope) : base(left, right)
         {
             Scope = assignmentScope ?? throw new ArgumentNullException(nameof(assignmentScope));
         }

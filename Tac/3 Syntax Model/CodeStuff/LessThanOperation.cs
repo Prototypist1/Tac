@@ -6,7 +6,7 @@ namespace Tac.Semantic_Model.CodeStuff
 {
     public class LessThanOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
-        public LessThanOperation(ICodeElement left, ICodeElement right) : base(left.TakeReferance(), right.TakeReferance())
+        public LessThanOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
         

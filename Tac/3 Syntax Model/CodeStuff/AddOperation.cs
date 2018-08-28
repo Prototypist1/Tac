@@ -8,7 +8,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class AddOperation : BinaryOperation<ICodeElement,ICodeElement>
     {
-        public AddOperation(ICodeElement left, ICodeElement right) : base(left.TakeReferance(), right.TakeReferance())
+        public AddOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
 

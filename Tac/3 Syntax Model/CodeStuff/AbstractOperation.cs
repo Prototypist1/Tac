@@ -5,28 +5,6 @@ using System.Text;
 namespace Tac.Semantic_Model.CodeStuff
 {
 
-    public static class CodeElementExtensions {
-
-        public static ICodeElement TakeReferance(this ICodeElement codeElement)
-        {
-            if (codeElement is ReferanceOrMemberDef referanceOrMemberDef)
-            {
-                return referanceOrMemberDef.Referance;
-            }
-            return codeElement;
-        }
-
-        public static ICodeElement TakeMemberDef(this ICodeElement codeElement)
-        {
-            if (codeElement is ReferanceOrMemberDef referanceOrMemberDef)
-            {
-                return referanceOrMemberDef.MemberDefinition;
-            }
-            return codeElement;
-        }
-    }
-
-
     public abstract class BinaryOperation<TLeft,TRight>: ICodeElement
         where TLeft: class, ICodeElement
         where TRight: class, ICodeElement

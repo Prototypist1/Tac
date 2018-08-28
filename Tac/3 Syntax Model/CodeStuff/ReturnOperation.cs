@@ -9,7 +9,7 @@ namespace Tac.Semantic_Model.Operations
     {
         public ReturnOperation(ICodeElement result)
         {
-            Result = result.TakeReferance();
+            Result = result;
         }
 
         public ICodeElement Result { get; }

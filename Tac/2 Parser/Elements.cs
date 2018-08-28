@@ -31,7 +31,7 @@ namespace Tac.Parser
                     MatchMethodDefinition,
                     MatchBlockDefinition,
                     MatchConstantNumber,
-                    MatchReferanceOrMemberDef
+                    MatchReferance
                 });
         });
         
@@ -85,15 +85,23 @@ namespace Tac.Parser
 
                 var elements = TokenParser.ParseBlock(block,scope);
                 
-                var localDefininitions = elements.OfType<AssignOperation>().Where(x => !(x.right.TakeMemberDef() as MemberDefinition).IsStatic).ToArray();
+                var localDefininitions = elements.OfType<AssignOperation>().ToArray();
 
-                if (!elements.All(x => x is AssignOperation assignOperation && !(assignOperation.right.TakeMemberDef() as MemberDefinition).IsStatic)) {
+                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || !(assignOperation.right as MemberDefinition).IsStatic))) {
                     throw new Exception("all lines in an object should be none static");
                 }
 
                 foreach (var loaclDefinition in localDefininitions)
                 {
-                    scope.TryAddLocalMember((loaclDefinition.right.TakeMemberDef() as MemberDefinition));
+                    if (loaclDefinition.right is MemberDefinition memberDefinition)
+                    {
+                        scope.TryAddLocalMember(memberDefinition);
+                    }
+                    else if (loaclDefinition.right is Referance referance) {
+                        scope.TryAddLocalMember(new MemberDefinition(referance, false));
+                    }else{
+                        throw new Exception(loaclDefinition.right + "is of unexpected type");
+                    }
                 }
                 
                 element = new ObjectDefinition(scope, localDefininitions);
@@ -114,18 +122,32 @@ namespace Tac.Parser
 
                 var elements = TokenParser.ParseBlock(third, scope);
 
-                var staticDefininitions = elements.OfType<AssignOperation>().Where(x => (x.right.TakeMemberDef() as MemberDefinition).IsStatic).ToArray();
+
+                var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
+
                 var types = elements.OfType<TypeDefinition>().ToArray();
 
-                if (!elements.All(x=> (x is AssignOperation assignOperation && (assignOperation.right.TakeMemberDef() as MemberDefinition).IsStatic) || x is TypeDefinition)) {
-                    throw new Exception($"all elements should be a static {nameof(AssignOperation)} or a {nameof(TypeDefinition)}");
+                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as MemberDefinition).IsStatic)))
+                {
+                    throw new Exception("all lines in an object should be none static");
                 }
 
                 foreach (var staticDefinition in staticDefininitions)
                 {
-                    scope.TryAddStaticMember((staticDefinition.right.TakeMemberDef() as MemberDefinition));
+                    if (staticDefinition.right is MemberDefinition memberDefinition)
+                    {
+                        scope.TryAddStaticMember(memberDefinition);
+                    }
+                    else if (staticDefinition.right is Referance referance)
+                    {
+                        scope.TryAddStaticMember(new MemberDefinition(referance, true));
+                    }
+                    else
+                    {
+                        throw new Exception(staticDefinition.right + "is of unexpected type");
+                    }
                 }
-
+                
                 foreach (var type in types)
                 {
                     scope.TryAddStaticType(type);
@@ -157,16 +179,34 @@ namespace Tac.Parser
                 
                 var methodScope = new MethodScope(enclosingScope);
 
-                var lines = TokenParser.ParseBlock(third, methodScope);
+                var elements = TokenParser.ParseBlock(third, methodScope);
 
-                var staticDefininitions = lines.OfType<AssignOperation>().Where(x => (x.right.TakeMemberDef() as MemberDefinition).IsStatic).ToArray();
-                var types = lines.OfType<TypeDefinition>().ToArray();
+
+                var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
+
+                var types = elements.OfType<TypeDefinition>().ToArray();
+
+                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as MemberDefinition).IsStatic)))
+                {
+                    throw new Exception("all lines in an object should be none static");
+                }
 
                 foreach (var staticDefinition in staticDefininitions)
                 {
-                    methodScope.TryAddStaticMember((staticDefinition.right.TakeMemberDef() as MemberDefinition));
+                    if (staticDefinition.right is MemberDefinition memberDefinition)
+                    {
+                        methodScope.TryAddStaticMember(memberDefinition);
+                    }
+                    else if (staticDefinition.right is Referance referance)
+                    {
+                        methodScope.TryAddStaticMember(new MemberDefinition(referance, true));
+                    }
+                    else
+                    {
+                        throw new Exception(staticDefinition.right + "is of unexpected type");
+                    }
                 }
-
+                
                 foreach (var type in types)
                 {
                     methodScope.TryAddStaticType(type);
@@ -178,7 +218,7 @@ namespace Tac.Parser
                         false, // TODO, the way this is hard coded is something to think about, readonly should be encoded somewhere!
                         new Referance(inputType.Item),
                         new ExplicitName(second.Item)),
-                    lines.Except(staticDefininitions).Except(types).ToArray(),
+                    elements.Except(staticDefininitions).Except(types).ToArray(),
                     methodScope,
                     staticDefininitions);
 
@@ -198,23 +238,41 @@ namespace Tac.Parser
             {
                 var scope = new LocalStaticScope(enclosingScope);
 
-                var lines = TokenParser.ParseBlock(first, scope);
+                var elements = TokenParser.ParseBlock(first, scope);
 
-                var staticDefininitions = lines.OfType<AssignOperation>().Where(x => (x.right.TakeMemberDef() as MemberDefinition).IsStatic).ToArray();
-                var types = lines.OfType<TypeDefinition>().ToArray();
-                
+
+                var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
+
+                var types = elements.OfType<TypeDefinition>().ToArray();
+
+                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as MemberDefinition).IsStatic)))
+                {
+                    throw new Exception("all lines in an object should be none static");
+                }
+
                 foreach (var staticDefinition in staticDefininitions)
                 {
-                    scope.TryAddStaticMember((staticDefinition.right.TakeMemberDef() as MemberDefinition));
+                    if (staticDefinition.right is MemberDefinition memberDefinition)
+                    {
+                        scope.TryAddStaticMember(memberDefinition);
+                    }
+                    else if (staticDefinition.right is Referance referance)
+                    {
+                        scope.TryAddStaticMember(new MemberDefinition(referance, true));
+                    }
+                    else
+                    {
+                        throw new Exception(staticDefinition.right + "is of unexpected type");
+                    }
                 }
 
                 foreach (var type in types)
                 {
                     scope.TryAddStaticType(type);
                 }
-                
+
                 element = new BlockDefinition(
-                    lines.Except(staticDefininitions).Except(types).ToArray(), scope, staticDefininitions);
+                    elements.Except(staticDefininitions).Except(types).ToArray(), scope, staticDefininitions);
 
                 return true;
             }
@@ -240,7 +298,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchReferanceOrMemberDef(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
+        public static bool MatchReferance(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1 &&
@@ -248,7 +306,7 @@ namespace Tac.Parser
                 !double.TryParse(first.Item, out var _)
                 )
             {
-                element = new ReferanceOrMemberDef(new Referance(first.Item), new MemberDefinition(false,false,new ImplicitTypeReferance(), new ExplicitName(first.Item)));
+                element = new Referance(first.Item);
 
                 return true;
             }

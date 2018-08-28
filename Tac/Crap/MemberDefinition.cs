@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
@@ -11,6 +12,12 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     public sealed class MemberDefinition: IReferanced, ICodeElement
     {
+        // referance.key.names.Single() is interesting
+        // is it worth making a simple referance??
+        public MemberDefinition(Referance referance, bool isStatic) : this (false, isStatic, new ImplicitTypeReferance(),referance.key.names.Single())
+        {
+        }
+
         public MemberDefinition(bool readOnly, bool isStatic, IReferance type, AbstractName key)
         {
             ReadOnly = readOnly;
