@@ -2,6 +2,6 @@
 {
     public interface IScoped<out TScope> where TScope : IScope
     {
-        TScope Scope { get; }
+        IScope Scope { get; }
     }
 }

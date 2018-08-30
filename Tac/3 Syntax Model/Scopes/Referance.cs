@@ -8,25 +8,20 @@ namespace Tac.Semantic_Model
 {
 
     public class ReferanceOrMemberDef {
-        public ReferanceOrMemberDef(IReferance referance, MemberDefinition memberDefinition)
+        public ReferanceOrMemberDef(Referance referance, MemberDefinition memberDefinition)
         {
             Referance = referance ?? throw new ArgumentNullException(nameof(referance));
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
-        public IReferance Referance { get; }
+        public Referance Referance { get; }
         public MemberDefinition MemberDefinition { get; }
 
         // smells 
         public ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();
     }
-
-    public interface IReferance : ICodeElement {
-
-    }
-
-    public sealed class Referance: IReferance 
-    {
+    
+    public sealed class Referance : ICodeElement{
         public readonly NamePath key;
 
         public Referance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
@@ -42,7 +37,7 @@ namespace Tac.Semantic_Model
         public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(key);
         public ITypeDefinition ReturnType(IScope scope)
         {
-            if (scope.TryGet(this, out var res))
+            if (scope.TryGet(key.names, out var res))
             {
                 return res.ReturnType(scope);
             }

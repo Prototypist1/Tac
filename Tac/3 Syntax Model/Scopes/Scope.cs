@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
             Local,
         }
 
-        private  class Visiblity
+        private class Visiblity
         {
             public Visiblity(DefintionLifetime defintionLifeTime, IReferanced definition)
             {
@@ -55,7 +55,28 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public bool TryGet(IReferance key, out IReferanced item) {
+        public bool TryGet(IEnumerable<AbstractName> names, out IReferanced item) {
+            if (referanced.TryGetValue(names.First(), out var items)) {
+                var thing = items.Single();
+                if (names.Count() == 1) {
+                    item = thing.Definition;
+                    return true;
+                }
+                if (thing.Definition is IScoped<IScope> scoped)
+                {
+                    return scoped.Scope.TryGet(names.Skip(1), out item);
+                }
+                else {
+                    throw new Exception($"{thing.Definition} should be a {typeof(IScoped<IScope>)} instead it is {thing.Definition.GetType()}");
+                }
+            }
+            item = null;
+            return false;
+        }
+
+        public bool TryGet(ImplicitTypeReferance key, out ITypeDefinition item) {
+            item = null;
+            return false;
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Semantic_Model.CodeStuff;
@@ -12,13 +13,15 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     public sealed class MemberDefinition: IReferanced, ICodeElement
     {
-        // referance.key.names.Single() is interesting
-        // is it worth making a simple referance??
-        public MemberDefinition(Referance referance, bool isStatic) : this (false, isStatic, new ImplicitTypeReferance(),referance.key.names.Single())
+        public MemberDefinition(bool readOnly, bool isStatic, AbstractName key) : this (readOnly, isStatic, new OrType<Referance, ImplicitTypeReferance>(new ImplicitTypeReferance()), key)
         {
         }
 
-        public MemberDefinition(bool readOnly, bool isStatic, IReferance type, AbstractName key)
+        public MemberDefinition(bool readOnly, bool isStatic, Referance referance, AbstractName key) : this(false, isStatic, new OrType<Referance, ImplicitTypeReferance>(referance), key)
+        {
+        }
+
+        public MemberDefinition(bool readOnly, bool isStatic, OrType<Referance, ImplicitTypeReferance> type, AbstractName key)
         {
             ReadOnly = readOnly;
             IsStatic = isStatic;
@@ -27,7 +30,7 @@ namespace Tac.Semantic_Model
         }
 
         public bool ReadOnly { get; }
-        public IReferance Type { get; }
+        public OrType<Referance, ImplicitTypeReferance> Type { get; }
         public AbstractName Key { get; }
         public bool IsStatic { get; }
         
@@ -35,7 +38,7 @@ namespace Tac.Semantic_Model
         {
             return obj is MemberDefinition definition &&
                    ReadOnly == definition.ReadOnly &&
-                   EqualityComparer<IReferance>.Default.Equals(Type, definition.Type) &&
+                   EqualityComparer<OrType<Referance, ImplicitTypeReferance>>.Default.Equals(Type, definition.Type) &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key);
         }
 
@@ -43,17 +46,22 @@ namespace Tac.Semantic_Model
         {
             var hashCode = 1232917096;
             hashCode = hashCode * -1521134295 + ReadOnly.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<IReferance>.Default.GetHashCode(Type);
+            hashCode = hashCode * -1521134295 + EqualityComparer<OrType<Referance, ImplicitTypeReferance>>.Default.GetHashCode(Type);
             hashCode = hashCode * -1521134295 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
             return hashCode;
         }
 
         public ITypeDefinition ReturnType(IScope scope) {
-            if (scope.TryGet(Type, out var res) && res is TypeDefinition type)
+            if (Type.Is(out Referance referance) &&  scope.TryGet(referance.key.names, out var referanceRes) && referanceRes is TypeDefinition referanceType)
             {
-                return type;
+                return referanceType;
             }
 
+            if (Type.Is(out ImplicitTypeReferance implicitTypeReferance) && scope.TryGet(implicitTypeReferance, out var implicitTypeReferanceRes) && implicitTypeReferanceRes is TypeDefinition implicitTypeReferanceType)
+            {
+                return implicitTypeReferanceType;
+            }
+            
             throw new Exception("Type not found");
         }
     }

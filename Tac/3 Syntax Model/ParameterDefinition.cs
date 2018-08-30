@@ -35,7 +35,7 @@ namespace Tac.Semantic_Model
         }
 
         public ITypeDefinition ReturnType(IScope scope) {
-            if (scope.TryGet(Type, out var res) && res is ITypeDefinition type)
+            if (scope.TryGet(Type.key.names, out var res) && res is ITypeDefinition type)
             {
                 return type;
             }
