@@ -35,7 +35,7 @@ namespace Tac.Semantic_Model.CodeStuff
             return hashCode;
         }
 
-        public abstract ITypeDefinition ReturnType(IScope scope);
+        public abstract ITypeDefinition ReturnType(ScopeStack scope);
     }
     
 }

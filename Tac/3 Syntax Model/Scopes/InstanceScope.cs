@@ -3,11 +3,7 @@
 
     public class InstanceScope : LocalStaticScope
     {
-        public InstanceScope(IScope enclosingScope) : base(enclosingScope)
-        {
-        }
-
-        public bool TryAddInstanceMember(MemberDefinition definition)
+        public bool TryAddInstanceMember(AbstractMemberDefinition definition)
         {
             return TryAdd(DefintionLifetime.Instance, definition);
         }

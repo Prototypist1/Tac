@@ -8,40 +8,36 @@ namespace Tac.Semantic_Model
 {
 
     public class ReferanceOrMemberDef {
-        public ReferanceOrMemberDef(IReferance referance, MemberDefinition memberDefinition)
+        public ReferanceOrMemberDef(Referance referance, AbstractMemberDefinition memberDefinition)
         {
             Referance = referance ?? throw new ArgumentNullException(nameof(referance));
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
-        public IReferance Referance { get; }
-        public MemberDefinition MemberDefinition { get; }
+        public Referance Referance { get; }
+        public AbstractMemberDefinition MemberDefinition { get; }
 
         // smells 
         public ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();
     }
+    
+    public sealed class Referance : ICodeElement{
+        public readonly NamePath key;
 
-    public interface IReferance : ICodeElement {
-    }
-
-    public sealed class Referance: IReferance 
-    {
-        public NamePath Key { get; }
-
-        public Referance(NamePath key) => this.Key = key ?? throw new ArgumentNullException(nameof(key));
+        public Referance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
 
         public Referance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) })) { }
         
         public override bool Equals(object obj)
         {
             return obj is Referance referance && referance != null &&
-                   EqualityComparer<NamePath>.Default.Equals(Key, referance.Key);
+                   EqualityComparer<NamePath>.Default.Equals(key, referance.key);
         }
 
-        public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(Key);
-        public ITypeDefinition ReturnType(IScope scope)
+        public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(key);
+        public ITypeDefinition ReturnType(ScopeStack scope)
         {
-            if (scope.TryGet(this, out var res))
+            if (scope.TryGet(key.names, out var res))
             {
                 return res.ReturnType(scope);
             }

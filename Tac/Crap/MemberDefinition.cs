@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Semantic_Model.CodeStuff;
@@ -6,36 +7,61 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+
+    public sealed class ImplicitMemberDefinition : AbstractMemberDefinition<ImplicitTypeReferance>
+    {
+        public ImplicitMemberDefinition(bool readOnly, bool isStatic, ImplicitTypeReferance type, AbstractName key) : base(readOnly, isStatic, type, key)
+        {
+        }
+        public override ITypeDefinition ReturnType(ScopeStack scope)
+        {
+            
+            if (Type.Is(out ImplicitTypeReferance implicitTypeReferance) && scope.TryGet(Type, out var implicitTypeReferanceRes) && implicitTypeReferanceRes is TypeDefinition implicitTypeReferanceType)
+            {
+                return implicitTypeReferanceType;
+            }
+
+            throw new Exception("Type not found");
+        }
+    }
+
+    public sealed class MemberDefinition : AbstractMemberDefinition<Referance>
+    {
+        public MemberDefinition(bool readOnly, bool isStatic, Referance type, AbstractName key) : base(readOnly, isStatic, type, key)
+        {
+        }
+        public override ITypeDefinition ReturnType(ScopeStack scope)
+        {
+            if ( scope.TryGet(Type.key.names, out var referanceRes) && referanceRes is TypeDefinition referanceType)
+            {
+                return referanceType;
+            }
+            
+            throw new Exception("Type not found");
+        }
+    }
+
     // it is possible members are single instances with look up
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    public sealed class MemberDefinition: IReferanced, ICodeElement
+    public abstract class AbstractMemberDefinition: IReferanced, ICodeElement
     {
-        // referance.key.names.Single() is interesting
-        // is it worth making a simple referance??
-        public MemberDefinition(Referance referance, bool isStatic) : this (false, isStatic, new ImplicitTypeReferance(),referance.Key.names.Single())
-        {
-        }
-
-        public MemberDefinition(bool readOnly, bool isStatic, IReferance type, AbstractName key)
+        public AbstractMemberDefinition(bool readOnly, bool isStatic, AbstractName key)
         {
             ReadOnly = readOnly;
             IsStatic = isStatic;
-            Type = type ?? throw new ArgumentNullException(nameof(type));
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public bool ReadOnly { get; }
-        public IReferance Type { get; }
         public AbstractName Key { get; }
         public bool IsStatic { get; }
-        
+
         public override bool Equals(object obj)
         {
-            return obj is MemberDefinition definition &&
+            return obj is AbstractMemberDefinition definition &&
                    ReadOnly == definition.ReadOnly &&
-                   EqualityComparer<IReferance>.Default.Equals(Type, definition.Type) &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key);
         }
 
@@ -43,19 +69,37 @@ namespace Tac.Semantic_Model
         {
             var hashCode = 1232917096;
             hashCode = hashCode * -1521134295 + ReadOnly.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<IReferance>.Default.GetHashCode(Type);
             hashCode = hashCode * -1521134295 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
             return hashCode;
         }
 
-        public ITypeDefinition ReturnType(IScope scope) {
-            if (scope.TryGet(Type, out var res) && res is TypeDefinition type)
-            {
-                return type;
-            }
+        public abstract ITypeDefinition ReturnType(ScopeStack scope);
+    }
 
-            throw new Exception("Type not found");
+    public abstract class AbstractMemberDefinition<TType>: AbstractMemberDefinition
+        where TType : class 
+    {
+        public AbstractMemberDefinition(bool readOnly, bool isStatic, TType type, AbstractName key): base(readOnly,isStatic,key)
+        {
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
+        
+        public TType Type { get; }
+        
+        public override bool Equals(object obj)
+        {
+            return obj is AbstractMemberDefinition<TType> definition &&
+                   Type.Equals(definition.Type) && 
+                   base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = base.GetHashCode();
+            hashCode = hashCode * -1521134295 + Type.GetHashCode();
+            return hashCode;
+        }
+        
     }
 
 }

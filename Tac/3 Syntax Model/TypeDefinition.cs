@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model
     {
         public TypeDefinition(AbstractName key, IScope enclosingScope)
         {
-            Scope = new ObjectScope(enclosingScope);
+            Scope = new ObjectScope();
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
@@ -41,7 +41,13 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public ITypeDefinition ReturnType(IScope scope) => this;
+
+        public ITypeDefinition ReturnType(ScopeStack scope) {
+            // TODO
+            // I had this as returning "this"
+            // that is not really true tho,
+            // this returns a type...
+        }
     }
     
 }

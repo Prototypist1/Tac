@@ -5,21 +5,36 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class AssignOperation : BinaryOperation<ICodeElement, ICodeElement>, IScoped<AssignmentScope>
+    public abstract class AbstractAssignOperation<TRight> : BinaryOperation<ICodeElement, TRight>, IScoped<AssignmentScope>
+        where TRight: class, ICodeElement
     {
-        public AssignOperation(ICodeElement left, ICodeElement right, AssignmentScope assignmentScope) : base(left, right)
+        public AbstractAssignOperation(ICodeElement left, TRight right) : base(left, right)
         {
-            if (!(right is Referance || right is MemberDefinition)) {
-                throw new Exception("right should be a referance or a member!");
-            }
-
-            Scope = assignmentScope ?? throw new ArgumentNullException(nameof(assignmentScope));
+            // TODO AssignmentScope needs to know the type of LHS so it can use it to fill var
+            Scope = new AssignmentScope();
         }
 
-        public AssignmentScope Scope { get; }
+        public AssignmentScope Scope { get; } 
 
-        public override bool Equals(object obj) => obj is AssignOperation other && base.Equals(other);
+        public override bool Equals(object obj) => obj is AbstractAssignOperation<TRight> other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(IScope scope) => left.ReturnType(scope);
+        public override ITypeDefinition ReturnType(ScopeStack scope) => left.ReturnType(scope);
+    }
+
+    public sealed class AssignReferanceOperation : AbstractAssignOperation<Referance>
+    {
+        public AssignReferanceOperation(ICodeElement left, Referance right) : base(left, right) { }
+
+    }
+
+    public sealed class AssignImpliciMemberDefinitionOperation : AbstractAssignOperation<ImplicitMemberDefinition> { 
+
+        public AssignImpliciMemberDefinitionOperation(ICodeElement left, ImplicitMemberDefinition right) : base(left, right) { }
+    }
+
+
+    public sealed class AssignMemberDefinitionOperation : AbstractAssignOperation<MemberDefinition>
+    {
+        public AssignMemberDefinitionOperation(ICodeElement left, MemberDefinition right) : base(left, right) { }
     }
 }
