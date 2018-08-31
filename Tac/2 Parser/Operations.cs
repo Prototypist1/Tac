@@ -9,10 +9,10 @@ namespace Tac.Parser
     public class Operations
     {
 
-        public Dictionary<string, Func<ICodeElement, ICodeElement, IScope, ICodeElement>> BinaryOperations { get; }
-        public Dictionary<string, Func<ICodeElement, IScope, ICodeElement>> NextOperations { get; }
-        public Dictionary<string, Func<ICodeElement, IScope, ICodeElement>> LastOperations { get; }
-        public Dictionary<string, Func<IScope, ICodeElement>> ConstantOperations { get; }
+        public Dictionary<string, Func<ICodeElement, ICodeElement, ICodeElement>> BinaryOperations { get; }
+        public Dictionary<string, Func<ICodeElement, ICodeElement>> NextOperations { get; }
+        public Dictionary<string, Func<ICodeElement, ICodeElement>> LastOperations { get; }
+        public Dictionary<string, Func<ICodeElement>> ConstantOperations { get; }
 
         public IEnumerable<string> AllOperationKeys
         {
@@ -40,35 +40,35 @@ namespace Tac.Parser
         public static Lazy<Operations> StandardOperations = new Lazy<Operations>(() =>
         {
             return new Operations(
-                new Dictionary<string, Func<ICodeElement, ICodeElement,IScope, ICodeElement>>
+                new Dictionary<string, Func<ICodeElement, ICodeElement, ICodeElement>>
                 {
-                    {"plus", (last, next,scope) => new AddOperation(last,next) },
-                    {"minus", (last, next,scope) => new SubtractOperation(last,next) },
-                    {"times", (last, next,scope) => new MultiplyOperation(last,next) },
-                    {"if-true", (last, next,scope) => new IfTrueOperation(last,next) },
-                    {"else", (last, next,scope) => new ElseOperation(last,next) },
-                    {"less-than", (last, next,scope) => new LessThanOperation(last,next) },
-                    {"next-call", (last, next,scope) => new NextCallOperation(last,next) },
-                    {"assign", (last, next,scope) => new AssignOperation(last, next,new AssignmentScope(scope)) },
-                    {"last-call", (last, next,scope) => new LastCallOperation(last,next) },
+                    {"plus", (last, next) => new AddOperation(last,next) },
+                    {"minus", (last, next) => new SubtractOperation(last,next) },
+                    {"times", (last, next) => new MultiplyOperation(last,next) },
+                    {"if-true", (last, next) => new IfTrueOperation(last,next) },
+                    {"else", (last, next) => new ElseOperation(last,next) },
+                    {"less-than", (last, next) => new LessThanOperation(last,next) },
+                    {"next-call", (last, next) => new NextCallOperation(last,next) },
+                    {"assign", (last, next) => new AssignOperation(last, next) },
+                    {"last-call", (last, next) => new LastCallOperation(last,next) },
                 },
-                new Dictionary<string, Func<ICodeElement, IScope, ICodeElement>>
+                new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {
                 },
-                new Dictionary<string, Func<ICodeElement, IScope, ICodeElement>>
+                new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {
                     {"return", (last,scope) => new ReturnOperation(last) },
                 }, 
-                new Dictionary<string, Func<IScope,ICodeElement>>
+                new Dictionary<string, Func<ICodeElement>>
                 {
                 });
         });
 
         public Operations(
-            Dictionary<string, Func<ICodeElement, ICodeElement, IScope, ICodeElement>> binaryOperations, 
-            Dictionary<string, Func<ICodeElement, IScope, ICodeElement>> nextOperations, 
-            Dictionary<string, Func<ICodeElement, IScope, ICodeElement>> lastOperations, 
-            Dictionary<string, Func<IScope, ICodeElement>> constantOperations)
+            Dictionary<string, Func<ICodeElement, ICodeElement,  ICodeElement>> binaryOperations, 
+            Dictionary<string, Func<ICodeElement, ICodeElement>> nextOperations, 
+            Dictionary<string, Func<ICodeElement, ICodeElement>> lastOperations, 
+            Dictionary<string, Func< ICodeElement>> constantOperations)
         {
             BinaryOperations = binaryOperations ?? throw new ArgumentNullException(nameof(binaryOperations));
             NextOperations = nextOperations ?? throw new ArgumentNullException(nameof(nextOperations));
