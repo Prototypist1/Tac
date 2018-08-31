@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public override ITypeDefinition ReturnType(ScopeStack scope) {
+        public override ITypeDefinition ReturnType(ScopeScope scope) {
             if (!InputType.TryGetTypeDefinition(scope, out var input)) {
                 throw new Exception($"could not find a type assocated with {InputType}");
             }

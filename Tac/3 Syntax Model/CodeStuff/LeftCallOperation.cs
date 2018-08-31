@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model.Operations
 
         public override bool Equals(object obj) => obj is NextCallOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(ScopeStack scope)
+        public override ITypeDefinition ReturnType(ScopeScope scope)
         {
             if (right is Referance referance &&
                 scope.TryGet(referance.key.names, out var member))

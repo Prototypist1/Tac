@@ -8,6 +8,6 @@ namespace Tac.Semantic_Model
     {
         bool TryGetType(AbstractName name, out TypeDefinition type);
         bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member);
-        bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item);
+        bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition> item);
     }
 }

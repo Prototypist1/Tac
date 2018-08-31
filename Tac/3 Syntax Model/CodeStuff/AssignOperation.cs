@@ -6,7 +6,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
     public interface IFeildOrMemberSource : ICodeElement {
-        bool TryGetMemberDefinition(ScopeStack scopeStack, out AbstractMemberDefinition memberDefinition);
+        bool TryGetMemberDefinition(ScopeScope scopeStack, out AbstractMemberDefinition memberDefinition);
     }
 
     public class AssignOperation : BinaryOperation<ICodeElement, IFeildOrMemberSource>, IScoped<AssignmentScope>
@@ -20,6 +20,6 @@ namespace Tac.Semantic_Model.Operations
 
         public override bool Equals(object obj) => obj is AssignOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(ScopeStack scope) => left.ReturnType(scope);
+        public override ITypeDefinition ReturnType(ScopeScope scope) => left.ReturnType(scope);
     }
 }

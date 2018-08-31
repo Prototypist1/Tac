@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public ITypeDefinition ReturnType(ScopeStack scope) {
+        public ITypeDefinition ReturnType(ScopeScope scope) {
             return this;
         }
     }

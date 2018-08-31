@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public ITypeDefinition ReturnType(ScopeStack scope) {
+        public ITypeDefinition ReturnType(ScopeScope scope) {
             if (ContextType.TryGetTypeDefinition(scope, out var context) &&
                 InputType.TryGetTypeDefinition(scope, out var input) &&
                 OutputType.TryGetTypeDefinition(scope, out var output))

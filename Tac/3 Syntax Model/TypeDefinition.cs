@@ -7,12 +7,13 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public interface ITypeDefinition: ICodeElement
+    public interface ITypeDefinition<out TScope>: ICodeElement, IScoped<TScope>
+        where TScope: IScope
     {
 
     }
     
-    public class TypeDefinition: IScoped<ObjectScope>, IReferanced,  ITypeDefinition
+    public class TypeDefinition: IReferanced,  ITypeDefinition<ObjectScope>
     {
         public TypeDefinition(AbstractName key, IScope enclosingScope)
         {
@@ -39,7 +40,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
         
-        public ITypeDefinition ReturnType(ScopeStack scope) {
+        public ITypeDefinition<IScope> ReturnType(ScopeScope scope) {
             return RootScope.TypeType;
         }
     }
