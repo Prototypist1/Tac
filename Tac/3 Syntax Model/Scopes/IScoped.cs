@@ -46,59 +46,92 @@ namespace Tac.Semantic_Model
         public ITypeDefinition<IScope> GetType(IEnumerable<AbstractName> names)
         {
 
-            var (staticOnly, at) = GetStart();
-
-            (bool, ITypeDefinition<IScope>) GetStart()
+            if (names.Count() > 1)
             {
-                var name = names.First();
-                foreach (var scope in Scopes)
+
+                var (staticOnly, at) = GetStart();
+
+
+                (bool, IScope) GetStart()
                 {
-                    if (scope.TryGetType(name, out var typeDefinition))
+                    var name = names.First();
+                    foreach (var scope in Scopes)
                     {
-                        return (true, typeDefinition);
+                        if (scope.TryGetType(name, out var typeDefinition))
+                        {
+                            return (true, typeDefinition.Scope);
+                        }
+                        if (scope.TryGetMember(name, false, out var memberDefinition))
+                        {
+                            if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
+                            {
+                                return (false, memberType.Scope);
+                            }
+                            else
+                            {
+                                throw new Exception("");
+                            }
+                        }
                     }
-                    if (scope.TryGetMember(name, false, out var memberDefinition))
+                    throw new Exception("");
+                }
+
+                foreach (var name in names.Skip(1).Take(names.Count() - 2))
+                {
+
+                    (staticOnly, at) = Continue();
+
+                    (bool, IScope) Continue()
                     {
-                        if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
+                        if (at.TryGetType(name, out var typeDefinition))
                         {
-                            return (false, memberType);
+                            return (true, typeDefinition.Scope);
                         }
-                        else
+                        if (at.TryGetMember(name, staticOnly, out var memberDefinition))
                         {
-                            throw new Exception("");
+                            if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
+                            {
+                                return (false, memberType.Scope);
+                            }
+                            else
+                            {
+                                throw new Exception("");
+                            }
                         }
+                        throw new Exception("");
                     }
                 }
-                throw new Exception("");
-            }
 
-            foreach (var name in names.Skip(1))
-            {
+                return Finsh();
 
-                (staticOnly, at) = Continue();
-
-                (bool, ITypeDefinition<IScope>) Continue()
+                // finally we make sure we get a type
+                ITypeDefinition<IScope> Finsh()
                 {
-                    if (at.Scope.TryGetType(name, out var typeDefinition))
+                    if (at.TryGetType(names.Last(), out var typeDefinition))
                     {
-                        return (true, typeDefinition);
+                        return typeDefinition;
                     }
-                    if (at.Scope.TryGetMember(name, staticOnly, out var memberDefinition))
+                    throw new Exception("");
+                }
+
+            }
+            else
+            {
+                return SimpleLookUp();
+
+                // in the simple case we just search for up the stack for types
+                ITypeDefinition<IScope> SimpleLookUp()
+                {
+                    foreach (var scope in Scopes)
                     {
-                        if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
+                        if (scope.TryGetType(names.Last(), out var typeDefinition))
                         {
-                            return (false, memberType);
-                        }
-                        else
-                        {
-                            throw new Exception("");
+                            return typeDefinition;
                         }
                     }
                     throw new Exception("");
                 }
             }
-
-            return at;
         }
 
 
@@ -109,6 +142,7 @@ namespace Tac.Semantic_Model
             {
                 var (staticOnly, at) = GetStart();
 
+                // the first is specail because it searches the stack
                 (bool, ITypeDefinition<IScope>) GetStart()
                 {
                     var name = names.First();
@@ -137,6 +171,7 @@ namespace Tac.Semantic_Model
                 {
                     (staticOnly, at) = Continue();
 
+                    // when we contune we only search the scope we are at
                     (bool, ITypeDefinition<IScope>) Continue()
                     {
                         if (at.Scope.TryGetType(name, out var typeDefinition))
@@ -160,20 +195,14 @@ namespace Tac.Semantic_Model
 
                 return GetFinal();
 
+                // in the final entry we only look for members
                 MemberDefinition GetFinal()
                 {
                     var name = names.Last();
 
                     if (at.Scope.TryGetMember(name, false, out var memberDefinition))
                     {
-                        if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-                        {
-                            return memberType;
-                        }
-                        else
-                        {
-                            throw new Exception("");
-                        }
+                        return memberDefinition;
                     }
 
                     throw new Exception("");
@@ -184,6 +213,7 @@ namespace Tac.Semantic_Model
             {
                 return SimpleLookUp();
 
+                // if ther is only one we search the whole stack
                 MemberDefinition SimpleLookUp()
                 {
                     var name = names.First();
@@ -191,14 +221,7 @@ namespace Tac.Semantic_Model
                     {
                         if (scope.TryGetMember(name, false, out var memberDefinition))
                         {
-                            if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-                            {
-                                return memberType;
-                            }
-                            else
-                            {
-                                throw new Exception("");
-                            }
+                            return memberDefinition;
                         }
                     }
                     throw new Exception("");

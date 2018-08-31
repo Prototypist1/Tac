@@ -5,7 +5,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
     public interface ITypeSource {
-        bool TryGetTypeDefinition(ScopeScope scope, out ITypeDefinition typeDefinition);
+        bool TryGetTypeDefinition(ScopeScope scope, out ITypeDefinition<IScope> typeDefinition);
     }
 
     //public sealed class ParameterDefinition: IReferanced
