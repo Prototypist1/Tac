@@ -3,35 +3,20 @@ using System.Collections.Generic;
 using System.Text;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-
-    // does this need to exists??
-    public class ReferanceOrMemberDef {
-        public ReferanceOrMemberDef(Referance referance, AbstractMemberDefinition memberDefinition)
-        {
-            Referance = referance ?? throw new ArgumentNullException(nameof(referance));
-            MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
-        }
-
-        public Referance Referance { get; }
-        public AbstractMemberDefinition MemberDefinition { get; }
-
-        // smells 
-        public ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();
-    }
-    
-    public sealed class Referance : ICodeElement{
+    public sealed class MemberReferance : ICodeElement, IFeildOrMemberSource{
         public readonly NamePath key;
 
-        public Referance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
+        public MemberReferance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
 
-        public Referance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) })) { }
+        public MemberReferance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) })) { }
         
         public override bool Equals(object obj)
         {
-            return obj is Referance referance && referance != null &&
+            return obj is MemberReferance referance && referance != null &&
                    EqualityComparer<NamePath>.Default.Equals(key, referance.key);
         }
 

@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
     public class AssignmentScope : IScope
     {
-        public AssignmentScope(ITypeDefinition implicitType) => ImplicitType = implicitType ?? throw new ArgumentNullException(nameof(implicitType));
+        public AssignmentScope(ICodeElement leftSide)
+        {
+            LeftSide = leftSide ?? throw new ArgumentNullException(nameof(leftSide));
+        }
 
-        public ITypeDefinition ImplicitType { get; }
+        public ICodeElement LeftSide { get; }
 
         public bool TryGet(IEnumerable<AbstractName> names, out IReferanced item)
         {
@@ -16,11 +20,10 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        public bool TryGet(ImplicitTypeReferance key, out ITypeDefinition item)
+        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack,ITypeDefinition> item)
         {
-            item = ImplicitType;
-            return false;
+            item = LeftSide.ReturnType;
+            return true;
         }
     }
-
 }

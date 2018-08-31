@@ -11,9 +11,7 @@ namespace Tac.Semantic_Model
     {
 
     }
-
-    // you can totally have anonymous types...
-    // that is why we have anonymous keys...
+    
     public class TypeDefinition: IScoped<ObjectScope>, IReferanced,  ITypeDefinition
     {
         public TypeDefinition(AbstractName key, IScope enclosingScope)
@@ -40,13 +38,9 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + EqualityComparer<ObjectScope>.Default.GetHashCode(Scope);
             return hashCode;
         }
-
-
+        
         public ITypeDefinition ReturnType(ScopeStack scope) {
-            // TODO
-            // I had this as returning "this"
-            // that is not really true tho,
-            // this returns a type...
+            return RootScope.TypeType;
         }
     }
     

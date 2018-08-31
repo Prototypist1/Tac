@@ -49,15 +49,29 @@ namespace Tac.Parser
                     {"else", (last, next) => new ElseOperation(last,next) },
                     {"less-than", (last, next) => new LessThanOperation(last,next) },
                     {"next-call", (last, next) => new NextCallOperation(last,next) },
-                    {"assign", (last, next) => new AssignOperation(last, next) },
-                    {"last-call", (last, next) => new LastCallOperation(last,next) },
+                    {"assign", (last, next) =>{
+                        // TODO TODO TODO
+                        // YOU ARE HERE
+                        // 
+                        //... you always assign a referance....
+                        if (next is Referance referance){
+                            return new AssignReferanceOperation(last,referance);
+                        }
+                        if (next is ImplicitMemberDefinition implicitMemberDefinition){
+                            return new  AssignImpliciMemberDefinitionOperation(last,implicitMemberDefinition);
+                        }
+                        if (next is MemberDefinition memberDefinition){
+                            return new AssignMemberDefinitionOperation(last,memberDefinition);
+                        }
+                        throw new Exception($"type {next} not expected!");
+                    } },{"last-call", (last, next) => new LastCallOperation(last,next) },
                 },
                 new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {
                 },
                 new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {
-                    {"return", (last,scope) => new ReturnOperation(last) },
+                    {"return", (last) => new ReturnOperation(last) },
                 }, 
                 new Dictionary<string, Func<ICodeElement>>
                 {

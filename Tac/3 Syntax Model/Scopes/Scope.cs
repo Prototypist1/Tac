@@ -7,6 +7,28 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
+    //why does this live here?
+    // where is the right place for it to live??
+    // this is really owned by what scope it is on right?
+    public enum DefintionLifetime
+    {
+        Static,
+        Instance,
+        Local,
+    }
+
+    public class Visiblity
+    {
+        public Visiblity(DefintionLifetime defintionLifeTime, IReferanced definition)
+        {
+            DefintionLifeTime = defintionLifeTime;
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        public DefintionLifetime DefintionLifeTime { get; }
+        public IReferanced Definition { get; }
+    }
+
     public class Scope : IScope
     {
         protected bool TryAdd(DefintionLifetime defintionLifetime, IReferanced definition)
@@ -15,25 +37,7 @@ namespace Tac.Semantic_Model
             var visiblity = new Visiblity(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
-
-        protected enum DefintionLifetime {
-            Static,
-            Instance,
-            Local,
-        }
-
-        private class Visiblity
-        {
-            public Visiblity(DefintionLifetime defintionLifeTime, IReferanced definition)
-            {
-                DefintionLifeTime = defintionLifeTime;
-                Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-            }
-
-            public DefintionLifetime DefintionLifeTime { get; }
-            public IReferanced Definition { get; }
-        }
-
+        
         private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity>> referanced = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity>>();
         
         public override bool Equals(object obj)
@@ -49,27 +53,34 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public bool TryGet(IEnumerable<AbstractName> names, out IReferanced item) {
-            if (referanced.TryGetValue(names.First(), out var items)) {
+        public bool TryGet(AbstractName name, out TypeDefinition type, out MemberDefinition member) {
+            if (referanced.TryGetValue(name, out var items)) {
                 var thing = items.Single();
-                if (names.Count() == 1) {
-                    item = thing.Definition;
+                if (thing.Definition is TypeDefinition typeDefinition)
+                {
+                    type = typeDefinition;
+                    member = default;
                     return true;
                 }
-                if (thing.Definition is IScoped<IScope> scoped)
+                if (thing.Definition is MemberDefinition memberDefinition)
                 {
-                    return scoped.Scope.TryGet(names.Skip(1), out item);
+                    type = default;
+                    member = memberDefinition;
+                    return true;
                 }
-                else {
+                else
+                {
                     throw new Exception($"{thing.Definition} should be a {typeof(IScoped<IScope>)} instead it is {thing.Definition.GetType()}");
                 }
             }
-            item = null;
+            member = default;
+            type = default;
             return false;
         }
-
-        public bool TryGet(ImplicitTypeReferance key, out ITypeDefinition item) {
-            item = null;
+        
+        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item)
+        {
+            item = default;
             return false;
         }
     }

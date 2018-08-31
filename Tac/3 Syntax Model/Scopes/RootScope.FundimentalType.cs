@@ -34,6 +34,8 @@ namespace Tac.Semantic_Model
         public static ITypeDefinition NumberType { get; } = new FundimentalType("Number");
         public static ITypeDefinition EmptyType { get; } = new FundimentalType("Empty");
         public static ITypeDefinition BooleanType { get; } = new FundimentalType("Boolean");
+        public static ITypeDefinition TypeType { get; } = new FundimentalType("Type");
+
     }
 
 }

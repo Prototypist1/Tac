@@ -7,7 +7,7 @@ namespace Tac.Semantic_Model
 {
     public class MethodDefinition: AbstractBlockDefinition<MethodScope>
     {
-        public MethodDefinition(ITypeSource outputType, ParameterDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+        public MethodDefinition(ITypeSource outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
 
         public ITypeSource InputType { get => ParameterDefinition.Type; }
         public ITypeSource OutputType { get; }
-        public ParameterDefinition ParameterDefinition { get; }
+        public MemberDefinition ParameterDefinition { get; }
 
         public override bool Equals(object obj)
         {
@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model
                    base.Equals(obj) &&
                    EqualityComparer<ITypeSource>.Default.Equals(InputType, definition.InputType) &&
                    EqualityComparer<ITypeSource>.Default.Equals(OutputType, definition.OutputType) &&
-                   EqualityComparer<ParameterDefinition>.Default.Equals(ParameterDefinition, definition.ParameterDefinition);
+                   EqualityComparer<MemberDefinition>.Default.Equals(ParameterDefinition, definition.ParameterDefinition);
         }
 
         public override int GetHashCode()
@@ -32,7 +32,7 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + base.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<ITypeSource>.Default.GetHashCode(InputType);
             hashCode = hashCode * -1521134295 + EqualityComparer<ITypeSource>.Default.GetHashCode(OutputType);
-            hashCode = hashCode * -1521134295 + EqualityComparer<ParameterDefinition>.Default.GetHashCode(ParameterDefinition);
+            hashCode = hashCode * -1521134295 + EqualityComparer<MemberDefinition>.Default.GetHashCode(ParameterDefinition);
             return hashCode;
         }
 

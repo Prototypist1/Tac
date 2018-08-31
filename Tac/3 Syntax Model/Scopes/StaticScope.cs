@@ -10,6 +10,7 @@ namespace Tac.Semantic_Model
 
         public bool TryAddStaticMember(AbstractMemberDefinition definition)
         {
+            // smells, why is static in both places
             if (definition.IsStatic == false) {
                 throw new System.Exception("can't add a none static member");
             }

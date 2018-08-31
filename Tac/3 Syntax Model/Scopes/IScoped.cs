@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model
     // I mean it has the interface...
     // but it is sorta different...
     // hmmm
-    public class ScopeStack : IScope
+    public class ScopeStack 
     {
         public ScopeStack(ScopeStack scopes, IScope newScope) {
             if (scopes == null)

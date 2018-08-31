@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
     public interface IScope
     {
-        bool TryGet(IEnumerable<AbstractName> names, out IReferanced item);
-        bool TryGet(ImplicitTypeReferance key, out ITypeDefinition item);
+        bool TryGetType(AbstractName name, out TypeDefinition type);
+        bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member);
+        bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item);
     }
 }
