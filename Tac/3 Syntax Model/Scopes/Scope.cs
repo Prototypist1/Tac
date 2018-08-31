@@ -53,18 +53,11 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public bool TryGet(AbstractName name, out TypeDefinition type, out MemberDefinition member) {
+        public bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member) {
             if (referanced.TryGetValue(name, out var items)) {
                 var thing = items.Single();
-                if (thing.Definition is TypeDefinition typeDefinition)
+                if (thing.DefintionLifeTime == DefintionLifetime.Static && thing.Definition is MemberDefinition memberDefinition)
                 {
-                    type = typeDefinition;
-                    member = default;
-                    return true;
-                }
-                if (thing.Definition is MemberDefinition memberDefinition)
-                {
-                    type = default;
                     member = memberDefinition;
                     return true;
                 }
@@ -74,11 +67,29 @@ namespace Tac.Semantic_Model
                 }
             }
             member = default;
+            return false;
+        }
+
+        public bool TryGetType(AbstractName name, out TypeDefinition type)
+        {
+            if (referanced.TryGetValue(name, out var items))
+            {
+                var thing = items.Single();
+                if (thing.Definition is TypeDefinition typeDefinition)
+                {
+                    type = typeDefinition;
+                    return true;
+                }
+                else
+                {
+                    throw new Exception($"{thing.Definition} should be a {typeof(IScoped<IScope>)} instead it is {thing.Definition.GetType()}");
+                }
+            }
             type = default;
             return false;
         }
-        
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition> item)
+
+        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition<IScope>> item)
         {
             item = default;
             return false;
