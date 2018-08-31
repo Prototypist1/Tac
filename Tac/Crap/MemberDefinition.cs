@@ -51,7 +51,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public ITypeDefinition ReturnType(IScope scope) {
+        public ITypeDefinition ReturnType(ScopeStack scope) {
             if (Type.Is(out Referance referance) &&  scope.TryGet(referance.key.names, out var referanceRes) && referanceRes is TypeDefinition referanceType)
             {
                 return referanceType;

@@ -17,7 +17,7 @@ namespace Tac.Parser
     {
         public Elements(List<TryMatch> elementBuilders) => ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
 
-        public delegate bool TryMatch(ElementToken elementToken, IScope enclosingScope , out ICodeElement element);
+        public delegate bool TryMatch(ElementToken elementToken, out ICodeElement element);
 
         public List<TryMatch> ElementBuilders { get; }
         
@@ -35,7 +35,7 @@ namespace Tac.Parser
                 });
         });
         
-        public static bool MatchLocalDefinition_Var(ElementToken elementToken, IScope enclosingScope, out ICodeElement element){
+        public static bool MatchLocalDefinition_Var(ElementToken elementToken, out ICodeElement element){
             if ((elementToken.Tokens.Count() == 2 || elementToken.Tokens.Count() == 3) &&
                 elementToken.Tokens.First() is AtomicToken atomicToken &&
                 atomicToken.Item == "var" &&
@@ -54,7 +54,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchStaticMemberDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
+        public static bool MatchStaticMemberDefinition(ElementToken elementToken, out ICodeElement element)
         {
             if ((elementToken.Tokens.Count() == 2 || elementToken.Tokens.Count() == 3) &&
                 elementToken.Tokens.First() is AtomicToken atomicToken &&
@@ -66,7 +66,7 @@ namespace Tac.Parser
                     elementToken.Tokens.ElementAt(1) is AtomicToken readOnlyToken &&
                     readOnlyToken.Item == "readonly";
 
-                element = new MemberDefinition(readOnly,true, new ImplicitTypeReferance(), new ExplicitName(nameToken.Item));
+                element = new MemberDefinition(readOnly, true, new ExplicitName(nameToken.Item));
 
                 return true;
             }
@@ -75,15 +75,15 @@ namespace Tac.Parser
             return false;
         }
         
-        public static bool MatchObjectDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element) {
+        public static bool MatchObjectDefinition(ElementToken elementToken, out ICodeElement element) {
             if (elementToken.Tokens.Count() == 3 &&
                 elementToken.Tokens.First() is AtomicToken first &&
                     first.Item.StartsWith("object") &&
                 elementToken.Tokens.ElementAt(1) is CurleyBacketToken block)
             {
-                var scope = new ObjectScope(enclosingScope);
+                var scope = new ObjectScope();
 
-                var elements = TokenParser.ParseBlock(block,scope);
+                var elements = TokenParser.ParseBlock(block);
                 
                 var localDefininitions = elements.OfType<AssignOperation>().ToArray();
 
@@ -98,7 +98,7 @@ namespace Tac.Parser
                         scope.TryAddLocalMember(memberDefinition);
                     }
                     else if (loaclDefinition.right is Referance referance) {
-                        scope.TryAddLocalMember(new MemberDefinition(referance, false));
+                        scope.TryAddLocalMember(new MemberDefinition(false, false, referance.key.names.Single()));
                     }else{
                         throw new Exception(loaclDefinition.right + "is of unexpected type");
                     }
@@ -111,16 +111,16 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchModuleDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element) {
+        public static bool MatchModuleDefinition(ElementToken elementToken, out ICodeElement element) {
             if (elementToken.Tokens.Count() == 3 &&
                 elementToken.Tokens.First() is AtomicToken first &&
                     first.Item.StartsWith("module") &&
                 elementToken.Tokens.ElementAt(1) is AtomicToken second &&
                 elementToken.Tokens.ElementAt(2) is CurleyBacketToken third) {
 
-                var scope = new StaticScope(enclosingScope);
+                var scope = new StaticScope();
 
-                var elements = TokenParser.ParseBlock(third, scope);
+                var elements = TokenParser.ParseBlock(third);
 
 
                 var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
@@ -140,7 +140,7 @@ namespace Tac.Parser
                     }
                     else if (staticDefinition.right is Referance referance)
                     {
-                        scope.TryAddStaticMember(new MemberDefinition(referance, true));
+                        scope.TryAddStaticMember(new MemberDefinition(false, true,referance.key.names.Single()));
                     }
                     else
                     {
@@ -160,7 +160,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchMethodDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
+        public static bool MatchMethodDefinition(ElementToken elementToken, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 3 && 
@@ -177,9 +177,9 @@ namespace Tac.Parser
                 elementToken.Tokens.ElementAt(2) is AtomicToken second &&
                 elementToken.Tokens.ElementAt(3) is CurleyBacketToken third){
                 
-                var methodScope = new MethodScope(enclosingScope);
+                var methodScope = new MethodScope();
 
-                var elements = TokenParser.ParseBlock(third, methodScope);
+                var elements = TokenParser.ParseBlock(third);
 
 
                 var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
@@ -199,7 +199,7 @@ namespace Tac.Parser
                     }
                     else if (staticDefinition.right is Referance referance)
                     {
-                        methodScope.TryAddStaticMember(new MemberDefinition(referance, true));
+                        methodScope.TryAddStaticMember(new MemberDefinition(false,true,referance.key.names.Single() ));
                     }
                     else
                     {
@@ -229,16 +229,16 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchBlockDefinition(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
+        public static bool MatchBlockDefinition(ElementToken elementToken, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1  &&
                 elementToken.Tokens.First() is CurleyBacketToken first
                 )
             {
-                var scope = new LocalStaticScope(enclosingScope);
+                var scope = new LocalStaticScope();
 
-                var elements = TokenParser.ParseBlock(first, scope);
+                var elements = TokenParser.ParseBlock(first);
 
 
                 var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
@@ -258,7 +258,7 @@ namespace Tac.Parser
                     }
                     else if (staticDefinition.right is Referance referance)
                     {
-                        scope.TryAddStaticMember(new MemberDefinition(referance, true));
+                        scope.TryAddStaticMember(new MemberDefinition(false,true, referance.key.names.Single()));
                     }
                     else
                     {
@@ -281,7 +281,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchConstantNumber(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
+        public static bool MatchConstantNumber(ElementToken elementToken, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1 &&
@@ -298,7 +298,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchReferance(ElementToken elementToken, IScope enclosingScope, out ICodeElement element)
+        public static bool MatchReferance(ElementToken elementToken, out ICodeElement element)
         {
             if (
                 elementToken.Tokens.Count() == 1 &&

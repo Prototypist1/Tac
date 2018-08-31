@@ -35,23 +35,17 @@ namespace Tac.Semantic_Model
         }
 
         private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity>> referanced = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity>>();
-
-        public Scope(IScope enclosingScope) => EnclosingScope = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
-
-        private IScope EnclosingScope { get; }
         
         public override bool Equals(object obj)
         {
             return obj is Scope scope &&
-                   referanced.Count == scope.referanced.Count && !referanced.Except(scope.referanced).Any() &&
-                   EqualityComparer<IScope>.Default.Equals(EnclosingScope, scope.EnclosingScope);
+                   referanced.Count == scope.referanced.Count && !referanced.Except(scope.referanced).Any();
         }
 
         public override int GetHashCode()
         {
             var hashCode = -1365954579;
             hashCode = hashCode * -1521134295 + referanced.Sum(x=>x.GetHashCode());
-            hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(EnclosingScope);
             return hashCode;
         }
 

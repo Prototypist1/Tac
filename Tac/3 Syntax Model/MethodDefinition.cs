@@ -43,7 +43,7 @@ namespace Tac.Semantic_Model
             return RootScope.MethodType(inputRef, outputRef);
 
             ITypeDefinition getOrThrow(Referance referance) {
-                if (scope.TryGet(referance, out var res) && res is ITypeDefinition typeDefinition)
+                if (scope.TryGet(referance.key.names, out var res) && res is ITypeDefinition typeDefinition)
                 {
                     return typeDefinition;
                 }
