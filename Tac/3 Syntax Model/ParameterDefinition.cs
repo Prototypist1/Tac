@@ -4,9 +4,13 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+    public interface ITypeSource {
+        bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition);
+    }
+
     public sealed class ParameterDefinition: IReferanced
     {
-        public ParameterDefinition(bool readOnly, Referance type, AbstractName key)
+        public ParameterDefinition(bool readOnly, ITypeSource type, AbstractName key)
         {
             ReadOnly = readOnly;
             Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -14,14 +18,14 @@ namespace Tac.Semantic_Model
         }
 
         public bool ReadOnly { get; }
-        public Referance Type { get; }
+        public ITypeSource Type { get; }
         public AbstractName Key { get; }
 
         public override bool Equals(object obj)
         {
             return obj is ParameterDefinition definition && definition != null &&
                    ReadOnly == definition.ReadOnly &&
-                   EqualityComparer<Referance>.Default.Equals(Type, definition.Type) &&
+                   EqualityComparer<ITypeSource>.Default.Equals(Type, definition.Type) &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key);
         }
 
@@ -29,19 +33,19 @@ namespace Tac.Semantic_Model
         {
             var hashCode = 1232917096;
             hashCode = hashCode * -1521134295 + ReadOnly.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<Referance>.Default.GetHashCode(Type);
+            hashCode = hashCode * -1521134295 + EqualityComparer<ITypeSource>.Default.GetHashCode(Type);
             hashCode = hashCode * -1521134295 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
             return hashCode;
         }
 
         public ITypeDefinition ReturnType(ScopeStack scope) {
-            if (scope.TryGet(Type.key.names, out var res) && res is ITypeDefinition type)
+            if (Type.TryGetTypeDefinition(scope, out var res))
             {
-                return type;
+                return res;
             }
-            else {
-                throw new Exception("return type not found");
-            }
+
+            throw new Exception("return type not found");
+            
         }
     }
 }

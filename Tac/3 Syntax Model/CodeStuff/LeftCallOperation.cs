@@ -16,17 +16,15 @@ namespace Tac.Semantic_Model.Operations
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
             if (right is Referance referance &&
-                scope.TryGet(referance.key.names, out var member) &&
-                member is AbstractMemberDefinition memberDefinition)
+                scope.TryGet(referance.key.names, out var member))
             {
-                if (memberDefinition.Type.Is(out ImplicitTypeReferance implicitTypeReferance) && scope.TryGet(implicitTypeReferance, out var typeDefinition1)){
+                if (member is ImplicitMemberDefinition implicitTypeReferance && scope.TryGet(implicitTypeReferance.Type, out var typeDefinition1)){
                     return typeDefinition1.ReturnType(scope);
                 }
-                if (memberDefinition.Type.Is(out Referance innerReferance) && scope.TryGet(implicitTypeReferance, out var typeDefinition2))
+                if (member is MemberDefinition explicitTypeReferance && scope.TryGet(explicitTypeReferance.Type.key.names, out var typeDefinition2))
                 {
                     return typeDefinition2.ReturnType(scope);
                 }
-
                 throw new Exception("could not find the right type");
 
             }

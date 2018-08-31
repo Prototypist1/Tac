@@ -7,7 +7,7 @@ namespace Tac.Semantic_Model
 {
     public sealed class ImplementationDefinition: IScoped<InstanceScope>, IReferanced
     {
-        public ImplementationDefinition(Referance contextType, Referance outputType, ParameterDefinition parameterDefinition, AbstractBlockDefinition<InstanceScope> methodBodyDefinition, AbstractName key)
+        public ImplementationDefinition(ITypeSource contextType, ITypeSource outputType, ParameterDefinition parameterDefinition, AbstractBlockDefinition<InstanceScope> methodBodyDefinition, AbstractName key)
         {
             ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -16,9 +16,10 @@ namespace Tac.Semantic_Model
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public Referance ContextType { get; }
-        public Referance InputType { get => ParameterDefinition.Type; }
-        public Referance OutputType { get; }
+        // dang! these could also be inline definitions 
+        public ITypeSource ContextType { get; }
+        public ITypeSource InputType { get => ParameterDefinition.Type; }
+        public ITypeSource OutputType { get; }
         public ParameterDefinition ParameterDefinition { get; }
         public AbstractBlockDefinition<InstanceScope> MethodBodyDefinition { get; }
 
@@ -46,6 +47,14 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();
+        public ITypeDefinition ReturnType(ScopeStack scope) {
+            if (ContextType.TryGetTypeDefinition(scope, out var context) &&
+                InputType.TryGetTypeDefinition(scope, out var input) &&
+                OutputType.TryGetTypeDefinition(scope, out var output))
+            {
+                return RootScope.ImplementationType(context, input, output);
+            }
+            throw new Exception("could not find ");
+        }
     }
 }

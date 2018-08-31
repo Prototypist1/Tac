@@ -8,7 +8,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ObjectDefinition: IScoped<ObjectScope>, ICodeElement
+    public sealed class ObjectDefinition: IScoped<ObjectScope>, ICodeElement, ITypeDefinition
     {
         public ObjectDefinition(ObjectScope scope, IEnumerable<ICodeElement> codeElements) {
             Scope = scope;
@@ -31,6 +31,8 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public ITypeDefinition ReturnType(ScopeStack scope) { }
+        public ITypeDefinition ReturnType(ScopeStack scope) {
+            return this;
+        }
     }
 }

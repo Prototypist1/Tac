@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
             }
 
             public override int GetHashCode() => 990326508 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
-            public ITypeDefinition ReturnType(IScope scope) => this;
+            public ITypeDefinition ReturnType(ScopeStack scope) => this;
         }
 
         public static ITypeDefinition StringType { get; } = new FundimentalType("String");

@@ -7,6 +7,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
+    // does this need to exists??
     public class ReferanceOrMemberDef {
         public ReferanceOrMemberDef(Referance referance, AbstractMemberDefinition memberDefinition)
         {
