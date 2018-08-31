@@ -38,6 +38,6 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public ITypeDefinition ReturnType(ScopeScope scope) => throw new NotImplementedException();
+        public ITypeDefinition<IScope> ReturnType(ScopeScope scope) => throw new NotImplementedException();
     }
 }

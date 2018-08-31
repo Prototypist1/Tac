@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model
         }
 
         public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(key);
-        public ITypeDefinition ReturnType(ScopeScope scope)
+        public ITypeDefinition<IScope> ReturnType(ScopeScope scope)
         {
             if (scope.TryGet(key.names, out var res))
             {

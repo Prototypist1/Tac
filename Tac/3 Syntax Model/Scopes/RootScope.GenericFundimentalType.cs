@@ -7,9 +7,9 @@ namespace Tac.Semantic_Model
     {
         private class GenericFundimentalType : FundimentalType
         {
-            public GenericFundimentalType(string key, params ITypeDefinition[] typeDefinition) : base(key) => TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
+            public GenericFundimentalType(string key, params ITypeDefinition<IScope>[] typeDefinition) : base(key) => TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
 
-            public ITypeDefinition[] TypeDefinition { get; }
+            public ITypeDefinition<IScope>[] TypeDefinition { get; }
 
             public override bool Equals(object obj)
             {
@@ -28,11 +28,11 @@ namespace Tac.Semantic_Model
             }
         }
         
-        public static ITypeDefinition MethodType(ITypeDefinition input, ITypeDefinition output)
+        public static ITypeDefinition<IScope> MethodType(ITypeDefinition<IScope> input, ITypeDefinition<IScope> output)
         {
             return new GenericFundimentalType("Method", input, output);
         }
-        public static ITypeDefinition ImplementationType(ITypeDefinition context, ITypeDefinition input, ITypeDefinition output)
+        public static ITypeDefinition<IScope> ImplementationType(ITypeDefinition<IScope> context, ITypeDefinition<IScope> input, ITypeDefinition<IScope> output)
         {
             return new GenericFundimentalType("Implementation", context, input, output);
         }

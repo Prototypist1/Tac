@@ -12,6 +12,6 @@ namespace Tac.Semantic_Model.CodeStuff
         
         public override bool Equals(object obj) => obj is LessThanOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(ScopeScope scope) => RootScope.BooleanType;
+        public override ITypeDefinition<IScope> ReturnType(ScopeScope scope) => RootScope.BooleanType;
     }
 }

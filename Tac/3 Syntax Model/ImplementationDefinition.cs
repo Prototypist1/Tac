@@ -7,7 +7,7 @@ namespace Tac.Semantic_Model
 {
     public sealed class ImplementationDefinition: IScoped<InstanceScope>, IReferanced
     {
-        public ImplementationDefinition(ITypeSource contextType, ITypeSource outputType, ParameterDefinition parameterDefinition, AbstractBlockDefinition<InstanceScope> methodBodyDefinition, AbstractName key)
+        public ImplementationDefinition(ITypeSource contextType, ITypeSource outputType, MemberDefinition parameterDefinition, AbstractBlockDefinition<InstanceScope> methodBodyDefinition, AbstractName key)
         {
             ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model
         public ITypeSource ContextType { get; }
         public ITypeSource InputType { get => ParameterDefinition.Type; }
         public ITypeSource OutputType { get; }
-        public ParameterDefinition ParameterDefinition { get; }
+        public MemberDefinition ParameterDefinition { get; }
         public AbstractBlockDefinition<InstanceScope> MethodBodyDefinition { get; }
 
         public AbstractName Key { get; }
@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public ITypeDefinition ReturnType(ScopeScope scope) {
+        public ITypeDefinition<IScope> ReturnType(ScopeScope scope) {
             if (ContextType.TryGetTypeDefinition(scope, out var context) &&
                 InputType.TryGetTypeDefinition(scope, out var input) &&
                 OutputType.TryGetTypeDefinition(scope, out var output))

@@ -20,6 +20,6 @@ namespace Tac.Semantic_Model.Operations
 
         public override bool Equals(object obj) => obj is AssignOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(ScopeScope scope) => left.ReturnType(scope);
+        public override ITypeDefinition<IScope> ReturnType(ScopeScope scope) => left.ReturnType(scope);
     }
 }

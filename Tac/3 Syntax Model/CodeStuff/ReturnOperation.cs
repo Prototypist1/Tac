@@ -21,6 +21,6 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public override int GetHashCode() => 1482362596 + EqualityComparer<ICodeElement>.Default.GetHashCode(Result);
-        public ITypeDefinition ReturnType(ScopeScope scope) => RootScope.EmptyType;
+        public ITypeDefinition<IScope> ReturnType(ScopeScope scope) => RootScope.EmptyType;
     }
 }

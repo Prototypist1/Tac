@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
         public static RootScope Root = new RootScope();
         
         public bool TryGet(IEnumerable<AbstractName> names, out IReferanced item) { }
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition> item)
+        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition<IScope>> item)
         {
             item = default;
             return false;

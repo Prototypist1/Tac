@@ -13,17 +13,19 @@ namespace Tac.Semantic_Model
         }
 
         public ICodeElement LeftSide { get; }
-
-        public bool TryGet(IEnumerable<AbstractName> names, out IReferanced item)
-        {
-            item = default;
-            return false;
-        }
-
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope,ITypeDefinition> item)
-        {
+        
+        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition<IScope>> item) {
             item = LeftSide.ReturnType;
             return true;
+        }
+
+        public bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member) {
+            member = default;
+            return false;
+        }
+        public bool TryGetType(AbstractName name, out TypeDefinition type) {
+            type = default;
+            return false;
         }
     }
 }
