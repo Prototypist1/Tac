@@ -66,7 +66,7 @@ namespace Tac.Tests.Samples
 
                 return new[] {
                     new IsDefininition(
-                        new MemberDefinition(
+                        new AbstractMemberDefinition(
                             false,
                             true,
                             new ImplicitTypeReferance(),

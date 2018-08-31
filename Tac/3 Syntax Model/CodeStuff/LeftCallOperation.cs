@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model.Operations
         {
             if (right is Referance referance &&
                 scope.TryGet(referance.key.names, out var member) &&
-                member is MemberDefinition memberDefinition)
+                member is AbstractMemberDefinition memberDefinition)
             {
                 if (memberDefinition.Type.Is(out ImplicitTypeReferance implicitTypeReferance) && scope.TryGet(implicitTypeReferance, out var typeDefinition1)){
                     return typeDefinition1.ReturnType(scope);

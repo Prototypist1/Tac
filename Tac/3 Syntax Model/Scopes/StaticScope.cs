@@ -8,7 +8,7 @@ namespace Tac.Semantic_Model
         public override bool Equals(object obj) => obj is StaticScope && base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
 
-        public bool TryAddStaticMember(MemberDefinition definition)
+        public bool TryAddStaticMember(AbstractMemberDefinition definition)
         {
             if (definition.IsStatic == false) {
                 throw new System.Exception("can't add a none static member");

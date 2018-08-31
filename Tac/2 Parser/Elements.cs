@@ -66,7 +66,7 @@ namespace Tac.Parser
                     elementToken.Tokens.ElementAt(1) is AtomicToken readOnlyToken &&
                     readOnlyToken.Item == "readonly";
 
-                element = new MemberDefinition(readOnly, true, new ExplicitName(nameToken.Item));
+                element = new AbstractMemberDefinition(readOnly, true, new ExplicitName(nameToken.Item));
 
                 return true;
             }
@@ -87,18 +87,18 @@ namespace Tac.Parser
                 
                 var localDefininitions = elements.OfType<AssignOperation>().ToArray();
 
-                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || !(assignOperation.right as MemberDefinition).IsStatic))) {
+                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || !(assignOperation.right as AbstractMemberDefinition).IsStatic))) {
                     throw new Exception("all lines in an object should be none static");
                 }
 
                 foreach (var loaclDefinition in localDefininitions)
                 {
-                    if (loaclDefinition.right is MemberDefinition memberDefinition)
+                    if (loaclDefinition.right is AbstractMemberDefinition memberDefinition)
                     {
                         scope.TryAddLocalMember(memberDefinition);
                     }
                     else if (loaclDefinition.right is Referance referance) {
-                        scope.TryAddLocalMember(new MemberDefinition(false, false, referance.key.names.Single()));
+                        scope.TryAddLocalMember(new AbstractMemberDefinition(false, false, referance.key.names.Single()));
                     }else{
                         throw new Exception(loaclDefinition.right + "is of unexpected type");
                     }
@@ -127,20 +127,20 @@ namespace Tac.Parser
 
                 var types = elements.OfType<TypeDefinition>().ToArray();
 
-                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as MemberDefinition).IsStatic)))
+                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as AbstractMemberDefinition).IsStatic)))
                 {
                     throw new Exception("all lines in an object should be none static");
                 }
 
                 foreach (var staticDefinition in staticDefininitions)
                 {
-                    if (staticDefinition.right is MemberDefinition memberDefinition)
+                    if (staticDefinition.right is AbstractMemberDefinition memberDefinition)
                     {
                         scope.TryAddStaticMember(memberDefinition);
                     }
                     else if (staticDefinition.right is Referance referance)
                     {
-                        scope.TryAddStaticMember(new MemberDefinition(false, true,referance.key.names.Single()));
+                        scope.TryAddStaticMember(new AbstractMemberDefinition(false, true,referance.key.names.Single()));
                     }
                     else
                     {
@@ -186,20 +186,20 @@ namespace Tac.Parser
 
                 var types = elements.OfType<TypeDefinition>().ToArray();
 
-                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as MemberDefinition).IsStatic)))
+                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as AbstractMemberDefinition).IsStatic)))
                 {
                     throw new Exception("all lines in an object should be none static");
                 }
 
                 foreach (var staticDefinition in staticDefininitions)
                 {
-                    if (staticDefinition.right is MemberDefinition memberDefinition)
+                    if (staticDefinition.right is AbstractMemberDefinition memberDefinition)
                     {
                         methodScope.TryAddStaticMember(memberDefinition);
                     }
                     else if (staticDefinition.right is Referance referance)
                     {
-                        methodScope.TryAddStaticMember(new MemberDefinition(false,true,referance.key.names.Single() ));
+                        methodScope.TryAddStaticMember(new AbstractMemberDefinition(false,true,referance.key.names.Single() ));
                     }
                     else
                     {
@@ -245,20 +245,20 @@ namespace Tac.Parser
 
                 var types = elements.OfType<TypeDefinition>().ToArray();
 
-                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as MemberDefinition).IsStatic)))
+                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is Referance || (assignOperation.right as AbstractMemberDefinition).IsStatic)))
                 {
                     throw new Exception("all lines in an object should be none static");
                 }
 
                 foreach (var staticDefinition in staticDefininitions)
                 {
-                    if (staticDefinition.right is MemberDefinition memberDefinition)
+                    if (staticDefinition.right is AbstractMemberDefinition memberDefinition)
                     {
                         scope.TryAddStaticMember(memberDefinition);
                     }
                     else if (staticDefinition.right is Referance referance)
                     {
-                        scope.TryAddStaticMember(new MemberDefinition(false,true, referance.key.names.Single()));
+                        scope.TryAddStaticMember(new AbstractMemberDefinition(false,true, referance.key.names.Single()));
                     }
                     else
                     {

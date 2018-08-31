@@ -8,14 +8,14 @@ namespace Tac.Semantic_Model
 {
 
     public class ReferanceOrMemberDef {
-        public ReferanceOrMemberDef(Referance referance, MemberDefinition memberDefinition)
+        public ReferanceOrMemberDef(Referance referance, AbstractMemberDefinition memberDefinition)
         {
             Referance = referance ?? throw new ArgumentNullException(nameof(referance));
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
         public Referance Referance { get; }
-        public MemberDefinition MemberDefinition { get; }
+        public AbstractMemberDefinition MemberDefinition { get; }
 
         // smells 
         public ITypeDefinition ReturnType(IScope scope) => throw new NotImplementedException();

@@ -5,7 +5,7 @@
         public override bool Equals(object obj) => obj is ObjectScope && base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
 
-        public bool TryAddLocalMember(MemberDefinition definition)
+        public bool TryAddLocalMember(AbstractMemberDefinition definition)
         {
             return TryAdd(DefintionLifetime.Local, definition);
         }

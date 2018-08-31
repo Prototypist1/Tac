@@ -38,8 +38,8 @@ namespace Tac.Tests.Samples
             {
                 var objectScope = new ObjectScope(RootScope.Root);
 
-                objectScope.TryAddLocalMember(new MemberDefinition(false, false, new ImplicitTypeReferance(), new ExplicitName("x")));
-                objectScope.TryAddLocalMember(new MemberDefinition(false, false, new ImplicitTypeReferance(), new ExplicitName("y")));
+                objectScope.TryAddLocalMember(new AbstractMemberDefinition(false, false, new ImplicitTypeReferance(), new ExplicitName("x")));
+                objectScope.TryAddLocalMember(new AbstractMemberDefinition(false, false, new ImplicitTypeReferance(), new ExplicitName("y")));
 
                 return new ICodeElement[] {
                     new ObjectDefinition(objectScope,new ICodeElement[]{
