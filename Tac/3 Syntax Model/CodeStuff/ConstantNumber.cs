@@ -18,6 +18,6 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public override int GetHashCode() => -1937169414 + Value.GetHashCode();
-        public ITypeDefinition<IScope> ReturnType(ScopeScope scope) => RootScope.NumberType;
+        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) => RootScope.NumberType;
     }
 }

@@ -5,7 +5,7 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model
 {
-    public class MethodDefinition: AbstractBlockDefinition<MethodScope>
+    public class MethodDefinition: AbstractBlockDefinition<MethodScope>, ITypeSource, ITypeDefinition<MethodScope>
     {
         public MethodDefinition(ITypeSource outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public override ITypeDefinition<IScope> ReturnType(ScopeScope scope) {
+        public override ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
             if (!InputType.TryGetTypeDefinition(scope, out var input)) {
                 throw new Exception($"could not find a type assocated with {InputType}");
             }

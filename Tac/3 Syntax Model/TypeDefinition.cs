@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
     
     public class TypeDefinition: IReferanced,  ITypeDefinition<ObjectScope>
     {
-        public TypeDefinition(AbstractName key, IScope enclosingScope)
+        public TypeDefinition(AbstractName key)
         {
             Scope = new ObjectScope();
             Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -40,7 +40,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
         
-        public ITypeDefinition<IScope> ReturnType(ScopeScope scope) {
+        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
             return RootScope.TypeType;
         }
     }

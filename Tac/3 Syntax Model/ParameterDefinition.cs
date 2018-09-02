@@ -5,7 +5,16 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
     public interface ITypeSource {
-        bool TryGetTypeDefinition(ScopeScope scope, out ITypeDefinition<IScope> typeDefinition);
+        bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition);
+    }
+
+    public static class TypeSourceExtensions {
+        public static ITypeDefinition<IScope> GetTypeDefinitionOrThrow(this ITypeSource self, ScopeStack scopeStack) {
+            if (self.TryGetTypeDefinition(scopeStack, out var res)) {
+                return res;
+            }
+            throw new Exception($"Could not find type definition for {self} in {scopeStack}");
+        }
     }
 
     //public sealed class ParameterDefinition: IReferanced

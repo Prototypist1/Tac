@@ -5,20 +5,9 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed partial class RootScope : IScope
+    public static partial class RootScope 
     {
-        public override bool Equals(object obj) => obj is RootScope;
-        public override int GetHashCode() => 1522345295;
-
-        private RootScope(){}
-
-        public static RootScope Root = new RootScope();
-        
-        public bool TryGet(IEnumerable<AbstractName> names, out IReferanced item) { }
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition<IScope>> item)
-        {
-            item = default;
-            return false;
-        }
+        public static IScope Root { get => Root; }
+        private static StaticScope root = new StaticScope();
     }
 }

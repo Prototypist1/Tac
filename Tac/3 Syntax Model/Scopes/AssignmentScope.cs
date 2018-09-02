@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
 
         public ICodeElement LeftSide { get; }
         
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition<IScope>> item) {
+        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition<IScope>> item) {
             item = LeftSide.ReturnType;
             return true;
         }

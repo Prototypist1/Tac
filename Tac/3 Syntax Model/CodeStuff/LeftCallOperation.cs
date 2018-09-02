@@ -13,27 +13,36 @@ namespace Tac.Semantic_Model.Operations
 
         public override bool Equals(object obj) => obj is NextCallOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition<IScope> ReturnType(ScopeScope scope)
+        public override ITypeDefinition<IScope> ReturnType(ScopeStack scope)
         {
-            if (right is Referance referance &&
-                scope.TryGet(referance.key.names, out var member))
+            if (right is MemberReferance referance)
             {
-                if (member is ImplicitMemberDefinition implicitTypeReferance && scope.TryGet(implicitTypeReferance.Type, out var typeDefinition1)){
-                    return typeDefinition1.ReturnType(scope);
-                }
-                if (member is MemberDefinition explicitTypeReferance && scope.TryGet(explicitTypeReferance.Type.key.names, out var typeDefinition2))
+                var member = scope.GetMember(referance.Key.names);
+
+                return GetTypeDefinition(member.Type.GetTypeDefinitionOrThrow(scope));
+            }
+
+            if (right is ITypeDefinition<IScope> rightTypeDef)
+            {
+                return GetTypeDefinition(rightTypeDef);
+            }
+
+            return GetTypeDefinition(right.ReturnType(scope));
+            
+            ITypeDefinition<IScope> GetTypeDefinition(ITypeDefinition<IScope> typeDefinition)
+            {
+                if (typeDefinition is MethodDefinition methodDefinition)
                 {
-                    return typeDefinition2.ReturnType(scope);
+                    return methodDefinition.OutputType.GetTypeDefinitionOrThrow(scope);
                 }
-                throw new Exception("could not find the right type");
 
-            }
-            else if (right is MethodDefinition methodDefinition)
-            {
-                return methodDefinition.ReturnType(scope);
-            }
-            return right.ReturnType(scope);
+                if (typeDefinition is ImplementationDefinition implementationDefinition)
+                {
+                    return implementationDefinition.OutputType.GetTypeDefinitionOrThrow(scope);
+                }
 
+                throw new Exception($"{typeDefinition} is expected to a method or implementation");
+            }
         }
     }
 }

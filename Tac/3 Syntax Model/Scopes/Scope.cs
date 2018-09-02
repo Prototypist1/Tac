@@ -89,7 +89,7 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeScope, ITypeDefinition<IScope>> item)
+        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition<IScope>> item)
         {
             item = default;
             return false;

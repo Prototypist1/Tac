@@ -5,7 +5,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ImplementationDefinition: IScoped<InstanceScope>, IReferanced
+    public sealed class ImplementationDefinition: IScoped<InstanceScope>, IReferanced, ITypeSource, ITypeDefinition<InstanceScope>
     {
         public ImplementationDefinition(ITypeSource contextType, ITypeSource outputType, MemberDefinition parameterDefinition, AbstractBlockDefinition<InstanceScope> methodBodyDefinition, AbstractName key)
         {
@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public ITypeDefinition<IScope> ReturnType(ScopeScope scope) {
+        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
             if (ContextType.TryGetTypeDefinition(scope, out var context) &&
                 InputType.TryGetTypeDefinition(scope, out var input) &&
                 OutputType.TryGetTypeDefinition(scope, out var output))

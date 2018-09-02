@@ -14,16 +14,15 @@ namespace Tac.Semantic_Model
     public static class ScopedExtensions
     {
 
-        public static ScopeScope GrowScopeStack(this IScoped<IScope> scope, ScopeScope stack)
+        public static ScopeStack GrowScopeStack(this IScoped<IScope> scope, ScopeStack stack)
         {
-            return new ScopeScope(stack, scope.Scope);
+            return new ScopeStack(stack, scope.Scope);
         }
     }
-
-
-    public class ScopeScope
+    
+    public class ScopeStack
     {
-        public ScopeScope(ScopeScope scopes, IScope newScope)
+        public ScopeStack(ScopeStack scopes, IScope newScope)
         {
             if (scopes == null)
             {
@@ -39,7 +38,7 @@ namespace Tac.Semantic_Model
             stack.Insert(0, newScope);
             Scopes = stack.ToArray();
         }
-        public ScopeScope(IEnumerable<IScope> scopes) => Scopes = scopes?.ToArray() ?? throw new ArgumentNullException(nameof(scopes));
+        public ScopeStack(IEnumerable<IScope> scopes) => Scopes = scopes?.ToArray() ?? throw new ArgumentNullException(nameof(scopes));
 
         public IScope[] Scopes { get; }
 

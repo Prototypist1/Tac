@@ -8,27 +8,26 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
     public sealed class MemberReferance : ICodeElement, IFeildOrMemberSource{
-        public readonly NamePath key;
 
-        public MemberReferance(NamePath key) => this.key = key ?? throw new ArgumentNullException(nameof(key));
+        public NamePath Key { get; }
+
+        public MemberReferance(NamePath key) => this.Key = key ?? throw new ArgumentNullException(nameof(key));
 
         public MemberReferance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) })) { }
         
         public override bool Equals(object obj)
         {
             return obj is MemberReferance referance && referance != null &&
-                   EqualityComparer<NamePath>.Default.Equals(key, referance.key);
+                   EqualityComparer<NamePath>.Default.Equals(Key, referance.Key);
         }
 
-        public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(key);
-        public ITypeDefinition<IScope> ReturnType(ScopeScope scope)
+        public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(Key);
+        public ITypeDefinition<IScope> ReturnType(ScopeStack scope)
         {
-            if (scope.TryGet(key.names, out var res))
-            {
-                return res.ReturnType(scope);
-            }
-
-            throw new Exception("Referance Not resolved");
+            return scope
+                .GetMember(Key.names)
+                .Type
+                .GetTypeDefinitionOrThrow(scope);
         }
     }
 }

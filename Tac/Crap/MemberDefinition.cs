@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public ITypeDefinition<IScope> ReturnType(ScopeScope scope) {
+        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
             if (!Type.TryGetTypeDefinition(scope, out var res)) {
                 throw new Exception("Type not found");
             }

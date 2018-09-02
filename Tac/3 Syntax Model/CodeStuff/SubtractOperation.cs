@@ -10,6 +10,6 @@ namespace Tac.Semantic_Model.Operations
         
         public override bool Equals(object obj) => obj is SubtractOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(ScopeScope scope) => RootScope.NumberType;
+        public override ITypeDefinition ReturnType(ScopeStack scope) => RootScope.NumberType;
     }
 }
