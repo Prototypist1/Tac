@@ -6,7 +6,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
     public interface IFeildOrMemberSource : ICodeElement {
-        bool TryGetMemberDefinition(ScopeStack scopeStack, out AbstractMemberDefinition memberDefinition);
+        bool TryGetMemberDefinition(ScopeStack scopeStack, out MemberDefinition memberDefinition);
     }
 
     public class AssignOperation : BinaryOperation<ICodeElement, IFeildOrMemberSource>, IScoped<AssignmentScope>

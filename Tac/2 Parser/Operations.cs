@@ -54,7 +54,7 @@ namespace Tac.Parser
                         // YOU ARE HERE
                         // 
                         //... you always assign a referance....
-                        if (next is Referance referance){
+                        if (next is MemberReferance referance){
                             return new AssignReferanceOperation(last,referance);
                         }
                         if (next is ImplicitMemberDefinition implicitMemberDefinition){
