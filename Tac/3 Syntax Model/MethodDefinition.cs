@@ -11,6 +11,7 @@ namespace Tac.Semantic_Model
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            scope.TryAddParameter(parameterDefinition);
         }
 
         public ITypeSource InputType { get => ParameterDefinition.Type; }

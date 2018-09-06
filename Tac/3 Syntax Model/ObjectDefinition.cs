@@ -8,7 +8,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ObjectDefinition: ITypeDefinition<ObjectScope>, ICodeElement, ITypeDefinition
+    public sealed class ObjectDefinition: ITypeDefinition<ObjectScope>, ICodeElement
     {
         public ObjectDefinition(ObjectScope scope, IEnumerable<ICodeElement> codeElements) {
             Scope = scope;

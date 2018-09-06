@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Tac.Semantic_Model
 {
@@ -9,6 +10,15 @@ namespace Tac.Semantic_Model
 
         public ITypeDefinition<IScope> ReturnType(IScope scope) {
             return RootScope.TypeType;
+        }
+
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition) {
+            if (scope.Scopes.First().TryGet(this, out var item)) {
+                typeDefinition = item(scope);
+                return true;
+            }
+            typeDefinition = default;
+            return false;
         }
     }
 }
