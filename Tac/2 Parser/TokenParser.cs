@@ -10,45 +10,45 @@ namespace Tac.Parser
     public static class TokenParser
     {
 
-        public static ICodeElement[] ParseFile(FileToken file)
+        public static ICodeElement[] ParseFile(FileToken file, ElementMatchingContext matchingContext)
         {
-            return file.Tokens.Select(x => ParseLine((LineToken)x)).ToArray();
+            return file.Tokens.Select(x => ParseLine((LineToken)x, matchingContext)).ToArray();
         }
 
 
-        public static ICodeElement ParseLine(LineToken tokens)
+        public static ICodeElement ParseLine(LineToken tokens, ElementMatchingContext matchingContext)
         {
-            return ParseLine(tokens.Tokens);
+            return ParseLine(tokens.Tokens, matchingContext);
         }
 
-        public static ICodeElement ParseLine(IEnumerable<IToken> tokens)
+        public static ICodeElement ParseLine(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
 
             var state = new ParseState(tokens);
             if (state.TryGetStart(out var view))
             {
-                return ParseLine(view);
+                return ParseLine(view, matchingContext);
             }
             throw new Exception("there was nothing in that line!");
         }
 
-        public static ICodeElement ParseLine(IParseStateView view)
+        public static ICodeElement ParseLine(IParseStateView view, ElementMatchingContext matchingContext)
         {
             ICodeElement lastElement = default;
             do
             {
-                lastElement = ParseLineElementOrThrow(view,  lastElement);
+                lastElement = ParseLineElementOrThrow(view,  lastElement, matchingContext);
             } while (view.TryGetNext(out view));
             return lastElement;
         }
 
-        private static ICodeElement ParseLineElementOrThrow(IParseStateView view, ICodeElement last)
+        private static ICodeElement ParseLineElementOrThrow(IParseStateView view, ICodeElement last, ElementMatchingContext matchingContext)
         {
-            if (TryParseAtomic(view,  last, out var codeElement))
+            if (TryParseAtomic(view,  last, matchingContext, out var codeElement))
             {
                 return codeElement;
             }
-            else if (TryParseElement(view,  out codeElement))
+            else if (TryParseElement(view,matchingContext,  out codeElement))
             {
                 return codeElement;
             }
@@ -58,7 +58,7 @@ namespace Tac.Parser
         }
 
 
-        public static bool TryParseAtomic(IParseStateView view, ICodeElement last, out ICodeElement codeElement)
+        public static bool TryParseAtomic(IParseStateView view, ICodeElement last, ElementMatchingContext matchingContext, out ICodeElement codeElement)
         {
             if (view.Token is AtomicToken atomicToken)
             {
@@ -73,7 +73,7 @@ namespace Tac.Parser
                     {
                         codeElement = binaryFunc(
                             last,
-                            ParseLineElementOrThrow(next,  last));
+                            ParseLineElementOrThrow(next, last, matchingContext));
                     }
                 }
                 else if (Operations.StandardOperations.Value.LastOperations.TryGetValue(atomicToken.Item, out var lastFunc))
@@ -93,7 +93,7 @@ namespace Tac.Parser
                     if (view.TryGetNext(out var next))
                     {
                         codeElement = nextFunc(
-                            ParseLineElementOrThrow(next, last));
+                            ParseLineElementOrThrow(next, last, matchingContext));
 
                         return true;
                     }
@@ -116,32 +116,32 @@ namespace Tac.Parser
             return false;
         }
 
-        public static ICodeElement[] ParseBlock(CurleyBacketToken token)
+        public static ICodeElement[] ParseBlock(CurleyBacketToken token, ElementMatchingContext matchingContext)
         {
             return token.Tokens.Select(x =>
             {
                 if (x is LineToken lineToken)
                 {
-                    return ParseLine(lineToken.Tokens);
+                    return ParseLine(lineToken.Tokens, matchingContext);
                 }
                 throw new Exception("unexpected token type");
             }).ToArray();
         }
         
-        public static bool TryParseElement(IParseStateView view, out ICodeElement codeElement)
+        public static bool TryParseElement(IParseStateView view, ElementMatchingContext matchingContext, out ICodeElement codeElement)
         {
             if (view.Token is ElementToken elementToken)
             {
                 // smells 
                 if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken)
                 {
-                    codeElement = ParseLine(parenthesisToken.Tokens);
+                    codeElement = ParseLine(parenthesisToken.Tokens, matchingContext);
                     return true;
                 }
                 
-                foreach (var tryMatch in Elements.StandardElements.Value.ElementBuilders)
+                foreach (var tryMatch in matchingContext.ElementMatchers)
                 {
-                    if (tryMatch(elementToken, out codeElement))
+                    if (tryMatch(elementToken, matchingContext, out codeElement))
                     {
                         return true;
                     }

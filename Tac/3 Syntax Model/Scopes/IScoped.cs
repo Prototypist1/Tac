@@ -133,6 +133,7 @@ namespace Tac.Semantic_Model
             }
         }
 
+        internal ITypeDefinition<IScope> GetType(object names) => throw new NotImplementedException();
 
         public MemberDefinition GetMember(IEnumerable<AbstractName> names)
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
@@ -49,22 +50,8 @@ namespace Tac.Parser
                     {"else", (last, next) => new ElseOperation(last,next) },
                     {"less-than", (last, next) => new LessThanOperation(last,next) },
                     {"next-call", (last, next) => new NextCallOperation(last,next) },
-                    {"assign", (last, next) =>{
-                        // TODO TODO TODO
-                        // YOU ARE HERE
-                        // 
-                        //... you always assign a referance....
-                        if (next is MemberReferance referance){
-                            return new AssignReferanceOperation(last,referance);
-                        }
-                        if (next is ImplicitMemberDefinition implicitMemberDefinition){
-                            return new  AssignImpliciMemberDefinitionOperation(last,implicitMemberDefinition);
-                        }
-                        if (next is MemberDefinition memberDefinition){
-                            return new AssignMemberDefinitionOperation(last,memberDefinition);
-                        }
-                        throw new Exception($"type {next} not expected!");
-                    } },{"last-call", (last, next) => new LastCallOperation(last,next) },
+                    {"assign", (last, next) => new AssignOperation(last,next.Cast<IMemberSource>()) },
+                    {"last-call", (last, next) => new LastCallOperation(last,next) },
                 },
                 new Dictionary<string, Func<ICodeElement, ICodeElement>>
                 {

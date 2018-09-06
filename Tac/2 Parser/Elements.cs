@@ -10,15 +10,16 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
-    public class ParsingContext {
 
+    public class ElementMatchingContext {
+        public IEnumerable<Elements.TryMatch> ElementMatchers { get; }
     }
 
     public class Elements
     {
         public Elements(List<TryMatch> elementBuilders) => ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
 
-        public delegate bool TryMatch(ElementToken elementToken, out ICodeElement element);
+        public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element);
 
         public List<TryMatch> ElementBuilders { get; }
 
@@ -36,13 +37,15 @@ namespace Tac.Parser
                 });
         });
 
-        public static bool MatchLocalDefinition_Var(ElementToken elementToken, out ICodeElement element) {
+        public static bool MatchLocalDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        {
             if (ElementMatching.Start(elementToken)
-                .Has(ElementMatcher.KeyWord("var"), out var _)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
+                .Has(ElementMatcher.KeyWord("var"), out var _)
                 .Has(ElementMatcher.IsName, out AtomicToken nameToken)
                 .Has(ElementMatcher.IsDone)
-                .IsMatch) {
+                .IsMatch)
+            {
 
                 var readOnly = readonlyToken != default;
 
@@ -55,7 +58,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchStaticMemberDefinition_Var(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchStaticMemberDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("static"), out var _)
@@ -77,7 +80,22 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchObjectDefinition(ElementToken elementToken, out ICodeElement element) {
+        // TODO
+        // TODO
+        // TODO
+        // TODO you are here!
+        // mathcing IS context dependant
+        // consider:
+        // 5 -> x;
+        // x is a MemberDefinition if this line is inside an object
+        // x is a MemberReferance if this line is inside a method
+        // x is a static MemberDefinition if this line is inside a module
+
+        // this means we need a parsing context
+        // the parsing context can provide more parsing contexts
+
+        public static bool MatchObjectDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("object"), out var keyword)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken block)
@@ -86,11 +104,12 @@ namespace Tac.Parser
             {
                 var scope = new ObjectScope();
 
-                var elements = TokenParser.ParseBlock(block);
+                var elements = TokenParser.ParseBlock(block, matchingContext);
 
                 var localDefininitions = elements.OfType<AssignOperation>().ToArray();
 
-                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is MemberReferance || !(assignOperation.right as MemberDefinition).IsStatic))) {
+                if (elements.All(x => x is AssignOperation assignOperation).Not())
+                {
                     throw new Exception("all lines in an object should be none static");
                 }
 
@@ -100,9 +119,12 @@ namespace Tac.Parser
                     {
                         scope.TryAddLocalMember(memberDefinition);
                     }
-                    else if (loaclDefinition.right is MemberReferance referance) {
-                        scope.TryAddLocalMember(new MemberDefinition(false, false, referance.key.names.Single()));
-                    } else {
+                    else if (loaclDefinition.right is MemberReferance memberReferance)
+                    {
+                        scope.TryAddLocalMember(new MemberDefinition(false, false, memberReferance.Key.names.Last(), new ExplicitTypeSource(loaclDefinition.left)));
+                    }
+                    else
+                    {
                         throw new Exception(loaclDefinition.right + "is of unexpected type");
                     }
                 }
@@ -113,25 +135,27 @@ namespace Tac.Parser
             element = default;
             return false;
         }
-
-        public static bool MatchModuleDefinition(ElementToken elementToken, out ICodeElement element) {
+        
+        public static bool MatchModuleDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("module"), out AtomicToken frist)
                 .Has(ElementMatcher.IsName, out AtomicToken second)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken third)
                 .Has(ElementMatcher.IsDone)
-                .IsMatch) {
+                .IsMatch)
+            {
 
                 var scope = new StaticScope();
 
-                var elements = TokenParser.ParseBlock(third);
+                var elements = TokenParser.ParseBlock(third, matchingContext);
 
 
                 var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
 
                 var types = elements.OfType<TypeDefinition>().ToArray();
 
-                if (!elements.All(x => x is AssignOperation assignOperation && (assignOperation.right is MemberReferance || (assignOperation.right as MemberDefinition).IsStatic)))
+                if (!elements.All(x => (x is AssignOperation assignOperation && (assignOperation.right is MemberReferance || (assignOperation.right as MemberDefinition).IsStatic)) || x is TypeDefinition))
                 {
                     throw new Exception("all lines in an object should be none static");
                 }
@@ -142,9 +166,9 @@ namespace Tac.Parser
                     {
                         scope.TryAddStaticMember(memberDefinition);
                     }
-                    else if (staticDefinition.right is MemberReferance referance)
+                    else if (staticDefinition.right is MemberReferance memberReferance)
                     {
-                        scope.TryAddStaticMember(new MemberDefinition(false, true, referance.key.names.Single()));
+                        scope.TryAddStaticMember(new MemberDefinition(false, true, memberReferance.Key.names.Last(), new ExplicitTypeSource(staticDefinition.left)));
                     }
                     else
                     {
@@ -164,10 +188,10 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchMethodDefinition(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchMethodDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
-            if (
-                elementToken.Tokens.Count() == 3 &&
+            // TODO this needs some nice matching code
+            if (elementToken.Tokens.Count() == 3 &&
                 elementToken.Tokens.First() is AtomicToken first &&
                     first.Item == "method" &&
                 elementToken.Tokens.ElementAt(1) is ParenthesisToken typeParameters &&
@@ -179,13 +203,18 @@ namespace Tac.Parser
                         secondLine.Tokens.Count() == 1 &&
                         secondLine.Tokens.ElementAt(0) is AtomicToken outputType &&
                 elementToken.Tokens.ElementAt(2) is AtomicToken second &&
-                elementToken.Tokens.ElementAt(3) is CurleyBacketToken third) {
+                elementToken.Tokens.ElementAt(3) is CurleyBacketToken third)
+            {
 
                 var methodScope = new MethodScope();
 
-                var elements = TokenParser.ParseBlock(third);
+                var elements = TokenParser.ParseBlock(third, matchingContext);
 
 
+                // TODO this is not so good
+                // assigns might not be top level operations!
+                // TODO we don't know assign is static!
+                throw new Exception("TODO");
                 var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
 
                 var types = elements.OfType<TypeDefinition>().ToArray();
@@ -201,10 +230,6 @@ namespace Tac.Parser
                     {
                         methodScope.TryAddStaticMember(memberDefinition);
                     }
-                    else if (staticDefinition.right is MemberReferance referance)
-                    {
-                        methodScope.TryAddStaticMember(new MemberDefinition(false, true, referance.key.names.Single()));
-                    }
                     else
                     {
                         throw new Exception(staticDefinition.right + "is of unexpected type");
@@ -217,11 +242,13 @@ namespace Tac.Parser
                 }
 
                 element = new MethodDefinition(
-                    new MemberReferance(inputType.Item),
-                    new ParameterDefinition(
-                        false, // TODO, the way this is hard coded is something to think about, readonly should be encoded somewhere!
-                        new MemberReferance(inputType.Item),
-                        new ExplicitName(second.Item)),
+                    new TypeReferance(outputType.Item),
+                    new MemberDefinition(
+                        false,
+                        false, 
+                        new ExplicitName(second.Item),
+                        new TypeReferance(inputType.Item)
+                        ),
                     elements.Except(staticDefininitions).Except(types).ToArray(),
                     methodScope,
                     staticDefininitions);
@@ -233,7 +260,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchBlockDefinition(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchBlockDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken first)
@@ -242,8 +269,10 @@ namespace Tac.Parser
             {
                 var scope = new LocalStaticScope();
 
-                var elements = TokenParser.ParseBlock(first);
+                var elements = TokenParser.ParseBlock(first, matchingContext);
 
+                // TODO this is crap
+                // we don't know assign is static
 
                 var staticDefininitions = elements.OfType<AssignOperation>().ToArray();
 
@@ -262,7 +291,7 @@ namespace Tac.Parser
                     }
                     else if (staticDefinition.right is MemberReferance referance)
                     {
-                        scope.TryAddStaticMember(new MemberDefinition(false, true, referance.key.names.Single()));
+                        scope.TryAddStaticMember(new MemberDefinition(false, true, referance.Key.names.Last(),new ExplicitTypeSource(staticDefinition.left)));
                     }
                     else
                     {
@@ -285,7 +314,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchConstantNumber(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchConstantNumber(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.IsNumber, out double dub)
@@ -301,7 +330,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchReferance(ElementToken elementToken, out ICodeElement element)
+        public static bool MatchReferance(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
@@ -319,8 +348,9 @@ namespace Tac.Parser
 
     }
 
-    public class ElementMatching {
-        
+    public class ElementMatching
+    {
+
         private ElementMatching(IEnumerable<IToken> tokens, bool isNotMatch)
         {
             this.IsNotMatch = isNotMatch;
@@ -331,11 +361,13 @@ namespace Tac.Parser
         public bool IsNotMatch { get; }
         public IEnumerable<IToken> Tokens { get; }
 
-        public static ElementMatching Start(ElementToken elementToken) {
+        public static ElementMatching Start(ElementToken elementToken)
+        {
             return Match(elementToken.Tokens);
         }
 
-        public static ElementMatching Match(IEnumerable<IToken> tokens) {
+        public static ElementMatching Match(IEnumerable<IToken> tokens)
+        {
             return new ElementMatching(tokens, false);
         }
 
@@ -346,9 +378,12 @@ namespace Tac.Parser
 
     }
 
-    public static class ElementMatcher {
-        public static ElementMatching Has<T>(this ElementMatching self, IsMatch<T> pattern, out T t) {
-            if (self.IsNotMatch) {
+    public static class ElementMatcher
+    {
+        public static ElementMatching Has<T>(this ElementMatching self, IsMatch<T> pattern, out T t)
+        {
+            if (self.IsNotMatch)
+            {
                 t = default;
                 return self;
             }
@@ -365,8 +400,9 @@ namespace Tac.Parser
 
             return pattern(self);
         }
-        
-        public static ElementMatching OptionalHas<T>(this ElementMatching self, IsMatch<T> pattern, out T t) {
+
+        public static ElementMatching OptionalHas<T>(this ElementMatching self, IsMatch<T> pattern, out T t)
+        {
             if (self.IsNotMatch)
             {
                 t = default;
@@ -374,7 +410,8 @@ namespace Tac.Parser
             }
 
             var next = pattern(self, out t);
-            if (next.IsNotMatch) {
+            if (next.IsNotMatch)
+            {
                 t = default;
                 return self;
             }
@@ -391,7 +428,8 @@ namespace Tac.Parser
             }
 
             var next = pattern(self);
-            if (next.IsNotMatch) {
+            if (next.IsNotMatch)
+            {
                 return self;
             }
 
@@ -400,16 +438,17 @@ namespace Tac.Parser
 
         public delegate ElementMatching IsMatch(ElementMatching self);
         public delegate ElementMatching IsMatch<T>(ElementMatching self, out T matched);
-        
+
         public static ElementMatching IsName(ElementMatching self, out AtomicToken atomicToken)
         {
             if (self.Tokens.Any() &&
                 self.Tokens.First() is AtomicToken first &&
-                !double.TryParse(first.Item, out var _)) {
+                !double.TryParse(first.Item, out var _))
+            {
                 atomicToken = first;
                 return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
             }
-            
+
             atomicToken = default;
             return ElementMatching.NotMatch(self.Tokens);
         }
@@ -427,7 +466,8 @@ namespace Tac.Parser
             return ElementMatching.NotMatch(self.Tokens);
         }
 
-        public static ElementMatching IsDone(ElementMatching self) {
+        public static ElementMatching IsDone(ElementMatching self)
+        {
             if (!self.Tokens.Any())
             {
                 return self;
@@ -436,7 +476,8 @@ namespace Tac.Parser
             return ElementMatching.NotMatch(self.Tokens);
         }
 
-        public static ElementMatching IsBody(ElementMatching self, out CurleyBacketToken body) {
+        public static ElementMatching IsBody(ElementMatching self, out CurleyBacketToken body)
+        {
 
             if (self.Tokens.Any() &&
                 self.Tokens.First() is CurleyBacketToken first)
@@ -449,7 +490,8 @@ namespace Tac.Parser
             return ElementMatching.NotMatch(self.Tokens);
         }
 
-        public static IsMatch<AtomicToken> KeyWord(string word) {
+        public static IsMatch<AtomicToken> KeyWord(string word)
+        {
             return Inner;
 
             ElementMatching Inner(ElementMatching self, out AtomicToken token)
@@ -480,7 +522,7 @@ namespace Tac.Parser
                     { (false,false), ()=> ElementMatching.NotMatch(element.Tokens)},
                 };
 
-                return table[(first.IsNotMatch,second.IsNotMatch)]();
+                return table[(first.IsNotMatch, second.IsNotMatch)]();
             };
         }
 
@@ -490,7 +532,7 @@ namespace Tac.Parser
 
             ElementMatching Backing(ElementMatching element, out T t)
             {
-                var first = self(element,out var t1);
+                var first = self(element, out var t1);
                 var second = other(element, out var t2);
 
                 if (first.IsNotMatch)
@@ -506,7 +548,8 @@ namespace Tac.Parser
                         return second;
                     }
                 }
-                else {
+                else
+                {
                     if (second.IsNotMatch)
                     {
                         t = t1;
@@ -522,6 +565,6 @@ namespace Tac.Parser
         }
 
     }
-    
-    
+
+
 }

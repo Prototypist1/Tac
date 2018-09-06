@@ -8,12 +8,24 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
+    public sealed class ExplicitTypeSource : ITypeSource
+    {
+        public ExplicitTypeSource(ICodeElement codeElement) => CodeElement = codeElement ?? throw new ArgumentNullException(nameof(codeElement));
+
+        private ICodeElement CodeElement { get; }
+
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition) {
+            typeDefinition = CodeElement.ReturnType(scope);
+            return true;
+        }
+    }
+
     // it is possible members are single instances with look up
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    
-    public sealed class MemberDefinition: IReferanced, ICodeElement
+
+    public sealed class MemberDefinition: IReferanced, ICodeElement, IMemberSource
     {
         public MemberDefinition(bool readOnly, bool isStatic, AbstractName key, ITypeSource type)
         {
@@ -54,5 +66,7 @@ namespace Tac.Semantic_Model
 
             return res;
         }
+
+        public MemberDefinition GetMemberDefinition(ScopeStack scopeStack) => this;
     }
 }

@@ -48,5 +48,11 @@ namespace Tac.Semantic_Model
             
             return RootScope.MethodType(input, output);
         }
+
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition)
+        {
+            typeDefinition = RootScope.MethodType(InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope));
+            return true;
+        }
     }
 }

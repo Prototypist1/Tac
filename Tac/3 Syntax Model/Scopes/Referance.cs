@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac.Semantic_Model.CodeStuff;
@@ -7,7 +8,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class MemberReferance : ICodeElement, IFeildOrMemberSource{
+    public sealed class MemberReferance : ICodeElement, IMemberSource{
 
         public NamePath Key { get; }
 
@@ -28,6 +29,26 @@ namespace Tac.Semantic_Model
                 .GetMember(Key.names)
                 .Type
                 .GetTypeDefinitionOrThrow(scope);
+        }
+
+        public MemberDefinition GetMemberDefinition(ScopeStack scopeStack)
+        {
+            return scopeStack.GetMember(Key.names);
+        }
+    }
+
+    public sealed class TypeReferance : ICodeElement, ITypeSource
+    {
+        public TypeReferance(IEnumerable<AbstractName> names) => Names = names ?? throw new ArgumentNullException(nameof(names));
+        public TypeReferance(string name) : this(new ExplicitName(name).ToArray()) { }
+
+        public IEnumerable<AbstractName> Names { get; }
+
+        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) => RootScope.TypeType;
+
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition) {
+            typeDefinition = scope.GetType(Names);
+            return true;
         }
     }
 }

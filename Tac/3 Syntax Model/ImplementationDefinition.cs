@@ -56,5 +56,15 @@ namespace Tac.Semantic_Model
             }
             throw new Exception("could not find ");
         }
+
+        // this smells
+        // this is not written like a try
+        // it is just going to throw
+        // I expect I will get rid of all my tires
+        // when I try tacking errors
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition) {
+            typeDefinition = RootScope.ImplementationType(ContextType.GetTypeDefinitionOrThrow(scope), InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope));
+            return true;
+        }
     }
 }
