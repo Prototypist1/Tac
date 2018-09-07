@@ -19,7 +19,13 @@ namespace Tac.Semantic_Model
             return new ScopeStack(stack, scope.Scope);
         }
     }
-    
+
+    // I am really not sure about this,
+    // I think it should be a scope tree
+    // I mean if you call a method
+    // we need to loop up in the scope of that method
+    // I am really getting ahead of myself
+
     public class ScopeStack
     {
         public ScopeStack(ScopeStack scopes, IScope newScope)
@@ -136,98 +142,21 @@ namespace Tac.Semantic_Model
 
         internal ITypeDefinition<IScope> GetType(object names) => throw new NotImplementedException();
 
-        public MemberDefinition GetMember(AbstractName name)
+        public MemberDefinition GetMemberOrDefault(AbstractName name)
         {
-
-            //if (names.Count() > 1)
-            //{
-            //    var (staticOnly, at) = GetStart();
-
-            //    // the first is specail because it searches the stack
-            //    (bool, ITypeDefinition<IScope>) GetStart()
-            //    {
-            //        var name = names.First();
-            //        foreach (var scope in Scopes)
-            //        {
-            //            if (scope.TryGetType(name, out var typeDefinition))
-            //            {
-            //                return (true, typeDefinition);
-            //            }
-            //            if (scope.TryGetMember(name, false, out var memberDefinition))
-            //            {
-            //                if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-            //                {
-            //                    return (false, memberType);
-            //                }
-            //                else
-            //                {
-            //                    throw new Exception("");
-            //                }
-            //            }
-            //        }
-            //        throw new Exception("");
-            //    }
-
-            //    foreach (var name in names.Skip(1).Take(names.Count() - 2))
-            //    {
-            //        (staticOnly, at) = Continue();
-
-            //        // when we contune we only search the scope we are at
-            //        (bool, ITypeDefinition<IScope>) Continue()
-            //        {
-            //            if (at.Scope.TryGetType(name, out var typeDefinition))
-            //            {
-            //                return (true, typeDefinition);
-            //            }
-            //            if (at.Scope.TryGetMember(name, staticOnly, out var memberDefinition))
-            //            {
-            //                if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-            //                {
-            //                    return (false, memberType);
-            //                }
-            //                else
-            //                {
-            //                    throw new Exception("");
-            //                }
-            //            }
-            //            throw new Exception("");
-            //        }
-            //    }
-
-            //    return GetFinal();
-
-            //    // in the final entry we only look for members
-            //    MemberDefinition GetFinal()
-            //    {
-            //        var name = names.Last();
-
-            //        if (at.Scope.TryGetMember(name, false, out var memberDefinition))
-            //        {
-            //            return memberDefinition;
-            //        }
-
-            //        throw new Exception("");
-            //    }
-
-            //}
-            //else
-            //{
-                return SimpleLookUp();
-
-                // if ther is only one we search the whole stack
-                MemberDefinition SimpleLookUp()
+            return SimpleLookUp();
+            
+            MemberDefinition SimpleLookUp()
+            {
+                foreach (var scope in Scopes)
                 {
-                    foreach (var scope in Scopes)
+                    if (scope.TryGetMember(name, false, out var memberDefinition))
                     {
-                        if (scope.TryGetMember(name, false, out var memberDefinition))
-                        {
-                            return memberDefinition;
-                        }
+                        return memberDefinition;
                     }
-                    throw new Exception("");
                 }
-
-            //}
+                return new MemberDefinition(false, name, new ConstantTypeSource(RootScope.AnyType));
+            }
         }
     }
 }

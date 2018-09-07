@@ -20,6 +20,19 @@ namespace Tac.Semantic_Model
         }
     }
 
+    public sealed class ConstantTypeSource : ITypeSource
+    {
+        public ConstantTypeSource(ITypeDefinition<IScope> typeDefinition) => TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
+
+        private ITypeDefinition<IScope> TypeDefinition { get; }
+
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition)
+        {
+            typeDefinition = TypeDefinition;
+            return true;
+        }
+    }
+
     // it is possible members are single instances with look up
     // up I don't think so
     // it is easier just to have simple value objects
@@ -27,20 +40,16 @@ namespace Tac.Semantic_Model
 
     public sealed class MemberDefinition: IReferanced, ICodeElement, IMemberSource
     {
-        public MemberDefinition(bool readOnly, bool isStatic, AbstractName key, ITypeSource type)
+        public MemberDefinition(bool readOnly, AbstractName key, ITypeSource type)
         {
             Type = type;
             ReadOnly = readOnly;
-            IsStatic = isStatic;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public ITypeSource Type { get; }
         public bool ReadOnly { get; }
         public AbstractName Key { get; }
-        // does static really live here?
-        // the scope stack should know this...
-        public bool IsStatic { get; }
 
         public override bool Equals(object obj)
         {

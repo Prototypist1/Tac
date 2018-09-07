@@ -35,14 +35,14 @@ namespace Tac._2_Parser
             return nextLines;
         }
 
-        public static IEnumerable<ICodeElement> ExtractMemberDefinitions(this IEnumerable<ICodeElement> lines, bool isStatic, out IReadOnlyList<MemberDefinition> memberDefinitions)
+        public static IEnumerable<ICodeElement> ExtractMemberDefinitions(this IEnumerable<ICodeElement> lines,  out IReadOnlyList<MemberDefinition> memberDefinitions)
         {
             var nextLines = new List<ICodeElement>();
             var memberDefinitionList = new List<MemberDefinition>();
 
             foreach (var line in lines)
             {
-                if (line is AssignOperation assignOperation && assignOperation.right  is MemberDefinition memberDefinition && memberDefinition.IsStatic == isStatic)
+                if (line is AssignOperation assignOperation && assignOperation.right  is MemberDefinition memberDefinition )
                 {
                     memberDefinitionList.Add(memberDefinition);
                 }
@@ -98,7 +98,7 @@ namespace Tac._2_Parser
 
         // this one is a little different
 
-        public static MemberDefinition[] DeepMemberDefinitions(IEnumerable<ICodeElement> lines, bool isStatic) {
+        public static MemberDefinition[] DeepMemberDefinitions(this IEnumerable<ICodeElement> lines) {
             var list = new List<MemberDefinition>();
             foreach (var line in lines)
             {
@@ -108,11 +108,11 @@ namespace Tac._2_Parser
 
             MemberDefinition[] DeepMemberDefinitions(ICodeElement line) {
                 if (line is MemberDefinition memberDefinition) {
-                    return memberDefinition.ToArray().Where(x => x.IsStatic == isStatic).ToArray();
+                    return memberDefinition.ToArray();
                 }
 
                 if (line is IOperation operation) {
-                    return operation.Operands.SelectMany(DeepMemberDefinitions).Where(x=>x.IsStatic == isStatic).ToArray();
+                    return operation.Operands.SelectMany(DeepMemberDefinitions).ToArray();
                 }
 
                 return new MemberDefinition[0];

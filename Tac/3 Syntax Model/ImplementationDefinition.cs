@@ -1,49 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ImplementationDefinition: IScoped<InstanceScope>, IReferanced, ITypeSource, ITypeDefinition<InstanceScope>
+    // really really not sure how these work atm
+    // for now they just hold everything you need to ake a method
+
+    public sealed class ImplementationDefinition: ITypeSource, ITypeDefinition<InstanceScope>
     {
-        public ImplementationDefinition(ITypeSource contextType, ITypeSource outputType, MemberDefinition parameterDefinition, AbstractBlockDefinition<InstanceScope> methodBodyDefinition, AbstractName key)
+        public ImplementationDefinition(MemberDefinition contextDefinition, ITypeSource outputType, MemberDefinition parameterDefinition, IEnumerable<ICodeElement> metohdBody, MethodScope scope, IEnumerable<ICodeElement> staticInitializers)
         {
-            ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
+            ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-            MethodBodyDefinition = methodBodyDefinition ?? throw new ArgumentNullException(nameof(methodBodyDefinition));
-            Key = key ?? throw new ArgumentNullException(nameof(key));
+            MethodBody = metohdBody ?? throw new ArgumentNullException(nameof(metohdBody));
+            MethodScope = scope ?? throw new ArgumentNullException(nameof(scope));
+            MethodScope.TryAddLocal(contextDefinition);
+            StaticInitialzers = staticInitializers ?? throw new ArgumentNullException(nameof(staticInitializers));
+
+            // for now there is no way to define something on the implmentation level
+            // I mean there is not way to define something inside an implementation
+            // one might be able to define something inside the instance body
+            // but it is hard to say what that would mean
+            // I am not allowing that for now anyway
+            Scope = new InstanceScope();
         }
 
         // dang! these could also be inline definitions 
-        public ITypeSource ContextType { get; }
+        public ITypeSource ContextType { get => ContextDefinition.Type; }
         public ITypeSource InputType { get => ParameterDefinition.Type; }
         public ITypeSource OutputType { get; }
+        public MemberDefinition ContextDefinition { get; }
         public MemberDefinition ParameterDefinition { get; }
-        public AbstractBlockDefinition<InstanceScope> MethodBodyDefinition { get; }
+        public MethodScope MethodScope { get; }
+        public IEnumerable<ICodeElement> MethodBody { get; }
+        public IEnumerable<ICodeElement> StaticInitialzers { get; }
 
-        public AbstractName Key { get; }
-
-        public InstanceScope Scope => ((IScoped<InstanceScope>)MethodBodyDefinition).Scope;
+        public InstanceScope Scope { get; }
 
         public override bool Equals(object obj)
         {
             return obj is ImplementationDefinition implementation &&
-                ContextType.Equals(implementation.ContextType) &&
+                ContextDefinition.Equals(implementation.ContextDefinition) &&
                 OutputType.Equals(implementation.OutputType) &&
                 ParameterDefinition.Equals(implementation.ParameterDefinition) &&
-                MethodBodyDefinition.Equals(implementation.MethodBodyDefinition);
+                MethodBody.SequenceEqual(implementation.MethodBody) &&
+                MethodScope.Equals(implementation.MethodScope) &&
+                StaticInitialzers.SequenceEqual(implementation.StaticInitialzers);
+
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return ContextType.GetHashCode() +
+                return ContextDefinition.GetHashCode() +
                     OutputType.GetHashCode() +
                     ParameterDefinition.GetHashCode() +
-                    MethodBodyDefinition.GetHashCode();
+                    MethodBody.GetHashCode() +
+                    MethodScope.GetHashCode() +
+                    StaticInitialzers.GetHashCode();
             }
         }
 

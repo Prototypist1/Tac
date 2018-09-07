@@ -26,14 +26,14 @@ namespace Tac.Semantic_Model
         public ITypeDefinition<IScope> ReturnType(ScopeStack scope)
         {
             return scope
-                .GetMember(Key)
+                .GetMemberOrDefault(Key)
                 .Type
                 .GetTypeDefinitionOrThrow(scope);
         }
 
         public MemberDefinition GetMemberDefinition(ScopeStack scopeStack)
         {
-            return scopeStack.GetMember(Key);
+            return scopeStack.GetMemberOrDefault(Key);
         }
     }
 

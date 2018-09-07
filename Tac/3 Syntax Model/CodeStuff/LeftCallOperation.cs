@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model.Operations
         {
             if (right is MemberReferance referance)
             {
-                var member = scope.GetMember(referance.Key);
+                var member = scope.GetMemberOrDefault(referance.Key);
 
                 return GetTypeDefinition(member.Type.GetTypeDefinitionOrThrow(scope));
             }

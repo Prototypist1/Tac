@@ -43,6 +43,7 @@ namespace Tac.Semantic_Model
         public static ITypeDefinition<IScope> StringType { get; } = Add(new TypeDefinition(new ExplicitName("String")));
         public static ITypeDefinition<IScope> NumberType { get; } = Add(new TypeDefinition(new ExplicitName("Number")));
         public static ITypeDefinition<IScope> EmptyType { get; } = Add(new TypeDefinition(new ExplicitName("Empty")));
+        public static ITypeDefinition<IScope> AnyType { get; } = Add(new TypeDefinition(new ExplicitName("Any")));
         public static ITypeDefinition<IScope> BooleanType { get; } = Add(new TypeDefinition(new ExplicitName("Bool")));
         public static ITypeDefinition<IScope> TypeType { get; } = Add(new TypeDefinition(new ExplicitName("Type")));
 
