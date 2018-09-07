@@ -9,8 +9,11 @@ namespace Tac.Semantic_Model.Names
 
     public class GenericExplicitName : ExplicitName
     {
-        public GenericExplicitName(string name) : base(name)
+        public GenericExplicitName(string name,params AbstractName[] types) : base(name)
         {
+            Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
+
+        public AbstractName[] Types { get; }
     }
 }

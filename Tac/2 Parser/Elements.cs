@@ -253,7 +253,9 @@ namespace Tac.Parser
                         new ExplicitName(parameterName?.Item ?? "input"),
                         new TypeReferance(inputType.Item)
                         ),
-                    elements);
+                    elements,
+                    methodScope,
+                    new ICodeElement[0]);
 
                 return true;
             }

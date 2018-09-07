@@ -24,7 +24,7 @@ namespace Tac.Semantic_Model
 
             // for now there is no way to define something on the implmentation level
             // I mean there is not way to define something inside an implementation
-            // one might be able to define something inside the instance body
+            // one might be able to define something inside the method body
             // but it is hard to say what that would mean
             // I am not allowing that for now anyway
             Scope = new InstanceScope();

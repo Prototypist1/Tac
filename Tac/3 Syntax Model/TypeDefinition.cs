@@ -44,5 +44,31 @@ namespace Tac.Semantic_Model
             return RootScope.TypeType;
         }
     }
+
+    public class GenericTypeDefinition : TypeDefinition {
+
+        public GenericTypeDefinition(AbstractName key,int typeCount): base(key)
+        {
+            TypeCount = typeCount;
+        }
+
+        public int TypeCount { get; }
+
+        public override bool Equals(object obj)
+        {
+            var definition = obj as GenericTypeDefinition;
+            return definition != null &&
+                   base.Equals(obj) &&
+                   TypeCount == definition.TypeCount;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 568399810;
+            hashCode = hashCode * -1521134295 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + TypeCount.GetHashCode();
+            return hashCode;
+        }
+    }
     
 }
