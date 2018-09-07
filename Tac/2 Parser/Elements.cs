@@ -126,11 +126,11 @@ namespace Tac.Parser
                 {
                     try
                     {
-                        matchingContext.EnclosingScope.GetMember(memberReferance.Key.names);
+                        matchingContext.EnclosingScope.GetMember(memberReferance.Key);
                     }
                     catch
                     {
-                        scope.TryAddLocalMember(new MemberDefinition(false, false, memberReferance.Key.names.Last(), new ExplicitTypeSource(left)));
+                        scope.TryAddLocalMember(new MemberDefinition(false, false, memberReferance.Key, new ExplicitTypeSource(left)));
                     }
                 }
                 
@@ -174,7 +174,7 @@ namespace Tac.Parser
                     }
                     else if (staticDefinition.right is MemberReferance memberReferance)
                     {
-                        scope.TryAddStaticMember(new MemberDefinition(false, true, memberReferance.Key.names.Last(), new ExplicitTypeSource(staticDefinition.left)));
+                        scope.TryAddStaticMember(new MemberDefinition(false, true, memberReferance.Key, new ExplicitTypeSource(staticDefinition.left)));
                     }
                     else
                     {
@@ -297,7 +297,7 @@ namespace Tac.Parser
                     }
                     else if (staticDefinition.right is MemberReferance referance)
                     {
-                        scope.TryAddStaticMember(new MemberDefinition(false, true, referance.Key.names.Last(),new ExplicitTypeSource(staticDefinition.left)));
+                        scope.TryAddStaticMember(new MemberDefinition(false, true, referance.Key,new ExplicitTypeSource(staticDefinition.left)));
                     }
                     else
                     {
