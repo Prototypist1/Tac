@@ -38,6 +38,7 @@ namespace Tac.Semantic_Model
             stack.Insert(0, newScope);
             Scopes = stack.ToArray();
         }
+
         public ScopeStack(IEnumerable<IScope> scopes) => Scopes = scopes?.ToArray() ?? throw new ArgumentNullException(nameof(scopes));
 
         public IScope[] Scopes { get; }
@@ -135,88 +136,87 @@ namespace Tac.Semantic_Model
 
         internal ITypeDefinition<IScope> GetType(object names) => throw new NotImplementedException();
 
-        public MemberDefinition GetMember(IEnumerable<AbstractName> names)
+        public MemberDefinition GetMember(AbstractName name)
         {
 
-            if (names.Count() > 1)
-            {
-                var (staticOnly, at) = GetStart();
+            //if (names.Count() > 1)
+            //{
+            //    var (staticOnly, at) = GetStart();
 
-                // the first is specail because it searches the stack
-                (bool, ITypeDefinition<IScope>) GetStart()
-                {
-                    var name = names.First();
-                    foreach (var scope in Scopes)
-                    {
-                        if (scope.TryGetType(name, out var typeDefinition))
-                        {
-                            return (true, typeDefinition);
-                        }
-                        if (scope.TryGetMember(name, false, out var memberDefinition))
-                        {
-                            if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-                            {
-                                return (false, memberType);
-                            }
-                            else
-                            {
-                                throw new Exception("");
-                            }
-                        }
-                    }
-                    throw new Exception("");
-                }
+            //    // the first is specail because it searches the stack
+            //    (bool, ITypeDefinition<IScope>) GetStart()
+            //    {
+            //        var name = names.First();
+            //        foreach (var scope in Scopes)
+            //        {
+            //            if (scope.TryGetType(name, out var typeDefinition))
+            //            {
+            //                return (true, typeDefinition);
+            //            }
+            //            if (scope.TryGetMember(name, false, out var memberDefinition))
+            //            {
+            //                if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
+            //                {
+            //                    return (false, memberType);
+            //                }
+            //                else
+            //                {
+            //                    throw new Exception("");
+            //                }
+            //            }
+            //        }
+            //        throw new Exception("");
+            //    }
 
-                foreach (var name in names.Skip(1).Take(names.Count() - 2))
-                {
-                    (staticOnly, at) = Continue();
+            //    foreach (var name in names.Skip(1).Take(names.Count() - 2))
+            //    {
+            //        (staticOnly, at) = Continue();
 
-                    // when we contune we only search the scope we are at
-                    (bool, ITypeDefinition<IScope>) Continue()
-                    {
-                        if (at.Scope.TryGetType(name, out var typeDefinition))
-                        {
-                            return (true, typeDefinition);
-                        }
-                        if (at.Scope.TryGetMember(name, staticOnly, out var memberDefinition))
-                        {
-                            if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-                            {
-                                return (false, memberType);
-                            }
-                            else
-                            {
-                                throw new Exception("");
-                            }
-                        }
-                        throw new Exception("");
-                    }
-                }
+            //        // when we contune we only search the scope we are at
+            //        (bool, ITypeDefinition<IScope>) Continue()
+            //        {
+            //            if (at.Scope.TryGetType(name, out var typeDefinition))
+            //            {
+            //                return (true, typeDefinition);
+            //            }
+            //            if (at.Scope.TryGetMember(name, staticOnly, out var memberDefinition))
+            //            {
+            //                if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
+            //                {
+            //                    return (false, memberType);
+            //                }
+            //                else
+            //                {
+            //                    throw new Exception("");
+            //                }
+            //            }
+            //            throw new Exception("");
+            //        }
+            //    }
 
-                return GetFinal();
+            //    return GetFinal();
 
-                // in the final entry we only look for members
-                MemberDefinition GetFinal()
-                {
-                    var name = names.Last();
+            //    // in the final entry we only look for members
+            //    MemberDefinition GetFinal()
+            //    {
+            //        var name = names.Last();
 
-                    if (at.Scope.TryGetMember(name, false, out var memberDefinition))
-                    {
-                        return memberDefinition;
-                    }
+            //        if (at.Scope.TryGetMember(name, false, out var memberDefinition))
+            //        {
+            //            return memberDefinition;
+            //        }
 
-                    throw new Exception("");
-                }
+            //        throw new Exception("");
+            //    }
 
-            }
-            else
-            {
+            //}
+            //else
+            //{
                 return SimpleLookUp();
 
                 // if ther is only one we search the whole stack
                 MemberDefinition SimpleLookUp()
                 {
-                    var name = names.First();
                     foreach (var scope in Scopes)
                     {
                         if (scope.TryGetMember(name, false, out var memberDefinition))
@@ -227,7 +227,7 @@ namespace Tac.Semantic_Model
                     throw new Exception("");
                 }
 
-            }
+            //}
         }
     }
 }

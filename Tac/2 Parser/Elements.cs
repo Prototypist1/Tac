@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac._2_Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
@@ -12,20 +13,18 @@ namespace Tac.Parser
 {
 
     public class ElementMatchingContext {
-        public IEnumerable<Elements.TryMatch> ElementMatchers { get; }
-    }
-
-    public class Elements
-    {
-        public Elements(List<TryMatch> elementBuilders) => ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
-
-        public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element);
-
-        public List<TryMatch> ElementBuilders { get; }
-
-        public static Lazy<Elements> StandardElements = new Lazy<Elements>(() =>
+        public ElementMatchingContext(ScopeStack enclosingScope, IEnumerable<TryMatch> elementMatchers)
         {
-            return new Elements(
+            EnclosingScope = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
+            ElementMatchers = elementMatchers ?? throw new ArgumentNullException(nameof(elementMatchers));
+        }
+
+        public ScopeStack EnclosingScope { get; }
+        
+        public IEnumerable<TryMatch> ElementMatchers { get; }
+
+        public static ElementMatchingContext StandMatchingContext(ScopeStack enclosingScope) =>
+             new ElementMatchingContext(enclosingScope, 
                 new List<TryMatch> {
                     MatchStaticMemberDefinition_Var,
                     MatchObjectDefinition,
@@ -35,8 +34,22 @@ namespace Tac.Parser
                     MatchConstantNumber,
                     MatchReferance
                 });
-        });
 
+
+        public static ElementMatchingContext StandMatchingContext() =>
+             new ElementMatchingContext(new ScopeStack(new IScope[] { }), 
+                new List<TryMatch> {
+                    MatchStaticMemberDefinition_Var,
+                    MatchObjectDefinition,
+                    MatchLocalDefinition_Var,
+                    MatchMethodDefinition,
+                    MatchBlockDefinition,
+                    MatchConstantNumber,
+                    MatchReferance
+                });
+
+        public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element);
+        
         public static bool MatchLocalDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
@@ -79,21 +92,7 @@ namespace Tac.Parser
             element = default;
             return false;
         }
-
-        // TODO
-        // TODO
-        // TODO
-        // TODO you are here!
-        // mathcing IS context dependant
-        // consider:
-        // 5 -> x;
-        // x is a MemberDefinition if this line is inside an object
-        // x is a MemberReferance if this line is inside a method
-        // x is a static MemberDefinition if this line is inside a module
-
-        // this means we need a parsing context
-        // the parsing context can provide more parsing contexts
-
+        
         public static bool MatchObjectDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
@@ -105,31 +104,38 @@ namespace Tac.Parser
                 var scope = new ObjectScope();
 
                 var elements = TokenParser.ParseBlock(block, matchingContext);
-
-                var localDefininitions = elements.OfType<AssignOperation>().ToArray();
-
-                if (elements.All(x => x is AssignOperation assignOperation).Not())
+                
+                if (elements.ExtractTopLevelAssignOperations(out var assignOperations).Any())
                 {
-                    throw new Exception("all lines in an object should be none static");
+                    throw new Exception("");
                 }
 
-                foreach (var loaclDefinition in localDefininitions)
-                {
-                    if (loaclDefinition.right is MemberDefinition memberDefinition)
-                    {
-                        scope.TryAddLocalMember(memberDefinition);
-                    }
-                    else if (loaclDefinition.right is MemberReferance memberReferance)
-                    {
-                        scope.TryAddLocalMember(new MemberDefinition(false, false, memberReferance.Key.names.Last(), new ExplicitTypeSource(loaclDefinition.left)));
-                    }
-                    else
-                    {
-                        throw new Exception(loaclDefinition.right + "is of unexpected type");
-                    }
+                if (assignOperations
+                    .ExtractMemberDefinitions(false, out var memberDefinitions)
+                    .ExtractMemberReferances(out var memberReferances)
+                    .Any()) {
+                    throw new Exception("");
                 }
 
-                element = new ObjectDefinition(scope, localDefininitions);
+                foreach (var memberDefinition in memberDefinitions)
+                {
+                    scope.TryAddLocalMember(memberDefinition);
+                }
+
+                foreach (var (left, memberReferance) in memberReferances)
+                {
+                    try
+                    {
+                        matchingContext.EnclosingScope.GetMember(memberReferance.Key.names);
+                    }
+                    catch
+                    {
+                        scope.TryAddLocalMember(new MemberDefinition(false, false, memberReferance.Key.names.Last(), new ExplicitTypeSource(left)));
+                    }
+                }
+                
+                element = new ObjectDefinition(scope, assignOperations);
+
                 return true;
             }
             element = default;
@@ -565,6 +571,5 @@ namespace Tac.Parser
         }
 
     }
-
-
+    
 }

@@ -10,19 +10,19 @@ namespace Tac.Semantic_Model
 {
     public sealed class MemberReferance : ICodeElement, IMemberSource{
 
-        public NamePath Key { get; }
+        public AbstractName Key { get; }
 
-        public MemberReferance(NamePath key) => this.Key = key ?? throw new ArgumentNullException(nameof(key));
+        public MemberReferance(AbstractName key) => this.Key = key ?? throw new ArgumentNullException(nameof(key));
 
-        public MemberReferance(string key) : this(new NamePath(new AbstractName[] { new ExplicitName(key) })) { }
+        public MemberReferance(string key) : this( new ExplicitName(key) ) { }
         
         public override bool Equals(object obj)
         {
             return obj is MemberReferance referance && referance != null &&
-                   EqualityComparer<NamePath>.Default.Equals(Key, referance.Key);
+                   EqualityComparer<AbstractName>.Default.Equals(Key, referance.Key);
         }
 
-        public override int GetHashCode() => 249886028 + EqualityComparer<NamePath>.Default.GetHashCode(Key);
+        public override int GetHashCode() => 249886028 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
         public ITypeDefinition<IScope> ReturnType(ScopeStack scope)
         {
             return scope
