@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model
             }
             return typeDefinition;
         }
-
+        
         public static ITypeDefinition<IScope> StringType { get; } = Add(new TypeDefinition(new ExplicitName("String")));
         public static ITypeDefinition<IScope> NumberType { get; } = Add(new TypeDefinition(new ExplicitName("Number")));
         public static ITypeDefinition<IScope> EmptyType { get; } = Add(new TypeDefinition(new ExplicitName("Empty")));

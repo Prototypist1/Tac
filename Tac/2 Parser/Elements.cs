@@ -29,6 +29,7 @@ namespace Tac.Parser
                     MatchObjectDefinition,
                     MatchLocalDefinition_Var,
                     MatchMethodDefinition,
+                    MatchImplementationDefinition,
                     MatchBlockDefinition,
                     MatchConstantNumber,
                     MatchReferance
@@ -217,6 +218,28 @@ namespace Tac.Parser
             return false;
         }
 
+        public static bool MatchTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element) {
+            if (ElementMatching.Start(elementToken)
+                .Has(ElementMatcher.KeyWord("type"), out var _)
+                .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
+                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
+                .IsMatch) {
+                
+            }
+        }
+
+        public static bool MatchGenericTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        {
+            if (ElementMatching.Start(elementToken)
+                .Has(ElementMatcher.KeyWord("type"), out var _)
+                .Has(ElementMatcher.GenericN, out AtomicToken contextType, out AtomicToken[] genericTypes)
+                .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
+                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
+                .IsMatch)
+            {
+
+            }
+        }
 
         public static bool MatchImplementationDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
@@ -519,6 +542,31 @@ namespace Tac.Parser
             type1 = default;
             type2 = default;
             type3 = default;
+            return ElementMatching.NotMatch(elementMatching.Tokens);
+        }
+
+        public static ElementMatching Generic3(ElementMatching elementMatching, out AtomicToken[] types)
+        {
+            if (elementMatching.Tokens.Any() &&
+                elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
+                    typeParameters.Tokens.Count() == 3 &&
+                    typeParameters.Tokens.ElementAt(0) is LineToken firstLine &&
+                        firstLine.Tokens.Count() == 1 &&
+                        firstLine.Tokens.ElementAt(0) is AtomicToken firstType &&
+                    typeParameters.Tokens.ElementAt(1) is LineToken secondLine &&
+                        secondLine.Tokens.Count() == 1 &&
+                        secondLine.Tokens.ElementAt(0) is AtomicToken SecondType &&
+                    typeParameters.Tokens.ElementAt(2) is LineToken thridLine &&
+                        thridLine.Tokens.Count() == 1 &&
+                        thridLine.Tokens.ElementAt(0) is AtomicToken thridType)
+            {
+                type1 = firstType;
+                type2 = SecondType;
+                type3 = thridType;
+                return ElementMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+            }
+
+            types = default;
             return ElementMatching.NotMatch(elementMatching.Tokens);
         }
 

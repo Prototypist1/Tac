@@ -52,24 +52,10 @@ namespace Tac.Semantic_Model
         private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<TypeDefinition>>> types
             = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<TypeDefinition>>>();
 
-        private readonly ConcurrentDictionary<ExplicitName, ConcurrentSet<Visiblity>> genericTypes = new ConcurrentDictionary<ExplicitName, ConcurrentSet<Visiblity>>();
-
-    
-        public override bool Equals(object obj)
-        {
-            return obj is Scope scope &&
-                   referanced.Count == scope.referanced.Count && !referanced.Except(scope.referanced).Any();
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = -1365954579;
-            hashCode = hashCode * -1521134295 + referanced.Sum(x=>x.GetHashCode());
-            return hashCode;
-        }
-
+        private readonly ConcurrentDictionary<ExplicitName, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<ExplicitName, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
+        
         public bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member) {
-            if (referanced.TryGetValue(name, out var items)) {
+            if (members.TryGetValue(name, out var items)) {
                 var thing = items.Single();
                 if (thing.DefintionLifeTime == DefintionLifetime.Static && thing.Definition is MemberDefinition memberDefinition)
                 {
@@ -87,10 +73,20 @@ namespace Tac.Semantic_Model
 
         public bool TryGetType(AbstractName name, out TypeDefinition type)
         {
-            if (name is GenericExplicitName genericExplicitName && genericReferanced.TryGetValue(genericExplicitName, out var genericItems)) {
-                
+            if (name is GenericExplicitName genericExplicitName && genericTypes.TryGetValue(genericExplicitName, out var genericItems)) {
+
+                var thing = genericItems.Single();
+                if (thing.Definition is TypeDefinition typeDefinition)
+                {
+                    type = typeDefinition;
+                    return true;
+                }
+                else
+                {
+                    throw new Exception($"{thing.Definition} should be a {typeof(IScoped<IScope>)} instead it is {thing.Definition.GetType()}");
+                }
             }
-            else if (referanced.TryGetValue(name, out var items))
+            else if (types.TryGetValue(name, out var items))
             {
                 var thing = items.Single();
                 if (thing.Definition is TypeDefinition typeDefinition)

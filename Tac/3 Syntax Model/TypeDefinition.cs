@@ -13,6 +13,8 @@ namespace Tac.Semantic_Model
 
     }
     
+
+    // TODO WTF how do these not have some sort of list of members??!!
     public class TypeDefinition: IReferanced,  ITypeDefinition<ObjectScope>
     {
         public TypeDefinition(AbstractName key)
@@ -45,13 +47,21 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class GenericTypeDefinition : TypeDefinition {
 
-        public GenericTypeDefinition(AbstractName key,int typeCount): base(key)
+    // this is not really a type at all
+    // it is a factory for making types
+
+    // how are generic supposed to work with this?
+    // The members could clearly be dependant on a generic type
+    public class GenericTypeDefinition  {
+
+        public GenericTypeDefinition(GenericExplicitName key,int typeCount)
         {
+            Key = key ?? throw new ArgumentNullException(nameof(key));
             TypeCount = typeCount;
         }
 
+        public AbstractName Key { get; }
         public int TypeCount { get; }
 
         public override bool Equals(object obj)
@@ -60,6 +70,10 @@ namespace Tac.Semantic_Model
             return definition != null &&
                    base.Equals(obj) &&
                    TypeCount == definition.TypeCount;
+        }
+
+        public bool  TryGetTypeDefinition(out TypeDefinition typeDefinition, params TypeDefinition[] parameters) {
+
         }
 
         public override int GetHashCode()
