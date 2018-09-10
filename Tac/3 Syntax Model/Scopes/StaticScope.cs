@@ -17,6 +17,11 @@ namespace Tac.Semantic_Model
         {
             return TryAdd(DefintionLifetime.Static, definition);
         }
+
+        public bool TryAddStaticGenericType(GenericTypeDefinition definition)
+        {
+            return TryAddGeneric(DefintionLifetime.Static, definition);
+        }
     }
     
 }

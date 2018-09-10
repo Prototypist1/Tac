@@ -257,7 +257,7 @@ namespace Tac.Parser
 
                 foreach (var memberRef in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2.Key,new ExplicitTypeSource(RootScope.AnyType)));
+                    scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2.Key,new NameTypeSource(RootScope.AnyType)));
                 }
 
                 element = new TypeDefinition(name, scope);
@@ -300,7 +300,7 @@ namespace Tac.Parser
                 
                 foreach (var memberRef in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2.Key, new ExplicitTypeSource(RootScope.AnyType)));
+                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2.Key, new NameTypeSource(RootScope.AnyType)));
                 }
 
                 var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(new ExplicitName(x.Item))).ToArray();

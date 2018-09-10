@@ -44,7 +44,13 @@ namespace Tac.Semantic_Model
             var visiblity = new Visiblity<TypeDefinition>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
-
+        
+        protected bool TryAddGeneric(DefintionLifetime defintionLifetime, GenericTypeDefinition definition)
+        {
+            var list = genericTypes.GetOrAdd(definition.Key, new ConcurrentSet<Visiblity<GenericTypeDefinition>>());
+            var visiblity = new Visiblity<GenericTypeDefinition>(defintionLifetime, definition);
+            return list.TryAdd(visiblity);
+        }
 
         private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<MemberDefinition>>> members
             = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<MemberDefinition>>>();
@@ -71,7 +77,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetGenericType(AbstractName name, IEnumerable<TypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
+        public bool TryGetGenericType(AbstractName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
         {
             if (!genericTypes.TryGetValue(name, out var genericItems))
             {
@@ -99,9 +105,8 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetType(AbstractName name, out TypeDefinition type)
+        public bool TryGetType(AbstractName name, out ITypeDefinition type)
         {
-
             if (!types.TryGetValue(name, out var items))
             {
                 type = default;

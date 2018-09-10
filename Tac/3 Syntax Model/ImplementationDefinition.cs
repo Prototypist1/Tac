@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model
                 InputType.TryGetTypeDefinition(scope, out var input) &&
                 OutputType.TryGetTypeDefinition(scope, out var output))
             {
-                return RootScope.ImplementationType(context, input, output);
+                return  scope.GetGenericType(RootScope.ImplementationType,new[] { context, input, output });
             }
             throw new Exception("could not find ");
         }
@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model
         // I expect I will get rid of all my tires
         // when I try tacking errors
         public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition) {
-            typeDefinition = RootScope.ImplementationType(ContextType.GetTypeDefinitionOrThrow(scope), InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope));
+            typeDefinition = scope.GetGenericType(RootScope.ImplementationType, new[] { ContextType.GetTypeDefinitionOrThrow(scope), InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope) });
             return true;
         }
     }

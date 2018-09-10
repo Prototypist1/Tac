@@ -20,6 +20,23 @@ namespace Tac.Semantic_Model
         }
     }
 
+    public sealed class NameTypeSource : ITypeSource
+    {
+        public NameTypeSource(AbstractName name) {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+        }
+
+        public AbstractName Name { get; }
+
+        // try is a little woerd here
+        // not really the right api design
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition)
+        {
+            typeDefinition= scope.GetType(Name);
+            return true;
+        }
+    }
+    
     public sealed class ConstantTypeSource : ITypeSource
     {
         public ConstantTypeSource(ITypeDefinition typeDefinition) => TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));

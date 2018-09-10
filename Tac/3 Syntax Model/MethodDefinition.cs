@@ -46,12 +46,12 @@ namespace Tac.Semantic_Model
                 throw new Exception($"could not find a type assocated with {OutputType}");
             }
             
-            return RootScope.MethodType(input, output);
+            return scope.GetGenericType(RootScope.MethodType, new ITypeDefinition[] { input, output });
         }
 
         public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition)
         {
-            typeDefinition = RootScope.MethodType(InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope));
+            typeDefinition = scope.GetGenericType(RootScope.MethodType, new ITypeDefinition[] { InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope) });
             return true;
         }
     }

@@ -40,10 +40,8 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(Scope);
             return hashCode;
         }
-        
-        public ITypeDefinition ReturnType(ScopeStack scope) {
-            return RootScope.TypeType;
-        }
+
+        public ITypeDefinition ReturnType(ScopeStack scope) => scope.GetType(RootScope.TypeType);
     }
 
     public class GenericTypeDefinition : ICodeElement
@@ -71,7 +69,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType;
+        public ITypeDefinition ReturnType(ScopeStack scope) => scope.GetType(RootScope.TypeType);
     }
 
     public class GenericTypeParameterDefinition
@@ -80,20 +78,20 @@ namespace Tac.Semantic_Model
 
         public AbstractName Name { get; }
 
-        internal bool Accepts(TypeDefinition b) {
+        internal bool Accepts(ITypeDefinition b) {
             // TODO generic constraints
             return true;
         }
     }
 
     public class GenericTypeParameter {
-        public GenericTypeParameter(TypeDefinition typeDefinition , GenericTypeParameterDefinition definition)
+        public GenericTypeParameter(ITypeDefinition typeDefinition , GenericTypeParameterDefinition definition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        public TypeDefinition TypeDefinition { get; }
+        public ITypeDefinition TypeDefinition { get; }
         public GenericTypeParameterDefinition Definition { get; }
     }
     

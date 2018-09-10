@@ -10,6 +10,6 @@ namespace Tac.Semantic_Model
         
         public override bool Equals(object obj) => obj is BlockDefinition && base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(ScopeStack scope) => RootScope.EmptyType;
+        public override ITypeDefinition ReturnType(ScopeStack scope) => scope.GetType(RootScope.EmptyType);
     }
 }
