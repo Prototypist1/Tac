@@ -5,13 +5,12 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model
 {
-    public class MethodDefinition: AbstractBlockDefinition<MethodScope>, ITypeSource, ITypeDefinition<MethodScope>
+    public class MethodDefinition: AbstractBlockDefinition, ITypeSource, ITypeDefinition
     {
         public MethodDefinition(ITypeSource outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-            scope.TryAddParameter(parameterDefinition);
         }
 
         public ITypeSource InputType { get => ParameterDefinition.Type; }
@@ -37,7 +36,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public override ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
+        public override ITypeDefinition ReturnType(ScopeStack scope) {
             if (!InputType.TryGetTypeDefinition(scope, out var input)) {
                 throw new Exception($"could not find a type assocated with {InputType}");
             }
@@ -50,7 +49,7 @@ namespace Tac.Semantic_Model
             return RootScope.MethodType(input, output);
         }
 
-        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition)
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition)
         {
             typeDefinition = RootScope.MethodType(InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope));
             return true;

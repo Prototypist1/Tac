@@ -199,14 +199,19 @@ namespace Tac.Parser
                 {
                     methodScope.TryAddLocal(definition);
                 }
-                
-                element = new MethodDefinition(
-                    new TypeReferance(outputType.Item),
-                    new MemberDefinition(
+
+                var parameterDefinition = new MemberDefinition(
                         false,
                         new ExplicitName(parameterName?.Item ?? "input"),
                         new TypeReferance(inputType.Item)
-                        ),
+                        );
+
+
+                methodScope.TryAddParameter(parameterDefinition);
+
+                element = new MethodDefinition(
+                    new TypeReferance(outputType.Item),
+                    parameterDefinition,
                     elements,
                     methodScope,
                     new ICodeElement[0]);
@@ -224,21 +229,88 @@ namespace Tac.Parser
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch) {
+
+                AbstractName name;
+                if (typeName == default)
+                {
+                    name = new AnonymousName();
+                }
+                else {
+                    name = new ExplicitName(typeName.Item);
+                }
+
+                var scope = new ObjectScope();
                 
+                var elements = TokenParser.ParseBlock(body, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope, scope)));
+
+                if (elements
+                    .ExtractMemberDefinitions(out var memberDefinitions)
+                    .ExtractMemberReferances(out var memberReferances)
+                    .Any().Not()) {
+                    throw new Exception("Types should only contain member definitions and member referances");
+                }
+                
+                foreach (var memberDef in memberDefinitions)
+                {
+                    scope.TryAddLocalMember(memberDef);
+                }
+
+                foreach (var memberRef in memberReferances)
+                {
+                    scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2.Key,new ExplicitTypeSource(RootScope.AnyType)));
+                }
+
+                element = new TypeDefinition(name, scope);
+                return true;
             }
+
+            element = default;
+            return false;
         }
 
         public static bool MatchGenericTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
-                .Has(ElementMatcher.GenericN, out AtomicToken contextType, out AtomicToken[] genericTypes)
-                .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
+                .Has(ElementMatcher.GenericN, out AtomicToken[] genericTypes)
+                .Has(ElementMatcher.IsName, out AtomicToken typeName)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch)
             {
 
+                var name = new ExplicitName(typeName.Item);
+                
+                var scope = new ObjectScope();
+
+                var elements = TokenParser.ParseBlock(body, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope, scope)));
+                
+                if (elements
+                    .ExtractMemberDefinitions(out var memberDefinitions)
+                    .ExtractMemberReferances(out var memberReferances)
+                    .Any()
+                    .Not())
+                {
+                    throw new Exception("Types should only contain member definitions and member referances");
+                }
+                
+                foreach (var memberDef in memberDefinitions)
+                {
+                    scope.TryAddLocalMember(memberDef);
+                }
+                
+                foreach (var memberRef in memberReferances)
+                {
+                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2.Key, new ExplicitTypeSource(RootScope.AnyType)));
+                }
+
+                var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(new ExplicitName(x.Item))).ToArray();
+                
+                element = new GenericTypeDefinition(name, scope, genericParameters);
+                return true;
             }
+            
+            element = default;
+            return false;
         }
 
         public static bool MatchImplementationDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
@@ -263,19 +335,28 @@ namespace Tac.Parser
                 {
                     methodScope.TryAddLocal(definition);
                 }
-
-                element = new ImplementationDefinition(
-                    new MemberDefinition(
+                
+                var contextDefinition = new MemberDefinition(
                         false,
                         new ExplicitName(parameterName?.Item ?? "context"),
                         new TypeReferance(contextType.Item)
-                        ),
-                    new TypeReferance(outputType.Item),
-                    new MemberDefinition(
+                        );
+
+                methodScope.TryAddParameter(contextDefinition);
+
+                var parameterDefinition = new MemberDefinition(
                         false,
                         new ExplicitName(parameterName?.Item ?? "input"),
                         new TypeReferance(inputType.Item)
-                        ),
+                        );
+
+
+                methodScope.TryAddParameter(parameterDefinition);
+
+                element = new ImplementationDefinition(
+                    contextDefinition,
+                    new TypeReferance(outputType.Item),
+                    parameterDefinition,
                     elements,
                     methodScope,
                     new ICodeElement[0]);
@@ -286,8 +367,7 @@ namespace Tac.Parser
             element = default;
             return false;
         }
-
-
+        
         public static bool MatchBlockDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
@@ -545,24 +625,15 @@ namespace Tac.Parser
             return ElementMatching.NotMatch(elementMatching.Tokens);
         }
 
-        public static ElementMatching Generic3(ElementMatching elementMatching, out AtomicToken[] types)
+        public static ElementMatching GenericN(ElementMatching elementMatching, out AtomicToken[] types)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
-                    typeParameters.Tokens.Count() == 3 &&
-                    typeParameters.Tokens.ElementAt(0) is LineToken firstLine &&
+                    typeParameters.Tokens.All(x => x is LineToken firstLine &&
                         firstLine.Tokens.Count() == 1 &&
-                        firstLine.Tokens.ElementAt(0) is AtomicToken firstType &&
-                    typeParameters.Tokens.ElementAt(1) is LineToken secondLine &&
-                        secondLine.Tokens.Count() == 1 &&
-                        secondLine.Tokens.ElementAt(0) is AtomicToken SecondType &&
-                    typeParameters.Tokens.ElementAt(2) is LineToken thridLine &&
-                        thridLine.Tokens.Count() == 1 &&
-                        thridLine.Tokens.ElementAt(0) is AtomicToken thridType)
+                        firstLine.Tokens.ElementAt(0) is AtomicToken))
             {
-                type1 = firstType;
-                type2 = SecondType;
-                type3 = thridType;
+                types = typeParameters.Tokens.Select(x => (x as LineToken).Tokens.First() as AtomicToken).ToArray();
                 return ElementMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
             }
 

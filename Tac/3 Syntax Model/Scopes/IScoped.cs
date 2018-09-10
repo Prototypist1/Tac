@@ -6,15 +6,15 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface IScoped<out TScope> where TScope : IScope
+    public interface IScoped
     {
-        TScope Scope { get; }
+        IScope Scope { get; }
     }
 
     public static class ScopedExtensions
     {
 
-        public static ScopeStack GrowScopeStack(this IScoped<IScope> scope, ScopeStack stack)
+        public static ScopeStack GrowScopeStack(this IScoped scope, ScopeStack stack)
         {
             return new ScopeStack(stack, scope.Scope);
         }
@@ -49,84 +49,84 @@ namespace Tac.Semantic_Model
 
         public IScope[] Scopes { get; }
 
-        public ITypeDefinition<IScope> GetType(IEnumerable<AbstractName> names)
+        public ITypeDefinition GetType(IEnumerable<AbstractName> names)
         {
 
-            if (names.Count() > 1)
-            {
+            //if (names.Count() > 1)
+            //{
 
-                var (staticOnly, at) = GetStart();
+            //    var (staticOnly, at) = GetStart();
 
 
-                (bool, IScope) GetStart()
-                {
-                    var name = names.First();
-                    foreach (var scope in Scopes)
-                    {
-                        if (scope.TryGetType(name, out var typeDefinition))
-                        {
-                            return (true, typeDefinition.Scope);
-                        }
-                        if (scope.TryGetMember(name, false, out var memberDefinition))
-                        {
-                            if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-                            {
-                                return (false, memberType.Scope);
-                            }
-                            else
-                            {
-                                throw new Exception("");
-                            }
-                        }
-                    }
-                    throw new Exception("");
-                }
+            //    (bool, IScope) GetStart()
+            //    {
+            //        var name = names.First();
+            //        foreach (var scope in Scopes)
+            //        {
+            //            if (scope.TryGetType(name, out var typeDefinition))
+            //            {
+            //                return (true, typeDefinition.Scope);
+            //            }
+            //            if (scope.TryGetMember(name, false, out var memberDefinition))
+            //            {
+            //                if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
+            //                {
+            //                    return (false, memberType.Scope);
+            //                }
+            //                else
+            //                {
+            //                    throw new Exception("");
+            //                }
+            //            }
+            //        }
+            //        throw new Exception("");
+            //    }
 
-                foreach (var name in names.Skip(1).Take(names.Count() - 2))
-                {
+            //    foreach (var name in names.Skip(1).Take(names.Count() - 2))
+            //    {
 
-                    (staticOnly, at) = Continue();
+            //        (staticOnly, at) = Continue();
 
-                    (bool, IScope) Continue()
-                    {
-                        if (at.TryGetType(name, out var typeDefinition))
-                        {
-                            return (true, typeDefinition.Scope);
-                        }
-                        if (at.TryGetMember(name, staticOnly, out var memberDefinition))
-                        {
-                            if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-                            {
-                                return (false, memberType.Scope);
-                            }
-                            else
-                            {
-                                throw new Exception("");
-                            }
-                        }
-                        throw new Exception("");
-                    }
-                }
+            //        (bool, IScope) Continue()
+            //        {
+            //            if (at.TryGetType(name, out var typeDefinition))
+            //            {
+            //                return (true, typeDefinition.Scope);
+            //            }
+            //            if (at.TryGetMember(name, staticOnly, out var memberDefinition))
+            //            {
+            //                if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
+            //                {
+            //                    return (false, memberType.Scope);
+            //                }
+            //                else
+            //                {
+            //                    throw new Exception("");
+            //                }
+            //            }
+            //            throw new Exception("");
+            //        }
+            //    }
 
-                return Finsh();
+            //    return Finsh();
 
-                // finally we make sure we get a type
-                ITypeDefinition<IScope> Finsh()
-                {
-                    if (at.TryGetType(names.Last(), out var typeDefinition))
-                    {
-                        return typeDefinition;
-                    }
-                    throw new Exception("");
-                }
+            //    // finally we make sure we get a type
+            //    ITypeDefinition<IScope> Finsh()
+            //    {
+            //        if (at.TryGetType(names.Last(), out var typeDefinition))
+            //        {
+            //            return typeDefinition;
+            //        }
+            //        throw new Exception("");
+            //    }
 
-            }
-            else
-            {
+            //}
+            //else
+            //{
                 return SimpleLookUp();
 
                 // in the simple case we just search for up the stack for types
-                ITypeDefinition<IScope> SimpleLookUp()
+                ITypeDefinition SimpleLookUp()
                 {
                     foreach (var scope in Scopes)
                     {
@@ -137,11 +137,9 @@ namespace Tac.Semantic_Model
                     }
                     throw new Exception("");
                 }
-            }
+            //}
         }
-
-        internal ITypeDefinition<IScope> GetType(object names) => throw new NotImplementedException();
-
+        
         public MemberDefinition GetMemberOrDefault(AbstractName name)
         {
             return SimpleLookUp();

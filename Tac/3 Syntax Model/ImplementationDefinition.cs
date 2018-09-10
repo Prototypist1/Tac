@@ -10,24 +10,16 @@ namespace Tac.Semantic_Model
     // really really not sure how these work atm
     // for now they just hold everything you need to ake a method
 
-    public sealed class ImplementationDefinition: ITypeSource, ITypeDefinition<InstanceScope>
+    public sealed class ImplementationDefinition: ITypeSource, ITypeDefinition
     {
-        public ImplementationDefinition(MemberDefinition contextDefinition, ITypeSource outputType, MemberDefinition parameterDefinition, IEnumerable<ICodeElement> metohdBody, MethodScope scope, IEnumerable<ICodeElement> staticInitializers)
+        public ImplementationDefinition(MemberDefinition contextDefinition, ITypeSource outputType, MemberDefinition parameterDefinition, IEnumerable<ICodeElement> metohdBody, IScope scope, IEnumerable<ICodeElement> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             MethodBody = metohdBody ?? throw new ArgumentNullException(nameof(metohdBody));
-            MethodScope = scope ?? throw new ArgumentNullException(nameof(scope));
-            MethodScope.TryAddLocal(contextDefinition);
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialzers = staticInitializers ?? throw new ArgumentNullException(nameof(staticInitializers));
-
-            // for now there is no way to define something on the implmentation level
-            // I mean there is not way to define something inside an implementation
-            // one might be able to define something inside the method body
-            // but it is hard to say what that would mean
-            // I am not allowing that for now anyway
-            Scope = new InstanceScope();
         }
 
         // dang! these could also be inline definitions 
@@ -36,11 +28,10 @@ namespace Tac.Semantic_Model
         public ITypeSource OutputType { get; }
         public MemberDefinition ContextDefinition { get; }
         public MemberDefinition ParameterDefinition { get; }
-        public MethodScope MethodScope { get; }
+        public IScope Scope { get; }
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
-
-        public InstanceScope Scope { get; }
+        
 
         public override bool Equals(object obj)
         {
@@ -49,7 +40,7 @@ namespace Tac.Semantic_Model
                 OutputType.Equals(implementation.OutputType) &&
                 ParameterDefinition.Equals(implementation.ParameterDefinition) &&
                 MethodBody.SequenceEqual(implementation.MethodBody) &&
-                MethodScope.Equals(implementation.MethodScope) &&
+                Scope.Equals(implementation.Scope) &&
                 StaticInitialzers.SequenceEqual(implementation.StaticInitialzers);
 
         }
@@ -62,12 +53,12 @@ namespace Tac.Semantic_Model
                     OutputType.GetHashCode() +
                     ParameterDefinition.GetHashCode() +
                     MethodBody.GetHashCode() +
-                    MethodScope.GetHashCode() +
+                    Scope.GetHashCode() +
                     StaticInitialzers.GetHashCode();
             }
         }
 
-        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
+        public ITypeDefinition ReturnType(ScopeStack scope) {
             if (ContextType.TryGetTypeDefinition(scope, out var context) &&
                 InputType.TryGetTypeDefinition(scope, out var input) &&
                 OutputType.TryGetTypeDefinition(scope, out var output))
@@ -82,7 +73,7 @@ namespace Tac.Semantic_Model
         // it is just going to throw
         // I expect I will get rid of all my tires
         // when I try tacking errors
-        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition) {
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition) {
             typeDefinition = RootScope.ImplementationType(ContextType.GetTypeDefinitionOrThrow(scope), InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope));
             return true;
         }

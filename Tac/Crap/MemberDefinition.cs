@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
 
         private ICodeElement CodeElement { get; }
 
-        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition) {
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition) {
             typeDefinition = CodeElement.ReturnType(scope);
             return true;
         }
@@ -22,11 +22,11 @@ namespace Tac.Semantic_Model
 
     public sealed class ConstantTypeSource : ITypeSource
     {
-        public ConstantTypeSource(ITypeDefinition<IScope> typeDefinition) => TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
+        public ConstantTypeSource(ITypeDefinition typeDefinition) => TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
 
-        private ITypeDefinition<IScope> TypeDefinition { get; }
+        private ITypeDefinition TypeDefinition { get; }
 
-        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition<IScope> typeDefinition)
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition)
         {
             typeDefinition = TypeDefinition;
             return true;
@@ -38,7 +38,7 @@ namespace Tac.Semantic_Model
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
 
-    public sealed class MemberDefinition: IReferanced, ICodeElement, IMemberSource
+    public sealed class MemberDefinition: ICodeElement, IMemberSource
     {
         public MemberDefinition(bool readOnly, AbstractName key, ITypeSource type)
         {
@@ -68,7 +68,7 @@ namespace Tac.Semantic_Model
             return hashCode;
         }
 
-        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
+        public ITypeDefinition ReturnType(ScopeStack scope) {
             if (!Type.TryGetTypeDefinition(scope, out var res)) {
                 throw new Exception("Type not found");
             }

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
@@ -7,82 +9,92 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public interface ITypeDefinition<out TScope>: ICodeElement, IScoped<TScope>
-        where TScope: IScope
+    public interface ITypeDefinition: ICodeElement, IScoped
     {
 
     }
     
-
-    // TODO WTF how do these not have some sort of list of members??!!
-    public class TypeDefinition: IReferanced,  ITypeDefinition<ObjectScope>
+    public class TypeDefinition: ITypeDefinition
     {
-        public TypeDefinition(AbstractName key)
+        public TypeDefinition(AbstractName key, IScope scope)
         {
-            Scope = new ObjectScope();
+            Scope = scope;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public AbstractName Key { get; }
 
-        public ObjectScope Scope { get; }
+        public IScope Scope { get; }
 
         public override bool Equals(object obj)
         {
             return obj is TypeDefinition definition && definition != null &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key) &&
-                   EqualityComparer<ObjectScope>.Default.Equals(Scope, definition.Scope);
+                   EqualityComparer<IScope>.Default.Equals(Scope, definition.Scope);
         }
 
         public override int GetHashCode()
         {
             var hashCode = -1628597129;
             hashCode = hashCode * -1521134295 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
-            hashCode = hashCode * -1521134295 + EqualityComparer<ObjectScope>.Default.GetHashCode(Scope);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(Scope);
             return hashCode;
         }
         
-        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
+        public ITypeDefinition ReturnType(ScopeStack scope) {
             return RootScope.TypeType;
         }
     }
 
-
-    // this is not really a type at all
-    // it is a factory for making types
-
-    // how are generic supposed to work with this?
-    // The members could clearly be dependant on a generic type
-    public class GenericTypeDefinition  {
-
-        public GenericTypeDefinition(GenericExplicitName key,int typeCount)
+    public class GenericTypeDefinition : ICodeElement
+    {
+        public GenericTypeDefinition(AbstractName key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
-            TypeCount = typeCount;
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
         }
 
         public AbstractName Key { get; }
-        public int TypeCount { get; }
 
-        public override bool Equals(object obj)
+        public ObjectScope Scope { get; }
+
+        public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+
+        public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out TypeDefinition result) {
+            if (genericTypeParameters.Select(x => x.Definition).SetEqual(TypeParameterDefinitions).Not()) {
+                result = default;
+                return false;
+            }
+
+            result = new TypeDefinition(Key, new GenericScope(Scope, genericTypeParameters));
+            return true;
+        }
+
+        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType;
+    }
+
+    public class GenericTypeParameterDefinition
+    {
+        public GenericTypeParameterDefinition(AbstractName name) => Name = name ?? throw new ArgumentNullException(nameof(name));
+
+        public AbstractName Name { get; }
+
+        internal bool Accepts(TypeDefinition b) {
+            // TODO generic constraints
+            return true;
+        }
+    }
+
+    public class GenericTypeParameter {
+        public GenericTypeParameter(TypeDefinition typeDefinition , GenericTypeParameterDefinition definition)
         {
-            var definition = obj as GenericTypeDefinition;
-            return definition != null &&
-                   base.Equals(obj) &&
-                   TypeCount == definition.TypeCount;
+            TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        public bool  TryGetTypeDefinition(out TypeDefinition typeDefinition, params TypeDefinition[] parameters) {
-
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = 568399810;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + TypeCount.GetHashCode();
-            return hashCode;
-        }
+        public TypeDefinition TypeDefinition { get; }
+        public GenericTypeParameterDefinition Definition { get; }
     }
     
 }

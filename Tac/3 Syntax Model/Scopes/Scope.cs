@@ -52,58 +52,75 @@ namespace Tac.Semantic_Model
         private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<TypeDefinition>>> types
             = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<TypeDefinition>>>();
 
-        private readonly ConcurrentDictionary<ExplicitName, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<ExplicitName, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
+        private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
         
         public bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member) {
-            if (members.TryGetValue(name, out var items)) {
-                var thing = items.Single();
-                if (thing.DefintionLifeTime == DefintionLifetime.Static && thing.Definition is MemberDefinition memberDefinition)
-                {
-                    member = memberDefinition;
-                    return true;
-                }
-                else
-                {
-                    throw new Exception($"{thing.Definition} should be a {typeof(IScoped<IScope>)} instead it is {thing.Definition.GetType()}");
-                }
+            if (!members.TryGetValue(name, out var items)) {
+                member = default;
+                return false;
             }
-            member = default;
-            return false;
+
+            var thing = items.SingleOrDefault();
+
+            if (thing == default) {
+                member = default;
+                return false;
+            }
+
+            member = thing.Definition;
+            return true;
+        }
+
+        public bool TryGetGenericType(AbstractName name, IEnumerable<TypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
+        {
+            if (!genericTypes.TryGetValue(name, out var genericItems))
+            {
+                typeDefinition = default;
+                return false;
+            }
+
+            var thing = genericItems.SingleOrDefault(x => x.Definition.TypeParameterDefinitions.Zip(genericTypeParameters, (a, b) => {
+                return a.Accepts(b);
+            }).All(a => a));
+
+            if (thing == default)
+            {
+                typeDefinition = default;
+                return false;
+            }
+
+            if (!thing.Definition.TryCreateConcrete(thing.Definition.TypeParameterDefinitions.Zip(genericTypeParameters, (a, b) => new GenericTypeParameter(b, a)), out var yay)){
+
+                typeDefinition = default;
+                return false;
+            }
+
+            typeDefinition = yay;
+            return true;
         }
 
         public bool TryGetType(AbstractName name, out TypeDefinition type)
         {
-            if (name is GenericExplicitName genericExplicitName && genericTypes.TryGetValue(genericExplicitName, out var genericItems)) {
 
-                var thing = genericItems.Single();
-                if (thing.Definition is TypeDefinition typeDefinition)
-                {
-                    type = typeDefinition;
-                    return true;
-                }
-                else
-                {
-                    throw new Exception($"{thing.Definition} should be a {typeof(IScoped<IScope>)} instead it is {thing.Definition.GetType()}");
-                }
-            }
-            else if (types.TryGetValue(name, out var items))
+            if (!types.TryGetValue(name, out var items))
             {
-                var thing = items.Single();
-                if (thing.Definition is TypeDefinition typeDefinition)
-                {
-                    type = typeDefinition;
-                    return true;
-                }
-                else
-                {
-                    throw new Exception($"{thing.Definition} should be a {typeof(IScoped<IScope>)} instead it is {thing.Definition.GetType()}");
-                }
+                type = default;
+                return false;
             }
-            type = default;
+
+            var thing = items.SingleOrDefault();
+
+            if (thing == default)
+            {
+                type = default;
+                return false;
+            }
+
+            type = thing.Definition;
             return false;
         }
 
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition<IScope>> item)
+        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item)
         {
             item = default;
             return false;

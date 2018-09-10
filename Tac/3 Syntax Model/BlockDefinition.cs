@@ -4,12 +4,12 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    public  class BlockDefinition: AbstractBlockDefinition<LocalStaticScope> 
+    public  class BlockDefinition: AbstractBlockDefinition 
     {
-        public BlockDefinition(ICodeElement[] body, LocalStaticScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(scope ?? throw new System.ArgumentNullException(nameof(scope)), body, staticInitailizers) { }
+        public BlockDefinition(ICodeElement[] body, IScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(scope ?? throw new System.ArgumentNullException(nameof(scope)), body, staticInitailizers) { }
         
         public override bool Equals(object obj) => obj is BlockDefinition && base.Equals(obj);
         public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition<IScope> ReturnType(ScopeStack scope) => throw new System.NotImplementedException();
+        public override ITypeDefinition ReturnType(ScopeStack scope) => RootScope.EmptyType;
     }
 }

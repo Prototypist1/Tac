@@ -6,9 +6,9 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ModuleDefinition : IReferanced, IScoped<StaticScope>, ICodeElement 
+    public sealed class ModuleDefinition : IScoped, ICodeElement 
     {
-        public ModuleDefinition(AbstractName key, StaticScope scope, IEnumerable<ICodeElement> staticInitialization)
+        public ModuleDefinition(AbstractName key, IScope scope, IEnumerable<ICodeElement> staticInitialization)
         {
             if (scope == null)
             {
@@ -21,23 +21,23 @@ namespace Tac.Semantic_Model
 
         public AbstractName Key { get; }
 
-        public StaticScope Scope { get; }
+        public IScope Scope { get; }
         
         public override bool Equals(object obj)
         {
             return obj is ModuleDefinition definition && definition != null &&
                    EqualityComparer<AbstractName>.Default.Equals(Key, definition.Key) &&
-                   EqualityComparer<StaticScope>.Default.Equals(Scope, definition.Scope);
+                   EqualityComparer<IScope>.Default.Equals(Scope, definition.Scope);
         }
 
         public override int GetHashCode()
         {
             var hashCode = -1628597129;
             hashCode = hashCode * -1521134295 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
-            hashCode = hashCode * -1521134295 + EqualityComparer<StaticScope>.Default.GetHashCode(Scope);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(Scope);
             return hashCode;
         }
 
-        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) => throw new NotImplementedException();
+        public ITypeDefinition ReturnType(ScopeStack scope) => throw new NotImplementedException();
     }
 }
