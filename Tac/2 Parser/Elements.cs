@@ -11,7 +11,6 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
-
     public class ElementMatchingContext {
         public ElementMatchingContext(ScopeStack enclosingScope, IEnumerable<TryMatch> elementMatchers)
         {
@@ -22,7 +21,7 @@ namespace Tac.Parser
         public ScopeStack EnclosingScope { get; }
         
         public IEnumerable<TryMatch> ElementMatchers { get; }
-
+        
         public static ElementMatchingContext StandMatchingContext(ScopeStack enclosingScope) =>
              new ElementMatchingContext(enclosingScope, 
                 new List<TryMatch> {
@@ -191,7 +190,8 @@ namespace Tac.Parser
 
                 var methodScope = new MethodScope();
 
-                var elements = TokenParser.ParseBlock(body, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope,methodScope)));
+                var enclosingScope = new ScopeStack(matchingContext.EnclosingScope, methodScope);
+                var elements = TokenParser.ParseBlock(body, StandMatchingContext(enclosingScope));
 
                 var definitions = elements.DeepMemberDefinitions();
 
@@ -199,7 +199,7 @@ namespace Tac.Parser
                 {
                     methodScope.TryAddLocal(definition);
                 }
-
+                
                 var parameterDefinition = new MemberDefinition(
                         false,
                         new ExplicitName(parameterName?.Item ?? "input"),
@@ -208,6 +208,16 @@ namespace Tac.Parser
 
 
                 methodScope.TryAddParameter(parameterDefinition);
+
+                var referances = elements.DeepMemberReferances();
+
+                foreach (var referance in referances)
+                {
+                    if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
+                    {
+                        methodScope.TryAddLocal(new MemberDefinition(false,referance.Key,new NameTypeSource(RootScope.AnyType)));
+                    }
+                }
 
                 element = new MethodDefinition(
                     new TypeReferance(outputType.Item),
@@ -327,7 +337,8 @@ namespace Tac.Parser
 
                 var methodScope = new MethodScope();
 
-                var elements = TokenParser.ParseBlock(body, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope, methodScope)));
+                var enclosingScope = new ScopeStack(matchingContext.EnclosingScope, methodScope);
+                var elements = TokenParser.ParseBlock(body, StandMatchingContext(enclosingScope));
 
                 var definitions = elements.DeepMemberDefinitions();
 
@@ -353,6 +364,16 @@ namespace Tac.Parser
 
                 methodScope.TryAddParameter(parameterDefinition);
 
+                var referances = elements.DeepMemberReferances();
+
+                foreach (var referance in referances)
+                {
+                    if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
+                    {
+                        methodScope.TryAddLocal(new MemberDefinition(false, referance.Key, new NameTypeSource(RootScope.AnyType)));
+                    }
+                }
+
                 element = new ImplementationDefinition(
                     contextDefinition,
                     new TypeReferance(outputType.Item),
@@ -377,7 +398,8 @@ namespace Tac.Parser
             {
                 var scope = new LocalStaticScope();
 
-                var elements = TokenParser.ParseBlock(body, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope, scope)));
+                var enclosingScope = new ScopeStack(matchingContext.EnclosingScope, scope);
+                var elements = TokenParser.ParseBlock(body, StandMatchingContext(enclosingScope));
 
                 var definitions = elements.DeepMemberDefinitions();
 
@@ -386,6 +408,16 @@ namespace Tac.Parser
                     scope.TryAddLocal(definition);
                 }
 
+                var referances = elements.DeepMemberReferances();
+
+                foreach (var referance in referances)
+                {
+                    if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
+                    {
+                        scope.TryAddLocal(new MemberDefinition(false, referance.Key, new NameTypeSource(RootScope.AnyType)));
+                    }
+                }
+                
                 element = new BlockDefinition(
                     elements, scope, new ICodeElement[0]);
 

@@ -116,9 +116,33 @@ namespace Tac._2_Parser
                 }
 
                 return new MemberDefinition[0];
-
             }
+        }
 
+
+        public static MemberReferance[] DeepMemberReferances(this IEnumerable<ICodeElement> lines)
+        {
+            var list = new List<MemberReferance>();
+            foreach (var line in lines)
+            {
+                list.AddRange(DeepMemberReferances(line));
+            }
+            return list.ToArray();
+
+            MemberReferance[] DeepMemberReferances(ICodeElement line)
+            {
+                if (line is MemberReferance memberReferance)
+                {
+                    return memberReferance.ToArray();
+                }
+
+                if (line is IOperation operation)
+                {
+                    return operation.Operands.SelectMany(DeepMemberReferances).ToArray();
+                }
+
+                return new MemberReferance[0];
+            }
         }
 
     }
