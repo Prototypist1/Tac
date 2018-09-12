@@ -35,7 +35,7 @@ namespace Tac.Semantic_Model.CodeStuff
             return hashCode;
         }
 
-        public abstract ITypeDefinition<IScope> ReturnType(ScopeStack scope);
+        public abstract ITypeDefinition ReturnType(ScopeStack scope);
     }
 
     internal interface IOperation

@@ -11,14 +11,14 @@ namespace Tac.Semantic_Model
         public static IScope Root { get => Root; }
         private static StaticScope root = new StaticScope();
 
-        public static AbstractName Add(TypeDefinition typeDefinition) {
+        public static AbstractMemberName Add(TypeDefinition typeDefinition) {
             if (!root.TryAddStaticType(typeDefinition)) {
                 throw new Exception($"could not add type {typeDefinition}");
             }
             return typeDefinition.Key;
         }
 
-        public static AbstractName AddGeneric(GenericTypeDefinition typeDefinition)
+        public static AbstractMemberName AddGeneric(GenericTypeDefinition typeDefinition)
         {
             if (!root.TryAddStaticGenericType(typeDefinition))
             {
@@ -27,34 +27,34 @@ namespace Tac.Semantic_Model
             return typeDefinition.Key;
         }
         
-        public static AbstractName StringType { get; } = Add(new TypeDefinition(new ExplicitName("String"), new ObjectScope()));
-        public static AbstractName NumberType { get; } = Add(new TypeDefinition(new ExplicitName("Number"), new ObjectScope()));
-        public static AbstractName EmptyType { get; } = Add(new TypeDefinition(new ExplicitName("Empty"), new ObjectScope()));
-        public static AbstractName AnyType { get; } = Add(new TypeDefinition(new ExplicitName("Any"), new ObjectScope()));
-        public static AbstractName BooleanType { get; } = Add(new TypeDefinition(new ExplicitName("Bool"), new ObjectScope()));
-        public static AbstractName TypeType { get; } = Add(new TypeDefinition(new ExplicitName("Type"), new ObjectScope()));
+        public static AbstractMemberName StringType { get; } = Add(new TypeDefinition(new ExplicitMemberName("String"), new ObjectScope()));
+        public static AbstractMemberName NumberType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Number"), new ObjectScope()));
+        public static AbstractMemberName EmptyType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Empty"), new ObjectScope()));
+        public static AbstractMemberName AnyType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Any"), new ObjectScope()));
+        public static AbstractMemberName BooleanType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Bool"), new ObjectScope()));
+        public static AbstractMemberName TypeType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Type"), new ObjectScope()));
 
-        public static AbstractName MethodType { get; } = AddGeneric(
+        public static AbstractMemberName MethodType { get; } = AddGeneric(
             new GenericTypeDefinition(
-                new ExplicitName("Method"),
+                new ExplicitMemberName("Method"),
                 new ObjectScope(), 
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition(
-                        new ExplicitName("Input")),
+                        new ExplicitMemberName("Input")),
                     new GenericTypeParameterDefinition(
-                        new ExplicitName("Output")) }));
+                        new ExplicitMemberName("Output")) }));
 
-        public static AbstractName ImplementationType { get; } = AddGeneric(
+        public static AbstractMemberName ImplementationType { get; } = AddGeneric(
             new GenericTypeDefinition(
-                new ExplicitName("Implementation"),
+                new ExplicitMemberName("Implementation"),
                 new ObjectScope(),
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition(
-                        new ExplicitName("Context")),
+                        new ExplicitMemberName("Context")),
                     new GenericTypeParameterDefinition(
-                        new ExplicitName("Input")),
+                        new ExplicitMemberName("Input")),
                     new GenericTypeParameterDefinition(
-                        new ExplicitName("Output")) }));
+                        new ExplicitMemberName("Output")) }));
     }
 
 }

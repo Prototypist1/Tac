@@ -52,15 +52,15 @@ namespace Tac.Semantic_Model
             return list.TryAdd(visiblity);
         }
 
-        private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<MemberDefinition>>> members
-            = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<MemberDefinition>>>();
+        private readonly ConcurrentDictionary<ExplicitMemberName, ConcurrentSet<Visiblity<MemberDefinition>>> members
+            = new ConcurrentDictionary<ExplicitMemberName, ConcurrentSet<Visiblity<MemberDefinition>>>();
 
-        private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<TypeDefinition>>> types
-            = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<TypeDefinition>>>();
+        private readonly ConcurrentDictionary<ExplicitTypeName, ConcurrentSet<Visiblity<TypeDefinition>>> types
+            = new ConcurrentDictionary<ExplicitTypeName, ConcurrentSet<Visiblity<TypeDefinition>>>();
 
-        private readonly ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<AbstractName, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
+        private readonly ConcurrentDictionary<ExplicitTypeName, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<ExplicitTypeName, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
         
-        public bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member) {
+        public bool TryGetMember(ExplicitMemberName name, bool staticOnly, out MemberDefinition member) {
             if (!members.TryGetValue(name, out var items)) {
                 member = default;
                 return false;
@@ -77,7 +77,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetGenericType(AbstractName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
+        public bool TryGetGenericType(ExplicitTypeName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
         {
             if (!genericTypes.TryGetValue(name, out var genericItems))
             {
@@ -105,7 +105,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetType(AbstractName name, out ITypeDefinition type)
+        public bool TryGetType(ExplicitTypeName name, out ITypeDefinition type)
         {
             if (!types.TryGetValue(name, out var items))
             {
@@ -125,7 +125,7 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item)
+        public bool TryGetType(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item)
         {
             item = default;
             return false;

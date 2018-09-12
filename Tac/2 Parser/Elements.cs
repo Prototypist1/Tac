@@ -64,7 +64,7 @@ namespace Tac.Parser
 
                 var readOnly = readonlyToken != default;
 
-                element = new MemberDefinition(readOnly, new ExplicitName(nameToken.Item), new ImplicitTypeReferance());
+                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new ImplicitTypeReferance());
 
                 return true;
             }
@@ -87,7 +87,7 @@ namespace Tac.Parser
 
                 var readOnly = readonlyToken != default;
 
-                element = new MemberDefinition(readOnly, new ExplicitName(nameToken.Item), new NameTypeSource(new ExplicitName(typeToken.Item)));
+                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new NameTypeSource(new ExplicitMemberName(typeToken.Item)));
 
                 return true;
             }
@@ -104,14 +104,14 @@ namespace Tac.Parser
             if (ElementMatching.Start(elementToken)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
                 .Has(ElementMatcher.IsName, out AtomicToken typeToken)
-                .Has(ElementMatcher.GenericN, out AtomicToken[] typeTokens)
+                .Has(ElementMatcher.GenericN, out ITypeSource[] tokenSources)
                 .Has(ElementMatcher.IsName, out AtomicToken nameToken)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
                 var readOnly = readonlyToken != default;
 
-                element = new MemberDefinition(readOnly, new ExplicitName(nameToken.Item), new GenericNameTypeSource(new ExplicitName(typeToken.Item), typeTokens.Select(x=>));
+                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new GenericNameTypeSource(new ExplicitMemberName(typeToken.Item), tokenSources));
 
                 return true;
             }
@@ -230,7 +230,7 @@ namespace Tac.Parser
                     scope.TryAddStaticType(type);
                 }
 
-                element = new ModuleDefinition(new ExplicitName(second.Item), scope, assignOperations);
+                element = new ModuleDefinition(new ExplicitMemberName(second.Item), scope, assignOperations);
 
             }
             element = default;
@@ -262,7 +262,7 @@ namespace Tac.Parser
                 
                 var parameterDefinition = new MemberDefinition(
                         false,
-                        new ExplicitName(parameterName?.Item ?? "input"),
+                        new ExplicitMemberName(parameterName?.Item ?? "input"),
                         new TypeReferance(inputType.Item)
                         );
 
@@ -300,13 +300,13 @@ namespace Tac.Parser
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch) {
 
-                AbstractName name;
+                AbstractMemberName name;
                 if (typeName == default)
                 {
                     name = new AnonymousName();
                 }
                 else {
-                    name = new ExplicitName(typeName.Item);
+                    name = new ExplicitMemberName(typeName.Item);
                 }
 
                 var scope = new ObjectScope();
@@ -348,7 +348,7 @@ namespace Tac.Parser
                 .IsMatch)
             {
 
-                var name = new ExplicitName(typeName.Item);
+                var name = new ExplicitMemberName(typeName.Item);
                 
                 var scope = new ObjectScope();
 
@@ -373,7 +373,7 @@ namespace Tac.Parser
                     scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2.Key, new NameTypeSource(RootScope.AnyType)));
                 }
 
-                var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(new ExplicitName(x.Item))).ToArray();
+                var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(new ExplicitMemberName(x.Item))).ToArray();
                 
                 element = new GenericTypeDefinition(name, scope, genericParameters);
                 return true;
@@ -409,7 +409,7 @@ namespace Tac.Parser
                 
                 var contextDefinition = new MemberDefinition(
                         false,
-                        new ExplicitName(parameterName?.Item ?? "context"),
+                        new ExplicitMemberName(parameterName?.Item ?? "context"),
                         new TypeReferance(contextType.Item)
                         );
 
@@ -417,7 +417,7 @@ namespace Tac.Parser
 
                 var parameterDefinition = new MemberDefinition(
                         false,
-                        new ExplicitName(parameterName?.Item ?? "input"),
+                        new ExplicitMemberName(parameterName?.Item ?? "input"),
                         new TypeReferance(inputType.Item)
                         );
 
@@ -662,11 +662,11 @@ namespace Tac.Parser
             {
                 var at = ElementMatching.Match(self.Tokens.Skip(1));
                 if (GenericN(at,out var generics).IsMatch){
-                    typeSource = new NameTypeSource(new GenericExplicitName(first.Item, generics));
+                    typeSource = new NameTypeSource(new GenericExplicitTypeName(first.Item, generics));
                     return ElementMatching.Match(self.Tokens.Skip(2).ToArray());
                 }
 
-                typeSource = new NameTypeSource(new ExplicitName(first.Item));
+                typeSource = new NameTypeSource(new ExplicitMemberName(first.Item));
                 return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 
@@ -739,7 +739,7 @@ namespace Tac.Parser
             return ElementMatching.NotMatch(elementMatching.Tokens);
         }
 
-        public static ElementMatching GenericN(ElementMatching elementMatching, out AbstractName[] typeSources)
+        public static ElementMatching GenericN(ElementMatching elementMatching, out ITypeSource[] typeSources)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&

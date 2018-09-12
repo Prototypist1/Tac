@@ -8,18 +8,18 @@ namespace Tac.Semantic_Model
     // TODO split scopes out in to socpes an scope builders
     public interface IScope
     {
-        bool TryGetType(AbstractName name, out ITypeDefinition type);
-        bool TryGetGenericType(AbstractName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition);
-        bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member);
+        bool TryGetType(ExplicitTypeName name, out ITypeDefinition type);
+        bool TryGetGenericType(ExplicitTypeName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition);
+        bool TryGetMember(ExplicitMemberName name, bool staticOnly, out MemberDefinition member);
         // this is a weird API, can I just get away with taking in a scopeStack and return a ITypeDefinition???
-        bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item);
+        bool TryGetType(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item);
     }
 
     public class GenericScope : IScope {
         
         private IScope Backing { get; }
 
-        private readonly ConcurrentDictionary<AbstractName, ITypeDefinition> RealizedGenericTypes = new ConcurrentDictionary<AbstractName, ITypeDefinition>();
+        private readonly ConcurrentDictionary<ExplicitTypeName, ITypeDefinition> RealizedGenericTypes = new ConcurrentDictionary<ExplicitTypeName, ITypeDefinition>();
 
         public GenericScope(IScope backing, IEnumerable<GenericTypeParameter> typeParameters)
         {
@@ -32,9 +32,9 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public bool TryGet(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item) => Backing.TryGet(key, out item);
-        public bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member) => Backing.TryGetMember(name, staticOnly, out member);
-        public bool TryGetType(AbstractName name, out ITypeDefinition type) => RealizedGenericTypes.TryGetValue(name,out type) || Backing.TryGetType(name, out type);
-        public bool TryGetGenericType(AbstractName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition) => Backing.TryGetGenericType(name, genericTypeParameters, out typeDefinition);
+        public bool TryGetType(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item) => Backing.TryGetType(key, out item);
+        public bool TryGetMember(ExplicitMemberName name, bool staticOnly, out MemberDefinition member) => Backing.TryGetMember(name, staticOnly, out member);
+        public bool TryGetType(ExplicitTypeName name, out ITypeDefinition type) => RealizedGenericTypes.TryGetValue(name,out type) || Backing.TryGetType(name, out type);
+        public bool TryGetGenericType(ExplicitTypeName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition) => Backing.TryGetGenericType(name, genericTypeParameters, out typeDefinition);
     }
 }

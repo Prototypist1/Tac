@@ -70,13 +70,13 @@ namespace Tac.Tests.Samples
                             false,
                             true,
                             new ImplicitTypeReferance(),
-                            new ExplicitName("fac") ),
+                            new ExplicitMemberName("fac") ),
                         new MethodDefinition(
                             new TypeReferance("int"),
                             new ParameterDefinition(
                                 false,
                                 new TypeReferance("int"),
-                                new ExplicitName("input")),
+                                new ExplicitMemberName("input")),
                             new ICodeElement[]{
                                 new ElseOperation(
                                     new IfTrueOperation(

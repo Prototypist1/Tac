@@ -49,7 +49,7 @@ namespace Tac.Semantic_Model
 
         public IScope[] Scopes { get; }
 
-        public ITypeDefinition GetGenericType(AbstractName name, IEnumerable<ITypeDefinition> typeDefinitions) {
+        public ITypeDefinition GetGenericType(GenericExplicitTypeName type) {
             return SimpleLookUp();
 
             // in the simple case we just search for up the stack for types
@@ -57,7 +57,7 @@ namespace Tac.Semantic_Model
             {
                 foreach (var scope in Scopes)
                 {
-                    if (scope.TryGetGenericType(name, typeDefinitions, out var typeDefinition))
+                    if (scope.TryGetGenericType(type, type.Types.Select(x=>x.GetTypeDefinition(this)).ToArray(), out var typeDefinition))
                     {
                         return typeDefinition;
                     }
@@ -66,7 +66,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public ITypeDefinition GetType(AbstractName name)
+        public ITypeDefinition GetType(ExplicitTypeName name)
         {
 
             //if (names.Count() > 1)
@@ -157,7 +157,7 @@ namespace Tac.Semantic_Model
             //}
         }
         
-        public MemberDefinition GetMemberOrDefault(AbstractName name)
+        public MemberDefinition GetMemberOrDefault(ExplicitMemberName name)
         {
             return SimpleLookUp();
             

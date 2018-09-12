@@ -4,18 +4,18 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface ITypeSource {
-        bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition);
-    }
+    //public interface ITypeSource {
+    //    bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition);
+    //}
 
-    public static class TypeSourceExtensions {
-        public static ITypeDefinition GetTypeDefinitionOrThrow(this ITypeSource self, ScopeStack scopeStack) {
-            if (self.TryGetTypeDefinition(scopeStack, out var res)) {
-                return res;
-            }
-            throw new Exception($"Could not find type definition for {self} in {scopeStack}");
-        }
-    }
+    //public static class TypeSourceExtensions {
+    //    public static ITypeDefinition GetTypeDefinitionOrThrow(this ITypeSource self, ScopeStack scopeStack) {
+    //        if (self.TryGetTypeDefinition(scopeStack, out var res)) {
+    //            return res;
+    //        }
+    //        throw new Exception($"Could not find type definition for {self} in {scopeStack}");
+    //    }
+    //}
 
     //public sealed class ParameterDefinition: IReferanced
     //{

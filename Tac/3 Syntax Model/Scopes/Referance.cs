@@ -10,19 +10,19 @@ namespace Tac.Semantic_Model
 {
     public sealed class MemberReferance : ICodeElement, IMemberSource{
 
-        public AbstractName Key { get; }
+        public AbstractMemberName Key { get; }
 
-        public MemberReferance(AbstractName key) => this.Key = key ?? throw new ArgumentNullException(nameof(key));
+        public MemberReferance(AbstractMemberName key) => this.Key = key ?? throw new ArgumentNullException(nameof(key));
 
-        public MemberReferance(string key) : this( new ExplicitName(key) ) { }
+        public MemberReferance(string key) : this( new ExplicitMemberName(key) ) { }
         
         public override bool Equals(object obj)
         {
             return obj is MemberReferance referance && referance != null &&
-                   EqualityComparer<AbstractName>.Default.Equals(Key, referance.Key);
+                   EqualityComparer<AbstractMemberName>.Default.Equals(Key, referance.Key);
         }
 
-        public override int GetHashCode() => 249886028 + EqualityComparer<AbstractName>.Default.GetHashCode(Key);
+        public override int GetHashCode() => 249886028 + EqualityComparer<AbstractMemberName>.Default.GetHashCode(Key);
         public ITypeDefinition<IScope> ReturnType(ScopeStack scope)
         {
             return scope
@@ -39,10 +39,10 @@ namespace Tac.Semantic_Model
 
     public sealed class TypeReferance : ICodeElement, ITypeSource
     {
-        public TypeReferance(IEnumerable<AbstractName> names) => Names = names ?? throw new ArgumentNullException(nameof(names));
-        public TypeReferance(string name) : this(new ExplicitName(name).ToArray()) { }
+        public TypeReferance(IEnumerable<AbstractMemberName> names) => Names = names ?? throw new ArgumentNullException(nameof(names));
+        public TypeReferance(string name) : this(new ExplicitMemberName(name).ToArray()) { }
 
-        public IEnumerable<AbstractName> Names { get; }
+        public IEnumerable<AbstractMemberName> Names { get; }
 
         public ITypeDefinition<IScope> ReturnType(ScopeStack scope) => RootScope.TypeType;
 

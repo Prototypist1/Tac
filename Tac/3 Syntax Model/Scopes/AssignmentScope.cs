@@ -19,11 +19,11 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetMember(AbstractName name, bool staticOnly, out MemberDefinition member) {
+        public bool TryGetMember(AbstractMemberName name, bool staticOnly, out MemberDefinition member) {
             member = default;
             return false;
         }
-        public bool TryGetType(AbstractName name, out TypeDefinition type) {
+        public bool TryGetType(AbstractMemberName name, out TypeDefinition type) {
             type = default;
             return false;
         }
