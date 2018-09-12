@@ -56,6 +56,7 @@ namespace Tac.Semantic_Model.Names
 
         public ITypeDefinition GetTypeDefinition(ScopeStack scope)
         {
+            return scope.GetType(this);
         }
 
         public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType;
@@ -110,12 +111,8 @@ namespace Tac.Semantic_Model.Names
         }
 
         public override int GetHashCode() => 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-        public MemberDefinition GetMemberDefinition(ScopeStack scopeStack)
-        {
-        }
-        public ITypeDefinition ReturnType(ScopeStack scope)
-        {
-        }
+        public MemberDefinition GetMemberDefinition(ScopeStack scope) => GetMemberDefinition(scope);
+        public ITypeDefinition ReturnType(ScopeStack scope) => GetMemberDefinition(scope).Type.GetTypeDefinition(scope);
     }
 
 }
