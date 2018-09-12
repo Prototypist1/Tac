@@ -25,6 +25,8 @@ namespace Tac.Semantic_Model.Names
     // TODO remove!
     public sealed class ImplicitTypeReferance : ITypeSource
     {
+        public ImplicitTypeReferance(ICodeElement codeElement) => CodeElement = codeElement ?? throw new ArgumentNullException(nameof(codeElement));
+
         private ICodeElement CodeElement { get; }
 
         public override bool Equals(object obj) => obj is ImplicitTypeReferance && base.Equals(obj);

@@ -87,7 +87,7 @@ namespace Tac.Parser
 
                 var readOnly = readonlyToken != default;
 
-                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new NameTypeSource(new ExplicitMemberName(typeToken.Item)));
+                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new ExplicitTypeName(typeToken.Item));
 
                 return true;
             }
@@ -111,7 +111,7 @@ namespace Tac.Parser
             {
                 var readOnly = readonlyToken != default;
 
-                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new GenericNameTypeSource(new ExplicitMemberName(typeToken.Item), tokenSources));
+                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new GenericExplicitTypeName(typeToken.Item, tokenSources));
 
                 return true;
             }
@@ -173,7 +173,7 @@ namespace Tac.Parser
 
                 foreach (var (left, memberReferance) in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false, memberReferance.Key, new ExplicitTypeSource(left)));
+                    scope.TryAddLocalMember(new MemberDefinition(false, memberReferance.Key, new ImplicitTypeReferance(left)));
                 }
                 
                 element = new ObjectDefinition(scope, assignOperations);
@@ -188,7 +188,6 @@ namespace Tac.Parser
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("module"), out var frist)
-                .Has(ElementMatcher.IsName, out AtomicToken second)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken third)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
@@ -221,7 +220,7 @@ namespace Tac.Parser
 
                 foreach (var (left, memberReferance) in memberReferances)
                 {
-                    scope.TryAddStaticMember(new MemberDefinition(false, memberReferance.Key, new ExplicitTypeSource(left)));
+                    scope.TryAddStaticMember(new MemberDefinition(false, memberReferance.Key, new ImplicitTypeReferance(left)));
                 }
 
 
@@ -230,7 +229,7 @@ namespace Tac.Parser
                     scope.TryAddStaticType(type);
                 }
 
-                element = new ModuleDefinition(new ExplicitMemberName(second.Item), scope, assignOperations);
+                element = new ModuleDefinition(scope, assignOperations);
 
             }
             element = default;
@@ -275,7 +274,7 @@ namespace Tac.Parser
                 {
                     if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
                     {
-                        methodScope.TryAddLocal(new MemberDefinition(false,referance.Key,new NameTypeSource(RootScope.AnyType)));
+                        methodScope.TryAddLocal(new MemberDefinition(false,referance.Key,RootScope.AnyType));
                     }
                 }
 
@@ -327,7 +326,7 @@ namespace Tac.Parser
 
                 foreach (var memberRef in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2.Key,new NameTypeSource(RootScope.AnyType)));
+                    scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2.Key,RootScope.AnyType));
                 }
 
                 element = new TypeDefinition(name, scope);
@@ -370,10 +369,10 @@ namespace Tac.Parser
                 
                 foreach (var memberRef in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2.Key, new NameTypeSource(RootScope.AnyType)));
+                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2.Key, RootScope.AnyType));
                 }
 
-                var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(new ExplicitMemberName(x.Item))).ToArray();
+                var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();
                 
                 element = new GenericTypeDefinition(name, scope, genericParameters);
                 return true;
@@ -430,7 +429,7 @@ namespace Tac.Parser
                 {
                     if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
                     {
-                        methodScope.TryAddLocal(new MemberDefinition(false, referance.Key, new NameTypeSource(RootScope.AnyType)));
+                        methodScope.TryAddLocal(new MemberDefinition(false, referance.Key, RootScope.AnyType));
                     }
                 }
 
@@ -474,7 +473,7 @@ namespace Tac.Parser
                 {
                     if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
                     {
-                        scope.TryAddLocal(new MemberDefinition(false, referance.Key, new NameTypeSource(RootScope.AnyType)));
+                        scope.TryAddLocal(new MemberDefinition(false, referance.Key, RootScope.AnyType));
                     }
                 }
                 
@@ -662,11 +661,11 @@ namespace Tac.Parser
             {
                 var at = ElementMatching.Match(self.Tokens.Skip(1));
                 if (GenericN(at,out var generics).IsMatch){
-                    typeSource = new NameTypeSource(new GenericExplicitTypeName(first.Item, generics));
+                    typeSource = new GenericExplicitTypeName(first.Item, generics);
                     return ElementMatching.Match(self.Tokens.Skip(2).ToArray());
                 }
 
-                typeSource = new NameTypeSource(new ExplicitMemberName(first.Item));
+                typeSource = new ExplicitMemberName(first.Item);
                 return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 

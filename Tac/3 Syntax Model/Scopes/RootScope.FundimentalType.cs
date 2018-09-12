@@ -11,14 +11,14 @@ namespace Tac.Semantic_Model
         public static IScope Root { get => Root; }
         private static StaticScope root = new StaticScope();
 
-        public static AbstractMemberName Add(TypeDefinition typeDefinition) {
+        public static ITypeSource Add(TypeDefinition typeDefinition) {
             if (!root.TryAddStaticType(typeDefinition)) {
                 throw new Exception($"could not add type {typeDefinition}");
             }
             return typeDefinition.Key;
         }
 
-        public static AbstractMemberName AddGeneric(GenericTypeDefinition typeDefinition)
+        public static ITypeSource AddGeneric(GenericTypeDefinition typeDefinition)
         {
             if (!root.TryAddStaticGenericType(typeDefinition))
             {
@@ -27,34 +27,29 @@ namespace Tac.Semantic_Model
             return typeDefinition.Key;
         }
         
-        public static AbstractMemberName StringType { get; } = Add(new TypeDefinition(new ExplicitMemberName("String"), new ObjectScope()));
-        public static AbstractMemberName NumberType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Number"), new ObjectScope()));
-        public static AbstractMemberName EmptyType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Empty"), new ObjectScope()));
-        public static AbstractMemberName AnyType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Any"), new ObjectScope()));
-        public static AbstractMemberName BooleanType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Bool"), new ObjectScope()));
-        public static AbstractMemberName TypeType { get; } = Add(new TypeDefinition(new ExplicitMemberName("Type"), new ObjectScope()));
+        public static ITypeSource StringType { get; } = Add(new TypeDefinition(new ExplicitTypeName("String"), new ObjectScope()));
+        public static ITypeSource NumberType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Number"), new ObjectScope()));
+        public static ITypeSource EmptyType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Empty"), new ObjectScope()));
+        public static ITypeSource AnyType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Any"), new ObjectScope()));
+        public static ITypeSource BooleanType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Bool"), new ObjectScope()));
+        public static ITypeSource TypeType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Type"), new ObjectScope()));
 
-        public static AbstractMemberName MethodType { get; } = AddGeneric(
+        public static ITypeSource MethodType { get; } = AddGeneric(
             new GenericTypeDefinition(
-                new ExplicitMemberName("Method"),
+                new ExplicitTypeName("Method"),
                 new ObjectScope(), 
                 new GenericTypeParameterDefinition[] {
-                    new GenericTypeParameterDefinition(
-                        new ExplicitMemberName("Input")),
-                    new GenericTypeParameterDefinition(
-                        new ExplicitMemberName("Output")) }));
+                    new GenericTypeParameterDefinition("Input"),
+                    new GenericTypeParameterDefinition("Output") }));
 
-        public static AbstractMemberName ImplementationType { get; } = AddGeneric(
+        public static ITypeSource ImplementationType { get; } = AddGeneric(
             new GenericTypeDefinition(
-                new ExplicitMemberName("Implementation"),
+                new ExplicitTypeName("Implementation"),
                 new ObjectScope(),
                 new GenericTypeParameterDefinition[] {
-                    new GenericTypeParameterDefinition(
-                        new ExplicitMemberName("Context")),
-                    new GenericTypeParameterDefinition(
-                        new ExplicitMemberName("Input")),
-                    new GenericTypeParameterDefinition(
-                        new ExplicitMemberName("Output")) }));
+                    new GenericTypeParameterDefinition("Context"),
+                    new GenericTypeParameterDefinition("Input"),
+                    new GenericTypeParameterDefinition("Output") }));
     }
 
 }

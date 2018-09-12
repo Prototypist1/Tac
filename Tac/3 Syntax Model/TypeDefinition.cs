@@ -16,27 +16,27 @@ namespace Tac.Semantic_Model
     
     public class TypeDefinition: ITypeDefinition
     {
-        public TypeDefinition(AbstractMemberName key, IScope scope)
+        public TypeDefinition(ITypeSource key, IScope scope)
         {
             Scope = scope;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public AbstractMemberName Key { get; }
+        public ITypeSource Key { get; }
 
         public IScope Scope { get; }
 
         public override bool Equals(object obj)
         {
             return obj is TypeDefinition definition && definition != null &&
-                   EqualityComparer<AbstractMemberName>.Default.Equals(Key, definition.Key) &&
+                   EqualityComparer<ITypeSource>.Default.Equals(Key, definition.Key) &&
                    EqualityComparer<IScope>.Default.Equals(Scope, definition.Scope);
         }
 
         public override int GetHashCode()
         {
             var hashCode = -1628597129;
-            hashCode = hashCode * -1521134295 + EqualityComparer<AbstractMemberName>.Default.GetHashCode(Key);
+            hashCode = hashCode * -1521134295 + EqualityComparer<ITypeSource>.Default.GetHashCode(Key);
             hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(Scope);
             return hashCode;
         }
@@ -46,14 +46,14 @@ namespace Tac.Semantic_Model
 
     public class GenericTypeDefinition : ICodeElement
     {
-        public GenericTypeDefinition(AbstractMemberName key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
+        public GenericTypeDefinition(ITypeSource key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
         }
 
-        public AbstractMemberName Key { get; }
+        public ITypeSource Key { get; }
 
         public ObjectScope Scope { get; }
 
@@ -74,9 +74,18 @@ namespace Tac.Semantic_Model
 
     public class GenericTypeParameterDefinition
     {
-        public GenericTypeParameterDefinition(AbstractMemberName name) => Name = name ?? throw new ArgumentNullException(nameof(name));
+        public GenericTypeParameterDefinition(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
 
-        public AbstractMemberName Name { get; }
+        public string Name { get; }
+
+        public override bool Equals(object obj)
+        {
+            var definition = obj as GenericTypeParameterDefinition;
+            return definition != null &&
+                   Name == definition.Name;
+        }
+
+        public override int GetHashCode() => 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
 
         internal bool Accepts(ITypeDefinition b) {
             // TODO generic constraints
