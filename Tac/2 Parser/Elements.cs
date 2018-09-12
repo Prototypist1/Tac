@@ -27,6 +27,8 @@ namespace Tac.Parser
                 new List<TryMatch> {
                     MatchObjectDefinition,
                     MatchLocalDefinition_Var,
+                    MatchGenericTypeDefinition,
+                    MatchTypeDefinition,
                     MatchMethodDefinition,
                     MatchImplementationDefinition,
                     MatchBlockDefinition,
@@ -41,6 +43,17 @@ namespace Tac.Parser
         
         public static bool MatchLocalDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
+            // if I do a good job on ElementMatching it can pick up var
+            // all the definitions matchers can probably rolled in togther
+            
+            // when they day comes I should make the type entry optional
+
+            // "readonly x" is a totally legitiment method definition
+
+            // while I am thinking about including updates
+
+            // there are a lot of things here that use () that should use []
+
             if (ElementMatching.Start(elementToken)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
                 .Has(ElementMatcher.KeyWord("var"), out var _)
@@ -52,6 +65,53 @@ namespace Tac.Parser
                 var readOnly = readonlyToken != default;
 
                 element = new MemberDefinition(readOnly, new ExplicitName(nameToken.Item), new ImplicitTypeReferance());
+
+                return true;
+            }
+
+            element = default;
+            return false;
+        }
+
+        public static bool MatchMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        {
+            // TODO use ElementMatcher.IsType
+
+            if (ElementMatching.Start(elementToken)
+                .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
+                .Has(ElementMatcher.IsName, out AtomicToken typeToken)
+                .Has(ElementMatcher.IsName, out AtomicToken nameToken)
+                .Has(ElementMatcher.IsDone)
+                .IsMatch)
+            {
+
+                var readOnly = readonlyToken != default;
+
+                element = new MemberDefinition(readOnly, new ExplicitName(nameToken.Item), new NameTypeSource(new ExplicitName(typeToken.Item)));
+
+                return true;
+            }
+
+            element = default;
+            return false;
+        }
+
+
+        public static bool MatchGenericMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        {
+            // TODO use ElementMatcher.IsType
+
+            if (ElementMatching.Start(elementToken)
+                .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
+                .Has(ElementMatcher.IsName, out AtomicToken typeToken)
+                .Has(ElementMatcher.GenericN, out AtomicToken[] typeTokens)
+                .Has(ElementMatcher.IsName, out AtomicToken nameToken)
+                .Has(ElementMatcher.IsDone)
+                .IsMatch)
+            {
+                var readOnly = readonlyToken != default;
+
+                element = new MemberDefinition(readOnly, new ExplicitName(nameToken.Item), new GenericNameTypeSource(new ExplicitName(typeToken.Item), typeTokens.Select(x=>));
 
                 return true;
             }
@@ -81,7 +141,7 @@ namespace Tac.Parser
         //    element = default;
         //    return false;
         //}
-        
+
         public static bool MatchObjectDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (ElementMatching.Start(elementToken)
@@ -592,6 +652,28 @@ namespace Tac.Parser
             atomicToken = default;
             return ElementMatching.NotMatch(self.Tokens);
         }
+        
+        public static ElementMatching IsType(ElementMatching self, out ITypeSource typeSource)
+        {
+            
+            if (self.Tokens.Any() &&
+                self.Tokens.First() is AtomicToken first &&
+                !double.TryParse(first.Item, out var _))
+            {
+                var at = ElementMatching.Match(self.Tokens.Skip(1));
+                if (GenericN(at,out var generics).IsMatch){
+                    typeSource = new NameTypeSource(new GenericExplicitName(first.Item, generics));
+                    return ElementMatching.Match(self.Tokens.Skip(2).ToArray());
+                }
+
+                typeSource = new NameTypeSource(new ExplicitName(first.Item));
+                return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
+            }
+
+            typeSource = default;
+            return ElementMatching.NotMatch(self.Tokens);
+        }
+
 
         public static ElementMatching IsNumber(ElementMatching self, out double res)
         {
@@ -657,7 +739,7 @@ namespace Tac.Parser
             return ElementMatching.NotMatch(elementMatching.Tokens);
         }
 
-        public static ElementMatching GenericN(ElementMatching elementMatching, out AtomicToken[] types)
+        public static ElementMatching GenericN(ElementMatching elementMatching, out AbstractName[] typeSources)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&

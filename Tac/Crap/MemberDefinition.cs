@@ -36,7 +36,28 @@ namespace Tac.Semantic_Model
             return true;
         }
     }
-    
+
+    public sealed class GenericNameTypeSource : ITypeSource
+    {
+        public GenericNameTypeSource(AbstractName name, IEnumerable<ITypeSource> typeSources)
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            TypeSources = typeSources ?? throw new ArgumentNullException(nameof(typeSources));
+        }
+
+        public AbstractName Name { get; }
+        public IEnumerable<ITypeSource> TypeSources { get; }
+
+        // try is a little woerd here
+        // not really the right api design
+        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition)
+        {
+            var types = TypeSources.Select(x => x.GetTypeDefinitionOrThrow(scope)).ToArray();
+            typeDefinition = scope.GetGenericType(Name, types);
+            return true;
+        }
+    }
+
     public sealed class ConstantTypeSource : ITypeSource
     {
         public ConstantTypeSource(ITypeDefinition typeDefinition) => TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
