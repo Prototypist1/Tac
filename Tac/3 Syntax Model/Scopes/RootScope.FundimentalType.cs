@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model
 
         public static ExplicitTypeName Add(ExplicitTypeName name) {
             var typeDefinition = new NamedTypeDefinition(name.Key, new ObjectScope());
-            if (!root.TryAddStaticType(typeDefinition,name.Key)) {
+            if (!root.TryAddStaticType(typeDefinition)) {
                 throw new Exception($"could not add type {typeDefinition}");
             }
             return name;

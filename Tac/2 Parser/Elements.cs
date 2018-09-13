@@ -39,9 +39,9 @@ namespace Tac.Parser
 
         public static ElementMatchingContext StandMatchingContext() => StandMatchingContext(new ScopeStack(new IScope[] { }));
 
-        public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element);
+        public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out object element);
         
-        public static bool MatchLocalDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchLocalDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             // if I do a good job on ElementMatching it can pick up var
             // all the definitions matchers can probably rolled in togther
@@ -64,7 +64,7 @@ namespace Tac.Parser
 
                 var readOnly = readonlyToken != default;
 
-                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new ImplicitTypeReferance());
+                element = new ImplicitlyTypedMemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item));
 
                 return true;
             }
@@ -73,7 +73,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             // TODO use ElementMatcher.IsType
 
@@ -95,9 +95,8 @@ namespace Tac.Parser
             element = default;
             return false;
         }
-
-
-        public static bool MatchGenericMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        
+        public static bool MatchGenericMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             // TODO use ElementMatcher.IsType
 
@@ -142,7 +141,7 @@ namespace Tac.Parser
         //    return false;
         //}
 
-        public static bool MatchObjectDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchObjectDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("object"), out var keyword)
@@ -184,7 +183,7 @@ namespace Tac.Parser
             return false;
         }
         
-        public static bool MatchModuleDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchModuleDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("module"), out var frist)
@@ -224,7 +223,7 @@ namespace Tac.Parser
                 }
 
 
-                foreach (var type in types)
+                foreach (var type in types.OfType<NamedTypeDefinition>())
                 {
                     scope.TryAddStaticType(type);
                 }
@@ -236,7 +235,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchMethodDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchMethodDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("method"), out var _)
@@ -292,7 +291,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element) {
+        public static bool MatchTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element) {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
@@ -337,7 +336,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchGenericTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchGenericTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
@@ -380,7 +379,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchImplementationDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchImplementationDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("method"), out var _)
@@ -446,7 +445,7 @@ namespace Tac.Parser
             return false;
         }
         
-        public static bool MatchBlockDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchBlockDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
@@ -485,7 +484,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchConstantNumber(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchConstantNumber(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.IsNumber, out double dub)
@@ -501,7 +500,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static bool MatchReferance(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
+        public static bool MatchReferance(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.IsName, out AtomicToken first)

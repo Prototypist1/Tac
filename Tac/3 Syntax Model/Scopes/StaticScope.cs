@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model
             return TryAdd(DefintionLifetime.Static, definition);
         }
         
-        public bool TryAddStaticType(TypeDefinition definition, IKey key)
+        public bool TryAddStaticType(NamedTypeDefinition definition)
         {
-            return TryAdd(DefintionLifetime.Static, key, definition);
+            return TryAdd(DefintionLifetime.Static, definition);
         }
 
         public bool TryAddStaticGenericType(GenericTypeDefinition definition)

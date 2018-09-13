@@ -38,9 +38,9 @@ namespace Tac.Semantic_Model
             return list.TryAdd(visiblity);
         }
 
-        protected bool TryAdd(DefintionLifetime defintionLifetime,IKey key, TypeDefinition definition)
+        protected bool TryAdd(DefintionLifetime defintionLifetime, NamedTypeDefinition definition)
         {
-            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<TypeDefinition>>());
+            var list = types.GetOrAdd(definition.Key, new ConcurrentSet<Visiblity<TypeDefinition>>());
             var visiblity = new Visiblity<TypeDefinition>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
