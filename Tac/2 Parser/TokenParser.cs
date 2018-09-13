@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,18 +11,18 @@ namespace Tac.Parser
     public static class TokenParser
     {
 
-        public static object[] ParseFile(FileToken file, ElementMatchingContext matchingContext)
+        public static ICodeElement[] ParseFile(FileToken file, ElementMatchingContext matchingContext)
         {
             return file.Tokens.Select(x => ParseLine((LineToken)x, matchingContext)).ToArray();
         }
 
 
-        public static object ParseLine(LineToken tokens, ElementMatchingContext matchingContext)
+        public static ICodeElement ParseLine(LineToken tokens, ElementMatchingContext matchingContext)
         {
             return ParseLine(tokens.Tokens, matchingContext);
         }
 
-        public static object ParseLine(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
+        public static ICodeElement ParseLine(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
 
             var state = new ParseState(tokens);
@@ -32,14 +33,14 @@ namespace Tac.Parser
             throw new Exception("there was nothing in that line!");
         }
 
-        public static object ParseLine(IParseStateView view, ElementMatchingContext matchingContext)
+        public static ICodeElement ParseLine(IParseStateView view, ElementMatchingContext matchingContext)
         {
             object lastElement = default;
             do
             {
                 lastElement = ParseLineElementOrThrow(view,  lastElement, matchingContext);
             } while (view.TryGetNext(out view));
-            return lastElement;
+            return lastElement.Cast<ICodeElement>();
         }
 
         private static object ParseLineElementOrThrow(IParseStateView view, object last, ElementMatchingContext matchingContext)
@@ -48,9 +49,9 @@ namespace Tac.Parser
             {
                 return codeElement;
             }
-            else if (TryParseElement(view,matchingContext, out codeElement))
+            else if (TryParseElement(view,matchingContext, out var obj))
             {
-                return codeElement;
+                return obj;
             }
             else {
                 throw new Exception($"could not parse {view.Token}");
@@ -58,7 +59,7 @@ namespace Tac.Parser
         }
 
 
-        public static bool TryParseAtomic(IParseStateView view, object last, ElementMatchingContext matchingContext, out object codeElement)
+        public static bool TryParseAtomic(IParseStateView view, object last, ElementMatchingContext matchingContext, out ICodeElement codeElement)
         {
             if (view.Token is AtomicToken atomicToken)
             {
@@ -116,7 +117,7 @@ namespace Tac.Parser
             return false;
         }
 
-        public static object[] ParseBlock(CurleyBacketToken token, ElementMatchingContext matchingContext)
+        public static ICodeElement[] ParseBlock(CurleyBacketToken token, ElementMatchingContext matchingContext)
         {
             return token.Tokens.Select(x =>
             {

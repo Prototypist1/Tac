@@ -172,7 +172,7 @@ namespace Tac.Parser
 
                 foreach (var (left, memberReferance) in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false, memberReferance.Key, new ImplicitTypeReferance(left)));
+                    scope.TryAddLocalMember(new MemberDefinition(false, memberReferance, new ImplicitTypeReferance(left)));
                 }
                 
                 element = new ObjectDefinition(scope, assignOperations);
@@ -219,7 +219,7 @@ namespace Tac.Parser
 
                 foreach (var (left, memberReferance) in memberReferances)
                 {
-                    scope.TryAddStaticMember(new MemberDefinition(false, memberReferance.Key, new ImplicitTypeReferance(left)));
+                    scope.TryAddStaticMember(new MemberDefinition(false, memberReferance, new ImplicitTypeReferance(left)));
                 }
 
 
@@ -271,9 +271,9 @@ namespace Tac.Parser
 
                 foreach (var referance in referances)
                 {
-                    if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
+                    if (enclosingScope.GetMemberOrDefault(referance) == null)
                     {
-                        methodScope.TryAddLocal(new MemberDefinition(false,referance.Key,RootScope.AnyType));
+                        methodScope.TryAddLocal(new MemberDefinition(false,referance,RootScope.AnyType));
                     }
                 }
 
@@ -318,7 +318,7 @@ namespace Tac.Parser
 
                 foreach (var memberRef in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2.Key,RootScope.AnyType));
+                    scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2,RootScope.AnyType));
                 }
                 
                 if (typeName == default)
@@ -366,7 +366,7 @@ namespace Tac.Parser
                 
                 foreach (var memberRef in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2.Key, RootScope.AnyType));
+                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2, RootScope.AnyType));
                 }
 
                 var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();
@@ -424,9 +424,9 @@ namespace Tac.Parser
 
                 foreach (var referance in referances)
                 {
-                    if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
+                    if (enclosingScope.GetMemberOrDefault(referance) == null)
                     {
-                        methodScope.TryAddLocal(new MemberDefinition(false, referance.Key, RootScope.AnyType));
+                        methodScope.TryAddLocal(new MemberDefinition(false, referance, RootScope.AnyType));
                     }
                 }
 
@@ -468,9 +468,9 @@ namespace Tac.Parser
 
                 foreach (var referance in referances)
                 {
-                    if (enclosingScope.GetMemberOrDefault(referance.Key) == null)
+                    if (enclosingScope.GetMemberOrDefault(referance) == null)
                     {
-                        scope.TryAddLocal(new MemberDefinition(false, referance.Key, RootScope.AnyType));
+                        scope.TryAddLocal(new MemberDefinition(false, referance, RootScope.AnyType));
                     }
                 }
                 

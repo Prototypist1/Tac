@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
+using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 
 namespace Tac._2_Parser
@@ -75,14 +76,14 @@ namespace Tac._2_Parser
         }
 
 
-        public static IEnumerable<ICodeElement> ExtractMemberReferances(this IEnumerable<ICodeElement> lines, out IReadOnlyList<(ICodeElement,MemberReferance)> memberReferances)
+        public static IEnumerable<ICodeElement> ExtractMemberReferances(this IEnumerable<ICodeElement> lines, out IReadOnlyList<(ICodeElement, ExplicitMemberName)> memberReferances)
         {
             var nextLines = new List<ICodeElement>();
-            var memberReferanceList = new List<(ICodeElement,MemberReferance)>();
+            var memberReferanceList = new List<(ICodeElement, ExplicitMemberName)>();
 
             foreach (var line in lines)
             {
-                if (line is AssignOperation assignOperation && assignOperation.right is MemberReferance memberDefinition)
+                if (line is AssignOperation assignOperation && assignOperation.right is ExplicitMemberName memberDefinition)
                 {
                     memberReferanceList.Add((assignOperation.left, memberDefinition));
                 }
@@ -120,18 +121,18 @@ namespace Tac._2_Parser
         }
 
 
-        public static MemberReferance[] DeepMemberReferances(this IEnumerable<ICodeElement> lines)
+        public static ExplicitMemberName[] DeepMemberReferances(this IEnumerable<ICodeElement> lines)
         {
-            var list = new List<MemberReferance>();
+            var list = new List<ExplicitMemberName>();
             foreach (var line in lines)
             {
                 list.AddRange(DeepMemberReferances(line));
             }
             return list.ToArray();
 
-            MemberReferance[] DeepMemberReferances(ICodeElement line)
+            ExplicitMemberName[] DeepMemberReferances(ICodeElement line)
             {
-                if (line is MemberReferance memberReferance)
+                if (line is ExplicitMemberName memberReferance)
                 {
                     return memberReferance.ToArray();
                 }
@@ -141,7 +142,7 @@ namespace Tac._2_Parser
                     return operation.Operands.SelectMany(DeepMemberReferances).ToArray();
                 }
 
-                return new MemberReferance[0];
+                return new ExplicitMemberName[0];
             }
         }
 
