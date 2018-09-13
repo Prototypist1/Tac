@@ -12,8 +12,8 @@ namespace Tac.Semantic_Model
         private static StaticScope root = new StaticScope();
 
         public static ExplicitTypeName Add(ExplicitTypeName name) {
-            var typeDefinition = new TypeDefinition(name, new ObjectScope());
-            if (!root.TryAddStaticType(typeDefinition)) {
+            var typeDefinition = new NamedTypeDefinition(name.Key, new ObjectScope());
+            if (!root.TryAddStaticType(typeDefinition,name.Key)) {
                 throw new Exception($"could not add type {typeDefinition}");
             }
             return name;
@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
         public static ExplicitTypeName AddGeneric(ExplicitTypeName name, GenericTypeParameterDefinition[] paramters)
         {
             var typeDefinition = new GenericTypeDefinition(
-                name,
+                name.Key,
                 new ObjectScope(),
                 paramters);
             if (!root.TryAddStaticGenericType(typeDefinition))

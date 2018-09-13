@@ -36,15 +36,14 @@ namespace Tac.Semantic_Model
             hashCode = hashCode * -1521134295 + EqualityComparer<MemberDefinition>.Default.GetHashCode(ParameterDefinition);
             return hashCode;
         }
-
+        
         public override ITypeDefinition ReturnType(ScopeStack scope) {
             return scope.GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name,  InputType, OutputType ));
         }
 
-        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition)
+        public ITypeDefinition GetTypeDefinition(ScopeStack scope)
         {
-            typeDefinition = scope.GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name, InputType, OutputType));
-            return true;
+            return scope.GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name, InputType, OutputType));
         }
     }
 }

@@ -299,14 +299,7 @@ namespace Tac.Parser
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch) {
 
-                ITypeSource name;
-                if (typeName == default)
-                {
-                    name = new AnonymousName();
-                }
-                else {
-                    name = new ExplicitTypeName(typeName.Item);
-                }
+
 
                 var scope = new ObjectScope();
                 
@@ -328,8 +321,15 @@ namespace Tac.Parser
                 {
                     scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2.Key,RootScope.AnyType));
                 }
-
-                element = new TypeDefinition(name, scope);
+                
+                if (typeName == default)
+                {
+                    element = new TypeDefinition(scope);
+                }
+                else
+                {
+                    element = new NamedTypeDefinition(new NameKey(typeName.Item), scope);
+                }
                 return true;
             }
 
@@ -346,9 +346,7 @@ namespace Tac.Parser
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch)
             {
-
-                var name = new ExplicitTypeName(typeName.Item);
-                
+                                
                 var scope = new ObjectScope();
 
                 var elements = TokenParser.ParseBlock(body, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope, scope)));
@@ -374,7 +372,7 @@ namespace Tac.Parser
 
                 var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();
                 
-                element = new GenericTypeDefinition(name, scope, genericParameters);
+                element = new GenericTypeDefinition(new NameKey(typeName.Item), scope, genericParameters);
                 return true;
             }
             
@@ -660,7 +658,7 @@ namespace Tac.Parser
                 !double.TryParse(first.Item, out var _))
             {
                 var at = ElementMatching.Match(self.Tokens.Skip(1));
-                if (GenericN(at,out var generics).IsMatch){
+                if (GenericN(at,out ITypeSource[] generics).IsMatch){
                     typeSource = new GenericExplicitTypeName(first.Item, generics);
                     return ElementMatching.Match(self.Tokens.Skip(2).ToArray());
                 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
@@ -13,9 +14,9 @@ namespace Tac.Semantic_Model
             return TryAdd(DefintionLifetime.Static, definition);
         }
         
-        public bool TryAddStaticType(TypeDefinition definition)
+        public bool TryAddStaticType(TypeDefinition definition, IKey key)
         {
-            return TryAdd(DefintionLifetime.Static, definition);
+            return TryAdd(DefintionLifetime.Static, key, definition);
         }
 
         public bool TryAddStaticGenericType(GenericTypeDefinition definition)

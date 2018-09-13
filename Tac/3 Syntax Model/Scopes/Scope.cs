@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
         
         protected bool TryAddGeneric(DefintionLifetime defintionLifetime, GenericTypeDefinition definition)
         {
-            var list = genericTypes.GetOrAdd(definition.Key.Key, new ConcurrentSet<Visiblity<GenericTypeDefinition>>());
+            var list = genericTypes.GetOrAdd(definition.Key, new ConcurrentSet<Visiblity<GenericTypeDefinition>>());
             var visiblity = new Visiblity<GenericTypeDefinition>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }

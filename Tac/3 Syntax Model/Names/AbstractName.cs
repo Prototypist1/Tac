@@ -13,9 +13,17 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model.Names
 {
-
-    public interface IKeyd {
+    public interface IKeyd
+    {
         IKey Key { get; }
+    }
+
+
+
+    public interface IKeyd<out TKey>: IKeyd
+        where TKey : IKey
+    {
+        new TKey Key { get; }
     }
 
     public interface IKey { }
@@ -65,7 +73,7 @@ namespace Tac.Semantic_Model.Names
     // TODO we also have types that are defined inline "annonymous types"
     // and types that are the result of operations &|! "calculated types"
     
-    public class ExplicitTypeName : ITypeSource, IKeyd
+    public class ExplicitTypeName : ITypeSource, IKeyd<NameKey>
     {
         public ExplicitTypeName(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
 
@@ -84,7 +92,9 @@ namespace Tac.Semantic_Model.Names
             return scope.GetType(this);
         }
 
-        public IKey Key => new NameKey(Name);
+        public NameKey Key => new NameKey(Name);
+
+        IKey IKeyd.Key => Key;
 
         public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType.GetTypeDefinition(scope);
     }
@@ -125,7 +135,7 @@ namespace Tac.Semantic_Model.Names
         MemberDefinition GetMemberDefinition(ScopeStack scopeStack);
     }
     
-    public class ExplicitMemberName : IMemberSource, IKeyd
+    public class ExplicitMemberName : IMemberSource, IKeyd<NameKey>
     {
         public ExplicitMemberName(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
 
@@ -138,7 +148,8 @@ namespace Tac.Semantic_Model.Names
         }
 
         public override int GetHashCode() => 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-        public IKey Key => new NameKey(Name);
+        public NameKey Key => new NameKey(Name);
+        IKey IKeyd.Key => Key;
         public MemberDefinition GetMemberDefinition(ScopeStack scope) => GetMemberDefinition(scope);
         public ITypeDefinition ReturnType(ScopeStack scope) => GetMemberDefinition(scope).Type.GetTypeDefinition(scope);
     }

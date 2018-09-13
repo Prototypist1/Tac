@@ -39,6 +39,30 @@ namespace Tac.Semantic_Model
         public ITypeDefinition ReturnType(ScopeStack scope) => scope.GetType(RootScope.TypeType);
     }
 
+    public class NamedTypeDefinition : TypeDefinition
+    {
+        public NamedTypeDefinition(IKey key, IScope scope) : base(scope) {
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+        }
+
+        public IKey Key { get; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is NamedTypeDefinition definition &&
+                   base.Equals(obj) &&
+                   EqualityComparer<IKey>.Default.Equals(Key, definition.Key);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -229860446;
+            hashCode = hashCode * -1521134295 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<IKey>.Default.GetHashCode(Key);
+            return hashCode;
+        }
+    }
+
     public class GenericTypeDefinition : ICodeElement, IKeyd
     {
         public GenericTypeDefinition(NameKey key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
