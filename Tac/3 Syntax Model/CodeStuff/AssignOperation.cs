@@ -7,14 +7,11 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class AssignOperation : BinaryOperation<ICodeElement, IMemberSource>, IScoped
+    public class AssignOperation : BinaryOperation<ICodeElement, IMemberSource>
     {
         public AssignOperation(ICodeElement left, IMemberSource right) : base(left, right)
         {
-            Scope = new AssignmentScope(left);
         }
-
-        public IScope Scope { get; } 
 
         public override bool Equals(object obj) => obj is AssignOperation other && base.Equals(other);
         public override int GetHashCode() => base.GetHashCode();

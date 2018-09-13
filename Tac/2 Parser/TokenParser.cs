@@ -24,7 +24,6 @@ namespace Tac.Parser
 
         public static ICodeElement ParseLine(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
-
             var state = new ParseState(tokens);
             if (state.TryGetStart(out var view))
             {

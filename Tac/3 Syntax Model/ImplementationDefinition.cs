@@ -59,23 +59,9 @@ namespace Tac.Semantic_Model
         }
 
         public ITypeDefinition ReturnType(ScopeStack scope) {
-            if (ContextType.TryGetTypeDefinition(scope, out var context) &&
-                InputType.TryGetTypeDefinition(scope, out var input) &&
-                OutputType.TryGetTypeDefinition(scope, out var output))
-            {
-                return  scope.GetGenericType(RootScope.ImplementationType,new[] { context, input, output });
-            }
-            throw new Exception("could not find ");
+                return scope.GetGenericType(new GenericExplicitTypeName(RootScope.ImplementationType.Name,new ITypeSource[] { ContextType, InputType, OutputType }));
         }
-
-        // this smells
-        // this is not written like a try
-        // it is just going to throw
-        // I expect I will get rid of all my tires
-        // when I try tacking errors
-        public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition) {
-            typeDefinition = scope.GetGenericType(RootScope.ImplementationType, new[] { ContextType.GetTypeDefinitionOrThrow(scope), InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope) });
-            return true;
-        }
+        
+        public ITypeDefinition GetTypeDefinition(ScopeStack scopeStack) => scopeStack.GetGenericType(new GenericExplicitTypeName(RootScope.ImplementationType.Name, new ITypeSource[] { ContextType, InputType, OutputType }));
     }
 }

@@ -340,7 +340,7 @@ namespace Tac.Parser
         {
             if (ElementMatching.Start(elementToken)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
-                .Has(ElementMatcher.GenericN, out AtomicToken[] genericTypes)
+                .Has(ElementMatcher.DefineGenericN, out AtomicToken[] genericTypes)
                 .Has(ElementMatcher.IsName, out AtomicToken typeName)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch)
@@ -669,8 +669,7 @@ namespace Tac.Parser
             typeSource = default;
             return ElementMatching.NotMatch(self.Tokens);
         }
-
-
+        
         public static ElementMatching IsNumber(ElementMatching self, out double res)
         {
             if (self.Tokens.Any() &&
@@ -735,7 +734,7 @@ namespace Tac.Parser
             return ElementMatching.NotMatch(elementMatching.Tokens);
         }
         
-        public static ElementMatching GenericN(ElementMatching elementMatching, out AtomicToken[] tokens)
+        public static ElementMatching DefineGenericN(ElementMatching elementMatching, out AtomicToken[] tokens)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
@@ -755,16 +754,35 @@ namespace Tac.Parser
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
-                    typeParameters.Tokens.All(x => x is LineToken firstLine &&
-                        firstLine.Tokens.Count() == 1 &&
-                        firstLine.Tokens.ElementAt(0) is AtomicToken))
+                typeParameters.Tokens.All(x => x is ElementToken) &&
+                TryToToken(out var res))
             {
-                types = typeParameters.Tokens.Select(x => (x as LineToken).Tokens.First() as AtomicToken).ToArray();
+                typeSources = res;
                 return ElementMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
             }
 
-            types = default;
+            typeSources = default;
             return ElementMatching.NotMatch(elementMatching.Tokens);
+
+            bool TryToToken(out ITypeSource[] typeSourcesInner)
+            {
+                var typeSourcesBuilding = new List<ITypeSource>();
+                foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
+                {
+                    var matcher = ElementMatching.Start(elementToken);
+                    if (matcher.Has(ElementMatcher.IsType, out ITypeSource typeSource).Has(IsDone).IsMatch)
+                    {
+                        typeSourcesBuilding.Add(typeSource);
+                    }
+                    else
+                    {
+                        typeSourcesInner = default;
+                        return false;
+                    }
+                }
+                typeSourcesInner = typeSourcesBuilding.ToArray();
+                return true;
+            }
         }
 
         public static ElementMatching Generic2(ElementMatching elementMatching, out AtomicToken type1, out AtomicToken type2)

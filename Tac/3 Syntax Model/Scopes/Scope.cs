@@ -124,12 +124,6 @@ namespace Tac.Semantic_Model
             type = thing.Definition;
             return false;
         }
-
-        public bool TryGetType(ImplicitTypeReferance key, out Func<ScopeStack, ITypeDefinition> item)
-        {
-            item = default;
-            return false;
-        }
     }
 
 }
