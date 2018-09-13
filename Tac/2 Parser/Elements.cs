@@ -262,7 +262,7 @@ namespace Tac.Parser
                 var parameterDefinition = new MemberDefinition(
                         false,
                         new ExplicitMemberName(parameterName?.Item ?? "input"),
-                        new TypeReferance(inputType.Item)
+                        new ExplicitTypeName(inputType.Item)
                         );
 
 
@@ -279,7 +279,7 @@ namespace Tac.Parser
                 }
 
                 element = new MethodDefinition(
-                    new TypeReferance(outputType.Item),
+                    new ExplicitTypeName(outputType.Item),
                     parameterDefinition,
                     elements,
                     methodScope,
@@ -299,13 +299,13 @@ namespace Tac.Parser
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch) {
 
-                AbstractMemberName name;
+                ITypeSource name;
                 if (typeName == default)
                 {
                     name = new AnonymousName();
                 }
                 else {
-                    name = new ExplicitMemberName(typeName.Item);
+                    name = new ExplicitTypeName(typeName.Item);
                 }
 
                 var scope = new ObjectScope();
@@ -347,7 +347,7 @@ namespace Tac.Parser
                 .IsMatch)
             {
 
-                var name = new ExplicitMemberName(typeName.Item);
+                var name = new ExplicitTypeName(typeName.Item);
                 
                 var scope = new ObjectScope();
 
@@ -409,7 +409,7 @@ namespace Tac.Parser
                 var contextDefinition = new MemberDefinition(
                         false,
                         new ExplicitMemberName(parameterName?.Item ?? "context"),
-                        new TypeReferance(contextType.Item)
+                        new ExplicitTypeName(contextType.Item)
                         );
 
                 methodScope.TryAddParameter(contextDefinition);
@@ -417,7 +417,7 @@ namespace Tac.Parser
                 var parameterDefinition = new MemberDefinition(
                         false,
                         new ExplicitMemberName(parameterName?.Item ?? "input"),
-                        new TypeReferance(inputType.Item)
+                        new ExplicitTypeName(inputType.Item)
                         );
 
 
@@ -435,7 +435,7 @@ namespace Tac.Parser
 
                 element = new ImplementationDefinition(
                     contextDefinition,
-                    new TypeReferance(outputType.Item),
+                    new ExplicitTypeName(outputType.Item),
                     parameterDefinition,
                     elements,
                     methodScope,
@@ -510,7 +510,7 @@ namespace Tac.Parser
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                element = new MemberReferance(first.Item);
+                element = new ExplicitMemberName(first.Item);
 
                 return true;
             }
@@ -665,7 +665,7 @@ namespace Tac.Parser
                     return ElementMatching.Match(self.Tokens.Skip(2).ToArray());
                 }
 
-                typeSource = new ExplicitMemberName(first.Item);
+                typeSource = new ExplicitTypeName(first.Item);
                 return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 
@@ -735,6 +735,22 @@ namespace Tac.Parser
             type1 = default;
             type2 = default;
             type3 = default;
+            return ElementMatching.NotMatch(elementMatching.Tokens);
+        }
+        
+        public static ElementMatching GenericN(ElementMatching elementMatching, out AtomicToken[] tokens)
+        {
+            if (elementMatching.Tokens.Any() &&
+                elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
+                    typeParameters.Tokens.All(x => x is LineToken firstLine &&
+                        firstLine.Tokens.Count() == 1 &&
+                        firstLine.Tokens.ElementAt(0) is AtomicToken))
+            {
+                tokens = typeParameters.Tokens.Select(x => (x as LineToken).Tokens.First() as AtomicToken).ToArray();
+                return ElementMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+            }
+
+            tokens = default;
             return ElementMatching.NotMatch(elementMatching.Tokens);
         }
 

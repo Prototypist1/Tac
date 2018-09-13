@@ -170,7 +170,7 @@ namespace Tac.Semantic_Model
                         return memberDefinition;
                     }
                 }
-                return new MemberDefinition(false, name, new NameTypeSource(RootScope.AnyType));
+                return new MemberDefinition(false, name, RootScope.AnyType);
             }
         }
     }

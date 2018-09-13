@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac.Semantic_Model.CodeStuff;
+using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
@@ -37,21 +38,12 @@ namespace Tac.Semantic_Model
         }
 
         public override ITypeDefinition ReturnType(ScopeStack scope) {
-            if (!InputType.TryGetTypeDefinition(scope, out var input)) {
-                throw new Exception($"could not find a type assocated with {InputType}");
-            }
-
-            if (!OutputType.TryGetTypeDefinition(scope, out var output))
-            {
-                throw new Exception($"could not find a type assocated with {OutputType}");
-            }
-            
-            return scope.GetGenericType(RootScope.MethodType, new ITypeDefinition[] { input, output });
+            return scope.GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name,  InputType, OutputType ));
         }
 
         public bool TryGetTypeDefinition(ScopeStack scope, out ITypeDefinition typeDefinition)
         {
-            typeDefinition = scope.GetGenericType(RootScope.MethodType, new ITypeDefinition[] { InputType.GetTypeDefinitionOrThrow(scope), OutputType.GetTypeDefinitionOrThrow(scope) });
+            typeDefinition = scope.GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name, InputType, OutputType));
             return true;
         }
     }

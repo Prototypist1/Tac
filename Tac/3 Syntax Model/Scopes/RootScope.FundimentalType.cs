@@ -11,45 +11,46 @@ namespace Tac.Semantic_Model
         public static IScope Root { get => Root; }
         private static StaticScope root = new StaticScope();
 
-        public static ITypeSource Add(TypeDefinition typeDefinition) {
+        public static ExplicitTypeName Add(ExplicitTypeName name) {
+            var typeDefinition = new TypeDefinition(name, new ObjectScope());
             if (!root.TryAddStaticType(typeDefinition)) {
                 throw new Exception($"could not add type {typeDefinition}");
             }
-            return typeDefinition.Key;
+            return name;
         }
 
-        public static ITypeSource AddGeneric(GenericTypeDefinition typeDefinition)
+        public static ExplicitTypeName AddGeneric(ExplicitTypeName name, GenericTypeParameterDefinition[] paramters)
         {
+            var typeDefinition = new GenericTypeDefinition(
+                name,
+                new ObjectScope(),
+                paramters);
             if (!root.TryAddStaticGenericType(typeDefinition))
             {
                 throw new Exception($"could not add type {typeDefinition}");
             }
-            return typeDefinition.Key;
+            return name;
         }
         
-        public static ITypeSource StringType { get; } = Add(new TypeDefinition(new ExplicitTypeName("String"), new ObjectScope()));
-        public static ITypeSource NumberType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Number"), new ObjectScope()));
-        public static ITypeSource EmptyType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Empty"), new ObjectScope()));
-        public static ITypeSource AnyType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Any"), new ObjectScope()));
-        public static ITypeSource BooleanType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Bool"), new ObjectScope()));
-        public static ITypeSource TypeType { get; } = Add(new TypeDefinition(new ExplicitTypeName("Type"), new ObjectScope()));
+        public static ExplicitTypeName StringType { get; } = Add(new ExplicitTypeName("String"));
+        public static ExplicitTypeName NumberType { get; } = Add(new ExplicitTypeName("Number"));
+        public static ExplicitTypeName EmptyType { get; } = Add(new ExplicitTypeName("Empty"));
+        public static ExplicitTypeName AnyType { get; } = Add(new ExplicitTypeName("Any"));
+        public static ExplicitTypeName BooleanType { get; } = Add(new ExplicitTypeName("Bool"));
+        public static ExplicitTypeName TypeType { get; } = Add(new ExplicitTypeName("Type"));
 
-        public static ITypeSource MethodType { get; } = AddGeneric(
-            new GenericTypeDefinition(
+        public static ExplicitTypeName MethodType { get; } = AddGeneric(
                 new ExplicitTypeName("Method"),
-                new ObjectScope(), 
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("Input"),
-                    new GenericTypeParameterDefinition("Output") }));
+                    new GenericTypeParameterDefinition("Output") });
 
-        public static ITypeSource ImplementationType { get; } = AddGeneric(
-            new GenericTypeDefinition(
+        public static ExplicitTypeName ImplementationType { get; } = AddGeneric(
                 new ExplicitTypeName("Implementation"),
-                new ObjectScope(),
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("Context"),
                     new GenericTypeParameterDefinition("Input"),
-                    new GenericTypeParameterDefinition("Output") }));
+                    new GenericTypeParameterDefinition("Output") });
     }
 
 }

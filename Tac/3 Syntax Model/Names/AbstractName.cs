@@ -14,6 +14,28 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model.Names
 {
 
+    public interface IKeyd {
+        IKey Key { get; }
+    }
+
+    public interface IKey { }
+    
+    public class NameKey: IKey
+    {
+        public NameKey(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
+
+        public string Name { get; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is NameKey key &&
+                   Name == key.Name;
+        }
+
+        public override int GetHashCode() => 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+    }
+
+
     public interface ITypeSource : ICodeElement
     {
         ITypeDefinition GetTypeDefinition(ScopeStack scopeStack);
@@ -37,13 +59,14 @@ namespace Tac.Semantic_Model.Names
             return CodeElement.ReturnType(scope);
         }
 
-        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType;
+        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType.GetTypeDefinition(scope);
     }
 
     // TODO we also have types that are defined inline "annonymous types"
     // and types that are the result of operations &|! "calculated types"
     
-    public class ExplicitTypeName : ITypeSource {
+    public class ExplicitTypeName : ITypeSource, IKeyd
+    {
         public ExplicitTypeName(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
 
         public string Name { get; }
@@ -61,10 +84,12 @@ namespace Tac.Semantic_Model.Names
             return scope.GetType(this);
         }
 
-        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType;
+        public IKey Key => new NameKey(Name);
+
+        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType.GetTypeDefinition(scope);
     }
     
-    public class GenericExplicitTypeName : ExplicitTypeName
+    public class GenericExplicitTypeName : ExplicitTypeName, IKeyd
     {
         public GenericExplicitTypeName(string name, params ITypeSource[] types) : base(name)
         {
@@ -100,7 +125,7 @@ namespace Tac.Semantic_Model.Names
         MemberDefinition GetMemberDefinition(ScopeStack scopeStack);
     }
     
-    public class ExplicitMemberName : IMemberSource
+    public class ExplicitMemberName : IMemberSource, IKeyd
     {
         public ExplicitMemberName(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
 
@@ -113,6 +138,7 @@ namespace Tac.Semantic_Model.Names
         }
 
         public override int GetHashCode() => 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+        public IKey Key => new NameKey(Name);
         public MemberDefinition GetMemberDefinition(ScopeStack scope) => GetMemberDefinition(scope);
         public ITypeDefinition ReturnType(ScopeStack scope) => GetMemberDefinition(scope).Type.GetTypeDefinition(scope);
     }

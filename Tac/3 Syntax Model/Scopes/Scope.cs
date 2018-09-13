@@ -33,35 +33,35 @@ namespace Tac.Semantic_Model
     {
         protected bool TryAdd(DefintionLifetime defintionLifetime, MemberDefinition definition)
         {
-            var list = members.GetOrAdd(definition.Key, new ConcurrentSet<Visiblity<MemberDefinition>>());
+            var list = members.GetOrAdd(definition.Key.Key, new ConcurrentSet<Visiblity<MemberDefinition>>());
             var visiblity = new Visiblity<MemberDefinition>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
 
-        protected bool TryAdd(DefintionLifetime defintionLifetime, TypeDefinition definition)
+        protected bool TryAdd(DefintionLifetime defintionLifetime,IKey key, TypeDefinition definition)
         {
-            var list = types.GetOrAdd(definition.Key, new ConcurrentSet<Visiblity<TypeDefinition>>());
+            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<TypeDefinition>>());
             var visiblity = new Visiblity<TypeDefinition>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
         
         protected bool TryAddGeneric(DefintionLifetime defintionLifetime, GenericTypeDefinition definition)
         {
-            var list = genericTypes.GetOrAdd(definition.Key, new ConcurrentSet<Visiblity<GenericTypeDefinition>>());
+            var list = genericTypes.GetOrAdd(definition.Key.Key, new ConcurrentSet<Visiblity<GenericTypeDefinition>>());
             var visiblity = new Visiblity<GenericTypeDefinition>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
 
-        private readonly ConcurrentDictionary<ExplicitMemberName, ConcurrentSet<Visiblity<MemberDefinition>>> members
-            = new ConcurrentDictionary<ExplicitMemberName, ConcurrentSet<Visiblity<MemberDefinition>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<MemberDefinition>>> members
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<MemberDefinition>>>();
 
-        private readonly ConcurrentDictionary<ExplicitTypeName, ConcurrentSet<Visiblity<TypeDefinition>>> types
-            = new ConcurrentDictionary<ExplicitTypeName, ConcurrentSet<Visiblity<TypeDefinition>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<TypeDefinition>>> types
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<TypeDefinition>>>();
 
-        private readonly ConcurrentDictionary<ExplicitTypeName, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<ExplicitTypeName, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
         
         public bool TryGetMember(ExplicitMemberName name, bool staticOnly, out MemberDefinition member) {
-            if (!members.TryGetValue(name, out var items)) {
+            if (!members.TryGetValue(name.Key, out var items)) {
                 member = default;
                 return false;
             }
@@ -79,7 +79,7 @@ namespace Tac.Semantic_Model
 
         public bool TryGetGenericType(ExplicitTypeName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
         {
-            if (!genericTypes.TryGetValue(name, out var genericItems))
+            if (!genericTypes.TryGetValue(name.Key, out var genericItems))
             {
                 typeDefinition = default;
                 return false;
@@ -107,7 +107,7 @@ namespace Tac.Semantic_Model
 
         public bool TryGetType(ExplicitTypeName name, out ITypeDefinition type)
         {
-            if (!types.TryGetValue(name, out var items))
+            if (!types.TryGetValue(name.Key, out var items))
             {
                 type = default;
                 return false;

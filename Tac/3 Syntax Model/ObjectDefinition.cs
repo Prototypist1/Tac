@@ -8,30 +8,30 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ObjectDefinition: ITypeDefinition<ObjectScope>, ICodeElement
+    public sealed class ObjectDefinition: ITypeDefinition, ICodeElement
     {
         public ObjectDefinition(ObjectScope scope, IEnumerable<ICodeElement> codeElements) {
             Scope = scope;
             CodeElements = codeElements.ToArray();
         }
 
-        public ObjectScope Scope { get; }
+        public IScope Scope { get; }
         public ICodeElement[] CodeElements { get; }
 
         public override bool Equals(object obj)
         {
             return obj is ObjectDefinition definition &&
-                   EqualityComparer<ObjectScope>.Default.Equals(Scope, definition.Scope);
+                   EqualityComparer<IScope>.Default.Equals(Scope, definition.Scope);
         }
 
         public override int GetHashCode()
         {
             var hashCode = 1953067843;
-            hashCode = hashCode * -1521134295 + EqualityComparer<ObjectScope>.Default.GetHashCode(Scope);
+            hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(Scope);
             return hashCode;
         }
 
-        public ITypeDefinition<IScope> ReturnType(ScopeStack scope) {
+        public ITypeDefinition ReturnType(ScopeStack scope) {
             return this;
         }
     }

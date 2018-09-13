@@ -26,7 +26,7 @@ namespace Tac.Semantic_Model
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
             foreach (var typeParameter in typeParameters)
             {
-                if (!RealizedGenericTypes.TryAdd(typeParameter.Definition.Name, typeParameter.TypeDefinition)) {
+                if (!RealizedGenericTypes.TryAdd(new ExplicitTypeName(typeParameter.Definition.Name), typeParameter.TypeDefinition)) {
                     throw new Exception("uhh these should add");
                 }
             }
