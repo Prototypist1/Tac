@@ -10,7 +10,7 @@ namespace Tac.Semantic_Model
     // really really not sure how these work atm
     // for now they just hold everything you need to ake a method
 
-    public sealed class ImplementationDefinition: ITypeSource, ITypeDefinition
+    public class ImplementationDefinition: ITypeSource, ITypeDefinition
     {
         public ImplementationDefinition(MemberDefinition contextDefinition, ITypeSource outputType, MemberDefinition parameterDefinition, IEnumerable<ICodeElement> metohdBody, IScope scope, IEnumerable<ICodeElement> staticInitializers)
         {

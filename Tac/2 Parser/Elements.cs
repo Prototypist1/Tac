@@ -11,20 +11,73 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
+    public interface IElementBuilder<
+        out TMemberDefinition,
+        out TExplicitMemberName,
+        out TExplicitTypeName,
+        out TGenericExplicitTypeName,
+        out TImplicitTypeReferance,
+        out TObjectDefinition,
+        out TModuleDefinition,
+        out TMethodDefinition,
+        out TNamedTypeDefinition,
+        out TTypeDefinition,
+        out TGenericTypeDefinition,
+        out TImplementationDefinition,
+        out TBlockDefinition,
+        out TConstantNumber,
+        T
+        >
+        where TMemberDefinition : MemberDefinition, T
+        where TExplicitMemberName : ExplicitMemberName, T
+        where TExplicitTypeName : ExplicitTypeName, T
+        where TGenericExplicitTypeName : GenericExplicitTypeName, T
+        where TImplicitTypeReferance : ImplicitTypeReferance, T
+        where TObjectDefinition : ObjectDefinition, T
+        where TModuleDefinition : ModuleDefinition, T
+        where TMethodDefinition : MethodDefinition, T
+        where TNamedTypeDefinition : NamedTypeDefinition, T
+        where TTypeDefinition : TypeDefinition, T
+        where TGenericTypeDefinition : GenericTypeDefinition, T
+        where TImplementationDefinition : ImplementationDefinition, T
+        where TBlockDefinition : BlockDefinition, T
+        where TConstantNumber : ConstantNumber, T
+    {
+        TMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeSource explicitTypeName);
+        TExplicitMemberName ExplicitMemberName(string item);
+        TExplicitTypeName ExplicitTypeName(string item);
+        TGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeSource[] tokenSources);
+        TImplicitTypeReferance ImplicitTypeReferance(ICodeElement left);
+        TObjectDefinition ObjectDefinition(ObjectScope scope, IReadOnlyList<AssignOperation> assignOperations);
+        TModuleDefinition ModuleDefinition(StaticScope scope, IReadOnlyList<AssignOperation> assignOperations);
+        TMethodDefinition MethodDefinition(ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
+        TTypeDefinition TypeDefinition(ObjectScope scope);
+        TNamedTypeDefinition NamedTypeDefinition(NameKey nameKey, ObjectScope scope);
+        TGenericTypeDefinition GenericTypeDefinition(NameKey nameKey, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters);
+        TImplementationDefinition ImplementationDefinition(MemberDefinition contextDefinition, ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
+        TBlockDefinition BlockDefinition(ICodeElement[] elements, LocalStaticScope scope, ICodeElement[] codeElement);
+        TConstantNumber ConstantNumber(double dub);
+    }
+
     public class ElementMatchingContext {
-        public ElementMatchingContext(ScopeStack enclosingScope, IEnumerable<TryMatch> elementMatchers)
+
+        public ElementMatchingContext Child(IScope scope) => new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder);
+        
+
+        public ElementMatchingContext(ScopeStack enclosingScope, IElementBuilder<MemberDefinition,ExplicitMemberName,
+ExplicitTypeName, GenericExplicitTypeName,ImplicitTypeReferance,ObjectDefinition,ModuleDefinition,MethodDefinition,NamedTypeDefinition,
+TypeDefinition,GenericTypeDefinition,ImplementationDefinition,BlockDefinition,ConstantNumber,object> elementBuilder)
         {
             EnclosingScope = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
-            ElementMatchers = elementMatchers ?? throw new ArgumentNullException(nameof(elementMatchers));
+            ElementBuilder = elementBuilder ?? throw new ArgumentNullException(nameof(elementBuilder));
         }
 
+        public IElementBuilder<MemberDefinition, ExplicitMemberName,
+ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
+TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, object> ElementBuilder { get; }
         public ScopeStack EnclosingScope { get; }
-        
-        public IEnumerable<TryMatch> ElementMatchers { get; }
-        
-        public static ElementMatchingContext StandMatchingContext(ScopeStack enclosingScope) =>
-             new ElementMatchingContext(enclosingScope, 
-                new List<TryMatch> {
+
+        public static IEnumerable<TryMatch> ElementMatchers { get; } = new List<TryMatch> {
                     MatchObjectDefinition,
                     MatchLocalDefinition_Var,
                     MatchGenericTypeDefinition,
@@ -34,11 +87,8 @@ namespace Tac.Parser
                     MatchBlockDefinition,
                     MatchConstantNumber,
                     MatchReferance
-                });
-
-
-        public static ElementMatchingContext StandMatchingContext() => StandMatchingContext(new ScopeStack(new IScope[] { }));
-
+                };
+        
         public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out object element);
         
         public static bool MatchLocalDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
@@ -87,7 +137,10 @@ namespace Tac.Parser
 
                 var readOnly = readonlyToken != default;
 
-                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new ExplicitTypeName(typeToken.Item));
+                element = matchingContext.ElementBuilder.MemberDefinition(
+                    readOnly,
+                    matchingContext.ElementBuilder.ExplicitMemberName(nameToken.Item),
+                    matchingContext.ElementBuilder.ExplicitTypeName(typeToken.Item));
 
                 return true;
             }
@@ -110,7 +163,10 @@ namespace Tac.Parser
             {
                 var readOnly = readonlyToken != default;
 
-                element = new MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), new GenericExplicitTypeName(typeToken.Item, tokenSources));
+                element = matchingContext.ElementBuilder.MemberDefinition(
+                    readOnly, 
+                    matchingContext.ElementBuilder.ExplicitMemberName(nameToken.Item),
+                    matchingContext.ElementBuilder.GenericExplicitTypeName(typeToken.Item, tokenSources));
 
                 return true;
             }
@@ -151,7 +207,7 @@ namespace Tac.Parser
             {
                 var scope = new ObjectScope();
                 
-                var elements = TokenParser.ParseBlock(block, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope,scope)));
+                var elements = TokenParser.ParseBlock(block, matchingContext.Child(scope));
                 
                 if (elements.ExtractTopLevelAssignOperations(out var assignOperations).Any())
                 {
@@ -172,10 +228,14 @@ namespace Tac.Parser
 
                 foreach (var (left, memberReferance) in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false, memberReferance, new ImplicitTypeReferance(left)));
+                    scope.TryAddLocalMember(
+                        matchingContext.ElementBuilder.MemberDefinition(
+                            false,
+                            memberReferance, 
+                            matchingContext.ElementBuilder.ImplicitTypeReferance(left)));
                 }
                 
-                element = new ObjectDefinition(scope, assignOperations);
+                element = matchingContext.ElementBuilder.ObjectDefinition(scope, assignOperations);
 
                 return true;
             }
@@ -194,7 +254,7 @@ namespace Tac.Parser
 
                 var scope = new StaticScope();
 
-                var elements = TokenParser.ParseBlock(third, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope, scope)));
+                var elements = TokenParser.ParseBlock(third, matchingContext.Child(scope));
                 
                 if (elements
                     .ExtractTopLevelAssignOperations(out var assignOperations)
@@ -219,7 +279,7 @@ namespace Tac.Parser
 
                 foreach (var (left, memberReferance) in memberReferances)
                 {
-                    scope.TryAddStaticMember(new MemberDefinition(false, memberReferance, new ImplicitTypeReferance(left)));
+                    scope.TryAddStaticMember(matchingContext.ElementBuilder.MemberDefinition(false, memberReferance, matchingContext.ElementBuilder.ImplicitTypeReferance(left)));
                 }
 
 
@@ -228,7 +288,7 @@ namespace Tac.Parser
                     scope.TryAddStaticType(type);
                 }
 
-                element = new ModuleDefinition(scope, assignOperations);
+                element = matchingContext.ElementBuilder.ModuleDefinition(scope, assignOperations);
 
             }
             element = default;
@@ -248,8 +308,8 @@ namespace Tac.Parser
 
                 var methodScope = new MethodScope();
 
-                var enclosingScope = new ScopeStack(matchingContext.EnclosingScope, methodScope);
-                var elements = TokenParser.ParseBlock(body, StandMatchingContext(enclosingScope));
+                var innerMatchingScope = matchingContext.Child(methodScope);
+                var elements = TokenParser.ParseBlock(body, innerMatchingScope);
 
                 var definitions = elements.DeepMemberDefinitions();
 
@@ -258,10 +318,10 @@ namespace Tac.Parser
                     methodScope.TryAddLocal(definition);
                 }
                 
-                var parameterDefinition = new MemberDefinition(
+                var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
-                        new ExplicitMemberName(parameterName?.Item ?? "input"),
-                        new ExplicitTypeName(inputType.Item)
+                        matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
+                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item)
                         );
 
 
@@ -271,14 +331,17 @@ namespace Tac.Parser
 
                 foreach (var referance in referances)
                 {
-                    if (enclosingScope.GetMemberOrDefault(referance) == null)
+                    if (innerMatchingScope.EnclosingScope.GetMemberOrDefault(referance) == null)
                     {
-                        methodScope.TryAddLocal(new MemberDefinition(false,referance,RootScope.AnyType));
+                        methodScope.TryAddLocal(matchingContext.ElementBuilder.MemberDefinition(
+                            false,
+                            referance,
+                            RootScope.AnyType));
                     }
                 }
 
-                element = new MethodDefinition(
-                    new ExplicitTypeName(outputType.Item),
+                element = matchingContext.ElementBuilder.MethodDefinition(
+                    matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item),
                     parameterDefinition,
                     elements,
                     methodScope,
@@ -302,7 +365,7 @@ namespace Tac.Parser
 
                 var scope = new ObjectScope();
                 
-                var elements = TokenParser.ParseBlock(body, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope, scope)));
+                var elements = TokenParser.ParseBlock(body, matchingContext.Child(scope));
 
                 if (elements
                     .ExtractMemberDefinitions(out var memberDefinitions)
@@ -323,11 +386,13 @@ namespace Tac.Parser
                 
                 if (typeName == default)
                 {
-                    element = new TypeDefinition(scope);
+                    element = matchingContext.ElementBuilder.TypeDefinition(scope);
                 }
                 else
                 {
-                    element = new NamedTypeDefinition(new NameKey(typeName.Item), scope);
+                    element = matchingContext.ElementBuilder.NamedTypeDefinition(
+                        new NameKey(typeName.Item), 
+                        scope);
                 }
                 return true;
             }
@@ -348,7 +413,7 @@ namespace Tac.Parser
                                 
                 var scope = new ObjectScope();
 
-                var elements = TokenParser.ParseBlock(body, StandMatchingContext(new ScopeStack(matchingContext.EnclosingScope, scope)));
+                var elements = TokenParser.ParseBlock(body, matchingContext.Child(scope));
                 
                 if (elements
                     .ExtractMemberDefinitions(out var memberDefinitions)
@@ -366,12 +431,16 @@ namespace Tac.Parser
                 
                 foreach (var memberRef in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2, RootScope.AnyType));
+                    scope.TryAddLocalMember(
+                        matchingContext.ElementBuilder.MemberDefinition(
+                            false, 
+                            memberRef.Item2, 
+                            RootScope.AnyType));
                 }
 
                 var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();
                 
-                element = new GenericTypeDefinition(new NameKey(typeName.Item), scope, genericParameters);
+                element = matchingContext.ElementBuilder.GenericTypeDefinition(new NameKey(typeName.Item), scope, genericParameters);
                 return true;
             }
             
@@ -393,8 +462,8 @@ namespace Tac.Parser
 
                 var methodScope = new MethodScope();
 
-                var enclosingScope = new ScopeStack(matchingContext.EnclosingScope, methodScope);
-                var elements = TokenParser.ParseBlock(body, StandMatchingContext(enclosingScope));
+                var newMatchingContext = matchingContext.Child(methodScope);
+                var elements = TokenParser.ParseBlock(body, newMatchingContext);
 
                 var definitions = elements.DeepMemberDefinitions();
 
@@ -403,18 +472,18 @@ namespace Tac.Parser
                     methodScope.TryAddLocal(definition);
                 }
                 
-                var contextDefinition = new MemberDefinition(
+                var contextDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
-                        new ExplicitMemberName(parameterName?.Item ?? "context"),
-                        new ExplicitTypeName(contextType.Item)
+                        matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "context"),
+                        matchingContext.ElementBuilder.ExplicitTypeName(contextType.Item)
                         );
 
                 methodScope.TryAddParameter(contextDefinition);
 
-                var parameterDefinition = new MemberDefinition(
+                var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
-                        new ExplicitMemberName(parameterName?.Item ?? "input"),
-                        new ExplicitTypeName(inputType.Item)
+                        matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
+                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item)
                         );
 
 
@@ -424,15 +493,19 @@ namespace Tac.Parser
 
                 foreach (var referance in referances)
                 {
-                    if (enclosingScope.GetMemberOrDefault(referance) == null)
+                    if (newMatchingContext.EnclosingScope.GetMemberOrDefault(referance) == null)
                     {
-                        methodScope.TryAddLocal(new MemberDefinition(false, referance, RootScope.AnyType));
+                        methodScope.TryAddLocal(
+                            matchingContext.ElementBuilder.MemberDefinition(
+                                false, 
+                                referance, 
+                                RootScope.AnyType));
                     }
                 }
 
-                element = new ImplementationDefinition(
+                element = matchingContext.ElementBuilder.ImplementationDefinition(
                     contextDefinition,
-                    new ExplicitTypeName(outputType.Item),
+                    matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item),
                     parameterDefinition,
                     elements,
                     methodScope,
@@ -454,8 +527,8 @@ namespace Tac.Parser
             {
                 var scope = new LocalStaticScope();
 
-                var enclosingScope = new ScopeStack(matchingContext.EnclosingScope, scope);
-                var elements = TokenParser.ParseBlock(body, StandMatchingContext(enclosingScope));
+                var innerMatchingContext = matchingContext.Child(scope);
+                var elements = TokenParser.ParseBlock(body, innerMatchingContext);
 
                 var definitions = elements.DeepMemberDefinitions();
 
@@ -468,13 +541,13 @@ namespace Tac.Parser
 
                 foreach (var referance in referances)
                 {
-                    if (enclosingScope.GetMemberOrDefault(referance) == null)
+                    if (innerMatchingContext.EnclosingScope.GetMemberOrDefault(referance) == null)
                     {
-                        scope.TryAddLocal(new MemberDefinition(false, referance, RootScope.AnyType));
+                        scope.TryAddLocal(matchingContext.ElementBuilder.MemberDefinition(false, referance, RootScope.AnyType));
                     }
                 }
                 
-                element = new BlockDefinition(
+                element = matchingContext.ElementBuilder.BlockDefinition(
                     elements, scope, new ICodeElement[0]);
 
                 return true;
@@ -491,7 +564,7 @@ namespace Tac.Parser
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                element = new ConstantNumber(dub);
+                element = matchingContext.ElementBuilder.ConstantNumber(dub);
 
                 return true;
             }
@@ -507,7 +580,7 @@ namespace Tac.Parser
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                element = new ExplicitMemberName(first.Item);
+                element = matchingContext.ElementBuilder.ExplicitMemberName(first.Item);
 
                 return true;
             }

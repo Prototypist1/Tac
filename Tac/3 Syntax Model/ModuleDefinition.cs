@@ -6,7 +6,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public sealed class ModuleDefinition : IScoped, ICodeElement 
+    public class ModuleDefinition : IScoped, ICodeElement 
     {
         public ModuleDefinition(IScope scope, IEnumerable<ICodeElement> staticInitialization)
         {

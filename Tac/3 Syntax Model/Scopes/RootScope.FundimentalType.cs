@@ -31,7 +31,8 @@ namespace Tac.Semantic_Model
             }
             return name;
         }
-        
+
+        // these need to move to IElementBuilder
         public static ExplicitTypeName StringType { get; } = Add(new ExplicitTypeName("String"));
         public static ExplicitTypeName NumberType { get; } = Add(new ExplicitTypeName("Number"));
         public static ExplicitTypeName EmptyType { get; } = Add(new ExplicitTypeName("Empty"));

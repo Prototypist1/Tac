@@ -50,10 +50,7 @@ namespace Tac.Semantic_Model.Names
     }
     
     // var
-    // TODO the way this works...
-    // IScope does not need that weird backdoor for implicitTypes...
-    // TODO remove!
-    public sealed class ImplicitTypeReferance : ITypeSource
+    public class ImplicitTypeReferance : ITypeSource
     {
         public ImplicitTypeReferance(ICodeElement codeElement) => CodeElement = codeElement ?? throw new ArgumentNullException(nameof(codeElement));
 

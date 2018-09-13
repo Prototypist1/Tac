@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
 
-    public sealed class MemberDefinition: ICodeElement, IMemberSource
+    public class MemberDefinition: ICodeElement, IMemberSource
     {
         public MemberDefinition(bool readOnly, ExplicitMemberName key, ITypeSource type)
         {
