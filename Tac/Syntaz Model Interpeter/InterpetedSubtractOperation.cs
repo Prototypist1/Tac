@@ -8,5 +8,12 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedSubtractOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
+
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            return new InterpetedResult(
+                left.Cast<IInterpeted>().Interpet(interpetedContext).Get<double>() +
+                right.Cast<IInterpeted>().Interpet(interpetedContext).Get<double>());
+        }
     }
 }

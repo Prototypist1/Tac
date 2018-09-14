@@ -7,5 +7,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedConstantNumber(double value) : base(value)
         {
         }
+
+        public InterpetedResult Interpet(InterpetedContext interpetedContext) => new InterpetedResult(Value);
     }
 }

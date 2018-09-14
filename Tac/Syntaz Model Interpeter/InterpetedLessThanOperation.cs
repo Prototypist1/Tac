@@ -1,4 +1,5 @@
-﻿using Tac.Semantic_Model.CodeStuff;
+﻿using Prototypist.LeftToRight;
+using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -6,6 +7,14 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public InterpetedLessThanOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
+        }
+
+
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            return new InterpetedResult(
+                left.Cast<IInterpeted>().Interpet(interpetedContext).Get<double>() <
+                right.Cast<IInterpeted>().Interpet(interpetedContext).Get<double>());
         }
     }
 }

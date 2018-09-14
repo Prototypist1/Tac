@@ -9,12 +9,33 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedContext {
+    public class InterpetedContext {}
+    
+    public class InterpetedResult
+    {
+        public InterpetedResult(object value) {
+            Value = value ?? throw new ArgumentNullException(nameof(value));
+            HasValue = true;
+        }
+        public InterpetedResult() {
+            HasValue = false;
+        }
 
+        private bool HasValue { get; }
+        private object Value { get; }
+
+        public T Get<T>()
+        {
+            if (HasValue)
+            {
+                throw new Exception($"{nameof(InterpetedResult)} does not have a value");
+            }
+            return (T)Value;
+        }
     }
 
     public interface IInterpeted {
-        InterpetedContext Interpet(InterpetedContext interpetedContext);
+        InterpetedResult Interpet(InterpetedContext interpetedContext);
     }
 
     class InterpeterElementBuilder : IElementBuilder<
