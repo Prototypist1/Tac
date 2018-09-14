@@ -79,7 +79,6 @@ namespace Tac.Parser
         TModuleDefinition ModuleDefinition(StaticScope scope, IReadOnlyList<AssignOperation> assignOperations);
         TMethodDefinition MethodDefinition(ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
         TAssignOperation AssignOperation(ICodeElement codeElement, IMemberSource memberSource);
-        TAssignOperation AssignOperation(ICodeElement codeElement, MemberDefinition memberDef);
         TTypeDefinition TypeDefinition(ObjectScope scope);
         TNamedTypeDefinition NamedTypeDefinition(NameKey nameKey, ObjectScope scope);
         TGenericTypeDefinition GenericTypeDefinition(NameKey nameKey, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters);
