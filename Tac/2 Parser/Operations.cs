@@ -39,24 +39,26 @@ namespace Tac.Parser
             }
         }
 
-        public static Lazy<Operations> StandardOperations = new Lazy<Operations>(() =>
+        public static Operations StandardOperations(IElementBuilder<MemberDefinition, ExplicitMemberName,
+ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
+TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> elementBuilder)
         {
             return new Operations(
                 new Dictionary<string, Func<object, object, ICodeElement>>
                 {
-                    {"plus", (last, next) => new AddOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
-                    {"minus", (last, next) => new SubtractOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
-                    {"times", (last, next) => new MultiplyOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
-                    {"if-true", (last, next) => new IfTrueOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
-                    {"else", (last, next) => new ElseOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
-                    {"less-than", (last, next) => new LessThanOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
-                    {"next-call", (last, next) => new NextCallOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
+                    {"plus", (last, next) => elementBuilder.AddOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
+                    {"minus", (last, next) => elementBuilder.SubtractOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
+                    {"times", (last, next) => elementBuilder.MultiplyOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
+                    {"if-true", (last, next) => elementBuilder.IfTrueOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
+                    {"else", (last, next) => elementBuilder.ElseOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
+                    {"less-than", (last, next) => elementBuilder.LessThanOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
+                    {"next-call", (last, next) => elementBuilder.NextCallOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
                     {"assign", (last, next) => {
                             if (next is ImplicitlyTypedMemberDefinition implicitlyTypedMember){
                                 var memberDef = implicitlyTypedMember.MakeMemberDefinition(new ImplicitTypeReferance(last.Cast<ICodeElement>()));
-                                return new AssignOperation(last.Cast<ICodeElement>(),memberDef);
+                                return elementBuilder.AssignOperation(last.Cast<ICodeElement>(),memberDef);
                             }
-                            return new AssignOperation(last.Cast<ICodeElement>(),next.Cast<IMemberSource>());
+                            return elementBuilder.AssignOperation(last.Cast<ICodeElement>(),next.Cast<IMemberSource>());
                         }
                     },
                     {"last-call", (last, next) => new LastCallOperation(last.Cast<ICodeElement>(),next.Cast<ICodeElement>()) },
@@ -66,12 +68,12 @@ namespace Tac.Parser
                 },
                 new Dictionary<string, Func<object, ICodeElement>>
                 {
-                    {"return", (last) => new ReturnOperation(last.Cast<ICodeElement>()) },
+                    {"return", (last) => elementBuilder.ReturnOperation(last.Cast<ICodeElement>()) },
                 },
                 new Dictionary<string, Func<ICodeElement>>
                 {
                 });
-        });
+        }
 
         public Operations(
             Dictionary<string, Func<object, object, ICodeElement>> binaryOperations,

@@ -9,8 +9,12 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpeted {
+    public class InterpetedContext {
 
+    }
+
+    public interface IInterpeted {
+        InterpetedContext Interpet(InterpetedContext interpetedContext);
     }
 
     class InterpeterElementBuilder : IElementBuilder<
@@ -28,6 +32,16 @@ namespace Tac.Syntaz_Model_Interpeter
         InterpetedImplementationDefinition,
         InterpetedBlockDefinition,
         InterpetedConstantNumber,
+        InterpetedAddOperation,
+        InterpetedSubtractOperation,
+        InterpetedMultiplyOperation,
+        InterpetedIfTrueOperation,
+        InterpetedElseOperation,
+        InterpetedLessThanOperation,
+        InterpetedNextCallOperation,
+        InterpetedLastCallOperation,
+        InterpetedAssignOperation,
+        InterpetedReturnOperation,
         IInterpeted
         >
     {
