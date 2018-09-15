@@ -102,7 +102,7 @@ namespace Tac.Parser
                     return ParseLine(parenthesisToken.Tokens);
                 }
 
-                foreach (var tryMatch in ElementMatchingContext.ElementMatchers)
+                foreach (var tryMatch in ElementMatchers)
                 {
                     if (tryMatch(elementToken, this, out var obj))
                     {
@@ -118,7 +118,7 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        private object ParseLine(IEnumerable<IToken> tokens) {
+        private ICodeElement ParseLine(IEnumerable<IToken> tokens) {
             foreach (var operationMatcher in OperationMatchers)
             {
                 if (operationMatcher(tokens, this, out var obj))
@@ -129,12 +129,12 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public object[] ParseFile(FileToken file)
+        public ICodeElement[] ParseFile(FileToken file)
         {
             return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
         }
 
-        public object[] ParseBlock(CurleyBacketToken block)
+        public ICodeElement[] ParseBlock(CurleyBacketToken block)
         {
             return block.Tokens.Select(x =>
             {
@@ -175,7 +175,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public IEnumerable<OperationMatcher> OperationMatchers { get; } = new List<OperationMatcher>
         {
-            MatchBinary("+",x=> (object y,object z) => x.ElementBuilder.AddOperation(y.Cast<ICodeElement>(),z.Cast<ICodeElement>()).Cast<object>())
+            MatchBinary("+",x=> (object y,object z) => x.ElementBuilder.AddOperation(y.Cast<ICodeElement>(),z.Cast<ICodeElement>()))
         };
 
         public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out object element);
@@ -457,7 +457,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var scope = new ObjectScope();
 
-                var elements = matchingContext.Child(methodScope).ParseBlock(body);
+                var elements = matchingContext.Child(scope).ParseBlock(body);
 
                 if (elements
                     .ExtractMemberDefinitions(out var memberDefinitions)
@@ -682,9 +682,9 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return false;
         }
 
-        public delegate bool OperationMatcher(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out object result);
+        public delegate bool OperationMatcher(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result);
 
-        public static OperationMatcher MatchBinary(string name, Func<ElementMatchingContext,Func<object, object, object>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out object result) =>
+        public static OperationMatcher MatchBinary(string name, Func<ElementMatchingContext,Func<object, object, ICodeElement>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
             {
                 if (TokenMatching.Start(tokens)
                     .Has(ElementMatcher.IsBinaryOperation(name), out var perface, out var token, out var rhs)
@@ -698,7 +698,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 return false;
             };
 
-        public static OperationMatcher MatchTrailing(string name, Func<ElementMatchingContext, Func<object, object>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out object result) =>
+        public static OperationMatcher MatchTrailing(string name, Func<ElementMatchingContext, Func<object, ICodeElement>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
         {
             if (TokenMatching.Start(tokens)
                 .Has(ElementMatcher.IsTrailingOperation(name), out var perface, out var token)
