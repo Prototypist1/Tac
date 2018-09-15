@@ -129,6 +129,24 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
+        public object[] ParseFile(FileToken file)
+        {
+            return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
+        }
+
+        public object[] ParseBlock(CurleyBacketToken block)
+        {
+            return block.Tokens.Select(x =>
+            {
+                if (x is LineToken lineToken)
+                {
+                    return ParseLine(lineToken.Tokens);
+                }
+                throw new Exception("unexpected token type");
+            }).ToArray();
+        }
+
+
         public ElementMatchingContext(ScopeStack enclosingScope, IElementBuilder<MemberDefinition, ExplicitMemberName,
 ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
 TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> elementBuilder)
@@ -278,7 +296,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             {
                 var scope = new ObjectScope();
 
-                var elements = TokenParser.ParseBlock(block, matchingContext.Child(scope));
+                var elements = matchingContext.Child(scope).ParseBlock(block);
 
                 if (elements.ExtractTopLevelAssignOperations(out var assignOperations).Any())
                 {
@@ -326,7 +344,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var scope = new StaticScope();
 
-                var elements = TokenParser.ParseBlock(third, matchingContext.Child(scope));
+                var elements = matchingContext.Child(scope).ParseBlock(third);
 
                 if (elements
                     .ExtractTopLevelAssignOperations(out var assignOperations)
@@ -381,7 +399,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var methodScope = new MethodScope();
 
                 var innerMatchingScope = matchingContext.Child(methodScope);
-                var elements = TokenParser.ParseBlock(body, innerMatchingScope);
+                var elements = innerMatchingScope.ParseBlock(body);
 
                 var definitions = elements.DeepMemberDefinitions();
 
@@ -439,7 +457,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var scope = new ObjectScope();
 
-                var elements = TokenParser.ParseBlock(body, matchingContext.Child(scope));
+                var elements = matchingContext.Child(methodScope).ParseBlock(body);
 
                 if (elements
                     .ExtractMemberDefinitions(out var memberDefinitions)
@@ -488,7 +506,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var scope = new ObjectScope();
 
-                var elements = TokenParser.ParseBlock(body, matchingContext.Child(scope));
+                var elements = matchingContext.Child(scope).ParseBlock(body);
 
                 if (elements
                     .ExtractMemberDefinitions(out var memberDefinitions)
@@ -538,7 +556,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var methodScope = new MethodScope();
 
                 var newMatchingContext = matchingContext.Child(methodScope);
-                var elements = TokenParser.ParseBlock(body, newMatchingContext);
+                var elements = newMatchingContext.ParseBlock(body);
 
                 var definitions = elements.DeepMemberDefinitions();
 
@@ -603,7 +621,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var scope = new LocalStaticScope();
 
                 var innerMatchingContext = matchingContext.Child(scope);
-                var elements = TokenParser.ParseBlock(body, innerMatchingContext);
+                var elements = innerMatchingContext.ParseBlock(body);
 
                 var definitions = elements.DeepMemberDefinitions();
 
