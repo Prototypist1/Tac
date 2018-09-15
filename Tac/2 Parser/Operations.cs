@@ -24,18 +24,22 @@ namespace Tac.Parser
                 {
                     yield return item;
                 }
+
                 foreach (var item in NextOperations.Keys)
                 {
                     yield return item;
                 }
+
                 foreach (var item in LastOperations.Keys)
                 {
                     yield return item;
                 }
+
                 foreach (var item in ConstantOperations.Keys)
                 {
                     yield return item;
                 }
+
             }
         }
 

@@ -52,16 +52,16 @@ namespace Tac.Parser
         where TImplementationDefinition : ImplementationDefinition, T
         where TBlockDefinition : BlockDefinition, T
         where TConstantNumber : ConstantNumber, T
-        where TAddOperation: AddOperation, T
-        where TSubtractOperation: SubtractOperation, T
-        where TMultiplyOperation: MultiplyOperation, T
-        where TIfTrueOperation: IfTrueOperation, T
-        where TElseOperation: ElseOperation, T
-        where TLessThanOperation: LessThanOperation, T
-        where TNextCallOperation: NextCallOperation, T
-        where TLastCallOperation: LastCallOperation, T
-        where TAssignOperation: AssignOperation, T
-        where TReturnOperation: ReturnOperation, T
+        where TAddOperation : AddOperation, T
+        where TSubtractOperation : SubtractOperation, T
+        where TMultiplyOperation : MultiplyOperation, T
+        where TIfTrueOperation : IfTrueOperation, T
+        where TElseOperation : ElseOperation, T
+        where TLessThanOperation : LessThanOperation, T
+        where TNextCallOperation : NextCallOperation, T
+        where TLastCallOperation : LastCallOperation, T
+        where TAssignOperation : AssignOperation, T
+        where TReturnOperation : ReturnOperation, T
     {
         TMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeSource explicitTypeName);
         TAddOperation AddOperation(ICodeElement codeElement1, ICodeElement codeElement2);
@@ -88,10 +88,46 @@ namespace Tac.Parser
         TConstantNumber ConstantNumber(double dub);
     }
 
-    public class ElementMatchingContext {
+    public class ElementMatchingContext
+    {
 
         public ElementMatchingContext Child(IScope scope) => new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder);
-        
+
+        private object ParseParenthesisOrElement(IToken token) {
+            if (token is ElementToken elementToken)
+            {
+                // smells 
+                if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken)
+                {
+                    return ParseLine(parenthesisToken.Tokens);
+                }
+
+                foreach (var tryMatch in ElementMatchingContext.ElementMatchers)
+                {
+                    if (tryMatch(elementToken, this, out var obj))
+                    {
+                        return obj;
+                    }
+                }
+            }
+            else if (token is ParenthesisToken parenthesisToken)
+            {
+                return ParseLine(parenthesisToken.Tokens);
+            }
+
+            throw new Exception("");
+        }
+
+        private object ParseLine(IEnumerable<IToken> tokens) {
+            foreach (var operationMatcher in OperationMatchers)
+            {
+                if (operationMatcher(tokens, this, out var obj))
+                {
+                    return obj;
+                }
+            }
+            throw new Exception("");
+        }
 
         public ElementMatchingContext(ScopeStack enclosingScope, IElementBuilder<MemberDefinition, ExplicitMemberName,
 ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
@@ -103,9 +139,10 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public IElementBuilder<MemberDefinition, ExplicitMemberName,
 ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
-TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> ElementBuilder { get; }
+TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> ElementBuilder
+        { get; }
         public ScopeStack EnclosingScope { get; }
-
+        
         public static IEnumerable<TryMatch> ElementMatchers { get; } = new List<TryMatch> {
                     MatchObjectDefinition,
                     MatchLocalDefinition_Var,
@@ -117,14 +154,19 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     MatchConstantNumber,
                     MatchReferance
                 };
-        
+
+        public IEnumerable<OperationMatcher> OperationMatchers { get; } = new List<OperationMatcher>
+        {
+            MatchBinary("+",x=> (object y,object z) => x.ElementBuilder.AddOperation(y.Cast<ICodeElement>(),z.Cast<ICodeElement>()).Cast<object>())
+        };
+
         public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out object element);
-        
+
         public static bool MatchLocalDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             // if I do a good job on ElementMatching it can pick up var
             // all the definitions matchers can probably rolled in togther
-            
+
             // when they day comes I should make the type entry optional
 
             // "readonly x" is a totally legitiment method definition
@@ -133,7 +175,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
             // there are a lot of things here that use () that should use []
 
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
                 .Has(ElementMatcher.KeyWord("var"), out var _)
                 .Has(ElementMatcher.IsName, out AtomicToken nameToken)
@@ -156,7 +198,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
         {
             // TODO use ElementMatcher.IsType
 
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
                 .Has(ElementMatcher.IsName, out AtomicToken typeToken)
                 .Has(ElementMatcher.IsName, out AtomicToken nameToken)
@@ -177,12 +219,12 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             element = default;
             return false;
         }
-        
+
         public static bool MatchGenericMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             // TODO use ElementMatcher.IsType
 
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
                 .Has(ElementMatcher.IsName, out AtomicToken typeToken)
                 .Has(ElementMatcher.GenericN, out ITypeSource[] tokenSources)
@@ -193,7 +235,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var readOnly = readonlyToken != default;
 
                 element = matchingContext.ElementBuilder.MemberDefinition(
-                    readOnly, 
+                    readOnly,
                     matchingContext.ElementBuilder.ExplicitMemberName(nameToken.Item),
                     matchingContext.ElementBuilder.GenericExplicitTypeName(typeToken.Item, tokenSources));
 
@@ -228,16 +270,16 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public static bool MatchObjectDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("object"), out var keyword)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken block)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
                 var scope = new ObjectScope();
-                
+
                 var elements = TokenParser.ParseBlock(block, matchingContext.Child(scope));
-                
+
                 if (elements.ExtractTopLevelAssignOperations(out var assignOperations).Any())
                 {
                     throw new Exception("objects should only contain assign operations");
@@ -246,7 +288,8 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 if (assignOperations
                     .ExtractMemberDefinitions(out var memberDefinitions)
                     .ExtractMemberReferances(out var memberReferances)
-                    .Any()) {
+                    .Any())
+                {
                     throw new Exception("objects should only assign to member definitions or member referances");
                 }
 
@@ -260,10 +303,10 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     scope.TryAddLocalMember(
                         matchingContext.ElementBuilder.MemberDefinition(
                             false,
-                            memberReferance, 
+                            memberReferance,
                             matchingContext.ElementBuilder.ImplicitTypeReferance(left)));
                 }
-                
+
                 element = matchingContext.ElementBuilder.ObjectDefinition(scope, assignOperations);
 
                 return true;
@@ -271,10 +314,10 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             element = default;
             return false;
         }
-        
+
         public static bool MatchModuleDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("module"), out var frist)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken third)
                 .Has(ElementMatcher.IsDone)
@@ -284,7 +327,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var scope = new StaticScope();
 
                 var elements = TokenParser.ParseBlock(third, matchingContext.Child(scope));
-                
+
                 if (elements
                     .ExtractTopLevelAssignOperations(out var assignOperations)
                     .ExtractTopLevelTypeDefinitions(out var types)
@@ -326,9 +369,9 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public static bool MatchMethodDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("method"), out var _)
-                .Has(ElementMatcher.Generic2, out AtomicToken inputType,out AtomicToken outputType)
+                .Has(ElementMatcher.Generic2, out AtomicToken inputType, out AtomicToken outputType)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .Has(ElementMatcher.IsDone)
@@ -346,7 +389,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 {
                     methodScope.TryAddLocal(definition);
                 }
-                
+
                 var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
@@ -383,26 +426,29 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return false;
         }
 
-        public static bool MatchTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element) {
-            if (ElementMatching.Start(elementToken)
+        public static bool MatchTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
+        {
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
-                .IsMatch) {
+                .IsMatch)
+            {
 
 
 
                 var scope = new ObjectScope();
-                
+
                 var elements = TokenParser.ParseBlock(body, matchingContext.Child(scope));
 
                 if (elements
                     .ExtractMemberDefinitions(out var memberDefinitions)
                     .ExtractMemberReferances(out var memberReferances)
-                    .Any().Not()) {
+                    .Any().Not())
+                {
                     throw new Exception("Types should only contain member definitions and member referances");
                 }
-                
+
                 foreach (var memberDef in memberDefinitions)
                 {
                     scope.TryAddLocalMember(memberDef);
@@ -410,9 +456,9 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 foreach (var memberRef in memberReferances)
                 {
-                    scope.TryAddLocalMember(new MemberDefinition(false,memberRef.Item2,RootScope.AnyType));
+                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2, RootScope.AnyType));
                 }
-                
+
                 if (typeName == default)
                 {
                     element = matchingContext.ElementBuilder.TypeDefinition(scope);
@@ -420,7 +466,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 else
                 {
                     element = matchingContext.ElementBuilder.NamedTypeDefinition(
-                        new NameKey(typeName.Item), 
+                        new NameKey(typeName.Item),
                         scope);
                 }
                 return true;
@@ -432,18 +478,18 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public static bool MatchGenericTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
                 .Has(ElementMatcher.DefineGenericN, out AtomicToken[] genericTypes)
                 .Has(ElementMatcher.IsName, out AtomicToken typeName)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch)
             {
-                                
+
                 var scope = new ObjectScope();
 
                 var elements = TokenParser.ParseBlock(body, matchingContext.Child(scope));
-                
+
                 if (elements
                     .ExtractMemberDefinitions(out var memberDefinitions)
                     .ExtractMemberReferances(out var memberReferances)
@@ -452,34 +498,34 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 {
                     throw new Exception("Types should only contain member definitions and member referances");
                 }
-                
+
                 foreach (var memberDef in memberDefinitions)
                 {
                     scope.TryAddLocalMember(memberDef);
                 }
-                
+
                 foreach (var memberRef in memberReferances)
                 {
                     scope.TryAddLocalMember(
                         matchingContext.ElementBuilder.MemberDefinition(
-                            false, 
-                            memberRef.Item2, 
+                            false,
+                            memberRef.Item2,
                             RootScope.AnyType));
                 }
 
                 var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();
-                
+
                 element = matchingContext.ElementBuilder.GenericTypeDefinition(new NameKey(typeName.Item), scope, genericParameters);
                 return true;
             }
-            
+
             element = default;
             return false;
         }
 
         public static bool MatchImplementationDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("method"), out var _)
                 .Has(ElementMatcher.Generic3, out AtomicToken contextType, out AtomicToken inputType, out AtomicToken outputType)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken contextName)
@@ -500,7 +546,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 {
                     methodScope.TryAddLocal(definition);
                 }
-                
+
                 var contextDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "context"),
@@ -526,8 +572,8 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     {
                         methodScope.TryAddLocal(
                             matchingContext.ElementBuilder.MemberDefinition(
-                                false, 
-                                referance, 
+                                false,
+                                referance,
                                 RootScope.AnyType));
                     }
                 }
@@ -546,10 +592,10 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             element = default;
             return false;
         }
-        
+
         public static bool MatchBlockDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
@@ -575,7 +621,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                         scope.TryAddLocal(matchingContext.ElementBuilder.MemberDefinition(false, referance, RootScope.AnyType));
                     }
                 }
-                
+
                 element = matchingContext.ElementBuilder.BlockDefinition(
                     elements, scope, new ICodeElement[0]);
 
@@ -588,7 +634,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public static bool MatchConstantNumber(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsNumber, out double dub)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
@@ -604,7 +650,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public static bool MatchReferance(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            if (ElementMatching.Start(elementToken)
+            if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
@@ -617,12 +663,43 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             element = default;
             return false;
         }
+
+        public delegate bool OperationMatcher(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out object result);
+
+        public static OperationMatcher MatchBinary(string name, Func<ElementMatchingContext,Func<object, object, object>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out object result) =>
+            {
+                if (TokenMatching.Start(tokens)
+                    .Has(ElementMatcher.IsBinaryOperation(name), out var perface, out var token, out var rhs)
+                    .IsMatch)
+                {
+                    result = builder(matchingContext)(matchingContext.ParseLine(perface), matchingContext.ParseParenthesisOrElement(rhs));
+                    return true;
+                }
+
+                result = default;
+                return false;
+            };
+
+        public static OperationMatcher MatchTrailing(string name, Func<ElementMatchingContext, Func<object, object>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out object result) =>
+        {
+            if (TokenMatching.Start(tokens)
+                .Has(ElementMatcher.IsTrailingOperation(name), out var perface, out var token)
+                .IsMatch)
+            {
+                result = builder(matchingContext)(matchingContext.ParseLine(perface));
+                return true;
+            }
+
+            result = default;
+            return false;
+        };
+
     }
 
-    public class ElementMatching
+    public class TokenMatching
     {
 
-        private ElementMatching(IEnumerable<IToken> tokens, bool isNotMatch)
+        private TokenMatching(IEnumerable<IToken> tokens, bool isNotMatch)
         {
             this.IsNotMatch = isNotMatch;
             this.Tokens = tokens;
@@ -632,26 +709,26 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
         public bool IsNotMatch { get; }
         public IEnumerable<IToken> Tokens { get; }
 
-        public static ElementMatching Start(ElementToken elementToken)
+        public static TokenMatching Start(IEnumerable<IToken> tokens)
         {
-            return Match(elementToken.Tokens);
+            return Match(tokens);
         }
 
-        public static ElementMatching Match(IEnumerable<IToken> tokens)
+        public static TokenMatching Match(IEnumerable<IToken> tokens)
         {
-            return new ElementMatching(tokens, false);
+            return new TokenMatching(tokens, false);
         }
 
-        public static ElementMatching NotMatch(IEnumerable<IToken> tokens)
+        public static TokenMatching NotMatch(IEnumerable<IToken> tokens)
         {
-            return new ElementMatching(tokens, true);
+            return new TokenMatching(tokens, true);
         }
 
     }
 
     public static class ElementMatcher
     {
-        public static ElementMatching Has<T1, T2, T3>(this ElementMatching self, IsMatch<T1, T2, T3> pattern, out T1 t1, out T2 t2, out T3 t3)
+        public static TokenMatching Has<T1, T2, T3>(this TokenMatching self, IsMatch<T1, T2, T3> pattern, out T1 t1, out T2 t2, out T3 t3)
         {
             if (self.IsNotMatch)
             {
@@ -664,10 +741,10 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return pattern(self, out t1, out t2, out t3);
         }
 
-        public static ElementMatching Has<T1,T2>(this ElementMatching self, IsMatch<T1,T2> pattern, out T1 t1, out T2 t2)
+        public static TokenMatching Has<T1, T2>(this TokenMatching self, IsMatch<T1, T2> pattern, out T1 t1, out T2 t2)
         {
             if (self.IsNotMatch)
-            {   
+            {
                 t1 = default;
                 t2 = default;
                 return self;
@@ -676,7 +753,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return pattern(self, out t1, out t2);
         }
 
-        public static ElementMatching Has<T>(this ElementMatching self, IsMatch<T> pattern, out T t)
+        public static TokenMatching Has<T>(this TokenMatching self, IsMatch<T> pattern, out T t)
         {
             if (self.IsNotMatch)
             {
@@ -687,7 +764,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return pattern(self, out t);
         }
 
-        public static ElementMatching Has(this ElementMatching self, IsMatch pattern)
+        public static TokenMatching Has(this TokenMatching self, IsMatch pattern)
         {
             if (self.IsNotMatch)
             {
@@ -697,7 +774,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return pattern(self);
         }
 
-        public static ElementMatching OptionalHas<T>(this ElementMatching self, IsMatch<T> pattern, out T t)
+        public static TokenMatching OptionalHas<T>(this TokenMatching self, IsMatch<T> pattern, out T t)
         {
             if (self.IsNotMatch)
             {
@@ -716,7 +793,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         }
 
-        public static ElementMatching OptionalHas(this ElementMatching self, IsMatch pattern)
+        public static TokenMatching OptionalHas(this TokenMatching self, IsMatch pattern)
         {
             if (self.IsNotMatch)
             {
@@ -732,84 +809,85 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return next;
         }
 
-        public delegate ElementMatching IsMatch(ElementMatching self);
-        public delegate ElementMatching IsMatch<T>(ElementMatching self, out T matched);
-        public delegate ElementMatching IsMatch<T1,T2>(ElementMatching self, out T1 matched1, out T2 matched2);
-        public delegate ElementMatching IsMatch<T1, T2, T3>(ElementMatching self, out T1 matched1, out T2 matched2, out T3 matched3);
+        public delegate TokenMatching IsMatch(TokenMatching self);
+        public delegate TokenMatching IsMatch<T>(TokenMatching self, out T matched);
+        public delegate TokenMatching IsMatch<T1, T2>(TokenMatching self, out T1 matched1, out T2 matched2);
+        public delegate TokenMatching IsMatch<T1, T2, T3>(TokenMatching self, out T1 matched1, out T2 matched2, out T3 matched3);
 
-        public static ElementMatching IsName(ElementMatching self, out AtomicToken atomicToken)
+        public static TokenMatching IsName(TokenMatching self, out AtomicToken atomicToken)
         {
             if (self.Tokens.Any() &&
                 self.Tokens.First() is AtomicToken first &&
                 !double.TryParse(first.Item, out var _))
             {
                 atomicToken = first;
-                return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 
             atomicToken = default;
-            return ElementMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens);
         }
-        
-        public static ElementMatching IsType(ElementMatching self, out ITypeSource typeSource)
+
+        public static TokenMatching IsType(TokenMatching self, out ITypeSource typeSource)
         {
-            
+
             if (self.Tokens.Any() &&
                 self.Tokens.First() is AtomicToken first &&
                 !double.TryParse(first.Item, out var _))
             {
-                var at = ElementMatching.Match(self.Tokens.Skip(1));
-                if (GenericN(at,out ITypeSource[] generics).IsMatch){
+                var at = TokenMatching.Match(self.Tokens.Skip(1));
+                if (GenericN(at, out ITypeSource[] generics).IsMatch)
+                {
                     typeSource = new GenericExplicitTypeName(first.Item, generics);
-                    return ElementMatching.Match(self.Tokens.Skip(2).ToArray());
+                    return TokenMatching.Match(self.Tokens.Skip(2).ToArray());
                 }
 
                 typeSource = new ExplicitTypeName(first.Item);
-                return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 
             typeSource = default;
-            return ElementMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens);
         }
-        
-        public static ElementMatching IsNumber(ElementMatching self, out double res)
+
+        public static TokenMatching IsNumber(TokenMatching self, out double res)
         {
             if (self.Tokens.Any() &&
                 self.Tokens.First() is AtomicToken first &&
                 double.TryParse(first.Item, out res))
             {
-                return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 
             res = default;
-            return ElementMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens);
         }
 
-        public static ElementMatching IsDone(ElementMatching self)
+        public static TokenMatching IsDone(TokenMatching self)
         {
             if (!self.Tokens.Any())
             {
                 return self;
             }
 
-            return ElementMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens);
         }
 
-        public static ElementMatching IsBody(ElementMatching self, out CurleyBacketToken body)
+        public static TokenMatching IsBody(TokenMatching self, out CurleyBacketToken body)
         {
 
             if (self.Tokens.Any() &&
                 self.Tokens.First() is CurleyBacketToken first)
             {
                 body = first;
-                return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 
             body = default;
-            return ElementMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens);
         }
-        
-        public static ElementMatching Generic3(ElementMatching elementMatching, out AtomicToken type1, out AtomicToken type2, out AtomicToken type3)
+
+        public static TokenMatching Generic3(TokenMatching elementMatching, out AtomicToken type1, out AtomicToken type2, out AtomicToken type3)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
@@ -827,16 +905,16 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 type1 = firstType;
                 type2 = SecondType;
                 type3 = thridType;
-                return ElementMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
             }
 
             type1 = default;
             type2 = default;
             type3 = default;
-            return ElementMatching.NotMatch(elementMatching.Tokens);
+            return TokenMatching.NotMatch(elementMatching.Tokens);
         }
-        
-        public static ElementMatching DefineGenericN(ElementMatching elementMatching, out AtomicToken[] tokens)
+
+        public static TokenMatching DefineGenericN(TokenMatching elementMatching, out AtomicToken[] tokens)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
@@ -845,14 +923,14 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                         firstLine.Tokens.ElementAt(0) is AtomicToken))
             {
                 tokens = typeParameters.Tokens.Select(x => (x as LineToken).Tokens.First() as AtomicToken).ToArray();
-                return ElementMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
             }
 
             tokens = default;
-            return ElementMatching.NotMatch(elementMatching.Tokens);
+            return TokenMatching.NotMatch(elementMatching.Tokens);
         }
 
-        public static ElementMatching GenericN(ElementMatching elementMatching, out ITypeSource[] typeSources)
+        public static TokenMatching GenericN(TokenMatching elementMatching, out ITypeSource[] typeSources)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
@@ -860,18 +938,18 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 TryToToken(out var res))
             {
                 typeSources = res;
-                return ElementMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
             }
 
             typeSources = default;
-            return ElementMatching.NotMatch(elementMatching.Tokens);
+            return TokenMatching.NotMatch(elementMatching.Tokens);
 
             bool TryToToken(out ITypeSource[] typeSourcesInner)
             {
                 var typeSourcesBuilding = new List<ITypeSource>();
                 foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
                 {
-                    var matcher = ElementMatching.Start(elementToken);
+                    var matcher = TokenMatching.Start(elementToken.Tokens);
                     if (matcher.Has(ElementMatcher.IsType, out ITypeSource typeSource).Has(IsDone).IsMatch)
                     {
                         typeSourcesBuilding.Add(typeSource);
@@ -887,7 +965,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             }
         }
 
-        public static ElementMatching Generic2(ElementMatching elementMatching, out AtomicToken type1, out AtomicToken type2)
+        public static TokenMatching Generic2(TokenMatching elementMatching, out AtomicToken type1, out AtomicToken type2)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
@@ -901,44 +979,92 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             {
                 type1 = firstType;
                 type2 = SecondType;
-                return ElementMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
             }
 
             type1 = default;
             type2 = default;
-            return ElementMatching.NotMatch(elementMatching.Tokens);
+            return TokenMatching.NotMatch(elementMatching.Tokens);
         }
+
+        public static IsMatch<IEnumerable<IToken>, AtomicToken, IToken> IsBinaryOperation(string s) => (TokenMatching elementMatching, out IEnumerable<IToken> preface,  out AtomicToken operation, out IToken rhs) =>
+
+           {
+               if (elementMatching.Tokens.Any() &&
+                   (elementMatching.Tokens.Last() is ParenthesisToken ||
+                   elementMatching.Tokens.Last() is ElementToken)
+                   )
+               {
+                   var right = elementMatching.Tokens.Last();
+
+                   var at = TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray());
+
+                   if (at.Tokens.Any() &&
+                       at.Tokens.Last() is AtomicToken op &&
+                       op.Item == s)
+                   {
+
+                       rhs = right;
+                       operation = op;
+                       preface = at.Tokens.Take(at.Tokens.Count() - 1);
+                       return TokenMatching.Match(preface);
+                   }
+               }
+
+               rhs = default;
+               preface = default;
+               operation = default;
+               return TokenMatching.NotMatch(elementMatching.Tokens);
+
+           };
+
+        public static IsMatch<IEnumerable<IToken>, AtomicToken> IsTrailingOperation(string s) => (TokenMatching elementMatching, out IEnumerable<IToken> preface, out AtomicToken operation)=>
+        {
+
+            if (elementMatching.Tokens.Any() &&
+                elementMatching.Tokens.Last() is AtomicToken op)
+            {
+
+                preface = elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1);
+                operation = op;
+                return TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray());
+            }
+
+            preface = default;
+            operation = default;
+            return TokenMatching.NotMatch(elementMatching.Tokens);
+        };
 
         public static IsMatch<AtomicToken> KeyWord(string word)
         {
             return Inner;
 
-            ElementMatching Inner(ElementMatching self, out AtomicToken token)
+            TokenMatching Inner(TokenMatching self, out AtomicToken token)
             {
                 if (self.Tokens.First() is AtomicToken first &&
                     first.Item == word)
                 {
                     token = first;
-                    return ElementMatching.Match(self.Tokens.Skip(1).ToArray());
+                    return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
                 }
 
                 token = default;
-                return ElementMatching.NotMatch(self.Tokens);
+                return TokenMatching.NotMatch(self.Tokens);
             };
         }
-        
+
         public static IsMatch Xor(this IsMatch self, IsMatch other)
         {
-            return (ElementMatching element) =>
+            return (TokenMatching element) =>
             {
                 var first = self(element);
                 var second = other(element);
 
-                var table = new Dictionary<(bool, bool), Func<ElementMatching>>() {
-                    { (true,true), ()=>ElementMatching.NotMatch(element.Tokens)},
+                var table = new Dictionary<(bool, bool), Func<TokenMatching>>() {
+                    { (true,true), ()=>TokenMatching.NotMatch(element.Tokens)},
                     { (true,false), ()=> second},
                     { (false,true), ()=> first},
-                    { (false,false), ()=> ElementMatching.NotMatch(element.Tokens)},
+                    { (false,false), ()=> TokenMatching.NotMatch(element.Tokens)},
                 };
 
                 return table[(first.IsNotMatch, second.IsNotMatch)]();
@@ -949,7 +1075,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
         {
             return Backing;
 
-            ElementMatching Backing(ElementMatching element, out T t)
+            TokenMatching Backing(TokenMatching element, out T t)
             {
                 var first = self(element, out var t1);
                 var second = other(element, out var t2);
@@ -959,7 +1085,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     if (second.IsNotMatch)
                     {
                         t = default;
-                        return ElementMatching.NotMatch(element.Tokens);
+                        return TokenMatching.NotMatch(element.Tokens);
                     }
                     else
                     {
@@ -977,12 +1103,13 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     else
                     {
                         t = default;
-                        return ElementMatching.NotMatch(element.Tokens);
+                        return TokenMatching.NotMatch(element.Tokens);
                     }
                 }
             };
         }
 
+
     }
-    
+
 }

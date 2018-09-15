@@ -63,7 +63,7 @@ namespace Tac.Parser
             if (view.Token is AtomicToken atomicToken)
             {
 
-                if (Operations.StandardOperations.Value.BinaryOperations.TryGetValue(atomicToken.Item, out var binaryFunc))
+                if (Operations.StandardOperations(matchingContext.ElementBuilder).BinaryOperations.TryGetValue(atomicToken.Item, out var binaryFunc))
                 {
                     if (last == null)
                     {
@@ -76,7 +76,7 @@ namespace Tac.Parser
                             ParseLineElementOrThrow(next, last, matchingContext));
                     }
                 }
-                else if (Operations.StandardOperations.Value.LastOperations.TryGetValue(atomicToken.Item, out var lastFunc))
+                else if (Operations.StandardOperations(matchingContext.ElementBuilder).LastOperations.TryGetValue(atomicToken.Item, out var lastFunc))
                 {
 
                     if (last == null)
@@ -88,7 +88,7 @@ namespace Tac.Parser
                     return true;
 
                 }
-                else if (Operations.StandardOperations.Value.NextOperations.TryGetValue(atomicToken.Item, out var nextFunc))
+                else if (Operations.StandardOperations(matchingContext.ElementBuilder).NextOperations.TryGetValue(atomicToken.Item, out var nextFunc))
                 {
                     if (view.TryGetNext(out var next))
                     {
@@ -102,7 +102,7 @@ namespace Tac.Parser
                         throw new Exception($"Operation: {atomicToken.Item}, requires next. next is not defined");
                     }
                 }
-                else if (Operations.StandardOperations.Value.ConstantOperations.TryGetValue(atomicToken.Item, out var action))
+                else if (Operations.StandardOperations(matchingContext.ElementBuilder).ConstantOperations.TryGetValue(atomicToken.Item, out var action))
                 {
                     codeElement = action();
                     return true;
@@ -128,28 +128,5 @@ namespace Tac.Parser
             }).ToArray();
         }
         
-        public static bool TryParseElement(IParseStateView view, ElementMatchingContext matchingContext, out object codeElement)
-        {
-            if (view.Token is ElementToken elementToken)
-            {
-                // smells 
-                if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken)
-                {
-                    codeElement = ParseLine(parenthesisToken.Tokens, matchingContext);
-                    return true;
-                }
-                
-                foreach (var tryMatch in matchingContext.ElementMatchers)
-                {
-                    if (tryMatch(elementToken, matchingContext, out codeElement))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            codeElement = default;
-            return false;
-        }
     }
 }
