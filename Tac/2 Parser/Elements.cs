@@ -63,7 +63,7 @@ namespace Tac.Parser
         where TAssignOperation : AssignOperation, T
         where TReturnOperation : ReturnOperation, T
     {
-        TMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeSource explicitTypeName);
+        TMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeDefinition explicitTypeName);
         TAddOperation AddOperation(ICodeElement codeElement1, ICodeElement codeElement2);
         TSubtractOperation SubtractOperation(ICodeElement codeElement1, ICodeElement codeElement2);
         TExplicitMemberName ExplicitMemberName(string item);
@@ -91,9 +91,61 @@ namespace Tac.Parser
     public class ElementMatchingContext
     {
 
-        public ElementMatchingContext Child(IScope scope) => new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder);
+        public ElementMatchingContext Child(IScope scope) => new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder, ElementMatchers);
+      
+        public ElementMatchingContext(
+            ScopeStack enclosingScope, 
+            IElementBuilder<MemberDefinition, ExplicitMemberName,
+ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
+TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> elementBuilder, 
+            IEnumerable<TryMatch> elementMatchers,
+            Action<MemberDefinition> addMember,
+            Action<NamedTypeDefinition> addType,
+            Action<GenericTypeDefinition> addGenerticType)
+        {
+            EnclosingScope = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
+            ElementBuilder = elementBuilder ?? throw new ArgumentNullException(nameof(elementBuilder));
+            ElementMatchers = elementMatchers ?? throw new ArgumentNullException(nameof(elementMatchers));
+            AddMember = addMember ?? throw new ArgumentNullException(nameof(addMember));
+            AddType = addType ?? throw new ArgumentNullException(nameof(addType));
+            AddGenerticType = addGenerticType ?? throw new ArgumentNullException(nameof(addGenerticType));
+        }
 
-        private object ParseParenthesisOrElement(IToken token) {
+        public IElementBuilder<MemberDefinition, ExplicitMemberName,
+ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
+TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> ElementBuilder
+        { get; }
+        public ScopeStack EnclosingScope { get; }
+        
+        public IEnumerable<TryMatch> ElementMatchers { get; }
+        
+        private Action<MemberDefinition> AddMember { get; }
+        private Action<NamedTypeDefinition> AddType { get; }
+        private Action<GenericTypeDefinition> AddGenerticType { get; }
+
+        public static IEnumerable<TryMatch> NormalElementMatcher { get; } = new List<TryMatch> {
+                    MatchObjectDefinition,
+                    MatchGenericTypeDefinition,
+                    MatchMemberDefinition,
+                    MatchTypeDefinition,
+                    MatchMethodDefinition,
+                    MatchImplementationDefinition,
+                    MatchBlockDefinition,
+                    MatchConstantNumber,
+                    MatchReferance
+                };
+
+        public IEnumerable<OperationMatcher> OperationMatchers { get; } = new List<OperationMatcher>
+        {
+            MatchBinary("+",x=> (object y,object z) => x.ElementBuilder.AddOperation(y.Cast<ICodeElement>(),z.Cast<ICodeElement>())),
+            MatchBinary("=:",x=> (object y,object z) => x.ElementBuilder.AddOperation(y.Cast<ICodeElement>(),z.Cast<ICodeElement>()))
+        };
+
+
+        #region Parse
+
+        private object ParseParenthesisOrElement(IToken token)
+        {
             if (token is ElementToken elementToken)
             {
                 // smells 
@@ -118,7 +170,8 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        private ICodeElement ParseLine(IEnumerable<IToken> tokens) {
+        private ICodeElement ParseLine(IEnumerable<IToken> tokens)
+        {
             foreach (var operationMatcher in OperationMatchers)
             {
                 if (operationMatcher(tokens, this, out var obj))
@@ -146,53 +199,13 @@ namespace Tac.Parser
             }).ToArray();
         }
 
+        #endregion
 
-        public ElementMatchingContext(ScopeStack enclosingScope, IElementBuilder<MemberDefinition, ExplicitMemberName,
-ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
-TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> elementBuilder)
-        {
-            EnclosingScope = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
-            ElementBuilder = elementBuilder ?? throw new ArgumentNullException(nameof(elementBuilder));
-        }
-
-        public IElementBuilder<MemberDefinition, ExplicitMemberName,
-ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
-TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> ElementBuilder
-        { get; }
-        public ScopeStack EnclosingScope { get; }
-        
-        public static IEnumerable<TryMatch> ElementMatchers { get; } = new List<TryMatch> {
-                    MatchObjectDefinition,
-                    MatchLocalDefinition_Var,
-                    MatchGenericTypeDefinition,
-                    MatchTypeDefinition,
-                    MatchMethodDefinition,
-                    MatchImplementationDefinition,
-                    MatchBlockDefinition,
-                    MatchConstantNumber,
-                    MatchReferance
-                };
-
-        public IEnumerable<OperationMatcher> OperationMatchers { get; } = new List<OperationMatcher>
-        {
-            MatchBinary("+",x=> (object y,object z) => x.ElementBuilder.AddOperation(y.Cast<ICodeElement>(),z.Cast<ICodeElement>()))
-        };
 
         public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out object element);
 
-        public static bool MatchLocalDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
+        public static TryMatch MatchLocalDefinition_Var(TypeDefinition typeDefinition)=> (ElementToken elementToken, ElementMatchingContext matchingContext, out object element)=>
         {
-            // if I do a good job on ElementMatching it can pick up var
-            // all the definitions matchers can probably rolled in togther
-
-            // when they day comes I should make the type entry optional
-
-            // "readonly x" is a totally legitiment method definition
-
-            // while I am thinking about including updates
-
-            // there are a lot of things here that use () that should use []
-
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
                 .Has(ElementMatcher.KeyWord("var"), out var _)
@@ -203,22 +216,24 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var readOnly = readonlyToken != default;
 
-                element = new ImplicitlyTypedMemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item));
+                var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), typeDefinition);
+
+                matchingContext.AddMember(memberDefinition);
+
+                element = memberDefinition;
 
                 return true;
             }
 
             element = default;
             return false;
-        }
-
+        };
+        
         public static bool MatchMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
-            // TODO use ElementMatcher.IsType
-
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
-                .Has(ElementMatcher.IsName, out AtomicToken typeToken)
+                .Has(ElementMatcher.IsType, out ITypeSource typeToken)
                 .Has(ElementMatcher.IsName, out AtomicToken nameToken)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
@@ -226,11 +241,15 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var readOnly = readonlyToken != default;
 
-                element = matchingContext.ElementBuilder.MemberDefinition(
+                var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
                     readOnly,
                     matchingContext.ElementBuilder.ExplicitMemberName(nameToken.Item),
-                    matchingContext.ElementBuilder.ExplicitTypeName(typeToken.Item));
+                    typeToken.GetTypeDefinition(matchingContext.EnclosingScope));
+                
+                matchingContext.AddMember(memberDefinition);
 
+                element = memberDefinition;
+                
                 return true;
             }
 
@@ -252,10 +271,14 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             {
                 var readOnly = readonlyToken != default;
 
-                element = matchingContext.ElementBuilder.MemberDefinition(
+                var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
                     readOnly,
                     matchingContext.ElementBuilder.ExplicitMemberName(nameToken.Item),
-                    matchingContext.ElementBuilder.GenericExplicitTypeName(typeToken.Item, tokenSources));
+                    matchingContext.ElementBuilder.GenericExplicitTypeName(typeToken.Item, tokenSources).GetTypeDefinition(matchingContext.EnclosingScope));
+
+                matchingContext.AddMember(memberDefinition);
+
+                element = memberDefinition;
 
                 return true;
             }
@@ -263,29 +286,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             element = default;
             return false;
         }
-
-        //public static bool MatchStaticMemberDefinition_Var(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
-        //{
-        //    if (ElementMatching.Start(elementToken)
-        //        .Has(ElementMatcher.KeyWord("static"), out var _)
-        //        .OptionalHas(ElementMatcher.KeyWord("var"), out var _)
-        //        .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
-        //        .Has(ElementMatcher.IsName, out AtomicToken nameToken)
-        //        .Has(ElementMatcher.IsDone)
-        //        .IsMatch)
-        //    {
-
-        //        var readOnly = readonlyToken != default;
-
-        //        element = new MemberDefinition(readOnly, true, new ExplicitName(nameToken.Item), new ImplicitTypeReferance());
-
-        //        return true;
-        //    }
-
-        //    element = default;
-        //    return false;
-        //}
-
+        
         public static bool MatchObjectDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (TokenMatching.Start(elementToken.Tokens)
@@ -296,7 +297,8 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             {
                 var scope = new ObjectScope();
 
-                var elements = matchingContext.Child(scope).ParseBlock(block);
+                var elementMatchingContext = matchingContext.Child(scope);
+                var elements = elementMatchingContext.ParseBlock(block);
 
                 if (elements.ExtractTopLevelAssignOperations(out var assignOperations).Any())
                 {
@@ -304,27 +306,13 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 }
 
                 if (assignOperations
-                    .ExtractMemberDefinitions(out var memberDefinitions)
-                    .ExtractMemberReferances(out var memberReferances)
+                    .ExtractMemberDefinitions(out var _)
+                    .ExtractMemberReferances(out var _)
                     .Any())
                 {
                     throw new Exception("objects should only assign to member definitions or member referances");
                 }
-
-                foreach (var memberDefinition in memberDefinitions)
-                {
-                    scope.TryAddLocalMember(memberDefinition);
-                }
-
-                foreach (var (left, memberReferance) in memberReferances)
-                {
-                    scope.TryAddLocalMember(
-                        matchingContext.ElementBuilder.MemberDefinition(
-                            false,
-                            memberReferance,
-                            matchingContext.ElementBuilder.ImplicitTypeReferance(left)));
-                }
-
+                
                 element = matchingContext.ElementBuilder.ObjectDefinition(scope, assignOperations);
 
                 return true;
@@ -344,7 +332,8 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var scope = new StaticScope();
 
-                var elements = matchingContext.Child(scope).ParseBlock(third);
+                var elementMatchingContext = matchingContext.Child(scope);
+                var elements = elementMatchingContext.ParseBlock(third);
 
                 if (elements
                     .ExtractTopLevelAssignOperations(out var assignOperations)
@@ -355,29 +344,13 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 }
 
                 if (assignOperations
-                    .ExtractMemberDefinitions(out var memberDefinitions)
-                    .ExtractMemberReferances(out var memberReferances)
+                    .ExtractMemberDefinitions(out var _)
+                    .ExtractMemberReferances(out var _)
                     .Any())
                 {
                     throw new Exception("objects should only assign to member definitions or member referances");
                 }
-
-                foreach (var memberDefinition in memberDefinitions)
-                {
-                    scope.TryAddStaticMember(memberDefinition);
-                }
-
-                foreach (var (left, memberReferance) in memberReferances)
-                {
-                    scope.TryAddStaticMember(matchingContext.ElementBuilder.MemberDefinition(false, memberReferance, matchingContext.ElementBuilder.ImplicitTypeReferance(left)));
-                }
-
-
-                foreach (var type in types.OfType<NamedTypeDefinition>())
-                {
-                    scope.TryAddStaticType(type);
-                }
-
+                
                 element = matchingContext.ElementBuilder.ModuleDefinition(scope, assignOperations);
 
             }
@@ -399,37 +372,18 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var methodScope = new MethodScope();
 
                 var innerMatchingScope = matchingContext.Child(methodScope);
+
                 var elements = innerMatchingScope.ParseBlock(body);
-
-                var definitions = elements.DeepMemberDefinitions();
-
-                foreach (var definition in definitions)
-                {
-                    methodScope.TryAddLocal(definition);
-                }
-
+                
                 var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item)
+                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item).GetTypeDefinition(matchingContext.EnclosingScope)
                         );
 
 
                 methodScope.TryAddParameter(parameterDefinition);
-
-                var referances = elements.DeepMemberReferances();
-
-                foreach (var referance in referances)
-                {
-                    if (innerMatchingScope.EnclosingScope.GetMemberOrDefault(referance) == null)
-                    {
-                        methodScope.TryAddLocal(matchingContext.ElementBuilder.MemberDefinition(
-                            false,
-                            referance,
-                            RootScope.AnyType));
-                    }
-                }
-
+                
                 element = matchingContext.ElementBuilder.MethodDefinition(
                     matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item),
                     parameterDefinition,
@@ -452,40 +406,32 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
                 .IsMatch)
             {
-
-
-
                 var scope = new ObjectScope();
 
-                var elements = matchingContext.Child(scope).ParseBlock(body);
+                var elementMatchingContext = matchingContext.Child(scope);
+                var elements = elementMatchingContext.ParseBlock(body);
 
                 if (elements
-                    .ExtractMemberDefinitions(out var memberDefinitions)
-                    .ExtractMemberReferances(out var memberReferances)
+                    .ExtractMemberDefinitions(out var _)
+                    .ExtractMemberReferances(out var _)
                     .Any().Not())
                 {
                     throw new Exception("Types should only contain member definitions and member referances");
                 }
-
-                foreach (var memberDef in memberDefinitions)
-                {
-                    scope.TryAddLocalMember(memberDef);
-                }
-
-                foreach (var memberRef in memberReferances)
-                {
-                    scope.TryAddLocalMember(new MemberDefinition(false, memberRef.Item2, RootScope.AnyType));
-                }
-
+                
                 if (typeName == default)
                 {
                     element = matchingContext.ElementBuilder.TypeDefinition(scope);
                 }
                 else
                 {
-                    element = matchingContext.ElementBuilder.NamedTypeDefinition(
+                    var namedType = matchingContext.ElementBuilder.NamedTypeDefinition(
                         new NameKey(typeName.Item),
                         scope);
+
+                    matchingContext.AddType(namedType);
+
+                    element = namedType;
                 }
                 return true;
             }
@@ -506,34 +452,26 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var scope = new ObjectScope();
 
-                var elements = matchingContext.Child(scope).ParseBlock(body);
+                var elementMatchingContext = matchingContext.Child(scope);
+                var elements = elementMatchingContext.ParseBlock(body);
 
                 if (elements
-                    .ExtractMemberDefinitions(out var memberDefinitions)
-                    .ExtractMemberReferances(out var memberReferances)
+                    .ExtractMemberDefinitions(out var _)
+                    .ExtractMemberReferances(out var _)
                     .Any()
                     .Not())
                 {
                     throw new Exception("Types should only contain member definitions and member referances");
                 }
-
-                foreach (var memberDef in memberDefinitions)
-                {
-                    scope.TryAddLocalMember(memberDef);
-                }
-
-                foreach (var memberRef in memberReferances)
-                {
-                    scope.TryAddLocalMember(
-                        matchingContext.ElementBuilder.MemberDefinition(
-                            false,
-                            memberRef.Item2,
-                            RootScope.AnyType));
-                }
-
+                
                 var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();
 
-                element = matchingContext.ElementBuilder.GenericTypeDefinition(new NameKey(typeName.Item), scope, genericParameters);
+                var genericTypeDefinition = matchingContext.ElementBuilder.GenericTypeDefinition(new NameKey(typeName.Item), scope, genericParameters);
+
+                matchingContext.AddGenerticType(genericTypeDefinition);
+
+                element = genericTypeDefinition;
+
                 return true;
             }
 
@@ -557,18 +495,11 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var newMatchingContext = matchingContext.Child(methodScope);
                 var elements = newMatchingContext.ParseBlock(body);
-
-                var definitions = elements.DeepMemberDefinitions();
-
-                foreach (var definition in definitions)
-                {
-                    methodScope.TryAddLocal(definition);
-                }
-
+                
                 var contextDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "context"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(contextType.Item)
+                        matchingContext.ElementBuilder.ExplicitTypeName(contextType.Item).GetTypeDefinition(matchingContext.EnclosingScope)
                         );
 
                 methodScope.TryAddParameter(contextDefinition);
@@ -576,26 +507,12 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item)
+                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item).GetTypeDefinition(matchingContext.EnclosingScope)
                         );
 
 
                 methodScope.TryAddParameter(parameterDefinition);
-
-                var referances = elements.DeepMemberReferances();
-
-                foreach (var referance in referances)
-                {
-                    if (newMatchingContext.EnclosingScope.GetMemberOrDefault(referance) == null)
-                    {
-                        methodScope.TryAddLocal(
-                            matchingContext.ElementBuilder.MemberDefinition(
-                                false,
-                                referance,
-                                RootScope.AnyType));
-                    }
-                }
-
+                
                 element = matchingContext.ElementBuilder.ImplementationDefinition(
                     contextDefinition,
                     matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item),
@@ -622,24 +539,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var innerMatchingContext = matchingContext.Child(scope);
                 var elements = innerMatchingContext.ParseBlock(body);
-
-                var definitions = elements.DeepMemberDefinitions();
-
-                foreach (var definition in definitions)
-                {
-                    scope.TryAddLocal(definition);
-                }
-
-                var referances = elements.DeepMemberReferances();
-
-                foreach (var referance in referances)
-                {
-                    if (innerMatchingContext.EnclosingScope.GetMemberOrDefault(referance) == null)
-                    {
-                        scope.TryAddLocal(matchingContext.ElementBuilder.MemberDefinition(false, referance, RootScope.AnyType));
-                    }
-                }
-
+                
                 element = matchingContext.ElementBuilder.BlockDefinition(
                     elements, scope, new ICodeElement[0]);
 
@@ -673,8 +573,26 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                element = matchingContext.ElementBuilder.ExplicitMemberName(first.Item);
 
+
+                var refrence = matchingContext.ElementBuilder.ExplicitMemberName(first.Item);
+
+                if (matchingContext.EnclosingScope.GetMemberOrDefault(refrence) == default)
+                {
+
+                    var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
+                                    false,
+                                    refrence,
+                                    RootScope.AnyType.GetTypeDefinition(matchingContext.EnclosingScope));
+
+
+                    matchingContext.AddMember(memberDefinition);
+
+                    element= memberDefinition;
+                }
+                
+                element = refrence;
+                
                 return true;
             }
 
@@ -697,6 +615,36 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 result = default;
                 return false;
             };
+
+        public static bool MatchAssign(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result)
+        {
+            if (TokenMatching.Start(tokens)
+                .Has(ElementMatcher.IsBinaryOperation("=:"), out var perface, out var token, out var rhs)
+                .IsMatch)
+            {
+
+                // ok so I have two issues
+                // how do I get var info to where it needs to be
+                // how to I control when a referance should be a new member
+
+                // the answer is clearly to use the ElementMatchingContext
+                // you can make a ElementMatchingContext that knows what to do with var
+                // you can make ElementMatchingContexts that treat referance differently
+
+                // the other challenge with referances is they are often .ed together
+                // x . y
+                // inside a . operation we do not creat a new members
+                // . must make a ElementMatchingContext that only does look up 
+                // and does look up for the RHS inside the LHS
+
+
+                
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
 
         public static OperationMatcher MatchTrailing(string name, Func<ElementMatchingContext, Func<object, ICodeElement>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
         {
