@@ -96,7 +96,7 @@ namespace Tac.Parser
             if (scope is LocalStaticScope lss)
             {
 
-                return new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder, ElementMatchers,
+                return new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder, NormalElementMatcher,
                     x =>
                     {
                         if (!lss.TryAddLocal(x))
@@ -144,6 +144,8 @@ namespace Tac.Parser
 
             throw new Exception();
         }
+        
+        private ElementMatchingContext VarMatcher(ITypeDefinition typeDefinition) => new ElementMatchingContext(EnclosingScope, ElementBuilder, VarElementMatcher(typeDefinition),AddMember,AddType,AddGenerticType);
 
         public ElementMatchingContext(
             ScopeStack enclosingScope,
@@ -180,6 +182,19 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     MatchGenericTypeDefinition,
                     MatchMemberDefinition,
                     MatchTypeDefinition,
+                    MatchMethodDefinition,
+                    MatchImplementationDefinition,
+                    MatchBlockDefinition,
+                    MatchConstantNumber,
+                    MatchReferance
+                };
+
+        public static IEnumerable<TryMatch> VarElementMatcher (ITypeDefinition typeDefinition) => new List<TryMatch> {
+                    MatchObjectDefinition,
+                    MatchGenericTypeDefinition,
+                    MatchMemberDefinition,
+                    MatchTypeDefinition,
+                    MatchLocalDefinition_Var(typeDefinition),
                     MatchMethodDefinition,
                     MatchImplementationDefinition,
                     MatchBlockDefinition,
@@ -252,11 +267,10 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
         }
 
         #endregion
-
-
+        
         public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out object element);
 
-        public static TryMatch MatchLocalDefinition_Var(TypeDefinition typeDefinition) => (ElementToken elementToken, ElementMatchingContext matchingContext, out object element) =>
+        public static TryMatch MatchLocalDefinition_Var(ITypeDefinition typeDefinition) => (ElementToken elementToken, ElementMatchingContext matchingContext, out object element) =>
          {
              if (TokenMatching.Start(elementToken.Tokens)
                  .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
@@ -674,23 +688,13 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 .Has(ElementMatcher.IsBinaryOperation("=:"), out var perface, out var token, out var rhs)
                 .IsMatch)
             {
-
-                // ok so I have two issues
-                // how do I get var info to where it needs to be
-                // how to I control when a referance should be a new member
-
-                // the answer is clearly to use the ElementMatchingContext
-                // you can make a ElementMatchingContext that knows what to do with var
-                // you can make ElementMatchingContexts that treat referance differently
-
-                // the other challenge with referances is they are often .ed together
-                // x . y
-                // inside a . operation we do not creat a new members
-                // . must make a ElementMatchingContext that only does look up 
-                // and does look up for the RHS inside the LHS
-
-
-
+                var left = matchingContext.ParseLine(perface);
+                
+                var varMachtingContext = matchingContext.VarMatcher(left.ReturnType(matchingContext.EnclosingScope));
+                
+                var right = matchingContext.ParseParenthesisOrElement(rhs);
+                
+                result = matchingContext.ElementBuilder.AssignOperation(left, right.Cast<MemberDefinition>());
                 return true;
             }
 
