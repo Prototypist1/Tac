@@ -20,158 +20,93 @@ namespace Tac.Semantic_Model
         }
     }
 
-    // I am really not sure about this,
-    // I think it should be a scope tree
-    // I mean if you call a method
-    // we need to loop up in the scope of that method
-    // I am really getting ahead of myself
+    public class ScopeTree
+    {
+        /// <summary>
+        /// we only point upwards
+        /// object A {
+        ///     x : object B{
+        ///     
+        ///     }
+        /// }
+        /// ScopeParent[B] = A;
+        /// </summary>
+        private Dictionary<IScope, IScope> ScopeParent { get; } = new Dictionary<IScope, IScope>();
+
+        public IScope[] Scopes(IScope scope)
+        {
+            return Inner().ToArray();
+
+            IEnumerable<IScope> Inner()
+            {
+                yield return scope;
+                while (ScopeParent.ContainsKey(scope))
+                {
+                    scope = ScopeParent[scope];
+                    yield return scope;
+                }
+            }
+        }
+
+        internal ScopeTree Add(IScope oldTop, IScope newTop)
+        {
+            ScopeParent[newTop] = oldTop;
+            return this;
+        }
+    }
 
     public class ScopeStack
     {
-        public ScopeStack(ScopeStack scopes, IScope newScope)
+
+        public ScopeStack(ScopeTree scopeTree, IScope topScope)
         {
-            if (scopes == null)
-            {
-                throw new ArgumentNullException(nameof(scopes));
-            }
-
-            if (newScope == null)
-            {
-                throw new ArgumentNullException(nameof(newScope));
-            }
-
-            var stack = scopes.Scopes.ToList();
-            stack.Insert(0, newScope);
-            Scopes = stack.ToArray();
+            ScopeTree = scopeTree ?? throw new ArgumentNullException(nameof(scopeTree));
+            TopScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
         }
 
-        public ScopeStack(IEnumerable<IScope> scopes) => Scopes = scopes?.ToArray() ?? throw new ArgumentNullException(nameof(scopes));
+        public ScopeStack(ScopeStack scopes, IScope newScope) : this(scopes.ScopeTree.Add(scopes.TopScope, newScope), newScope) { }
 
-        public IScope[] Scopes { get; }
+        public ScopeTree ScopeTree { get; }
+        public IScope TopScope { get; }
 
-        public ITypeDefinition GetGenericType(GenericExplicitTypeName type) {
-            return SimpleLookUp();
+        public ITypeDefinition GetGenericType(GenericExplicitTypeName type)
+        {
 
-            // in the simple case we just search for up the stack for types
-            ITypeDefinition SimpleLookUp()
+            foreach (var scope in ScopeTree.Scopes(TopScope))
             {
-                foreach (var scope in Scopes)
+                if (scope.TryGetGenericType(type, type.Types.Select(x => x.GetTypeDefinition(this)).ToArray(), out var typeDefinition))
                 {
-                    if (scope.TryGetGenericType(type, type.Types.Select(x=>x.GetTypeDefinition(this)).ToArray(), out var typeDefinition))
-                    {
-                        return typeDefinition;
-                    }
+                    return typeDefinition;
                 }
-                throw new Exception("");
             }
+            throw new Exception("");
+
         }
 
         public ITypeDefinition GetType(ExplicitTypeName name)
         {
-
-            //if (names.Count() > 1)
-            //{
-
-            //    var (staticOnly, at) = GetStart();
-
-
-            //    (bool, IScope) GetStart()
-            //    {
-            //        var name = names.First();
-            //        foreach (var scope in Scopes)
-            //        {
-            //            if (scope.TryGetType(name, out var typeDefinition))
-            //            {
-            //                return (true, typeDefinition.Scope);
-            //            }
-            //            if (scope.TryGetMember(name, false, out var memberDefinition))
-            //            {
-            //                if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-            //                {
-            //                    return (false, memberType.Scope);
-            //                }
-            //                else
-            //                {
-            //                    throw new Exception("");
-            //                }
-            //            }
-            //        }
-            //        throw new Exception("");
-            //    }
-
-            //    foreach (var name in names.Skip(1).Take(names.Count() - 2))
-            //    {
-
-            //        (staticOnly, at) = Continue();
-
-            //        (bool, IScope) Continue()
-            //        {
-            //            if (at.TryGetType(name, out var typeDefinition))
-            //            {
-            //                return (true, typeDefinition.Scope);
-            //            }
-            //            if (at.TryGetMember(name, staticOnly, out var memberDefinition))
-            //            {
-            //                if (memberDefinition.Type.TryGetTypeDefinition(this, out var memberType))
-            //                {
-            //                    return (false, memberType.Scope);
-            //                }
-            //                else
-            //                {
-            //                    throw new Exception("");
-            //                }
-            //            }
-            //            throw new Exception("");
-            //        }
-            //    }
-
-            //    return Finsh();
-
-            //    // finally we make sure we get a type
-            //    ITypeDefinition<IScope> Finsh()
-            //    {
-            //        if (at.TryGetType(names.Last(), out var typeDefinition))
-            //        {
-            //            return typeDefinition;
-            //        }
-            //        throw new Exception("");
-            //    }
-
-            //}
-            //else
-            //{
-                return SimpleLookUp();
-
-                // in the simple case we just search for up the stack for types
-                ITypeDefinition SimpleLookUp()
+            foreach (var scope in ScopeTree.Scopes(TopScope))
+            {
+                if (scope.TryGetType(name, out var typeDefinition))
                 {
-                    foreach (var scope in Scopes)
-                    {
-                        if (scope.TryGetType(name, out var typeDefinition))
-                        {
-                            return typeDefinition;
-                        }
-                    }
-                    throw new Exception("");
+                    return typeDefinition;
                 }
-            //}
+            }
+            throw new Exception("");
+
         }
-        
+
         public MemberDefinition GetMemberOrDefault(ExplicitMemberName name)
         {
-            return SimpleLookUp();
-            
-            MemberDefinition SimpleLookUp()
+            foreach (var scope in ScopeTree.Scopes(TopScope))
             {
-                foreach (var scope in Scopes)
+                if (scope.TryGetMember(name, false, out var memberDefinition))
                 {
-                    if (scope.TryGetMember(name, false, out var memberDefinition))
-                    {
-                        return memberDefinition;
-                    }
+                    return memberDefinition;
                 }
-                return new MemberDefinition(false, name, RootScope.AnyType);
             }
+            return new MemberDefinition(false, name, RootScope.AnyType.GetTypeDefinition(this));
+
         }
     }
 }

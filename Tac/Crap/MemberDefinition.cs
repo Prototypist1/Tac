@@ -8,7 +8,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-
+    // TODO remove!
     public sealed class ImplicitlyTypedMemberDefinition 
     {
         public ImplicitlyTypedMemberDefinition(bool readOnly, ExplicitMemberName key)
@@ -39,7 +39,6 @@ namespace Tac.Semantic_Model
         public MemberDefinition MakeMemberDefinition(ITypeSource type) {
             return new MemberDefinition(ReadOnly, Key, type);
         }
-
     }
 
     // it is possible members are single instances with look up
@@ -49,14 +48,14 @@ namespace Tac.Semantic_Model
 
     public class MemberDefinition: ICodeElement, IMemberSource
     {
-        public MemberDefinition(bool readOnly, ExplicitMemberName key, TypeDefinition type)
+        public MemberDefinition(bool readOnly, ExplicitMemberName key, ITypeDefinition type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public TypeDefinition Type { get; }
+        public ITypeDefinition Type { get; }
         public bool ReadOnly { get; }
         public ExplicitMemberName Key { get; }
 
@@ -65,7 +64,7 @@ namespace Tac.Semantic_Model
             return obj is MemberDefinition definition &&
                    ReadOnly == definition.ReadOnly &&
                    EqualityComparer<ExplicitMemberName>.Default.Equals(Key, definition.Key) &&
-                   EqualityComparer<TypeDefinition>.Default.Equals(Type, definition.Type);
+                   EqualityComparer<ITypeDefinition>.Default.Equals(Type, definition.Type);
         }
 
         public override int GetHashCode()
@@ -73,7 +72,7 @@ namespace Tac.Semantic_Model
             var hashCode = 1232917096;
             hashCode = hashCode * -1521134295 + ReadOnly.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<ExplicitMemberName>.Default.GetHashCode(Key);
-            hashCode = hashCode * -1521134295 + EqualityComparer<TypeDefinition>.Default.GetHashCode(Type);
+            hashCode = hashCode * -1521134295 + EqualityComparer<ITypeDefinition>.Default.GetHashCode(Type);
             return hashCode;
         }
 

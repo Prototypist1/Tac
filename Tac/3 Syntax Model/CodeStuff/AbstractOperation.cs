@@ -4,6 +4,10 @@ using System.Text;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
+    internal interface IOperation
+    {
+        ICodeElement[] Operands { get; }
+    }
 
     public abstract class BinaryOperation<TLeft,TRight>: ICodeElement , IOperation
         where TLeft: class, ICodeElement
@@ -11,7 +15,13 @@ namespace Tac.Semantic_Model.CodeStuff
     {
         public readonly TLeft left;
         public readonly TRight right;
-        public ICodeElement[] Operands => new ICodeElement[] { left, right };
+        public ICodeElement[] Operands
+        {
+            get
+            {
+                return new ICodeElement[] { left, right };
+            }
+        }
 
         public BinaryOperation(TLeft left, TRight right)
         {
@@ -30,16 +40,11 @@ namespace Tac.Semantic_Model.CodeStuff
         public override int GetHashCode()
         {
             var hashCode = -124503083;
-            hashCode = hashCode * -1521134295 + EqualityComparer<ICodeElement>.Default.GetHashCode(left);
-            hashCode = hashCode * -1521134295 + EqualityComparer<ICodeElement>.Default.GetHashCode(right);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<ICodeElement>.Default.GetHashCode(left);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<ICodeElement>.Default.GetHashCode(right);
             return hashCode;
         }
 
         public abstract ITypeDefinition ReturnType(ScopeStack scope);
-    }
-
-    internal interface IOperation
-    {
-        ICodeElement[] Operands { get; }
     }
 }

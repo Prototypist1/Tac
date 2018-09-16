@@ -6,9 +6,6 @@ namespace Tac.Semantic_Model
 {
     // this is really a scope builder
     public class StaticScope : Scope {
-        public override bool Equals(object obj) => obj is StaticScope && base.Equals(obj);
-        public override int GetHashCode() => base.GetHashCode();
-
         public bool TryAddStaticMember(MemberDefinition definition)
         {
             return TryAdd(DefintionLifetime.Static, definition);

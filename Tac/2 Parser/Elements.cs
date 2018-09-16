@@ -106,7 +106,8 @@ namespace Tac.Parser
                     },
                      x =>
                      {
-                         if (!lss.TryAddStaticType(x)){
+                         if (!lss.TryAddStaticType(x))
+                         {
                              throw new Exception();
                          }
                      },
@@ -125,11 +126,12 @@ namespace Tac.Parser
                 return new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder, ElementMatchers,
                     x =>
                     {
-                            throw new Exception();
+                        throw new Exception();
                     },
                      x =>
                      {
-                         if (!ss.TryAddStaticType(x)){
+                         if (!ss.TryAddStaticType(x))
+                         {
                              throw new Exception();
                          }
                      },
@@ -144,8 +146,11 @@ namespace Tac.Parser
 
             throw new Exception();
         }
-        
-        private ElementMatchingContext VarMatcher(ITypeDefinition typeDefinition) => new ElementMatchingContext(EnclosingScope, ElementBuilder, VarElementMatcher(typeDefinition),AddMember,AddType,AddGenerticType);
+
+        private ElementMatchingContext VarMatcher(ITypeDefinition typeDefinition)
+        {
+            return new ElementMatchingContext(EnclosingScope, ElementBuilder, VarElementMatcher(typeDefinition), AddMember, AddType, AddGenerticType);
+        }
 
         public ElementMatchingContext(
             ScopeStack enclosingScope,
@@ -189,7 +194,9 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     MatchReferance
                 };
 
-        public static IEnumerable<TryMatch> VarElementMatcher (ITypeDefinition typeDefinition) => new List<TryMatch> {
+        public static IEnumerable<TryMatch> VarElementMatcher(ITypeDefinition typeDefinition)
+        {
+            return new List<TryMatch> {
                     MatchObjectDefinition,
                     MatchGenericTypeDefinition,
                     MatchMemberDefinition,
@@ -201,6 +208,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     MatchConstantNumber,
                     MatchReferance
                 };
+        }
 
         public IEnumerable<OperationMatcher> OperationMatchers { get; } = new List<OperationMatcher>
         {
@@ -267,33 +275,36 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
         }
 
         #endregion
-        
+
         public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out object element);
 
-        public static TryMatch MatchLocalDefinition_Var(ITypeDefinition typeDefinition) => (ElementToken elementToken, ElementMatchingContext matchingContext, out object element) =>
-         {
-             if (TokenMatching.Start(elementToken.Tokens)
-                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
-                 .Has(ElementMatcher.KeyWord("var"), out var _)
-                 .Has(ElementMatcher.IsName, out AtomicToken nameToken)
-                 .Has(ElementMatcher.IsDone)
-                 .IsMatch)
-             {
+        public static TryMatch MatchLocalDefinition_Var(ITypeDefinition typeDefinition)
+        {
+            return (ElementToken elementToken, ElementMatchingContext matchingContext, out object element) =>
+{
+    if (TokenMatching.Start(elementToken.Tokens)
+    .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
+    .Has(ElementMatcher.KeyWord("var"), out var _)
+    .Has(ElementMatcher.IsName, out AtomicToken nameToken)
+    .Has(ElementMatcher.IsDone)
+    .IsMatch)
+    {
 
-                 var readOnly = readonlyToken != default;
+        var readOnly = readonlyToken != default;
 
-                 var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), typeDefinition);
+        var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), typeDefinition);
 
-                 matchingContext.AddMember(memberDefinition);
+        matchingContext.AddMember(memberDefinition);
 
-                 element = memberDefinition;
+        element = memberDefinition;
 
-                 return true;
-             }
+        return true;
+    }
 
-             element = default;
-             return false;
-         };
+    element = default;
+    return false;
+};
+        }
 
         public static bool MatchMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
@@ -668,19 +679,22 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public delegate bool OperationMatcher(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result);
 
-        public static OperationMatcher MatchBinary(string name, Func<ElementMatchingContext, Func<object, object, ICodeElement>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
-             {
-                 if (TokenMatching.Start(tokens)
-                     .Has(ElementMatcher.IsBinaryOperation(name), out var perface, out var token, out var rhs)
-                     .IsMatch)
-                 {
-                     result = builder(matchingContext)(matchingContext.ParseLine(perface), matchingContext.ParseParenthesisOrElement(rhs));
-                     return true;
-                 }
+        public static OperationMatcher MatchBinary(string name, Func<ElementMatchingContext, Func<object, object, ICodeElement>> builder)
+        {
+            return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
+{
+    if (TokenMatching.Start(tokens)
+    .Has(ElementMatcher.IsBinaryOperation(name), out var perface, out var token, out var rhs)
+    .IsMatch)
+    {
+        result = builder(matchingContext)(matchingContext.ParseLine(perface), matchingContext.ParseParenthesisOrElement(rhs));
+        return true;
+    }
 
-                 result = default;
-                 return false;
-             };
+    result = default;
+    return false;
+};
+        }
 
         public static bool MatchAssign(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result)
         {
@@ -689,11 +703,11 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);
-                
+
                 var varMachtingContext = matchingContext.VarMatcher(left.ReturnType(matchingContext.EnclosingScope));
-                
+
                 var right = matchingContext.ParseParenthesisOrElement(rhs);
-                
+
                 result = matchingContext.ElementBuilder.AssignOperation(left, right.Cast<MemberDefinition>());
                 return true;
             }
@@ -702,20 +716,22 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return false;
         }
 
-        public static OperationMatcher MatchTrailing(string name, Func<ElementMatchingContext, Func<object, ICodeElement>> builder) => (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
+        public static OperationMatcher MatchTrailing(string name, Func<ElementMatchingContext, Func<object, ICodeElement>> builder)
         {
-            if (TokenMatching.Start(tokens)
+            return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
+            {
+                if (TokenMatching.Start(tokens)
                 .Has(ElementMatcher.IsTrailingOperation(name), out var perface, out var token)
                 .IsMatch)
-            {
-                result = builder(matchingContext)(matchingContext.ParseLine(perface));
-                return true;
-            }
+                {
+                    result = builder(matchingContext)(matchingContext.ParseLine(perface));
+                    return true;
+                }
 
-            result = default;
-            return false;
-        };
-
+                result = default;
+                return false;
+            };
+        }
     }
 
     public class TokenMatching
@@ -723,11 +739,17 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         private TokenMatching(IEnumerable<IToken> tokens, bool isNotMatch)
         {
-            this.IsNotMatch = isNotMatch;
-            this.Tokens = tokens;
+            IsNotMatch = isNotMatch;
+            Tokens = tokens;
         }
 
-        public bool IsMatch { get => !IsNotMatch; }
+        public bool IsMatch
+        {
+            get
+            {
+                return !IsNotMatch;
+            }
+        }
         public bool IsNotMatch { get; }
         public IEnumerable<IToken> Tokens { get; }
 
@@ -858,7 +880,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 !double.TryParse(first.Item, out var _))
             {
                 var at = TokenMatching.Match(self.Tokens.Skip(1));
-                if (GenericN(at, out ITypeSource[] generics).IsMatch)
+                if (GenericN(at, out var generics).IsMatch)
                 {
                     typeSource = new GenericExplicitTypeName(first.Item, generics);
                     return TokenMatching.Match(self.Tokens.Skip(2).ToArray());
@@ -1009,53 +1031,59 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return TokenMatching.NotMatch(elementMatching.Tokens);
         }
 
-        public static IsMatch<IEnumerable<IToken>, AtomicToken, IToken> IsBinaryOperation(string s) => (TokenMatching elementMatching, out IEnumerable<IToken> preface, out AtomicToken operation, out IToken rhs) =>
+        public static IsMatch<IEnumerable<IToken>, AtomicToken, IToken> IsBinaryOperation(string s)
+        {
+            return (TokenMatching elementMatching, out IEnumerable<IToken> preface, out AtomicToken operation, out IToken rhs) =>
 
-           {
-               if (elementMatching.Tokens.Any() &&
-                   (elementMatching.Tokens.Last() is ParenthesisToken ||
-                   elementMatching.Tokens.Last() is ElementToken)
-                   )
-               {
-                   var right = elementMatching.Tokens.Last();
+{
+    if (elementMatching.Tokens.Any() &&
+    (elementMatching.Tokens.Last() is ParenthesisToken ||
+    elementMatching.Tokens.Last() is ElementToken)
+    )
+    {
+        var right = elementMatching.Tokens.Last();
 
-                   var at = TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray());
+        var at = TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray());
 
-                   if (at.Tokens.Any() &&
-                       at.Tokens.Last() is AtomicToken op &&
-                       op.Item == s)
-                   {
-
-                       rhs = right;
-                       operation = op;
-                       preface = at.Tokens.Take(at.Tokens.Count() - 1);
-                       return TokenMatching.Match(preface);
-                   }
-               }
-
-               rhs = default;
-               preface = default;
-               operation = default;
-               return TokenMatching.NotMatch(elementMatching.Tokens);
-
-           };
-
-        public static IsMatch<IEnumerable<IToken>, AtomicToken> IsTrailingOperation(string s) => (TokenMatching elementMatching, out IEnumerable<IToken> preface, out AtomicToken operation) =>
+        if (at.Tokens.Any() &&
+        at.Tokens.Last() is AtomicToken op &&
+        op.Item == s)
         {
 
-            if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.Last() is AtomicToken op)
-            {
+            rhs = right;
+            operation = op;
+            preface = at.Tokens.Take(at.Tokens.Count() - 1);
+            return TokenMatching.Match(preface);
+        }
+    }
 
-                preface = elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1);
-                operation = op;
-                return TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray());
-            }
+    rhs = default;
+    preface = default;
+    operation = default;
+    return TokenMatching.NotMatch(elementMatching.Tokens);
 
-            preface = default;
-            operation = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens);
-        };
+};
+        }
+
+        public static IsMatch<IEnumerable<IToken>, AtomicToken> IsTrailingOperation(string s)
+        {
+            return (TokenMatching elementMatching, out IEnumerable<IToken> preface, out AtomicToken operation) =>
+{
+
+    if (elementMatching.Tokens.Any() &&
+    elementMatching.Tokens.Last() is AtomicToken op)
+    {
+
+        preface = elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1);
+        operation = op;
+        return TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray());
+    }
+
+    preface = default;
+    operation = default;
+    return TokenMatching.NotMatch(elementMatching.Tokens);
+};
+        }
 
         public static IsMatch<AtomicToken> KeyWord(string word)
         {

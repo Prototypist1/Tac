@@ -7,10 +7,6 @@
         {
             return TryAdd(DefintionLifetime.Instance, definition);
         }
-        
-        public override bool Equals(object obj) => obj is InstanceScope && base.Equals(obj);
-        public override int GetHashCode() => base.GetHashCode();
-
     }
 
 }

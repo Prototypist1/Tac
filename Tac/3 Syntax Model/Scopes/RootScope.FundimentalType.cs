@@ -5,7 +5,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public static partial class RootScope
+    public static class RootScope
     {
 
         public static IScope Root { get => Root; }
