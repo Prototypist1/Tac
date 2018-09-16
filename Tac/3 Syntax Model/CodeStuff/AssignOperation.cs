@@ -12,17 +12,7 @@ namespace Tac.Semantic_Model.Operations
         public AssignOperation(ICodeElement left, IMemberSource right) : base(left, right)
         {
         }
-
-        public override bool Equals(object obj)
-        {
-            return obj is AssignOperation other && base.Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
+        
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
             return left.ReturnType(scope);

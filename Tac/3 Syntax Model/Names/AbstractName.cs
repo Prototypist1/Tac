@@ -5,12 +5,6 @@ using System.Text;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
 
-// TODO you have names and type sources
-// and it sucks to have both
-// think about this 
-// do we know when something is a type referance?
-// pretty much yes...
-
 namespace Tac.Semantic_Model.Names
 {
     public interface IKeyd
@@ -18,19 +12,20 @@ namespace Tac.Semantic_Model.Names
         IKey Key { get; }
     }
 
-
-
-    public interface IKeyd<out TKey>: IKeyd
+    public interface IKeyd<out TKey> : IKeyd
         where TKey : IKey
     {
         new TKey Key { get; }
     }
 
     public interface IKey { }
-    
-    public class NameKey: IKey
+
+    public class NameKey : IKey
     {
-        public NameKey(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
+        public NameKey(string name)
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+        }
 
         public string Name { get; }
 
@@ -40,7 +35,10 @@ namespace Tac.Semantic_Model.Names
                    Name == key.Name;
         }
 
-        public override int GetHashCode() => 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+        public override int GetHashCode()
+        {
+            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+        }
     }
 
 
@@ -48,31 +46,47 @@ namespace Tac.Semantic_Model.Names
     {
         ITypeDefinition GetTypeDefinition(ScopeStack scopeStack);
     }
-    
+
     // var
     public class ImplicitTypeReferance : ITypeSource
     {
-        public ImplicitTypeReferance(ICodeElement codeElement) => CodeElement = codeElement ?? throw new ArgumentNullException(nameof(codeElement));
+        public ImplicitTypeReferance(ICodeElement codeElement)
+        {
+            CodeElement = codeElement ?? throw new ArgumentNullException(nameof(codeElement));
+        }
 
         private ICodeElement CodeElement { get; }
 
-        public override bool Equals(object obj) => obj is ImplicitTypeReferance && base.Equals(obj);
-        public override int GetHashCode() => base.GetHashCode();
+        public override bool Equals(object obj)
+        {
+            return obj is ImplicitTypeReferance && base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
 
         public ITypeDefinition GetTypeDefinition(ScopeStack scope)
         {
             return CodeElement.ReturnType(scope);
         }
 
-        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType.GetTypeDefinition(scope);
+        public ITypeDefinition ReturnType(ScopeStack scope)
+        {
+            return RootScope.TypeType.GetTypeDefinition(scope);
+        }
     }
 
     // TODO we also have types that are defined inline "annonymous types"
     // and types that are the result of operations &|! "calculated types"
-    
+
     public class ExplicitTypeName : ITypeSource, IKeyd<NameKey>
     {
-        public ExplicitTypeName(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
+        public ExplicitTypeName(string name)
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+        }
 
         public string Name { get; }
 
@@ -82,28 +96,46 @@ namespace Tac.Semantic_Model.Names
                    Name == name.Name;
         }
 
-        public override int GetHashCode() => 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+        public override int GetHashCode()
+        {
+            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+        }
 
         public ITypeDefinition GetTypeDefinition(ScopeStack scope)
         {
             return scope.GetType(this);
         }
 
-        public NameKey Key => new NameKey(Name);
+        public NameKey Key
+        {
+            get
+            {
+                return new NameKey(Name);
+            }
+        }
 
-        IKey IKeyd.Key => Key;
+        IKey IKeyd.Key
+        {
+            get
+            {
+                return Key;
+            }
+        }
 
-        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.TypeType.GetTypeDefinition(scope);
+        public ITypeDefinition ReturnType(ScopeStack scope)
+        {
+            return RootScope.TypeType.GetTypeDefinition(scope);
+        }
     }
-    
+
     public class GenericExplicitTypeName : ExplicitTypeName, IKeyd
     {
-        public GenericExplicitTypeName(string name, params ITypeSource[] types) : base(name)
+        public GenericExplicitTypeName(string name, params ITypeDefinition[] types) : base(name)
         {
             Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
 
-        public ITypeSource[] Types { get; }
+        public ITypeDefinition[] Types { get; }
 
         public override bool Equals(object obj)
         {
@@ -115,8 +147,8 @@ namespace Tac.Semantic_Model.Names
         public override int GetHashCode()
         {
             var hashCode = -850890288;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + Types.Sum(x=>x.GetHashCode());
+            hashCode = (hashCode * -1521134295) + base.GetHashCode();
+            hashCode = (hashCode * -1521134295) + Types.Sum(x => x.GetHashCode());
             return hashCode;
         }
 
@@ -131,10 +163,13 @@ namespace Tac.Semantic_Model.Names
     {
         MemberDefinition GetMemberDefinition(ScopeStack scopeStack);
     }
-    
+
     public class ExplicitMemberName : IMemberSource, IKeyd<NameKey>
     {
-        public ExplicitMemberName(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
+        public ExplicitMemberName(string name)
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+        }
 
         public string Name { get; }
 
@@ -144,11 +179,36 @@ namespace Tac.Semantic_Model.Names
                    Name == name.Name;
         }
 
-        public override int GetHashCode() => 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-        public NameKey Key => new NameKey(Name);
-        IKey IKeyd.Key => Key;
-        public MemberDefinition GetMemberDefinition(ScopeStack scope) => GetMemberDefinition(scope);
-        public ITypeDefinition ReturnType(ScopeStack scope) => GetMemberDefinition(scope).Type.GetTypeDefinition(scope);
+        public override int GetHashCode()
+        {
+            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+        }
+
+        public NameKey Key
+        {
+            get
+            {
+                return new NameKey(Name);
+            }
+        }
+
+        IKey IKeyd.Key
+        {
+            get
+            {
+                return Key;
+            }
+        }
+
+        public MemberDefinition GetMemberDefinition(ScopeStack scope)
+        {
+            return GetMemberDefinition(scope);
+        }
+
+        public ITypeDefinition ReturnType(ScopeStack scope)
+        {
+            return GetMemberDefinition(scope).Type;
+        }
     }
 
 }

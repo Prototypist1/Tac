@@ -22,20 +22,7 @@ namespace Tac.Semantic_Model
         }
 
         public IScope Scope { get; }
-
-        public override bool Equals(object obj)
-        {
-            return obj is TypeDefinition definition && definition != null &&
-                   EqualityComparer<IScope>.Default.Equals(Scope, definition.Scope);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = -1628597129;
-            hashCode = (hashCode * -1521134295) + EqualityComparer<IScope>.Default.GetHashCode(Scope);
-            return hashCode;
-        }
-
+        
         public ITypeDefinition ReturnType(ScopeStack scope)
         {
             return scope.GetType(RootScope.TypeType);
@@ -50,21 +37,7 @@ namespace Tac.Semantic_Model
         }
 
         public IKey Key { get; }
-
-        public override bool Equals(object obj)
-        {
-            return obj is NamedTypeDefinition definition &&
-                   base.Equals(obj) &&
-                   EqualityComparer<IKey>.Default.Equals(Key, definition.Key);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = -229860446;
-            hashCode = (hashCode * -1521134295) + base.GetHashCode();
-            hashCode = (hashCode * -1521134295) + EqualityComparer<IKey>.Default.GetHashCode(Key);
-            return hashCode;
-        }
+        
     }
 
     public class GenericTypeDefinition : ICodeElement, IKeyd

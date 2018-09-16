@@ -8,38 +8,6 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    // TODO remove!
-    public sealed class ImplicitlyTypedMemberDefinition 
-    {
-        public ImplicitlyTypedMemberDefinition(bool readOnly, ExplicitMemberName key)
-        {
-            ReadOnly = readOnly;
-            Key = key ?? throw new ArgumentNullException(nameof(key));
-        }
-
-
-        public ExplicitMemberName Key { get; }
-        public bool ReadOnly { get; }
-
-        public override bool Equals(object obj)
-        {
-            return obj is MemberDefinition definition &&
-                   ReadOnly == definition.ReadOnly &&
-                   EqualityComparer<ExplicitMemberName>.Default.Equals(Key, definition.Key);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = 1232917096;
-            hashCode = hashCode * -1521134295 + ReadOnly.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<ExplicitMemberName>.Default.GetHashCode(Key);
-            return hashCode;
-        }
-
-        public MemberDefinition MakeMemberDefinition(ITypeSource type) {
-            return new MemberDefinition(ReadOnly, Key, type);
-        }
-    }
 
     // it is possible members are single instances with look up
     // up I don't think so

@@ -6,7 +6,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class ModuleDefinition : IScoped, ICodeElement 
+    public class ModuleDefinition : IScoped, ICodeElement
     {
         public ModuleDefinition(IScope scope, IEnumerable<ICodeElement> staticInitialization)
         {
@@ -15,26 +15,15 @@ namespace Tac.Semantic_Model
                 throw new ArgumentNullException(nameof(scope));
             }
 
-            Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
-        
+
 
         public IScope Scope { get; }
-        
-        public override bool Equals(object obj)
-        {
-            return obj is ModuleDefinition definition && definition != null &&
-                   EqualityComparer<IScope>.Default.Equals(Scope, definition.Scope);
-        }
 
-        public override int GetHashCode()
+        public ITypeDefinition ReturnType(ScopeStack scope)
         {
-            var hashCode = -1628597129;
-            hashCode = hashCode * -1521134295 + EqualityComparer<IScope>.Default.GetHashCode(Scope);
-            return hashCode;
+            throw new NotImplementedException();
         }
-
-        public ITypeDefinition ReturnType(ScopeStack scope) => throw new NotImplementedException();
     }
 }

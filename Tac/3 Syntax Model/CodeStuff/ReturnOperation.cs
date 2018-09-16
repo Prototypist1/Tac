@@ -13,14 +13,10 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public ICodeElement Result { get; }
-        
-        public override bool Equals(object obj)
-        {
-            return obj is ReturnOperation operation &&
-                   EqualityComparer<ICodeElement>.Default.Equals(Result, operation.Result);
-        }
 
-        public override int GetHashCode() => 1482362596 + EqualityComparer<ICodeElement>.Default.GetHashCode(Result);
-        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.EmptyType.GetTypeDefinition(scope);
+        public ITypeDefinition ReturnType(ScopeStack scope)
+        {
+            return RootScope.EmptyType.GetTypeDefinition(scope);
+        }
     }
 }

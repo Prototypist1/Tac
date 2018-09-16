@@ -8,7 +8,13 @@ namespace Tac.Semantic_Model
     public static class RootScope
     {
 
-        public static IScope Root { get => Root; }
+        public static IScope Root
+        {
+            get
+            {
+                return Root;
+            }
+        }
         private static StaticScope root = new StaticScope();
 
         public static ExplicitTypeName Add(ExplicitTypeName name) {

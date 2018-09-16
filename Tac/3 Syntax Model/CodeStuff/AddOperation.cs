@@ -12,16 +12,6 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is AddOperation other && base.Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
         public override ITypeDefinition ReturnType(ScopeStack scope) {
             if (left.ReturnType(scope) == RootScope.NumberType && right.ReturnType(scope) == RootScope.NumberType)
             {

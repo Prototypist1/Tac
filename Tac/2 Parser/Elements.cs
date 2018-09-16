@@ -71,7 +71,7 @@ namespace Tac.Parser
         TExplicitTypeName ExplicitTypeName(string item);
         TIfTrueOperation IfTrueOperation(ICodeElement codeElement1, ICodeElement codeElement2);
         TElseOperation ElseOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeSource[] tokenSources);
+        TGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeDefinition[] tokenSources);
         TLessThanOperation LessThanOperation(ICodeElement codeElement1, ICodeElement codeElement2);
         TNextCallOperation NextCallOperation(ICodeElement codeElement1, ICodeElement codeElement2);
         TImplicitTypeReferance ImplicitTypeReferance(ICodeElement left);
@@ -96,7 +96,7 @@ namespace Tac.Parser
             if (scope is LocalStaticScope lss)
             {
 
-                return new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder, NormalElementMatcher,
+                return new ElementMatchingContext(new ScopeStack(ScopeStack, scope), ElementBuilder, NormalElementMatcher,
                     x =>
                     {
                         if (!lss.TryAddLocal(x))
@@ -123,7 +123,7 @@ namespace Tac.Parser
             if (scope is StaticScope ss)
             {
 
-                return new ElementMatchingContext(new ScopeStack(EnclosingScope, scope), ElementBuilder, ElementMatchers,
+                return new ElementMatchingContext(new ScopeStack(ScopeStack, scope), ElementBuilder, ElementMatchers,
                     x =>
                     {
                         throw new Exception();
@@ -149,7 +149,7 @@ namespace Tac.Parser
 
         private ElementMatchingContext VarMatcher(ITypeDefinition typeDefinition)
         {
-            return new ElementMatchingContext(EnclosingScope, ElementBuilder, VarElementMatcher(typeDefinition), AddMember, AddType, AddGenerticType);
+            return new ElementMatchingContext(ScopeStack, ElementBuilder, VarElementMatcher(typeDefinition), AddMember, AddType, AddGenerticType);
         }
 
         public ElementMatchingContext(
@@ -162,7 +162,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             Action<NamedTypeDefinition> addType,
             Action<GenericTypeDefinition> addGenerticType)
         {
-            EnclosingScope = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
+            ScopeStack = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
             ElementBuilder = elementBuilder ?? throw new ArgumentNullException(nameof(elementBuilder));
             ElementMatchers = elementMatchers ?? throw new ArgumentNullException(nameof(elementMatchers));
             AddMember = addMember ?? throw new ArgumentNullException(nameof(addMember));
@@ -174,7 +174,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
 TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, object> ElementBuilder
         { get; }
-        public ScopeStack EnclosingScope { get; }
+        public ScopeStack ScopeStack { get; }
 
         public IEnumerable<TryMatch> ElementMatchers { get; }
 
@@ -281,36 +281,36 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
         public static TryMatch MatchLocalDefinition_Var(ITypeDefinition typeDefinition)
         {
             return (ElementToken elementToken, ElementMatchingContext matchingContext, out object element) =>
-{
-    if (TokenMatching.Start(elementToken.Tokens)
-    .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
-    .Has(ElementMatcher.KeyWord("var"), out var _)
-    .Has(ElementMatcher.IsName, out AtomicToken nameToken)
-    .Has(ElementMatcher.IsDone)
-    .IsMatch)
-    {
+            {
+                if (TokenMatching.Start(elementToken.Tokens)
+                .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
+                .Has(ElementMatcher.KeyWord("var"), out var _)
+                .Has(ElementMatcher.IsName, out AtomicToken nameToken)
+                .Has(ElementMatcher.IsDone)
+                .IsMatch)
+                {
 
-        var readOnly = readonlyToken != default;
+                    var readOnly = readonlyToken != default;
 
-        var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), typeDefinition);
+                    var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), typeDefinition);
 
-        matchingContext.AddMember(memberDefinition);
+                    matchingContext.AddMember(memberDefinition);
 
-        element = memberDefinition;
+                    element = memberDefinition;
 
-        return true;
-    }
+                    return true;
+                }
 
-    element = default;
-    return false;
-};
+                element = default;
+                return false;
+            };
         }
 
         public static bool MatchMemberDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out object element)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
-                .Has(ElementMatcher.IsType, out ITypeSource typeToken)
+                .Has(ElementMatcher.IsType(matchingContext.ScopeStack), out ITypeDefinition typeToken)
                 .Has(ElementMatcher.IsName, out AtomicToken nameToken)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
@@ -321,7 +321,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
                     readOnly,
                     matchingContext.ElementBuilder.ExplicitMemberName(nameToken.Item),
-                    typeToken.GetTypeDefinition(matchingContext.EnclosingScope));
+                    typeToken);
 
                 matchingContext.AddMember(memberDefinition);
 
@@ -341,7 +341,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
                 .Has(ElementMatcher.IsName, out AtomicToken typeToken)
-                .Has(ElementMatcher.GenericN, out ITypeSource[] tokenSources)
+                .Has(ElementMatcher.GenericN(matchingContext.ScopeStack), out ITypeDefinition[] tokenSources)
                 .Has(ElementMatcher.IsName, out AtomicToken nameToken)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
@@ -351,7 +351,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
                     readOnly,
                     matchingContext.ElementBuilder.ExplicitMemberName(nameToken.Item),
-                    matchingContext.ElementBuilder.GenericExplicitTypeName(typeToken.Item, tokenSources).GetTypeDefinition(matchingContext.EnclosingScope));
+                    matchingContext.ElementBuilder.GenericExplicitTypeName(typeToken.Item, tokenSources).GetTypeDefinition(matchingContext.ScopeStack));
 
                 matchingContext.AddMember(memberDefinition);
 
@@ -455,7 +455,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item).GetTypeDefinition(matchingContext.EnclosingScope)
+                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item).GetTypeDefinition(matchingContext.ScopeStack)
                         );
 
 
@@ -576,7 +576,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var contextDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "context"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(contextType.Item).GetTypeDefinition(matchingContext.EnclosingScope)
+                        matchingContext.ElementBuilder.ExplicitTypeName(contextType.Item).GetTypeDefinition(matchingContext.ScopeStack)
                         );
 
                 methodScope.TryAddParameter(contextDefinition);
@@ -584,7 +584,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item).GetTypeDefinition(matchingContext.EnclosingScope)
+                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item).GetTypeDefinition(matchingContext.ScopeStack)
                         );
 
 
@@ -654,13 +654,13 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var refrence = matchingContext.ElementBuilder.ExplicitMemberName(first.Item);
 
-                if (matchingContext.EnclosingScope.GetMemberOrDefault(refrence) == default)
+                if (matchingContext.ScopeStack.GetMemberOrDefault(refrence) == default)
                 {
 
                     var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
                                     false,
                                     refrence,
-                                    RootScope.AnyType.GetTypeDefinition(matchingContext.EnclosingScope));
+                                    RootScope.AnyType.GetTypeDefinition(matchingContext.ScopeStack));
 
 
                     matchingContext.AddMember(memberDefinition);
@@ -704,7 +704,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             {
                 var left = matchingContext.ParseLine(perface);
 
-                var varMachtingContext = matchingContext.VarMatcher(left.ReturnType(matchingContext.EnclosingScope));
+                var varMachtingContext = matchingContext.VarMatcher(left.ReturnType(matchingContext.ScopeStack));
 
                 var right = matchingContext.ParseParenthesisOrElement(rhs);
 
@@ -872,7 +872,9 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return TokenMatching.NotMatch(self.Tokens);
         }
 
-        public static TokenMatching IsType(TokenMatching self, out ITypeSource typeSource)
+        public static IsMatch<ITypeDefinition> IsType(ScopeStack scopeStack)
+        {
+            return (TokenMatching self, out ITypeDefinition typeSource) =>
         {
 
             if (self.Tokens.Any() &&
@@ -880,18 +882,19 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 !double.TryParse(first.Item, out var _))
             {
                 var at = TokenMatching.Match(self.Tokens.Skip(1));
-                if (GenericN(at, out var generics).IsMatch)
+                if (GenericN(scopeStack)(at, out var generics).IsMatch)
                 {
-                    typeSource = new GenericExplicitTypeName(first.Item, generics);
+                    typeSource = scopeStack.GetGenericType(new GenericExplicitTypeName(first.Item, generics));
                     return TokenMatching.Match(self.Tokens.Skip(2).ToArray());
                 }
 
-                typeSource = new ExplicitTypeName(first.Item);
+                typeSource = scopeStack.GetType(new ExplicitTypeName(first.Item));
                 return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 
             typeSource = default;
             return TokenMatching.NotMatch(self.Tokens);
+        };
         }
 
         public static TokenMatching IsNumber(TokenMatching self, out double res)
@@ -974,39 +977,42 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             return TokenMatching.NotMatch(elementMatching.Tokens);
         }
 
-        public static TokenMatching GenericN(TokenMatching elementMatching, out ITypeSource[] typeSources)
+        public static IsMatch<ITypeDefinition[]> GenericN(ScopeStack scopeStack)
         {
-            if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
-                typeParameters.Tokens.All(x => x is ElementToken) &&
-                TryToToken(out var res))
+            return (TokenMatching elementMatching, out ITypeDefinition[] typeSources) =>
             {
-                typeSources = res;
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
-            }
-
-            typeSources = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens);
-
-            bool TryToToken(out ITypeSource[] typeSourcesInner)
-            {
-                var typeSourcesBuilding = new List<ITypeSource>();
-                foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
+                if (elementMatching.Tokens.Any() &&
+                    elementMatching.Tokens.First() is ParenthesisToken typeParameters &&
+                    typeParameters.Tokens.All(x => x is ElementToken) &&
+                    TryToToken(out var res))
                 {
-                    var matcher = TokenMatching.Start(elementToken.Tokens);
-                    if (matcher.Has(ElementMatcher.IsType, out ITypeSource typeSource).Has(IsDone).IsMatch)
-                    {
-                        typeSourcesBuilding.Add(typeSource);
-                    }
-                    else
-                    {
-                        typeSourcesInner = default;
-                        return false;
-                    }
+                    typeSources = res;
+                    return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
                 }
-                typeSourcesInner = typeSourcesBuilding.ToArray();
-                return true;
-            }
+
+                typeSources = default;
+                return TokenMatching.NotMatch(elementMatching.Tokens);
+
+                bool TryToToken(out ITypeDefinition[] typeSourcesInner)
+                {
+                    var typeSourcesBuilding = new List<ITypeDefinition>();
+                    foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
+                    {
+                        var matcher = TokenMatching.Start(elementToken.Tokens);
+                        if (matcher.Has(ElementMatcher.IsType(scopeStack), out ITypeDefinition typeSource).Has(IsDone).IsMatch)
+                        {
+                            typeSourcesBuilding.Add(typeSource);
+                        }
+                        else
+                        {
+                            typeSourcesInner = default;
+                            return false;
+                        }
+                    }
+                    typeSourcesInner = typeSourcesBuilding.ToArray();
+                    return true;
+                }
+            };
         }
 
         public static TokenMatching Generic2(TokenMatching elementMatching, out AtomicToken type1, out AtomicToken type2)

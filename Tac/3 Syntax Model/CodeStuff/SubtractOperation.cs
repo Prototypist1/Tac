@@ -7,9 +7,10 @@ namespace Tac.Semantic_Model.Operations
         public SubtractOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-        
-        public override bool Equals(object obj) => obj is SubtractOperation other && base.Equals(other);
-        public override int GetHashCode() => base.GetHashCode();
-        public override ITypeDefinition ReturnType(ScopeStack scope) => RootScope.NumberType.GetTypeDefinition(scope);
+
+        public override ITypeDefinition ReturnType(ScopeStack scope)
+        {
+            return RootScope.NumberType.GetTypeDefinition(scope);
+        }
     }
 }

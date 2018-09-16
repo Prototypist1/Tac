@@ -11,9 +11,7 @@ namespace Tac.Semantic_Model.Operations
         public NextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-
-        public override bool Equals(object obj) => obj is NextCallOperation other && base.Equals(other);
-        public override int GetHashCode() => base.GetHashCode();
+        
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
             return CallHelp.GetTargetReturnType(right, scope);
@@ -27,26 +25,26 @@ namespace Tac.Semantic_Model.Operations
             {
                 var member = referance.GetMemberDefinition(scope);
 
-                return GetTypeDefinition(member.Type.GetTypeDefinition(scope));
+                return GetReturnType(member.Type);
             }
 
             if (element is ITypeDefinition rightTypeDef)
             {
-                return GetTypeDefinition(rightTypeDef);
+                return GetReturnType(rightTypeDef);
             }
 
-            return GetTypeDefinition(element.ReturnType(scope));
+            return GetReturnType(element.ReturnType(scope));
 
-            ITypeDefinition GetTypeDefinition(ITypeDefinition typeDefinition)
+            ITypeDefinition GetReturnType(ITypeDefinition typeDefinition)
             {
                 if (typeDefinition is MethodDefinition methodDefinition)
                 {
-                    return methodDefinition.OutputType.GetTypeDefinition(scope);
+                    return methodDefinition.OutputType;
                 }
 
                 if (typeDefinition is ImplementationDefinition implementationDefinition)
                 {
-                    return implementationDefinition.OutputType.GetTypeDefinition(scope);
+                    return implementationDefinition.OutputType;
                 }
 
                 throw new Exception($"{typeDefinition} is expected to a method or implementation");
@@ -59,9 +57,7 @@ namespace Tac.Semantic_Model.Operations
         public LastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-
-        public override bool Equals(object obj) => obj is LastCallOperation other && base.Equals(other);
-        public override int GetHashCode() => base.GetHashCode();
+        
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
             return CallHelp.GetTargetReturnType(left, scope);

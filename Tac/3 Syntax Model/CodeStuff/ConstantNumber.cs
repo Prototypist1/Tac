@@ -10,14 +10,10 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public double Value { get; }
-        
-        public override bool Equals(object obj)
-        {
-            return obj is ConstantNumber number &&
-                   Value == number.Value;
-        }
 
-        public override int GetHashCode() => -1937169414 + Value.GetHashCode();
-        public ITypeDefinition ReturnType(ScopeStack scope) => RootScope.NumberType.GetTypeDefinition(scope);
+        public ITypeDefinition ReturnType(ScopeStack scope)
+        {
+            return RootScope.NumberType.GetTypeDefinition(scope);
+        }
     }
 }

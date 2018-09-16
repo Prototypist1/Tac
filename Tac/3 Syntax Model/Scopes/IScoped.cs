@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
                 }
             }
         }
-
+        
         internal ScopeTree Add(IScope oldTop, IScope newTop)
         {
             ScopeParent[newTop] = oldTop;
@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model
 
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
-                if (scope.TryGetGenericType(type, type.Types.Select(x => x.GetTypeDefinition(this)).ToArray(), out var typeDefinition))
+                if (scope.TryGetGenericType(type, type.Types, out var typeDefinition))
                 {
                     return typeDefinition;
                 }

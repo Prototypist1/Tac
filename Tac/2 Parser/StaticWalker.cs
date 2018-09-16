@@ -10,9 +10,6 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac._2_Parser
 {
-
-
-
     // finds all the assign operations with static targets
     public static class Walkers
     {
