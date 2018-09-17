@@ -66,6 +66,7 @@ namespace Tac.Syntaz_Model_Interpeter
         InterpetedLastCallOperation,
         InterpetedAssignOperation,
         InterpetedReturnOperation,
+        InterpetedPathOperation,
         IInterpeted
         >
     {
@@ -77,6 +78,11 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedAssignOperation AssignOperation(ICodeElement codeElement, IMemberSource memberSource)
         {
             return new InterpetedAssignOperation(codeElement, memberSource);
+        }
+
+        public InterpetedAssignOperation AssignOperation(ICodeElement codeElement, ICodeElement target)
+        {
+            throw new NotImplementedException();
         }
 
         public InterpetedBlockDefinition BlockDefinition(ICodeElement[] elements, LocalStaticScope scope, ICodeElement[] codeElement)
@@ -109,6 +115,11 @@ namespace Tac.Syntaz_Model_Interpeter
             return new InterpetedGenericExplicitTypeName(item, tokenSources);
         }
 
+        public InterpetedGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeDefinition[] tokenSources)
+        {
+            throw new NotImplementedException();
+        }
+
         public InterpetedGenericTypeDefinition GenericTypeDefinition(NameKey nameKey, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters)
         {
             return new InterpetedGenericTypeDefinition(nameKey, scope, genericParameters);
@@ -139,6 +150,11 @@ namespace Tac.Syntaz_Model_Interpeter
             return new InterpetedMemberDefinition(readOnly, explicitMemberName, explicitTypeName);
         }
 
+        public InterpetedMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeDefinition explicitTypeName)
+        {
+            throw new NotImplementedException();
+        }
+
         public InterpetedMethodDefinition MethodDefinition(ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement)
         {
             return new InterpetedMethodDefinition(explicitTypeName, parameterDefinition, elements, methodScope, codeElement);
@@ -167,6 +183,11 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedObjectDefinition ObjectDefinition(ObjectScope scope, IReadOnlyList<AssignOperation> assignOperations)
         {
             return new InterpetedObjectDefinition(scope, assignOperations);
+        }
+
+        public InterpetedPathOperation PathOperation(ICodeElement left, ICodeElement right)
+        {
+            throw new NotImplementedException();
         }
 
         public InterpetedReturnOperation ReturnOperation(ICodeElement codeElement)
