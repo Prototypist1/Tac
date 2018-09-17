@@ -16,7 +16,6 @@ namespace Tac.Parser
         out TExplicitMemberName,
         out TExplicitTypeName,
         out TGenericExplicitTypeName,
-        out TImplicitTypeReferance,
         out TObjectDefinition,
         out TModuleDefinition,
         out TMethodDefinition,
@@ -43,7 +42,6 @@ namespace Tac.Parser
         where TExplicitMemberName : ExplicitMemberName, T
         where TExplicitTypeName : ExplicitTypeName, T
         where TGenericExplicitTypeName : GenericExplicitTypeName, T
-        where TImplicitTypeReferance : ImplicitTypeReferance, T
         where TObjectDefinition : ObjectDefinition, T
         where TModuleDefinition : ModuleDefinition, T
         where TMethodDefinition : MethodDefinition, T
@@ -76,7 +74,6 @@ namespace Tac.Parser
         TGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeDefinition[] tokenSources);
         TLessThanOperation LessThanOperation(ICodeElement codeElement1, ICodeElement codeElement2);
         TNextCallOperation NextCallOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TImplicitTypeReferance ImplicitTypeReferance(ICodeElement left);
         TObjectDefinition ObjectDefinition(ObjectScope scope, IReadOnlyList<AssignOperation> assignOperations);
         TModuleDefinition ModuleDefinition(StaticScope scope, IReadOnlyList<AssignOperation> assignOperations);
         TMethodDefinition MethodDefinition(ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
@@ -158,7 +155,7 @@ namespace Tac.Parser
         public ElementMatchingContext(
             ScopeStack enclosingScope,
             IElementBuilder<MemberDefinition, ExplicitMemberName,
-ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
+ExplicitTypeName, GenericExplicitTypeName, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
 TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, PathOperation, object> elementBuilder,
             IEnumerable<TryMatch> elementMatchers,
             Action<MemberDefinition> addMember,
@@ -174,7 +171,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
         }
 
         public IElementBuilder<MemberDefinition, ExplicitMemberName,
-ExplicitTypeName, GenericExplicitTypeName, ImplicitTypeReferance, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
+ExplicitTypeName, GenericExplicitTypeName, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
 TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, PathOperation, object> ElementBuilder
         { get; }
         public ScopeStack ScopeStack { get; }

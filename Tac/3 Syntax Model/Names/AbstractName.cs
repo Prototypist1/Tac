@@ -48,35 +48,35 @@ namespace Tac.Semantic_Model.Names
     }
 
     // var
-    public class ImplicitTypeReferance : ITypeSource
-    {
-        public ImplicitTypeReferance(ICodeElement codeElement)
-        {
-            CodeElement = codeElement ?? throw new ArgumentNullException(nameof(codeElement));
-        }
+    //public class ImplicitTypeReferance : ITypeSource
+    //{
+    //    public ImplicitTypeReferance(ICodeElement codeElement)
+    //    {
+    //        CodeElement = codeElement ?? throw new ArgumentNullException(nameof(codeElement));
+    //    }
 
-        private ICodeElement CodeElement { get; }
+    //    private ICodeElement CodeElement { get; }
 
-        public override bool Equals(object obj)
-        {
-            return obj is ImplicitTypeReferance && base.Equals(obj);
-        }
+    //    public override bool Equals(object obj)
+    //    {
+    //        return obj is ImplicitTypeReferance && base.Equals(obj);
+    //    }
 
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+    //    public override int GetHashCode()
+    //    {
+    //        return base.GetHashCode();
+    //    }
 
-        public ITypeDefinition GetTypeDefinition(ScopeStack scope)
-        {
-            return CodeElement.ReturnType(scope);
-        }
+    //    public ITypeDefinition GetTypeDefinition(ScopeStack scope)
+    //    {
+    //        return CodeElement.ReturnType(scope);
+    //    }
 
-        public ITypeDefinition ReturnType(ScopeStack scope)
-        {
-            return RootScope.TypeType.GetTypeDefinition(scope);
-        }
-    }
+    //    public ITypeDefinition ReturnType(ScopeStack scope)
+    //    {
+    //        return RootScope.TypeType.GetTypeDefinition(scope);
+    //    }
+    //}
 
     // TODO we also have types that are defined inline "annonymous types"
     // and types that are the result of operations &|! "calculated types"

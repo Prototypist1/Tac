@@ -6,7 +6,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedAssignOperation : AssignOperation, IInterpeted
     {
-        public InterpetedAssignOperation(ICodeElement left, IMemberSource right) : base(left, right)
+        public InterpetedAssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
     }

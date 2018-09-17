@@ -46,7 +46,6 @@ namespace Tac.Syntaz_Model_Interpeter
         InterpetedExplicitMemberName,
         InterpetedExplicitTypeName,
         InterpetedGenericExplicitTypeName,
-        InterpetedImplicitTypeReferance,
         InterpetedObjectDefinition,
         InterpetedModuleDefinition,
         InterpetedMethodDefinition,
@@ -134,12 +133,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return new InterpetedImplementationDefinition(contextDefinition, explicitTypeName, parameterDefinition, elements, methodScope, codeElement);
         }
-
-        public InterpetedImplicitTypeReferance ImplicitTypeReferance(ICodeElement left)
-        {
-            return new InterpetedImplicitTypeReferance(left);
-        }
-
+        
         public InterpetedLessThanOperation LessThanOperation(ICodeElement codeElement1, ICodeElement codeElement2)
         {
             return new InterpetedLessThanOperation(codeElement1, codeElement2);

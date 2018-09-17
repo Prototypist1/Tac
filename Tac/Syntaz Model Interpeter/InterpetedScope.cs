@@ -7,5 +7,6 @@ namespace Tac.Syntaz_Model_Interpeter
     class InterpetedScope
     {
         
+
     }
 }

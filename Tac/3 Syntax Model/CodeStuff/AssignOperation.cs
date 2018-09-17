@@ -7,9 +7,9 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class AssignOperation : BinaryOperation<ICodeElement, MemberDefinition>
+    public class AssignOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
-        public AssignOperation(ICodeElement left, MemberDefinition right) : base(left, right)
+        public AssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
         
