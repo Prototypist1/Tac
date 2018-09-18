@@ -28,7 +28,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 line.Cast<IInterpeted>().Interpet(context);
             }
 
-            return new InterpetedResult(scope);
+            return InterpetedResult.Create(scope);
         }
     }
 }

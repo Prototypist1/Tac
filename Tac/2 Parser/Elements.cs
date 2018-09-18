@@ -11,86 +11,54 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
-    public interface IElementBuilder<
-        out TMemberDefinition,
-        out TExplicitMemberName,
-        out TExplicitTypeName,
-        out TGenericExplicitTypeName,
-        out TObjectDefinition,
-        out TModuleDefinition,
-        out TMethodDefinition,
-        out TNamedTypeDefinition,
-        out TTypeDefinition,
-        out TGenericTypeDefinition,
-        out TImplementationDefinition,
-        out TBlockDefinition,
-        out TConstantNumber,
-        out TAddOperation,
-        out TSubtractOperation,
-        out TMultiplyOperation,
-        out TIfTrueOperation,
-        out TElseOperation,
-        out TLessThanOperation,
-        out TNextCallOperation,
-        out TLastCallOperation,
-        out TAssignOperation,
-        out TReturnOperation,
-        out TPathOperation,
-        out TMemberPath,
-        T
-        >
-        where TMemberDefinition : MemberDefinition, T
-        where TExplicitMemberName : ExplicitMemberName, T
-        where TExplicitTypeName : ExplicitTypeName, T
-        where TGenericExplicitTypeName : GenericExplicitTypeName, T
-        where TObjectDefinition : ObjectDefinition, T
-        where TModuleDefinition : ModuleDefinition, T
-        where TMethodDefinition : MethodDefinition, T
-        where TNamedTypeDefinition : NamedTypeDefinition, T
-        where TTypeDefinition : TypeDefinition, T
-        where TGenericTypeDefinition : GenericTypeDefinition, T
-        where TImplementationDefinition : ImplementationDefinition, T
-        where TBlockDefinition : BlockDefinition, T
-        where TConstantNumber : ConstantNumber, T
-        where TAddOperation : AddOperation, T
-        where TSubtractOperation : SubtractOperation, T
-        where TMultiplyOperation : MultiplyOperation, T
-        where TIfTrueOperation : IfTrueOperation, T
-        where TElseOperation : ElseOperation, T
-        where TLessThanOperation : LessThanOperation, T
-        where TNextCallOperation : NextCallOperation, T
-        where TLastCallOperation : LastCallOperation, T
-        where TAssignOperation : AssignOperation, T
-        where TReturnOperation : ReturnOperation, T
-        where TPathOperation : PathOperation, T
-        where TMemberPath: MemberPath, T
-    {
-        TMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeDefinition explicitTypeName);
-        TAddOperation AddOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TSubtractOperation SubtractOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TExplicitMemberName ExplicitMemberName(string item);
-        TMultiplyOperation MultiplyOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TExplicitTypeName ExplicitTypeName(string item);
-        TIfTrueOperation IfTrueOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TElseOperation ElseOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeDefinition[] tokenSources);
-        TLessThanOperation LessThanOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TNextCallOperation NextCallOperation(ICodeElement codeElement1, ICodeElement codeElement2);
-        TObjectDefinition ObjectDefinition(ObjectScope scope, IReadOnlyList<AssignOperation> assignOperations);
-        TModuleDefinition ModuleDefinition(StaticScope scope, IReadOnlyList<AssignOperation> assignOperations);
-        TMethodDefinition MethodDefinition(ITypeDefinition explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
-        TAssignOperation AssignOperation(ICodeElement codeElement, ICodeElement target);
-        TTypeDefinition TypeDefinition(ObjectScope scope);
-        TNamedTypeDefinition NamedTypeDefinition(NameKey nameKey, ObjectScope scope);
-        TGenericTypeDefinition GenericTypeDefinition(NameKey nameKey, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters);
-        TReturnOperation ReturnOperation(ICodeElement codeElement);
-        TImplementationDefinition ImplementationDefinition(MemberDefinition contextDefinition, ITypeDefinition explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
-        TBlockDefinition BlockDefinition(ICodeElement[] elements, LocalStaticScope scope, ICodeElement[] codeElement);
-        TConstantNumber ConstantNumber(double dub);
-        TPathOperation PathOperation(ICodeElement left, ICodeElement right);
-        TMemberPath MemberPath(int up, MemberDefinition[] over);
+    public class Element {
+        public Element(string expressed)
+        {
+            Expressed = expressed ?? throw new ArgumentNullException(nameof(expressed));
+        }
+
+        public string Expressed { get; }
     }
 
+    public class Element<TFunc>: Element
+        where TFunc:Delegate{
+        public Element(TFunc build, string expressed): base(expressed)
+        {
+            Build = build ?? throw new ArgumentNullException(nameof(build));
+        }
+
+        public TFunc Build { get; }
+    }
+
+    public interface IElementBuilders {
+        IReadOnlyList<string> Operations { get; }
+
+        Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition {get;}
+        Element<Func<ICodeElement, ICodeElement, AddOperation>>  AddOperation { get; }
+        Element<Func<ICodeElement, ICodeElement, SubtractOperation>> SubtractOperation { get; }
+        Func<string, ExplicitMemberName> ExplicitMemberName { get; }
+        Element<Func<ICodeElement, ICodeElement, MultiplyOperation>> MultiplyOperation { get; }
+        Func<string, ExplicitTypeName> ExplicitTypeName { get; }
+        Element<Func<ICodeElement, ICodeElement, IfTrueOperation>> IfTrueOperation { get; }
+        Element<Func<ICodeElement, ICodeElement, ElseOperation>> ElseOperation { get; }
+        Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; }
+        Element<Func<ICodeElement, ICodeElement, LessThanOperation>> LessThanOperation { get; }
+        Element<Func<ICodeElement, ICodeElement, NextCallOperation>> NextCallOperation { get; }
+        Func<ObjectScope, IReadOnlyList<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
+        Func<StaticScope, IReadOnlyList<AssignOperation>, ModuleDefinition> ModuleDefinition { get; }
+        Func<ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], MethodDefinition> MethodDefinition { get; }
+        Element<Func<ICodeElement, ICodeElement, AssignOperation>> AssignOperation { get; }
+        Func<ObjectScope, TypeDefinition> TypeDefinition { get; }
+        Func<NameKey, ObjectScope, NamedTypeDefinition> NamedTypeDefinition { get; }
+        Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; }
+        Element<Func<ICodeElement, ReturnOperation>> ReturnOperation { get; }
+        Func<MemberDefinition, ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], ImplementationDefinition> ImplementationDefinition { get; }
+        Func<ICodeElement[], LocalStaticScope, ICodeElement[], BlockDefinition> BlockDefinition { get; }
+        Func<double, ConstantNumber> ConstantNumber { get; }
+        Element<Func<ICodeElement, MemberDefinition, PathOperation>> PathOperation { get; }
+        Func<int, MemberDefinition, MemberPath> MemberPath { get; }
+    }
+    
     public class ElementMatchingContext
     {
 
@@ -157,9 +125,7 @@ namespace Tac.Parser
 
         public ElementMatchingContext(
             ScopeStack enclosingScope,
-            IElementBuilder<MemberDefinition, ExplicitMemberName,
-ExplicitTypeName, GenericExplicitTypeName, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
-TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, PathOperation, MemberPath, object> elementBuilder,
+            IElementBuilders elementBuilder,
             IEnumerable<TryMatch> elementMatchers,
             Action<MemberDefinition> addMember,
             Action<NamedTypeDefinition> addType,
@@ -173,10 +139,8 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             AddGenerticType = addGenerticType ?? throw new ArgumentNullException(nameof(addGenerticType));
         }
 
-        public IElementBuilder<MemberDefinition, ExplicitMemberName,
-ExplicitTypeName, GenericExplicitTypeName, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
-TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, PathOperation,MemberPath, object> ElementBuilder
-        { get; }
+        public IElementBuilders ElementBuilder { get; }
+
         public ScopeStack ScopeStack { get; }
 
         public IEnumerable<TryMatch> ElementMatchers { get; }
@@ -215,8 +179,9 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public IEnumerable<OperationMatcher> OperationMatchers { get; } = new List<OperationMatcher>
         {
-            MatchBinary("+",x=> (object y,object z) => x.ElementBuilder.AddOperation(y.Cast<ICodeElement>(),z.Cast<ICodeElement>())),
-            MatchBinary("=:",x=> (object y,object z) => x.ElementBuilder.AddOperation(y.Cast<ICodeElement>(),z.Cast<ICodeElement>()))
+            MatchBinary("+",x=> (object y,object z) => x.ElementBuilder.AddOperation.Build(y.Cast<ICodeElement>(),z.Cast<ICodeElement>())),
+            MatchBinary("=:",x=> (object y,object z) => x.ElementBuilder.AssignOperation.Build(y.Cast<ICodeElement>(),z.Cast<ICodeElement>())),
+            MatchPath
         };
 
 
@@ -465,7 +430,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 methodScope.TryAddParameter(parameterDefinition);
 
                 element = matchingContext.ElementBuilder.MethodDefinition(
-                    matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item),
+                    matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item).GetTypeDefinition(innerMatchingScope.ScopeStack),
                     parameterDefinition,
                     elements,
                     methodScope,
@@ -595,7 +560,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 element = matchingContext.ElementBuilder.ImplementationDefinition(
                     contextDefinition,
-                    matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item),
+                    matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item).GetTypeDefinition(newMatchingContext.ScopeStack),
                     parameterDefinition,
                     elements,
                     methodScope,
@@ -707,7 +672,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                 var right = matchingContext.ParseParenthesisOrElement(rhs);
 
-                result = matchingContext.ElementBuilder.AssignOperation(left, right);
+                result = matchingContext.ElementBuilder.AssignOperation.Build(left, right);
                 return true;
             }
 
@@ -729,13 +694,26 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                         .Has(ElementMatcher.IsDone)
                         .IsMatch)
                 {
-                    IScoped GetScoped() {
+                    if (GetScoped().Scope.TryGetMember(matchingContext.ElementBuilder.ExplicitMemberName(first.Item).Key, false, out var res)
+                        )
+                    {
+                        result = matchingContext.ElementBuilder.PathOperation.Build(left, res);
+
+                        return true;
+                    }
+                    else
+                    {
+                        throw new Exception("well, that is not right either");
+                    }
+
+                    IScoped GetScoped()
+                    {
                         if (left is IScoped scoped)
                         {
                             return scoped;
                         }
                         else
-                        if (left is MemberPath memberPath && memberPath.MemberDefinitions.Last().Type is IScoped lastScoped)
+                        if (left is MemberPath memberPath && memberPath.ReturnType(matchingContext.ScopeStack) is IScoped lastScoped)
                         {
                             return lastScoped;
                         }
@@ -743,17 +721,6 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                         {
                             throw new Exception("well, that is not right");
                         }
-                    }
-
-                    if (GetScoped().Scope.TryGetMember(matchingContext.ElementBuilder.ExplicitMemberName(first.Item).Key, false, out var res))
-                    {
-                        result = matchingContext.ElementBuilder.PathOperation(left, res);
-
-                        return true;
-                    }
-                    else
-                    {
-                        throw new Exception("well, that is not right either");
                     }
                 }
             }

@@ -10,31 +10,39 @@ namespace Tac.Semantic_Model
 
         private IScope Backing { get; }
 
-        private readonly ConcurrentDictionary<ExplicitTypeName, ITypeDefinition> RealizedGenericTypes = new ConcurrentDictionary<ExplicitTypeName, ITypeDefinition>();
+        public IReadOnlyList<MemberDefinition> Members
+        {
+            get
+            {
+                return Backing.Members;
+            }
+        }
+
+        private readonly ConcurrentDictionary<NameKey, ITypeDefinition> RealizedGenericTypes = new ConcurrentDictionary<NameKey, ITypeDefinition>();
 
         public GenericScope(IScope backing, IEnumerable<GenericTypeParameter> typeParameters)
         {
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
             foreach (var typeParameter in typeParameters)
             {
-                if (!RealizedGenericTypes.TryAdd(new ExplicitTypeName(typeParameter.Definition.Name), typeParameter.TypeDefinition))
+                if (!RealizedGenericTypes.TryAdd(typeParameter.Definition.Key, typeParameter.TypeDefinition))
                 {
                     throw new Exception("uhh these should add");
                 }
             }
         }
 
-        public bool TryGetMember(ExplicitMemberName name, bool staticOnly, out MemberDefinition member)
+        public bool TryGetMember(NameKey name, bool staticOnly, out MemberDefinition member)
         {
             return Backing.TryGetMember(name, staticOnly, out member);
         }
 
-        public bool TryGetType(ExplicitTypeName name, out ITypeDefinition type)
+        public bool TryGetType(NameKey name, out ITypeDefinition type)
         {
             return RealizedGenericTypes.TryGetValue(name, out type) || Backing.TryGetType(name, out type);
         }
 
-        public bool TryGetGenericType(ExplicitTypeName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
+        public bool TryGetGenericType(NameKey name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
         {
             return Backing.TryGetGenericType(name, genericTypeParameters, out typeDefinition);
         }

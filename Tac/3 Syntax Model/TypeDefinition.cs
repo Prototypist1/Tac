@@ -80,6 +80,11 @@ namespace Tac.Semantic_Model
             Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
+        public NameKey Key { get {
+                return new NameKey(Name);
+            }
+        }
+
         public string Name { get; }
 
         public override bool Equals(object obj)

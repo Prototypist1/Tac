@@ -6,7 +6,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedMemberPath : MemberPath, IInterpeted
     {
-        public InterpetedMemberPath(int scopesUp, MemberDefinition[] memberDefinitions) : base(scopesUp, memberDefinitions)
+        public InterpetedMemberPath(int scopesUp, MemberDefinition memberDefinition) : base(scopesUp, memberDefinition)
         {
         }
 
@@ -14,12 +14,9 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             object at = interpetedContext.Scopes.Skip(ScopesUp).First();
 
-            foreach (var name in MemberDefinitions)
-            {
-                at = at.Cast<IInterpetedScope>().GetMember(name.Key.Key);
-            }
-
-            return new InterpetedResult(at);
+            at = at.Cast<IInterpetedScope>().GetMember(MemberDefinition.Key.Key);
+            
+            return InterpetedResult.Create(at);
         }
     }
 }

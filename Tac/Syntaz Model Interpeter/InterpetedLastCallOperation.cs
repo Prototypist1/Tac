@@ -20,12 +20,12 @@ namespace Tac.Syntaz_Model_Interpeter
             // maybe there is a "callable" interface here?
 
             if (toCall is InterpetedMethod method) {
-                return new InterpetedResult(method.Invoke(parameter));
+                return InterpetedResult.Create(method.Invoke(parameter));
             }
 
             if (toCall is InterpetedImplementation implementation)
             {
-                return new InterpetedResult(implementation.Invoke(parameter));
+                return InterpetedResult.Create(implementation.Invoke(parameter));
             }
 
             throw new Exception("we can only call things that are callable");
@@ -49,12 +49,12 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (toCall is InterpetedMethod method)
             {
-                return new InterpetedResult(method.Invoke(parameter));
+                return InterpetedResult.Create(method.Invoke(parameter));
             }
 
             if (toCall is InterpetedImplementation implementation)
             {
-                return new InterpetedResult(implementation.Invoke(parameter));
+                return InterpetedResult.Create(implementation.Invoke(parameter));
             }
 
             throw new Exception("we can only call things that are callable");

@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return new InterpetedResult(new InterpetedImplementation(ParameterDefinition,MethodBody.ToArray(),interpetedContext,Scope));
+            return InterpetedResult.Create(new InterpetedImplementation(ParameterDefinition,MethodBody.ToArray(),interpetedContext,Scope));
         }
     }
 
@@ -38,7 +38,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedResult Invoke(object input)
         {
 
-            return new InterpetedResult(
+            return InterpetedResult.Create(
                 new InterpetedMethod(
                     ParameterDefinition,
                     Body,

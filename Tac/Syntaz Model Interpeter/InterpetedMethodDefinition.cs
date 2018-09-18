@@ -13,7 +13,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return new InterpetedResult(new InterpetedMethod(ParameterDefinition,Body,interpetedContext,Scope));
+            return InterpetedResult.Create(new InterpetedMethod(ParameterDefinition,Body,interpetedContext,Scope));
         }
     }
 }

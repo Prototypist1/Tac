@@ -15,9 +15,9 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             if (left.Cast<IInterpeted>().Interpet(interpetedContext).Get<bool>()) {
                 right.Cast<IInterpeted>().Interpet(interpetedContext);
-                return new InterpetedResult(true);
+                return InterpetedResult.Create(true);
             }
-            return new InterpetedResult(false);
+            return InterpetedResult.Create(false);
         }
     }
 }

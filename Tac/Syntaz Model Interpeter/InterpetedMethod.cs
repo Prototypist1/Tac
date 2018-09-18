@@ -24,16 +24,26 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var res = InterpetedInstanceScope.Make(StaticScope, Scope);
 
-            res.SetMember(ParameterDefinition.Key.Key, input);
+            res.GetMember(ParameterDefinition.Key.Key).Value = input;
 
             var scope = Context.Child(res);
 
             foreach (var line in Body)
             {
-                line.Cast<IInterpeted>().Interpet(scope);
+                var result =  line.Cast<IInterpeted>().Interpet(scope);
+                if (result.IsReturn) {
+                    if (result.HasValue)
+                    {
+                        return InterpetedResult.Create(result.Get());
+                    }
+                    else
+                    {
+                        return InterpetedResult.Create();
+                    }
+                }
             }
 
-            return new InterpetedResult();
+            return InterpetedResult.Create();
         }
     }
 }

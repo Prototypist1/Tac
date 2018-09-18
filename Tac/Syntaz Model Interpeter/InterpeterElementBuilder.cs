@@ -90,159 +90,61 @@ namespace Tac.Syntaz_Model_Interpeter
         InterpetedResult Interpet(InterpetedContext interpetedContext);
     }
 
-    internal class InterpeterElementBuilder : IElementBuilder<
-        InterpetedMemberDefinition,
-        InterpetedExplicitMemberName,
-        InterpetedExplicitTypeName,
-        InterpetedGenericExplicitTypeName,
-        InterpetedObjectDefinition,
-        InterpetedModuleDefinition,
-        InterpetedMethodDefinition,
-        InterpetedNamedTypeDefinition,
-        InterpetedTypeDefinition,
-        InterpetedGenericTypeDefinition,
-        InterpetedImplementationDefinition,
-        InterpetedBlockDefinition,
-        InterpetedConstantNumber,
-        InterpetedAddOperation,
-        InterpetedSubtractOperation,
-        InterpetedMultiplyOperation,
-        InterpetedIfTrueOperation,
-        InterpetedElseOperation,
-        InterpetedLessThanOperation,
-        InterpetedNextCallOperation,
-        InterpetedLastCallOperation,
-        InterpetedAssignOperation,
-        InterpetedReturnOperation,
-        InterpetedPathOperation,
-        InterpetedMemberPath,
-        IInterpeted
-        >
+    internal class InterpeterElementBuilder : IElementBuilders
     {
-        public InterpetedAddOperation AddOperation(ICodeElement codeElement1, ICodeElement codeElement2)
-        {
-            return new InterpetedAddOperation(codeElement1, codeElement2);
+        public InterpeterElementBuilder(){
+            AddOperation = Include(new Element<Func<ICodeElement, ICodeElement, AddOperation>>((a, b) => new InterpetedAddOperation(a, b), "+"));
+            SubtractOperation = Include(new Element<Func<ICodeElement, ICodeElement, SubtractOperation>>((a, b) => new InterpetedSubtractOperation(a, b), "-"));
+            MultiplyOperation = Include(new Element<Func<ICodeElement, ICodeElement, MultiplyOperation>>((a, b) => new InterpetedMultiplyOperation(a, b), "*"));
+            IfTrueOperation = Include(new Element<Func<ICodeElement, ICodeElement, IfTrueOperation>>((a, b) => new InterpetedIfTrueOperation(a, b), "if"));
+            ElseOperation = Include(new Element<Func<ICodeElement, ICodeElement, ElseOperation>>((a, b) => new InterpetedElseOperation(a, b), "else"));
+            LessThanOperation = Include(new Element<Func<ICodeElement, ICodeElement, LessThanOperation>>((a, b) => new InterpetedLessThanOperation(a, b), "<?"));
+            NextCallOperation = Include(new Element<Func<ICodeElement, ICodeElement, NextCallOperation>>((a, b) => new InterpetedNextCallOperation(a, b), ">"));
+            AssignOperation = Include(new Element<Func<ICodeElement, ICodeElement, AssignOperation>>((a, b) => new InterpetedAssignOperation(a, b), "=:"));
+            ReturnOperation = Include(new Element<Func<ICodeElement, ReturnOperation>>(x => new InterpetedReturnOperation(x), "return"));
+            PathOperation = Include(new Element<Func<ICodeElement, MemberDefinition, PathOperation>>((a, b) => new InterpetedPathOperation(a, b), "."));
         }
 
-        public InterpetedAssignOperation AssignOperation(ICodeElement codeElement, IMemberSource memberSource)
-        {
-            return new InterpetedAssignOperation(codeElement, memberSource);
-        }
-
-        public InterpetedAssignOperation AssignOperation(ICodeElement codeElement, ICodeElement target)
-        {
-            throw new NotImplementedException();
-        }
-
-        public InterpetedBlockDefinition BlockDefinition(ICodeElement[] elements, LocalStaticScope scope, ICodeElement[] codeElement)
-        {
-            return new InterpetedBlockDefinition(elements, scope, codeElement);
-        }
-
-        public InterpetedConstantNumber ConstantNumber(double dub)
-        {
-            return new InterpetedConstantNumber(dub);
-        }
-
-        public InterpetedElseOperation ElseOperation(ICodeElement codeElement1, ICodeElement codeElement2)
-        {
-            return new InterpetedElseOperation(codeElement1, codeElement2);
-        }
-
-        public InterpetedExplicitMemberName ExplicitMemberName(string item)
-        {
-            return new InterpetedExplicitMemberName(item);
-        }
-
-        public InterpetedExplicitTypeName ExplicitTypeName(string item)
-        {
-            return new InterpetedExplicitTypeName(item);
-        }
+        private readonly List<string> _operations = new List<string>();
         
-        public InterpetedGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeDefinition[] tokenSources)
+        public IReadOnlyList<string> Operations
         {
-            return new InterpetedGenericExplicitTypeName(item, tokenSources);
+            get
+            {
+                return _operations;
+            }
         }
 
-        public InterpetedGenericTypeDefinition GenericTypeDefinition(NameKey nameKey, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters)
-        {
-            return new InterpetedGenericTypeDefinition(nameKey, scope, genericParameters);
+        private T Include<T>(T t) where T : Element {
+            _operations.Add(t.Expressed);
+            return t;
         }
 
-        public InterpetedIfTrueOperation IfTrueOperation(ICodeElement codeElement1, ICodeElement codeElement2)
-        {
-            return new InterpetedIfTrueOperation(codeElement1, codeElement2);
-        }
+        public Element<Func<ICodeElement, ICodeElement, AddOperation>> AddOperation { get; }
+        public Element<Func<ICodeElement, ICodeElement, SubtractOperation>> SubtractOperation { get; }
+        public Element<Func<ICodeElement, ICodeElement, MultiplyOperation>> MultiplyOperation { get; }
+        public Element<Func<ICodeElement, ICodeElement, IfTrueOperation>> IfTrueOperation { get; }
+        public Element<Func<ICodeElement, ICodeElement, ElseOperation>> ElseOperation { get; }
+        public Element<Func<ICodeElement, ICodeElement, LessThanOperation>> LessThanOperation { get; }
+        public Element<Func<ICodeElement, ICodeElement, NextCallOperation>> NextCallOperation { get; }
+        public Element<Func<ICodeElement, ICodeElement, AssignOperation>> AssignOperation { get; }
+        public Element<Func<ICodeElement, ReturnOperation>> ReturnOperation { get; }
+        public Element<Func<ICodeElement, MemberDefinition, PathOperation>> PathOperation { get; } 
 
-        public InterpetedImplementationDefinition ImplementationDefinition(MemberDefinition contextDefinition, ITypeDefinition explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement)
-        {
-            return new InterpetedImplementationDefinition(contextDefinition, explicitTypeName, parameterDefinition, elements, methodScope, codeElement);
-        }
-        
-        public InterpetedLessThanOperation LessThanOperation(ICodeElement codeElement1, ICodeElement codeElement2)
-        {
-            return new InterpetedLessThanOperation(codeElement1, codeElement2);
-        }
+        public Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; } = (readOnly, key, type) => new InterpetedMemberDefinition(readOnly, key, type);
+        public Func<string, ExplicitMemberName> ExplicitMemberName { get; } = (name) => new InterpetedExplicitMemberName(name);
+        public Func<string, ExplicitTypeName> ExplicitTypeName { get; } = (x) => new InterpetedExplicitTypeName(x);
+        public Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; } = (a, b) => new GenericExplicitTypeName(a, b);
+        public Func<ObjectScope, IReadOnlyList<AssignOperation>, ObjectDefinition> ObjectDefinition { get; } = (a, b) => new  InterpetedObjectDefinition(a, b);
+        public Func<StaticScope, IReadOnlyList<AssignOperation>, ModuleDefinition> ModuleDefinition { get; } = (a, b) => new InterpetedModuleDefinition(a, b);
+        public Func<ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], MethodDefinition> MethodDefinition { get; } = (a, b, c, d, e) => new InterpetedMethodDefinition(a, b, c, d, e);
+        public Func<ObjectScope, TypeDefinition> TypeDefinition { get; } = a => new InterpetedTypeDefinition(a);
+        public Func<NameKey, ObjectScope, NamedTypeDefinition> NamedTypeDefinition { get; } = (a, b) => new NamedTypeDefinition(a, b);
+        public Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; } = (a, b, c) => new InterpetedGenericTypeDefinition(a, b, c);
+        public Func<MemberDefinition, ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], ImplementationDefinition> ImplementationDefinition { get; } = (a, b, c, d, e, f) => new InterpetedImplementationDefinition(a, b, c, d, e, f);
+        public Func<ICodeElement[], LocalStaticScope, ICodeElement[], BlockDefinition> BlockDefinition { get; } = (a, b, c) => new InterpetedBlockDefinition(a, b, c);
+        public Func<double, ConstantNumber> ConstantNumber { get; } = x => new InterpetedConstantNumber(x);
+        public Func<int, MemberDefinition, MemberPath> MemberPath { get; } = (x, y) => new InterpetedMemberPath(x, y);
 
-        public InterpetedMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeDefinition explicitTypeName)
-        {
-            return new InterpetedMemberDefinition(readOnly, explicitMemberName, explicitTypeName);
-        }
-        
-
-        public InterpetedMemberPath MemberPath(int up, MemberDefinition[] over)
-        {
-            return new InterpetedMemberPath(up, over);
-        }
-
-        public InterpetedMethodDefinition MethodDefinition(ITypeDefinition explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement)
-        {
-            return new InterpetedMethodDefinition(explicitTypeName, parameterDefinition, elements, methodScope, codeElement);
-        }
-
-        public InterpetedModuleDefinition ModuleDefinition(StaticScope scope, IReadOnlyList<AssignOperation> assignOperations)
-        {
-            return new InterpetedModuleDefinition(scope, assignOperations);
-        }
-
-        public InterpetedMultiplyOperation MultiplyOperation(ICodeElement codeElement1, ICodeElement codeElement2)
-        {
-            return new InterpetedMultiplyOperation(codeElement1, codeElement2);
-        }
-
-        public InterpetedNamedTypeDefinition NamedTypeDefinition(NameKey nameKey, ObjectScope scope)
-        {
-            return new InterpetedNamedTypeDefinition(nameKey, scope);
-        }
-
-        public InterpetedNextCallOperation NextCallOperation(ICodeElement codeElement1, ICodeElement codeElement2)
-        {
-            return new InterpetedNextCallOperation(codeElement1, codeElement2);
-        }
-
-        public InterpetedObjectDefinition ObjectDefinition(ObjectScope scope, IReadOnlyList<AssignOperation> assignOperations)
-        {
-            return new InterpetedObjectDefinition(scope, assignOperations);
-        }
-
-        public InterpetedPathOperation PathOperation(ICodeElement left, ICodeElement right)
-        {
-            throw new NotImplementedException();
-        }
-
-        public InterpetedReturnOperation ReturnOperation(ICodeElement codeElement)
-        {
-            return new InterpetedReturnOperation(codeElement);
-        }
-
-        public InterpetedSubtractOperation SubtractOperation(ICodeElement codeElement1, ICodeElement codeElement2)
-        {
-            return new InterpetedSubtractOperation(codeElement1, codeElement2);
-        }
-
-        public InterpetedTypeDefinition TypeDefinition(ObjectScope scope)
-        {
-            return new InterpetedTypeDefinition(scope);
-        }
     }
 }

@@ -32,16 +32,11 @@ namespace Tac.Syntaz_Model_Interpeter
             return Backing.ContainsKey(name);
         }
 
-        public object GetMember(NameKey name)
+        public InterpetedMember GetMember(NameKey name)
         {
-            return Backing.GetOrThrow(name).Value;
+            return Backing.GetOrThrow(name);
         }
-
-        public void SetMember<T>(NameKey name, T value)
-        {
-            Backing[name].Value = value;
-        }
-
+        
         public static InterpetedStaticScope Make(IScope scopeDefinition)
         {
             var backing = new ConcurrentIndexed<NameKey, InterpetedMember>();

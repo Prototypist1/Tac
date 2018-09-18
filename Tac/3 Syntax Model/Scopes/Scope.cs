@@ -60,9 +60,17 @@ namespace Tac.Semantic_Model
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<TypeDefinition>>>();
 
         private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
-        
-        public bool TryGetMember(ExplicitMemberName name, bool staticOnly, out MemberDefinition member) {
-            if (!members.TryGetValue(name.Key, out var items)) {
+
+        public IReadOnlyList<MemberDefinition> Members
+        {
+            get
+            {
+                return members.Select(x => x.Value.Single().Definition).ToArray();
+            }
+        }
+
+        public bool TryGetMember(NameKey name, bool staticOnly, out MemberDefinition member) {
+            if (!members.TryGetValue(name, out var items)) {
                 member = default;
                 return false;
             }
@@ -78,9 +86,9 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetGenericType(ExplicitTypeName name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
+        public bool TryGetGenericType(NameKey name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
         {
-            if (!genericTypes.TryGetValue(name.Key, out var genericItems))
+            if (!genericTypes.TryGetValue(name, out var genericItems))
             {
                 typeDefinition = default;
                 return false;
@@ -106,9 +114,9 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetType(ExplicitTypeName name, out ITypeDefinition type)
+        public bool TryGetType(NameKey name, out ITypeDefinition type)
         {
-            if (!types.TryGetValue(name.Key, out var items))
+            if (!types.TryGetValue(name, out var items))
             {
                 type = default;
                 return false;
