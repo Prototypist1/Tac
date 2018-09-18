@@ -7,5 +7,10 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedExplicitMemberName(string name) : base(name)
         {
         }
+
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            return new InterpetedResult(this);
+        }
     }
 }

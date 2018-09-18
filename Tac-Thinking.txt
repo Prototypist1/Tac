@@ -448,10 +448,10 @@ is                                              is type
 +                                           ?   concat
 x                                               declear
 var x                                           declear  
-type x                                          declear
+int x                                           declear
 static x                                        static declear
 static var x                                    static declear
-static type x                                   static declear      
+static int x                                    static declear      
 .  \                                            feild
 of  /                                       ?   reverse feild
 return                                          return

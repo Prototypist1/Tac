@@ -7,5 +7,10 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedTypeDefinition(IScope scope) : base(scope)
         {
         }
+
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            return new InterpetedResult(this);
+        }
     }
 }

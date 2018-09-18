@@ -8,5 +8,10 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedGenericTypeDefinition(NameKey key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions) : base(key, scope, typeParameterDefinitions)
         {
         }
+        
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            return new InterpetedResult(this);
+        }
     }
 }

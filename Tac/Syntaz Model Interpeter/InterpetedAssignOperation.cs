@@ -15,6 +15,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             var res = left.Cast<IInterpeted>().Interpet(interpetedContext);
+            
             right.Cast<IInterpeted>().Interpet(interpetedContext).Get<InterpetedMember>().Value = res;
             return new InterpetedResult(res);
         }

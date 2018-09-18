@@ -11,22 +11,22 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedContext {
 
-        private InterpetedContext(InterpetedInstanceScope[] scopes)
+        private InterpetedContext(IInterpetedScope[] scopes)
         {
             Scopes = scopes ?? throw new ArgumentNullException(nameof(scopes));
         }
 
-        public IReadOnlyList<InterpetedInstanceScope> Scopes { get; }
+        public IReadOnlyList<IInterpetedScope> Scopes { get; }
 
-        public InterpetedContext Child(InterpetedInstanceScope scope) {
-            var scopes = new List<InterpetedInstanceScope> { scope };
+        public InterpetedContext Child(IInterpetedScope scope) {
+            var scopes = new List<IInterpetedScope> { scope };
             scopes.AddRange(Scopes);
             return new InterpetedContext(scopes.ToArray());
         }
 
         public static InterpetedContext Root()
         {
-            return new InterpetedContext(new InterpetedInstanceScope[0]);
+            return new InterpetedContext(new IInterpetedScope[0]);
         }
     }
 
@@ -42,7 +42,7 @@ namespace Tac.Syntaz_Model_Interpeter
             HasValue = false;
         }
 
-        private bool HasValue { get; }
+        public bool HasValue { get; }
         private object Value { get; }
 
         public T Get<T>()
@@ -53,6 +53,16 @@ namespace Tac.Syntaz_Model_Interpeter
             }
             return (T)Value;
         }
+
+        public object Get()
+        {
+            if (HasValue)
+            {
+                throw new Exception($"{nameof(InterpetedResult)} does not have a value");
+            }
+            return Value;
+        }
+
     }
 
     public interface IInterpeted

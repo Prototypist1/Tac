@@ -1,4 +1,5 @@
-﻿using Tac.Semantic_Model.CodeStuff;
+﻿using Prototypist.LeftToRight;
+using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter

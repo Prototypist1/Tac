@@ -8,6 +8,9 @@ namespace Tac.Syntaz_Model_Interpeter
         {
         }
 
-        public InterpetedResult Interpet(InterpetedContext interpetedContext) => new InterpetedResult(Value);
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            return new InterpetedResult(Value);
+        }
     }
 }

@@ -8,5 +8,10 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedNamedTypeDefinition(IKey key, IScope scope) : base(key, scope)
         {
         }
+
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            return new InterpetedResult(this);
+        }
     }
 }

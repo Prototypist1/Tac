@@ -15,7 +15,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
         }
 
-        private InterpetedStaticScope StaticStuff { get; } = new InterpetedStaticScope(new ConcurrentIndexed<NameKey, InterpetedMember>());
+        private InterpetedStaticScope StaticStuff { get; } = InterpetedStaticScope.Empty();
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {

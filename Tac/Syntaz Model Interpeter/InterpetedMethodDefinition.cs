@@ -7,8 +7,13 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedMethodDefinition : MethodDefinition, IInterpeted
     {
-        public InterpetedMethodDefinition(ITypeSource outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(outputType, parameterDefinition, body, scope, staticInitializers)
+        public InterpetedMethodDefinition(ITypeDefinition outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(outputType, parameterDefinition, body, scope, staticInitializers)
         {
+        }
+
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            return new InterpetedResult(new InterpetedMethod(ParameterDefinition,Body,interpetedContext,Scope));
         }
     }
 }

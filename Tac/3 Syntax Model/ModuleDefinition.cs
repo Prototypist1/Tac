@@ -16,10 +16,12 @@ namespace Tac.Semantic_Model
             }
 
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
         }
 
 
         public IScope Scope { get; }
+        public IEnumerable<ICodeElement> StaticInitialization { get; }
 
         public ITypeDefinition ReturnType(ScopeStack scope)
         {

@@ -10,10 +10,16 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    public class InterpetedStaticScope {
-        public InterpetedStaticScope(ConcurrentIndexed<NameKey, InterpetedMember> backing)
+    public class InterpetedStaticScope : IInterpetedScope
+    {
+        protected InterpetedStaticScope(ConcurrentIndexed<NameKey, InterpetedMember> backing)
         {
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
+
+        internal static InterpetedStaticScope Empty()
+        {
+            return new InterpetedStaticScope(new ConcurrentIndexed<NameKey, InterpetedMember>());
         }
 
         // yeah, this is a really slow way to do this
@@ -34,6 +40,20 @@ namespace Tac.Syntaz_Model_Interpeter
         public void SetMember<T>(NameKey name, T value)
         {
             Backing[name].Value = value;
+        }
+
+        public static InterpetedStaticScope Make(IScope scopeDefinition)
+        {
+            var backing = new ConcurrentIndexed<NameKey, InterpetedMember>();
+
+            var scope = new InterpetedStaticScope(backing);
+
+            foreach (var member in scopeDefinition.Members)
+            {
+                backing[member.Key.Key] = new InterpetedMember();
+            }
+
+            return scope;
         }
     }
 
