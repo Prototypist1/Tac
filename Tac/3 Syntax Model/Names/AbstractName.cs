@@ -89,18 +89,7 @@ namespace Tac.Semantic_Model.Names
         }
 
         public string Name { get; }
-
-        public override bool Equals(object obj)
-        {
-            return obj is ExplicitMemberName name &&
-                   Name == name.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-        }
-
+        
         public ITypeDefinition GetTypeDefinition(ScopeStack scope)
         {
             return scope.GetType(this);
@@ -172,18 +161,7 @@ namespace Tac.Semantic_Model.Names
         }
 
         public string Name { get; }
-
-        public override bool Equals(object obj)
-        {
-            return obj is ExplicitMemberName name &&
-                   Name == name.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-        }
-
+        
         public NameKey Key
         {
             get

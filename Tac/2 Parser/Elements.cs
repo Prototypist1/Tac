@@ -721,7 +721,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                     .Has(ElementMatcher.IsName, out AtomicToken first)
                     .Has(ElementMatcher.IsDone)
                     .IsMatch &&
-                    left.Cast<IScoped>().Scope.TryGetMember(matchingContext.ElementBuilder.ExplicitMemberName(first.Item), false, out var res))
+                    left.Cast<IScoped>().Scope.TryGetMember(matchingContext.ElementBuilder.ExplicitMemberName(first.Item).Key, false, out var res))
                 {
                     result = matchingContext.ElementBuilder.PathOperation(left, res);
 

@@ -9,7 +9,26 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedContext { }
+    public class InterpetedContext {
+
+        private InterpetedContext(InterpetedInstanceScope[] scopes)
+        {
+            Scopes = scopes ?? throw new ArgumentNullException(nameof(scopes));
+        }
+
+        public IReadOnlyList<InterpetedInstanceScope> Scopes { get; }
+
+        public InterpetedContext Child(InterpetedInstanceScope scope) {
+            var scopes = new List<InterpetedInstanceScope> { scope };
+            scopes.AddRange(Scopes);
+            return new InterpetedContext(scopes.ToArray());
+        }
+
+        public static InterpetedContext Root()
+        {
+            return new InterpetedContext(new InterpetedInstanceScope[0]);
+        }
+    }
 
     public class InterpetedResult
     {

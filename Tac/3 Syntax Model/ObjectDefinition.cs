@@ -10,13 +10,13 @@ namespace Tac.Semantic_Model
 {
     public class ObjectDefinition: ITypeDefinition, ICodeElement
     {
-        public ObjectDefinition(ObjectScope scope, IEnumerable<ICodeElement> codeElements) {
+        public ObjectDefinition(ObjectScope scope, IEnumerable<AssignOperation> assigns) {
             Scope = scope;
-            CodeElements = codeElements.ToArray();
+            Assignments = assigns.ToArray();
         }
 
         public IScope Scope { get; }
-        public ICodeElement[] CodeElements { get; }
+        public AssignOperation[] Assignments { get; }
         
         public ITypeDefinition ReturnType(ScopeStack scope) {
             return this;
