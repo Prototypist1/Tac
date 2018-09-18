@@ -96,14 +96,14 @@ namespace Tac.Semantic_Model
 
         }
 
-        public MemberPath GetMemberPathOrDefault(ExplicitMemberName name)
+        public MemberPath GetMemberPathOrDefault( Func<int, MemberDefinition[], MemberPath> memberPathMaker, ExplicitMemberName name)
         {
             var up = 0;
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
                 if (scope.TryGetMember(name.Key, false, out var memberDefinition))
                 {
-                    return new MemberPath(up,memberDefinition.ToArray());
+                    return memberPathMaker(up,memberDefinition.ToArray());
                 }
                 up++;
             }

@@ -36,6 +36,7 @@ namespace Tac.Parser
         out TAssignOperation,
         out TReturnOperation,
         out TPathOperation,
+        out TMemberPath,
         T
         >
         where TMemberDefinition : MemberDefinition, T
@@ -62,6 +63,7 @@ namespace Tac.Parser
         where TAssignOperation : AssignOperation, T
         where TReturnOperation : ReturnOperation, T
         where TPathOperation : PathOperation, T
+        where TMemberPath: MemberPath, T
     {
         TMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeDefinition explicitTypeName);
         TAddOperation AddOperation(ICodeElement codeElement1, ICodeElement codeElement2);
@@ -76,16 +78,17 @@ namespace Tac.Parser
         TNextCallOperation NextCallOperation(ICodeElement codeElement1, ICodeElement codeElement2);
         TObjectDefinition ObjectDefinition(ObjectScope scope, IReadOnlyList<AssignOperation> assignOperations);
         TModuleDefinition ModuleDefinition(StaticScope scope, IReadOnlyList<AssignOperation> assignOperations);
-        TMethodDefinition MethodDefinition(ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
+        TMethodDefinition MethodDefinition(ITypeDefinition explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
         TAssignOperation AssignOperation(ICodeElement codeElement, ICodeElement target);
         TTypeDefinition TypeDefinition(ObjectScope scope);
         TNamedTypeDefinition NamedTypeDefinition(NameKey nameKey, ObjectScope scope);
         TGenericTypeDefinition GenericTypeDefinition(NameKey nameKey, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters);
         TReturnOperation ReturnOperation(ICodeElement codeElement);
-        TImplementationDefinition ImplementationDefinition(MemberDefinition contextDefinition, ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
+        TImplementationDefinition ImplementationDefinition(MemberDefinition contextDefinition, ITypeDefinition explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement);
         TBlockDefinition BlockDefinition(ICodeElement[] elements, LocalStaticScope scope, ICodeElement[] codeElement);
         TConstantNumber ConstantNumber(double dub);
         TPathOperation PathOperation(ICodeElement left, ICodeElement right);
+        TMemberPath MemberPath(int up, MemberDefinition[] over);
     }
 
     public class ElementMatchingContext
@@ -156,7 +159,7 @@ namespace Tac.Parser
             ScopeStack enclosingScope,
             IElementBuilder<MemberDefinition, ExplicitMemberName,
 ExplicitTypeName, GenericExplicitTypeName, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
-TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, PathOperation, object> elementBuilder,
+TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, PathOperation, MemberPath, object> elementBuilder,
             IEnumerable<TryMatch> elementMatchers,
             Action<MemberDefinition> addMember,
             Action<NamedTypeDefinition> addType,
@@ -172,7 +175,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
         public IElementBuilder<MemberDefinition, ExplicitMemberName,
 ExplicitTypeName, GenericExplicitTypeName, ObjectDefinition, ModuleDefinition, MethodDefinition, NamedTypeDefinition,
-TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, PathOperation, object> ElementBuilder
+TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition, ConstantNumber, AddOperation, SubtractOperation, MultiplyOperation, IfTrueOperation, ElseOperation, LessThanOperation, NextCallOperation, LastCallOperation, AssignOperation, ReturnOperation, PathOperation,MemberPath, object> ElementBuilder
         { get; }
         public ScopeStack ScopeStack { get; }
 
@@ -651,7 +654,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 .IsMatch)
             {
 
-                var path = matchingContext.ScopeStack.GetMemberPathOrDefault(matchingContext.ElementBuilder.ExplicitMemberName(first.Item));
+                var path = matchingContext.ScopeStack.GetMemberPathOrDefault(matchingContext.ElementBuilder.MemberPath,matchingContext.ElementBuilder.ExplicitMemberName(first.Item));
 
                 if (path == default)
                 {
@@ -662,7 +665,7 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
 
                     matchingContext.AddMember(memberDefinition);
 
-                    path = matchingContext.ScopeStack.GetMemberPathOrDefault(matchingContext.ElementBuilder.ExplicitMemberName(first.Item));
+                    path = matchingContext.ScopeStack.GetMemberPathOrDefault(matchingContext.ElementBuilder.MemberPath, matchingContext.ElementBuilder.ExplicitMemberName(first.Item));
                 }
 
                 element = path;

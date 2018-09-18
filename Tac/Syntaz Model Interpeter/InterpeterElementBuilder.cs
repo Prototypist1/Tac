@@ -32,17 +32,14 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public class InterpetedResult
     {
-        public InterpetedResult(object value)
-        {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
-            HasValue = true;
+        private InterpetedResult(object value, bool isReturn, bool hasValue) {
+            Value = value;
+            HasValue = hasValue;
+            IsReturn = isReturn;
         }
-        public InterpetedResult()
-        {
-            HasValue = false;
-        }
-
+        
         public bool HasValue { get; }
+        public bool IsReturn { get;  }
         private object Value { get; }
 
         public T Get<T>()
@@ -61,6 +58,29 @@ namespace Tac.Syntaz_Model_Interpeter
                 throw new Exception($"{nameof(InterpetedResult)} does not have a value");
             }
             return Value;
+        }
+
+        public static InterpetedResult Return(object value) {
+            return new InterpetedResult(value,true,true);
+        }
+
+
+        public static InterpetedResult Return()
+        {
+            return new InterpetedResult(null, true, false);
+        }
+
+
+        public static InterpetedResult Create(object value)
+        {
+            return new InterpetedResult(value, false, true);
+        }
+
+
+        public static InterpetedResult Create()
+        {
+
+            return new InterpetedResult(null, false, false);
         }
 
     }
@@ -95,6 +115,7 @@ namespace Tac.Syntaz_Model_Interpeter
         InterpetedAssignOperation,
         InterpetedReturnOperation,
         InterpetedPathOperation,
+        InterpetedMemberPath,
         IInterpeted
         >
     {
@@ -137,15 +158,10 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return new InterpetedExplicitTypeName(item);
         }
-
-        public InterpetedGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeSource[] tokenSources)
-        {
-            return new InterpetedGenericExplicitTypeName(item, tokenSources);
-        }
-
+        
         public InterpetedGenericExplicitTypeName GenericExplicitTypeName(string item, ITypeDefinition[] tokenSources)
         {
-            throw new NotImplementedException();
+            return new InterpetedGenericExplicitTypeName(item, tokenSources);
         }
 
         public InterpetedGenericTypeDefinition GenericTypeDefinition(NameKey nameKey, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters)
@@ -158,7 +174,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return new InterpetedIfTrueOperation(codeElement1, codeElement2);
         }
 
-        public InterpetedImplementationDefinition ImplementationDefinition(MemberDefinition contextDefinition, ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement)
+        public InterpetedImplementationDefinition ImplementationDefinition(MemberDefinition contextDefinition, ITypeDefinition explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement)
         {
             return new InterpetedImplementationDefinition(contextDefinition, explicitTypeName, parameterDefinition, elements, methodScope, codeElement);
         }
@@ -168,17 +184,18 @@ namespace Tac.Syntaz_Model_Interpeter
             return new InterpetedLessThanOperation(codeElement1, codeElement2);
         }
 
-        public InterpetedMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeSource explicitTypeName)
+        public InterpetedMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeDefinition explicitTypeName)
         {
             return new InterpetedMemberDefinition(readOnly, explicitMemberName, explicitTypeName);
         }
+        
 
-        public InterpetedMemberDefinition MemberDefinition(bool readOnly, ExplicitMemberName explicitMemberName, ITypeDefinition explicitTypeName)
+        public InterpetedMemberPath MemberPath(int up, MemberDefinition[] over)
         {
-            throw new NotImplementedException();
+            return new InterpetedMemberPath(up, over);
         }
 
-        public InterpetedMethodDefinition MethodDefinition(ExplicitTypeName explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement)
+        public InterpetedMethodDefinition MethodDefinition(ITypeDefinition explicitTypeName, MemberDefinition parameterDefinition, ICodeElement[] elements, MethodScope methodScope, ICodeElement[] codeElement)
         {
             return new InterpetedMethodDefinition(explicitTypeName, parameterDefinition, elements, methodScope, codeElement);
         }

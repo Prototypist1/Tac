@@ -8,5 +8,10 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedReturnOperation(ICodeElement result) : base(result)
         {
         }
+
+        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model.Operations
 
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
-            if (!left.Cast<IScoped>().Scope.TryGetMember(right.Key,false,out _)){
+            if (!left.Cast<IScoped>().Scope.TryGetMember(right.Key.Key,false,out _)){
                 throw new Exception("Member should be defined");
             }
             
