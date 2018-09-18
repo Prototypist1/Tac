@@ -648,19 +648,24 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
                 .Has(ElementMatcher.IsDone)
-                .IsMatch && matchingContext.ScopeStack.GetMemberOrDefault(matchingContext.ElementBuilder.ExplicitMemberName(first.Item)) == default)
+                .IsMatch)
             {
 
-                var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
+                var path = matchingContext.ScopeStack.GetMemberPathOrDefault(matchingContext.ElementBuilder.ExplicitMemberName(first.Item));
+
+                if (path == default)
+                {
+                    var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
                                 false,
                                 matchingContext.ElementBuilder.ExplicitMemberName(first.Item),
                                 RootScope.AnyType.GetTypeDefinition(matchingContext.ScopeStack));
 
+                    matchingContext.AddMember(memberDefinition);
 
-                matchingContext.AddMember(memberDefinition);
+                    path = matchingContext.ScopeStack.GetMemberPathOrDefault(matchingContext.ElementBuilder.ExplicitMemberName(first.Item));
+                }
 
-                element = memberDefinition;
-
+                element = path;
             }
 
             element = default;
@@ -714,18 +719,39 @@ TypeDefinition, GenericTypeDefinition, ImplementationDefinition, BlockDefinition
                 .IsMatch)
             {
 
-
                 var left = matchingContext.ParseLine(perface);
 
                 if (TokenMatching.Start(rhs.ToArray())
-                    .Has(ElementMatcher.IsName, out AtomicToken first)
-                    .Has(ElementMatcher.IsDone)
-                    .IsMatch &&
-                    left.Cast<IScoped>().Scope.TryGetMember(matchingContext.ElementBuilder.ExplicitMemberName(first.Item).Key, false, out var res))
+                        .Has(ElementMatcher.IsName, out AtomicToken first)
+                        .Has(ElementMatcher.IsDone)
+                        .IsMatch)
                 {
-                    result = matchingContext.ElementBuilder.PathOperation(left, res);
+                    IScoped GetScoped() {
+                        if (left is IScoped scoped)
+                        {
+                            return scoped;
+                        }
+                        else
+                        if (left is MemberPath memberPath && memberPath.MemberDefinitions.Last().Type is IScoped lastScoped)
+                        {
+                            return lastScoped;
+                        }
+                        else
+                        {
+                            throw new Exception("well, that is not right");
+                        }
+                    }
 
-                    return true;
+                    if (GetScoped().Scope.TryGetMember(matchingContext.ElementBuilder.ExplicitMemberName(first.Item).Key, false, out var res))
+                    {
+                        result = matchingContext.ElementBuilder.PathOperation(left, res);
+
+                        return true;
+                    }
+                    else
+                    {
+                        throw new Exception("well, that is not right either");
+                    }
                 }
             }
 

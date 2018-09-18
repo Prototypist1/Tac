@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model
 
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
-                if (scope.TryGetGenericType(type, type.Types, out var typeDefinition))
+                if (scope.TryGetGenericType(type.Key, type.Types, out var typeDefinition))
                 {
                     return typeDefinition;
                 }
@@ -87,7 +87,7 @@ namespace Tac.Semantic_Model
         {
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
-                if (scope.TryGetType(name, out var typeDefinition))
+                if (scope.TryGetType(name.Key, out var typeDefinition))
                 {
                     return typeDefinition;
                 }
@@ -96,17 +96,18 @@ namespace Tac.Semantic_Model
 
         }
 
-        public MemberDefinition GetMemberOrDefault(ExplicitMemberName name)
+        public MemberPath GetMemberPathOrDefault(ExplicitMemberName name)
         {
+            var up = 0;
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
-                if (scope.TryGetMember(name, false, out var memberDefinition))
+                if (scope.TryGetMember(name.Key, false, out var memberDefinition))
                 {
-                    return memberDefinition;
+                    return new MemberPath(up,memberDefinition.ToArray());
                 }
+                up++;
             }
-            return new MemberDefinition(false, name, RootScope.AnyType.GetTypeDefinition(this));
-
+            return default;
         }
     }
 }
