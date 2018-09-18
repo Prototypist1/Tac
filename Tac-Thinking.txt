@@ -1,0 +1,465 @@
+// no static for now
+static x is method(int;int) input {
+    input + 2 return;
+}
+
+// no static for now
+static var x is method(int;int) input {
+    input + 2 return;
+}
+
+// no static for now
+// everything in a module is static
+static method(int;int) x is method(int;int) input {
+    input + 2 return;
+}
+
+// this is a little bit of weird notation 
+type Named {
+    int x;
+    int y;
+};
+
+[int;int] // what is this? the lazy type notation?
+[int x; int y]
+
+
+object {
+    5 => x ;
+    7 => y ;
+}
+
+object {
+    5 => var x ;
+    7 => var y ;
+}
+
+object {
+    5 => int x ;
+    7 => int y ;
+}
+
+(5;7) // this is the lazy object notation
+
+( 5 => x ; 7 => y) //??
+
+(5 => x;7 => y) //?? why use is?? maybe you can use either? but for now no reason to have two assignment operators
+
+// so method comes with a object but, somehow it knows to convert int to typeof(int)
+// I guess that is always true... you can never use `int` and `typeof(int)` in the same place
+
+static factorial is method (int;int) input { 
+    input <== 2 if {
+        1 return;
+    } else {
+        input -- 1 -> factorial * input return;
+    }
+};
+
+(x;y) -> method
+
+x <= 5;
+5 => x;
+
+5 => x -> is-even
+
+-- is subtraction?
+
+too many arrows!
+-> call
+=> assignment?
+<= less than or equal
+
+...
+maybe 
+> call
+=> assign
+
+>> greater
+<< less
+<== less or eqaul
+>== greater or eqaul
+
+...
+>> call
+< less
+> greater
+
+=============== x : 4 vs 4 => x
+
+// I do maybe think this would be better:
+
+object {
+    int x: 5;
+    int y: 7;
+}
+
+// but it would require a special case:
+// int x : 4 + 9
+// you want that to be 13 but under normal parsing you would do (int x: 4) + 9 and that is exceptional
+// you don't want to have to write int x: (4 + 9);
+// maybe : is not not a method like the others
+// it can not be used in line
+// it can only be used in a object or module
+// it only prefixes a line
+
+// Conculsion
+// : is sugar, probably sugar that we want but I will think about it later
+
+=============== if () {}
+
+
+i guess there is no reason this:
+
+if () {}
+while () {}
+
+function input1 input2
+
+is not valid syntax
+
+
+// another special case is
+
+if (x == 2) { /*do stuff*/ }
+while { x == 2 } { /*do stuff*/ } // this does not really work, unless { x == 2 } has an implict return, an explict return is impossible since that would return from the outer scope, implict return is reasonible, maybe that needs to be in []
+do-while { /*do stuff*/ } { x == 2 } 
+for {x = 0} {x < 10} { /*do stuff*/ } { /* */}
+
+these is less offensive, it is not much worse than
+
+5 return;
+
+or 
+
+... !true ...
+
+
+// Conculsion
+// if x y is sugar, probably sugar that we want but I will think about it later
+
+=============== x.y = 5 sucks  as 5 => ( x . y )
+
+5 -> this . x . y . z
+
+^ this really does not work! it is:
+
+(((5 -> this) . x) . y)
+
+how bad is this:
+
+5 -> (this.x.y.z)
+this . x . y . z <- 5
+
+maybe I need order of operators?
+
+!. !> . > |. |>
+
+would fix math too
+
+(5 > this . x . y . z) . a
+
+5 > this . x . y . z |. a
+
+maybe no order of operators, but me first characters (^)
+
+5 > this ^. x ^. y ^. z . a
+5 > this ^. x ^. y ^. z . a
+
+// Conculsion
+// this sucks, I am going to do left to right with "me first" characters
+
+======================= LEFT TO RIGHT FIELD
+
+as we know, this:
+
+5 -> (this.x.y.z)
+
+sucks
+
+but maybe the key is to write it the other way
+
+say we have:
+
+5 -> this \ x \ y \ z
+
+maybe we could do
+
+5 -> z / y / x / this
+
+this is the "of" operator
+
+5 -> z of y of x of this
+
+......
+
+you wrote this when you were not awake
+
+I am introducing order of operations here. it is a local order of operations. it only starts doing the items that have priorety when it needs them.
+
+it looks at "5 -> z of y of x of this" and sees
+
+and understands it to be 5 -> (z of (y of (x of this)))
+
+======================= INILNE METHOD
+
+I am excited about the idea of inline method
+
+like I use methods pretty often as a control stucture
+
+used once 
+
+like 
+
+Thing thing = MakeThing();
+
+Thing MakeThing(){
+    // ....
+}
+
+I wish I could just write:
+
+Thing thing = inline { ... }
+
+========================= META PROGRAMMING
+
+ok so meta programming,
+
+does it need to be safe? are generics enough? what problem am I trying to solve by goint past generics? 
+ - I want to have definitions dependant on other constants (like ints and strings), not just types
+ - It would be cool to be able to work with T1...Tn with out have in some general way
+
+these mean meta: <>
+
+method, implementations and types can consume a meta
+
+... -> list <(int)> x;
+type <()>
+
+it would be cool to do
+
+method ... get-<memberName> x {
+    return x.<memberName>;
+}
+
+but we can build that, we have dictionaries for that
+also reflection to allow safe access
+
+...
+
+maybe we could have some nice support for direct subsitution, where you write some 'meta-method' that returns a string
+calls to that method are dumbed in to your code before the code is compiled
+
+you can define and call meta methods
+
+meta-define{ 
+    method tuple-of-n n {
+        return "...";
+    }
+}
+
+module {
+    type tuple1 meta{ return tuple-of-n 1 },
+    type tuple2 meta{ return tuple-of-n 2 },
+    type tuple3 meta{ return tuple-of-n 3 },
+} 
+
+or, better
+
+meta-define{ 
+    method define-tuples n {
+        ...
+    }
+}
+
+module {
+    meta{}
+}
+
+if you wanted to do list like this you would do 
+
+...
+
+code that takes compile time constants to complie time constants should be OK! compile time constants are: int, string, types, variables, Lines . say you have:
+
+meta-method<(variable<T> _x, variable<T> _y),Lines> set-if-null<T>{
+    return Lines{
+        if (_x == null) {
+            _x = _y;
+        };
+    }
+}
+
+then you write:
+
+var x = null;
+var y = Cat.new();
+meta{set-if-null(x,y)}
+
+if transforms it in to:
+
+var x = null;
+var y = Cat.new();
+if (x == null){
+    x = y;
+}
+
+...
+
+you could do all method calls like this... just no recursion, everything is really just inlined. 
+
+loops are really crazy
+
+meta-method<(int i;Lines lines);Lines> repeat {
+    for (0,i,()=>lines) -> sum return;
+}
+
+this:
+
+var i = 0;
+@{ (5,code{i++;}) -> @repeat }
+
+is:
+
+var i = 0;
+i++;
+i++;
+i++;
+i++;
+i++;
+
+with structural types you could do generics like this
+
+meta-method<Type t,Type> pair{
+    return meta-type { 
+        @t left;
+        @t right;
+    }
+}
+
+@{ int -> pair } position;
+
+if you want to call a method in a meta-method does it have to be a meta-meta-method? I really hope meta methods are just mothods
+
+I am totally not builing this now, maybe someday
+
+interesting idea for a language
+
+OMG I am not using [] those could be for meta!
+
+============= INDIRECtiON
+
+often it really knows the actual class everything is. so we can by pass the indirection layer.  a method returns a contract type and an exact type. if we can use the exact type we can avoid the indirection.
+
+you have
+
+method<int,IGroup<int>> for i { ... } // IGroup but really it is an array
+
+and you write:
+
+5 -> for . Count <- ()
+
+don't need indirection here we don't mess with the igroup, it is an array
+
+============= do you need var???
+
+I don't think you need var in tac
+
+I mean what even is the point of var
+
+int - (explict)
+    - (nothing) it is an object
+var - pick up the type from the LHS
+
+so... a referance is a definition?? I need to think about this a little more
+
+without var it is hard to know what scope something is defined in:
+    it just mean scopes need to know there enclosing scope at build time they don't need to hold a referance tho
+
+================== how do you express a generic method in tac??
+
+method [ T; T ] input [T] { input return; } 
+method [T] [ T; T ] input { input return; } 
+method generics [T] [ T; T ] input { input return; } 
+generic-method  [T] [ T; T ] input { input return; } 
+method [ generic T; T ] input { input return; }
+
+we need to capture the generic-ness in the type, not the definition. 
+
+method [T] [T;T] 
+implementation [T] [T;int;int] 
+
+sure, why not
+
+but I think this is a project or latter
+
+================== names are fucked up
+
+I think for now I have no 'this'
+
+================== [] vs () vs {}
+
+Think [] should be the "quick define" so 
+
+[2 ; 2] => ( point . make )
+
+method [ int ; int ;] i { ... } =: factorial ; 
+
+becuase []  is define as a list
+and [] means list in JSON
+
+this leave () to only mean order of operations
+
+================================= entrypoint
+
+entrypoint can modify a method in a module
+
+it is the new way to do main
+
+===================================== TABLE
+
+[]                                              quick thing type infered (object, type, generics-parameters object)
+object {}                                       object
+method [i,o] input {}                           method
+inline {}                                       inline
+type name {}                                    type
+implementation [c,i,o] context input {}         implementation
+{}                                              block               
+()                                              do thing code first!
+meta {}                                     ?   Meta
+:= =: as = is => <= =                       ?   assign
++                                               add
+/                                               divide
+-                                           ?   subtract
+%                                               mod
+> -> => call |                              ?   call
+< <- <=                                     ?   left call
+<?                                          ?   less than
+>?                                          ?   greater than
+<=?                                         ?   less than or eqaul
+>=?                                         ?   greater than or eqaul
+=?                                              eqaul
+if                                              if
+if-null ??                                      null check
+else                                            else
+                                            ?   for
+while                                       ?   while
+is                                              is type
++                                           ?   concat
+x                                               declear
+var x                                           declear  
+type x                                          declear
+static x                                        static declear
+static var x                                    static declear
+static type x                                   static declear      
+.  \                                            feild
+of  /                                       ?   reverse feild
+return                                          return
+and                                             and
+or                                              or
+not                                             not
+xor                                             xor
+shift-left                                      bit-shift
+shift-right                                     bit-shift right
+
+
