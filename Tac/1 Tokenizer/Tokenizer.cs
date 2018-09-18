@@ -6,6 +6,13 @@ namespace Tac.Parser
 {
     public class Tokenizer
     {
+        private readonly IReadOnlyList<string> operations;
+
+        public Tokenizer(IReadOnlyList<string> operations)
+        {
+            this.operations = operations ?? throw new ArgumentNullException(nameof(operations));
+        }
+
         private class ResultAndExitString
         {
             public ResultAndExitString(string exitString, IToken result)
@@ -159,7 +166,7 @@ namespace Tac.Parser
                     str == ")" ||
                     str == "]" ||
                     str == ">" ||
-                    Operations.StandardOperations.Value.AllOperationKeys.Contains(str);
+                    operations.Contains(str);
             }
         }
 
