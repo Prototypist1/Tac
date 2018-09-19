@@ -12,7 +12,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
-            return RootScope.BooleanType.GetTypeDefinition(scope);
+            return scope.GetType(RootScope.BooleanType);
         }
     }
 }

@@ -319,7 +319,7 @@ namespace Tac.Parser
                 var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
                     readOnly,
                     matchingContext.ElementBuilder.ExplicitMemberName(nameToken.Item),
-                    matchingContext.ElementBuilder.GenericExplicitTypeName(typeToken.Item, tokenSources).GetTypeDefinition(matchingContext.ScopeStack));
+                    matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.GenericExplicitTypeName(typeToken.Item, tokenSources)));
 
                 matchingContext.AddMember(memberDefinition);
 
@@ -423,14 +423,14 @@ namespace Tac.Parser
                 var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item).GetTypeDefinition(matchingContext.ScopeStack)
+                        matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item))
                         );
 
 
                 methodScope.TryAddParameter(parameterDefinition);
 
                 element = matchingContext.ElementBuilder.MethodDefinition(
-                    matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item).GetTypeDefinition(innerMatchingScope.ScopeStack),
+                    matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item)),
                     parameterDefinition,
                     elements,
                     methodScope,
@@ -544,7 +544,7 @@ namespace Tac.Parser
                 var contextDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "context"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(contextType.Item).GetTypeDefinition(matchingContext.ScopeStack)
+                        matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(contextType.Item))
                         );
 
                 methodScope.TryAddParameter(contextDefinition);
@@ -552,7 +552,7 @@ namespace Tac.Parser
                 var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
                         false,
                         matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
-                        matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item).GetTypeDefinition(matchingContext.ScopeStack)
+                        matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item))
                         );
 
 
@@ -560,7 +560,7 @@ namespace Tac.Parser
 
                 element = matchingContext.ElementBuilder.ImplementationDefinition(
                     contextDefinition,
-                    matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item).GetTypeDefinition(newMatchingContext.ScopeStack),
+                    newMatchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item)),
                     parameterDefinition,
                     elements,
                     methodScope,
@@ -626,7 +626,7 @@ namespace Tac.Parser
                     var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(
                                 false,
                                 matchingContext.ElementBuilder.ExplicitMemberName(first.Item),
-                                RootScope.AnyType.GetTypeDefinition(matchingContext.ScopeStack));
+                                matchingContext.ScopeStack.GetType(RootScope.AnyType));
 
                     matchingContext.AddMember(memberDefinition);
 

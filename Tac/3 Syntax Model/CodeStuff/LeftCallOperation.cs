@@ -21,9 +21,9 @@ namespace Tac.Semantic_Model.Operations
     public static class CallHelp{
         public static ITypeDefinition GetTargetReturnType(ICodeElement element, ScopeStack scope) {
 
-            if (element is IMemberSource referance)
+            if (element is ExplicitMemberName referance)
             {
-                var member = referance.GetMemberDefinition(scope);
+                var member = scope.GetMemberDefinition(referance.Key);
 
                 return GetReturnType(member.Type);
             }

@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model.Operations
         
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
-            return RootScope.BooleanType.GetTypeDefinition(scope);
+            return scope.GetType(RootScope.BooleanType);
         }
     }
 }

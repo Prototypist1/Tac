@@ -6,7 +6,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class MethodDefinition : AbstractBlockDefinition, ITypeSource, ITypeDefinition
+    public class MethodDefinition : AbstractBlockDefinition,  ITypeDefinition
     {
         public MethodDefinition(ITypeDefinition outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {

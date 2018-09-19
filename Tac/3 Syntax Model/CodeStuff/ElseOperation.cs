@@ -12,7 +12,7 @@ namespace Tac.Semantic_Model.Operations
 
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
-            return RootScope.EmptyType.GetTypeDefinition(scope);
+            return scope.GetType(RootScope.EmptyType);
         }
     }
 }

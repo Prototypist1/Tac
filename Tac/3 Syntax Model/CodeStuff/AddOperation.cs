@@ -15,11 +15,11 @@ namespace Tac.Semantic_Model.Operations
         public override ITypeDefinition ReturnType(ScopeStack scope) {
             if (left.ReturnType(scope) == RootScope.NumberType && right.ReturnType(scope) == RootScope.NumberType)
             {
-                return RootScope.NumberType.GetTypeDefinition(scope);
+                return scope.GetType(RootScope.NumberType);
             }
             else if (left.ReturnType(scope) == RootScope.StringType && right.ReturnType(scope) == RootScope.StringType)
             {
-                return RootScope.NumberType.GetTypeDefinition(scope);
+                return scope.GetType(RootScope.NumberType);
             }
             else
             {

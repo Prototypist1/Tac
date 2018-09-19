@@ -109,6 +109,18 @@ namespace Tac.Semantic_Model
             }
             return default;
         }
+
+        internal MemberDefinition GetMemberDefinition(NameKey key)
+        {
+            foreach (var scope in ScopeTree.Scopes(TopScope))
+            {
+                if (scope.TryGetMember(key, false, out var memberDefinition))
+                {
+                    return memberDefinition;
+                }
+            }
+            return default;
+        }
     }
 }
 
