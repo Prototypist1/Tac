@@ -4,7 +4,7 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    class InterpetedMethod {
+    public class InterpetedMethod {
         public InterpetedMethod(MemberDefinition parameterDefinition, ICodeElement[] body, InterpetedContext context, IScope scope) 
         {
             ParameterDefinition = parameterDefinition ?? throw new System.ArgumentNullException(nameof(parameterDefinition));
@@ -18,8 +18,7 @@ namespace Tac.Syntaz_Model_Interpeter
         private InterpetedContext Context { get; }
         private IScope Scope { get; }
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
-
-
+        
         public InterpetedResult Invoke(object input) {
 
             var res = InterpetedInstanceScope.Make(StaticScope, Scope);

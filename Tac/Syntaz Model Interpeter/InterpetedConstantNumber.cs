@@ -2,7 +2,7 @@
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedConstantNumber : ConstantNumber, IInterpeted
+    public class InterpetedConstantNumber : ConstantNumber, IInterpeted
     {
         public InterpetedConstantNumber(double value) : base(value)
         {

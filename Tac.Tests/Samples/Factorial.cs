@@ -6,71 +6,90 @@ using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
+using Tac.Syntaz_Model_Interpeter;
 using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
     public class Factorial : ISample
     {
-        public string Text =>
-@"method ( int ; int ) input {
-    input less-than 2 if-true {
-        1 return ;
-    } else {
-        input minus 1 next-call fac times input return ;      
-    } ;
-} assign static fac ;";
+        public string Text
+        {
+            get
+            {
+                return @"
+module {
+    method [ int ; int ] input {
+        input <? 2 if {
+            1 return ;
+        } else {
+            input - 1 > fac * input return ;      
+        } ;
+    } =: fac ;
+}";
+            }
+        }
 
-        public IToken Token => TokenHelp.File(
-                    TokenHelp.Line(
-                        TokenHelp.Ele(
-                            TokenHelp.Atom("method|int|int"),
-                            TokenHelp.Atom("input"),
-                            TokenHelp.Curl(
-                                TokenHelp.Line(
-                                    TokenHelp.Ele(TokenHelp.Atom("input")),
-                                    TokenHelp.Atom("less-than"),
-                                    TokenHelp.Ele(TokenHelp.Atom("2")),
-                                    TokenHelp.Atom("if-true"),
-                                    TokenHelp.Ele(
-                                        TokenHelp.Curl(
-                                            TokenHelp.Line(
-                                                TokenHelp.Ele(TokenHelp.Atom("1")),
-                                                TokenHelp.Atom("return")))),
-                                    TokenHelp.Atom("else"),
-                                    TokenHelp.Ele(
-                                        TokenHelp.Curl(
-                                            TokenHelp.Line(
-                                                TokenHelp.Ele(TokenHelp.Atom("input")),
-                                                TokenHelp.Atom("minus"),
-                                                TokenHelp.Ele(TokenHelp.Atom("1")),
-                                                TokenHelp.Atom("next-call"),
-                                                TokenHelp.Ele(TokenHelp.Atom("fac")),
-                                                TokenHelp.Atom("times"),
-                                                TokenHelp.Ele(TokenHelp.Atom("input")),
-                                                TokenHelp.Atom("return"))))))),
-                        TokenHelp.Atom("assign"),
-                        TokenHelp.Ele(
-                            TokenHelp.Atom("static"),
-                            TokenHelp.Atom("fac"))
-                        ));
+        public IToken Token
+        {
+            get
+            {
+                return 
+                    
+                    TokenHelp.File(
+                         TokenHelp.Ele(
+                              TokenHelp.Atom("module"),
+                                   TokenHelp.Curl(
+                                       TokenHelp.Line(
+                                           TokenHelp.Ele(
+                                               TokenHelp.Atom("method"),
+                                               TokenHelp.Square(
+                                                   TokenHelp.Ele(TokenHelp.Atom("int")),
+                                                   TokenHelp.Ele(TokenHelp.Atom("int"))),
+                                               TokenHelp.Atom("input"),
+                                               TokenHelp.Curl(
+                                                   TokenHelp.Line(
+                                                       TokenHelp.Ele(TokenHelp.Atom("input")),
+                                                       TokenHelp.Atom("<?"),
+                                                       TokenHelp.Ele(TokenHelp.Atom("2")),
+                                                       TokenHelp.Atom("if"),
+                                                       TokenHelp.Ele(
+                                                           TokenHelp.Curl(
+                                                               TokenHelp.Line(
+                                                                   TokenHelp.Ele(TokenHelp.Atom("1")),
+                                                                   TokenHelp.Atom("return")))),
+                                                       TokenHelp.Atom("else"),
+                                                       TokenHelp.Ele(
+                                                           TokenHelp.Curl(
+                                                               TokenHelp.Line(
+                                                                   TokenHelp.Ele(TokenHelp.Atom("input")),
+                                                                   TokenHelp.Atom("-"),
+                                                                   TokenHelp.Ele(TokenHelp.Atom("1")),
+                                                                   TokenHelp.Atom(">"),
+                                                                   TokenHelp.Ele(TokenHelp.Atom("fac")),
+                                                                   TokenHelp.Atom("*"),
+                                                                   TokenHelp.Ele(TokenHelp.Atom("input")),
+                                                                   TokenHelp.Atom("return"))))))),
+                                           TokenHelp.Atom("=:"),
+                                           TokenHelp.Ele(
+                                               TokenHelp.Atom("static"),
+                                               TokenHelp.Atom("fac"))))));
+            }
+        }
 
         public IEnumerable<ICodeElement> CodeElements
         {
             get
             {
-                var rootScope = new StaticScope(RootScope.Root);
-                var methodScope = new MethodScope(rootScope);
-                var ifBlock = new LocalStaticScope(methodScope);
-                var elseBlock = new LocalStaticScope(methodScope);
+                var rootScope = new StaticScope();
+                var methodScope = new MethodScope();
+                var ifBlock = new LocalStaticScope();
+                var elseBlock = new LocalStaticScope();
 
                 return new[] {
-                    new IsDefininition(
-                        new AbstractMemberDefinition(
-                            false,
-                            true,
-                            new ImplicitTypeReferance(),
-                            new ExplicitMemberName("fac") ),
+                    new InterpetedAssignOperation(
+                        new InterpetedMemberPath(0,
+                            new InterpetedMemberDefinition(),
                         new MethodDefinition(
                             new TypeReferance("int"),
                             new ParameterDefinition(

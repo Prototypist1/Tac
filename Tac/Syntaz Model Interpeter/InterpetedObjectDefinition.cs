@@ -9,7 +9,7 @@ using Prototypist.LeftToRight;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedObjectDefinition : ObjectDefinition, IInterpeted
+    public class InterpetedObjectDefinition : ObjectDefinition, IInterpeted
     {
         public InterpetedObjectDefinition(ObjectScope scope, IEnumerable<AssignOperation> codeElements) : base(scope, codeElements)
         {

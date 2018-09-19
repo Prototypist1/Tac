@@ -90,7 +90,7 @@ namespace Tac.Syntaz_Model_Interpeter
         InterpetedResult Interpet(InterpetedContext interpetedContext);
     }
 
-    internal class InterpeterElementBuilder : IElementBuilders
+    public class InterpeterElementBuilder : IElementBuilders
     {
         public InterpeterElementBuilder(){
             AddOperation = Include(new Element<Func<ICodeElement, ICodeElement, AddOperation>>((a, b) => new InterpetedAddOperation(a, b), "+"));
@@ -131,16 +131,16 @@ namespace Tac.Syntaz_Model_Interpeter
         public Element<Func<ICodeElement, ReturnOperation>> ReturnOperation { get; }
         public Element<Func<ICodeElement, MemberDefinition, PathOperation>> PathOperation { get; } 
 
-        public Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; } = (readOnly, key, type) => new InterpetedMemberDefinition(readOnly, key, type);
-        public Func<string, ExplicitMemberName> ExplicitMemberName { get; } = (name) => new InterpetedExplicitMemberName(name);
-        public Func<string, ExplicitTypeName> ExplicitTypeName { get; } = (x) => new InterpetedExplicitTypeName(x);
+        public Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; } = (readOnly, key, type) => new MemberDefinition(readOnly, key, type);
+        public Func<string, ExplicitMemberName> ExplicitMemberName { get; } = (name) => new ExplicitMemberName(name);
+        public Func<string, ExplicitTypeName> ExplicitTypeName { get; } = (x) => new ExplicitTypeName(x);
         public Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; } = (a, b) => new GenericExplicitTypeName(a, b);
         public Func<ObjectScope, IReadOnlyList<AssignOperation>, ObjectDefinition> ObjectDefinition { get; } = (a, b) => new  InterpetedObjectDefinition(a, b);
         public Func<StaticScope, IReadOnlyList<AssignOperation>, ModuleDefinition> ModuleDefinition { get; } = (a, b) => new InterpetedModuleDefinition(a, b);
         public Func<ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], MethodDefinition> MethodDefinition { get; } = (a, b, c, d, e) => new InterpetedMethodDefinition(a, b, c, d, e);
-        public Func<ObjectScope, TypeDefinition> TypeDefinition { get; } = a => new InterpetedTypeDefinition(a);
+        public Func<ObjectScope, TypeDefinition> TypeDefinition { get; } = a => new TypeDefinition(a);
         public Func<NameKey, ObjectScope, NamedTypeDefinition> NamedTypeDefinition { get; } = (a, b) => new NamedTypeDefinition(a, b);
-        public Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; } = (a, b, c) => new InterpetedGenericTypeDefinition(a, b, c);
+        public Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; } = (a, b, c) => new GenericTypeDefinition(a, b, c);
         public Func<MemberDefinition, ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], ImplementationDefinition> ImplementationDefinition { get; } = (a, b, c, d, e, f) => new InterpetedImplementationDefinition(a, b, c, d, e, f);
         public Func<ICodeElement[], LocalStaticScope, ICodeElement[], BlockDefinition> BlockDefinition { get; } = (a, b, c) => new InterpetedBlockDefinition(a, b, c);
         public Func<double, ConstantNumber> ConstantNumber { get; } = x => new InterpetedConstantNumber(x);

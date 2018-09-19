@@ -5,7 +5,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedMethodDefinition : MethodDefinition, IInterpeted
+    public class InterpetedMethodDefinition : MethodDefinition, IInterpeted
     {
         public InterpetedMethodDefinition(ITypeDefinition outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(outputType, parameterDefinition, body, scope, staticInitializers)
         {

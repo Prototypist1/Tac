@@ -6,7 +6,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedAssignOperation : AssignOperation, IInterpeted
+    public class InterpetedAssignOperation : AssignOperation, IInterpeted
     {
         public InterpetedAssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {

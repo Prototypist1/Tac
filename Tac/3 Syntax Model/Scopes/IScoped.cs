@@ -80,7 +80,6 @@ namespace Tac.Semantic_Model
                 }
             }
             throw new Exception("");
-
         }
 
         public ITypeDefinition GetType(ExplicitTypeName name)
