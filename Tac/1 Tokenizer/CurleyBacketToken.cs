@@ -5,16 +5,23 @@ namespace Tac.Parser
 {
     public class CurleyBacketToken : CompositToken
     {
-        public CurleyBacketToken(IEnumerable<IToken> tokens) : base(tokens)
+        public CurleyBacketToken(IToken[] tokens) : base(tokens)
         {
         }
-        public override string ToString() => $"Curl({base.ToString()})";
+        public override string ToString()
+        {
+            return $"Curl({base.ToString()})";
+        }
+
         public override bool Equals(object obj)
         {
             return obj is CurleyBacketToken token && base.Equals(token);
         }
-        public override int GetHashCode() => base.GetHashCode();
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
-    
+
 
 }

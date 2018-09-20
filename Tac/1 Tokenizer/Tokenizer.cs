@@ -71,7 +71,7 @@ namespace Tac.Parser
             CharEnumerator enumerator, 
             Func<CharEnumerator, ResultAndExitString> inner, 
             Func<string, bool> isExit, 
-            Func<IEnumerable<IToken>, IToken> makeToken, 
+            Func<IToken[], IToken> makeToken, 
             bool alwaysMake,
             bool addExitString)
         {
@@ -89,7 +89,7 @@ namespace Tac.Parser
                     {
                         if (alwaysMake || elements.Any())
                         {
-                            return new ResultAndExitString(exitString, makeToken(elements));
+                            return new ResultAndExitString(exitString, makeToken(elements.ToArray()));
                         }
                         else
                         {
@@ -108,7 +108,7 @@ namespace Tac.Parser
                 {
                     if (alwaysMake || elements.Any())
                     {
-                        return new ResultAndExitString(makeToken(elements));
+                        return new ResultAndExitString(makeToken(elements.ToArray()));
                     }
                     else
                     {
@@ -129,7 +129,7 @@ namespace Tac.Parser
                     {
                         if (elementsParts.Any())
                         {
-                            return new ResultAndExitString(part, new ElementToken(elementsParts));
+                            return new ResultAndExitString(part, new ElementToken(elementsParts.ToArray()));
                         }
                         else
                         {
@@ -149,7 +149,7 @@ namespace Tac.Parser
                 {
                     if (elementsParts.Any())
                     {
-                        return new ResultAndExitString(new ElementToken(elementsParts));
+                        return new ResultAndExitString(new ElementToken(elementsParts.ToArray()));
                     }
                     else
                     {
@@ -165,7 +165,6 @@ namespace Tac.Parser
                     str == "}" ||
                     str == ")" ||
                     str == "]" ||
-                    str == ">" ||
                     operations.Contains(str);
             }
         }
@@ -181,8 +180,7 @@ namespace Tac.Parser
                     str == ";" ||
                     str == "}" ||
                     str == ")" ||
-                    str == "]" ||
-                    str == ">";
+                    str == "]";
             }
         }
         
@@ -219,16 +217,16 @@ namespace Tac.Parser
             }
         }
 
-        private ResultAndExitString TokenzieBrokenBrackets(CharEnumerator enumerator)
-        {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new BrokenBracketToken(x), true, false);
+        //private ResultAndExitString TokenzieBrokenBrackets(CharEnumerator enumerator)
+        //{
+        //    return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new BrokenBracketToken(x), true, false);
 
-            bool IsExit(string str)
-            {
-                return
-                    str == ">";
-            }
-        }
+        //    bool IsExit(string str)
+        //    {
+        //        return
+        //            str == ">";
+        //    }
+        //}
 
         private ResultAndExitString TokenzieFile(CharEnumerator enumerator)
         {
@@ -246,11 +244,6 @@ namespace Tac.Parser
             {
 
                 token = TokenzieParenthesis(enumerator).GetTokenOrThrow();
-                return true;
-            }
-            else if (part == "<")
-            {
-                token = TokenzieBrokenBrackets(enumerator).GetTokenOrThrow();
                 return true;
             }
             else if (part == "{")

@@ -12,10 +12,10 @@ namespace Tac.Tests.Tokenizer
         {
             return new ParenthesisToken(tokens);
         }
-        public static BrokenBracketToken Broke(params IToken[] tokens)
-        {
-            return new BrokenBracketToken(tokens);
-        }
+        //public static BrokenBracketToken Broke(params IToken[] tokens)
+        //{
+        //    return new BrokenBracketToken(tokens);
+        //}
         public static CurleyBacketToken Curl(params IToken[] tokens)
         {
             return new CurleyBacketToken(tokens);

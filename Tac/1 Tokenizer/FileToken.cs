@@ -5,16 +5,23 @@ namespace Tac.Parser
 {
     public class FileToken : CompositToken
     {
-        public FileToken(IEnumerable<IToken> tokens) : base(tokens)
+        public FileToken(IToken[] tokens) : base(tokens)
         {
         }
-        public override string ToString() => $"File({base.ToString()})";
+        public override string ToString()
+        {
+            return $"File({base.ToString()})";
+        }
+
         public override bool Equals(object obj)
         {
             return obj is FileToken token && base.Equals(token);
         }
-        public override int GetHashCode() => base.GetHashCode();
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
-    
+
 
 }

@@ -15,7 +15,7 @@ namespace Tac.Tests.Samples
         {
             get
             {
-                return @"( 2 plus 5 ) times ( 2 plus 7 ) ;";
+                return @"( 2 + 5 ) * ( 2 + 7 ) ;";
             }
         }
 
@@ -28,13 +28,13 @@ namespace Tac.Tests.Samples
                                TokenHelp.Ele(
                                    TokenHelp.Par(
                                            TokenHelp.Ele(TokenHelp.Atom("2")),
-                                           TokenHelp.Atom("plus"),
+                                           TokenHelp.Atom("+"),
                                            TokenHelp.Ele(TokenHelp.Atom("5")))),
-                               TokenHelp.Atom("times"),
+                               TokenHelp.Atom("*"),
                                TokenHelp.Ele(
                                    TokenHelp.Par(
                                            TokenHelp.Ele(TokenHelp.Atom("2")),
-                                           TokenHelp.Atom("plus"),
+                                           TokenHelp.Atom("+"),
                                            TokenHelp.Ele(TokenHelp.Atom("7"))))));
             }
         }

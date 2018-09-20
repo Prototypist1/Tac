@@ -5,7 +5,7 @@ namespace Tac.Parser
 {
     public class ElementToken : CompositToken
     {
-        public ElementToken(IEnumerable<IToken> tokens) : base(tokens)
+        public ElementToken(IToken[] tokens) : base(tokens)
         {
         }
         public override string ToString() => $"Ele({base.ToString()})";

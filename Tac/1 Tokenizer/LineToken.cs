@@ -5,16 +5,23 @@ namespace Tac.Parser
 {
     public class LineToken : CompositToken
     {
-        public LineToken(IEnumerable<IToken> tokens) : base(tokens)
+        public LineToken(IToken[] tokens) : base(tokens)
         {
         }
-        public override string ToString() => $"Line({base.ToString()})";
+        public override string ToString()
+        {
+            return $"Line({base.ToString()})";
+        }
+
         public override bool Equals(object obj)
         {
             return obj is LineToken token && base.Equals(token);
         }
-        public override int GetHashCode() => base.GetHashCode();
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
-    
+
 
 }

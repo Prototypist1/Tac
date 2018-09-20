@@ -11,56 +11,82 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
-    public class Element {
-        public Element(string expressed)
+    public class Element
+    {
+        public Element(string expressed, ElementMatchingContext.OperationMatcher operationMatcher)
         {
             Expressed = expressed ?? throw new ArgumentNullException(nameof(expressed));
+            OperationMatcher = operationMatcher ?? throw new ArgumentNullException(nameof(operationMatcher));
         }
 
         public string Expressed { get; }
-    }
+        public ElementMatchingContext.OperationMatcher OperationMatcher { get; }
 
-    public class Element<TFunc>: Element
-        where TFunc:Delegate{
-        public Element(TFunc build, string expressed): base(expressed)
+        public static Element BinaryElement(string expressed, Func<ICodeElement, ICodeElement, ICodeElement> build)
         {
-            Build = build ?? throw new ArgumentNullException(nameof(build));
+            return new Element(expressed, ElementMatchingContext.MatchBinary(expressed, build));
         }
-
-        public TFunc Build { get; }
     }
+    
 
-    public interface IElementBuilders {
-        IReadOnlyList<string> Operations { get; }
+    public interface IElementBuilders
+    {
+        IReadOnlyList<Element> Operations { get; }
 
-        Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition {get;}
-        Element<Func<ICodeElement, ICodeElement, AddOperation>>  AddOperation { get; }
-        Element<Func<ICodeElement, ICodeElement, SubtractOperation>> SubtractOperation { get; }
+        Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; }
+        Element AddOperation { get; }
+        Element SubtractOperation { get; }
         Func<string, ExplicitMemberName> ExplicitMemberName { get; }
-        Element<Func<ICodeElement, ICodeElement, MultiplyOperation>> MultiplyOperation { get; }
+        Element MultiplyOperation { get; }
         Func<string, ExplicitTypeName> ExplicitTypeName { get; }
-        Element<Func<ICodeElement, ICodeElement, IfTrueOperation>> IfTrueOperation { get; }
-        Element<Func<ICodeElement, ICodeElement, ElseOperation>> ElseOperation { get; }
+        Element IfTrueOperation { get; }
+        Element ElseOperation { get; }
         Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; }
-        Element<Func<ICodeElement, ICodeElement, LessThanOperation>> LessThanOperation { get; }
-        Element<Func<ICodeElement, ICodeElement, NextCallOperation>> NextCallOperation { get; }
+        Element LessThanOperation { get; }
+        Element NextCallOperation { get; }
         Func<ObjectScope, IReadOnlyList<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
         Func<StaticScope, IReadOnlyList<AssignOperation>, ModuleDefinition> ModuleDefinition { get; }
         Func<ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], MethodDefinition> MethodDefinition { get; }
-        Element<Func<ICodeElement, ICodeElement, AssignOperation>> AssignOperation { get; }
+        Element AssignOperation { get; }
         Func<ObjectScope, TypeDefinition> TypeDefinition { get; }
         Func<NameKey, ObjectScope, NamedTypeDefinition> NamedTypeDefinition { get; }
         Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; }
-        Element<Func<ICodeElement, ReturnOperation>> ReturnOperation { get; }
+        Element ReturnOperation { get; }
         Func<MemberDefinition, ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], ImplementationDefinition> ImplementationDefinition { get; }
         Func<ICodeElement[], LocalStaticScope, ICodeElement[], BlockDefinition> BlockDefinition { get; }
         Func<double, ConstantNumber> ConstantNumber { get; }
-        Element<Func<ICodeElement, MemberDefinition, PathOperation>> PathOperation { get; }
+        Element PathOperation { get; }
         Func<int, MemberDefinition, MemberPath> MemberPath { get; }
     }
-    
+
     public class ElementMatchingContext
     {
+
+        public static ElementMatchingContext Root(ScopeTree tree, IElementBuilders elementBuilder)
+        {
+            var ss = new StaticScope();
+
+            return new ElementMatchingContext(new ScopeStack(tree, ss), elementBuilder, NormalElementMatcher,
+                x =>
+                {
+                    throw new Exception();
+                },
+                 x =>
+                 {
+                     if (!ss.TryAddStaticType(x))
+                     {
+                         throw new Exception();
+                     }
+                 },
+                x =>
+                {
+                    if (!ss.TryAddStaticGenericType(x))
+                    {
+                        throw new Exception();
+                    };
+                });
+
+        }
 
         public ElementMatchingContext Child(IScope scope)
         {
@@ -137,8 +163,9 @@ namespace Tac.Parser
             AddMember = addMember ?? throw new ArgumentNullException(nameof(addMember));
             AddType = addType ?? throw new ArgumentNullException(nameof(addType));
             AddGenerticType = addGenerticType ?? throw new ArgumentNullException(nameof(addGenerticType));
+            OperationMatchers = elementBuilder.Operations.Select(operation => operation.OperationMatcher).ToArray();
         }
-
+        
         public IElementBuilders ElementBuilder { get; }
 
         public ScopeStack ScopeStack { get; }
@@ -152,8 +179,8 @@ namespace Tac.Parser
         public static IEnumerable<TryMatch> NormalElementMatcher { get; } = new List<TryMatch> {
                     MatchObjectDefinition,
                     MatchGenericTypeDefinition,
-                    MatchMemberDefinition,
                     MatchTypeDefinition,
+                    MatchMemberDefinition,
                     MatchMethodDefinition,
                     MatchImplementationDefinition,
                     MatchBlockDefinition,
@@ -177,12 +204,7 @@ namespace Tac.Parser
                 };
         }
 
-        public IEnumerable<OperationMatcher> OperationMatchers { get; } = new List<OperationMatcher>
-        {
-            MatchBinary("+",x=> (object y,object z) => x.ElementBuilder.AddOperation.Build(y.Cast<ICodeElement>(),z.Cast<ICodeElement>())),
-            MatchBinary("=:",x=> (object y,object z) => x.ElementBuilder.AssignOperation.Build(y.Cast<ICodeElement>(),z.Cast<ICodeElement>())),
-            MatchPath
-        };
+        public IEnumerable<OperationMatcher> OperationMatchers { get; }
 
 
         #region Parse
@@ -619,7 +641,7 @@ namespace Tac.Parser
                 .IsMatch)
             {
 
-                var path = matchingContext.ScopeStack.GetMemberPathOrDefault(matchingContext.ElementBuilder.MemberPath,matchingContext.ElementBuilder.ExplicitMemberName(first.Item));
+                var path = matchingContext.ScopeStack.GetMemberPathOrDefault(matchingContext.ElementBuilder.MemberPath, matchingContext.ElementBuilder.ExplicitMemberName(first.Item));
 
                 if (path == default)
                 {
@@ -643,7 +665,7 @@ namespace Tac.Parser
 
         public delegate bool OperationMatcher(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result);
 
-        public static OperationMatcher MatchBinary(string name, Func<ElementMatchingContext, Func<object, object, ICodeElement>> builder)
+        public static OperationMatcher MatchBinary(string name, Func<ICodeElement, ICodeElement, ICodeElement> builder)
         {
             return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
 {
@@ -651,7 +673,7 @@ namespace Tac.Parser
     .Has(ElementMatcher.IsBinaryOperation(name), out var perface, out var token, out var rhs)
     .IsMatch)
     {
-        result = builder(matchingContext)(matchingContext.ParseLine(perface), matchingContext.ParseParenthesisOrElement(rhs));
+        result = builder(matchingContext.ParseLine(perface), matchingContext.ParseParenthesisOrElement(rhs));
         return true;
     }
 
@@ -660,7 +682,10 @@ namespace Tac.Parser
 };
         }
 
-        public static bool MatchAssign(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result)
+        public static OperationMatcher MatchAssign(Func<ICodeElement, ICodeElement, AssignOperation> build)
+        {
+
+            return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
         {
             if (TokenMatching.Start(tokens)
                 .Has(ElementMatcher.IsBinaryOperation("=:"), out var perface, out var token, out var rhs)
@@ -672,15 +697,19 @@ namespace Tac.Parser
 
                 var right = matchingContext.ParseParenthesisOrElement(rhs);
 
-                result = matchingContext.ElementBuilder.AssignOperation.Build(left, right);
+                result = build(left, right);
                 return true;
             }
 
             result = default;
             return false;
+        };
         }
 
-        public static bool MatchPath(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result)
+        public static OperationMatcher MatchPath(Func<ICodeElement, MemberDefinition, PathOperation> build)
+        {
+
+            return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
         {
             if (TokenMatching.Start(tokens)
                 .Has(ElementMatcher.IsBinaryOperation("."), out var perface, out var token, out var rhs)
@@ -697,7 +726,7 @@ namespace Tac.Parser
                     if (GetScoped().Scope.TryGetMember(matchingContext.ElementBuilder.ExplicitMemberName(first.Item).Key, false, out var res)
                         )
                     {
-                        result = matchingContext.ElementBuilder.PathOperation.Build(left, res);
+                        result = build(left, res);
 
                         return true;
                     }
@@ -727,9 +756,10 @@ namespace Tac.Parser
 
             result = default;
             return false;
+        };
         }
 
-        public static OperationMatcher MatchTrailing(string name, Func<ElementMatchingContext, Func<object, ICodeElement>> builder)
+        public static OperationMatcher MatchTrailing(string name, Func<ICodeElement, ICodeElement> builder)
         {
             return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
             {
@@ -737,7 +767,7 @@ namespace Tac.Parser
                 .Has(ElementMatcher.IsTrailingOperation(name), out var perface, out var token)
                 .IsMatch)
                 {
-                    result = builder(matchingContext)(matchingContext.ParseLine(perface));
+                    result = builder(matchingContext.ParseLine(perface));
                     return true;
                 }
 

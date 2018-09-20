@@ -93,21 +93,21 @@ namespace Tac.Syntaz_Model_Interpeter
     public class InterpeterElementBuilder : IElementBuilders
     {
         public InterpeterElementBuilder(){
-            AddOperation = Include(new Element<Func<ICodeElement, ICodeElement, AddOperation>>((a, b) => new InterpetedAddOperation(a, b), "+"));
-            SubtractOperation = Include(new Element<Func<ICodeElement, ICodeElement, SubtractOperation>>((a, b) => new InterpetedSubtractOperation(a, b), "-"));
-            MultiplyOperation = Include(new Element<Func<ICodeElement, ICodeElement, MultiplyOperation>>((a, b) => new InterpetedMultiplyOperation(a, b), "*"));
-            IfTrueOperation = Include(new Element<Func<ICodeElement, ICodeElement, IfTrueOperation>>((a, b) => new InterpetedIfTrueOperation(a, b), "if"));
-            ElseOperation = Include(new Element<Func<ICodeElement, ICodeElement, ElseOperation>>((a, b) => new InterpetedElseOperation(a, b), "else"));
-            LessThanOperation = Include(new Element<Func<ICodeElement, ICodeElement, LessThanOperation>>((a, b) => new InterpetedLessThanOperation(a, b), "<?"));
-            NextCallOperation = Include(new Element<Func<ICodeElement, ICodeElement, NextCallOperation>>((a, b) => new InterpetedNextCallOperation(a, b), ">"));
-            AssignOperation = Include(new Element<Func<ICodeElement, ICodeElement, AssignOperation>>((a, b) => new InterpetedAssignOperation(a, b), "=:"));
-            ReturnOperation = Include(new Element<Func<ICodeElement, ReturnOperation>>(x => new InterpetedReturnOperation(x), "return"));
-            PathOperation = Include(new Element<Func<ICodeElement, MemberDefinition, PathOperation>>((a, b) => new InterpetedPathOperation(a, b), "."));
+            AddOperation = Include(Element.BinaryElement("+", (a, b) => new InterpetedAddOperation(a, b)));
+            SubtractOperation = Include(Element.BinaryElement("-", (a, b) => new InterpetedSubtractOperation(a, b)));
+            MultiplyOperation = Include(Element.BinaryElement("*", (a, b) => new InterpetedMultiplyOperation(a, b)));
+            IfTrueOperation = Include(Element.BinaryElement("if", (a, b) => new InterpetedIfTrueOperation(a, b)));
+            ElseOperation = Include(Element.BinaryElement("else",(a, b) => new InterpetedElseOperation(a, b)));
+            LessThanOperation = Include(Element.BinaryElement("<?",(a, b) => new InterpetedLessThanOperation(a, b)));
+            NextCallOperation = Include(Element.BinaryElement(">",(a, b) => new InterpetedNextCallOperation(a, b)));
+            AssignOperation = Include(new Element("=:", ElementMatchingContext.MatchAssign((a, b) => new InterpetedAssignOperation(a, b) )));
+            ReturnOperation = Include(new Element("return", ElementMatchingContext.MatchTrailing("return",x => new InterpetedReturnOperation(x))));
+            PathOperation = Include(new Element(".",ElementMatchingContext.MatchPath((a, b) => new InterpetedPathOperation(a, b))));
         }
 
-        private readonly List<string> _operations = new List<string>();
+        private readonly List<Element> _operations = new List<Element>();
         
-        public IReadOnlyList<string> Operations
+        public IReadOnlyList<Element> Operations
         {
             get
             {
@@ -116,20 +116,20 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         private T Include<T>(T t) where T : Element {
-            _operations.Add(t.Expressed);
+            _operations.Add(t);
             return t;
         }
 
-        public Element<Func<ICodeElement, ICodeElement, AddOperation>> AddOperation { get; }
-        public Element<Func<ICodeElement, ICodeElement, SubtractOperation>> SubtractOperation { get; }
-        public Element<Func<ICodeElement, ICodeElement, MultiplyOperation>> MultiplyOperation { get; }
-        public Element<Func<ICodeElement, ICodeElement, IfTrueOperation>> IfTrueOperation { get; }
-        public Element<Func<ICodeElement, ICodeElement, ElseOperation>> ElseOperation { get; }
-        public Element<Func<ICodeElement, ICodeElement, LessThanOperation>> LessThanOperation { get; }
-        public Element<Func<ICodeElement, ICodeElement, NextCallOperation>> NextCallOperation { get; }
-        public Element<Func<ICodeElement, ICodeElement, AssignOperation>> AssignOperation { get; }
-        public Element<Func<ICodeElement, ReturnOperation>> ReturnOperation { get; }
-        public Element<Func<ICodeElement, MemberDefinition, PathOperation>> PathOperation { get; } 
+        public Element AddOperation { get; }
+        public Element SubtractOperation { get; }
+        public Element MultiplyOperation { get; }
+        public Element IfTrueOperation { get; }
+        public Element ElseOperation { get; }
+        public Element LessThanOperation { get; }
+        public Element NextCallOperation { get; }
+        public Element AssignOperation { get; }
+        public Element ReturnOperation { get; }
+        public Element PathOperation { get; } 
 
         public Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; } = (readOnly, key, type) => new MemberDefinition(readOnly, key, type);
         public Func<string, ExplicitMemberName> ExplicitMemberName { get; } = (name) => new ExplicitMemberName(name);

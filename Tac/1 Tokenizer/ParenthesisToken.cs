@@ -5,16 +5,23 @@ namespace Tac.Parser
 {
     public class ParenthesisToken : CompositToken
     {
-        public ParenthesisToken(IEnumerable<IToken> tokens) : base(tokens)
+        public ParenthesisToken(IToken[] tokens) : base(tokens)
         {
         }
-        public override string ToString() => $"Par({base.ToString()})";
+        public override string ToString()
+        {
+            return $"Par({base.ToString()})";
+        }
+
         public override bool Equals(object obj)
         {
             return obj is ParenthesisToken token && base.Equals(token);
         }
-        public override int GetHashCode() => base.GetHashCode();
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
-    
+
 
 }
