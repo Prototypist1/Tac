@@ -90,23 +90,23 @@ namespace Tac.Syntaz_Model_Interpeter
         InterpetedResult Interpet(InterpetedContext interpetedContext);
     }
 
-    public class InterpeterElementBuilder : IElementBuilders
-    {
-        public InterpeterElementBuilder(){
+    public class InterpeterOperationBuilder : IOperationBuilder {
+        public InterpeterOperationBuilder()
+        {
             AddOperation = Include(Element.BinaryElement("+", (a, b) => new InterpetedAddOperation(a, b)));
             SubtractOperation = Include(Element.BinaryElement("-", (a, b) => new InterpetedSubtractOperation(a, b)));
             MultiplyOperation = Include(Element.BinaryElement("*", (a, b) => new InterpetedMultiplyOperation(a, b)));
             IfTrueOperation = Include(Element.BinaryElement("if", (a, b) => new InterpetedIfTrueOperation(a, b)));
-            ElseOperation = Include(Element.BinaryElement("else",(a, b) => new InterpetedElseOperation(a, b)));
-            LessThanOperation = Include(Element.BinaryElement("<?",(a, b) => new InterpetedLessThanOperation(a, b)));
-            NextCallOperation = Include(Element.BinaryElement(">",(a, b) => new InterpetedNextCallOperation(a, b)));
-            AssignOperation = Include(new Element("=:", ElementMatchingContext.MatchAssign((a, b) => new InterpetedAssignOperation(a, b) )));
-            ReturnOperation = Include(new Element("return", ElementMatchingContext.MatchTrailing("return",x => new InterpetedReturnOperation(x))));
-            PathOperation = Include(new Element(".",ElementMatchingContext.MatchPath((a, b) => new InterpetedPathOperation(a, b))));
+            ElseOperation = Include(Element.BinaryElement("else", (a, b) => new InterpetedElseOperation(a, b)));
+            LessThanOperation = Include(Element.BinaryElement("<?", (a, b) => new InterpetedLessThanOperation(a, b)));
+            NextCallOperation = Include(Element.BinaryElement(">", (a, b) => new InterpetedNextCallOperation(a, b)));
+            AssignOperation = Include(new Element("=:", ElementMatchingContext.MatchAssign((a, b) => new InterpetedAssignOperation(a, b))));
+            ReturnOperation = Include(new Element("return", ElementMatchingContext.MatchTrailing("return", x => new InterpetedReturnOperation(x))));
+            PathOperation = Include(new Element(".", ElementMatchingContext.MatchPath((a, b) => new InterpetedPathOperation(a, b))));
         }
 
         private readonly List<Element> _operations = new List<Element>();
-        
+
         public IReadOnlyList<Element> Operations
         {
             get
@@ -115,7 +115,8 @@ namespace Tac.Syntaz_Model_Interpeter
             }
         }
 
-        private T Include<T>(T t) where T : Element {
+        private T Include<T>(T t) where T : Element
+        {
             _operations.Add(t);
             return t;
         }
@@ -129,7 +130,13 @@ namespace Tac.Syntaz_Model_Interpeter
         public Element NextCallOperation { get; }
         public Element AssignOperation { get; }
         public Element ReturnOperation { get; }
-        public Element PathOperation { get; } 
+        public Element PathOperation { get; }
+    }
+
+
+    public class InterpeterElementBuilder : IElementBuilders
+    {
+        
 
         public Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; } = (readOnly, key, type) => new MemberDefinition(readOnly, key, type);
         public Func<string, ExplicitMemberName> ExplicitMemberName { get; } = (name) => new ExplicitMemberName(name);

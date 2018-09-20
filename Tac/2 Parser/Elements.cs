@@ -27,42 +27,43 @@ namespace Tac.Parser
             return new Element(expressed, ElementMatchingContext.MatchBinary(expressed, build));
         }
     }
-    
+
+    public interface IOperationBuilder {
+        IReadOnlyList<Element> Operations { get; }
+        Element AddOperation { get; }
+        Element SubtractOperation { get; }
+        Element MultiplyOperation { get; }
+        Element IfTrueOperation { get; }
+        Element ElseOperation { get; }
+        Element LessThanOperation { get; }
+        Element NextCallOperation { get; }
+        Element AssignOperation { get; }
+        Element PathOperation { get; }
+        Element ReturnOperation { get; }
+    }
 
     public interface IElementBuilders
     {
-        IReadOnlyList<Element> Operations { get; }
-
         Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; }
-        Element AddOperation { get; }
-        Element SubtractOperation { get; }
         Func<string, ExplicitMemberName> ExplicitMemberName { get; }
-        Element MultiplyOperation { get; }
         Func<string, ExplicitTypeName> ExplicitTypeName { get; }
-        Element IfTrueOperation { get; }
-        Element ElseOperation { get; }
         Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; }
-        Element LessThanOperation { get; }
-        Element NextCallOperation { get; }
         Func<ObjectScope, IReadOnlyList<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
         Func<StaticScope, IReadOnlyList<AssignOperation>, ModuleDefinition> ModuleDefinition { get; }
         Func<ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], MethodDefinition> MethodDefinition { get; }
-        Element AssignOperation { get; }
         Func<ObjectScope, TypeDefinition> TypeDefinition { get; }
         Func<NameKey, ObjectScope, NamedTypeDefinition> NamedTypeDefinition { get; }
         Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; }
-        Element ReturnOperation { get; }
         Func<MemberDefinition, ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], ImplementationDefinition> ImplementationDefinition { get; }
         Func<ICodeElement[], LocalStaticScope, ICodeElement[], BlockDefinition> BlockDefinition { get; }
         Func<double, ConstantNumber> ConstantNumber { get; }
-        Element PathOperation { get; }
         Func<int, MemberDefinition, MemberPath> MemberPath { get; }
     }
 
     public class ElementMatchingContext
     {
 
-        public static ElementMatchingContext Root(ScopeTree tree, IElementBuilders elementBuilder)
+        public static ElementMatchingContext Root(ScopeTree tree, IElementBuilders elementBuilder, IOperationBuilder operationBuilder)
         {
             var ss = new StaticScope();
 
@@ -84,7 +85,8 @@ namespace Tac.Parser
                     {
                         throw new Exception();
                     };
-                });
+                }, 
+                operationBuilder.Operations.Select(x=>x.OperationMatcher).ToArray());
 
         }
 
@@ -114,7 +116,8 @@ namespace Tac.Parser
                         {
                             throw new Exception();
                         };
-                    });
+                    },
+                    OperationMatchers);
             }
 
             if (scope is StaticScope ss)
@@ -138,7 +141,8 @@ namespace Tac.Parser
                         {
                             throw new Exception();
                         };
-                    });
+                    },
+                    OperationMatchers);
             }
 
             throw new Exception();
@@ -146,7 +150,14 @@ namespace Tac.Parser
 
         private ElementMatchingContext VarMatcher(ITypeDefinition typeDefinition)
         {
-            return new ElementMatchingContext(ScopeStack, ElementBuilder, VarElementMatcher(typeDefinition), AddMember, AddType, AddGenerticType);
+            return new ElementMatchingContext(
+                ScopeStack, 
+                ElementBuilder, 
+                VarElementMatcher(typeDefinition), 
+                AddMember, 
+                AddType, 
+                AddGenerticType, 
+                OperationMatchers);
         }
 
         public ElementMatchingContext(
@@ -155,7 +166,9 @@ namespace Tac.Parser
             IEnumerable<TryMatch> elementMatchers,
             Action<MemberDefinition> addMember,
             Action<NamedTypeDefinition> addType,
-            Action<GenericTypeDefinition> addGenerticType)
+            Action<GenericTypeDefinition> addGenerticType,
+            IEnumerable<OperationMatcher> operationMatchers
+            )
         {
             ScopeStack = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
             ElementBuilder = elementBuilder ?? throw new ArgumentNullException(nameof(elementBuilder));
@@ -163,7 +176,7 @@ namespace Tac.Parser
             AddMember = addMember ?? throw new ArgumentNullException(nameof(addMember));
             AddType = addType ?? throw new ArgumentNullException(nameof(addType));
             AddGenerticType = addGenerticType ?? throw new ArgumentNullException(nameof(addGenerticType));
-            OperationMatchers = elementBuilder.Operations.Select(operation => operation.OperationMatcher).ToArray();
+            OperationMatchers = operationMatchers;
         }
         
         public IElementBuilders ElementBuilder { get; }

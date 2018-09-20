@@ -31,7 +31,7 @@ namespace Tac.Tests
             var tree = new ScopeTree();
 
             var elementMatchingContest = ElementMatchingContext.Root(tree,
-                new InterpeterElementBuilder());
+                new InterpeterElementBuilder(),new InterpeterOperationBuilder());
 
             var res = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
@@ -55,9 +55,9 @@ namespace Tac.Tests
 
             var text = sample.Text;
 
-            var elementBuilder =  new InterpeterElementBuilder();
+            var operationBuilder =  new InterpeterOperationBuilder();
             
-            var tokenizer = new Tac.Parser.Tokenizer(elementBuilder.Operations.Select(x=>x.Expressed).ToArray());
+            var tokenizer = new Tac.Parser.Tokenizer(operationBuilder.Operations.Select(x=>x.Expressed).ToArray());
             var res = tokenizer.Tokenize(text);
 
             var target = sample.Token;
