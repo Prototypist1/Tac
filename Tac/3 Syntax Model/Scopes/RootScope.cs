@@ -8,18 +8,14 @@ namespace Tac.Semantic_Model
     public static class RootScope
     {
 
-        public static IScope Root
+        public static StaticScope Root
         {
-            get
-            {
-                return Root;
-            }
-        }
-        private static StaticScope root = new StaticScope();
+            get;
+        } = new StaticScope();
 
         public static ExplicitTypeName Add(ExplicitTypeName name) {
             var typeDefinition = new NamedTypeDefinition(name.Key, new ObjectScope());
-            if (!root.TryAddStaticType(typeDefinition)) {
+            if (!Root.TryAddStaticType(typeDefinition)) {
                 throw new Exception($"could not add type {typeDefinition}");
             }
             return name;
@@ -31,7 +27,7 @@ namespace Tac.Semantic_Model
                 name.Key,
                 new ObjectScope(),
                 paramters);
-            if (!root.TryAddStaticGenericType(typeDefinition))
+            if (!Root.TryAddStaticGenericType(typeDefinition))
             {
                 throw new Exception($"could not add type {typeDefinition}");
             }
@@ -39,25 +35,25 @@ namespace Tac.Semantic_Model
         }
 
         // these need to move to IElementBuilder
-        public static ExplicitTypeName StringType { get; } = Add(new ExplicitTypeName("String"));
-        public static ExplicitTypeName NumberType { get; } = Add(new ExplicitTypeName("Number"));
-        public static ExplicitTypeName EmptyType { get; } = Add(new ExplicitTypeName("Empty"));
-        public static ExplicitTypeName AnyType { get; } = Add(new ExplicitTypeName("Any"));
-        public static ExplicitTypeName BooleanType { get; } = Add(new ExplicitTypeName("Bool"));
-        public static ExplicitTypeName TypeType { get; } = Add(new ExplicitTypeName("Type"));
+        public static ExplicitTypeName StringType { get; } = Add(new ExplicitTypeName("string"));
+        public static ExplicitTypeName NumberType { get; } = Add(new ExplicitTypeName("int"));
+        public static ExplicitTypeName EmptyType { get; } = Add(new ExplicitTypeName("empty"));
+        public static ExplicitTypeName AnyType { get; } = Add(new ExplicitTypeName("any"));
+        public static ExplicitTypeName BooleanType { get; } = Add(new ExplicitTypeName("bool"));
+        public static ExplicitTypeName TypeType { get; } = Add(new ExplicitTypeName("type"));
 
         public static ExplicitTypeName MethodType { get; } = AddGeneric(
-                new ExplicitTypeName("Method"),
+                new ExplicitTypeName("method"),
                 new GenericTypeParameterDefinition[] {
-                    new GenericTypeParameterDefinition("Input"),
-                    new GenericTypeParameterDefinition("Output") });
+                    new GenericTypeParameterDefinition("input"),
+                    new GenericTypeParameterDefinition("output") });
 
         public static ExplicitTypeName ImplementationType { get; } = AddGeneric(
-                new ExplicitTypeName("Implementation"),
+                new ExplicitTypeName("implementation"),
                 new GenericTypeParameterDefinition[] {
-                    new GenericTypeParameterDefinition("Context"),
-                    new GenericTypeParameterDefinition("Input"),
-                    new GenericTypeParameterDefinition("Output") });
+                    new GenericTypeParameterDefinition("context"),
+                    new GenericTypeParameterDefinition("input"),
+                    new GenericTypeParameterDefinition("output") });
     }
 
 }

@@ -131,7 +131,7 @@ namespace Tac.Semantic_Model
             }
 
             type = thing.Definition;
-            return false;
+            return true;
         }
     }
 
