@@ -6,19 +6,19 @@ namespace Tac.Semantic_Model
 {
     // this is really a scope builder
     public class StaticScope : Scope {
-        public bool TryAddStaticMember(MemberDefinition definition)
+        public bool TryAddStaticMember(IKey key ,IBox<MemberDefinition> definition)
         {
-            return TryAdd(DefintionLifetime.Static, definition);
+            return TryAddMember(DefintionLifetime.Static, key, definition);
         }
         
-        public bool TryAddStaticType(NamedTypeDefinition definition)
+        public bool TryAddStaticType(IKey key, IBox<ITypeDefinition> definition)
         {
-            return TryAdd(DefintionLifetime.Static, definition);
+            return TryAddType(DefintionLifetime.Static, key, definition);
         }
 
-        public bool TryAddStaticGenericType(GenericTypeDefinition definition)
+        public bool TryAddStaticGenericType(IKey key, IBox<GenericTypeDefinition> definition)
         {
-            return TryAddGeneric(DefintionLifetime.Static, definition);
+            return TryAddGeneric(DefintionLifetime.Static, key, definition);
         }
     }
     

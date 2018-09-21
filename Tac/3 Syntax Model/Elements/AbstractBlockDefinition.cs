@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.New;
+using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model
@@ -12,11 +14,11 @@ namespace Tac.Semantic_Model
             Body = body ?? throw new ArgumentNullException(nameof(body));
             StaticInitailizers = staticInitailizers ?? throw new ArgumentNullException(nameof(staticInitailizers));
         }
-        
+
         public IScope Scope { get; }
         public ICodeElement[] Body { get; }
         public IEnumerable<ICodeElement> StaticInitailizers { get; }
-        
+
         public abstract ITypeDefinition ReturnType(ScopeStack scope);
     }
 }

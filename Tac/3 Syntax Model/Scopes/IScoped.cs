@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model
         public ScopeTree ScopeTree { get; }
         public IScope TopScope { get; }
 
-        public ITypeDefinition GetGenericType(GenericExplicitTypeName type)
+        public IBox<GenericTypeDefinition> GetGenericType(GenericExplicitTypeName type)
         {
 
             foreach (var scope in ScopeTree.Scopes(TopScope))
@@ -82,7 +82,7 @@ namespace Tac.Semantic_Model
             throw new Exception("");
         }
 
-        public ITypeDefinition GetType(ExplicitTypeName name)
+        public IBox<ITypeDefinition> GetType(ExplicitTypeName name)
         {
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
@@ -95,7 +95,7 @@ namespace Tac.Semantic_Model
 
         }
 
-        public MemberPath GetMemberPathOrDefault( Func<int, MemberDefinition, MemberPath> memberPathMaker, ExplicitMemberName name)
+        public MemberPath GetMemberPathOrDefault( Func<int, IBox<MemberDefinition>, MemberPath> memberPathMaker, ExplicitMemberName name)
         {
             var up = 0;
             foreach (var scope in ScopeTree.Scopes(TopScope))
@@ -109,7 +109,7 @@ namespace Tac.Semantic_Model
             return default;
         }
 
-        internal MemberDefinition GetMemberDefinition(NameKey key)
+        internal IBox<MemberDefinition> GetMemberDefinition(NameKey key)
         {
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {

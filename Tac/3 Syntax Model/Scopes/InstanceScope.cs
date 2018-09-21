@@ -1,11 +1,13 @@
-﻿namespace Tac.Semantic_Model
+﻿using Tac.Semantic_Model.Names;
+
+namespace Tac.Semantic_Model
 {
 
     public class InstanceScope : LocalStaticScope
     {
-        public bool TryAddInstanceMember(MemberDefinition definition)
+        public bool TryAddInstanceMember(IKey key,IBox<MemberDefinition> definition)
         {
-            return TryAdd(DefintionLifetime.Instance, definition);
+            return TryAddMember(DefintionLifetime.Instance, key, definition);
         }
     }
 

@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.New;
+using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
@@ -13,7 +15,7 @@ namespace Tac.Semantic_Model
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
 
-    public class MemberDefinition: ICodeElement
+    public class MemberDefinition : ICodeElement
     {
         public MemberDefinition(bool readOnly, ExplicitMemberName key, ITypeDefinition type)
         {
@@ -25,7 +27,7 @@ namespace Tac.Semantic_Model
         public ITypeDefinition Type { get; }
         public bool ReadOnly { get; }
         public ExplicitMemberName Key { get; }
-        
+
         public ITypeDefinition ReturnType(ScopeStack scope) {
             return Type;
         }
@@ -33,6 +35,24 @@ namespace Tac.Semantic_Model
         public MemberDefinition GetMemberDefinition(ScopeStack scopeStack)
         {
             return this;
+        }
+    }
+
+    public class MemberDefinitionMaker : IMaker<MemberDefinition>{
+        public MemberDefinitionMaker(Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> func) {
+            Func = func ?? throw new ArgumentNullException(nameof(func));
+        }
+
+        public Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> Func { get; }
+
+
+        public Steps.PopulateScope<MemberDefinition> Make(bool isReadOnly, ExplicitMemberName memberName, ExplicitTypeName typeName) {
+
+        }
+
+            public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<MemberDefinition> result)
+        {
+            throw new NotImplementedException();
         }
     }
 }

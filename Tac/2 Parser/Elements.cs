@@ -45,7 +45,7 @@ namespace Tac.Parser
 
     public interface IElementBuilders
     {
-        Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; }
+        MemberDefinitionMaker MemberDefinition { get; }
         Func<string, ExplicitMemberName> ExplicitMemberName { get; }
         Func<string, ExplicitTypeName> ExplicitTypeName { get; }
         Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; }
@@ -182,9 +182,7 @@ namespace Tac.Parser
             AddGenerticType = addGenerticType ?? throw new ArgumentNullException(nameof(addGenerticType));
             OperationMatchers = operationMatchers;
         }
-
-        public IElementBuilders ElementBuilder { get; }
-
+        
         public ScopeStack ScopeStack { get; }
 
         public IEnumerable<TryMatch> ElementMatchers { get; }

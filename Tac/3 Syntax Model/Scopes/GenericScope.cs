@@ -10,7 +10,7 @@ namespace Tac.Semantic_Model
 
         private IScope Backing { get; }
 
-        public IReadOnlyList<MemberDefinition> Members
+        public IReadOnlyList<IBox<MemberDefinition>> Members
         {
             get
             {
@@ -32,17 +32,26 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public bool TryGetMember(NameKey name, bool staticOnly, out MemberDefinition member)
+        public bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member)
         {
             return Backing.TryGetMember(name, staticOnly, out member);
         }
 
-        public bool TryGetType(NameKey name, out ITypeDefinition type)
+        public bool TryGetType(NameKey name, out IBox<ITypeDefinition> type)
         {
-            return RealizedGenericTypes.TryGetValue(name, out type) || Backing.TryGetType(name, out type);
+            if (RealizedGenericTypes.TryGetValue(name, out var innerType)) {
+                type = new Box<ITypeDefinition>(innerType);
+                return true;
+            }
+
+            if (Backing.TryGetType(name, out type)) {
+                return true;
+            }
+
+            return false;
         }
 
-        public bool TryGetGenericType(NameKey name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
+        public bool TryGetGenericType(NameKey name, IEnumerable<ITypeDefinition> genericTypeParameters, out IBox<GenericTypeDefinition> typeDefinition)
         {
             return Backing.TryGetGenericType(name, genericTypeParameters, out typeDefinition);
         }

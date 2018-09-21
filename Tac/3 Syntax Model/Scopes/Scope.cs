@@ -32,36 +32,36 @@ namespace Tac.Semantic_Model
 
     public class Scope : IScope
     {
-        protected bool TryAdd(DefintionLifetime defintionLifetime, MemberDefinition definition)
+        protected bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<MemberDefinition> definition)
         {
-            var list = members.GetOrAdd(definition.Key.Key, new ConcurrentSet<Visiblity<MemberDefinition>>());
-            var visiblity = new Visiblity<MemberDefinition>(defintionLifetime, definition);
+            var list = members.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<MemberDefinition>>>());
+            var visiblity = new Visiblity<IBox<MemberDefinition>>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
 
-        protected bool TryAdd(DefintionLifetime defintionLifetime, NamedTypeDefinition definition)
+        protected bool TryAddType(DefintionLifetime defintionLifetime, IKey key, IBox<ITypeDefinition> definition)
         {
-            var list = types.GetOrAdd(definition.Key, new ConcurrentSet<Visiblity<TypeDefinition>>());
-            var visiblity = new Visiblity<TypeDefinition>(defintionLifetime, definition);
+            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<ITypeDefinition>>>());
+            var visiblity = new Visiblity<IBox<ITypeDefinition>>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
         
-        protected bool TryAddGeneric(DefintionLifetime defintionLifetime, GenericTypeDefinition definition)
+        protected bool TryAddGeneric(DefintionLifetime defintionLifetime,IKey key, IBox<GenericTypeDefinition> definition)
         {
-            var list = genericTypes.GetOrAdd(definition.Key, new ConcurrentSet<Visiblity<GenericTypeDefinition>>());
-            var visiblity = new Visiblity<GenericTypeDefinition>(defintionLifetime, definition);
+            var list = genericTypes.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>());
+            var visiblity = new Visiblity<IBox<GenericTypeDefinition>>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
 
-        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<MemberDefinition>>> members
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<MemberDefinition>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<MemberDefinition>>>> members
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<MemberDefinition>>>>();
 
-        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<TypeDefinition>>> types
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<TypeDefinition>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<ITypeDefinition>>>> types
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<ITypeDefinition>>>>();
 
-        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<GenericTypeDefinition>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<GenericTypeDefinition>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>>();
 
-        public IReadOnlyList<MemberDefinition> Members
+        public IReadOnlyList<IBox<MemberDefinition>> Members
         {
             get
             {
@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public bool TryGetMember(NameKey name, bool staticOnly, out MemberDefinition member) {
+        public bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member) {
             if (!members.TryGetValue(name, out var items)) {
                 member = default;
                 return false;
@@ -86,17 +86,15 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetGenericType(NameKey name, IEnumerable<ITypeDefinition> genericTypeParameters, out TypeDefinition typeDefinition)
+        public bool TryGetGenericType(NameKey name, IEnumerable<ITypeDefinition> genericTypeParameters, out IBox<GenericTypeDefinition> typeDefinition)
         {
-            if (!genericTypes.TryGetValue(name, out var genericItems))
+            if (!genericTypes.TryGetValue(name, out var items))
             {
                 typeDefinition = default;
                 return false;
             }
 
-            var thing = genericItems.SingleOrDefault(x => x.Definition.TypeParameterDefinitions.Zip(genericTypeParameters, (a, b) => {
-                return a.Accepts(b);
-            }).All(a => a));
+            var thing = items.SingleOrDefault();
 
             if (thing == default)
             {
@@ -104,17 +102,11 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
-            if (!thing.Definition.TryCreateConcrete(thing.Definition.TypeParameterDefinitions.Zip(genericTypeParameters, (a, b) => new GenericTypeParameter(b, a)), out var yay)){
-
-                typeDefinition = default;
-                return false;
-            }
-
-            typeDefinition = yay;
+            typeDefinition = thing.Definition;
             return true;
         }
 
-        public bool TryGetType(NameKey name, out ITypeDefinition type)
+        public bool TryGetType(NameKey name, out IBox<ITypeDefinition> type)
         {
             if (!types.TryGetValue(name, out var items))
             {
