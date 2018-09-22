@@ -1,4 +1,6 @@
-﻿using Tac.Semantic_Model.CodeStuff;
+﻿using System;
+using Tac.Parser;
+using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
@@ -13,6 +15,14 @@ namespace Tac.Semantic_Model.Operations
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
             return scope.GetType(RootScope.EmptyType);
+        }
+    }
+
+
+    public class ElseOperationMaker : BinaryOperationMaker<ElseOperation>
+    {
+        public ElseOperationMaker(Func<ICodeElement, ICodeElement, ElseOperation> make, IElementBuilders elementBuilders) : base("else", make, elementBuilders)
+        {
         }
     }
 }

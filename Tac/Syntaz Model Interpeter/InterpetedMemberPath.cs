@@ -4,7 +4,7 @@ using Tac.Semantic_Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedMemberPath : MemberPath, IInterpeted
+    public class InterpetedMemberPath : Member, IInterpeted
     {
         public InterpetedMemberPath(int scopesUp, MemberDefinition memberDefinition) : base(scopesUp, memberDefinition)
         {

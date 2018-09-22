@@ -58,7 +58,7 @@ namespace Tac.Parser
         Func<MemberDefinition, ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], ImplementationDefinition> ImplementationDefinition { get; }
         Func<ICodeElement[], LocalStaticScope, ICodeElement[], BlockDefinition> BlockDefinition { get; }
         Func<double, ConstantNumber> ConstantNumber { get; }
-        Func<int, MemberDefinition, MemberPath> MemberPath { get; }
+        Func<int, MemberDefinition, Member> MemberPath { get; }
     }
 
     public class ElementMatchingContext
@@ -224,7 +224,7 @@ namespace Tac.Parser
 
         #region Parse
 
-        private ICodeElement ParseParenthesisOrElement(IToken token)
+        public ICodeElement ParseParenthesisOrElement(IToken token)
         {
             if (token is ElementToken elementToken)
             {
@@ -250,7 +250,7 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        private ICodeElement ParseLine(IEnumerable<IToken> tokens)
+        public ICodeElement ParseLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in OperationMatchers)
             {
@@ -764,7 +764,7 @@ namespace Tac.Parser
                             return scoped;
                         }
                         else
-                        if (left is MemberPath memberPath && memberPath.ReturnType(matchingContext.ScopeStack) is IScoped lastScoped)
+                        if (left is Member memberPath && memberPath.ReturnType(matchingContext.ScopeStack) is IScoped lastScoped)
                         {
                             return lastScoped;
                         }

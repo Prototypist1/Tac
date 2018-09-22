@@ -17,14 +17,14 @@ namespace Tac.Semantic_Model
 
     public class MemberDefinition 
     {
-        public MemberDefinition(bool readOnly, ExplicitMemberName key, ITypeDefinition type)
+        public MemberDefinition(bool readOnly, ExplicitMemberName key, IBox<ITypeDefinition> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public ITypeDefinition Type { get; }
+        public IBox<ITypeDefinition> Type { get; }
         public bool ReadOnly { get; }
         public ExplicitMemberName Key { get; }
         

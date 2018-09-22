@@ -5,12 +5,12 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface IBox<out T> where T : class, ICodeElement
+    public interface IBox<out T> where T : class
     {
 
     }
 
-    public class Box<T> : IBox<T> where T : class, ICodeElement
+    public class Box<T> : IBox<T> where T : class
     {
         public Box()
         {

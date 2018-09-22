@@ -95,18 +95,22 @@ namespace Tac.Semantic_Model
 
         }
 
-        public MemberPath GetMemberPathOrDefault( Func<int, IBox<MemberDefinition>, MemberPath> memberPathMaker, ExplicitMemberName name)
+        public bool TryGetMemberPath(  ExplicitMemberName name, out int depth, out IBox<MemberDefinition> box)
         {
             var up = 0;
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
                 if (scope.TryGetMember(name.Key, false, out var memberDefinition))
                 {
-                    return memberPathMaker(up,memberDefinition);
+                    depth = up;
+                    box = memberDefinition;
+                    return true;
                 }
                 up++;
             }
-            return default;
+            depth = 0;
+            box = default;
+            return false;
         }
 
         internal IBox<MemberDefinition> GetMemberDefinition(NameKey key)

@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
 
-        public ITypeDefinition InputType
+        public IBox<ITypeDefinition> InputType
         {
             get
             {

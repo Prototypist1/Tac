@@ -25,14 +25,14 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public ITypeDefinition ContextType
+        public IBox<ITypeDefinition> ContextType
         {
             get
             {
                 return ContextDefinition.Type;
             }
         }
-        public ITypeDefinition InputType
+        public IBox<ITypeDefinition> InputType
         {
             get
             {

@@ -151,7 +151,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public Func<MemberDefinition, ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], ImplementationDefinition> ImplementationDefinition { get; } = (a, b, c, d, e, f) => new InterpetedImplementationDefinition(a, b, c, d, e, f);
         public Func<ICodeElement[], LocalStaticScope, ICodeElement[], BlockDefinition> BlockDefinition { get; } = (a, b, c) => new InterpetedBlockDefinition(a, b, c);
         public Func<double, ConstantNumber> ConstantNumber { get; } = x => new InterpetedConstantNumber(x);
-        public Func<int, MemberDefinition, MemberPath> MemberPath { get; } = (x, y) => new InterpetedMemberPath(x, y);
+        public Func<int, MemberDefinition, Member> MemberPath { get; } = (x, y) => new InterpetedMemberPath(x, y);
 
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
@@ -12,7 +13,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override ITypeDefinition ReturnType(ScopeStack scope) {
+        public override IBox<ITypeDefinition> ReturnType(ScopeTree scope) {
             if (left.ReturnType(scope) == RootScope.NumberType && right.ReturnType(scope) == RootScope.NumberType)
             {
                 return scope.GetType(RootScope.NumberType);
@@ -25,6 +26,13 @@ namespace Tac.Semantic_Model.Operations
             {
                 throw new Exception("add expects string and int");
             }
+        }
+    }
+
+    public class AddOperationMaker : BinaryOperationMaker<AddOperation>
+    {
+        public AddOperationMaker(Func<ICodeElement, ICodeElement, AddOperation> make, IElementBuilders elementBuilders) : base("+", make, elementBuilders)
+        {
         }
     }
 }

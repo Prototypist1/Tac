@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
@@ -15,6 +16,13 @@ namespace Tac.Semantic_Model.Operations
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
             return CallHelp.GetTargetReturnType(right, scope);
+        }
+    }
+
+    public class NextCallOperationMaker : BinaryOperationMaker<NextCallOperation>
+    {
+        public NextCallOperationMaker(Func<ICodeElement, ICodeElement, NextCallOperation> make, IElementBuilders elementBuilders) : base(">", make, elementBuilders)
+        {
         }
     }
 
@@ -61,6 +69,13 @@ namespace Tac.Semantic_Model.Operations
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
             return CallHelp.GetTargetReturnType(left, scope);
+        }
+    }
+
+    public class LastCallOperationMaker : BinaryOperationMaker<LastCallOperation>
+    {
+        public LastCallOperationMaker(Func<ICodeElement, ICodeElement, LastCallOperation> make, IElementBuilders elementBuilders) : base("<", make, elementBuilders)
+        {
         }
     }
 }

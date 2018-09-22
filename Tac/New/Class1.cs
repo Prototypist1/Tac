@@ -13,6 +13,12 @@ namespace Tac.New
         bool TryMake(ElementToken elementToken , ElementMatchingContext matchingContext, out Steps.PopulateScope<T> result);
     }
 
+    public interface IOperationMaker<T>
+    where T : ICodeElement
+    {
+        bool TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<T> result);
+    }
+
     public static class Steps
     {
         public delegate DetermineInferedTypes<T> PopulateScope<out T>(ScopeTree tree);
