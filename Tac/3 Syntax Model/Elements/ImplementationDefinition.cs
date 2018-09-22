@@ -46,11 +46,11 @@ namespace Tac.Semantic_Model
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
         
-        public ITypeDefinition ReturnType(ScopeStack scope) {
+        public IBox<ITypeDefinition> ReturnType(ScopeStack scope) {
                 return scope.GetGenericType(new GenericExplicitTypeName(RootScope.ImplementationType.Name,new ITypeDefinition[] { ContextType, InputType, OutputType }));
         }
 
-        public ITypeDefinition GetTypeDefinition(ScopeStack scopeStack)
+        public IBox<ITypeDefinition> GetTypeDefinition(ScopeStack scopeStack)
         {
             return scopeStack.GetGenericType(new GenericExplicitTypeName(RootScope.ImplementationType.Name, new ITypeDefinition[] { ContextType, InputType, OutputType }));
         }
@@ -58,17 +58,17 @@ namespace Tac.Semantic_Model
 
     public class ImplementationDefinitionMaker : IMaker<ImplementationDefinition>
     {
-        public ImplementationDefinitionMaker(Func<MemberDefinition , ITypeDefinition , MemberDefinition , IEnumerable<ICodeElement> , IScope , IEnumerable<ICodeElement> , ImplementationDefinition> make,
+        public ImplementationDefinitionMaker(Func<MemberDefinition  , MemberDefinition , IBox<ITypeDefinition>, IEnumerable<ICodeElement> , IScope , IEnumerable<ICodeElement> , ImplementationDefinition> make,
             IElementBuilders elementBuilders)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
-        private Func<MemberDefinition, ITypeDefinition, MemberDefinition, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> Make { get; }
+        private Func<MemberDefinition,  MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope result)
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<ImplementationDefinition> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("implementation"), out var _)
@@ -114,9 +114,9 @@ namespace Tac.Semantic_Model
             LocalStaticScope scope, Steps.PopulateScope<ICodeElement>[] elements,
             ExplicitTypeName outputTypeName)
         {
-            return () =>
+            return (tree) =>
             {
-                return DetermineInferedTypes(contextDefinition(), parameterDefintion(),scope, elements.Select(x => x()).ToArray());
+                return DetermineInferedTypes(contextDefinition(tree), parameterDefintion(tree),scope, elements.Select(x => x(tree)).ToArray(), outputTypeName);
             };
         }
 
@@ -126,7 +126,11 @@ namespace Tac.Semantic_Model
             LocalStaticScope scope, Steps.DetermineInferedTypes<ICodeElement>[] elements,
             ExplicitTypeName outputTypeName)
         {
-            return () => ResolveReferance(contextDefinition(), parameterDefintion(), scope, elements.Select(x => x()).ToArray());
+            return () =>
+            {
+
+                return ResolveReferance(contextDefinition(), parameterDefintion(), scope, elements.Select(x => x()).ToArray(), outputTypeName);
+            };
         }
 
         private Steps.ResolveReferance<ImplementationDefinition> ResolveReferance(Steps.ResolveReferance<MemberDefinition> contextDefinition,
@@ -134,9 +138,9 @@ namespace Tac.Semantic_Model
             LocalStaticScope scope, Steps.ResolveReferance<ICodeElement>[] elements,
             ExplicitTypeName outputTypeName)
         {
-            return () =>
+            return (tree) =>
             {
-                return Make(contextDefinition(), parameterDefintion(), elements.Select(x => x()).ToArray(), scope, new ICodeElement[0]);
+                return Make(contextDefinition(tree), parameterDefintion(tree), new ScopeStack(tree, scope).GetType(outputTypeName), elements.Select(x => x(tree)).ToArray(), scope, new ICodeElement[0]);
             };
         }
     }

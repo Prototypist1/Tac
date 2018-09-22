@@ -12,9 +12,9 @@ namespace Tac.Semantic_Model
     {
         public BlockDefinition(ICodeElement[] body, IScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(scope ?? throw new System.ArgumentNullException(nameof(scope)), body, staticInitailizers) { }
 
-        public override ITypeDefinition ReturnType(ScopeStack scope)
+        public override IBox<ITypeDefinition> ReturnType(ScopeTree scopes)
         {
-            return scope.GetType(RootScope.EmptyType);
+            return new ScopeStack(scopes,Scope).GetType(RootScope.EmptyType);
         }
     }
 
@@ -49,9 +49,9 @@ namespace Tac.Semantic_Model
         }
 
         private Steps.PopulateScope<BlockDefinition> PopulateScope(LocalStaticScope scope, Steps.PopulateScope<ICodeElement>[] elements) {
-            return () =>
+            return (tree) =>
             {
-                return DetermineInferedTypes(scope, elements.Select(x=>x()).ToArray());
+                return DetermineInferedTypes(scope, elements.Select(x=>x(tree)).ToArray());
             };
         }
 
@@ -62,9 +62,9 @@ namespace Tac.Semantic_Model
 
         private Steps.ResolveReferance<BlockDefinition> ResolveReferance(LocalStaticScope scope, Steps.ResolveReferance<ICodeElement>[] elements)
         {
-            return () =>
+            return (tree) =>
             {
-                return new BlockDefinition(elements.Select(x => x()).ToArray(), scope, new ICodeElement[0]);
+                return Make(elements.Select(x => x(tree)).ToArray(), scope, new ICodeElement[0]);
             };
         }
     }

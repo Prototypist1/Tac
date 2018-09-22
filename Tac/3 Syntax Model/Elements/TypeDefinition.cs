@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.New;
+using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
@@ -23,9 +25,69 @@ namespace Tac.Semantic_Model
 
         public IScope Scope { get; }
         
-        public ITypeDefinition ReturnType(ScopeStack scope)
+        public IBox<ITypeDefinition> ReturnType(ScopeStack scope)
         {
             return scope.GetType(RootScope.TypeType);
+        }
+    }
+
+    public class TypeDefinitionMaker : IMaker<TypeDefinition>
+    {
+        public TypeDefinitionMaker(Func<IScope, TypeDefinition> make)
+        {
+            Make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        private Func<IScope, TypeDefinition> Make { get; }
+
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<TypeDefinition> result)
+        {
+            if (TokenMatching.Start(elementToken.Tokens)
+                            .Has(ElementMatcher.KeyWord("type"), out var _)
+                            .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
+                            .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
+                            .IsMatch)
+            {
+                var scope = new ObjectScope();
+
+                var elementMatchingContext = matchingContext.Child(scope);
+                var elements = elementMatchingContext.ParseBlock(body);
+
+
+                result = PopulateScope(scope, elements, typeName);
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        private Steps.PopulateScope<TypeDefinition> PopulateScope(ObjectScope scope, Steps.PopulateScope<ICodeElement>[] elements,AtomicToken typeName)
+        {
+            return (tree) =>
+            {
+                elements.Select(x => x(tree)).ToArray();
+                var box = new Box<TypeDefinition>();
+                if (typeName != null)
+                {
+                    var encolsing = tree.Scopes(scope).Skip(1).First();
+                    encolsing.Cast<StaticScope>().TryAddStaticType(new NameKey(typeName.Item),box);
+                }
+                return DetermineInferedTypes(scope,box);
+            };
+        }
+
+        private Steps.DetermineInferedTypes<TypeDefinition> DetermineInferedTypes(ObjectScope scope, Box<TypeDefinition> box)
+        {
+            return () => ResolveReferance(scope, box);
+        }
+
+        private Steps.ResolveReferance<TypeDefinition> ResolveReferance(ObjectScope scope, Box<TypeDefinition> box)
+        {
+            return (tree) =>
+            {
+                return box.Fill(Make(scope));
+            };
         }
     }
 

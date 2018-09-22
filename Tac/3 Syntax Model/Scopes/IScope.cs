@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
@@ -11,13 +12,25 @@ namespace Tac.Semantic_Model
 
     public class Box<T> : IBox<T> where T : class, ICodeElement
     {
+        public Box()
+        {
+        }
 
         public Box(T innerType)
         {
             InnerType = innerType ?? throw new System.ArgumentNullException(nameof(innerType));
         }
 
-        private T InnerType { get; }
+        private T InnerType { get; set; }
+        
+        internal T Fill(T t)
+        {
+            if (InnerType != null) {
+                throw new Exception();
+            }
+            InnerType = t ?? throw new ArgumentNullException(nameof(t));
+            return t;
+        }
     }
 
     // TODO split scopes out in to socpes an scope builders

@@ -20,4 +20,5 @@ namespace Tac.Semantic_Model
             return MemberDefinition.ReturnType(scope);
         }
     }
+    
 }
