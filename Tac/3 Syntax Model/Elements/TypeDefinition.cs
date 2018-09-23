@@ -31,16 +31,39 @@ namespace Tac.Semantic_Model
         }
     }
 
+    public class NamedTypeDefinition : TypeDefinition
+    {
+        public NamedTypeDefinition(IKey key, IScope scope) : base(scope)
+        {
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+        }
+
+        public IKey Key { get; }
+
+    }
+
     public class TypeDefinitionMaker : IMaker<TypeDefinition>
     {
-        public TypeDefinitionMaker(Func<IScope, TypeDefinition> make)
+        public TypeDefinitionMaker(Func<IScope, TypeDefinition> make, Func<IScope,string, NamedTypeDefinition> makeWithName)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
+            MakeWithName = makeWithName ?? throw new ArgumentNullException(nameof(makeWithName));
         }
 
         private Func<IScope, TypeDefinition> Make { get; }
+        private Func<IScope, string, NamedTypeDefinition> MakeWithName { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<TypeDefinition> result)
+        private TypeDefinition Create(IScope scope, string name) {
+            if (name == default)
+            {
+                return Make(scope);
+            }
+            else {
+                return MakeWithName(scope, name);
+            }
+        }
+
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<TypeDefinition> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                             .Has(ElementMatcher.KeyWord("type"), out var _)
@@ -54,7 +77,15 @@ namespace Tac.Semantic_Model
                 var elements = elementMatchingContext.ParseBlock(body);
 
 
-                result = PopulateScope(scope, elements, typeName);
+                if (typeName != default)
+                {
+                    result = new TypeDefinitionPopulateScope(scope, elements, typeName,(s) => MakeWithName(s, typeName.Item));
+                }
+                else
+                {
+                    result = new TypeDefinitionPopulateScope(scope, elements, typeName, (s) => MakeWithName(s, typeName.Item));
+                }
+
                 return true;
             }
 
@@ -62,121 +93,52 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        private Steps.PopulateScope<TypeDefinition> PopulateScope(ObjectScope scope, Steps.PopulateScope<ICodeElement>[] elements,AtomicToken typeName)
+        private class TypeDefinitionPopulateScope : IPopulateScope<TypeDefinition>
         {
-            return (tree) =>
+            private readonly ObjectScope scope;
+            private readonly IPopulateScope<ICodeElement>[] elements;
+            private readonly AtomicToken typeName;
+            private readonly Func<IScope,string, TypeDefinition> make;
+
+            public TypeDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, AtomicToken typeName, Func<IScope, TypeDefinition> make)
             {
-                elements.Select(x => x(tree)).ToArray();
+                this.scope = scope ?? throw new ArgumentNullException(nameof(make));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(make));
+                this.typeName = typeName ?? throw new ArgumentNullException(nameof(make));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public IResolveReferance<TypeDefinition> Run(ScopeTree tree)
+            {
+                elements.Select(x => x.Run(tree)).ToArray();
                 var box = new Box<TypeDefinition>();
                 if (typeName != null)
                 {
                     var encolsing = tree.Scopes(scope).Skip(1).First();
-                    encolsing.Cast<StaticScope>().TryAddStaticType(new NameKey(typeName.Item),box);
+                    encolsing.Cast<StaticScope>().TryAddStaticType(new NameKey(typeName.Item), box);
                 }
-                return DetermineInferedTypes(scope,box);
-            };
+                return new TypeDefinitionResolveReferance(scope, box,make);
+            }
         }
 
-        private Steps.DetermineInferedTypes<TypeDefinition> DetermineInferedTypes(ObjectScope scope, Box<TypeDefinition> box)
+        private class TypeDefinitionResolveReferance : IResolveReferance<TypeDefinition>
         {
-            return () => ResolveReferance(scope, box);
-        }
+            private readonly ObjectScope scope;
+            private readonly Box<TypeDefinition> box;
+            private readonly Func<IScope, TypeDefinition> make;
 
-        private Steps.ResolveReferance<TypeDefinition> ResolveReferance(ObjectScope scope, Box<TypeDefinition> box)
-        {
-            return (tree) =>
+            public TypeDefinitionResolveReferance(ObjectScope scope, Box<TypeDefinition> box, Func<IScope, TypeDefinition> make)
             {
-                return box.Fill(Make(scope));
-            };
-        }
-    }
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
 
-    public class NamedTypeDefinition : TypeDefinition
-    {
-        public NamedTypeDefinition(IKey key, IScope scope) : base(scope)
-        {
-            Key = key ?? throw new ArgumentNullException(nameof(key));
+            public TypeDefinition Run(ScopeTree tree)
+            {
+                return box.Fill(make(scope));
+            }
         }
-
-        public IKey Key { get; }
         
     }
-
-    public class GenericTypeDefinition : ICodeElement, ITypeDefinition
-    {
-        public GenericTypeDefinition(NameKey key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
-        {
-            Key = key ?? throw new ArgumentNullException(nameof(key));
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
-        }
-
-        public IKey Key { get; }
-
-        public ObjectScope Scope { get; }
-
-        public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
-
-        public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out TypeDefinition result)
-        {
-            if (genericTypeParameters.Select(x => x.Definition).SetEqual(TypeParameterDefinitions).Not())
-            {
-                result = default;
-                return false;
-            }
-
-            result = new TypeDefinition(new GenericScope(Scope, genericTypeParameters));
-            return true;
-        }
-
-        public ITypeDefinition ReturnType(ScopeStack scope)
-        {
-            return scope.GetType(RootScope.TypeType);
-        }
-    }
-
-    public class GenericTypeParameterDefinition
-    {
-        public GenericTypeParameterDefinition(string name)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
-
-        public NameKey Key { get {
-                return new NameKey(Name);
-            }
-        }
-
-        public string Name { get; }
-
-        public override bool Equals(object obj)
-        {
-            return obj is GenericTypeParameterDefinition definition &&
-                   Name == definition.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-        }
-
-        internal bool Accepts(ITypeDefinition b)
-        {
-            // TODO generic constraints
-            return true;
-        }
-    }
-
-    public class GenericTypeParameter
-    {
-        public GenericTypeParameter(ITypeDefinition typeDefinition, GenericTypeParameterDefinition definition)
-        {
-            TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
-            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        }
-
-        public ITypeDefinition TypeDefinition { get; }
-        public GenericTypeParameterDefinition Definition { get; }
-    }
-
 }

@@ -35,7 +35,7 @@ namespace Tac.Semantic_Model
 
         private Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> Make { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<ObjectDefinition> result)
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<ObjectDefinition> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                            .Has(ElementMatcher.KeyWord("object"), out var keyword)
@@ -48,7 +48,7 @@ namespace Tac.Semantic_Model
                 var elementMatchingContext = matchingContext.Child(scope);
                 var elements = elementMatchingContext.ParseBlock(block);
 
-                result = PopulateScope(scope, elements);
+                result = new ObjectDefinitionPopulateScope(scope, elements, Make);
 
                 return true;
             }
@@ -56,25 +56,43 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        private Steps.PopulateScope<ObjectDefinition> PopulateScope(StaticScope scope, Steps.PopulateScope<ICodeElement>[] elements)
+        private class ObjectDefinitionPopulateScope : IPopulateScope<ObjectDefinition>
         {
-            return (tree) =>
+            private readonly ObjectScope scope;
+            private readonly IPopulateScope<ICodeElement>[] elements;
+            private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
+
+            public ObjectDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
             {
-                return DetermineInferedTypes(scope, elements.Select(x => x(tree)).ToArray());
-            };
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public IResolveReferance<ObjectDefinition> Run(ScopeTree tree)
+            {
+                return new ResolveReferanceObjectDefinition(scope, elements.Select(x=>x.Run(tree)).ToArray(), make);
+            }
         }
 
-        private Steps.DetermineInferedTypes<ObjectDefinition> DetermineInferedTypes(StaticScope scope, Steps.DetermineInferedTypes<ICodeElement>[] elements)
+        private class ResolveReferanceObjectDefinition : IResolveReferance<ObjectDefinition>
         {
-            return () => ResolveReferance(scope, elements.Select(x => x()).ToArray());
-        }
+            private readonly ObjectScope scope;
+            private readonly IResolveReferance<ICodeElement>[] elements;
+            private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
 
-        private Steps.ResolveReferance<ObjectDefinition> ResolveReferance(StaticScope scope, Steps.ResolveReferance<ICodeElement>[] elements)
-        {
-            return (tree) =>
+            public ResolveReferanceObjectDefinition(ObjectScope scope, IResolveReferance<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
             {
-                return Make(scope, elements.Select(x => x(tree).Cast<AssignOperation>()).ToArray());
-            };
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public ObjectDefinition Run(ScopeTree tree)
+            {
+                return make(scope, elements.Select(x => x.Run(tree).Cast<AssignOperation>()).ToArray());
+            }
         }
+        
     }
 }
