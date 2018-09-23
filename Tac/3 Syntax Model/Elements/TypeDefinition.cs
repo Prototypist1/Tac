@@ -102,7 +102,7 @@ namespace Tac.Semantic_Model
         
     }
 
-    public class GenericTypeDefinition : ICodeElement
+    public class GenericTypeDefinition : ICodeElement, ITypeDefinition
     {
         public GenericTypeDefinition(NameKey key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {

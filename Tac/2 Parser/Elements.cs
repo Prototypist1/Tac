@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac._2_Parser;
+using Tac.New;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
@@ -168,29 +169,18 @@ namespace Tac.Parser
             ScopeStack enclosingScope,
             IElementBuilders elementBuilder,
             IEnumerable<TryMatch> elementMatchers,
-            Action<MemberDefinition> addMember,
-            Action<NamedTypeDefinition> addType,
-            Action<GenericTypeDefinition> addGenerticType,
             IEnumerable<OperationMatcher> operationMatchers
             )
         {
             ScopeStack = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
             ElementBuilder = elementBuilder ?? throw new ArgumentNullException(nameof(elementBuilder));
             ElementMatchers = elementMatchers ?? throw new ArgumentNullException(nameof(elementMatchers));
-            AddMember = addMember ?? throw new ArgumentNullException(nameof(addMember));
-            AddType = addType ?? throw new ArgumentNullException(nameof(addType));
-            AddGenerticType = addGenerticType ?? throw new ArgumentNullException(nameof(addGenerticType));
             OperationMatchers = operationMatchers;
         }
         
         public ScopeStack ScopeStack { get; }
-
         public IEnumerable<TryMatch> ElementMatchers { get; }
-
-        private Action<MemberDefinition> AddMember { get; }
-        private Action<NamedTypeDefinition> AddType { get; }
-        private Action<GenericTypeDefinition> AddGenerticType { get; }
-
+        
         public static IEnumerable<TryMatch> NormalElementMatcher { get; } = new List<TryMatch> {
                     MatchObjectDefinition,
                     MatchGenericTypeDefinition,
@@ -374,160 +364,7 @@ namespace Tac.Parser
             element = default;
             return false;
         }
-
-        public static bool MatchObjectDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
-        {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("object"), out var keyword)
-                .Has(ElementMatcher.IsBody, out CurleyBacketToken block)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
-            {
-                var scope = new ObjectScope();
-
-                var elementMatchingContext = matchingContext.Child(scope);
-                var elements = elementMatchingContext.ParseBlock(block);
-
-                if (elements.ExtractTopLevelAssignOperations(out var assignOperations).Any())
-                {
-                    throw new Exception("objects should only contain assign operations");
-                }
-
-                if (assignOperations
-                    .ExtractMemberDefinitions(out var _)
-                    .ExtractMemberReferances(out var _)
-                    .Any())
-                {
-                    throw new Exception("objects should only assign to member definitions or member referances");
-                }
-
-                element = matchingContext.ElementBuilder.ObjectDefinition(scope, assignOperations);
-
-                return true;
-            }
-            element = default;
-            return false;
-        }
-
-        public static bool MatchModuleDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
-        {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("module"), out var frist)
-                .Has(ElementMatcher.IsBody, out CurleyBacketToken third)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
-            {
-
-                var scope = new StaticScope();
-
-                var elementMatchingContext = matchingContext.Child(scope);
-                var elements = elementMatchingContext.ParseBlock(third);
-
-                if (elements
-                    .ExtractTopLevelAssignOperations(out var assignOperations)
-                    .ExtractTopLevelTypeDefinitions(out var types)
-                    .Any())
-                {
-                    throw new Exception("objects should only contain assign operations");
-                }
-
-                if (assignOperations
-                    .ExtractMemberDefinitions(out var _)
-                    .ExtractMemberReferances(out var _)
-                    .Any())
-                {
-                    throw new Exception("objects should only assign to member definitions or member referances");
-                }
-
-                element = matchingContext.ElementBuilder.ModuleDefinition(scope, assignOperations);
-
-            }
-            element = default;
-            return false;
-        }
-
-        public static bool MatchMethodDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
-        {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("method"), out var _)
-                .Has(ElementMatcher.Generic2, out AtomicToken inputType, out AtomicToken outputType)
-                .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
-                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
-            {
-
-                var methodScope = new MethodScope();
-                
-                var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
-                        false,
-                        matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
-                        matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item))
-                        );
-
-
-                methodScope.TryAddParameter(parameterDefinition);
-
-                var innerMatchingScope = matchingContext.Child(methodScope);
-
-                var elements = innerMatchingScope.ParseBlock(body);
-                
-                element = matchingContext.ElementBuilder.MethodDefinition(
-                    matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item)),
-                    parameterDefinition,
-                    elements,
-                    methodScope,
-                    new ICodeElement[0]);
-
-                return true;
-            }
-
-            element = default;
-            return false;
-        }
-
-        public static bool MatchTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
-        {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("type"), out var _)
-                .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
-                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
-                .IsMatch)
-            {
-                var scope = new ObjectScope();
-
-                var elementMatchingContext = matchingContext.Child(scope);
-                var elements = elementMatchingContext.ParseBlock(body);
-
-                if (elements
-                    .ExtractMemberDefinitions(out var _)
-                    .ExtractMemberReferances(out var _)
-                    .Any().Not())
-                {
-                    throw new Exception("Types should only contain member definitions and member referances");
-                }
-
-                if (typeName == default)
-                {
-                    element = matchingContext.ElementBuilder.TypeDefinition(scope);
-                }
-                else
-                {
-                    var namedType = matchingContext.ElementBuilder.NamedTypeDefinition(
-                        new NameKey(typeName.Item),
-                        scope);
-
-                    matchingContext.AddType(namedType);
-
-                    element = namedType;
-                }
-                return true;
-            }
-
-            element = default;
-            return false;
-        }
-
+        
         public static bool MatchGenericTypeDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (TokenMatching.Start(elementToken.Tokens)
@@ -566,56 +403,7 @@ namespace Tac.Parser
             element = default;
             return false;
         }
-
-        public static bool MatchImplementationDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
-        {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("method"), out var _)
-                .Has(ElementMatcher.Generic3, out AtomicToken contextType, out AtomicToken inputType, out AtomicToken outputType)
-                .OptionalHas(ElementMatcher.IsName, out AtomicToken contextName)
-                .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
-                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
-            {
-
-                var methodScope = new MethodScope();
-
-                var newMatchingContext = matchingContext.Child(methodScope);
-                var elements = newMatchingContext.ParseBlock(body);
-
-                var contextDefinition = matchingContext.ElementBuilder.MemberDefinition(
-                        false,
-                        matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "context"),
-                        matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(contextType.Item))
-                        );
-
-                methodScope.TryAddParameter(contextDefinition);
-
-                var parameterDefinition = matchingContext.ElementBuilder.MemberDefinition(
-                        false,
-                        matchingContext.ElementBuilder.ExplicitMemberName(parameterName?.Item ?? "input"),
-                        matchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(inputType.Item))
-                        );
-
-
-                methodScope.TryAddParameter(parameterDefinition);
-
-                element = matchingContext.ElementBuilder.ImplementationDefinition(
-                    contextDefinition,
-                    newMatchingContext.ScopeStack.GetType(matchingContext.ElementBuilder.ExplicitTypeName(outputType.Item)),
-                    parameterDefinition,
-                    elements,
-                    methodScope,
-                    new ICodeElement[0]);
-
-                return true;
-            }
-
-            element = default;
-            return false;
-        }
-
+        
         public static bool MatchBlockDefinition(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element)
         {
             if (TokenMatching.Start(elementToken.Tokens)
@@ -937,7 +725,7 @@ namespace Tac.Parser
             return TokenMatching.NotMatch(self.Tokens);
         }
 
-        public static TokenMatching IsType(TokenMatching self, out Func<ScopeStack, ITypeDefinition> typeSource)
+        public static TokenMatching IsType(TokenMatching self, out ExplicitTypeName typeSource)
         {
 
             if (self.Tokens.Any() &&
@@ -947,18 +735,14 @@ namespace Tac.Parser
                 var at = TokenMatching.Match(self.Tokens.Skip(1));
                 if (GenericN(at, out var genericsFactory).IsMatch)
                 {
-                    typeSource = (scopeStack) =>
-                    {
-                        return scopeStack.GetGenericType(new GenericExplicitTypeName(first.Item, genericsFactory(scopeStack)));
-                    };
+                    typeSource = new GenericExplicitTypeName(first.Item, genericsFactory));
+                    
                     return TokenMatching.Match(self.Tokens.Skip(2).ToArray());
                 }
 
 
-                typeSource = (scopeStack) =>
-                {
-                    return scopeStack.GetType(new ExplicitTypeName(first.Item));
-                };
+                typeSource = new ExplicitTypeName(first.Item);
+                
                 return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
             }
 
@@ -1053,7 +837,7 @@ namespace Tac.Parser
             return TokenMatching.NotMatch(elementMatching.Tokens);
         }
 
-        public static TokenMatching GenericN(TokenMatching elementMatching, out Func<ScopeStack, ITypeDefinition[]> typeSources)
+        public static TokenMatching GenericN(TokenMatching elementMatching, out ExplicitTypeName[] typeSources)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
@@ -1067,13 +851,13 @@ namespace Tac.Parser
             typeSources = default;
             return TokenMatching.NotMatch(elementMatching.Tokens);
 
-            bool TryToToken(out Func<ScopeStack,ITypeDefinition[]> typeSourcesInner)
+            bool TryToToken(out ExplicitTypeName[] typeSourcesInner)
             {
-                var typeSourcesBuilding = new List<Func<ScopeStack, ITypeDefinition>>();
+                var typeSourcesBuilding = new List<ExplicitTypeName>();
                 foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
                 {
                     var matcher = TokenMatching.Start(elementToken.Tokens);
-                    if (matcher.Has(ElementMatcher.IsType, out Func<ScopeStack,ITypeDefinition> typeSource).Has(IsDone).IsMatch)
+                    if (matcher.Has(ElementMatcher.IsType, out ExplicitTypeName typeSource).Has(IsDone).IsMatch)
                     {
                         typeSourcesBuilding.Add(typeSource);
                     }
@@ -1083,7 +867,7 @@ namespace Tac.Parser
                         return false;
                     }
                 }
-                typeSourcesInner = ss => typeSourcesBuilding.Select(x=>x(ss)).ToArray();
+                typeSourcesInner = typeSourcesBuilding.ToArray();
                 return true;
             }
         }

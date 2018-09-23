@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
 
         private Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<BlockDefinition> result)
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<BlockDefinition> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model
                 var innerMatchingContext = matchingContext.Child(scope);
                 var elements = innerMatchingContext.ParseBlock(body);
 
-                result = PopulateScope(scope, elements);
+                result = new BlockDefinitionPopulateScope(scope, elements,Make);
 
                 return true;
             }
@@ -47,25 +47,47 @@ namespace Tac.Semantic_Model
             result = default;
             return false;
         }
+        
 
-        private Steps.PopulateScope<BlockDefinition> PopulateScope(LocalStaticScope scope, Steps.PopulateScope<ICodeElement>[] elements) {
-            return (tree) =>
-            {
-                return DetermineInferedTypes(scope, elements.Select(x=>x(tree)).ToArray());
-            };
-        }
-
-        private Steps.DetermineInferedTypes<BlockDefinition> DetermineInferedTypes(LocalStaticScope scope, Steps.DetermineInferedTypes<ICodeElement>[] elements)
+        private class BlockDefinitionPopulateScope : IPopulateScope<BlockDefinition>
         {
-            return () => ResolveReferance(scope, elements.Select(x => x()).ToArray());
+            private LocalStaticScope Scope { get; }
+            private IPopulateScope<ICodeElement>[] Elements { get; }
+            public Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+
+            public BlockDefinitionPopulateScope(LocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
+            {
+                Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                Elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                Make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+            
+            public IResolveReferance<BlockDefinition> Run(ScopeTree tree)
+            {
+                return new ResolveReferanceBlockDefinition(Scope, Elements.Select(x => x.Run(tree)).ToArray(),Make);
+            }
         }
 
-        private Steps.ResolveReferance<BlockDefinition> ResolveReferance(LocalStaticScope scope, Steps.ResolveReferance<ICodeElement>[] elements)
+        private class ResolveReferanceBlockDefinition : IResolveReferance<BlockDefinition>
         {
-            return (tree) =>
+            private LocalStaticScope Scope { get; }
+            private IResolveReferance<ICodeElement>[] ResolveReferance { get; }
+            private Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+
+            public ResolveReferanceBlockDefinition(LocalStaticScope scope, IResolveReferance<ICodeElement>[] resolveReferance, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
             {
-                return Make(elements.Select(x => x(tree)).ToArray(), scope, new ICodeElement[0]);
-            };
+                this.Scope = scope;
+                this.ResolveReferance = resolveReferance;
+                this.Make = make;
+            }
+
+            public BlockDefinition Run(ScopeTree tree)
+            {
+                return Make(ResolveReferance.Select(x => x.Run(tree)).ToArray(), Scope, new ICodeElement[0]);
+            }
         }
+        
+
+
     }
 }

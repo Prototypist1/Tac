@@ -68,7 +68,7 @@ namespace Tac.Semantic_Model
         private Func<MemberDefinition,  MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<ImplementationDefinition> result)
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<ImplementationDefinition> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("implementation"), out var _)
@@ -100,7 +100,7 @@ namespace Tac.Semantic_Model
 
                 var outputTypeName= new ExplicitTypeName(outputType.Item);
 
-                result = PopulateScope(contextDefinition, parameterDefinition, methodScope, elements, outputTypeName);
+                result = new PopulateScopeImplementationDefinition(contextDefinition, parameterDefinition, methodScope, elements, outputTypeName,Make);
                 return true;
             }
 
@@ -108,40 +108,53 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        private Steps.PopulateScope<ImplementationDefinition> PopulateScope(
-            Steps.PopulateScope<MemberDefinition> contextDefinition,
-            Steps.PopulateScope<MemberDefinition> parameterDefintion,
-            LocalStaticScope scope, Steps.PopulateScope<ICodeElement>[] elements,
-            ExplicitTypeName outputTypeName)
+        private class PopulateScopeImplementationDefinition : IPopulateScope<ImplementationDefinition>
         {
-            return (tree) =>
+            private readonly IPopulateScope<MemberDefinition> contextDefinition;
+            private readonly IPopulateScope<MemberDefinition> parameterDefinition;
+            private readonly MethodScope methodScope;
+            private readonly IPopulateScope<ICodeElement>[] elements;
+            private readonly ExplicitTypeName outputTypeName;
+            private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
+
+            public PopulateScopeImplementationDefinition(IPopulateScope<MemberDefinition> contextDefinition, IPopulateScope<MemberDefinition> parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
             {
-                return DetermineInferedTypes(contextDefinition(tree), parameterDefintion(tree),scope, elements.Select(x => x(tree)).ToArray(), outputTypeName);
-            };
+                this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
+                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public IResolveReferance<ImplementationDefinition> Run(ScopeTree tree)
+            {
+                return new ImplementationDefinitionResolveReferance(contextDefinition.Run(tree), parameterDefinition.Run(tree), methodScope, elements.Select(x => x.Run(tree)).ToArray(), outputTypeName,make);
+            }
         }
 
-        private Steps.DetermineInferedTypes<ImplementationDefinition> DetermineInferedTypes(
-            Steps.DetermineInferedTypes<MemberDefinition> contextDefinition,
-            Steps.DetermineInferedTypes<MemberDefinition> parameterDefintion,
-            LocalStaticScope scope, Steps.DetermineInferedTypes<ICodeElement>[] elements,
-            ExplicitTypeName outputTypeName)
+        private class ImplementationDefinitionResolveReferance : IResolveReferance<ImplementationDefinition>
         {
-            return () =>
-            {
+            private readonly IResolveReferance<MemberDefinition> contextDefinition;
+            private readonly IResolveReferance<MemberDefinition> parameterDefinition;
+            private readonly MethodScope methodScope;
+            private readonly IResolveReferance<ICodeElement>[] elements;
+            private readonly ExplicitTypeName outputTypeName;
+            private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
 
-                return ResolveReferance(contextDefinition(), parameterDefintion(), scope, elements.Select(x => x()).ToArray(), outputTypeName);
-            };
-        }
-
-        private Steps.ResolveReferance<ImplementationDefinition> ResolveReferance(Steps.ResolveReferance<MemberDefinition> contextDefinition,
-            Steps.ResolveReferance<MemberDefinition> parameterDefintion,
-            LocalStaticScope scope, Steps.ResolveReferance<ICodeElement>[] elements,
-            ExplicitTypeName outputTypeName)
-        {
-            return (tree) =>
+            public ImplementationDefinitionResolveReferance(IResolveReferance<MemberDefinition> contextDefinition, IResolveReferance<MemberDefinition> parameterDefinition, MethodScope methodScope, IResolveReferance<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
             {
-                return Make(contextDefinition(tree), parameterDefintion(tree), new ScopeStack(tree, scope).GetType(outputTypeName), elements.Select(x => x(tree)).ToArray(), scope, new ICodeElement[0]);
-            };
+                this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition)); 
+                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+            }
+
+            public ImplementationDefinition Run(ScopeTree tree)
+            {
+                return make(contextDefinition.Run(tree), parameterDefinition.Run(tree), new ScopeStack(tree, methodScope).GetType(outputTypeName), elements.Select(x => x.Run(tree)).ToArray(), methodScope, new ICodeElement[0]);
+            }
         }
     }
 }

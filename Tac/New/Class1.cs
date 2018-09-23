@@ -8,21 +8,24 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.New
 {
     public interface IMaker<T>
-        where T: ICodeElement
+        where T : ICodeElement
     {
-        bool TryMake(ElementToken elementToken , ElementMatchingContext matchingContext, out Steps.PopulateScope<T> result);
+        bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<T> result);
     }
 
     public interface IOperationMaker<T>
     where T : ICodeElement
     {
-        bool TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<T> result);
+        bool TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext, out IPopulateScope<T> result);
     }
 
-    public static class Steps
+    public interface IPopulateScope<out T>
     {
-        public delegate DetermineInferedTypes<T> PopulateScope<out T>(ScopeTree tree);
-        public delegate ResolveReferance<T> DetermineInferedTypes<out T>();
-        public delegate T ResolveReferance<out T>(ScopeTree tree);
+        IResolveReferance<T> Run(ScopeTree tree);
     }
+    
+    public interface IResolveReferance<out T> {
+        T Run(ScopeTree tree);
+    }
+    
 }
