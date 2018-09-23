@@ -46,7 +46,7 @@ namespace Tac.Semantic_Model
         private Func<int, IBox<MemberDefinition>, Member> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<Member> result)
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<Member> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
@@ -57,7 +57,7 @@ namespace Tac.Semantic_Model
             {
 
                 
-                result = PopulateScope(matchingContext.ScopeStack.TopScope, nameToken.Item, readonlyToken != default, typeToken);
+                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope, nameToken.Item, readonlyToken != default, typeToken,Make);
                 return true;
             }
 
@@ -65,9 +65,24 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        private Steps.PopulateScope<Member> PopulateScope(IScope scope, string memberName,bool isReadonly, ExplicitTypeName explicitTypeName)
+        private class MemberPopulateScope : IPopulateScope<Member>
         {
-            return (tree) =>
+            private readonly IScope scope;
+            private readonly string memberName;
+            private readonly bool isReadonly;
+            private readonly ExplicitTypeName explicitTypeName;
+            private readonly Func<int, IBox<MemberDefinition>, Member> make;
+
+            public MemberPopulateScope(IScope topScope, string item, bool v, ExplicitTypeName typeToken, Func<int, IBox<MemberDefinition>, Member> make)
+            {
+                this.scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+                this.memberName = item ?? throw new ArgumentNullException(nameof(item));
+                this.isReadonly = v;
+                this.explicitTypeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public IResolveReferance<Member> Run(ScopeTree tree)
             {
                 var memberDef = new Box<MemberDefinition>();
                 var scopeStack = new ScopeStack(tree, scope);
@@ -75,25 +90,34 @@ namespace Tac.Semantic_Model
                 {
                     throw new Exception("bad bad bad!");
                 }
-                return DetermineInferedTypes(scope, memberName,memberDef, isReadonly,explicitTypeName);
-            };
+                return new MemberResolveReferance(scope, memberName, memberDef, isReadonly, explicitTypeName,make);
+            }
         }
 
-        private Steps.DetermineInferedTypes<Member> DetermineInferedTypes(IScope scope, string memberName, Box<MemberDefinition> box, bool isReadonly, ExplicitTypeName explicitTypeName)
+        private class MemberResolveReferance : IResolveReferance<Member>
         {
-            return () =>
-            {
-                return ResolveReferance(scope, memberName, box, isReadonly, explicitTypeName);
-            };
-        }
+            private readonly IScope scope;
+            private readonly string memberName;
+            private readonly Box<MemberDefinition> memberDef;
+            private readonly bool isReadonly;
+            private readonly ExplicitTypeName explicitTypeName;
+            private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-        private Steps.ResolveReferance<Member> ResolveReferance(IScope scope, string memberName, Box<MemberDefinition> box, bool isReadonly, ExplicitTypeName explicitTypeName)
-        {
-            return (tree) =>
+            public MemberResolveReferance(IScope scope, string memberName, Box<MemberDefinition> memberDef, bool isReadonly, ExplicitTypeName explicitTypeName, Func<int, IBox<MemberDefinition>, Member> make)
             {
-                box.Fill(new MemberDefinition(isReadonly, new ExplicitMemberName(memberName), new ScopeStack(tree, scope).GetType(explicitTypeName)));
-                return Make(0, box);
-            };
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
+                this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+                this.isReadonly = isReadonly;
+                this.explicitTypeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public Member Run(ScopeTree tree)
+            {
+                memberDef.Fill(new MemberDefinition(isReadonly, new ExplicitMemberName(memberName), new ScopeStack(tree, scope).GetType(explicitTypeName)));
+                return make(0, memberDef);
+            }
         }
     }
 

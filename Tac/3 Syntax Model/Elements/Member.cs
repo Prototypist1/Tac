@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model
         private Func<int, IBox<MemberDefinition>, Member> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<Member> result)
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<Member> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
@@ -45,46 +45,62 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                result = PopulateScope(matchingContext.ScopeStack.TopScope,first.Item);
+                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope, first.Item,Make);
                 return true;
             }
 
             result = default;
             return false;
         }
-
-        private Steps.PopulateScope<Member> PopulateScope(IScope scope, string memberName)
+        
+        private class MemberPopulateScope : IPopulateScope<Member>
         {
-            return (tree) =>
+            private readonly IScope topScope;
+            private readonly string memberName;
+            private readonly Func<int, IBox<MemberDefinition>, Member> make;
+
+            public MemberPopulateScope(IScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
+            {
+                this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+                this.memberName = item ?? throw new ArgumentNullException(nameof(item));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public IResolveReferance<Member> Run(ScopeTree tree)
             {
                 int depth;
                 IBox<MemberDefinition> memberDef;
-                var scopeStack = new ScopeStack(tree, scope);
-                if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out depth, out memberDef)) {
-                    memberDef = new Box<MemberDefinition>(new MemberDefinition(false,new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
-                    if (!scopeStack.TopScope.Cast<LocalStaticScope>().TryAddLocal(new NameKey(memberName), memberDef)) {
+                var scopeStack = new ScopeStack(tree, topScope);
+                if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out depth, out memberDef))
+                {
+                    memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
+                    if (!scopeStack.TopScope.Cast<LocalStaticScope>().TryAddLocal(new NameKey(memberName), memberDef))
+                    {
                         throw new Exception("bad bad bad!");
                     }
                 }
 
-                return DetermineInferedTypes(scope, depth, memberDef);
-            };
+                return new MemberResolveReferance(depth, memberDef, make);
+            }
         }
 
-        private Steps.DetermineInferedTypes<Member> DetermineInferedTypes(IScope scope,  int depth, IBox<MemberDefinition> box)
+        private class MemberResolveReferance : IResolveReferance<Member>
         {
-            return () =>
-            {
-                return ResolveReferance(scope, depth, box);
-            };
-        }
+            private readonly int depth;
+            private readonly IBox<MemberDefinition> memberDef;
+            private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-        private Steps.ResolveReferance<Member> ResolveReferance(IScope scope, int depth, IBox<MemberDefinition> box)
-        {
-            return (tree) =>
+            public MemberResolveReferance(int depth, IBox<MemberDefinition> memberDef, Func<int, IBox<MemberDefinition>, Member> make)
             {
-                return Make(depth,box);
-            };
+                this.depth = depth;
+                this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public Member Run(ScopeTree tree)
+            {
+                return make(depth, memberDef);
+            }
         }
     }
 
@@ -97,7 +113,7 @@ namespace Tac.Semantic_Model
 
         private Func<int, IBox<MemberDefinition>, Member> Make { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out Steps.PopulateScope<Member> result)
+        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<Member> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
@@ -105,21 +121,33 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                result = PopulateScope(matchingContext.ScopeStack.TopScope, first.Item);
+                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope, first.Item, Make);
                 return true;
             }
 
             result = default;
             return false;
         }
+        
 
-        private Steps.PopulateScope<Member> PopulateScope(IScope scope, string memberName)
+        private class MemberPopulateScope : IPopulateScope<Member>
         {
-            return (tree) =>
+            private readonly IScope topScope;
+            private readonly string memberName;
+            private readonly Func<int, IBox<MemberDefinition>, Member> make;
+
+            public MemberPopulateScope(IScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
+            {
+                this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+                this.memberName = item ?? throw new ArgumentNullException(nameof(item));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public IResolveReferance<Member> Run(ScopeTree tree)
             {
                 int depth;
                 IBox<MemberDefinition> memberDef;
-                var scopeStack = new ScopeStack(tree, scope);
+                var scopeStack = new ScopeStack(tree, topScope);
                 if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out depth, out memberDef))
                 {
                     memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
@@ -129,24 +157,28 @@ namespace Tac.Semantic_Model
                     }
                 }
 
-                return DetermineInferedTypes(scope, depth, memberDef);
-            };
+                return new MemberResolveReferance(depth, memberDef,make);
+            }
         }
 
-        private Steps.DetermineInferedTypes<Member> DetermineInferedTypes(IScope scope, int depth, IBox<MemberDefinition> box)
+        private class MemberResolveReferance : IResolveReferance<Member>
         {
-            return () =>
-            {
-                return ResolveReferance(scope, depth, box);
-            };
-        }
+            private readonly int depth;
+            private readonly IBox<MemberDefinition> memberDef;
+            private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-        private Steps.ResolveReferance<Member> ResolveReferance(IScope scope, int depth, IBox<MemberDefinition> box)
-        {
-            return (tree) =>
+            public MemberResolveReferance(int depth, IBox<MemberDefinition> memberDef, Func<int, IBox<MemberDefinition>, Member> make)
             {
-                return Make(depth, box);
-            };
+                this.depth = depth;
+                this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public Member Run(ScopeTree tree)
+            {
+                return make(depth, memberDef);
+            }
         }
+        
     }
 }
