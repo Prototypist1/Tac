@@ -23,7 +23,8 @@ namespace Tac.Semantic_Model
 
         private T InnerType { get; set; }
         
-        internal T Fill(T t)
+        internal TT Fill<TT>(TT t)
+            where TT : class, T
         {
             if (InnerType != null) {
                 throw new Exception();

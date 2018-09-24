@@ -98,25 +98,25 @@ namespace Tac.Semantic_Model
             private readonly ObjectScope scope;
             private readonly IPopulateScope<ICodeElement>[] elements;
             private readonly AtomicToken typeName;
-            private readonly Func<IScope,string, TypeDefinition> make;
+            private readonly Func<IScope, TypeDefinition> make;
 
             public TypeDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, AtomicToken typeName, Func<IScope, TypeDefinition> make)
             {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(make));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(make));
-                this.typeName = typeName ?? throw new ArgumentNullException(nameof(make));
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.typeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
             public IResolveReferance<TypeDefinition> Run(ScopeTree tree)
             {
-                elements.Select(x => x.Run(tree)).ToArray();
                 var box = new Box<TypeDefinition>();
                 if (typeName != null)
                 {
                     var encolsing = tree.Scopes(scope).Skip(1).First();
                     encolsing.Cast<StaticScope>().TryAddStaticType(new NameKey(typeName.Item), box);
                 }
+                elements.Select(x => x.Run(tree)).ToArray();
                 return new TypeDefinitionResolveReferance(scope, box,make);
             }
         }
@@ -141,4 +141,6 @@ namespace Tac.Semantic_Model
         }
         
     }
+
+
 }

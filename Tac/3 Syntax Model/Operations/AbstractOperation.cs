@@ -50,16 +50,16 @@ namespace Tac.Semantic_Model.CodeStuff
         private Func<ICodeElement, ICodeElement, T> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out Steps.PopulateScope<T> result)
+        public bool TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out IPopulateScope<T> result)
         {
             if (TokenMatching.Start(tokens)
             .Has(ElementMatcher.IsBinaryOperation(Name), out var perface, out var token, out var rhs)
             .IsMatch)
             {
-                Steps.PopulateScope<ICodeElement> left = matchingContext.ParseLine(perface);
-                Steps.PopulateScope<ICodeElement> right = matchingContext.ParseParenthesisOrElement(rhs);
+                IPopulateScope<ICodeElement> left = matchingContext.ParseLine(perface);
+                IPopulateScope<ICodeElement> right = matchingContext.ParseParenthesisOrElement(rhs);
 
-                result = PopulateScope(left,right);
+                result = new PopulateScope(left,right, Make);
                 return true;
             }
 
@@ -67,28 +67,42 @@ namespace Tac.Semantic_Model.CodeStuff
             return false;
         }
 
-        private Steps.PopulateScope<T> PopulateScope(Steps.PopulateScope<ICodeElement> left, Steps.PopulateScope<ICodeElement> right)
+        private class PopulateScope : IPopulateScope<T>
         {
-            return (tree) =>
-            {
-                return DetermineInferedTypes(left(tree), right(tree));
-            };
-        }
+            private readonly IPopulateScope<ICodeElement> left;
+            private readonly IPopulateScope<ICodeElement> right;
+            private readonly Func<ICodeElement, ICodeElement, T> make;
 
-        private Steps.DetermineInferedTypes<T> DetermineInferedTypes(Steps.DetermineInferedTypes<ICodeElement> left, Steps.DetermineInferedTypes<ICodeElement> right)
-        {
-            return () =>
+            public PopulateScope(IPopulateScope<ICodeElement> left, IPopulateScope<ICodeElement> right, Func<ICodeElement, ICodeElement, T> make)
             {
-                return ResolveReferance(left(), right());
-            };
-        }
+                this.left = left ?? throw new ArgumentNullException(nameof(left));
+                this.right = right ?? throw new ArgumentNullException(nameof(right));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
 
-        private Steps.ResolveReferance<T> ResolveReferance(Steps.ResolveReferance<ICodeElement> left, Steps.ResolveReferance<ICodeElement> right)
-        {
-            return (tree) =>
+            public IResolveReferance<T> Run(ScopeTree tree)
             {
-                return Make(left(tree), right(tree));
-            };
+                return new ResolveReferance(left.Run(tree), right.Run(tree), make);
+            }
+
+            private class ResolveReferance : IResolveReferance<T>
+            {
+                private IResolveReferance<ICodeElement> resolveReferance1;
+                private IResolveReferance<ICodeElement> resolveReferance2;
+                private Func<ICodeElement, ICodeElement, T> make;
+
+                public ResolveReferance(IResolveReferance<ICodeElement> resolveReferance1, IResolveReferance<ICodeElement> resolveReferance2, Func<ICodeElement, ICodeElement, T> make)
+                {
+                    this.resolveReferance1 = resolveReferance1;
+                    this.resolveReferance2 = resolveReferance2;
+                    this.make = make;
+                }
+
+                public T Run(ScopeTree tree)
+                {
+                    return make(resolveReferance1.Run(tree), resolveReferance2.Run(tree));
+                }
+            }
         }
     }
 }
