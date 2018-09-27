@@ -44,38 +44,40 @@ namespace Tac.Semantic_Model.Operations
             return false;
         }
 
-        private class ConstantNumberPopulateScope : IPopulateScope<ConstantNumber>
+    }
+
+
+    public class ConstantNumberPopulateScope : IPopulateScope<ConstantNumber>
+    {
+        private readonly double dub;
+        private readonly Func<double, ConstantNumber> make;
+
+        public ConstantNumberPopulateScope(double dub, Func<double, ConstantNumber> Make)
         {
-            private readonly double dub;
-            private readonly Func<double, ConstantNumber> make;
-
-            public ConstantNumberPopulateScope(double dub, Func<double, ConstantNumber> Make)
-            {
-                this.dub = dub;
-                make = Make;
-            }
-
-            public IResolveReferance<ConstantNumber> Run(IPopulateScopeContext context)
-            {
-                return new ConstantNumberResolveReferance(dub,make);
-            }
+            this.dub = dub;
+            make = Make;
         }
 
-        private class ConstantNumberResolveReferance : IResolveReferance<ConstantNumber>
+        public IResolveReferance<ConstantNumber> Run(IPopulateScopeContext context)
         {
-            private readonly double dub;
-            private readonly Func<double, ConstantNumber> make;
+            return new ConstantNumberResolveReferance(dub, make);
+        }
+    }
 
-            public ConstantNumberResolveReferance(double dub, Func<double, ConstantNumber> Make)
-            {
-                this.dub = dub;
-                make = Make;
-            }
+    public class ConstantNumberResolveReferance : IResolveReferance<ConstantNumber>
+    {
+        private readonly double dub;
+        private readonly Func<double, ConstantNumber> make;
 
-            public ConstantNumber Run(IResolveReferanceContext context)
-            {
-                return make(dub);
-            }
+        public ConstantNumberResolveReferance(double dub, Func<double, ConstantNumber> Make)
+        {
+            this.dub = dub;
+            make = Make;
+        }
+
+        public ConstantNumber Run(IResolveReferanceContext context)
+        {
+            return make(dub);
         }
     }
 }

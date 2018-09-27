@@ -125,60 +125,62 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        private class GenericTypeDefinitionPopulateScope : IPopulateScope<GenericTypeDefinition>
+
+
+    }
+    
+    public class GenericTypeDefinitionPopulateScope : IPopulateScope<GenericTypeDefinition>
+    {
+        private readonly NameKey nameKey;
+        private readonly ObjectScope scope;
+        private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
+        private readonly GenericTypeParameterDefinition[] genericParameters;
+        private readonly Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+
+        public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters, Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
-            private readonly NameKey nameKey;
-            private readonly ObjectScope scope;
-            private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
-            private readonly GenericTypeParameterDefinition[] genericParameters;
-            private readonly Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
-
-            public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters, Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
-            {
-                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-                this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<GenericTypeDefinition> Run(IPopulateScopeContext context)
-            {
-                var box = new Box<ITypeDefinition>();
-
-                var encolsing = context.Tree.Scopes(scope).Skip(1).First();
-                encolsing.Cast<StaticScope>().TryAddStaticType(nameKey, box);
-
-                var nextContext = context.Child(this, scope);
-                lines.Select(x => x.Run(nextContext)).ToArray();
-                return new GenericTypeDefinitionResolveReferance(nameKey,genericParameters, scope, box, make);
-            }
-
-            private class GenericTypeDefinitionResolveReferance : IResolveReferance<GenericTypeDefinition>
-            {
-                private readonly NameKey nameKey;
-                private GenericTypeParameterDefinition[] genericParameters;
-                private ObjectScope scope;
-                private Box<ITypeDefinition> box;
-                private Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
-
-                public GenericTypeDefinitionResolveReferance(NameKey nameKey, GenericTypeParameterDefinition[] genericParameters, ObjectScope scope, Box<ITypeDefinition> box, Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
-                {
-                    this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-                    this.genericParameters = genericParameters;
-                    this.scope = scope;
-                    this.box = box;
-                    this.make = make;
-                }
-
-                public GenericTypeDefinition Run(IResolveReferanceContext context)
-                {
-                    return box.Fill(make(nameKey,scope,genericParameters));
-                }
-            }
+            this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+            this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
+        public IResolveReferance<GenericTypeDefinition> Run(IPopulateScopeContext context)
+        {
+            var box = new Box<ITypeDefinition>();
 
+            var encolsing = context.Tree.Scopes(scope).Skip(1).First();
+            encolsing.Cast<StaticScope>().TryAddStaticType(nameKey, box);
+
+            var nextContext = context.Child(this, scope);
+            lines.Select(x => x.Run(nextContext)).ToArray();
+            return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, scope, box, make);
+        }
+
+    }
+
+    public class GenericTypeDefinitionResolveReferance : IResolveReferance<GenericTypeDefinition>
+    {
+        private readonly NameKey nameKey;
+        private GenericTypeParameterDefinition[] genericParameters;
+        private ObjectScope scope;
+        private Box<ITypeDefinition> box;
+        private Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+
+        public GenericTypeDefinitionResolveReferance(NameKey nameKey, GenericTypeParameterDefinition[] genericParameters, ObjectScope scope, Box<ITypeDefinition> box, Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
+        {
+            this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+            this.genericParameters = genericParameters;
+            this.scope = scope;
+            this.box = box;
+            this.make = make;
+        }
+
+        public GenericTypeDefinition Run(IResolveReferanceContext context)
+        {
+            return box.Fill(make(nameKey, scope, genericParameters));
+        }
     }
 
 }

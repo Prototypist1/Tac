@@ -52,55 +52,56 @@ namespace Tac.Semantic_Model
             result = default;
             return false;
         }
+    }
+    
+    public class MemberPopulateScope : IPopulateScope<Member>
+    {
+        private readonly LocalStaticScope topScope;
+        private readonly string memberName;
+        private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-        private class MemberPopulateScope : IPopulateScope<Member>
+        public MemberPopulateScope(LocalStaticScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
         {
-            private readonly LocalStaticScope topScope;
-            private readonly string memberName;
-            private readonly Func<int, IBox<MemberDefinition>, Member> make;
-
-            public MemberPopulateScope(LocalStaticScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
-            {
-                this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
-                memberName = item ?? throw new ArgumentNullException(nameof(item));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<Member> Run(ScopeTree tree)
-            {
-                int depth;
-                IBox<MemberDefinition> memberDef;
-                var scopeStack = new ScopeStack(tree, topScope);
-                if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out depth, out memberDef))
-                {
-                    memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
-                    if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
-                    {
-                        throw new Exception("bad bad bad!");
-                    }
-                }
-
-                return new MemberResolveReferance(depth, memberDef, make);
-            }
+            this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+            memberName = item ?? throw new ArgumentNullException(nameof(item));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private class MemberResolveReferance : IResolveReferance<Member>
+        public IResolveReferance<Member> Run(IPopulateScopeContext context)
         {
-            private readonly int depth;
-            private readonly IBox<MemberDefinition> memberDef;
-            private readonly Func<int, IBox<MemberDefinition>, Member> make;
-
-            public MemberResolveReferance(int depth, IBox<MemberDefinition> memberDef, Func<int, IBox<MemberDefinition>, Member> make)
+            int depth;
+            IBox<MemberDefinition> memberDef;
+            var scopeStack = new ScopeStack(context.Tree, topScope);
+            if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out depth, out memberDef))
             {
-                this.depth = depth;
-                this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
+                if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
+                {
+                    throw new Exception("bad bad bad!");
+                }
             }
 
-            public Member Run(ScopeTree tree)
-            {
-                return make(depth, memberDef);
-            }
+            return new MemberResolveReferance(depth, memberDef, make);
+        }
+
+    }
+
+    public class MemberResolveReferance : IResolveReferance<Member>
+    {
+        private readonly int depth;
+        private readonly IBox<MemberDefinition> memberDef;
+        private readonly Func<int, IBox<MemberDefinition>, Member> make;
+
+        public MemberResolveReferance(int depth, IBox<MemberDefinition> memberDef, Func<int, IBox<MemberDefinition>, Member> make)
+        {
+            this.depth = depth;
+            this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public Member Run(IResolveReferanceContext context)
+        {
+            return make(depth, memberDef);
         }
     }
 
@@ -130,63 +131,62 @@ namespace Tac.Semantic_Model
             return false;
         }
 
+    }
 
-        private class MemberPopulateScope : IPopulateScope<Member>
+    public class ImplicitMemberPopulateScope : IPopulateScope<Member>
+    {
+        private readonly LocalStaticScope topScope;
+        private readonly string memberName;
+        private readonly Func<int, IBox<MemberDefinition>, Member> make;
+
+        public ImplicitMemberPopulateScope(LocalStaticScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
         {
-            private readonly LocalStaticScope topScope;
-            private readonly string memberName;
-            private readonly Func<int, IBox<MemberDefinition>, Member> make;
-
-            public MemberPopulateScope(LocalStaticScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
-            {
-                this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
-                memberName = item ?? throw new ArgumentNullException(nameof(item));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<Member> Run(IPopulateScopeContext context)
-            {
-
-                IBox<ITypeDefinition> typeDef = new Box<ITypeDefinition>();
-                var innerType = new MemberDefinition(false, new ExplicitMemberName(memberName), typeDef);
-                IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
-
-                if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
-                {
-                    throw new Exception("bad bad bad!");
-                }
-
-
-                return new MemberResolveReferance(innerType, make);
-            }
-            
+            this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+            memberName = item ?? throw new ArgumentNullException(nameof(item));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private class MemberResolveReferance : IResolveReferance<Member>
+        public IResolveReferance<Member> Run(IPopulateScopeContext context)
         {
-            private readonly MemberDefinition memberDef;
-            private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-            public MemberResolveReferance(MemberDefinition innerType, Func<int, IBox<MemberDefinition>, Member> make)
+            IBox<ITypeDefinition> typeDef = new Box<ITypeDefinition>();
+            var innerType = new MemberDefinition(false, new ExplicitMemberName(memberName), typeDef);
+            IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
+
+            if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
             {
-                this.memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                throw new Exception("bad bad bad!");
             }
 
-            public Member Run(IResolveReferanceContext context)
-            {
 
-                // TODO!
-                // TODO!
-                // you are here
-                // this totally does not work yet
-                // AssignOperation needs a ResolveReferance
-                // and all these ResolveReferances need to be public
-
-
-                return make(0, memberDef);
-            }
+            return new ImplicitMemberResolveReferance(innerType, make);
         }
 
+    }
+
+    public class ImplicitMemberResolveReferance : IResolveReferance<Member>
+    {
+        private readonly MemberDefinition memberDef;
+        private readonly Func<int, IBox<MemberDefinition>, Member> make;
+
+        public ImplicitMemberResolveReferance(MemberDefinition innerType, Func<int, IBox<MemberDefinition>, Member> make)
+        {
+            this.memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public Member Run(IResolveReferanceContext context)
+        {
+
+            // TODO!
+            // TODO!
+            // you are here
+            // this totally does not work yet
+            // AssignOperation needs a ResolveReferance
+            // and all these ResolveReferances need to be public
+
+
+            return make(0, memberDef);
+        }
     }
 }

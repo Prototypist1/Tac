@@ -22,11 +22,11 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-
-    public class PathOperationMaker : BinaryOperationMaker<PathOperation>
-    {
-        public PathOperationMaker(Func<ICodeElement, ICodeElement, PathOperation> make, IElementBuilders elementBuilders) : base(".", make, elementBuilders)
-        {
-        }
-    }
+    // the matching on the LHS is different ??
+    //public class PathOperationMaker : BinaryOperationMaker<PathOperation>
+    //{
+    //    public PathOperationMaker(Func<ICodeElement, ICodeElement, PathOperation> make, IElementBuilders elementBuilders) : base(".", make, elementBuilders)
+    //    {
+    //    }
+    //}
 }

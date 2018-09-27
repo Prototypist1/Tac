@@ -55,51 +55,51 @@ namespace Tac.Semantic_Model
             result = default;
             return false;
         }
-
-        private class ObjectDefinitionPopulateScope : IPopulateScope<ObjectDefinition>
-        {
-            private readonly ObjectScope scope;
-            private readonly IPopulateScope<ICodeElement>[] elements;
-            private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
-
-            public ObjectDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
-            {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<ObjectDefinition> Run(IPopulateScopeContext context)
-            {
-                var nextContext = context.Child(this, scope);
-                return new ResolveReferanceObjectDefinition(scope, elements.Select(x=>x.Run(nextContext)).ToArray(), make);
-            }
-
-            public IResolveReferance<ObjectDefinition> Run()
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private class ResolveReferanceObjectDefinition : IResolveReferance<ObjectDefinition>
-        {
-            private readonly ObjectScope scope;
-            private readonly IResolveReferance<ICodeElement>[] elements;
-            private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
-
-            public ResolveReferanceObjectDefinition(ObjectScope scope, IResolveReferance<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
-            {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public ObjectDefinition Run(IResolveReferanceContext context)
-            {
-                var nextContext = context.Child(this, scope);
-                return make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray());
-            }
-        }
         
+    }
+    
+    public class ObjectDefinitionPopulateScope : IPopulateScope<ObjectDefinition>
+    {
+        private readonly ObjectScope scope;
+        private readonly IPopulateScope<ICodeElement>[] elements;
+        private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
+
+        public ObjectDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
+        {
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public IResolveReferance<ObjectDefinition> Run(IPopulateScopeContext context)
+        {
+            var nextContext = context.Child(this, scope);
+            return new ResolveReferanceObjectDefinition(scope, elements.Select(x => x.Run(nextContext)).ToArray(), make);
+        }
+
+        public IResolveReferance<ObjectDefinition> Run()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class ResolveReferanceObjectDefinition : IResolveReferance<ObjectDefinition>
+    {
+        private readonly ObjectScope scope;
+        private readonly IResolveReferance<ICodeElement>[] elements;
+        private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
+
+        public ResolveReferanceObjectDefinition(ObjectScope scope, IResolveReferance<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
+        {
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public ObjectDefinition Run(IResolveReferanceContext context)
+        {
+            var nextContext = context.Child(this, scope);
+            return make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray());
+        }
     }
 }

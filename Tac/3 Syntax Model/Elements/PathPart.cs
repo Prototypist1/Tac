@@ -49,47 +49,47 @@ namespace Tac.Semantic_Model
             result = default;
             return false;
         }
-        
-        private class PathPartPopulateScope : IPopulateScope<PathPart>
+    }
+    
+    public class PathPartPopulateScope : IPopulateScope<PathPart>
+    {
+        private readonly IScope scope;
+        private readonly string memberName;
+        private readonly Func<IBox<MemberDefinition>, PathPart> make;
+
+        public PathPartPopulateScope(IScope topScope, string item, Func<IBox<MemberDefinition>, PathPart> make)
         {
-            private readonly IScope scope;
-            private readonly string memberName;
-            private readonly Func<IBox<MemberDefinition>, PathPart> make;
-
-            public PathPartPopulateScope(IScope topScope, string item, Func<IBox<MemberDefinition>, PathPart> make)
-            {
-                this.scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
-                this.memberName = item ?? throw new ArgumentNullException(nameof(item));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<PathPart> Run(IPopulateScopeContext context)
-            {
-                IBox<MemberDefinition> memberDef;
-                if (!scope.TryGetMember(new NameKey(memberName), false, out memberDef))
-                {
-                    throw new Exception("That is not right!");
-                }
-
-                return new PathPartResolveReferance( memberDef,make);
-            }
+            this.scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+            this.memberName = item ?? throw new ArgumentNullException(nameof(item));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private class PathPartResolveReferance : IResolveReferance<PathPart>
+        public IResolveReferance<PathPart> Run(IPopulateScopeContext context)
         {
-            private readonly IBox<MemberDefinition> memberDef;
-            private readonly Func<IBox<MemberDefinition>, PathPart> make;
-
-            public PathPartResolveReferance(IBox<MemberDefinition> memberDef, Func<IBox<MemberDefinition>, PathPart> make)
+            IBox<MemberDefinition> memberDef;
+            if (!scope.TryGetMember(new NameKey(memberName), false, out memberDef))
             {
-                this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                throw new Exception("That is not right!");
             }
 
-            public PathPart Run(IResolveReferanceContext context)
-            {
-                return make(memberDef);
-            }
+            return new PathPartResolveReferance(memberDef, make);
+        }
+    }
+
+    public class PathPartResolveReferance : IResolveReferance<PathPart>
+    {
+        private readonly IBox<MemberDefinition> memberDef;
+        private readonly Func<IBox<MemberDefinition>, PathPart> make;
+
+        public PathPartResolveReferance(IBox<MemberDefinition> memberDef, Func<IBox<MemberDefinition>, PathPart> make)
+        {
+            this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public PathPart Run(IResolveReferanceContext context)
+        {
+            return make(memberDef);
         }
     }
 }

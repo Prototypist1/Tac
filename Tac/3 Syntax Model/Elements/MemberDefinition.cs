@@ -57,7 +57,7 @@ namespace Tac.Semantic_Model
             {
 
                 
-                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope, nameToken.Item, readonlyToken != default, typeToken,Make);
+                result = new MemberDefinitionPopulateScope(matchingContext.ScopeStack.TopScope, nameToken.Item, readonlyToken != default, typeToken,Make);
                 return true;
             }
 
@@ -65,61 +65,63 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        private class MemberPopulateScope : IPopulateScope<Member>
+    }
+
+
+    public class MemberDefinitionPopulateScope : IPopulateScope<Member>
+    {
+        private readonly IScope scope;
+        private readonly string memberName;
+        private readonly bool isReadonly;
+        private readonly ExplicitTypeName explicitTypeName;
+        private readonly Func<int, IBox<MemberDefinition>, Member> make;
+
+        public MemberDefinitionPopulateScope(IScope topScope, string item, bool v, ExplicitTypeName typeToken, Func<int, IBox<MemberDefinition>, Member> make)
         {
-            private readonly IScope scope;
-            private readonly string memberName;
-            private readonly bool isReadonly;
-            private readonly ExplicitTypeName explicitTypeName;
-            private readonly Func<int, IBox<MemberDefinition>, Member> make;
-
-            public MemberPopulateScope(IScope topScope, string item, bool v, ExplicitTypeName typeToken, Func<int, IBox<MemberDefinition>, Member> make)
-            {
-                this.scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
-                this.memberName = item ?? throw new ArgumentNullException(nameof(item));
-                this.isReadonly = v;
-                this.explicitTypeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<Member> Run(IPopulateScopeContext context)
-            {
-                var memberDef = new Box<MemberDefinition>();
-                var scopeStack = new ScopeStack(context.Tree, scope);
-                if (scope.Cast<LocalStaticScope>().TryAddLocal(new Names.ExplicitMemberName(memberName).Key, memberDef))
-                {
-                    throw new Exception("bad bad bad!");
-                }
-                return new MemberResolveReferance(scope, memberName, memberDef, isReadonly, explicitTypeName,make);
-            }
-            
+            this.scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+            this.memberName = item ?? throw new ArgumentNullException(nameof(item));
+            this.isReadonly = v;
+            this.explicitTypeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private class MemberResolveReferance : IResolveReferance<Member>
+        public IResolveReferance<Member> Run(IPopulateScopeContext context)
         {
-            private readonly IScope scope;
-            private readonly string memberName;
-            private readonly Box<MemberDefinition> memberDef;
-            private readonly bool isReadonly;
-            private readonly ExplicitTypeName explicitTypeName;
-            private readonly Func<int, IBox<MemberDefinition>, Member> make;
-
-            public MemberResolveReferance(IScope scope, string memberName, Box<MemberDefinition> memberDef, bool isReadonly, ExplicitTypeName explicitTypeName, Func<int, IBox<MemberDefinition>, Member> make)
+            var memberDef = new Box<MemberDefinition>();
+            var scopeStack = new ScopeStack(context.Tree, scope);
+            if (scope.Cast<LocalStaticScope>().TryAddLocal(new Names.ExplicitMemberName(memberName).Key, memberDef))
             {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
-                this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
-                this.isReadonly = isReadonly;
-                this.explicitTypeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                throw new Exception("bad bad bad!");
             }
-
-            public Member Run(IResolveReferanceContext context)
-            {
-                memberDef.Fill(new MemberDefinition(isReadonly, new ExplicitMemberName(memberName), new ScopeStack(context.Tree, scope).GetType(explicitTypeName)));
-                return make(0, memberDef);
-            }
-            
+            return new MemberDefinitionResolveReferance(scope, memberName, memberDef, isReadonly, explicitTypeName, make);
         }
+
+    }
+
+    public class MemberDefinitionResolveReferance : IResolveReferance<Member>
+    {
+        private readonly IScope scope;
+        private readonly string memberName;
+        private readonly Box<MemberDefinition> memberDef;
+        private readonly bool isReadonly;
+        private readonly ExplicitTypeName explicitTypeName;
+        private readonly Func<int, IBox<MemberDefinition>, Member> make;
+
+        public MemberDefinitionResolveReferance(IScope scope, string memberName, Box<MemberDefinition> memberDef, bool isReadonly, ExplicitTypeName explicitTypeName, Func<int, IBox<MemberDefinition>, Member> make)
+        {
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
+            this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+            this.isReadonly = isReadonly;
+            this.explicitTypeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public Member Run(IResolveReferanceContext context)
+        {
+            memberDef.Fill(new MemberDefinition(isReadonly, new ExplicitMemberName(memberName), new ScopeStack(context.Tree, scope).GetType(explicitTypeName)));
+            return make(0, memberDef);
+        }
+
     }
 }

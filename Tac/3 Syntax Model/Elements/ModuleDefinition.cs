@@ -63,46 +63,47 @@ namespace Tac.Semantic_Model
             result = default;
             return false;
         }
+    }
+    
+    public class ModuleDefinitionPopulateScope : IPopulateScope<ModuleDefinition>
+    {
+        private readonly StaticScope scope;
+        private readonly IPopulateScope<ICodeElement>[] elements;
+        private readonly Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> make;
 
-        private class ModuleDefinitionPopulateScope : IPopulateScope<ModuleDefinition>
+        public ModuleDefinitionPopulateScope(StaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> make)
         {
-            private readonly StaticScope scope;
-            private readonly IPopulateScope<ICodeElement>[] elements;
-            private readonly Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> make;
-
-            public ModuleDefinitionPopulateScope(StaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> make)
-            {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<ModuleDefinition> Run(IPopulateScopeContext context)
-            {
-                var nextContext = context.Child(this, scope);
-                return new ModuleDefinitionResolveReferance(scope, elements.Select(x => x.Run(nextContext)).ToArray(), make);
-            }
-            
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private class ModuleDefinitionResolveReferance : IResolveReferance<ModuleDefinition>
+        public IResolveReferance<ModuleDefinition> Run(IPopulateScopeContext context)
         {
-            private readonly StaticScope scope;
-            private readonly IResolveReferance<ICodeElement>[] resolveReferance;
-            private readonly Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> make;
+            var nextContext = context.Child(this, scope);
+            return new ModuleDefinitionResolveReferance(scope, elements.Select(x => x.Run(nextContext)).ToArray(), make);
+        }
 
-            public ModuleDefinitionResolveReferance(StaticScope scope, IResolveReferance<ICodeElement>[] resolveReferance, Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> make)
-            {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
+    }
 
-            public ModuleDefinition Run(IResolveReferanceContext context)
-            {
-                var nextContext = context.Child(this, scope);
-                return make(scope, resolveReferance.Select(x => x.Run(nextContext)).ToArray());
-            }
+    public class ModuleDefinitionResolveReferance : IResolveReferance<ModuleDefinition>
+    {
+        private readonly StaticScope scope;
+        private readonly IResolveReferance<ICodeElement>[] resolveReferance;
+        private readonly Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> make;
+
+        public ModuleDefinitionResolveReferance(StaticScope scope, IResolveReferance<ICodeElement>[] resolveReferance, Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> make)
+        {
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public ModuleDefinition Run(IResolveReferanceContext context)
+        {
+            var nextContext = context.Child(this, scope);
+            return make(scope, resolveReferance.Select(x => x.Run(nextContext)).ToArray());
         }
     }
+
 }

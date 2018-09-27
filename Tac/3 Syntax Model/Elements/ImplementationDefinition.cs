@@ -107,57 +107,57 @@ namespace Tac.Semantic_Model
             result = default;
             return false;
         }
+    }
 
-        private class PopulateScopeImplementationDefinition : IPopulateScope<ImplementationDefinition>
+    public class PopulateScopeImplementationDefinition : IPopulateScope<ImplementationDefinition>
+    {
+        private readonly IPopulateScope<MemberDefinition> contextDefinition;
+        private readonly IPopulateScope<MemberDefinition> parameterDefinition;
+        private readonly MethodScope methodScope;
+        private readonly IPopulateScope<ICodeElement>[] elements;
+        private readonly ExplicitTypeName outputTypeName;
+        private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
+
+        public PopulateScopeImplementationDefinition(IPopulateScope<MemberDefinition> contextDefinition, IPopulateScope<MemberDefinition> parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
         {
-            private readonly IPopulateScope<MemberDefinition> contextDefinition;
-            private readonly IPopulateScope<MemberDefinition> parameterDefinition;
-            private readonly MethodScope methodScope;
-            private readonly IPopulateScope<ICodeElement>[] elements;
-            private readonly ExplicitTypeName outputTypeName;
-            private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
-
-            public PopulateScopeImplementationDefinition(IPopulateScope<MemberDefinition> contextDefinition, IPopulateScope<MemberDefinition> parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
-            {
-                this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
-                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<ImplementationDefinition> Run(IPopulateScopeContext context)
-            {
-                var newContext = context.Child(this, methodScope);
-                return new ImplementationDefinitionResolveReferance(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), methodScope, elements.Select(x => x.Run(newContext)).ToArray(), outputTypeName,make);
-            }
-            
+            this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
+            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private class ImplementationDefinitionResolveReferance : IResolveReferance<ImplementationDefinition>
+        public IResolveReferance<ImplementationDefinition> Run(IPopulateScopeContext context)
         {
-            private readonly IResolveReferance<MemberDefinition> contextDefinition;
-            private readonly IResolveReferance<MemberDefinition> parameterDefinition;
-            private readonly MethodScope methodScope;
-            private readonly IResolveReferance<ICodeElement>[] elements;
-            private readonly ExplicitTypeName outputTypeName;
-            private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
+            var newContext = context.Child(this, methodScope);
+            return new ImplementationDefinitionResolveReferance(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), methodScope, elements.Select(x => x.Run(newContext)).ToArray(), outputTypeName, make);
+        }
 
-            public ImplementationDefinitionResolveReferance(IResolveReferance<MemberDefinition> contextDefinition, IResolveReferance<MemberDefinition> parameterDefinition, MethodScope methodScope, IResolveReferance<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
-            {
-                this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition)); 
-                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
-            }
+    }
 
-            public ImplementationDefinition Run(IResolveReferanceContext context)
-            {
-                var newContext = context.Child(this, methodScope);
-                return make(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), new ScopeStack(context.Tree, methodScope).GetType(outputTypeName), elements.Select(x => x.Run(newContext)).ToArray(), methodScope, new ICodeElement[0]);
-            }
+    public class ImplementationDefinitionResolveReferance : IResolveReferance<ImplementationDefinition>
+    {
+        private readonly IResolveReferance<MemberDefinition> contextDefinition;
+        private readonly IResolveReferance<MemberDefinition> parameterDefinition;
+        private readonly MethodScope methodScope;
+        private readonly IResolveReferance<ICodeElement>[] elements;
+        private readonly ExplicitTypeName outputTypeName;
+        private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
+
+        public ImplementationDefinitionResolveReferance(IResolveReferance<MemberDefinition> contextDefinition, IResolveReferance<MemberDefinition> parameterDefinition, MethodScope methodScope, IResolveReferance<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
+        {
+            this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
+            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+        }
+
+        public ImplementationDefinition Run(IResolveReferanceContext context)
+        {
+            var newContext = context.Child(this, methodScope);
+            return make(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), new ScopeStack(context.Tree, methodScope).GetType(outputTypeName), elements.Select(x => x.Run(newContext)).ToArray(), methodScope, new ICodeElement[0]);
         }
     }
 }

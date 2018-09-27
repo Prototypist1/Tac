@@ -47,51 +47,48 @@ namespace Tac.Semantic_Model
             result = default;
             return false;
         }
-        
+    }
 
-        private class BlockDefinitionPopulateScope : IPopulateScope<BlockDefinition>
+
+    public class BlockDefinitionPopulateScope : IPopulateScope<BlockDefinition>
+    {
+        private LocalStaticScope Scope { get; }
+        private IPopulateScope<ICodeElement>[] Elements { get; }
+        public Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+
+        public BlockDefinitionPopulateScope(LocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
         {
-            private LocalStaticScope Scope { get; }
-            private IPopulateScope<ICodeElement>[] Elements { get; }
-            public Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
-
-            public BlockDefinitionPopulateScope(LocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
-            {
-                Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                Elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                Make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-            
-            public IResolveReferance<BlockDefinition> Run(IPopulateScopeContext context)
-            {
-                var nextContext = context.Child(this, Scope);
-                return new ResolveReferanceBlockDefinition(Scope, Elements.Select(x => x.Run(nextContext)).ToArray(), Make);
-            }
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            Elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private class ResolveReferanceBlockDefinition : IResolveReferance<BlockDefinition>
+        public IResolveReferance<BlockDefinition> Run(IPopulateScopeContext context)
         {
-            private LocalStaticScope Scope { get; }
-            private IResolveReferance<ICodeElement>[] ResolveReferance { get; }
-            private Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
-
-            public ResolveReferanceBlockDefinition(LocalStaticScope scope, IResolveReferance<ICodeElement>[] resolveReferance, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
-            {
-                this.Scope = scope;
-                this.ResolveReferance = resolveReferance;
-                this.Make = make;
-            }
-
-            public BlockDefinition Run(IResolveReferanceContext context)
-            {
-
-                var nextContext = context.Child(this, Scope);
-                return Make(ResolveReferance.Select(x => x.Run(nextContext)).ToArray(), Scope, new ICodeElement[0]);
-            }
-            
+            var nextContext = context.Child(this, Scope);
+            return new ResolveReferanceBlockDefinition(Scope, Elements.Select(x => x.Run(nextContext)).ToArray(), Make);
         }
-        
+    }
 
+    public class ResolveReferanceBlockDefinition : IResolveReferance<BlockDefinition>
+    {
+        private LocalStaticScope Scope { get; }
+        private IResolveReferance<ICodeElement>[] ResolveReferance { get; }
+        private Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+
+        public ResolveReferanceBlockDefinition(LocalStaticScope scope, IResolveReferance<ICodeElement>[] resolveReferance, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
+        {
+            this.Scope = scope;
+            this.ResolveReferance = resolveReferance;
+            this.Make = make;
+        }
+
+        public BlockDefinition Run(IResolveReferanceContext context)
+        {
+
+            var nextContext = context.Child(this, Scope);
+            return Make(ResolveReferance.Select(x => x.Run(nextContext)).ToArray(), Scope, new ICodeElement[0]);
+        }
 
     }
 }

@@ -93,59 +93,60 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        private class TypeDefinitionPopulateScope : IPopulateScope<TypeDefinition>
-        {
-            private readonly ObjectScope scope;
-            private readonly IPopulateScope<ICodeElement>[] elements;
-            private readonly AtomicToken typeName;
-            private readonly Func<IScope, TypeDefinition> make;
-
-            public TypeDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, AtomicToken typeName, Func<IScope, TypeDefinition> make)
-            {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.typeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IResolveReferance<TypeDefinition> Run(IPopulateScopeContext context)
-            {
-                var box = new Box<TypeDefinition>();
-                if (typeName != null)
-                {
-                    var encolsing = context.Tree.Scopes(scope).Skip(1).First();
-                    encolsing.Cast<StaticScope>().TryAddStaticType(new NameKey(typeName.Item), box);
-                }
-                var nextContext = context.Child(this, scope);
-                elements.Select(x => x.Run(nextContext)).ToArray();
-                return new TypeDefinitionResolveReferance(scope, box,make);
-            }
-
-            public IResolveReferance<TypeDefinition> Run()
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private class TypeDefinitionResolveReferance : IResolveReferance<TypeDefinition>
-        {
-            private readonly ObjectScope scope;
-            private readonly Box<TypeDefinition> box;
-            private readonly Func<IScope, TypeDefinition> make;
-
-            public TypeDefinitionResolveReferance(ObjectScope scope, Box<TypeDefinition> box, Func<IScope, TypeDefinition> make)
-            {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public TypeDefinition Run(IResolveReferanceContext context)
-            {
-                return box.Fill(make(scope));
-            }
-        }
         
+    }
+    
+    public class TypeDefinitionPopulateScope : IPopulateScope<TypeDefinition>
+    {
+        private readonly ObjectScope scope;
+        private readonly IPopulateScope<ICodeElement>[] elements;
+        private readonly AtomicToken typeName;
+        private readonly Func<IScope, TypeDefinition> make;
+
+        public TypeDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, AtomicToken typeName, Func<IScope, TypeDefinition> make)
+        {
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.typeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public IResolveReferance<TypeDefinition> Run(IPopulateScopeContext context)
+        {
+            var box = new Box<TypeDefinition>();
+            if (typeName != null)
+            {
+                var encolsing = context.Tree.Scopes(scope).Skip(1).First();
+                encolsing.Cast<StaticScope>().TryAddStaticType(new NameKey(typeName.Item), box);
+            }
+            var nextContext = context.Child(this, scope);
+            elements.Select(x => x.Run(nextContext)).ToArray();
+            return new TypeDefinitionResolveReferance(scope, box, make);
+        }
+
+        public IResolveReferance<TypeDefinition> Run()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class TypeDefinitionResolveReferance : IResolveReferance<TypeDefinition>
+    {
+        private readonly ObjectScope scope;
+        private readonly Box<TypeDefinition> box;
+        private readonly Func<IScope, TypeDefinition> make;
+
+        public TypeDefinitionResolveReferance(ObjectScope scope, Box<TypeDefinition> box, Func<IScope, TypeDefinition> make)
+        {
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public TypeDefinition Run(IResolveReferanceContext context)
+        {
+            return box.Fill(make(scope));
+        }
     }
 
 
