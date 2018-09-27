@@ -69,9 +69,15 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<ObjectDefinition> Run(ScopeTree tree)
+            public IResolveReferance<ObjectDefinition> Run(IPopulateScopeContext context)
             {
-                return new ResolveReferanceObjectDefinition(scope, elements.Select(x=>x.Run(tree)).ToArray(), make);
+                var nextContext = context.Child(this, scope);
+                return new ResolveReferanceObjectDefinition(scope, elements.Select(x=>x.Run(nextContext)).ToArray(), make);
+            }
+
+            public IResolveReferance<ObjectDefinition> Run()
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -88,9 +94,10 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public ObjectDefinition Run(ScopeTree tree)
+            public ObjectDefinition Run(IResolveReferanceContext context)
             {
-                return make(scope, elements.Select(x => x.Run(tree).Cast<AssignOperation>()).ToArray());
+                var nextContext = context.Child(this, scope);
+                return make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray());
             }
         }
         

@@ -108,16 +108,22 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<TypeDefinition> Run(ScopeTree tree)
+            public IResolveReferance<TypeDefinition> Run(IPopulateScopeContext context)
             {
                 var box = new Box<TypeDefinition>();
                 if (typeName != null)
                 {
-                    var encolsing = tree.Scopes(scope).Skip(1).First();
+                    var encolsing = context.Tree.Scopes(scope).Skip(1).First();
                     encolsing.Cast<StaticScope>().TryAddStaticType(new NameKey(typeName.Item), box);
                 }
-                elements.Select(x => x.Run(tree)).ToArray();
+                var nextContext = context.Child(this, scope);
+                elements.Select(x => x.Run(nextContext)).ToArray();
                 return new TypeDefinitionResolveReferance(scope, box,make);
+            }
+
+            public IResolveReferance<TypeDefinition> Run()
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -134,7 +140,7 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public TypeDefinition Run(ScopeTree tree)
+            public TypeDefinition Run(IResolveReferanceContext context)
             {
                 return box.Fill(make(scope));
             }

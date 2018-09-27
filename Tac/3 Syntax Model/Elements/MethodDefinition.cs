@@ -100,9 +100,15 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<MethodDefinition> Run(ScopeTree tree)
+            public IResolveReferance<MethodDefinition> Run(IPopulateScopeContext context)
             {
-                return new MethodDefinitionResolveReferance(parameterDefinition.Run(tree), methodScope, elements.Select(x => x.Run(tree)).ToArray(), outputTypeName,make);
+                var nextContext = context.Child(this, methodScope);
+                return new MethodDefinitionResolveReferance(parameterDefinition.Run(nextContext), methodScope, elements.Select(x => x.Run(nextContext)).ToArray(), outputTypeName, make);
+            }
+
+            public IResolveReferance<MethodDefinition> Run()
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -123,9 +129,10 @@ namespace Tac.Semantic_Model
                 this.make = make;
             }
 
-            public MethodDefinition Run(ScopeTree tree)
+            public MethodDefinition Run(IResolveReferanceContext context)
             {
-                return make(parameter.Run(tree), new ScopeStack(tree, methodScope).GetType(outputTypeName), lines.Select(x => x.Run(tree)).ToArray(), methodScope, new ICodeElement[0]);
+                var nextContext = context.Child(this, methodScope);
+                return make(parameter.Run(nextContext), new ScopeStack(context.Tree, methodScope).GetType(outputTypeName), lines.Select(x => x.Run(nextContext)).ToArray(), methodScope, new ICodeElement[0]);
             }
         }
     }

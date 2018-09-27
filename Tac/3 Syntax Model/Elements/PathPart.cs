@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<PathPart> Run(ScopeTree tree)
+            public IResolveReferance<PathPart> Run(IPopulateScopeContext context)
             {
                 IBox<MemberDefinition> memberDef;
                 if (!scope.TryGetMember(new NameKey(memberName), false, out memberDef))
@@ -86,7 +86,7 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public PathPart Run(ScopeTree tree)
+            public PathPart Run(IResolveReferanceContext context)
             {
                 return make(memberDef);
             }

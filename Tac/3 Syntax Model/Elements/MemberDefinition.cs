@@ -82,16 +82,17 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<Member> Run(ScopeTree tree)
+            public IResolveReferance<Member> Run(IPopulateScopeContext context)
             {
                 var memberDef = new Box<MemberDefinition>();
-                var scopeStack = new ScopeStack(tree, scope);
+                var scopeStack = new ScopeStack(context.Tree, scope);
                 if (scope.Cast<LocalStaticScope>().TryAddLocal(new Names.ExplicitMemberName(memberName).Key, memberDef))
                 {
                     throw new Exception("bad bad bad!");
                 }
                 return new MemberResolveReferance(scope, memberName, memberDef, isReadonly, explicitTypeName,make);
             }
+            
         }
 
         private class MemberResolveReferance : IResolveReferance<Member>
@@ -113,11 +114,12 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public Member Run(ScopeTree tree)
+            public Member Run(IResolveReferanceContext context)
             {
-                memberDef.Fill(new MemberDefinition(isReadonly, new ExplicitMemberName(memberName), new ScopeStack(tree, scope).GetType(explicitTypeName)));
+                memberDef.Fill(new MemberDefinition(isReadonly, new ExplicitMemberName(memberName), new ScopeStack(context.Tree, scope).GetType(explicitTypeName)));
                 return make(0, memberDef);
             }
+            
         }
     }
 }

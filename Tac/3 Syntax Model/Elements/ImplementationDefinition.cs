@@ -127,10 +127,12 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<ImplementationDefinition> Run(ScopeTree tree)
+            public IResolveReferance<ImplementationDefinition> Run(IPopulateScopeContext context)
             {
-                return new ImplementationDefinitionResolveReferance(contextDefinition.Run(tree), parameterDefinition.Run(tree), methodScope, elements.Select(x => x.Run(tree)).ToArray(), outputTypeName,make);
+                var newContext = context.Child(this, methodScope);
+                return new ImplementationDefinitionResolveReferance(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), methodScope, elements.Select(x => x.Run(newContext)).ToArray(), outputTypeName,make);
             }
+            
         }
 
         private class ImplementationDefinitionResolveReferance : IResolveReferance<ImplementationDefinition>
@@ -151,9 +153,10 @@ namespace Tac.Semantic_Model
                 this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
             }
 
-            public ImplementationDefinition Run(ScopeTree tree)
+            public ImplementationDefinition Run(IResolveReferanceContext context)
             {
-                return make(contextDefinition.Run(tree), parameterDefinition.Run(tree), new ScopeStack(tree, methodScope).GetType(outputTypeName), elements.Select(x => x.Run(tree)).ToArray(), methodScope, new ICodeElement[0]);
+                var newContext = context.Child(this, methodScope);
+                return make(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), new ScopeStack(context.Tree, methodScope).GetType(outputTypeName), elements.Select(x => x.Run(newContext)).ToArray(), methodScope, new ICodeElement[0]);
             }
         }
     }

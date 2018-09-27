@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model.Operations
                 make = Make;
             }
 
-            public IResolveReferance<ConstantNumber> Run(ScopeTree tree)
+            public IResolveReferance<ConstantNumber> Run(IPopulateScopeContext context)
             {
                 return new ConstantNumberResolveReferance(dub,make);
             }
@@ -72,7 +72,7 @@ namespace Tac.Semantic_Model.Operations
                 make = Make;
             }
 
-            public ConstantNumber Run(ScopeTree tree)
+            public ConstantNumber Run(IResolveReferanceContext context)
             {
                 return make(dub);
             }

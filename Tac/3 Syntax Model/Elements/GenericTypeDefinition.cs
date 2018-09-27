@@ -142,14 +142,15 @@ namespace Tac.Semantic_Model
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<GenericTypeDefinition> Run(ScopeTree tree)
+            public IResolveReferance<GenericTypeDefinition> Run(IPopulateScopeContext context)
             {
                 var box = new Box<ITypeDefinition>();
 
-                var encolsing = tree.Scopes(scope).Skip(1).First();
+                var encolsing = context.Tree.Scopes(scope).Skip(1).First();
                 encolsing.Cast<StaticScope>().TryAddStaticType(nameKey, box);
 
-                lines.Select(x => x.Run(tree)).ToArray();
+                var nextContext = context.Child(this, scope);
+                lines.Select(x => x.Run(nextContext)).ToArray();
                 return new GenericTypeDefinitionResolveReferance(nameKey,genericParameters, scope, box, make);
             }
 
@@ -170,7 +171,7 @@ namespace Tac.Semantic_Model
                     this.make = make;
                 }
 
-                public GenericTypeDefinition Run(ScopeTree tree)
+                public GenericTypeDefinition Run(IResolveReferanceContext context)
                 {
                     return box.Fill(make(nameKey,scope,genericParameters));
                 }

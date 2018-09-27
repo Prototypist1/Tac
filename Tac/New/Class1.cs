@@ -19,13 +19,32 @@ namespace Tac.New
         bool TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext, out IPopulateScope<T> result);
     }
 
-    public interface IPopulateScope<out T>
+    public interface IPipelineContext<T,TSelf>
+        where TSelf: IPipelineContext<T, TSelf>
     {
-        IResolveReferance<T> Run(ScopeTree tree);
+        ScopeTree Tree { get; }
+        bool TryGetParentContext(out TSelf parent);
+        bool TryGetParent<TT>(out TT parent) where TT :T;
+        TSelf Child(T step);
+        TSelf Child(T step, IScope scope);
     }
+
+    public interface IPopulateScopeContext: IPipelineContext<IPopulateScope, IPopulateScopeContext> {}
     
-    public interface IResolveReferance<out T> {
-        T Run(ScopeTree tree);
+    public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolveReferanceContext> {}
+
+    public interface IPopulateScope { }
+
+    public interface IPopulateScope<out T> : IPopulateScope
+    {
+        IResolveReferance<T> Run(IPopulateScopeContext context);
+    }
+
+    public interface IResolveReferance { }
+
+    public interface IResolveReferance<out T> : IResolveReferance
+    {
+        T Run(IResolveReferanceContext context);
     }
     
 }

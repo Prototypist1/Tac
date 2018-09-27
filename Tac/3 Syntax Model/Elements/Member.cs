@@ -45,24 +45,24 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope, first.Item,Make);
+                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope.Cast<LocalStaticScope>(), first.Item, Make);
                 return true;
             }
 
             result = default;
             return false;
         }
-        
+
         private class MemberPopulateScope : IPopulateScope<Member>
         {
-            private readonly IScope topScope;
+            private readonly LocalStaticScope topScope;
             private readonly string memberName;
             private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-            public MemberPopulateScope(IScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
+            public MemberPopulateScope(LocalStaticScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
             {
                 this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
-                this.memberName = item ?? throw new ArgumentNullException(nameof(item));
+                memberName = item ?? throw new ArgumentNullException(nameof(item));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model
                 if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out depth, out memberDef))
                 {
                     memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
-                    if (!scopeStack.TopScope.Cast<LocalStaticScope>().TryAddLocal(new NameKey(memberName), memberDef))
+                    if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
                     {
                         throw new Exception("bad bad bad!");
                     }
@@ -116,69 +116,67 @@ namespace Tac.Semantic_Model
         public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<Member> result)
         {
             if (TokenMatching.Start(elementToken.Tokens)
+                .Has(ElementMatcher.KeyWord("var"), out var _)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
 
-                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope, first.Item, Make);
+                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope.Cast<LocalStaticScope>(), first.Item, Make);
                 return true;
             }
 
             result = default;
             return false;
         }
-        
+
 
         private class MemberPopulateScope : IPopulateScope<Member>
         {
-            private readonly IScope topScope;
+            private readonly LocalStaticScope topScope;
             private readonly string memberName;
             private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-            public MemberPopulateScope(IScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
+            public MemberPopulateScope(LocalStaticScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
             {
                 this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
-                this.memberName = item ?? throw new ArgumentNullException(nameof(item));
+                memberName = item ?? throw new ArgumentNullException(nameof(item));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<Member> Run(ScopeTree tree)
+            public IResolveReferance<Member> Run(IPopulateScopeContext context)
             {
-                int depth;
-                IBox<MemberDefinition> memberDef;
-                var scopeStack = new ScopeStack(tree, topScope);
-                if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out depth, out memberDef))
+
+                IBox<ITypeDefinition> typeDef = new Box<ITypeDefinition>();
+                IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), typeDef));
+
+                if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
                 {
-                    memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
-                    if (!scopeStack.TopScope.Cast<LocalStaticScope>().TryAddLocal(new NameKey(memberName), memberDef))
-                    {
-                        throw new Exception("bad bad bad!");
-                    }
+                    throw new Exception("bad bad bad!");
                 }
 
-                return new MemberResolveReferance(depth, memberDef,make);
+
+                return new MemberResolveReferance(memberDef, make);
             }
+            
         }
 
         private class MemberResolveReferance : IResolveReferance<Member>
         {
-            private readonly int depth;
             private readonly IBox<MemberDefinition> memberDef;
             private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-            public MemberResolveReferance(int depth, IBox<MemberDefinition> memberDef, Func<int, IBox<MemberDefinition>, Member> make)
+            public MemberResolveReferance(IBox<MemberDefinition> memberDef, Func<int, IBox<MemberDefinition>, Member> make)
             {
-                this.depth = depth;
                 this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public Member Run(ScopeTree tree)
+            public Member Run(IResolveReferanceContext context)
             {
-                return make(depth, memberDef);
+                return make(0, memberDef);
             }
         }
-        
+
     }
 }
