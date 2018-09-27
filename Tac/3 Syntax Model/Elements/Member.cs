@@ -5,6 +5,7 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
@@ -149,7 +150,7 @@ namespace Tac.Semantic_Model
         public IResolveReferance<Member> Run(IPopulateScopeContext context)
         {
 
-            IBox<ITypeDefinition> typeDef = new Box<ITypeDefinition>();
+            var typeDef = new FollowBox<ITypeDefinition>();
             var innerType = new MemberDefinition(false, new ExplicitMemberName(memberName), typeDef);
             IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
 
@@ -159,7 +160,7 @@ namespace Tac.Semantic_Model
             }
 
 
-            return new ImplicitMemberResolveReferance(innerType, make);
+            return new ImplicitMemberResolveReferance(innerType, make, typeDef);
         }
 
     }
@@ -167,24 +168,21 @@ namespace Tac.Semantic_Model
     public class ImplicitMemberResolveReferance : IResolveReferance<Member>
     {
         private readonly MemberDefinition memberDef;
-        private readonly Func<int, IBox<MemberDefinition>, Member> make;
+        private readonly Func<int, MemberDefinition, Member> make;
+        private readonly FollowBox<ITypeDefinition> typeDef;
 
-        public ImplicitMemberResolveReferance(MemberDefinition innerType, Func<int, IBox<MemberDefinition>, Member> make)
+        public ImplicitMemberResolveReferance(MemberDefinition innerType, Func<int, MemberDefinition, Member> make, FollowBox<ITypeDefinition> typeDef)
         {
             this.memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.typeDef = typeDef;
         }
 
         public Member Run(IResolveReferanceContext context)
         {
-
-            // TODO!
-            // TODO!
-            // you are here
-            // this totally does not work yet
-            // AssignOperation needs a ResolveReferance
-            // and all these ResolveReferances need to be public
-
+            if (context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op)) {
+                typeDef.Follow(op.right.GetReturnType());
+            }
 
             return make(0, memberDef);
         }

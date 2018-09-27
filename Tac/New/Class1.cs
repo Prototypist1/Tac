@@ -42,11 +42,12 @@ namespace Tac.New
         IResolveReferance<T> Run(IPopulateScopeContext context);
     }
 
-    public interface IResolveReferance { }
+    public interface IResolveReferance {
+        IBox<ITypeDefinition> GetReturnType();
+    }
 
     public interface IResolveReferance<out T> : IResolveReferance
     {
         T Run(IResolveReferanceContext context);
     }
-    
 }

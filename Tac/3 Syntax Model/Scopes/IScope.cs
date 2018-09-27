@@ -9,6 +9,22 @@ namespace Tac.Semantic_Model
     {
     }
 
+    public class FollowBox<T> : IBox<T> where T : class {
+        public FollowBox()
+        {
+        }
+
+        private IBox<T> InnerType { get; set; }
+
+        public void Follow(IBox<T> box) {
+            if (InnerType != null)
+            {
+                throw new Exception();
+            }
+            InnerType = box;
+        }
+    }
+
     public class Box<T> : IBox<T> where T : class
     {
         public Box()

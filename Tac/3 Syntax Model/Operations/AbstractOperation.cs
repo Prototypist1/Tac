@@ -67,50 +67,55 @@ namespace Tac.Semantic_Model.CodeStuff
             return false;
         }
 
-        private class PopulateScope : IPopulateScope<T>
+    }
+
+
+    public class BinaryPopulateScope<T> : IPopulateScope<T>
+    {
+        private readonly IPopulateScope<ICodeElement> left;
+        private readonly IPopulateScope<ICodeElement> right;
+        private readonly Func<ICodeElement, ICodeElement, T> make;
+
+        public BinaryPopulateScope(IPopulateScope<ICodeElement> left, IPopulateScope<ICodeElement> right, Func<ICodeElement, ICodeElement, T> make)
         {
-            private readonly IPopulateScope<ICodeElement> left;
-            private readonly IPopulateScope<ICodeElement> right;
-            private readonly Func<ICodeElement, ICodeElement, T> make;
+            this.left = left ?? throw new ArgumentNullException(nameof(left));
+            this.right = right ?? throw new ArgumentNullException(nameof(right));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
 
-            public PopulateScope(IPopulateScope<ICodeElement> left, IPopulateScope<ICodeElement> right, Func<ICodeElement, ICodeElement, T> make)
-            {
-                this.left = left ?? throw new ArgumentNullException(nameof(left));
-                this.right = right ?? throw new ArgumentNullException(nameof(right));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
+        public IResolveReferance<T> Run(IPopulateScopeContext context)
+        {
+            var nextContext = context.Child(this);
+            return new BinaryResolveReferance<T>(left.Run(nextContext), right.Run(nextContext), make);
+        }
 
-            public IResolveReferance<T> Run(IPopulateScopeContext context)
-            {
-                var nextContext = context.Child(this);
-                return new ResolveReferance(left.Run(nextContext), right.Run(nextContext), make);
-            }
-
-            public IResolveReferance<T> Run()
-            {
-                throw new NotImplementedException();
-            }
-
-            private class ResolveReferance : IResolveReferance<T>
-            {
-                private IResolveReferance<ICodeElement> resolveReferance1;
-                private IResolveReferance<ICodeElement> resolveReferance2;
-                private Func<ICodeElement, ICodeElement, T> make;
-
-                public ResolveReferance(IResolveReferance<ICodeElement> resolveReferance1, IResolveReferance<ICodeElement> resolveReferance2, Func<ICodeElement, ICodeElement, T> make)
-                {
-                    this.resolveReferance1 = resolveReferance1;
-                    this.resolveReferance2 = resolveReferance2;
-                    this.make = make;
-                }
-
-                public T Run(IResolveReferanceContext context)
-                {
-                    var nextContext = context.Child(this);
-                    return make(resolveReferance1.Run(nextContext), resolveReferance2.Run(nextContext));
-                }
-                
-            }
+        public IResolveReferance<T> Run()
+        {
+            throw new NotImplementedException();
         }
     }
+
+
+
+    public class BinaryResolveReferance<T> : IResolveReferance<T>
+    {
+        public readonly IResolveReferance<ICodeElement> left;
+        public readonly IResolveReferance<ICodeElement> right;
+        private Func<ICodeElement, ICodeElement, T> make;
+
+        public BinaryResolveReferance(IResolveReferance<ICodeElement> resolveReferance1, IResolveReferance<ICodeElement> resolveReferance2, Func<ICodeElement, ICodeElement, T> make)
+        {
+            this.left = resolveReferance1;
+            this.right = resolveReferance2;
+            this.make = make;
+        }
+
+        public T Run(IResolveReferanceContext context)
+        {
+            var nextContext = context.Child(this);
+            return make(left.Run(nextContext), right.Run(nextContext));
+        }
+
+    }
+
 }
