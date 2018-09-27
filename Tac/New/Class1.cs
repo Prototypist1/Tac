@@ -29,6 +29,8 @@ namespace Tac.New
         TSelf Child(T step, IScope scope);
     }
 
+    // hmm the parsing is almost a step as well? 
+
     public interface IPopulateScopeContext: IPipelineContext<IPopulateScope, IPopulateScopeContext> {}
     
     public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolveReferanceContext> {}

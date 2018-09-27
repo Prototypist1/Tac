@@ -148,7 +148,8 @@ namespace Tac.Semantic_Model
             {
 
                 IBox<ITypeDefinition> typeDef = new Box<ITypeDefinition>();
-                IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), typeDef));
+                var innerType = new MemberDefinition(false, new ExplicitMemberName(memberName), typeDef);
+                IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
 
                 if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
                 {
@@ -156,24 +157,33 @@ namespace Tac.Semantic_Model
                 }
 
 
-                return new MemberResolveReferance(memberDef, make);
+                return new MemberResolveReferance(innerType, make);
             }
             
         }
 
         private class MemberResolveReferance : IResolveReferance<Member>
         {
-            private readonly IBox<MemberDefinition> memberDef;
+            private readonly MemberDefinition memberDef;
             private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
-            public MemberResolveReferance(IBox<MemberDefinition> memberDef, Func<int, IBox<MemberDefinition>, Member> make)
+            public MemberResolveReferance(MemberDefinition innerType, Func<int, IBox<MemberDefinition>, Member> make)
             {
-                this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+                this.memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
             public Member Run(IResolveReferanceContext context)
             {
+
+                // TODO!
+                // TODO!
+                // you are here
+                // this totally does not work yet
+                // AssignOperation needs a ResolveReferance
+                // and all these ResolveReferances need to be public
+
+
                 return make(0, memberDef);
             }
         }

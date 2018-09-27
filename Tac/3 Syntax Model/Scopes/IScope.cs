@@ -7,7 +7,6 @@ namespace Tac.Semantic_Model
 {
     public interface IBox<out T> where T : class
     {
-
     }
 
     public class Box<T> : IBox<T> where T : class

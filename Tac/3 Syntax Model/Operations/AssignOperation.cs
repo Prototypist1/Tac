@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
@@ -16,6 +17,14 @@ namespace Tac.Semantic_Model.Operations
         public override ITypeDefinition ReturnType(ScopeStack scope)
         {
             return left.ReturnType(scope);
+        }
+    }
+
+
+    public class AssignOperationMaker : BinaryOperationMaker<AssignOperation>
+    {
+        public AssignOperationMaker(Func<ICodeElement, ICodeElement, AssignOperation> make, IElementBuilders elementBuilders) : base(">", make, elementBuilders)
+        {
         }
     }
 }

@@ -80,9 +80,15 @@ namespace Tac.Semantic_Model.CodeStuff
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolveReferance<T> Run(ScopeTree tree)
+            public IResolveReferance<T> Run(IPopulateScopeContext context)
             {
-                return new ResolveReferance(left.Run(tree), right.Run(tree), make);
+                var nextContext = context.Child(this);
+                return new ResolveReferance(left.Run(nextContext), right.Run(nextContext), make);
+            }
+
+            public IResolveReferance<T> Run()
+            {
+                throw new NotImplementedException();
             }
 
             private class ResolveReferance : IResolveReferance<T>
@@ -98,10 +104,12 @@ namespace Tac.Semantic_Model.CodeStuff
                     this.make = make;
                 }
 
-                public T Run(ScopeTree tree)
+                public T Run(IResolveReferanceContext context)
                 {
-                    return make(resolveReferance1.Run(tree), resolveReferance2.Run(tree));
+                    var nextContext = context.Child(this);
+                    return make(resolveReferance1.Run(nextContext), resolveReferance2.Run(nextContext));
                 }
+                
             }
         }
     }
