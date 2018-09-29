@@ -108,11 +108,6 @@ namespace Tac.Semantic_Model
             var nextContext = context.Child(this, methodScope);
             return new MethodDefinitionResolveReferance(parameterDefinition.Run(nextContext), methodScope, elements.Select(x => x.Run(nextContext)).ToArray(), outputTypeName, make);
         }
-
-        public IResolveReferance<MethodDefinition> Run()
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public class MethodDefinitionResolveReferance : IResolveReferance<MethodDefinition>
@@ -136,8 +131,7 @@ namespace Tac.Semantic_Model
         {
             return new ScopeStack(context.Tree, methodScope).GetType(new GenericExplicitTypeName(RootScope.ImplementationType, parameter.explicitTypeName, outputTypeName));
         }
-
-
+        
         public MethodDefinition Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this, methodScope);

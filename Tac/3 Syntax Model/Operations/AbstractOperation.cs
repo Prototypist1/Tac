@@ -59,7 +59,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 IPopulateScope<ICodeElement> left = matchingContext.ParseLine(perface);
                 IPopulateScope<ICodeElement> right = matchingContext.ParseParenthesisOrElement(rhs);
 
-                result = new PopulateScope(left,right, Make);
+                result = new BinaryPopulateScope<T>(left,right, Make);
                 return true;
             }
 
@@ -70,7 +70,8 @@ namespace Tac.Semantic_Model.CodeStuff
     }
 
 
-    public class BinaryPopulateScope<T> : IPopulateScope<T>
+    public class BinaryPopulateScope<T> : IPopulateScope<T> 
+        where T : ICodeElement
     {
         private readonly IPopulateScope<ICodeElement> left;
         private readonly IPopulateScope<ICodeElement> right;
@@ -88,20 +89,17 @@ namespace Tac.Semantic_Model.CodeStuff
             var nextContext = context.Child(this);
             return new BinaryResolveReferance<T>(left.Run(nextContext), right.Run(nextContext), make);
         }
-
-        public IResolveReferance<T> Run()
-        {
-            throw new NotImplementedException();
-        }
     }
 
 
 
-    public class BinaryResolveReferance<T> : IResolveReferance<T>
+    public class BinaryResolveReferance<T> : IResolveReferance<T> 
+        where T: ICodeElement
     {
         public readonly IResolveReferance<ICodeElement> left;
         public readonly IResolveReferance<ICodeElement> right;
-        private Func<ICodeElement, ICodeElement, T> make;
+        private readonly Func<ICodeElement, ICodeElement, T> make;
+        private readonly FollowBox<ITypeDefinition> followBox = new FollowBox<ITypeDefinition>();
 
         public BinaryResolveReferance(IResolveReferance<ICodeElement> resolveReferance1, IResolveReferance<ICodeElement> resolveReferance2, Func<ICodeElement, ICodeElement, T> make)
         {
@@ -110,12 +108,18 @@ namespace Tac.Semantic_Model.CodeStuff
             this.make = make;
         }
 
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return followBox;
+        }
+
         public T Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this);
-            return make(left.Run(nextContext), right.Run(nextContext));
+            var res = make(left.Run(nextContext), right.Run(nextContext));
+            followBox.Follow(res.ReturnType(context.Tree));
+            return res;
         }
-
     }
 
 }
