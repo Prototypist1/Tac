@@ -123,11 +123,6 @@ namespace Tac.Semantic_Model
             elements.Select(x => x.Run(nextContext)).ToArray();
             return new TypeDefinitionResolveReferance(scope, box, make);
         }
-
-        public IResolveReferance<TypeDefinition> Run()
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public class TypeDefinitionResolveReferance : IResolveReferance<TypeDefinition>

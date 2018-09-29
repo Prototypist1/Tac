@@ -90,5 +90,9 @@ namespace Tac.Semantic_Model
             return Make(ResolveReferance.Select(x => x.Run(nextContext)).ToArray(), Scope, new ICodeElement[0]);
         }
 
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return new ScopeStack(context.Tree, Scope).GetType(RootScope.BlockType);
+        }
     }
 }

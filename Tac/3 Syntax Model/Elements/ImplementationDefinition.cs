@@ -154,6 +154,11 @@ namespace Tac.Semantic_Model
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
         }
 
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            throw new NotImplementedException();
+        }
+
         public ImplementationDefinition Run(IResolveReferanceContext context)
         {
             var newContext = context.Child(this, methodScope);

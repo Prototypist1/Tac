@@ -40,7 +40,14 @@ namespace Tac.Semantic_Model
         public static ExplicitTypeName EmptyType { get; } = Add(new ExplicitTypeName("empty"));
         public static ExplicitTypeName AnyType { get; } = Add(new ExplicitTypeName("any"));
         public static ExplicitTypeName BooleanType { get; } = Add(new ExplicitTypeName("bool"));
+        
         public static ExplicitTypeName TypeType { get; } = Add(new ExplicitTypeName("type"));
+        public static ExplicitTypeName BlockType { get; } = Add(new ExplicitTypeName("block"));
+
+        public static ExplicitTypeName MemberType { get; } = AddGeneric(
+                new ExplicitTypeName("member"),
+                new GenericTypeParameterDefinition[] {
+                    new GenericTypeParameterDefinition("type") });
 
         public static ExplicitTypeName MethodType { get; } = AddGeneric(
                 new ExplicitTypeName("method"),

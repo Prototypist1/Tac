@@ -43,7 +43,7 @@ namespace Tac.New
     }
 
     public interface IResolveReferance {
-        IBox<ITypeDefinition> GetReturnType();
+        IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context);
     }
 
     public interface IResolveReferance<out T> : IResolveReferance

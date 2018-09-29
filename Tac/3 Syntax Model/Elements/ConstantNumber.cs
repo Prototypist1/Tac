@@ -75,6 +75,11 @@ namespace Tac.Semantic_Model.Operations
             make = Make;
         }
 
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return context.Tree.Root.GetTypeOrThrow(RootScope.NumberType.Key);
+        }
+
         public ConstantNumber Run(IResolveReferanceContext context)
         {
             return make(dub);

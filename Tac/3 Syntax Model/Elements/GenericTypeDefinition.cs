@@ -24,7 +24,7 @@ namespace Tac.Semantic_Model
 
         public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
-        public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out TypeDefinition result)
+        public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out ITypeDefinition result)
         {
             if (genericTypeParameters.Select(x => x.Definition).SetEqual(TypeParameterDefinitions).Not())
             {
@@ -80,13 +80,13 @@ namespace Tac.Semantic_Model
 
     public class GenericTypeParameter
     {
-        public GenericTypeParameter(ITypeDefinition typeDefinition, GenericTypeParameterDefinition definition)
+        public GenericTypeParameter(IBox<ITypeDefinition> typeDefinition, GenericTypeParameterDefinition definition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        public ITypeDefinition TypeDefinition { get; }
+        public IBox<ITypeDefinition> TypeDefinition { get; }
         public GenericTypeParameterDefinition Definition { get; }
     }
 
@@ -175,6 +175,11 @@ namespace Tac.Semantic_Model
             this.scope = scope;
             this.box = box;
             this.make = make;
+        }
+
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return box;
         }
 
         public GenericTypeDefinition Run(IResolveReferanceContext context)
