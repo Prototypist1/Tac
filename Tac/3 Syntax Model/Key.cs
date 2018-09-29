@@ -51,18 +51,13 @@ namespace Tac.Semantic_Model.Names
 
     public class GenericExplicitTypeName : ExplicitTypeName
     {
-        public GenericExplicitTypeName(string name, params ExplicitTypeName[] types) : base(name)
+        public GenericExplicitTypeName(ExplicitTypeName name, params ExplicitTypeName[] types) : base(name.Name)
         {
             Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
 
         public ExplicitTypeName[] Types { get; }
-
-        public virtual bool TryGetTypeDefinition(ScopeStack scope, out IBox<ITypeDefinition> typeDefinition)
-        {
-            typeDefinition = scope.GetGenericType(this);
-            return typeDefinition == default;
-        }
+        
     }
     
     public class ExplicitMemberName 

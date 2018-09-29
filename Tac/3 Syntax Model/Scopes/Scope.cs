@@ -135,7 +135,7 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
-            var concrete = new GenericBox<ITypeDefinition>(thing.Definition,genericTypeParameters); 
+            var concrete = new GenericBox(thing.Definition,genericTypeParameters); 
 
             var fallback = new Visiblity<IBox<ITypeDefinition>>(DefintionLifetime.Static, concrete);
             typeDefinition = realizedGenericTypes.GetOrAdd(key, fallback).Definition;

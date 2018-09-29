@@ -138,6 +138,11 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return box;
+        }
+
         public TypeDefinition Run(IResolveReferanceContext context)
         {
             return box.Fill(make(scope));

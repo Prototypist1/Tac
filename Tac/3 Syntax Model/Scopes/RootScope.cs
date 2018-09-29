@@ -41,8 +41,10 @@ namespace Tac.Semantic_Model
         public static ExplicitTypeName AnyType { get; } = Add(new ExplicitTypeName("any"));
         public static ExplicitTypeName BooleanType { get; } = Add(new ExplicitTypeName("bool"));
         
-        public static ExplicitTypeName TypeType { get; } = Add(new ExplicitTypeName("type"));
-        public static ExplicitTypeName BlockType { get; } = Add(new ExplicitTypeName("block"));
+        public static ExplicitTypeName TypeType { get; } = Add(new ExplicitTypeName("system-compile-type"));
+        public static ExplicitTypeName BlockType { get; } = Add(new ExplicitTypeName("system-compile-block"));
+        public static ExplicitTypeName ModuleType { get; } = Add(new ExplicitTypeName("system-compile-module"));
+        public static ExplicitTypeName PathPartType { get; } = Add(new ExplicitTypeName("system-compile-path-part"));
 
         public static ExplicitTypeName MemberType { get; } = AddGeneric(
                 new ExplicitTypeName("member"),

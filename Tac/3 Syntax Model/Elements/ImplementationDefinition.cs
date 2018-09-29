@@ -138,14 +138,14 @@ namespace Tac.Semantic_Model
 
     public class ImplementationDefinitionResolveReferance : IResolveReferance<ImplementationDefinition>
     {
-        private readonly IResolveReferance<MemberDefinition> contextDefinition;
-        private readonly IResolveReferance<MemberDefinition> parameterDefinition;
+        private readonly MemberDefinitionResolveReferance contextDefinition;
+        private readonly MemberDefinitionResolveReferance parameterDefinition;
         private readonly MethodScope methodScope;
         private readonly IResolveReferance<ICodeElement>[] elements;
         private readonly ExplicitTypeName outputTypeName;
         private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
 
-        public ImplementationDefinitionResolveReferance(IResolveReferance<MemberDefinition> contextDefinition, IResolveReferance<MemberDefinition> parameterDefinition, MethodScope methodScope, IResolveReferance<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
+        public ImplementationDefinitionResolveReferance(MemberDefinitionResolveReferance contextDefinition, MemberDefinitionResolveReferance parameterDefinition, MethodScope methodScope, IResolveReferance<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -156,7 +156,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            throw new NotImplementedException();
+            return new ScopeStack(context.Tree, methodScope).GetType(new GenericExplicitTypeName(RootScope.ImplementationType, contextDefinition.explicitTypeName, parameterDefinition.explicitTypeName, outputTypeName));
         }
 
         public ImplementationDefinition Run(IResolveReferanceContext context)

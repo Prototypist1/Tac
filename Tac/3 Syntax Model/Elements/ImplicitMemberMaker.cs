@@ -3,7 +3,9 @@ using System;
 using System.Linq;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
@@ -78,6 +80,11 @@ namespace Tac.Semantic_Model
             this.memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.typeDef = typeDef;
+        }
+
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return context.Tree.Root.GetTypeOrThrow(RootScope.MemberType.Key);
         }
 
         public Member Run(IResolveReferanceContext context)

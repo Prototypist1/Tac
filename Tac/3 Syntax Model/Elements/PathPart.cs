@@ -91,5 +91,10 @@ namespace Tac.Semantic_Model
         {
             return make(memberDef);
         }
+        
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return context.Tree.Root.GetTypeOrThrow(RootScope.PathPartType.Key);
+        }
     }
 }

@@ -85,6 +85,7 @@ namespace Tac.Semantic_Model
 
     public class ResolveReferanceObjectDefinition : IResolveReferance<ObjectDefinition>
     {
+        private readonly Box<ITypeDefinition> type = new Box<ITypeDefinition>();
         private readonly ObjectScope scope;
         private readonly IResolveReferance<ICodeElement>[] elements;
         private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
@@ -99,7 +100,12 @@ namespace Tac.Semantic_Model
         public ObjectDefinition Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this, scope);
-            return make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray());
+            return type.Fill(make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray()));
+        }
+        
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return type;
         }
     }
 }

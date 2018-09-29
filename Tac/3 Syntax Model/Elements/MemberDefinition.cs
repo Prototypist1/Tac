@@ -104,7 +104,7 @@ namespace Tac.Semantic_Model
         private readonly string memberName;
         private readonly Box<MemberDefinition> memberDef;
         private readonly bool isReadonly;
-        private readonly ExplicitTypeName explicitTypeName;
+        public readonly ExplicitTypeName explicitTypeName;
         private readonly Func<int, IBox<MemberDefinition>, Member> make;
 
         public MemberDefinitionResolveReferance(IScope scope, string memberName, Box<MemberDefinition> memberDef, bool isReadonly, ExplicitTypeName explicitTypeName, Func<int, IBox<MemberDefinition>, Member> make)
@@ -121,6 +121,12 @@ namespace Tac.Semantic_Model
         {
             memberDef.Fill(new MemberDefinition(isReadonly, new ExplicitMemberName(memberName), new ScopeStack(context.Tree, scope).GetType(explicitTypeName)));
             return make(0, memberDef);
+        }
+
+
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return context.Tree.Root.GetTypeOrThrow(RootScope.MemberType.Key);
         }
 
     }

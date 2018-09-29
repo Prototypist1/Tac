@@ -92,7 +92,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return new ScopeStack(context.Tree, Scope).GetType(RootScope.BlockType);
+            return context.Tree.Root.GetTypeOrThrow(RootScope.BlockType.Key);
         }
     }
 }

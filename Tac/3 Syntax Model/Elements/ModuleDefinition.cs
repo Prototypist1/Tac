@@ -104,6 +104,12 @@ namespace Tac.Semantic_Model
             var nextContext = context.Child(this, scope);
             return make(scope, resolveReferance.Select(x => x.Run(nextContext)).ToArray());
         }
+
+
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return context.Tree.Root.GetTypeOrThrow(RootScope.ModuleType.Key);
+        }
     }
 
 }

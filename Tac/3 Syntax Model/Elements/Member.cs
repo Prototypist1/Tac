@@ -100,9 +100,15 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return context.Tree.Root.GetTypeOrThrow(RootScope.MemberType.Key);
+        }
+
         public Member Run(IResolveReferanceContext context)
         {
             return make(depth, memberDef);
         }
     }
+
 }

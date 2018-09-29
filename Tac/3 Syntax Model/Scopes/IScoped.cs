@@ -75,22 +75,21 @@ namespace Tac.Semantic_Model
 
         public ScopeTree ScopeTree { get; }
         public IScope TopScope { get; }
-
-        public IBox<GenericTypeDefinition> GetGenericType(GenericExplicitTypeName type)
-        {
-
-            foreach (var scope in ScopeTree.Scopes(TopScope))
-            {
-                if (scope.TryGetGenericType(type.Key, type.Types, out var typeDefinition))
-                {
-                    return typeDefinition;
-                }
-            }
-            throw new Exception("");
-        }
-
+        
         public IBox<ITypeDefinition> GetType(ExplicitTypeName name)
         {
+            if (name is GenericExplicitTypeName type) {
+                var types = type.Types.Select(x => GetType(x)).ToArray();
+
+                foreach (var scope in ScopeTree.Scopes(TopScope))
+                {
+                    if (scope.TryGetGenericType(type.Key, types, out var typeDefinition))
+                    {
+                        return typeDefinition;
+                    }
+                }
+            }
+
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
                 if (scope.TryGetType(name.Key, out var typeDefinition))
@@ -102,7 +101,7 @@ namespace Tac.Semantic_Model
 
         }
 
-        public bool TryGetMemberPath(  ExplicitMemberName name, out int depth, out IBox<MemberDefinition> box)
+        public bool TryGetMemberPath(ExplicitMemberName name, out int depth, out IBox<MemberDefinition> box)
         {
             var up = 0;
             foreach (var scope in ScopeTree.Scopes(TopScope))

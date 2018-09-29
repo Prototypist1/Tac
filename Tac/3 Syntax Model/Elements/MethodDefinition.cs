@@ -9,7 +9,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class MethodDefinition : AbstractBlockDefinition,  ITypeDefinition
+    public class MethodDefinition : AbstractBlockDefinition, ITypeDefinition
     {
         public MethodDefinition(ITypeDefinition outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model
 
         public override IBox<ITypeDefinition> ReturnType(ScopeTree scopes)
         {
-            return new ScopeStack(scopes,Scope).GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name, InputType, OutputType));
+            return new ScopeStack(scopes, Scope).GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name, InputType, OutputType));
         }
 
         public IBox<ITypeDefinition> GetTypeDefinition(ScopeTree scopes)
@@ -66,7 +66,7 @@ namespace Tac.Semantic_Model
 
                 var newMatchingContext = matchingContext.Child(methodScope);
                 var elements = newMatchingContext.ParseBlock(body);
-                
+
                 var parameterDefinition = ElementBuilders.MemberDefinition.Make(
                         false,
                         new ExplicitMemberName(parameterName?.Item ?? "input"),
@@ -75,7 +75,7 @@ namespace Tac.Semantic_Model
 
                 var outputTypeName = new ExplicitTypeName(outputType.Item);
 
-                result = new MethodDefinitionPopulateScope( parameterDefinition, methodScope, elements, outputTypeName,Make);
+                result = new MethodDefinitionPopulateScope(parameterDefinition, methodScope, elements, outputTypeName, Make);
                 return true;
             }
 
@@ -88,13 +88,13 @@ namespace Tac.Semantic_Model
 
     public class MethodDefinitionPopulateScope : IPopulateScope<MethodDefinition>
     {
-        private readonly IPopulateScope<MemberDefinition> parameterDefinition;
+        private readonly MemberDefinitionPopulateScope parameterDefinition;
         private readonly MethodScope methodScope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly ExplicitTypeName outputTypeName;
         private readonly Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make;
 
-        public MethodDefinitionPopulateScope(IPopulateScope<MemberDefinition> parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make)
+        public MethodDefinitionPopulateScope(MemberDefinitionPopulateScope parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make)
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
@@ -117,20 +117,26 @@ namespace Tac.Semantic_Model
 
     public class MethodDefinitionResolveReferance : IResolveReferance<MethodDefinition>
     {
-        private readonly IResolveReferance<MemberDefinition> parameter;
+        private readonly MemberDefinitionResolveReferance parameter;
         private readonly MethodScope methodScope;
         private readonly IResolveReferance<ICodeElement>[] lines;
         private readonly ExplicitTypeName outputTypeName;
         private readonly Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make;
 
-        public MethodDefinitionResolveReferance(IResolveReferance<MemberDefinition> resolveReferance1, MethodScope methodScope, IResolveReferance<ICodeElement>[] resolveReferance2, ExplicitTypeName outputTypeName, Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make)
+        public MethodDefinitionResolveReferance(MemberDefinitionResolveReferance parameter, MethodScope methodScope, IResolveReferance<ICodeElement>[] resolveReferance2, ExplicitTypeName outputTypeName, Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make)
         {
-            this.parameter = resolveReferance1;
+            this.parameter = parameter;
             this.methodScope = methodScope;
-            this.lines = resolveReferance2;
+            lines = resolveReferance2;
             this.outputTypeName = outputTypeName;
             this.make = make;
         }
+
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return new ScopeStack(context.Tree, methodScope).GetType(new GenericExplicitTypeName(RootScope.ImplementationType, parameter.explicitTypeName, outputTypeName));
+        }
+
 
         public MethodDefinition Run(IResolveReferanceContext context)
         {
