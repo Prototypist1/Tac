@@ -28,25 +28,20 @@ namespace Tac.Semantic_Model.Operations
             make = Make ?? throw new ArgumentNullException(nameof(Make));
         }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<ConstantNumber> result)
+        public IResult<IPopulateScope<ConstantNumber>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsNumber, out double dub)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                result = new ConstantNumberPopulateScope(dub, make);
-
-                return true;
+                return ResultExtension.Good(new ConstantNumberPopulateScope(dub, make));
             }
-
-            result = default;
-            return false;
+            
+            return ResultExtension.Bad<IPopulateScope<ConstantNumber>>();
         }
-
     }
-
-
+    
     public class ConstantNumberPopulateScope : IPopulateScope<ConstantNumber>
     {
         private readonly double dub;

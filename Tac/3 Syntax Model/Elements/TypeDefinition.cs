@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<TypeDefinition> result)
+        public IResult<IPopulateScope<TypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                             .Has(ElementMatcher.KeyWord("type"), out var _)
@@ -79,21 +79,13 @@ namespace Tac.Semantic_Model
 
                 if (typeName != default)
                 {
-                    result = new TypeDefinitionPopulateScope(scope, elements, typeName,(s) => MakeWithName(s, typeName.Item));
+                    return ResultExtension.Good(new TypeDefinitionPopulateScope(scope, elements, typeName,(s) => MakeWithName(s, typeName.Item)));
                 }
-                else
-                {
-                    result = new TypeDefinitionPopulateScope(scope, elements, typeName, (s) => MakeWithName(s, typeName.Item));
-                }
+                    return ResultExtension.Good(new TypeDefinitionPopulateScope(scope, elements, typeName, (s) => MakeWithName(s, typeName.Item)));
 
-                return true;
             }
-
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<TypeDefinition>>(); ;
         }
-
-        
     }
     
     public class TypeDefinitionPopulateScope : IPopulateScope<TypeDefinition>

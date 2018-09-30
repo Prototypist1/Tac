@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class AddOperationMaker : BinaryOperationMaker<AddOperation>
     {
-        public AddOperationMaker(Func<ICodeElement, ICodeElement, AddOperation> make, IElementBuilders elementBuilders) : base("+", make, elementBuilders)
+        public AddOperationMaker(Func<ICodeElement, ICodeElement, AddOperation> make) : base("+", make)
         {
         }
     }

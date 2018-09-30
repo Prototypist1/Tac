@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
     public class GenericBox : IBox<ITypeDefinition>
     {
         private IBox<GenericTypeDefinition> definition;
-        private IEnumerable<IBox<ITypeDefinition>> genericTypeParameters;
+        private readonly IEnumerable<IBox<ITypeDefinition>> genericTypeParameters;
 
         public GenericBox(IBox<GenericTypeDefinition> definition, IEnumerable<IBox<ITypeDefinition>> genericTypeParameters)
         {

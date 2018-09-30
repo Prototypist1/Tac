@@ -42,7 +42,7 @@ namespace Tac.Semantic_Model
 
         private Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> Make { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<ModuleDefinition> result)
+        public IResult<IPopulateScope<ModuleDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                             .Has(ElementMatcher.KeyWord("module"), out var frist)
@@ -55,13 +55,11 @@ namespace Tac.Semantic_Model
 
                 var elementMatchingContext = matchingContext.Child(scope);
                 var elements = elementMatchingContext.ParseBlock(third);
-
-                result = new ModuleDefinitionPopulateScope(scope, elements,Make);
-                return true;
+                
+                return ResultExtension.Good(new ModuleDefinitionPopulateScope(scope, elements, Make));
 
             }
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<ModuleDefinition>>();
         }
     }
     

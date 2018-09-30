@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
 
-    public class MemberDefinition 
+    public class MemberDefinition
     {
         public MemberDefinition(bool readOnly, ExplicitMemberName key, IBox<ITypeDefinition> type)
         {
@@ -27,13 +27,13 @@ namespace Tac.Semantic_Model
         public IBox<ITypeDefinition> Type { get; }
         public bool ReadOnly { get; }
         public ExplicitMemberName Key { get; }
-        
+
         public MemberDefinition GetMemberDefinition(ScopeStack scopeStack)
         {
             return this;
         }
     }
-    
+
     public class MemberDefinitionMaker : IMaker<Member>
     {
         public MemberDefinitionMaker(Func<int, IBox<MemberDefinition>, Member> make,
@@ -46,7 +46,7 @@ namespace Tac.Semantic_Model
         private Func<int, IBox<MemberDefinition>, Member> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<Member> result)
+        public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
@@ -55,14 +55,9 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-
-                
-                result = new MemberDefinitionPopulateScope(matchingContext.ScopeStack.TopScope, nameToken.Item, readonlyToken != default, typeToken,Make);
-                return true;
+                return ResultExtension.Good(new MemberDefinitionPopulateScope(matchingContext.ScopeStack.TopScope, nameToken.Item, readonlyToken != default, typeToken, Make));
             }
-
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<Member>>();
         }
 
     }
@@ -78,10 +73,10 @@ namespace Tac.Semantic_Model
 
         public MemberDefinitionPopulateScope(IScope topScope, string item, bool v, ExplicitTypeName typeToken, Func<int, IBox<MemberDefinition>, Member> make)
         {
-            this.scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
-            this.memberName = item ?? throw new ArgumentNullException(nameof(item));
-            this.isReadonly = v;
-            this.explicitTypeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
+            scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+            memberName = item ?? throw new ArgumentNullException(nameof(item));
+            isReadonly = v;
+            explicitTypeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 

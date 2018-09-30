@@ -11,9 +11,9 @@ namespace Tac.Semantic_Model.CodeStuff
         ICodeElement[] Operands { get; }
     }
 
-    public abstract class BinaryOperation<TLeft,TRight>: ICodeElement , IOperation
-        where TLeft: class, ICodeElement
-        where TRight: class, ICodeElement
+    public abstract class BinaryOperation<TLeft, TRight> : ICodeElement, IOperation
+        where TLeft : class, ICodeElement
+        where TRight : class, ICodeElement
     {
         public readonly TLeft left;
         public readonly TRight right;
@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
     public class BinaryOperationMaker<T> : IOperationMaker<T>
-        where T: class, ICodeElement
+        where T : class, ICodeElement
     {
         public BinaryOperationMaker(string name, Func<ICodeElement, ICodeElement, T> make
             )
@@ -48,27 +48,25 @@ namespace Tac.Semantic_Model.CodeStuff
         public string Name { get; }
         private Func<ICodeElement, ICodeElement, T> Make { get; }
 
-        public bool TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out IPopulateScope<T> result)
+        public IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
             .Has(ElementMatcher.IsBinaryOperation(Name), out var perface, out var token, out var rhs)
             .IsMatch)
             {
-                IPopulateScope<ICodeElement> left = matchingContext.ParseLine(perface);
-                IPopulateScope<ICodeElement> right = matchingContext.ParseParenthesisOrElement(rhs);
+                var left = matchingContext.ParseLine(perface);
+                var right = matchingContext.ParseParenthesisOrElement(rhs);
 
-                result = new BinaryPopulateScope<T>(left,right, Make);
-                return true;
+                return ResultExtension.Good(new BinaryPopulateScope<T>(left, right, Make));
             }
 
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<T>>();
         }
 
     }
 
 
-    public class BinaryPopulateScope<T> : IPopulateScope<T> 
+    public class BinaryPopulateScope<T> : IPopulateScope<T>
         where T : ICodeElement
     {
         private readonly IPopulateScope<ICodeElement> left;
@@ -91,8 +89,8 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
 
-    public class BinaryResolveReferance<T> : IResolveReferance<T> 
-        where T: ICodeElement
+    public class BinaryResolveReferance<T> : IResolveReferance<T>
+        where T : ICodeElement
     {
         public readonly IResolveReferance<ICodeElement> left;
         public readonly IResolveReferance<ICodeElement> right;
@@ -101,8 +99,8 @@ namespace Tac.Semantic_Model.CodeStuff
 
         public BinaryResolveReferance(IResolveReferance<ICodeElement> resolveReferance1, IResolveReferance<ICodeElement> resolveReferance2, Func<ICodeElement, ICodeElement, T> make)
         {
-            this.left = resolveReferance1;
-            this.right = resolveReferance2;
+            left = resolveReferance1;
+            right = resolveReferance2;
             this.make = make;
         }
 

@@ -68,7 +68,7 @@ namespace Tac.Semantic_Model
         private Func<MemberDefinition,  MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<ImplementationDefinition> result)
+        public IResult<IPopulateScope<ImplementationDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("implementation"), out var _)
@@ -100,12 +100,11 @@ namespace Tac.Semantic_Model
 
                 var outputTypeName= new ExplicitTypeName(outputType.Item);
 
-                result = new PopulateScopeImplementationDefinition(contextDefinition, parameterDefinition, methodScope, elements, outputTypeName,Make);
-                return true;
+                return ResultExtension.Good(new PopulateScopeImplementationDefinition(contextDefinition, parameterDefinition, methodScope, elements, outputTypeName,Make));
             }
 
-            result = default;
-            return false;
+
+            return ResultExtension.Bad<IPopulateScope<ImplementationDefinition>>();
         }
     }
 
@@ -156,7 +155,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return new ScopeStack(context.Tree, methodScope).GetType(new GenericExplicitTypeName(RootScope.ImplementationType, contextDefinition.explicitTypeName, parameterDefinition.explicitTypeName, outputTypeName));
+            return  new ScopeStack(context.Tree, methodScope).GetType(new GenericExplicitTypeName(RootScope.ImplementationType, contextDefinition.explicitTypeName, parameterDefinition.explicitTypeName, outputTypeName));
         }
 
         public ImplementationDefinition Run(IResolveReferanceContext context)

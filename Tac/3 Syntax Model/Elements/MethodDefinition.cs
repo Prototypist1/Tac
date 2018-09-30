@@ -51,7 +51,7 @@ namespace Tac.Semantic_Model
         private Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<MethodDefinition> result)
+        public IResult<IPopulateScope<MethodDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("implementation"), out var _)
@@ -74,13 +74,11 @@ namespace Tac.Semantic_Model
                         );
 
                 var outputTypeName = new ExplicitTypeName(outputType.Item);
-
-                result = new MethodDefinitionPopulateScope(parameterDefinition, methodScope, elements, outputTypeName, Make);
-                return true;
+                
+                return ResultExtension.Good(new MethodDefinitionPopulateScope(parameterDefinition, methodScope, elements, outputTypeName, Make));
             }
 
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<MethodDefinition>>();
         }
 
     }

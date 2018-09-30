@@ -45,8 +45,8 @@ namespace Tac.Semantic_Model
             var visiblity = new Visiblity<IBox<ITypeDefinition>>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
-        
-        protected bool TryAddGeneric(DefintionLifetime defintionLifetime,IKey key, IBox<GenericTypeDefinition> definition)
+
+        protected bool TryAddGeneric(DefintionLifetime defintionLifetime, IKey key, IBox<GenericTypeDefinition> definition)
         {
             var list = genericTypes.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>());
             var visiblity = new Visiblity<IBox<GenericTypeDefinition>>(defintionLifetime, definition);
@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model
 
 
         private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>>();
-        
+
         private class RealizedGenericKey
         {
             public RealizedGenericKey(IEnumerable<IBox<ITypeDefinition>> boxes, IKey key)
@@ -75,8 +75,7 @@ namespace Tac.Semantic_Model
 
             public override bool Equals(object obj)
             {
-                var key = obj as RealizedGenericKey;
-                return key != null &&
+                return obj is RealizedGenericKey key &&
                        Boxes.SequenceEqual(key.Boxes) &&
                        EqualityComparer<IKey>.Default.Equals(Key, key.Key);
             }
@@ -84,12 +83,12 @@ namespace Tac.Semantic_Model
             public override int GetHashCode()
             {
                 var hashCode = -1506854802;
-                hashCode = (hashCode * -1521134295) + Boxes.Sum(x=>x.GetHashCode());
+                hashCode = (hashCode * -1521134295) + Boxes.Sum(x => x.GetHashCode());
                 hashCode = (hashCode * -1521134295) + EqualityComparer<IKey>.Default.GetHashCode(Key);
                 return hashCode;
             }
         }
-        
+
         private readonly ConcurrentDictionary<RealizedGenericKey, Visiblity<IBox<ITypeDefinition>>> realizedGenericTypes = new ConcurrentDictionary<RealizedGenericKey, Visiblity<IBox<ITypeDefinition>>>();
 
         public IReadOnlyList<IBox<MemberDefinition>> Members
@@ -100,15 +99,18 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member) {
-            if (!members.TryGetValue(name, out var items)) {
+        public bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member)
+        {
+            if (!members.TryGetValue(name, out var items))
+            {
                 member = default;
                 return false;
             }
 
             var thing = items.SingleOrDefault();
 
-            if (thing == default) {
+            if (thing == default)
+            {
                 member = default;
                 return false;
             }
@@ -135,7 +137,7 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
-            var concrete = new GenericBox(thing.Definition,genericTypeParameters); 
+            var concrete = new GenericBox(thing.Definition, genericTypeParameters);
 
             var fallback = new Visiblity<IBox<ITypeDefinition>>(DefintionLifetime.Static, concrete);
             typeDefinition = realizedGenericTypes.GetOrAdd(key, fallback).Definition;

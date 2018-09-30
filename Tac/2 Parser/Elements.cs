@@ -29,27 +29,65 @@ namespace Tac.Parser
 
     public interface IElementBuilders
     {
-        MemberDefinitionMaker MemberDefinition { get; }
+        Func<int, IBox<MemberDefinition>, Member> Member { get; }
         Func<string, ExplicitMemberName> ExplicitMemberName { get; }
         Func<string, ExplicitTypeName> ExplicitTypeName { get; }
         Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; }
-        Func<ObjectScope, IReadOnlyList<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
-        Func<StaticScope, IReadOnlyList<AssignOperation>, ModuleDefinition> ModuleDefinition { get; }
-        Func<ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], MethodDefinition> MethodDefinition { get; }
-        Func<ObjectScope, TypeDefinition> TypeDefinition { get; }
-        Func<NameKey, ObjectScope, NamedTypeDefinition> NamedTypeDefinition { get; }
+        Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
+        Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> ModuleDefinition { get; }
+        Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> MethodDefinition { get; }
+        Func<IScope, TypeDefinition> TypeDefinition { get; }
+        Func<IScope, string, NamedTypeDefinition> NamedTypeDefinition { get; }
         Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; }
-        Func<MemberDefinition, ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], ImplementationDefinition> ImplementationDefinition { get; }
-        Func<ICodeElement[], LocalStaticScope, ICodeElement[], BlockDefinition> BlockDefinition { get; }
+        Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> ImplementationDefinition { get; }
+        Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> BlockDefinition { get; }
         Func<double, ConstantNumber> ConstantNumber { get; }
         Func<int, MemberDefinition, Member> MemberPath { get; }
+        Func<IBox<MemberDefinition>, PathPart> PathPart { get; }
     }
 
     public class ElementMatchingContext
     {
 
+
+        internal ElementMatchingContext Child(ObjectScope scope)
+        {
+        }
+
+
+        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) {
+            OperationMatchers = new IOperationMaker<ICodeElement>[] {
+                new AddOperationMaker(operationBuilder.AddOperation),
+                new SubtractOperationMaker(operationBuilder.SubtractOperation),
+                new MultiplyOperationMaker(operationBuilder.MultiplyOperation),
+                new IfTrueOperationMaker(operationBuilder.IfTrueOperation),
+                new ElseOperationMaker(operationBuilder.ElseOperation),
+                new LessThanOperationMaker(operationBuilder.LessThanOperation),
+                new NextCallOperationMaker(operationBuilder.NextCallOperation),
+                new AssignOperationMaker(operationBuilder.AssignOperation),
+                new PathOperationMaker(operationBuilder.PathOperation),
+                new ReturnOperationMaker(operationBuilder.ReturnOperation)
+            };
+            ElementMakers = new IMaker<ICodeElement>[] {
+                new BlockDefinitionMaker(builders.BlockDefinition),
+                new ConstantNumberMaker(builders.ConstantNumber),
+                new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
+                new ImplicitMemberMaker(builders.Member),
+                new ImplementationDefinitionMaker(builders.ImplementationDefinition,builders),
+                new MemberMaker(builders.Member,builders),
+                new MemberDefinitionMaker(builders.Member,builders),
+                new MethodDefinitionMaker(builders.MethodDefinition,builders),
+                new ModuleDefinitionMaker(builders.ModuleDefinition),
+                new ObjectDefinitionMaker(builders.ObjectDefinition),
+                new PathPartMaker(builders.PathPart,builders),
+                new TypeDefinitionMaker(builders.TypeDefinition,builders.NamedTypeDefinition),
+            };
+        }
+
         private readonly IMaker<ICodeElement>[] ElementMakers;
         private readonly IOperationMaker<ICodeElement>[] OperationMatchers;
+
+        public ScopeStack ScopeStack { get;  }
 
         #region Parse
 
@@ -65,7 +103,7 @@ namespace Tac.Parser
 
                 foreach (var tryMatch in ElementMakers)
                 {
-                    if (tryMatch.TryMake(elementToken, this, out var obj))
+                    if (tryMatch.TryMake(elementToken, this).TryGetValue(out var obj))
                     {
                         return obj;
                     }
@@ -83,7 +121,7 @@ namespace Tac.Parser
         {
             foreach (var operationMatcher in OperationMatchers)
             {
-                if (operationMatcher.TryMake(tokens, this, out var obj))
+                if (operationMatcher.TryMake(tokens, this).TryGetValue(out var obj))
                 {
                     return obj;
                 }
@@ -115,7 +153,7 @@ namespace Tac.Parser
         }
 
         #endregion
-        
+
     }
 
     public class TokenMatching

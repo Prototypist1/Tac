@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model.Operations
     
     public class SubtractOperationMaker : BinaryOperationMaker<SubtractOperation>
     {
-        public SubtractOperationMaker(Func<ICodeElement, ICodeElement, SubtractOperation> make, IElementBuilders elementBuilders) : base("-", make, elementBuilders)
+        public SubtractOperationMaker(Func<ICodeElement, ICodeElement, SubtractOperation> make) : base("-", make)
         {
         }
     }

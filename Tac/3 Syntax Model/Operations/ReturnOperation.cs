@@ -34,46 +34,69 @@ namespace Tac.Semantic_Model.Operations
         public string Name { get; }
         private Func<ICodeElement, T> Make { get; }
 
-        public bool TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out Steps.PopulateScope<T> result)
+        public IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
             .Has(ElementMatcher.IsTrailingOperation(Name), out var perface, out var _)
             .IsMatch)
             {
-                Steps.PopulateScope<ICodeElement> left = matchingContext.ParseLine(perface);
-
-                result = PopulateScope(left);
-                return true;
+                var left = matchingContext.ParseLine(perface);
+                
+                return ResultExtension.Good(new TrailingPopulateScope<T>(left,Make));
             }
+            return ResultExtension.Bad<IPopulateScope<T>>();
+        }
+        
+    }
 
-            result = default;
-            return false;
+    public class TrailingPopulateScope<T> : IPopulateScope<T>
+        where T : ICodeElement
+    {
+        private readonly IPopulateScope<ICodeElement> left;
+        private readonly Func<ICodeElement, T> make;
+
+        public TrailingPopulateScope(IPopulateScope<ICodeElement> left, Func<ICodeElement, T> make)
+        {
+            this.left = left ?? throw new ArgumentNullException(nameof(left));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Steps.PopulateScope<T> PopulateScope(Steps.PopulateScope<ICodeElement> left)
+        public IResolveReferance<T> Run(IPopulateScopeContext context)
         {
-            return (tree) =>
-            {
-                return DetermineInferedTypes(left(tree));
-            };
-        }
-
-        private Steps.DetermineInferedTypes<T> DetermineInferedTypes(Steps.DetermineInferedTypes<ICodeElement> left)
-        {
-            return () =>
-            {
-                return ResolveReferance(left());
-            };
-        }
-
-        private Steps.ResolveReferance<T> ResolveReferance(Steps.ResolveReferance<ICodeElement> left)
-        {
-            return (tree) =>
-            {
-                return Make(left(tree));
-            };
+            var nextContext = context.Child(this);
+            return new BinaryResolveReferance<T>(left.Run(nextContext),  make);
         }
     }
+
+
+
+    public class BinaryResolveReferance<T> : IResolveReferance<T>
+        where T : ICodeElement
+    {
+        public readonly IResolveReferance<ICodeElement> left;
+        private readonly Func<ICodeElement, T> make;
+        private readonly FollowBox<ITypeDefinition> followBox = new FollowBox<ITypeDefinition>();
+
+        public BinaryResolveReferance(IResolveReferance<ICodeElement> resolveReferance1,  Func<ICodeElement, T> make)
+        {
+            left = resolveReferance1;
+            this.make = make;
+        }
+
+        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        {
+            return followBox;
+        }
+
+        public T Run(IResolveReferanceContext context)
+        {
+            var nextContext = context.Child(this);
+            var res = make(left.Run(nextContext));
+            followBox.Follow(res.ReturnType(context.Tree));
+            return res;
+        }
+    }
+
 
     public class ReturnOperationMaker : TrailingOperationMaker<ReturnOperation>
     {

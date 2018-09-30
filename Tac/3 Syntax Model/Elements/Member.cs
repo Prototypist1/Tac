@@ -38,20 +38,16 @@ namespace Tac.Semantic_Model
         private Func<int, IBox<MemberDefinition>, Member> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<Member> result)
+        public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-
-                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope.Cast<LocalStaticScope>(), first.Item, Make);
-                return true;
+                return ResultExtension.Good(new MemberPopulateScope(matchingContext.ScopeStack.TopScope.Cast<LocalStaticScope>(), first.Item, Make)); ;
             }
-
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<Member>>();
         }
     }
     
@@ -70,10 +66,8 @@ namespace Tac.Semantic_Model
 
         public IResolveReferance<Member> Run(IPopulateScopeContext context)
         {
-            int depth;
-            IBox<MemberDefinition> memberDef;
             var scopeStack = new ScopeStack(context.Tree, topScope);
-            if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out depth, out memberDef))
+            if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out var depth, out var memberDef))
             {
                 memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
                 if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))

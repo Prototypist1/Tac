@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
-        
+
         public IBox<MemberDefinition> MemberDefinition { get; }
 
         public IBox<ITypeDefinition> ReturnType(ScopeStack scope)
@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model
             return MemberDefinition.ReturnType(scope);
         }
     }
-    
+
     public class PathPartMaker : IMaker<PathPart>
     {
         public PathPartMaker(Func<IBox<MemberDefinition>, PathPart> make,
@@ -34,23 +34,20 @@ namespace Tac.Semantic_Model
         private Func<IBox<MemberDefinition>, PathPart> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<PathPart> result)
+        public IResult<IPopulateScope<PathPart>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-
-                result = new PathPartPopulateScope(matchingContext.ScopeStack.TopScope, first.Item, Make);
-                return true;
+                return ResultExtension.Good(new PathPartPopulateScope(matchingContext.ScopeStack.TopScope, first.Item, Make));
             }
 
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<PathPart>>();
         }
     }
-    
+
     public class PathPartPopulateScope : IPopulateScope<PathPart>
     {
         private readonly IScope scope;
@@ -59,15 +56,14 @@ namespace Tac.Semantic_Model
 
         public PathPartPopulateScope(IScope topScope, string item, Func<IBox<MemberDefinition>, PathPart> make)
         {
-            this.scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
-            this.memberName = item ?? throw new ArgumentNullException(nameof(item));
+            scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+            memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
         public IResolveReferance<PathPart> Run(IPopulateScopeContext context)
         {
-            IBox<MemberDefinition> memberDef;
-            if (!scope.TryGetMember(new NameKey(memberName), false, out memberDef))
+            if (!scope.TryGetMember(new NameKey(memberName), false, out var memberDef))
             {
                 throw new Exception("That is not right!");
             }
@@ -91,7 +87,7 @@ namespace Tac.Semantic_Model
         {
             return make(memberDef);
         }
-        
+
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
             return context.Tree.Root.GetTypeOrThrow(RootScope.PathPartType.Key);

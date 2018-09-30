@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class AssignOperationMaker : BinaryOperationMaker<AssignOperation>
     {
-        public AssignOperationMaker(Func<ICodeElement, ICodeElement, AssignOperation> make, IElementBuilders elementBuilders) : base(">", make, elementBuilders)
+        public AssignOperationMaker(Func<ICodeElement, ICodeElement, AssignOperation> make) : base(">", make)
         {
         }
     }

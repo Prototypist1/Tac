@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model.Operations
     
     public class MultiplyOperationMaker : BinaryOperationMaker<MultiplyOperation>
     {
-        public MultiplyOperationMaker(Func<ICodeElement, ICodeElement, MultiplyOperation> make, IElementBuilders elementBuilders) : base("*", make, elementBuilders)
+        public MultiplyOperationMaker(Func<ICodeElement, ICodeElement, MultiplyOperation> make) : base("*", make)
         {
         }
     }

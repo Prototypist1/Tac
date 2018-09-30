@@ -7,16 +7,62 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.New
 {
-    public interface IMaker<T>
-        where T : ICodeElement
+
+    public static class ResultExtension{
+        public static bool TryGetValue<T>(this IResult<T> self, out T res) {
+            if (self.HasValue) {
+                res = self.Value;
+                return true;
+
+            }
+            res = default;
+            return false;
+        }
+
+
+        public static Result<T> Good<T>(T value)
+        {
+            return new Result<T>(true, value);
+        }
+
+        public static Result<T> Bad<T>()
+        {
+            return new Result<T>(false, default);
+        }
+    }
+    
+    public interface IResult<out T>
     {
-        bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<T> result);
+        bool HasValue { get; }
+        T Value { get; }
     }
 
-    public interface IOperationMaker<T>
+    
+
+    public class Result<T> : IResult<T>
+    {
+        public Result(bool hasResult, T value)
+        {
+            HasValue = hasResult;
+            Value = value;
+        }
+
+        public bool HasValue { get;}
+        public T Value {get;}
+
+    }
+
+
+    public interface IMaker<out T>
+        where T : ICodeElement
+    {
+        IResult<IPopulateScope<T>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext);
+    }
+
+    public interface IOperationMaker<out T>
     where T : ICodeElement
     {
-        bool TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext, out IPopulateScope<T> result);
+        IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
     }
 
     public interface IPipelineContext<T,TSelf>

@@ -35,7 +35,7 @@ namespace Tac.Semantic_Model
 
         private Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> Make { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<ObjectDefinition> result)
+        public IResult<IPopulateScope<ObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                            .Has(ElementMatcher.KeyWord("object"), out var keyword)
@@ -47,13 +47,10 @@ namespace Tac.Semantic_Model
 
                 var elementMatchingContext = matchingContext.Child(scope);
                 var elements = elementMatchingContext.ParseBlock(block);
-
-                result = new ObjectDefinitionPopulateScope(scope, elements, Make);
-
-                return true;
+                
+                return ResultExtension.Good(new ObjectDefinitionPopulateScope(scope, elements, Make));
             }
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<ObjectDefinition>>();
         }
         
     }

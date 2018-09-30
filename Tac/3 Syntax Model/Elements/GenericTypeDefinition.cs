@@ -99,7 +99,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<GenericTypeDefinition> result)
+        public IResult<IPopulateScope<GenericTypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
@@ -115,20 +115,17 @@ namespace Tac.Semantic_Model
                 var elements = elementMatchingContext.ParseBlock(body);
 
                 var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();
-                
-                result = new GenericTypeDefinitionPopulateScope(new NameKey(typeName.Item), elements, scope, genericParameters, make);
 
-                return true;
+                return ResultExtension.Good(new GenericTypeDefinitionPopulateScope(new NameKey(typeName.Item), elements, scope, genericParameters, make));
             }
 
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<GenericTypeDefinition>>();
         }
 
 
 
     }
-    
+
     public class GenericTypeDefinitionPopulateScope : IPopulateScope<GenericTypeDefinition>
     {
         private readonly NameKey nameKey;
@@ -163,10 +160,10 @@ namespace Tac.Semantic_Model
     public class GenericTypeDefinitionResolveReferance : IResolveReferance<GenericTypeDefinition>
     {
         private readonly NameKey nameKey;
-        private GenericTypeParameterDefinition[] genericParameters;
-        private ObjectScope scope;
-        private Box<ITypeDefinition> box;
-        private Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+        private readonly GenericTypeParameterDefinition[] genericParameters;
+        private readonly ObjectScope scope;
+        private readonly Box<ITypeDefinition> box;
+        private readonly Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
 
         public GenericTypeDefinitionResolveReferance(NameKey nameKey, GenericTypeParameterDefinition[] genericParameters, ObjectScope scope, Box<ITypeDefinition> box, Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {

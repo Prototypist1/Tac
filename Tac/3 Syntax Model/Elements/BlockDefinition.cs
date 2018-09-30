@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
 
         public override IBox<ITypeDefinition> ReturnType(ScopeTree scopes)
         {
-            return new ScopeStack(scopes,Scope).GetType(RootScope.EmptyType);
+            return new ScopeStack(scopes, Scope).GetType(RootScope.EmptyType);
         }
     }
 
@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
 
         private Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<BlockDefinition> result)
+        public IResult<IPopulateScope<BlockDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
@@ -39,13 +39,10 @@ namespace Tac.Semantic_Model
                 var innerMatchingContext = matchingContext.Child(scope);
                 var elements = innerMatchingContext.ParseBlock(body);
 
-                result = new BlockDefinitionPopulateScope(scope, elements,Make);
-
-                return true;
+                return ResultExtension.Good(new BlockDefinitionPopulateScope(scope, elements, Make));
             }
 
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<BlockDefinition>>();
         }
     }
 
@@ -78,9 +75,9 @@ namespace Tac.Semantic_Model
 
         public ResolveReferanceBlockDefinition(LocalStaticScope scope, IResolveReferance<ICodeElement>[] resolveReferance, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
         {
-            this.Scope = scope;
-            this.ResolveReferance = resolveReferance;
-            this.Make = make;
+            Scope = scope;
+            ResolveReferance = resolveReferance;
+            Make = make;
         }
 
         public BlockDefinition Run(IResolveReferanceContext context)

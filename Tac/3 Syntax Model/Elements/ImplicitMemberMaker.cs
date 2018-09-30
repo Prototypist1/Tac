@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model
 
         private Func<int, IBox<MemberDefinition>, Member> Make { get; }
 
-        public bool TryMake(ElementToken elementToken, ElementMatchingContext matchingContext, out IPopulateScope<Member> result)
+        public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("var"), out var _)
@@ -27,12 +27,10 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                result = new MemberPopulateScope(matchingContext.ScopeStack.TopScope.Cast<LocalStaticScope>(), first.Item, Make);
-                return true;
+                return ResultExtension.Good(new MemberPopulateScope(matchingContext.ScopeStack.TopScope.Cast<LocalStaticScope>(), first.Item, Make));
             }
 
-            result = default;
-            return false;
+            return ResultExtension.Bad<IPopulateScope<Member>>();
         }
 
     }
@@ -77,7 +75,7 @@ namespace Tac.Semantic_Model
 
         public ImplicitMemberResolveReferance(MemberDefinition innerType, Func<int, MemberDefinition, Member> make, FollowBox<ITypeDefinition> typeDef)
         {
-            this.memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
+            memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.typeDef = typeDef;
         }
