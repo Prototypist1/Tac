@@ -12,36 +12,19 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
-    public class Element
-    {
-        public Element(string expressed, ElementMatchingContext.OperationMatcher operationMatcher)
-        {
-            Expressed = expressed ?? throw new ArgumentNullException(nameof(expressed));
-            OperationMatcher = operationMatcher ?? throw new ArgumentNullException(nameof(operationMatcher));
-        }
-
-        public string Expressed { get; }
-        public ElementMatchingContext.OperationMatcher OperationMatcher { get; }
-
-        public static Element BinaryElement(string expressed, Func<ICodeElement, ICodeElement, ICodeElement> build)
-        {
-            return new Element(expressed, ElementMatchingContext.MatchBinary(expressed, build));
-        }
-    }
-
     public interface IOperationBuilder
     {
-        IReadOnlyList<Element> Operations { get; }
-        Element AddOperation { get; }
-        Element SubtractOperation { get; }
-        Element MultiplyOperation { get; }
-        Element IfTrueOperation { get; }
-        Element ElseOperation { get; }
-        Element LessThanOperation { get; }
-        Element NextCallOperation { get; }
-        Element AssignOperation { get; }
-        Element PathOperation { get; }
-        Element ReturnOperation { get; }
+        IReadOnlyList<Func<ICodeElement, ICodeElement, ICodeElement>> Operations { get; }
+        Func<ICodeElement, ICodeElement, AddOperation> AddOperation { get; }
+        Func<ICodeElement, ICodeElement, SubtractOperation> SubtractOperation { get; }
+        Func<ICodeElement, ICodeElement, MultiplyOperation> MultiplyOperation { get; }
+        Func<ICodeElement, ICodeElement, IfTrueOperation> IfTrueOperation { get; }
+        Func<ICodeElement, ICodeElement, ElseOperation> ElseOperation { get; }
+        Func<ICodeElement, ICodeElement, LessThanOperation> LessThanOperation { get; }
+        Func<ICodeElement, ICodeElement, NextCallOperation> NextCallOperation { get; }
+        Func<ICodeElement, ICodeElement, AssignOperation> AssignOperation { get; }
+        Func<ICodeElement, ICodeElement, PathOperation> PathOperation { get; }
+        Func<ICodeElement, ReturnOperation> ReturnOperation { get; }
     }
 
     public interface IElementBuilders
@@ -65,156 +48,12 @@ namespace Tac.Parser
     public class ElementMatchingContext
     {
 
-        public static ElementMatchingContext Root(ScopeTree tree, IElementBuilders elementBuilder, IOperationBuilder operationBuilder)
-        {
-            
-
-            return new ElementMatchingContext(new ScopeStack(tree, RootScope.Root), elementBuilder, NormalElementMatcher,
-                x =>
-                {
-                    if (!RootScope.Root.TryAddStaticMember(x))
-                    {
-                        throw new Exception();
-                    }
-                },
-                 x =>
-                 {
-                     if (!RootScope.Root.TryAddStaticType(x))
-                     {
-                         throw new Exception();
-                     }
-                 },
-                x =>
-                {
-                    if (!RootScope.Root.TryAddStaticGenericType(x))
-                    {
-                        throw new Exception();
-                    };
-                },
-                operationBuilder.Operations.Select(x => x.OperationMatcher).ToArray());
-
-        }
-
-        public ElementMatchingContext Child(IScope scope)
-        {
-            if (scope is LocalStaticScope lss)
-            {
-
-                return new ElementMatchingContext(new ScopeStack(ScopeStack, scope), ElementBuilder, NormalElementMatcher,
-                    x =>
-                    {
-                        if (!lss.TryAddLocal(x))
-                        {
-                            throw new Exception();
-                        }
-                    },
-                     x =>
-                     {
-                         if (!lss.TryAddStaticType(x))
-                         {
-                             throw new Exception();
-                         }
-                     },
-                    x =>
-                    {
-                        if (!lss.TryAddStaticGenericType(x))
-                        {
-                            throw new Exception();
-                        };
-                    },
-                    OperationMatchers);
-            }
-
-            if (scope is StaticScope ss)
-            {
-
-                return new ElementMatchingContext(new ScopeStack(ScopeStack, scope), ElementBuilder, ElementMatchers,
-                    x =>
-                    {
-                        throw new Exception();
-                    },
-                     x =>
-                     {
-                         if (!ss.TryAddStaticType(x))
-                         {
-                             throw new Exception();
-                         }
-                     },
-                    x =>
-                    {
-                        if (!ss.TryAddStaticGenericType(x))
-                        {
-                            throw new Exception();
-                        };
-                    },
-                    OperationMatchers);
-            }
-
-            throw new Exception();
-        }
-
-        private ElementMatchingContext VarMatcher(ITypeDefinition typeDefinition)
-        {
-            return new ElementMatchingContext(
-                ScopeStack,
-                ElementBuilder,
-                VarElementMatcher(typeDefinition),
-                AddMember,
-                AddType,
-                AddGenerticType,
-                OperationMatchers);
-        }
-
-        public ElementMatchingContext(
-            ScopeStack enclosingScope,
-            IElementBuilders elementBuilder,
-            IEnumerable<TryMatch> elementMatchers,
-            IEnumerable<OperationMatcher> operationMatchers
-            )
-        {
-            ScopeStack = enclosingScope ?? throw new ArgumentNullException(nameof(enclosingScope));
-            ElementBuilder = elementBuilder ?? throw new ArgumentNullException(nameof(elementBuilder));
-            ElementMatchers = elementMatchers ?? throw new ArgumentNullException(nameof(elementMatchers));
-            OperationMatchers = operationMatchers;
-        }
-        
-        public ScopeStack ScopeStack { get; }
-        public IEnumerable<TryMatch> ElementMatchers { get; }
-        
-        public static IEnumerable<TryMatch> NormalElementMatcher { get; } = new List<TryMatch> {
-                    MatchObjectDefinition,
-                    MatchGenericTypeDefinition,
-                    MatchTypeDefinition,
-                    MatchMemberDefinition,
-                    MatchMethodDefinition,
-                    MatchImplementationDefinition,
-                    MatchBlockDefinition,
-                    MatchConstantNumber,
-                    MatchReferance
-                };
-
-        public static IEnumerable<TryMatch> VarElementMatcher(ITypeDefinition typeDefinition)
-        {
-            return new List<TryMatch> {
-                    MatchObjectDefinition,
-                    MatchGenericTypeDefinition,
-                    MatchMemberDefinition,
-                    MatchTypeDefinition,
-                    MatchLocalDefinition_Var(typeDefinition),
-                    MatchMethodDefinition,
-                    MatchImplementationDefinition,
-                    MatchBlockDefinition,
-                    MatchConstantNumber,
-                    MatchReferance
-                };
-        }
-
-        public IEnumerable<OperationMatcher> OperationMatchers { get; }
-
+        private readonly IMaker<ICodeElement>[] ElementMakers;
+        private readonly IOperationMaker<ICodeElement>[] OperationMatchers;
 
         #region Parse
 
-        public ICodeElement ParseParenthesisOrElement(IToken token)
+        public IPopulateScope<ICodeElement> ParseParenthesisOrElement(IToken token)
         {
             if (token is ElementToken elementToken)
             {
@@ -224,9 +63,9 @@ namespace Tac.Parser
                     return ParseLine(parenthesisToken.Tokens);
                 }
 
-                foreach (var tryMatch in ElementMatchers)
+                foreach (var tryMatch in ElementMakers)
                 {
-                    if (tryMatch(elementToken, this, out var obj))
+                    if (tryMatch.TryMake(elementToken, this, out var obj))
                     {
                         return obj;
                     }
@@ -240,11 +79,11 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public ICodeElement ParseLine(IEnumerable<IToken> tokens)
+        public IPopulateScope<ICodeElement> ParseLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in OperationMatchers)
             {
-                if (operationMatcher(tokens, this, out var obj))
+                if (operationMatcher.TryMake(tokens, this, out var obj))
                 {
                     return obj;
                 }
@@ -258,12 +97,12 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public ICodeElement[] ParseFile(FileToken file)
+        public IPopulateScope<ICodeElement>[] ParseFile(FileToken file)
         {
             return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
         }
 
-        public ICodeElement[] ParseBlock(CurleyBacketToken block)
+        public IPopulateScope<ICodeElement>[] ParseBlock(CurleyBacketToken block)
         {
             return block.Tokens.Select(x =>
             {
@@ -276,149 +115,7 @@ namespace Tac.Parser
         }
 
         #endregion
-
-        public delegate bool TryMatch(ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element);
-
-        public static TryMatch MatchLocalDefinition_Var(ITypeDefinition typeDefinition)
-        {
-            return (ElementToken elementToken, ElementMatchingContext matchingContext, out ICodeElement element) =>
-            {
-                if (TokenMatching.Start(elementToken.Tokens)
-                .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
-                .Has(ElementMatcher.KeyWord("var"), out var _)
-                .Has(ElementMatcher.IsName, out AtomicToken nameToken)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
-                {
-
-                    var readOnly = readonlyToken != default;
-
-                    var memberDefinition = matchingContext.ElementBuilder.MemberDefinition(readOnly, new ExplicitMemberName(nameToken.Item), typeDefinition);
-
-                    matchingContext.AddMember(memberDefinition);
-
-                    element = memberDefinition;
-
-                    return true;
-                }
-
-                element = default;
-                return false;
-            };
-        }
         
-        public delegate bool OperationMatcher(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result);
-
-        public static OperationMatcher MatchBinary(string name, Func<ICodeElement, ICodeElement, ICodeElement> builder)
-        {
-            return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
-{
-    if (TokenMatching.Start(tokens)
-    .Has(ElementMatcher.IsBinaryOperation(name), out var perface, out var token, out var rhs)
-    .IsMatch)
-    {
-        result = builder(matchingContext.ParseLine(perface), matchingContext.ParseParenthesisOrElement(rhs));
-        return true;
-    }
-
-    result = default;
-    return false;
-};
-        }
-
-        public static OperationMatcher MatchAssign(Func<ICodeElement, ICodeElement, AssignOperation> build)
-        {
-
-            return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
-        {
-            if (TokenMatching.Start(tokens)
-                .Has(ElementMatcher.IsBinaryOperation("=:"), out var perface, out var token, out var rhs)
-                .IsMatch)
-            {
-                var left = matchingContext.ParseLine(perface);
-
-                var varMachtingContext = matchingContext.VarMatcher(left.ReturnType(matchingContext.ScopeStack));
-
-                var right = matchingContext.ParseParenthesisOrElement(rhs);
-
-                result = build(left, right);
-                return true;
-            }
-
-            result = default;
-            return false;
-        };
-        }
-
-        public static OperationMatcher MatchPath(Func<ICodeElement, MemberDefinition, PathOperation> build)
-        {
-
-            return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
-        {
-            if (TokenMatching.Start(tokens)
-                .Has(ElementMatcher.IsBinaryOperation("."), out var perface, out var token, out var rhs)
-                .IsMatch)
-            {
-
-                var left = matchingContext.ParseLine(perface);
-
-                if (TokenMatching.Start(rhs.ToArray())
-                        .Has(ElementMatcher.IsName, out AtomicToken first)
-                        .Has(ElementMatcher.IsDone)
-                        .IsMatch)
-                {
-                    if (GetScoped().Scope.TryGetMember(matchingContext.ElementBuilder.ExplicitMemberName(first.Item).Key, false, out var res)
-                        )
-                    {
-                        result = build(left, res);
-
-                        return true;
-                    }
-                    else
-                    {
-                        throw new Exception("well, that is not right either");
-                    }
-
-                    IScoped GetScoped()
-                    {
-                        if (left is IScoped scoped)
-                        {
-                            return scoped;
-                        }
-                        else
-                        if (left is Member memberPath && memberPath.ReturnType(matchingContext.ScopeStack) is IScoped lastScoped)
-                        {
-                            return lastScoped;
-                        }
-                        else
-                        {
-                            throw new Exception("well, that is not right");
-                        }
-                    }
-                }
-            }
-
-            result = default;
-            return false;
-        };
-        }
-
-        public static OperationMatcher MatchTrailing(string name, Func<ICodeElement, ICodeElement> builder)
-        {
-            return (IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out ICodeElement result) =>
-            {
-                if (TokenMatching.Start(tokens)
-                .Has(ElementMatcher.IsTrailingOperation(name), out var perface, out var token)
-                .IsMatch)
-                {
-                    result = builder(matchingContext.ParseLine(perface));
-                    return true;
-                }
-
-                result = default;
-                return false;
-            };
-        }
     }
 
     public class TokenMatching

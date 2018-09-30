@@ -38,17 +38,15 @@ namespace Tac.Semantic_Model.CodeStuff
     public class BinaryOperationMaker<T> : IOperationMaker<T>
         where T: class, ICodeElement
     {
-        public BinaryOperationMaker(string name, Func<ICodeElement, ICodeElement, T> make,
-            IElementBuilders elementBuilders)
+        public BinaryOperationMaker(string name, Func<ICodeElement, ICodeElement, T> make
+            )
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Make = make ?? throw new ArgumentNullException(nameof(make));
-            ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
         public string Name { get; }
         private Func<ICodeElement, ICodeElement, T> Make { get; }
-        private IElementBuilders ElementBuilders { get; }
 
         public bool TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext, out IPopulateScope<T> result)
         {
