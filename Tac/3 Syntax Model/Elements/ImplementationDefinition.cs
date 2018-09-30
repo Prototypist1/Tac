@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
 
     public class ImplementationDefinition: ITypeDefinition
     {
-        public ImplementationDefinition(MemberDefinition contextDefinition, ITypeDefinition outputType, MemberDefinition parameterDefinition, IEnumerable<ICodeElement> metohdBody, IScope scope, IEnumerable<ICodeElement> staticInitializers)
+        public ImplementationDefinition(MemberDefinition contextDefinition,  MemberDefinition parameterDefinition, IBox<ITypeDefinition> outputType, IEnumerable<ICodeElement> metohdBody, IScope scope, IEnumerable<ICodeElement> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -39,20 +39,23 @@ namespace Tac.Semantic_Model
                 return ParameterDefinition.Type;
             }
         }
-        public ITypeDefinition OutputType { get; }
+        public IBox<ITypeDefinition> OutputType { get; }
         public MemberDefinition ContextDefinition { get; }
         public MemberDefinition ParameterDefinition { get; }
         public IScope Scope { get; }
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
-        
-        public IBox<ITypeDefinition> ReturnType(ScopeStack scope) {
-                return scope.GetGenericType(new GenericExplicitTypeName(RootScope.ImplementationType.Name,new ITypeDefinition[] { ContextType, InputType, OutputType }));
+
+        public IKey Key
+        {
+            get
+            {
+                return new GenericNameKey(RootScope.ImplementationType, ContextDefinition.Type.GetValue().Key, ParameterDefinition.Type.GetValue().Key, OutputType.GetValue().Key);
+            }
         }
 
-        public IBox<ITypeDefinition> GetTypeDefinition(ScopeStack scopeStack)
-        {
-            return scopeStack.GetGenericType(new GenericExplicitTypeName(RootScope.ImplementationType.Name, new ITypeDefinition[] { ContextType, InputType, OutputType }));
+        public IBox<ITypeDefinition> ReturnType(ScopeTree scope) {
+            return new ScopeStack(scope, Scope).GetType(Key);
         }
     }
 
@@ -85,22 +88,24 @@ namespace Tac.Semantic_Model
                 var newMatchingContext = matchingContext.Child(methodScope);
                 var elements = newMatchingContext.ParseBlock(body);
 
+                var contextKey = new NameKey(parameterName?.Item ?? "context");
                 var contextDefinition = ElementBuilders.MemberDefinition.Make(
                         false,
-                        new ExplicitMemberName(parameterName?.Item ?? "context"),
-                        new ExplicitTypeName(contextType.Item)
+                        contextKey,
+                        new NameKey(contextType.Item)
                         );
-                
 
+
+                var parameterKey = new NameKey(parameterName?.Item ?? "input");
                 var parameterDefinition = ElementBuilders.MemberDefinition.Make(
                         false,
-                        new ExplicitMemberName(parameterName?.Item ?? "input"),
-                        new ExplicitTypeName(inputType.Item)
+                        parameterKey,
+                        new NameKey(inputType.Item)
                         );
 
-                var outputTypeName= new ExplicitTypeName(outputType.Item);
+                var outputTypeName= new NameKey(outputType.Item);
 
-                return ResultExtension.Good(new PopulateScopeImplementationDefinition(contextDefinition, parameterDefinition, methodScope, elements, outputTypeName,Make));
+                return ResultExtension.Good(new PopulateScopeImplementationDefinition(contextDefinition, parameterDefinition, methodScope, elements, outputTypeName,Make, parameterKey, contextKey));
             }
 
 
@@ -114,10 +119,12 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<MemberDefinition> parameterDefinition;
         private readonly MethodScope methodScope;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly ExplicitTypeName outputTypeName;
+        private readonly NameKey outputTypeName;
+        private readonly NameKey parameterKey;
+        private readonly NameKey contextKey;
         private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
 
-        public PopulateScopeImplementationDefinition(IPopulateScope<MemberDefinition> contextDefinition, IPopulateScope<MemberDefinition> parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
+        public PopulateScopeImplementationDefinition(IPopulateScope<MemberDefinition> contextDefinition, IPopulateScope<MemberDefinition> parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, NameKey outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make, NameKey parameterKey, NameKey contextKey)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -125,37 +132,43 @@ namespace Tac.Semantic_Model
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.parameterKey = parameterKey ?? throw new ArgumentNullException(nameof(parameterKey));
+            this.contextKey = contextKey ?? throw new ArgumentNullException(nameof(contextKey));
         }
 
         public IResolveReferance<ImplementationDefinition> Run(IPopulateScopeContext context)
         {
             var newContext = context.Child(this, methodScope);
-            return new ImplementationDefinitionResolveReferance(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), methodScope, elements.Select(x => x.Run(newContext)).ToArray(), outputTypeName, make);
+            return new ImplementationDefinitionResolveReferance(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), methodScope, elements.Select(x => x.Run(newContext)).ToArray(), outputTypeName, make,parameterKey,contextKey);
         }
 
     }
 
     public class ImplementationDefinitionResolveReferance : IResolveReferance<ImplementationDefinition>
     {
-        private readonly MemberDefinitionResolveReferance contextDefinition;
-        private readonly MemberDefinitionResolveReferance parameterDefinition;
+        private readonly IResolveReferance<MemberDefinition> contextDefinition;
+        private readonly IResolveReferance<MemberDefinition> parameterDefinition;
         private readonly MethodScope methodScope;
         private readonly IResolveReferance<ICodeElement>[] elements;
-        private readonly ExplicitTypeName outputTypeName;
+        private readonly NameKey outputTypeName;
+        private readonly NameKey parameterKey;
+        private readonly NameKey contextKey;
         private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
 
-        public ImplementationDefinitionResolveReferance(MemberDefinitionResolveReferance contextDefinition, MemberDefinitionResolveReferance parameterDefinition, MethodScope methodScope, IResolveReferance<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make)
+        public ImplementationDefinitionResolveReferance(IResolveReferance<MemberDefinition> contextDefinition, IResolveReferance<MemberDefinition> parameterDefinition, MethodScope methodScope, IResolveReferance<ICodeElement>[] elements, NameKey outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make, NameKey parameterKey, NameKey contextKey)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+            this.parameterKey = parameterKey ?? throw new ArgumentNullException(nameof(parameterKey));
+            this.contextKey = contextKey ?? throw new ArgumentNullException(nameof(contextKey));
         }
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return  new ScopeStack(context.Tree, methodScope).GetType(new GenericExplicitTypeName(RootScope.ImplementationType, contextDefinition.explicitTypeName, parameterDefinition.explicitTypeName, outputTypeName));
+            return  new ScopeStack(context.Tree, methodScope).GetType(new GenericNameKey(RootScope.ImplementationType, contextKey, parameterKey, outputTypeName));
         }
 
         public ImplementationDefinition Run(IResolveReferanceContext context)

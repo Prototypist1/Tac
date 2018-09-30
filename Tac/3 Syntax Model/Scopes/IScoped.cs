@@ -28,12 +28,16 @@ namespace Tac.Semantic_Model
         }
 
         /// <summary>
-        /// we only point upwards
+        /// we only point upwards, say you have:
+        /// 
         /// object A {
         ///     x : object B{
         ///     
         ///     }
         /// }
+        /// 
+        /// then:
+        /// 
         /// ScopeParent[B] = A;
         /// </summary>
         private Dictionary<IScope, IScope> ScopeParent { get; } = new Dictionary<IScope, IScope>();
@@ -76,14 +80,14 @@ namespace Tac.Semantic_Model
         public ScopeTree ScopeTree { get; }
         public IScope TopScope { get; }
         
-        public IBox<ITypeDefinition> GetType(ExplicitTypeName name)
+        public IBox<ITypeDefinition> GetType(IKey key)
         {
-            if (name is GenericExplicitTypeName type) {
+            if (key is GenericNameKey type) {
                 var types = type.Types.Select(x => GetType(x)).ToArray();
 
                 foreach (var scope in ScopeTree.Scopes(TopScope))
                 {
-                    if (scope.TryGetGenericType(type.Key, types, out var typeDefinition))
+                    if (scope.TryGetGenericType(type, types, out var typeDefinition))
                     {
                         return typeDefinition;
                     }
@@ -92,7 +96,7 @@ namespace Tac.Semantic_Model
 
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
-                if (scope.TryGetType(name.Key, out var typeDefinition))
+                if (scope.TryGetType(key, out var typeDefinition))
                 {
                     return typeDefinition;
                 }
@@ -101,12 +105,12 @@ namespace Tac.Semantic_Model
 
         }
 
-        public bool TryGetMemberPath(ExplicitMemberName name, out int depth, out IBox<MemberDefinition> box)
+        public bool TryGetMemberPath(NameKey name, out int depth, out IBox<MemberDefinition> box)
         {
             var up = 0;
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
-                if (scope.TryGetMember(name.Key, false, out var memberDefinition))
+                if (scope.TryGetMember(name, false, out var memberDefinition))
                 {
                     depth = up;
                     box = memberDefinition;

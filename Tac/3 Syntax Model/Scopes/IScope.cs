@@ -18,8 +18,8 @@ namespace Tac.Semantic_Model
 
         public GenericBox(IBox<GenericTypeDefinition> definition, IEnumerable<IBox<ITypeDefinition>> genericTypeParameters)
         {
-            this.definition = definition;
-            this.genericTypeParameters = genericTypeParameters;
+            this.definition = definition ?? throw new ArgumentNullException(nameof(definition));
+            this.genericTypeParameters = genericTypeParameters ?? throw new ArgumentNullException(nameof(genericTypeParameters));
         }
 
         public ITypeDefinition GetValue()
@@ -87,8 +87,8 @@ namespace Tac.Semantic_Model
     {
         IReadOnlyList<IBox<MemberDefinition>> Members { get; }
 
-        bool TryGetType(NameKey name, out IBox<ITypeDefinition> type);
-        bool TryGetGenericType(NameKey name, IEnumerable<IBox<ITypeDefinition>> genericTypeParameters, out IBox<ITypeDefinition> typeDefinition);
+        bool TryGetType(IKey name, out IBox<ITypeDefinition> type);
+        bool TryGetGenericType(IKey name, IEnumerable<IKey> genericTypeParameters, out IBox<ITypeDefinition> typeDefinition);
         bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition>
             member);
     }

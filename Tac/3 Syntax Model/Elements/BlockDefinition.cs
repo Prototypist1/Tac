@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
 
         public override IBox<ITypeDefinition> ReturnType(ScopeTree scopes)
         {
-            return new ScopeStack(scopes, Scope).GetType(RootScope.EmptyType);
+            return scopes.Root.GetTypeOrThrow(RootScope.BlockType.Key);
         }
     }
 

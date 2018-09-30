@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model
         public int ScopesUp { get; }
         public IBox<MemberDefinition> MemberDefinition { get; }
 
-        public IBox<ITypeDefinition> ReturnType(ScopeStack scope)
+        public IBox<ITypeDefinition> ReturnType(ScopeTree scope)
         {
             return MemberDefinition.ReturnType(scope);
         }

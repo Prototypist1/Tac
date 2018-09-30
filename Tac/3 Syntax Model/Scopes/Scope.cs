@@ -64,26 +64,26 @@ namespace Tac.Semantic_Model
 
         private class RealizedGenericKey
         {
-            public RealizedGenericKey(IEnumerable<IBox<ITypeDefinition>> boxes, IKey key)
+            public RealizedGenericKey(IEnumerable<IKey> keys, IKey key)
             {
-                Boxes = boxes ?? throw new ArgumentNullException(nameof(boxes));
+                Keys = keys ?? throw new ArgumentNullException(nameof(keys));
                 Key = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public IEnumerable<IBox<ITypeDefinition>> Boxes { get; }
+            public IEnumerable<IKey> Keys { get; }
             public IKey Key { get; }
 
             public override bool Equals(object obj)
             {
                 return obj is RealizedGenericKey key &&
-                       Boxes.SequenceEqual(key.Boxes) &&
+                       Keys.SequenceEqual(key.Keys) &&
                        EqualityComparer<IKey>.Default.Equals(Key, key.Key);
             }
 
             public override int GetHashCode()
             {
                 var hashCode = -1506854802;
-                hashCode = (hashCode * -1521134295) + Boxes.Sum(x => x.GetHashCode());
+                hashCode = (hashCode * -1521134295) + Keys.Sum(x => x.GetHashCode());
                 hashCode = (hashCode * -1521134295) + EqualityComparer<IKey>.Default.GetHashCode(Key);
                 return hashCode;
             }
@@ -119,7 +119,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetGenericType(NameKey name, IEnumerable<IBox<ITypeDefinition>> genericTypeParameters, out IBox<ITypeDefinition> typeDefinition)
+        public bool TryGetGenericType(IKey name, IEnumerable<IKey> genericTypeParameters, out IBox<ITypeDefinition> typeDefinition)
         {
             var key = new RealizedGenericKey(genericTypeParameters, name);
 
@@ -137,14 +137,18 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
-            var concrete = new GenericBox(thing.Definition, genericTypeParameters);
+            var concrete = new GenericBox(thing.Definition, genericTypeParameters.Select(x=> { if (TryGetType(x, out var res)){
+                    return res;
+                }
+                throw new Exception("well that is shitty");
+            }));
 
             var fallback = new Visiblity<IBox<ITypeDefinition>>(DefintionLifetime.Static, concrete);
             typeDefinition = realizedGenericTypes.GetOrAdd(key, fallback).Definition;
             return true;
         }
 
-        public bool TryGetType(NameKey name, out IBox<ITypeDefinition> type)
+        public bool TryGetType(IKey name, out IBox<ITypeDefinition> type)
         {
             if (!types.TryGetValue(name, out var items))
             {

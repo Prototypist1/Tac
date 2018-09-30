@@ -64,20 +64,20 @@ namespace Tac.Semantic_Model.Operations
         public IResolveReferance<T> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this);
-            return new BinaryResolveReferance<T>(left.Run(nextContext),  make);
+            return new TrailingResolveReferance<T>(left.Run(nextContext),  make);
         }
     }
 
 
 
-    public class BinaryResolveReferance<T> : IResolveReferance<T>
+    public class TrailingResolveReferance<T> : IResolveReferance<T>
         where T : ICodeElement
     {
         public readonly IResolveReferance<ICodeElement> left;
         private readonly Func<ICodeElement, T> make;
         private readonly FollowBox<ITypeDefinition> followBox = new FollowBox<ITypeDefinition>();
 
-        public BinaryResolveReferance(IResolveReferance<ICodeElement> resolveReferance1,  Func<ICodeElement, T> make)
+        public TrailingResolveReferance(IResolveReferance<ICodeElement> resolveReferance1,  Func<ICodeElement, T> make)
         {
             left = resolveReferance1;
             this.make = make;

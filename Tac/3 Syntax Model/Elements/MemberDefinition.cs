@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model
 
     public class MemberDefinition
     {
-        public MemberDefinition(bool readOnly, ExplicitMemberName key, IBox<ITypeDefinition> type)
+        public MemberDefinition(bool readOnly, NameKey key, IBox<ITypeDefinition> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
@@ -26,7 +26,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> Type { get; }
         public bool ReadOnly { get; }
-        public ExplicitMemberName Key { get; }
+        public NameKey Key { get; }
 
         public MemberDefinition GetMemberDefinition(ScopeStack scopeStack)
         {

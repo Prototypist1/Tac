@@ -53,7 +53,7 @@ namespace Tac.Semantic_Model
         {
 
             var typeDef = new FollowBox<ITypeDefinition>();
-            var innerType = new MemberDefinition(false, new ExplicitMemberName(memberName), typeDef);
+            var innerType = new MemberDefinition(false, new NameKey(memberName), typeDef);
             IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
 
             if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))

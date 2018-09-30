@@ -30,51 +30,29 @@ namespace Tac.Semantic_Model.Names
         }
     }
 
-    public class ExplicitTypeName 
+    public class GenericNameKey : NameKey
     {
-        public ExplicitTypeName(string name)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
-
-        public string Name { get; }
-        
-        public NameKey Key
-        {
-            get
-            {
-                return new NameKey(Name);
-            }
-        }
-        
-    }
-
-    public class GenericExplicitTypeName : ExplicitTypeName
-    {
-        public GenericExplicitTypeName(ExplicitTypeName name, params ExplicitTypeName[] types) : base(name.Name)
+        public GenericNameKey(NameKey name, params IKey[] types) : base(name.Name)
         {
             Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
 
-        public ExplicitTypeName[] Types { get; }
-        
-    }
-    
-    public class ExplicitMemberName 
-    {
-        public ExplicitMemberName(string name)
+        public IKey[] Types { get; }
+
+        public override bool Equals(object obj)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            var key = obj as GenericNameKey;
+            return key != null &&
+                   base.Equals(obj) &&
+                   Types.SequenceEqual(key.Types);
         }
 
-        public string Name { get; }
-        
-        public NameKey Key
+        public override int GetHashCode()
         {
-            get
-            {
-                return new NameKey(Name);
-            }
+            var hashCode = -850890288;
+            hashCode = (hashCode * -1521134295) + base.GetHashCode();
+            hashCode = (hashCode * -1521134295) + Types.Sum(x=>x.GetHashCode());
+            return hashCode;
         }
     }
 

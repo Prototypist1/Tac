@@ -13,8 +13,8 @@ namespace Tac.Semantic_Model.Operations
         public AssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-        
-        public override ITypeDefinition ReturnType(ScopeStack scope)
+
+        public override IBox<ITypeDefinition> ReturnType(ScopeTree scope)
         {
             return left.ReturnType(scope);
         }

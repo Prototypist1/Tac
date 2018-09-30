@@ -141,7 +141,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public Func<bool, ExplicitMemberName, ITypeDefinition, MemberDefinition> MemberDefinition { get; } = (readOnly, key, type) => new MemberDefinition(readOnly, key, type);
         public Func<string, ExplicitMemberName> ExplicitMemberName { get; } = (name) => new ExplicitMemberName(name);
         public Func<string, ExplicitTypeName> ExplicitTypeName { get; } = (x) => new ExplicitTypeName(x);
-        public Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; } = (a, b) => new GenericExplicitTypeName(a, b);
+        public Func<string, ITypeDefinition[], GenericNameKey> GenericExplicitTypeName { get; } = (a, b) => new GenericNameKey(a, b);
         public Func<ObjectScope, IReadOnlyList<AssignOperation>, ObjectDefinition> ObjectDefinition { get; } = (a, b) => new  InterpetedObjectDefinition(a, b);
         public Func<StaticScope, IReadOnlyList<AssignOperation>, ModuleDefinition> ModuleDefinition { get; } = (a, b) => new InterpetedModuleDefinition(a, b);
         public Func<ITypeDefinition, MemberDefinition, ICodeElement[], MethodScope, ICodeElement[], MethodDefinition> MethodDefinition { get; } = (a, b, c, d, e) => new InterpetedMethodDefinition(a, b, c, d, e);

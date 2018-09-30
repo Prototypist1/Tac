@@ -36,9 +36,9 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public ITypeDefinition ReturnType(ScopeStack scope)
+        public IBox<ITypeDefinition> ReturnType(ScopeTree scope)
         {
-            return scope.GetType(RootScope.TypeType);
+            return scope.Root.GetTypeOrThrow(RootScope.TypeType.Key);
         }
     }
 
@@ -176,7 +176,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return box;
+            return context.Tree.Root.GetTypeOrThrow(RootScope.TypeType.Key);
         }
 
         public GenericTypeDefinition Run(IResolveReferanceContext context)

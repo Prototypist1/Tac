@@ -32,7 +32,7 @@ namespace Tac.Parser
         Func<int, IBox<MemberDefinition>, Member> Member { get; }
         Func<string, ExplicitMemberName> ExplicitMemberName { get; }
         Func<string, ExplicitTypeName> ExplicitTypeName { get; }
-        Func<string, ITypeDefinition[], GenericExplicitTypeName> GenericExplicitTypeName { get; }
+        Func<string, ITypeDefinition[], GenericNameKey> GenericExplicitTypeName { get; }
         Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
         Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> ModuleDefinition { get; }
         Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> MethodDefinition { get; }
@@ -50,7 +50,7 @@ namespace Tac.Parser
     {
 
 
-        internal ElementMatchingContext Child(ObjectScope scope)
+        internal ElementMatchingContext Child(IScope scope)
         {
         }
 
@@ -294,7 +294,7 @@ namespace Tac.Parser
             return TokenMatching.NotMatch(self.Tokens);
         }
 
-        public static TokenMatching IsType(TokenMatching self, out ExplicitTypeName typeSource)
+        public static TokenMatching IsType(TokenMatching self, out NameKey typeSource)
         {
 
             if (self.Tokens.Any() &&
@@ -302,15 +302,15 @@ namespace Tac.Parser
                 !double.TryParse(first.Item, out var _))
             {
                 var at = TokenMatching.Match(self.Tokens.Skip(1));
-                if (GenericN(at, out var genericsFactory).IsMatch)
+                if (GenericN(at, out var keys).IsMatch)
                 {
-                    typeSource = new GenericExplicitTypeName(first.Item, genericsFactory));
+                    typeSource = new GenericNameKey(new NameKey(first.Item), keys);
                     
                     return TokenMatching.Match(self.Tokens.Skip(2).ToArray());
                 }
 
 
-                typeSource = new ExplicitTypeName(first.Item);
+                typeSource = new NameKey(first.Item);
                 
                 return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
             }
@@ -406,7 +406,7 @@ namespace Tac.Parser
             return TokenMatching.NotMatch(elementMatching.Tokens);
         }
 
-        public static TokenMatching GenericN(TokenMatching elementMatching, out ExplicitTypeName[] typeSources)
+        public static TokenMatching GenericN(TokenMatching elementMatching, out NameKey[] typeSources)
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
@@ -420,13 +420,13 @@ namespace Tac.Parser
             typeSources = default;
             return TokenMatching.NotMatch(elementMatching.Tokens);
 
-            bool TryToToken(out ExplicitTypeName[] typeSourcesInner)
+            bool TryToToken(out NameKey[] typeSourcesInner)
             {
-                var typeSourcesBuilding = new List<ExplicitTypeName>();
+                var typeSourcesBuilding = new List<NameKey>();
                 foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
                 {
                     var matcher = TokenMatching.Start(elementToken.Tokens);
-                    if (matcher.Has(ElementMatcher.IsType, out ExplicitTypeName typeSource).Has(IsDone).IsMatch)
+                    if (matcher.Has(ElementMatcher.IsType, out NameKey typeSource).Has(IsDone).IsMatch)
                     {
                         typeSourcesBuilding.Add(typeSource);
                     }

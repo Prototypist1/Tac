@@ -29,12 +29,12 @@ namespace Tac.Semantic_Model
 
         public override IBox<ITypeDefinition> ReturnType(ScopeTree scopes)
         {
-            return new ScopeStack(scopes, Scope).GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name, InputType, OutputType));
+            return new ScopeStack(scopes, Scope).GetGenericType(new GenericNameKey(RootScope.MethodType.Name, InputType, OutputType));
         }
 
         public IBox<ITypeDefinition> GetTypeDefinition(ScopeTree scopes)
         {
-            return new ScopeStack(scopes, Scope).GetGenericType(new GenericExplicitTypeName(RootScope.MethodType.Name, InputType, OutputType));
+            return new ScopeStack(scopes, Scope).GetGenericType(new GenericNameKey(RootScope.MethodType.Name, InputType, OutputType));
         }
     }
 
@@ -127,7 +127,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return new ScopeStack(context.Tree, methodScope).GetType(new GenericExplicitTypeName(RootScope.ImplementationType, parameter.explicitTypeName, outputTypeName));
+            return new ScopeStack(context.Tree, methodScope).GetType(new GenericNameKey(RootScope.ImplementationType, parameter.explicitTypeName, outputTypeName));
         }
         
         public MethodDefinition Run(IResolveReferanceContext context)
