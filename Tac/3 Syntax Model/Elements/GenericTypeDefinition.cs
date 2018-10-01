@@ -32,13 +32,13 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
-            result = new TypeDefinition(new GenericScope(Scope, genericTypeParameters));
+            result = new TypeDefinition(new GenericScope(Scope, genericTypeParameters),Key);
             return true;
         }
 
-        public IBox<ITypeDefinition> ReturnType(ScopeTree scope)
+        public IBox<ITypeDefinition> ReturnType(IScope root)
         {
-            return scope.Root.GetTypeOrThrow(RootScope.TypeType.Key);
+            return root.GetTypeOrThrow(RootScope.TypeType);
         }
     }
 
@@ -105,7 +105,7 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.KeyWord("type"), out var _)
                 .Has(ElementMatcher.DefineGenericN, out AtomicToken[] genericTypes)
                 .Has(ElementMatcher.IsName, out AtomicToken typeName)
-                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
+                .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                 .IsMatch)
             {
 
@@ -143,7 +143,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReferance<GenericTypeDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<GenericTypeDefinition> Run(IPopulateScopeContext context)
         {
             var box = new Box<ITypeDefinition>();
 
@@ -157,7 +157,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class GenericTypeDefinitionResolveReferance : IResolveReferance<GenericTypeDefinition>
+    public class GenericTypeDefinitionResolveReferance : IResolveReference<GenericTypeDefinition>
     {
         private readonly NameKey nameKey;
         private readonly GenericTypeParameterDefinition[] genericParameters;
@@ -176,7 +176,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.Root.GetTypeOrThrow(RootScope.TypeType.Key);
+            return context.Tree.Root.GetTypeOrThrow(RootScope.TypeType);
         }
 
         public GenericTypeDefinition Run(IResolveReferanceContext context)

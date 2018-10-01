@@ -49,7 +49,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReferance<Member> Run(IPopulateScopeContext context)
+        public IResolveReference<Member> Run(IPopulateScopeContext context)
         {
 
             var typeDef = new FollowBox<ITypeDefinition>();
@@ -67,7 +67,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ImplicitMemberResolveReferance : IResolveReferance<Member>
+    public class ImplicitMemberResolveReferance : IResolveReference<Member>
     {
         private readonly MemberDefinition memberDef;
         private readonly Func<int, MemberDefinition, Member> make;
@@ -82,7 +82,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.Root.GetTypeOrThrow(RootScope.MemberType.Key);
+            return context.Tree.Root.GetTypeOrThrow(RootScope.MemberType);
         }
 
         public Member Run(IResolveReferanceContext context)

@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model.Operations
 
         public double Value { get; }
 
-        public IBox<ITypeDefinition> ReturnType(ScopeTree scope)
+        public IBox<ITypeDefinition> ReturnType(IScope root)
         {
-            return scope.Root.GetTypeOrThrow(RootScope.NumberType.Key);
+            return root.GetTypeOrThrow(RootScope.NumberType);
         }
     }
 
@@ -53,13 +53,13 @@ namespace Tac.Semantic_Model.Operations
             make = Make;
         }
 
-        public IResolveReferance<ConstantNumber> Run(IPopulateScopeContext context)
+        public IResolveReference<ConstantNumber> Run(IPopulateScopeContext context)
         {
             return new ConstantNumberResolveReferance(dub, make);
         }
     }
 
-    public class ConstantNumberResolveReferance : IResolveReferance<ConstantNumber>
+    public class ConstantNumberResolveReferance : IResolveReference<ConstantNumber>
     {
         private readonly double dub;
         private readonly Func<double, ConstantNumber> make;
@@ -72,7 +72,7 @@ namespace Tac.Semantic_Model.Operations
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.Root.GetTypeOrThrow(RootScope.NumberType.Key);
+            return context.Tree.Root.GetTypeOrThrow(RootScope.NumberType);
         }
 
         public ConstantNumber Run(IResolveReferanceContext context)

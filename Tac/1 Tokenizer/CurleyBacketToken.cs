@@ -3,9 +3,9 @@ using System.Linq;
 
 namespace Tac.Parser
 {
-    public class CurleyBacketToken : CompositToken
+    public class CurleyBracketToken : CompositToken
     {
-        public CurleyBacketToken(IToken[] tokens) : base(tokens)
+        public CurleyBracketToken(IToken[] tokens) : base(tokens)
         {
         }
         public override string ToString()
@@ -15,7 +15,7 @@ namespace Tac.Parser
 
         public override bool Equals(object obj)
         {
-            return obj is CurleyBacketToken token && base.Equals(token);
+            return obj is CurleyBracketToken token && base.Equals(token);
         }
         public override int GetHashCode()
         {

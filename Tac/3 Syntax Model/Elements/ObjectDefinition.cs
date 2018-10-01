@@ -7,39 +7,51 @@ using System.Text;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
+using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
     public class ObjectDefinition: ITypeDefinition, ICodeElement
     {
-        public ObjectDefinition(ObjectScope scope, IEnumerable<AssignOperation> assigns) {
-            Scope = scope;
+        public ObjectDefinition(ObjectScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
+            if (assigns == null)
+            {
+                throw new ArgumentNullException(nameof(assigns));
+            }
+
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            Key = key ?? throw new ArgumentNullException(nameof(key));
             Assignments = assigns.ToArray();
         }
 
         public IScope Scope { get; }
         public AssignOperation[] Assignments { get; }
-        
-        public IBox<ITypeDefinition> ReturnType(ScopeTree scope) {
+
+        public IKey Key
+        {
+            get;
+        }
+
+        public IBox<ITypeDefinition> ReturnType(IScope root) {
             return new Box<ITypeDefinition>(this);
         }
     }
     
     public class ObjectDefinitionMaker : IMaker<ObjectDefinition>
     {
-        public ObjectDefinitionMaker(Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
+        public ObjectDefinitionMaker(Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> Make { get; }
+        private Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> Make { get; }
 
         public IResult<IPopulateScope<ObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                            .Has(ElementMatcher.KeyWord("object"), out var keyword)
-                           .Has(ElementMatcher.IsBody, out CurleyBacketToken block)
+                           .Has(ElementMatcher.IsBody, out CurleyBracketToken block)
                            .Has(ElementMatcher.IsDone)
                            .IsMatch)
             {
@@ -59,50 +71,51 @@ namespace Tac.Semantic_Model
     {
         private readonly ObjectScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
+        private readonly Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
 
-        public ObjectDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
+        public ObjectDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReferance<ObjectDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<ObjectDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this, scope);
-            return new ResolveReferanceObjectDefinition(scope, elements.Select(x => x.Run(nextContext)).ToArray(), make);
-        }
-
-        public IResolveReferance<ObjectDefinition> Run()
-        {
-            throw new NotImplementedException();
+            var box = new Box<ITypeDefinition>();
+            var key = new ImplicitKey();
+            scope.TryAddStaticType(key, box);
+            return new ResolveReferanceObjectDefinition(scope, elements.Select(x => x.Run(nextContext)).ToArray(), make, box,key);
         }
     }
 
-    public class ResolveReferanceObjectDefinition : IResolveReferance<ObjectDefinition>
+    public class ResolveReferanceObjectDefinition : IResolveReference<ObjectDefinition>
     {
-        private readonly Box<ITypeDefinition> type = new Box<ITypeDefinition>();
         private readonly ObjectScope scope;
-        private readonly IResolveReferance<ICodeElement>[] elements;
-        private readonly Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make;
+        private readonly IResolveReference<ICodeElement>[] elements;
+        private readonly Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
+        private readonly Box<ITypeDefinition> box;
+        private readonly ImplicitKey key;
 
-        public ResolveReferanceObjectDefinition(ObjectScope scope, IResolveReferance<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> make)
+        public ResolveReferanceObjectDefinition(ObjectScope scope, IResolveReference<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make, Box<ITypeDefinition> box, ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+            this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public ObjectDefinition Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this, scope);
-            return type.Fill(make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray()));
+            return box.Fill(make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray(), key));
         }
         
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return type;
+            return box;
         }
     }
 }

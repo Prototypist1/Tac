@@ -22,9 +22,12 @@ namespace Tac.Semantic_Model
 
     public class ScopeTree
     {
+
+        public readonly IScope root;
+
         public ScopeTree(IScope root)
         {
-            Root = root ?? throw new ArgumentNullException(nameof(root));
+            root = root ?? throw new ArgumentNullException(nameof(root));
         }
 
         /// <summary>
@@ -42,7 +45,6 @@ namespace Tac.Semantic_Model
         /// </summary>
         private Dictionary<IScope, IScope> ScopeParent { get; } = new Dictionary<IScope, IScope>();
 
-        public IScope Root { get; }
 
         public IScope[] Scopes(IScope scope)
         {

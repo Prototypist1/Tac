@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model.Operations
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReferance<T> Run(IPopulateScopeContext context)
+        public IResolveReference<T> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this);
             return new TrailingResolveReferance<T>(left.Run(nextContext),  make);
@@ -70,14 +70,14 @@ namespace Tac.Semantic_Model.Operations
 
 
 
-    public class TrailingResolveReferance<T> : IResolveReferance<T>
+    public class TrailingResolveReferance<T> : IResolveReference<T>
         where T : ICodeElement
     {
-        public readonly IResolveReferance<ICodeElement> left;
+        public readonly IResolveReference<ICodeElement> left;
         private readonly Func<ICodeElement, T> make;
         private readonly FollowBox<ITypeDefinition> followBox = new FollowBox<ITypeDefinition>();
 
-        public TrailingResolveReferance(IResolveReferance<ICodeElement> resolveReferance1,  Func<ICodeElement, T> make)
+        public TrailingResolveReferance(IResolveReference<ICodeElement> resolveReferance1,  Func<ICodeElement, T> make)
         {
             left = resolveReferance1;
             this.make = make;

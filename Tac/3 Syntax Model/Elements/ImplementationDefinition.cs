@@ -54,8 +54,11 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public IBox<ITypeDefinition> ReturnType(ScopeTree scope) {
-            return new ScopeStack(scope, Scope).GetType(Key);
+        public IBox<ITypeDefinition> ReturnType(IScope root) {
+            if (root.TryGetType(Key, out var res)) {
+                return res;
+            }
+            throw new Exception("should exist");
         }
     }
 
@@ -78,7 +81,7 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.Generic3, out AtomicToken contextType, out AtomicToken inputType, out AtomicToken outputType)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken contextName)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
-                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
+                .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
@@ -136,7 +139,7 @@ namespace Tac.Semantic_Model
             this.contextKey = contextKey ?? throw new ArgumentNullException(nameof(contextKey));
         }
 
-        public IResolveReferance<ImplementationDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<ImplementationDefinition> Run(IPopulateScopeContext context)
         {
             var newContext = context.Child(this, methodScope);
             return new ImplementationDefinitionResolveReferance(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), methodScope, elements.Select(x => x.Run(newContext)).ToArray(), outputTypeName, make,parameterKey,contextKey);
@@ -144,18 +147,18 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ImplementationDefinitionResolveReferance : IResolveReferance<ImplementationDefinition>
+    public class ImplementationDefinitionResolveReferance : IResolveReference<ImplementationDefinition>
     {
-        private readonly IResolveReferance<MemberDefinition> contextDefinition;
-        private readonly IResolveReferance<MemberDefinition> parameterDefinition;
+        private readonly IResolveReference<MemberDefinition> contextDefinition;
+        private readonly IResolveReference<MemberDefinition> parameterDefinition;
         private readonly MethodScope methodScope;
-        private readonly IResolveReferance<ICodeElement>[] elements;
+        private readonly IResolveReference<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
         private readonly NameKey parameterKey;
         private readonly NameKey contextKey;
         private readonly Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
 
-        public ImplementationDefinitionResolveReferance(IResolveReferance<MemberDefinition> contextDefinition, IResolveReferance<MemberDefinition> parameterDefinition, MethodScope methodScope, IResolveReferance<ICodeElement>[] elements, NameKey outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make, NameKey parameterKey, NameKey contextKey)
+        public ImplementationDefinitionResolveReferance(IResolveReference<MemberDefinition> contextDefinition, IResolveReference<MemberDefinition> parameterDefinition, MethodScope methodScope, IResolveReference<ICodeElement>[] elements, NameKey outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> make, NameKey parameterKey, NameKey contextKey)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));

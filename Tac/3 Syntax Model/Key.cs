@@ -9,6 +9,10 @@ namespace Tac.Semantic_Model.Names
 {
     public interface IKey { }
 
+    public class ImplicitKey : IKey {
+
+    }
+
     public class NameKey : IKey
     {
         public NameKey(string name)
@@ -41,8 +45,7 @@ namespace Tac.Semantic_Model.Names
 
         public override bool Equals(object obj)
         {
-            var key = obj as GenericNameKey;
-            return key != null &&
+            return obj is GenericNameKey key &&
                    base.Equals(obj) &&
                    Types.SequenceEqual(key.Types);
         }

@@ -85,14 +85,14 @@ namespace Tac.New
 
     public interface IPopulateScope<out T> : IPopulateScope
     {
-        IResolveReferance<T> Run(IPopulateScopeContext context);
+        IResolveReference<T> Run(IPopulateScopeContext context);
     }
 
     public interface IResolveReferance {
         IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context);
     }
 
-    public interface IResolveReferance<out T> : IResolveReferance
+    public interface IResolveReference<out T> : IResolveReferance
     {
         T Run(IResolveReferanceContext context);
     }

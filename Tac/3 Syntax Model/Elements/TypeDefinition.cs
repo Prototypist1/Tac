@@ -18,57 +18,39 @@ namespace Tac.Semantic_Model
 
     public class TypeDefinition : ITypeDefinition
     {
-        public TypeDefinition(IScope scope)
+        public TypeDefinition(IScope scope, IKey key)
         {
+            Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
+        public IKey Key { get; }
         public IScope Scope { get; }
         
-        public IBox<ITypeDefinition> ReturnType(ScopeStack scope)
+        public IBox<ITypeDefinition> ReturnType(IScope root)
         {
-            return scope.GetType(RootScope.TypeType);
+            if (scope.Root.TryGetType(RootScope.TypeType, out var res)) {
+                return res;
+            }
+            throw new Exception("types types should be found");
         }
     }
-
-    public class NamedTypeDefinition : TypeDefinition
-    {
-        public NamedTypeDefinition(IKey key, IScope scope) : base(scope)
-        {
-            Key = key ?? throw new ArgumentNullException(nameof(key));
-        }
-
-        public IKey Key { get; }
-
-    }
-
+    
     public class TypeDefinitionMaker : IMaker<TypeDefinition>
     {
-        public TypeDefinitionMaker(Func<IScope, TypeDefinition> make, Func<IScope,string, NamedTypeDefinition> makeWithName)
+        public TypeDefinitionMaker(Func<IScope,IKey, TypeDefinition> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
-            MakeWithName = makeWithName ?? throw new ArgumentNullException(nameof(makeWithName));
         }
 
-        private Func<IScope, TypeDefinition> Make { get; }
-        private Func<IScope, string, NamedTypeDefinition> MakeWithName { get; }
-
-        private TypeDefinition Create(IScope scope, string name) {
-            if (name == default)
-            {
-                return Make(scope);
-            }
-            else {
-                return MakeWithName(scope, name);
-            }
-        }
-
+        private Func<IScope, IKey, TypeDefinition> Make { get; }
+        
         public IResult<IPopulateScope<TypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                             .Has(ElementMatcher.KeyWord("type"), out var _)
                             .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
-                            .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
+                            .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                             .IsMatch)
             {
                 var scope = new ObjectScope();
@@ -76,14 +58,10 @@ namespace Tac.Semantic_Model
                 var elementMatchingContext = matchingContext.Child(scope);
                 var elements = elementMatchingContext.ParseBlock(body);
 
-
-                if (typeName != default)
-                {
-                    return ResultExtension.Good(new TypeDefinitionPopulateScope(scope, elements, typeName,(s) => MakeWithName(s, typeName.Item)));
-                }
-                    return ResultExtension.Good(new TypeDefinitionPopulateScope(scope, elements, typeName, (s) => MakeWithName(s, typeName.Item)));
-
+                
+               return ResultExtension.Good(new TypeDefinitionPopulateScope(scope, elements, typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey() , Make));
             }
+
             return ResultExtension.Bad<IPopulateScope<TypeDefinition>>(); ;
         }
     }
@@ -92,38 +70,36 @@ namespace Tac.Semantic_Model
     {
         private readonly ObjectScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly AtomicToken typeName;
-        private readonly Func<IScope, TypeDefinition> make;
+        private readonly IKey key;
+        private readonly Func<IScope, IKey, TypeDefinition> make;
 
-        public TypeDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, AtomicToken typeName, Func<IScope, TypeDefinition> make)
+        public TypeDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, IKey typeName, Func<IScope, IKey, TypeDefinition> make)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-            this.typeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
+            this.key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReferance<TypeDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<TypeDefinition> Run(IPopulateScopeContext context)
         {
             var box = new Box<TypeDefinition>();
-            if (typeName != null)
-            {
-                var encolsing = context.Tree.Scopes(scope).Skip(1).First();
-                encolsing.Cast<StaticScope>().TryAddStaticType(new NameKey(typeName.Item), box);
-            }
+            var encolsing = context.Tree.Scopes(scope).Skip(1).First();
+            encolsing.Cast<StaticScope>().TryAddStaticType(key, box);
             var nextContext = context.Child(this, scope);
             elements.Select(x => x.Run(nextContext)).ToArray();
-            return new TypeDefinitionResolveReferance(scope, box, make);
+            return new TypeDefinitionResolveReference(scope, box, make, key);
         }
     }
 
-    public class TypeDefinitionResolveReferance : IResolveReferance<TypeDefinition>
+    public class TypeDefinitionResolveReference : IResolveReference<TypeDefinition>
     {
         private readonly ObjectScope scope;
         private readonly Box<TypeDefinition> box;
-        private readonly Func<IScope, TypeDefinition> make;
+        private readonly IKey key;
+        private readonly Func<IScope, IKey, TypeDefinition> make;
 
-        public TypeDefinitionResolveReferance(ObjectScope scope, Box<TypeDefinition> box, Func<IScope, TypeDefinition> make)
+        public TypeDefinitionResolveReference(ObjectScope scope, Box<TypeDefinition> box, Func<IScope, IKey, TypeDefinition> make, IKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
@@ -137,9 +113,7 @@ namespace Tac.Semantic_Model
 
         public TypeDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope));
+            return box.Fill(make(scope, key));
         }
     }
-
-
 }

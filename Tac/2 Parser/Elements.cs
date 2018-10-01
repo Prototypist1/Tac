@@ -30,8 +30,6 @@ namespace Tac.Parser
     public interface IElementBuilders
     {
         Func<int, IBox<MemberDefinition>, Member> Member { get; }
-        Func<string, ExplicitMemberName> ExplicitMemberName { get; }
-        Func<string, ExplicitTypeName> ExplicitTypeName { get; }
         Func<string, ITypeDefinition[], GenericNameKey> GenericExplicitTypeName { get; }
         Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
         Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> ModuleDefinition { get; }
@@ -140,7 +138,7 @@ namespace Tac.Parser
             return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
         }
 
-        public IPopulateScope<ICodeElement>[] ParseBlock(CurleyBacketToken block)
+        public IPopulateScope<ICodeElement>[] ParseBlock(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {
@@ -343,11 +341,11 @@ namespace Tac.Parser
             return TokenMatching.NotMatch(self.Tokens);
         }
 
-        public static TokenMatching IsBody(TokenMatching self, out CurleyBacketToken body)
+        public static TokenMatching IsBody(TokenMatching self, out CurleyBracketToken body)
         {
 
             if (self.Tokens.Any() &&
-                self.Tokens.First() is CurleyBacketToken first)
+                self.Tokens.First() is CurleyBracketToken first)
             {
                 body = first;
                 return TokenMatching.Match(self.Tokens.Skip(1).ToArray());

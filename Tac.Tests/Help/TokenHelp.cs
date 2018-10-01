@@ -16,9 +16,9 @@ namespace Tac.Tests.Tokenizer
         //{
         //    return new BrokenBracketToken(tokens);
         //}
-        public static CurleyBacketToken Curl(params IToken[] tokens)
+        public static CurleyBracketToken Curl(params IToken[] tokens)
         {
-            return new CurleyBacketToken(tokens);
+            return new CurleyBracketToken(tokens);
         }
         public static FileToken File(params IToken[] tokens)
         {

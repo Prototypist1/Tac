@@ -197,7 +197,7 @@ namespace Tac.Parser
         
         private ResultAndExitString TokenzieCurleyBrackets(CharEnumerator enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new CurleyBacketToken(x), true, false);
+            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new CurleyBracketToken(x), true, false);
 
             bool IsExit(string str)
             {

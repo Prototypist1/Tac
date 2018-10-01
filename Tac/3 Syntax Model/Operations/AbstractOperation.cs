@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public abstract IBox<ITypeDefinition> ReturnType(ScopeTree scope);
+        public abstract IBox<ITypeDefinition> ReturnType(IScope scope);
     }
 
 
@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReferance<T> Run(IPopulateScopeContext context)
+        public IResolveReference<T> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this);
             return new BinaryResolveReferance<T>(left.Run(nextContext), right.Run(nextContext), make);
@@ -89,15 +89,15 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
 
-    public class BinaryResolveReferance<T> : IResolveReferance<T>
+    public class BinaryResolveReferance<T> : IResolveReference<T>
         where T : ICodeElement
     {
-        public readonly IResolveReferance<ICodeElement> left;
-        public readonly IResolveReferance<ICodeElement> right;
+        public readonly IResolveReference<ICodeElement> left;
+        public readonly IResolveReference<ICodeElement> right;
         private readonly Func<ICodeElement, ICodeElement, T> make;
         private readonly FollowBox<ITypeDefinition> followBox = new FollowBox<ITypeDefinition>();
 
-        public BinaryResolveReferance(IResolveReferance<ICodeElement> resolveReferance1, IResolveReferance<ICodeElement> resolveReferance2, Func<ICodeElement, ICodeElement, T> make)
+        public BinaryResolveReferance(IResolveReference<ICodeElement> resolveReferance1, IResolveReference<ICodeElement> resolveReferance2, Func<ICodeElement, ICodeElement, T> make)
         {
             left = resolveReferance1;
             right = resolveReferance2;
@@ -113,7 +113,7 @@ namespace Tac.Semantic_Model.CodeStuff
         {
             var nextContext = context.Child(this);
             var res = make(left.Run(nextContext), right.Run(nextContext));
-            followBox.Follow(res.ReturnType(context.Tree));
+            followBox.Follow(res.ReturnType(context.Tree.root));
             return res;
         }
     }

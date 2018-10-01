@@ -20,9 +20,13 @@ namespace Tac.Semantic_Model
         public int ScopesUp { get; }
         public IBox<MemberDefinition> MemberDefinition { get; }
 
-        public IBox<ITypeDefinition> ReturnType(ScopeTree scope)
+        public IBox<ITypeDefinition> ReturnType(IScope root)
         {
-            return MemberDefinition.ReturnType(scope);
+            if (root.TryGetType(new GenericNameKey(RootScope.MemberType, MemberDefinition.GetValue().Key), out var res))
+            {
+                return res;
+            }
+            throw new Exception("yeah, that type should really exist");
         }
     }
 
@@ -56,6 +60,7 @@ namespace Tac.Semantic_Model
         private readonly LocalStaticScope topScope;
         private readonly string memberName;
         private readonly Func<int, IBox<MemberDefinition>, Member> make;
+        
 
         public MemberPopulateScope(LocalStaticScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
         {
@@ -64,12 +69,13 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReferance<Member> Run(IPopulateScopeContext context)
+        public IResolveReference<Member> Run(IPopulateScopeContext context)
         {
             var scopeStack = new ScopeStack(context.Tree, topScope);
-            if (!scopeStack.TryGetMemberPath(new Names.ExplicitMemberName(memberName), out var depth, out var memberDef))
+            var nameKey = new NameKey(memberName);
+            if (!scopeStack.TryGetMemberPath(nameKey, out var depth, out var memberDef))
             {
-                memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new ExplicitMemberName(memberName), scopeStack.GetType(RootScope.AnyType)));
+                memberDef = new Box<MemberDefinition>(new MemberDefinition(false, new NameKey(memberName), scopeStack.GetType(RootScope.AnyType)));
                 if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
                 {
                     throw new Exception("bad bad bad!");
@@ -81,7 +87,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class MemberResolveReferance : IResolveReferance<Member>
+    public class MemberResolveReferance : IResolveReference<Member>
     {
         private readonly int depth;
         private readonly IBox<MemberDefinition> memberDef;
@@ -96,7 +102,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.Root.GetTypeOrThrow(RootScope.MemberType.Key);
+            return context.Tree.Root.GetTypeOrThrow(RootScope.MemberType);
         }
 
         public Member Run(IResolveReferanceContext context)

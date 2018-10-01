@@ -9,16 +9,22 @@ namespace Tac.Semantic_Model
 {
     public class PathPart : ICodeElement
     {
-        public PathPart(IBox<MemberDefinition> memberDefinition)
+        public PathPart(PathBox memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
-        public IBox<MemberDefinition> MemberDefinition { get; }
+        public PathBox MemberDefinition { get; }
 
-        public IBox<ITypeDefinition> ReturnType(ScopeStack scope)
+        // does return type ever depend on ScopeTree?
+        // I mean we use the root scope pretty often
+        // but do we juse use that?
+        public IBox<ITypeDefinition> ReturnType(IScope root)
         {
-            return MemberDefinition.ReturnType(scope);
+            if (scope.Root.TryGetType(new GenericNameKey(RootScope.MemberType, MemberDefinition.Key),out var res)) {
+                return res;
+            }
+            throw new Exception("yeah, that type should really exist");
         }
     }
 
@@ -61,7 +67,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReferance<PathPart> Run(IPopulateScopeContext context)
+        public IResolveReference<PathPart> Run(IPopulateScopeContext context)
         {
             if (!scope.TryGetMember(new NameKey(memberName), false, out var memberDef))
             {
@@ -72,7 +78,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class PathPartResolveReferance : IResolveReferance<PathPart>
+    public class PathPartResolveReferance : IResolveReference<PathPart>
     {
         private readonly IBox<MemberDefinition> memberDef;
         private readonly Func<IBox<MemberDefinition>, PathPart> make;

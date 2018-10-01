@@ -11,7 +11,7 @@ namespace Tac.Semantic_Model
 {
     public class MethodDefinition : AbstractBlockDefinition, ITypeDefinition
     {
-        public MethodDefinition(ITypeDefinition outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+        public MethodDefinition(IBox<ITypeDefinition> outputType, MemberDefinition parameterDefinition, ICodeElement[] body, MethodScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -24,17 +24,23 @@ namespace Tac.Semantic_Model
                 return ParameterDefinition.Type;
             }
         }
-        public ITypeDefinition OutputType { get; }
+        public IBox<ITypeDefinition> OutputType { get; }
         public MemberDefinition ParameterDefinition { get; }
 
-        public override IBox<ITypeDefinition> ReturnType(ScopeTree scopes)
+        public IKey Key
         {
-            return new ScopeStack(scopes, Scope).GetGenericType(new GenericNameKey(RootScope.MethodType.Name, InputType, OutputType));
+            get
+            {
+                return new GenericNameKey(RootScope.MethodType, InputType.GetValue().Key, OutputType.GetValue().Key);
+            }
         }
 
-        public IBox<ITypeDefinition> GetTypeDefinition(ScopeTree scopes)
+        public override IBox<ITypeDefinition> ReturnType(IScope root)
         {
-            return new ScopeStack(scopes, Scope).GetGenericType(new GenericNameKey(RootScope.MethodType.Name, InputType, OutputType));
+            if (root.TryGetType(Key, out var res)) {
+                return res;
+            }
+            throw new Exception("the name key could not be found");
         }
     }
 
@@ -57,7 +63,7 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.KeyWord("implementation"), out var _)
                 .Has(ElementMatcher.Generic2, out AtomicToken inputType, out AtomicToken outputType)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
-                .Has(ElementMatcher.IsBody, out CurleyBacketToken body)
+                .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
@@ -67,15 +73,16 @@ namespace Tac.Semantic_Model
                 var newMatchingContext = matchingContext.Child(methodScope);
                 var elements = newMatchingContext.ParseBlock(body);
 
+                var parameterKey = new NameKey(parameterName?.Item ?? "input");
                 var parameterDefinition = ElementBuilders.MemberDefinition.Make(
                         false,
-                        new ExplicitMemberName(parameterName?.Item ?? "input"),
-                        new ExplicitTypeName(inputType.Item)
+                       parameterKey,
+                        new NameKey(inputType.Item)
                         );
 
-                var outputTypeName = new ExplicitTypeName(outputType.Item);
+                var outputTypeName = new NameKey(outputType.Item);
                 
-                return ResultExtension.Good(new MethodDefinitionPopulateScope(parameterDefinition, methodScope, elements, outputTypeName, Make));
+                return ResultExtension.Good(new MethodDefinitionPopulateScope(parameterDefinition, methodScope, elements, outputTypeName, Make, parameterKey));
             }
 
             return ResultExtension.Bad<IPopulateScope<MethodDefinition>>();
@@ -86,48 +93,53 @@ namespace Tac.Semantic_Model
 
     public class MethodDefinitionPopulateScope : IPopulateScope<MethodDefinition>
     {
-        private readonly MemberDefinitionPopulateScope parameterDefinition;
+        private readonly IPopulateScope<MemberDefinition> parameterDefinition;
         private readonly MethodScope methodScope;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly ExplicitTypeName outputTypeName;
+        private readonly NameKey outputTypeName;
+        private readonly NameKey parameterKey;
         private readonly Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make;
 
-        public MethodDefinitionPopulateScope(MemberDefinitionPopulateScope parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, ExplicitTypeName outputTypeName, Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make)
+        public MethodDefinitionPopulateScope(IPopulateScope<MemberDefinition> parameterDefinition, MethodScope methodScope, IPopulateScope<ICodeElement>[] elements, NameKey outputTypeName, Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make, NameKey parameterKey)
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.parameterKey = parameterKey
+?? throw new ArgumentNullException(nameof(parameterKey));
         }
 
-        public IResolveReferance<MethodDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<MethodDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this, methodScope);
-            return new MethodDefinitionResolveReferance(parameterDefinition.Run(nextContext), methodScope, elements.Select(x => x.Run(nextContext)).ToArray(), outputTypeName, make);
+            return new MethodDefinitionResolveReferance(parameterDefinition.Run(nextContext), methodScope, elements.Select(x => x.Run(nextContext)).ToArray(), outputTypeName, make, parameterKey);
         }
     }
 
-    public class MethodDefinitionResolveReferance : IResolveReferance<MethodDefinition>
+    public class MethodDefinitionResolveReferance : IResolveReference<MethodDefinition>
     {
-        private readonly MemberDefinitionResolveReferance parameter;
+        private readonly IResolveReference<MemberDefinition> parameter;
         private readonly MethodScope methodScope;
-        private readonly IResolveReferance<ICodeElement>[] lines;
-        private readonly ExplicitTypeName outputTypeName;
+        private readonly IResolveReference<ICodeElement>[] lines;
+        private readonly NameKey outputTypeName;
+        private readonly NameKey parameterKey;
         private readonly Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make;
 
-        public MethodDefinitionResolveReferance(MemberDefinitionResolveReferance parameter, MethodScope methodScope, IResolveReferance<ICodeElement>[] resolveReferance2, ExplicitTypeName outputTypeName, Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make)
+        public MethodDefinitionResolveReferance(IResolveReference<MemberDefinition> parameter, MethodScope methodScope, IResolveReference<ICodeElement>[] resolveReferance2, NameKey outputTypeName, Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> make, NameKey parameterKey)
         {
-            this.parameter = parameter;
-            this.methodScope = methodScope;
-            lines = resolveReferance2;
-            this.outputTypeName = outputTypeName;
-            this.make = make;
+            this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
+            this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+            lines = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+            this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.parameterKey = parameterKey ?? throw new ArgumentNullException(nameof(parameterKey));
         }
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return new ScopeStack(context.Tree, methodScope).GetType(new GenericNameKey(RootScope.ImplementationType, parameter.explicitTypeName, outputTypeName));
+            return new ScopeStack(context.Tree, methodScope).GetType(new GenericNameKey(RootScope.ImplementationType, parameterKey, outputTypeName));
         }
         
         public MethodDefinition Run(IResolveReferanceContext context)

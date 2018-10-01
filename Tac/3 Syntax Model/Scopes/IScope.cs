@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Semantic_Model.CodeStuff;
@@ -29,6 +30,37 @@ namespace Tac.Semantic_Model
                 return box;
             }
             throw new Exception("whatever whatever your code is a pile of shit 💩💥");
+        }
+    }
+
+
+    public class PathBox : IBox<MemberDefinition>
+    {
+        private IBox<MemberDefinition> inner;
+
+        public NameKey Key { get; }
+
+        public PathBox(NameKey memberKey)
+        {
+            this.Key = memberKey ?? throw new ArgumentNullException(nameof(memberKey));
+        }
+
+
+        public void Follow(IBox<MemberDefinition> box)
+        {
+            if (inner != null)
+            {
+                throw new Exception();
+            }
+            inner = box;
+        }
+
+        public MemberDefinition GetValue()
+        {
+            if (inner.GetValue().Cast<IScope>().TryGetMember(Key, false, out var res)) {
+                return res.GetValue() ;
+            }
+            throw new Exception("this code will not complie, the object does not have a member");
         }
     }
 
@@ -88,7 +120,6 @@ namespace Tac.Semantic_Model
         IReadOnlyList<IBox<MemberDefinition>> Members { get; }
 
         bool TryGetType(IKey name, out IBox<ITypeDefinition> type);
-        bool TryGetGenericType(IKey name, IEnumerable<IKey> genericTypeParameters, out IBox<ITypeDefinition> typeDefinition);
         bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition>
             member);
     }
