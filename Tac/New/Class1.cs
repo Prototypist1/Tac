@@ -7,7 +7,6 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.New
 {
-
     public static class ResultExtension{
         public static bool TryGetValue<T>(this IResult<T> self, out T res) {
             if (self.HasValue) {
@@ -18,8 +17,7 @@ namespace Tac.New
             res = default;
             return false;
         }
-
-
+        
         public static Result<T> Good<T>(T value)
         {
             return new Result<T>(true, value);
@@ -36,9 +34,7 @@ namespace Tac.New
         bool HasValue { get; }
         T Value { get; }
     }
-
     
-
     public class Result<T> : IResult<T>
     {
         public Result(bool hasResult, T value)
@@ -51,8 +47,7 @@ namespace Tac.New
         public T Value {get;}
 
     }
-
-
+    
     public interface IMaker<out T>
         where T : ICodeElement
     {

@@ -115,7 +115,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.Root.GetTypeOrThrow(RootScope.MemberType.Key);
+            return context.Tree.root.GetTypeOrThrow(RootScope.MemberType);
         }
 
     }

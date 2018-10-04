@@ -14,10 +14,10 @@ namespace Tac.Semantic_Model
 
     public class GenericBox : IBox<ITypeDefinition>
     {
-        private IBox<GenericTypeDefinition> definition;
+        private IBox<IGenericTypeDefinition> definition;
         private readonly IEnumerable<IBox<ITypeDefinition>> genericTypeParameters;
 
-        public GenericBox(IBox<GenericTypeDefinition> definition, IEnumerable<IBox<ITypeDefinition>> genericTypeParameters)
+        public GenericBox(IBox<IGenericTypeDefinition> definition, IEnumerable<IBox<ITypeDefinition>> genericTypeParameters)
         {
             this.definition = definition ?? throw new ArgumentNullException(nameof(definition));
             this.genericTypeParameters = genericTypeParameters ?? throw new ArgumentNullException(nameof(genericTypeParameters));

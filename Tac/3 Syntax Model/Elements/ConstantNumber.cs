@@ -72,7 +72,7 @@ namespace Tac.Semantic_Model.Operations
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.Root.GetTypeOrThrow(RootScope.NumberType);
+            return context.Tree.root.GetTypeOrThrow(RootScope.NumberType);
         }
 
         public ConstantNumber Run(IResolveReferanceContext context)

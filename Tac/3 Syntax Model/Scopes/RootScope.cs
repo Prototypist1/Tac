@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
             return name;
         }
 
-        public static NameKey AddGeneric(NameKey name, GenericTypeParameterDefinition[] paramters)
+        public static Func<IKey[], GenericNameKey> AddGeneric(NameKey name, GenericTypeParameterDefinition[] paramters)
         {
             var typeDefinition = new GenericTypeDefinition(
                 name,
@@ -32,7 +32,7 @@ namespace Tac.Semantic_Model
             {
                 throw new Exception($"could not add type {typeDefinition}");
             }
-            return name;
+            return (IKey[] keys) => new GenericNameKey(name,keys);
         }
 
         // these need to move to IElementBuilder
@@ -47,20 +47,25 @@ namespace Tac.Semantic_Model
         public static NameKey BlockType { get; } = Add(new NameKey("system-compile-block"));
         public static NameKey ModuleType { get; } = Add(new NameKey("system-compile-module"));
 
-        public static NameKey MemberType { get; } = AddGeneric(
+        public static Func<IKey[], GenericNameKey> PathPartType { get; } = AddGeneric(
+            new NameKey("path-part"),
+            new GenericTypeParameterDefinition[] {
+                        new GenericTypeParameterDefinition("type") });
+
+        public static Func<IKey[], GenericNameKey> MemberType { get; } = AddGeneric(
                 new NameKey("member"),
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("type") });
 
         public static readonly GenericTypeParameterDefinition methodOutput = new GenericTypeParameterDefinition("output");
 
-        public static NameKey MethodType { get; } = AddGeneric(
+        public static Func<IKey[], GenericNameKey> MethodType { get; } = AddGeneric(
                 new NameKey("method"),
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("input"),
                     methodOutput });
 
-        public static NameKey ImplementationType { get; } = AddGeneric(
+        public static Func<IKey[], GenericNameKey> ImplementationType { get; } = AddGeneric(
                 new NameKey("implementation"),
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("context"),

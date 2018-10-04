@@ -156,6 +156,13 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
+            // wuuut is going on here
+            // this should get a realized generic type if it needs
+            // really how I think this should would is when you make a generic type
+            // you should just put the realized version in types
+            // no need for RealizedGenericKey
+            int x = "errror";
+
             var thing = items.SingleOrDefault();
 
             if (thing == default)

@@ -35,7 +35,6 @@ namespace Tac.Parser
         Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> ModuleDefinition { get; }
         Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> MethodDefinition { get; }
         Func<IScope, TypeDefinition> TypeDefinition { get; }
-        Func<IScope, string, NamedTypeDefinition> NamedTypeDefinition { get; }
         Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; }
         Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> ImplementationDefinition { get; }
         Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> BlockDefinition { get; }
@@ -50,11 +49,17 @@ namespace Tac.Parser
 
         internal ElementMatchingContext Child(IScope scope)
         {
+            return new ElementMatchingContext(OperationMatchers, ElementMakers, new ScopeStack(ScopeStack, scope));
         }
 
+        public ElementMatchingContext(IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers, ScopeStack scope)
+        {
+            this.OperationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers)) ;
+            ElementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
+            ScopeStack = scope ?? throw new ArgumentNullException(nameof(scope));
+        }
 
-        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) {
-            OperationMatchers = new IOperationMaker<ICodeElement>[] {
+        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) : this(new IOperationMaker<ICodeElement>[] {
                 new AddOperationMaker(operationBuilder.AddOperation),
                 new SubtractOperationMaker(operationBuilder.SubtractOperation),
                 new MultiplyOperationMaker(operationBuilder.MultiplyOperation),
@@ -65,8 +70,7 @@ namespace Tac.Parser
                 new AssignOperationMaker(operationBuilder.AssignOperation),
                 new PathOperationMaker(operationBuilder.PathOperation),
                 new ReturnOperationMaker(operationBuilder.ReturnOperation)
-            };
-            ElementMakers = new IMaker<ICodeElement>[] {
+            },new IMaker<ICodeElement>[] {
                 new BlockDefinitionMaker(builders.BlockDefinition),
                 new ConstantNumberMaker(builders.ConstantNumber),
                 new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
@@ -79,8 +83,7 @@ namespace Tac.Parser
                 new ObjectDefinitionMaker(builders.ObjectDefinition),
                 new PathPartMaker(builders.PathPart,builders),
                 new TypeDefinitionMaker(builders.TypeDefinition,builders.NamedTypeDefinition),
-            };
-        }
+            }, scope){}
 
         private readonly IMaker<ICodeElement>[] ElementMakers;
         private readonly IOperationMaker<ICodeElement>[] OperationMatchers;

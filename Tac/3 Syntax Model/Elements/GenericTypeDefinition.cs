@@ -9,7 +9,12 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class GenericTypeDefinition : ICodeElement, ITypeDefinition
+    public interface IGenericTypeDefinition{
+        GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out ITypeDefinition result);
+    }
+
+    public class GenericTypeDefinition : ICodeElement, ITypeDefinition, IGenericTypeDefinition
     {
         public GenericTypeDefinition(NameKey key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
@@ -20,7 +25,7 @@ namespace Tac.Semantic_Model
 
         public IKey Key { get; }
 
-        public ObjectScope Scope { get; }
+        public IScope Scope { get; }
 
         public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
@@ -176,7 +181,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.Root.GetTypeOrThrow(RootScope.TypeType);
+            return context.Tree.root.GetTypeOrThrow(RootScope.TypeType);
         }
 
         public GenericTypeDefinition Run(IResolveReferanceContext context)

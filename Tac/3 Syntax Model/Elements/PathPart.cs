@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model
         // but do we juse use that?
         public IBox<ITypeDefinition> ReturnType(IScope scope)
         {
-            return scope.GetTypeOrThrow(new GenericNameKey(RootScope.MemberType, MemberDefinition.Key));
+            return scope.GetTypeOrThrow(RootScope.MemberType( MemberDefinition.Key.ToArray()));
         }
     }
 
@@ -93,7 +93,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.Root.GetTypeOrThrow(RootScope.PathPartType.Key);
+            return context.Tree.root.GetTypeOrThrow(RootScope.PathPartType);
         }
     }
 }

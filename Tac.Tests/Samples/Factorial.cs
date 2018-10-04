@@ -75,8 +75,8 @@ namespace Tac.Tests.Samples
         {
             get
             {
-                var intType = default(TypeDefinition);
-                var methodIntInt = default(TypeDefinition);
+                var intType = default(IBox<TypeDefinition>);
+                var methodIntInt = default(IBox<TypeDefinition>);
 
                 var rootScope = new StaticScope();
                 var methodScope = new MethodScope();
@@ -85,12 +85,12 @@ namespace Tac.Tests.Samples
 
                 var input = new MemberDefinition(
                                 false,
-                                new ExplicitMemberName("input"),
+                                new NameKey("input"),
                                 intType);
 
                 var fac = new MemberDefinition(
                                 false,
-                                new ExplicitMemberName("fac"),
+                                new NameKey("fac"),
                                 methodIntInt);
 
                 return new[] {

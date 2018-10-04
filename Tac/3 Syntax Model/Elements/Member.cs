@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> ReturnType(IScope root)
         {
-            if (root.TryGetType(new GenericNameKey(RootScope.MemberType, MemberDefinition.GetValue().Key), out var res))
+            if (root.TryGetType(RootScope.MemberType(MemberDefinition.GetValue().Key.ToArray()), out var res))
             {
                 return res;
             }
@@ -102,7 +102,8 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.root.GetTypeOrThrow(RootScope.MemberType);
+            return new GenericBox()
+                context.Tree.root.GetTypeOrThrow(RootScope.MemberType);
         }
 
         public Member Run(IResolveReferanceContext context)
