@@ -1,4 +1,5 @@
-﻿using Prototypist.TaskChain.DataTypes;
+﻿using Prototypist.LeftToRight;
+using Prototypist.TaskChain.DataTypes;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -61,35 +62,7 @@ namespace Tac.Semantic_Model
 
 
         private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>>();
-
-        private class RealizedGenericKey
-        {
-            public RealizedGenericKey(IEnumerable<IKey> keys, IKey key)
-            {
-                Keys = keys ?? throw new ArgumentNullException(nameof(keys));
-                Key = key ?? throw new ArgumentNullException(nameof(key));
-            }
-
-            public IEnumerable<IKey> Keys { get; }
-            public IKey Key { get; }
-
-            public override bool Equals(object obj)
-            {
-                return obj is RealizedGenericKey key &&
-                       Keys.SequenceEqual(key.Keys) &&
-                       EqualityComparer<IKey>.Default.Equals(Key, key.Key);
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = -1506854802;
-                hashCode = (hashCode * -1521134295) + Keys.Sum(x => x.GetHashCode());
-                hashCode = (hashCode * -1521134295) + EqualityComparer<IKey>.Default.GetHashCode(Key);
-                return hashCode;
-            }
-        }
-
-        private readonly ConcurrentDictionary<RealizedGenericKey, Visiblity<IBox<ITypeDefinition>>> realizedGenericTypes = new ConcurrentDictionary<RealizedGenericKey, Visiblity<IBox<ITypeDefinition>>>();
+        
 
         public IReadOnlyList<IBox<MemberDefinition>> Members
         {
@@ -121,8 +94,8 @@ namespace Tac.Semantic_Model
 
         public bool TryGetGenericType(IKey name, IEnumerable<IKey> genericTypeParameters, out IBox<ITypeDefinition> typeDefinition)
         {
-            var key = new RealizedGenericKey(genericTypeParameters, name);
-
+            var key = new GenericNameKey(name.Cast<NameKey>(), genericTypeParameters.ToArray());
+            
             if (!genericTypes.TryGetValue(name, out var items))
             {
                 typeDefinition = default;
@@ -137,14 +110,18 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
-            var concrete = new GenericBox(thing.Definition, genericTypeParameters.Select(x=> { if (TryGetType(x, out var res)){
+            var concrete = new GenericBox(thing.Definition, genericTypeParameters.Select(x => {
+                if (TryGetType(x, out var res))
+                {
                     return res;
                 }
                 throw new Exception("well that is shitty");
             }));
-
-            var fallback = new Visiblity<IBox<ITypeDefinition>>(DefintionLifetime.Static, concrete);
-            typeDefinition = realizedGenericTypes.GetOrAdd(key, fallback).Definition;
+            
+            var fallbackInner = new Visiblity<IBox<ITypeDefinition>>(DefintionLifetime.Static, concrete);
+            var fallbackOuter = new ConcurrentSet<Visiblity<IBox<ITypeDefinition>>>();
+            fallbackOuter.AddOrThrow(fallbackInner);
+            typeDefinition = types.GetOrAdd(key, fallbackOuter).GetOrAdd(fallbackInner).Definition;
             return true;
         }
 
@@ -155,14 +132,7 @@ namespace Tac.Semantic_Model
                 type = default;
                 return false;
             }
-
-            // wuuut is going on here
-            // this should get a realized generic type if it needs
-            // really how I think this should would is when you make a generic type
-            // you should just put the realized version in types
-            // no need for RealizedGenericKey
-            int x = "errror";
-
+            
             var thing = items.SingleOrDefault();
 
             if (thing == default)
