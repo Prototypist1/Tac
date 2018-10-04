@@ -8,6 +8,7 @@ namespace Tac.Semantic_Model
     public static class RootScope
     {
 
+
         public static StaticScope Root
         {
             get;
@@ -51,11 +52,13 @@ namespace Tac.Semantic_Model
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("type") });
 
+        public static readonly GenericTypeParameterDefinition methodOutput = new GenericTypeParameterDefinition("output");
+
         public static NameKey MethodType { get; } = AddGeneric(
                 new NameKey("method"),
                 new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("input"),
-                    new GenericTypeParameterDefinition("output") });
+                    methodOutput });
 
         public static NameKey ImplementationType { get; } = AddGeneric(
                 new NameKey("implementation"),

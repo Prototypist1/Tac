@@ -12,10 +12,10 @@ namespace Tac.Semantic_Model.Operations
         public IfTrueOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-        
-        public override ITypeDefinition ReturnType(ScopeStack scope)
+
+        public override IBox<ITypeDefinition> ReturnType(IScope scope)
         {
-            return scope.GetType(RootScope.BooleanType);
+            return scope.GetTypeOrThrow(RootScope.BooleanType);
         }
     }
 

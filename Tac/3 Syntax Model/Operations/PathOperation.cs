@@ -6,19 +6,23 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class PathOperation : BinaryOperation<ICodeElement, MemberDefinition>
+    public class PathOperation : BinaryOperation<Member, PathPart>
     {
-        public PathOperation(ICodeElement left, MemberDefinition right) : base(left, right)
+        public PathOperation(Member left, PathPart right) : base(left, right)
         {
         }
 
-        public override ITypeDefinition ReturnType(ScopeStack scope)
+        public override IBox<ITypeDefinition> ReturnType(IScope scope)
         {
-            if (!left.Cast<IScoped>().Scope.TryGetMember(right.Key.Key,false,out _)){
+            if (!left.Cast<IScoped>().Scope.TryGetMember(right.MemberDefinition.Key,false,out var check)){
                 throw new Exception("Member should be defined");
             }
+
+            if (!check.GetValue().Type.GetValue().Key.Equals(right.MemberDefinition.GetValue().Type.GetValue().Key)) {
+                throw new Exception("we have two ways to get to the type, they better have the same value");
+            }
             
-            return right.ReturnType(new ScopeStack(scope.ScopeTree, left.Cast<IScoped>().Scope));
+            return right.MemberDefinition.GetValue().Type;
         }
     }
 

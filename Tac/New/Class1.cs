@@ -79,7 +79,8 @@ namespace Tac.New
 
     public interface IPopulateScopeContext: IPipelineContext<IPopulateScope, IPopulateScopeContext> {}
     
-    public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolveReferanceContext> {}
+    public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolveReferanceContext> {
+    }
 
     public interface IPopulateScope { }
 

@@ -16,9 +16,10 @@ namespace Tac.Semantic_Model.Operations
 
         public ICodeElement Result { get; }
 
-        public ITypeDefinition ReturnType(ScopeStack scope)
+        // kind of a moot point really 
+        public IBox<ITypeDefinition> ReturnType(IScope scope)
         {
-            return scope.GetType(RootScope.EmptyType);
+            return scope.GetTypeOrThrow(RootScope.EmptyType);
         }
     }
     
@@ -92,7 +93,7 @@ namespace Tac.Semantic_Model.Operations
         {
             var nextContext = context.Child(this);
             var res = make(left.Run(nextContext));
-            followBox.Follow(res.ReturnType(context.Tree));
+            followBox.Follow(res.ReturnType(context.Tree.root));
             return res;
         }
     }

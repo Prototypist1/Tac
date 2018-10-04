@@ -84,18 +84,6 @@ namespace Tac.Semantic_Model
         
         public IBox<ITypeDefinition> GetType(IKey key)
         {
-            if (key is GenericNameKey type) {
-                var types = type.Types.Select(x => GetType(x)).ToArray();
-
-                foreach (var scope in ScopeTree.Scopes(TopScope))
-                {
-                    if (scope.TryGetGenericType(type, types, out var typeDefinition))
-                    {
-                        return typeDefinition;
-                    }
-                }
-            }
-
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {
                 if (scope.TryGetType(key, out var typeDefinition))

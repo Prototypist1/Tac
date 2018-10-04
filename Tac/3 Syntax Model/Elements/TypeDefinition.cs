@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model
         
         public IBox<ITypeDefinition> ReturnType(IScope root)
         {
-            if (scope.Root.TryGetType(RootScope.TypeType, out var res)) {
+            if (root.TryGetType(RootScope.TypeType, out var res)) {
                 return res;
             }
             throw new Exception("types types should be found");

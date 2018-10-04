@@ -19,12 +19,9 @@ namespace Tac.Semantic_Model
         // does return type ever depend on ScopeTree?
         // I mean we use the root scope pretty often
         // but do we juse use that?
-        public IBox<ITypeDefinition> ReturnType(IScope root)
+        public IBox<ITypeDefinition> ReturnType(IScope scope)
         {
-            if (scope.Root.TryGetType(new GenericNameKey(RootScope.MemberType, MemberDefinition.Key),out var res)) {
-                return res;
-            }
-            throw new Exception("yeah, that type should really exist");
+            return scope.GetTypeOrThrow(new GenericNameKey(RootScope.MemberType, MemberDefinition.Key));
         }
     }
 
