@@ -32,8 +32,7 @@ namespace Tac.Semantic_Model
             throw new Exception("whatever whatever your code is a pile of shit 💩💥");
         }
     }
-
-
+    
     public class PathBox : IBox<MemberDefinition>
     {
         private IBox<MemberDefinition> inner;
@@ -46,13 +45,14 @@ namespace Tac.Semantic_Model
         }
 
 
-        public void Follow(IBox<MemberDefinition> box)
+        public IBox<MemberDefinition> Follow(IBox<MemberDefinition> box)
         {
             if (inner != null)
             {
                 throw new Exception();
             }
             inner = box;
+            return this;
         }
 
         public MemberDefinition GetValue()
@@ -71,12 +71,13 @@ namespace Tac.Semantic_Model
 
         private IBox<T> InnerType { get; set; }
 
-        public void Follow(IBox<T> box) {
+        public IBox<T> Follow(IBox<T> box) {
             if (InnerType != null)
             {
                 throw new Exception();
             }
             InnerType = box;
+            return this;
         }
 
         public T GetValue()

@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model
         {
             get
             {
-                return new GenericNameKey(RootScope.MethodType, InputType.GetValue().Key, OutputType.GetValue().Key);
+                return RootScope.MethodType(new[] { InputType.GetValue().Key, OutputType.GetValue().Key });
             }
         }
 
@@ -139,7 +139,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return new ScopeStack(context.Tree, methodScope).GetType(new GenericNameKey(RootScope.ImplementationType, parameterKey, outputTypeName));
+            return new ScopeStack(context.Tree, methodScope).GetType(RootScope.ImplementationType(new[] { parameterKey, outputTypeName }));
         }
         
         public MethodDefinition Run(IResolveReferanceContext context)

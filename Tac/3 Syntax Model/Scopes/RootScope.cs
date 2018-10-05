@@ -65,6 +65,7 @@ namespace Tac.Semantic_Model
                     new GenericTypeParameterDefinition("input"),
                     methodOutput });
 
+        // TODO delegate with params keyword 
         public static Func<IKey[], GenericNameKey> ImplementationType { get; } = AddGeneric(
                 new NameKey("implementation"),
                 new GenericTypeParameterDefinition[] {

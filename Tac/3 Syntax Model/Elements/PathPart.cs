@@ -93,6 +93,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
+            // TODO hard
             return context.Tree.root.GetTypeOrThrow(RootScope.PathPartType);
         }
     }
