@@ -94,6 +94,13 @@ namespace Tac.Semantic_Model
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
             // TODO hard
+            // we have a box with a member 
+            // the box with the member has a box with the type
+            // maybe it is time to break out the delegate box...
+            // delegates are so uncontrollable...
+
+            // I think delegate boxes are ok...
+            // 
             return context.Tree.root.GetTypeOrThrow(RootScope.PathPartType);
         }
     }

@@ -87,9 +87,15 @@ namespace Tac.Semantic_Model
 
         public Member Run(IResolveReferanceContext context)
         {
+            // TODO the left might be Member<T> or T
+            // but we do not know at this time
+            // we need a delegate box
+            // the determination of Member<T> or T would happen in the box
+            string s = 4;
+
             if (context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op))
             {
-                typeDef.Follow(op.right.GetReturnType(context));
+                typeDef.Follow(op.left.GetReturnType(context));
             }
 
             return make(0, memberDef);

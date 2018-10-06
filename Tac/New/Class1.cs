@@ -76,6 +76,9 @@ namespace Tac.New
     
     public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolveReferanceContext> {
     }
+    
+    // TODO I think I should protect these!
+    // you are only allowed to put things in scope during this step
 
     public interface IPopulateScope { }
 
@@ -84,9 +87,14 @@ namespace Tac.New
         IResolveReference<T> Run(IPopulateScopeContext context);
     }
 
+    // TODO I think I should protect these!
+    // you should only pull things out of scope during this step
     public interface IResolveReferance {
         IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context);
     }
+    
+    // I think scopes have phases of production
+    //
 
     public interface IResolveReference<out T> : IResolveReferance
     {
