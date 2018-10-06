@@ -9,16 +9,16 @@ namespace Tac.Semantic_Model
 {
     public abstract class AbstractBlockDefinition : ICodeElement, IScoped
     {
-        protected AbstractBlockDefinition(IScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers) {
+        protected AbstractBlockDefinition(IResolvableScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers) {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Body = body ?? throw new ArgumentNullException(nameof(body));
             StaticInitailizers = staticInitailizers ?? throw new ArgumentNullException(nameof(staticInitailizers));
         }
 
-        public IScope Scope { get; }
+        public IResolvableScope Scope { get; }
         public ICodeElement[] Body { get; }
         public IEnumerable<ICodeElement> StaticInitailizers { get; }
 
-        public abstract IBox<ITypeDefinition> ReturnType(IScope root);
+        public abstract IBox<ITypeDefinition> ReturnType();
     }
 }

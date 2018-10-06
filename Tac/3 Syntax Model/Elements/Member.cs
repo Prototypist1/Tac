@@ -20,13 +20,9 @@ namespace Tac.Semantic_Model
         public int ScopesUp { get; }
         public IBox<MemberDefinition> MemberDefinition { get; }
 
-        public IBox<ITypeDefinition> ReturnType(IScope root)
+        public IBox<ITypeDefinition> ReturnType()
         {
-            if (root.TryGetType(RootScope.MemberType(MemberDefinition.GetValue().Key.ToArray()), out var res))
-            {
-                return res;
-            }
-            throw new Exception("yeah, that type should really exist");
+            return root.GetTypeOrThrow(RootScope.MemberType(MemberDefinition.GetValue().Key.ToArray()));
         }
     }
 
@@ -49,7 +45,7 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                return ResultExtension.Good(new MemberPopulateScope(matchingContext.ScopeStack.TopScope.Cast<LocalStaticScope>(), first.Item, Make)); ;
+                return ResultExtension.Good(new MemberPopulateScope( first.Item, Make)); ;
             }
             return ResultExtension.Bad<IPopulateScope<Member>>();
         }
@@ -57,31 +53,25 @@ namespace Tac.Semantic_Model
     
     public class MemberPopulateScope : IPopulateScope<Member>
     {
-        private readonly LocalStaticScope topScope;
         private readonly string memberName;
         private readonly Func<int, IBox<MemberDefinition>, Member> make;
         
 
-        public MemberPopulateScope(LocalStaticScope topScope, string item, Func<int, IBox<MemberDefinition>, Member> make)
+        public MemberPopulateScope(string item, Func<int, IBox<MemberDefinition>, Member> make)
         {
-            this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
         public IResolveReference<Member> Run(IPopulateScopeContext context)
         {
-            var scopeStack = new ScopeStack(context.Tree, topScope);
             var nameKey = new NameKey(memberName);
-            if (!scopeStack.TryGetMemberPath(nameKey, out var depth, out var memberDef))
-            {
-                memberDef = new Box<MemberDefinition>(new MemberDefinition(false, nameKey, scopeStack.GetType(RootScope.AnyType)));
-                if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
-                {
-                    throw new Exception("bad bad bad!");
-                }
+            var depth = 0;
+            IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(new MemberDefinition(false, nameKey, scopeStack.GetType(RootScope.AnyType)));
+            if (!context.TryGetMemberPath(nameKey, out depth, out memberDef) && !context.TryAddMember(nameKey, memberDef)) {
+                throw new Exception("uhh that is not right");
             }
-
+            
             return new MemberResolveReferance(depth, memberDef, make, RootScope.AnyType);
         }
 

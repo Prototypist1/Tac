@@ -10,7 +10,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType(IScope scope)
+        public override IBox<ITypeDefinition> ReturnType()
         {
             return scope.GetTypeOrThrow(RootScope.NumberType);
         }

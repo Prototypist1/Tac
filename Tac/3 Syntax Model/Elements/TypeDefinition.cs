@@ -18,16 +18,16 @@ namespace Tac.Semantic_Model
 
     public class TypeDefinition : ITypeDefinition
     {
-        public TypeDefinition(IScope scope, IKey key)
+        public TypeDefinition(IResolvableScope scope, IKey key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public IKey Key { get; }
-        public IScope Scope { get; }
+        public IResolvableScope Scope { get; }
         
-        public IBox<ITypeDefinition> ReturnType(IScope root)
+        public IBox<ITypeDefinition> ReturnType()
         {
             if (root.TryGetType(RootScope.TypeType, out var res)) {
                 return res;
@@ -38,12 +38,12 @@ namespace Tac.Semantic_Model
     
     public class TypeDefinitionMaker : IMaker<TypeDefinition>
     {
-        public TypeDefinitionMaker(Func<IScope,IKey, TypeDefinition> make)
+        public TypeDefinitionMaker(Func<IResolvableScope, IKey, TypeDefinition> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<IScope, IKey, TypeDefinition> Make { get; }
+        private Func<IResolvableScope, IKey, TypeDefinition> Make { get; }
         
         public IResult<IPopulateScope<TypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -53,7 +53,7 @@ namespace Tac.Semantic_Model
                             .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                             .IsMatch)
             {
-                var scope = new ObjectScope();
+                var scope = Scope.LocalStaticScope();
 
                 var elementMatchingContext = matchingContext.Child(scope);
                 var elements = elementMatchingContext.ParseBlock(body);
@@ -68,12 +68,12 @@ namespace Tac.Semantic_Model
     
     public class TypeDefinitionPopulateScope : IPopulateScope<TypeDefinition>
     {
-        private readonly ObjectScope scope;
+        private readonly ILocalStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IKey key;
-        private readonly Func<IScope, IKey, TypeDefinition> make;
+        private readonly Func<IResolvableScope, IKey, TypeDefinition> make;
 
-        public TypeDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, IKey typeName, Func<IScope, IKey, TypeDefinition> make)
+        public TypeDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, IKey typeName, Func<IResolvableScope, IKey, TypeDefinition> make)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -84,22 +84,21 @@ namespace Tac.Semantic_Model
         public IResolveReference<TypeDefinition> Run(IPopulateScopeContext context)
         {
             var box = new Box<TypeDefinition>();
-            var encolsing = context.Tree.Scopes(scope).Skip(1).First();
-            encolsing.Cast<StaticScope>().TryAddStaticType(key, box);
+            var encolsing = context.TryAddType(key, box);
             var nextContext = context.Child(this, scope);
             elements.Select(x => x.Run(nextContext)).ToArray();
-            return new TypeDefinitionResolveReference(scope, box, make, key);
+            return new TypeDefinitionResolveReference(scope.ToResolvable(), box, make, key);
         }
     }
 
     public class TypeDefinitionResolveReference : IResolveReference<TypeDefinition>
     {
-        private readonly ObjectScope scope;
+        private readonly IResolvableScope scope;
         private readonly Box<TypeDefinition> box;
         private readonly IKey key;
-        private readonly Func<IScope, IKey, TypeDefinition> make;
+        private readonly Func<IResolvableScope, IKey, TypeDefinition> make;
 
-        public TypeDefinitionResolveReference(ObjectScope scope, Box<TypeDefinition> box, Func<IScope, IKey, TypeDefinition> make, IKey key)
+        public TypeDefinitionResolveReference(IResolvableScope scope, Box<TypeDefinition> box, Func<IResolvableScope, IKey, TypeDefinition> make, IKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));

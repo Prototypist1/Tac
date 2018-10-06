@@ -4,6 +4,7 @@ using System.Text;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
+using Tac.Semantic_Model.Names;
 
 namespace Tac.New
 {
@@ -60,21 +61,26 @@ namespace Tac.New
         IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
     }
 
-    public interface IPipelineContext<T,TSelf>
-        where TSelf: IPipelineContext<T, TSelf>
+    public interface IPipelineContext<T,TScope,TSelf>
+        where TSelf: IPipelineContext<T, TScope, TSelf>
     {
-        ScopeTree Tree { get; }
         bool TryGetParentContext(out TSelf parent);
         bool TryGetParent<TT>(out TT parent) where TT :T;
         TSelf Child(T step);
-        TSelf Child(T step, IScope scope);
+        TSelf Child(T step, TScope scope);
     }
 
     // hmm the parsing is almost a step as well? 
 
-    public interface IPopulateScopeContext: IPipelineContext<IPopulateScope, IPopulateScopeContext> {}
+    public interface IPopulateScopeContext: IPipelineContext<IPopulateScope, IPopulatableScope, IPopulateScopeContext> {
+        bool TryGetMemberPath(NameKey name, out int depth, out IBox<MemberDefinition> box);
+        bool TryAddMember(NameKey name, IBox<MemberDefinition> member);
+        bool TryAddType(IKey name, IBox<ITypeDefinition> type);
+    }
     
-    public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolveReferanceContext> {
+    public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolvableScope, IResolveReferanceContext> {
+        IBox<MemberDefinition> GetMemberDefinition(NameKey key);
+        IBox<ITypeDefinition> GetTypeDefintion(IKey key);
     }
     
     // TODO I think I should protect these!

@@ -10,9 +10,9 @@ namespace Tac.Semantic_Model
 
     public class BlockDefinition : AbstractBlockDefinition
     {
-        public BlockDefinition(ICodeElement[] body, IScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(scope ?? throw new System.ArgumentNullException(nameof(scope)), body, staticInitailizers) { }
+        public BlockDefinition(ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(scope ?? throw new System.ArgumentNullException(nameof(scope)), body, staticInitailizers) { }
 
-        public override IBox<ITypeDefinition> ReturnType(IScope root)
+        public override IBox<ITypeDefinition> ReturnType()
         {
             return root.GetTypeOrThrow(RootScope.BlockType);
         }
@@ -20,12 +20,12 @@ namespace Tac.Semantic_Model
 
     public class BlockDefinitionMaker : IMaker<BlockDefinition>
     {
-        public BlockDefinitionMaker(Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
+        public BlockDefinitionMaker(Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+        private Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
 
         public IResult<IPopulateScope<BlockDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -34,7 +34,7 @@ namespace Tac.Semantic_Model
                .Has(ElementMatcher.IsDone)
                .IsMatch)
             {
-                var scope = new LocalStaticScope();
+                var scope = Scope.LocalStaticScope();
 
                 var innerMatchingContext = matchingContext.Child(scope);
                 var elements = innerMatchingContext.ParseBlock(body);
@@ -49,11 +49,11 @@ namespace Tac.Semantic_Model
 
     public class BlockDefinitionPopulateScope : IPopulateScope<BlockDefinition>
     {
-        private LocalStaticScope Scope { get; }
+        private ILocalStaticScope Scope { get; }
         private IPopulateScope<ICodeElement>[] Elements { get; }
-        public Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+        public Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
 
-        public BlockDefinitionPopulateScope(LocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
+        public BlockDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -62,18 +62,19 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<BlockDefinition> Run(IPopulateScopeContext context)
         {
-            var nextContext = context.Child(this, Scope);
-            return new ResolveReferanceBlockDefinition(Scope, Elements.Select(x => x.Run(nextContext)).ToArray(), Make);
+            var resolvable = Scope.ToResolvable();
+            var nextContext = context.Child(this, resolvable);
+            return new ResolveReferanceBlockDefinition(resolvable, Elements.Select(x => x.Run(nextContext)).ToArray(), Make);
         }
     }
 
     public class ResolveReferanceBlockDefinition : IResolveReference<BlockDefinition>
     {
-        private LocalStaticScope Scope { get; }
+        private IResolvableScope Scope { get; }
         private IResolveReference<ICodeElement>[] ResolveReferance { get; }
-        private Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+        private Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
 
-        public ResolveReferanceBlockDefinition(LocalStaticScope scope, IResolveReference<ICodeElement>[] resolveReferance, Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> make)
+        public ResolveReferanceBlockDefinition(IResolvableScope scope, IResolveReference<ICodeElement>[] resolveReferance, Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make)
         {
             Scope = scope;
             ResolveReferance = resolveReferance;

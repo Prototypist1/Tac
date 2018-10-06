@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model.Operations
         public ICodeElement Result { get; }
 
         // kind of a moot point really 
-        public IBox<ITypeDefinition> ReturnType(IScope scope)
+        public IBox<ITypeDefinition> ReturnType()
         {
             return scope.GetTypeOrThrow(RootScope.EmptyType);
         }

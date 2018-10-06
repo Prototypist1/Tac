@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
 {
     public class ObjectDefinition: ITypeDefinition, ICodeElement
     {
-        public ObjectDefinition(ObjectScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
+        public ObjectDefinition(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model
             Assignments = assigns.ToArray();
         }
 
-        public IScope Scope { get; }
+        public IResolvableScope Scope { get; }
         public AssignOperation[] Assignments { get; }
 
         public IKey Key
@@ -33,19 +33,19 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IBox<ITypeDefinition> ReturnType(IScope root) {
+        public IBox<ITypeDefinition> ReturnType() {
             return new Box<ITypeDefinition>(this);
         }
     }
     
     public class ObjectDefinitionMaker : IMaker<ObjectDefinition>
     {
-        public ObjectDefinitionMaker(Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
+        public ObjectDefinitionMaker(Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> Make { get; }
+        private Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> Make { get; }
 
         public IResult<IPopulateScope<ObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model
                            .Has(ElementMatcher.IsDone)
                            .IsMatch)
             {
-                var scope = new ObjectScope();
+                var scope = Scope.LocalStaticScope();
 
                 var elementMatchingContext = matchingContext.Child(scope);
                 var elements = elementMatchingContext.ParseBlock(block);
@@ -69,11 +69,11 @@ namespace Tac.Semantic_Model
     
     public class ObjectDefinitionPopulateScope : IPopulateScope<ObjectDefinition>
     {
-        private readonly ObjectScope scope;
+        private readonly ILocalStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
+        private readonly Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
 
-        public ObjectDefinitionPopulateScope(ObjectScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
+        public ObjectDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -86,19 +86,19 @@ namespace Tac.Semantic_Model
             var box = new Box<ITypeDefinition>();
             var key = new ImplicitKey();
             scope.TryAddStaticType(key, box);
-            return new ResolveReferanceObjectDefinition(scope, elements.Select(x => x.Run(nextContext)).ToArray(), make, box,key);
+            return new ResolveReferanceObjectDefinition(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make, box,key);
         }
     }
 
     public class ResolveReferanceObjectDefinition : IResolveReference<ObjectDefinition>
     {
-        private readonly ObjectScope scope;
+        private readonly IResolvableScope scope;
         private readonly IResolveReference<ICodeElement>[] elements;
-        private readonly Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
+        private readonly Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
         private readonly Box<ITypeDefinition> box;
         private readonly ImplicitKey key;
 
-        public ResolveReferanceObjectDefinition(ObjectScope scope, IResolveReference<ICodeElement>[] elements, Func<IScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make, Box<ITypeDefinition> box, ImplicitKey key)
+        public ResolveReferanceObjectDefinition(IResolvableScope scope, IResolveReference<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make, Box<ITypeDefinition> box, ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));

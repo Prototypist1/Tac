@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model
         // does return type ever depend on ScopeTree?
         // I mean we use the root scope pretty often
         // but do we juse use that?
-        public IBox<ITypeDefinition> ReturnType(IScope scope)
+        public IBox<ITypeDefinition> ReturnType()
         {
             return scope.GetTypeOrThrow(RootScope.MemberType( MemberDefinition.Key.ToArray()));
         }
@@ -44,7 +44,7 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                return ResultExtension.Good(new PathPartPopulateScope(matchingContext.ScopeStack.TopScope, first.Item, Make));
+                return ResultExtension.Good(new PathPartPopulateScope(first.Item, Make));
             }
 
             return ResultExtension.Bad<IPopulateScope<PathPart>>();
@@ -53,42 +53,38 @@ namespace Tac.Semantic_Model
 
     public class PathPartPopulateScope : IPopulateScope<PathPart>
     {
-        private readonly IScope scope;
         private readonly string memberName;
         private readonly Func<IBox<MemberDefinition>, PathPart> make;
 
-        public PathPartPopulateScope(IScope topScope, string item, Func<IBox<MemberDefinition>, PathPart> make)
+        public PathPartPopulateScope( string item, Func<IBox<MemberDefinition>, PathPart> make)
         {
-            scope = topScope ?? throw new ArgumentNullException(nameof(topScope));
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
         public IResolveReference<PathPart> Run(IPopulateScopeContext context)
         {
-            if (!scope.TryGetMember(new NameKey(memberName), false, out var memberDef))
-            {
-                throw new Exception("That is not right!");
-            }
 
-            return new PathPartResolveReferance(memberDef, make);
+            return new PathPartResolveReferance(memberName, make);
         }
     }
 
     public class PathPartResolveReferance : IResolveReference<PathPart>
     {
-        private readonly IBox<MemberDefinition> memberDef;
+        private readonly string memberName;
         private readonly Func<IBox<MemberDefinition>, PathPart> make;
 
-        public PathPartResolveReferance(IBox<MemberDefinition> memberDef, Func<IBox<MemberDefinition>, PathPart> make)
+        public PathPartResolveReferance(string memberName, Func<IBox<MemberDefinition>, PathPart> make)
         {
-            this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+            this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
         public PathPart Run(IResolveReferanceContext context)
         {
-            return make(memberDef);
+            // TODO I need to build out the builder for Path Operation
+            // I could be nice if the IResolvableScope to look in was injected
+            return make(new PathBox(new NameKey(memberName)).Follow());
         }
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)

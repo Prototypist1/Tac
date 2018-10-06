@@ -8,7 +8,7 @@ namespace Tac.Semantic_Model
 {
     public interface IScoped
     {
-        IScope Scope { get; }
+        IResolvableScope Scope { get; }
     }
 
     public static class ScopedExtensions
@@ -94,7 +94,7 @@ namespace Tac.Semantic_Model
             throw new Exception("");
 
         }
-
+        
         public bool TryGetMemberPath(NameKey name, out int depth, out IBox<MemberDefinition> box)
         {
             var up = 0;

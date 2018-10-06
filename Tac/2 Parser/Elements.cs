@@ -45,9 +45,7 @@ namespace Tac.Parser
 
     public class ElementMatchingContext
     {
-
-
-        internal ElementMatchingContext Child(IScope scope)
+        internal ElementMatchingContext Child(IPopulatableScope scope)
         {
             return new ElementMatchingContext(OperationMatchers, ElementMakers, new ScopeStack(ScopeStack, scope));
         }

@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public abstract IBox<ITypeDefinition> ReturnType(IScope scope);
+        public abstract IBox<ITypeDefinition> ReturnType();
     }
 
 
@@ -113,7 +113,7 @@ namespace Tac.Semantic_Model.CodeStuff
         {
             var nextContext = context.Child(this);
             var res = make(left.Run(nextContext), right.Run(nextContext));
-            followBox.Follow(res.ReturnType(context.Tree.root));
+            followBox.Follow(res.ReturnType());
             return res;
         }
     }

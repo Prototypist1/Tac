@@ -45,7 +45,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<MemberDefinition> Follow(IBox<MemberDefinition> box)
+        public PathBox Follow(IBox<MemberDefinition> box)
         {
             if (inner != null)
             {
@@ -115,18 +115,24 @@ namespace Tac.Semantic_Model
         }
     }
 
-    // TODO split scopes out in to socpes an scope builders
-    public interface IScope
-    {
-        IReadOnlyList<IBox<MemberDefinition>> Members { get; }
-
-        bool TryGetType(IKey name, out IBox<ITypeDefinition> type);
-        bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition>
-            member);
+    public interface IPopulatableScope {
+        IResolvableScope ToResolvable();
     }
 
-    public static class IScopeExtension {
-        public static IBox<ITypeDefinition> GetTypeOrThrow(this IScope scope, NameKey name) {
+    public interface IResolvableScope {
+        bool TryGetType(IKey name, out IBox<ITypeDefinition> type);
+        bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member);
+    }
+    
+    //public interface IScope
+    //{
+        //IReadOnlyList<IBox<MemberDefinition>> Members { get; }
+        //IReadOnlyList<IBox<ITypeDefinition>> Types { get; }
+    //}
+
+    public static class IIResolvableScopeExtension
+    {
+        public static IBox<ITypeDefinition> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }

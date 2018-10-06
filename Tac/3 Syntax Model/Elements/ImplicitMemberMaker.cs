@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                return ResultExtension.Good(new MemberPopulateScope(matchingContext.ScopeStack.TopScope.Cast<LocalStaticScope>(), first.Item, Make));
+                return ResultExtension.Good(new MemberPopulateScope(first.Item, Make));
             }
 
             return ResultExtension.Bad<IPopulateScope<Member>>();
@@ -38,13 +38,11 @@ namespace Tac.Semantic_Model
 
     public class ImplicitMemberPopulateScope : IPopulateScope<Member>
     {
-        private readonly LocalStaticScope topScope;
         private readonly string memberName;
         private readonly Func<int, MemberDefinition, Member> make;
 
-        public ImplicitMemberPopulateScope(LocalStaticScope topScope, string item, Func<int, MemberDefinition, Member> make)
+        public ImplicitMemberPopulateScope(string item, Func<int, MemberDefinition, Member> make)
         {
-            this.topScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
@@ -56,7 +54,7 @@ namespace Tac.Semantic_Model
             var innerType = new MemberDefinition(false, new NameKey(memberName), typeDef);
             IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
 
-            if (!topScope.TryAddLocal(new NameKey(memberName), memberDef))
+            if (!context.TryAddMember(new NameKey(memberName), memberDef))
             {
                 throw new Exception("bad bad bad!");
             }

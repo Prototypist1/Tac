@@ -3,12 +3,9 @@
 namespace Tac.Semantic_Model
 {
 
-    public class InstanceScope : LocalStaticScope
+    public interface IInstanceScope : ILocalStaticScope
     {
-        public bool TryAddInstanceMember(IKey key,IBox<MemberDefinition> definition)
-        {
-            return TryAddMember(DefintionLifetime.Instance, key, definition);
-        }
+        bool TryAddInstanceMember(IKey key, IBox<MemberDefinition> definition);
     }
 
 }

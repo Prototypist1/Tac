@@ -12,7 +12,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType(IScope scope)
+        public override IBox<ITypeDefinition> ReturnType()
         {
             if (!left.Cast<IScoped>().Scope.TryGetMember(right.MemberDefinition.Key,false,out var check)){
                 throw new Exception("Member should be defined");

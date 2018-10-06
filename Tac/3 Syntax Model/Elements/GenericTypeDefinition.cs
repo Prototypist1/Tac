@@ -16,7 +16,7 @@ namespace Tac.Semantic_Model
 
     public class GenericTypeDefinition : ICodeElement, ITypeDefinition, IGenericTypeDefinition
     {
-        public GenericTypeDefinition(NameKey key, ObjectScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
+        public GenericTypeDefinition(NameKey key, IResolvableScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model
 
         public IKey Key { get; }
 
-        public IScope Scope { get; }
+        public IResolvableScope Scope { get; }
 
         public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public IBox<ITypeDefinition> ReturnType(IScope root)
+        public IBox<ITypeDefinition> ReturnType()
         {
             return root.GetTypeOrThrow(RootScope.TypeType);
         }
@@ -97,9 +97,9 @@ namespace Tac.Semantic_Model
 
     public class GenericTypeDefinitionMaker : IMaker<GenericTypeDefinition>
     {
-        private readonly Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+        private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
 
-        public GenericTypeDefinitionMaker(Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
+        public GenericTypeDefinitionMaker(Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
@@ -114,7 +114,7 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                var scope = new ObjectScope();
+                var scope = Scope.LocalStaticScope();
 
                 var elementMatchingContext = matchingContext.Child(scope);
                 var elements = elementMatchingContext.ParseBlock(body);
@@ -134,12 +134,12 @@ namespace Tac.Semantic_Model
     public class GenericTypeDefinitionPopulateScope : IPopulateScope<GenericTypeDefinition>
     {
         private readonly NameKey nameKey;
-        private readonly ObjectScope scope;
+        private readonly ILocalStaticScope scope;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
-        private readonly Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+        private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
 
-        public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ObjectScope scope, GenericTypeParameterDefinition[] genericParameters, Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
+        public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ILocalStaticScope scope, GenericTypeParameterDefinition[] genericParameters, Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
@@ -152,12 +152,12 @@ namespace Tac.Semantic_Model
         {
             var box = new Box<ITypeDefinition>();
 
-            var encolsing = context.Tree.Scopes(scope).Skip(1).First();
-            encolsing.Cast<StaticScope>().TryAddStaticType(nameKey, box);
+            var encolsing = context.TryAddType(nameKey, box);
 
-            var nextContext = context.Child(this, scope);
+            var resolvable = scope.ToResolvable();
+            var nextContext = context.Child(this, resolvable);
             lines.Select(x => x.Run(nextContext)).ToArray();
-            return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, scope, box, make);
+            return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, resolvable, box, make);
         }
 
     }
@@ -166,11 +166,11 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly GenericTypeParameterDefinition[] genericParameters;
-        private readonly ObjectScope scope;
+        private readonly IResolvableScope scope;
         private readonly Box<ITypeDefinition> box;
-        private readonly Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+        private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
 
-        public GenericTypeDefinitionResolveReferance(NameKey nameKey, GenericTypeParameterDefinition[] genericParameters, ObjectScope scope, Box<ITypeDefinition> box, Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
+        public GenericTypeDefinitionResolveReferance(NameKey nameKey, GenericTypeParameterDefinition[] genericParameters, IResolvableScope scope, Box<ITypeDefinition> box, Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.genericParameters = genericParameters;

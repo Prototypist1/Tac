@@ -12,14 +12,14 @@ namespace Tac.Semantic_Model
 
     public class ModuleDefinition : IScoped, ICodeElement, ITypeDefinition
     {
-        public ModuleDefinition(IScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
+        public ModuleDefinition(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
             this.Key = Key ?? throw new ArgumentNullException(nameof(Key));
         }
         
-        public IScope Scope { get; }
+        public IResolvableScope Scope { get; }
         public IEnumerable<ICodeElement> StaticInitialization { get; }
 
         public IKey Key
@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IBox<ITypeDefinition> ReturnType(IScope root)
+        public IBox<ITypeDefinition> ReturnType()
         {
             return new Box<ITypeDefinition>(this);
         }
@@ -36,12 +36,12 @@ namespace Tac.Semantic_Model
 
     public class ModuleDefinitionMaker : IMaker<ModuleDefinition>
     {
-        public ModuleDefinitionMaker(Func<IScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make)
+        public ModuleDefinitionMaker(Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<IScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> Make { get; }
+        private Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> Make { get; }
 
         public IResult<IPopulateScope<ModuleDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -53,7 +53,7 @@ namespace Tac.Semantic_Model
                             .IsMatch)
             {
 
-                var scope = new StaticScope();
+                var scope = Scope.StaticScope();
 
                 var elementMatchingContext = matchingContext.Child(scope);
                 var elements = elementMatchingContext.ParseBlock(third);
@@ -69,12 +69,12 @@ namespace Tac.Semantic_Model
     
     public class ModuleDefinitionPopulateScope : IPopulateScope<ModuleDefinition>
     {
-        private readonly StaticScope scope;
+        private readonly IStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly Func<IScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
+        private readonly Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
         private readonly NameKey nameKey;
 
-        public ModuleDefinitionPopulateScope(StaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<IScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, NameKey nameKey)
+        public ModuleDefinitionPopulateScope(IStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, NameKey nameKey)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -84,20 +84,20 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<ModuleDefinition> Run(IPopulateScopeContext context)
         {
-            var nextContext = context.Child(this, scope);
-            return new ModuleDefinitionResolveReferance(scope, elements.Select(x => x.Run(nextContext)).ToArray(), make,nameKey);
+            var nextContext = context.Child(this,scope);
+            return new ModuleDefinitionResolveReferance(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make,nameKey);
         }
 
     }
 
     public class ModuleDefinitionResolveReferance : IResolveReference<ModuleDefinition>
     {
-        private readonly StaticScope scope;
+        private readonly IResolvableScope scope;
         private readonly IResolveReference<ICodeElement>[] resolveReferance;
-        private readonly Func<IScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
+        private readonly Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
         private readonly NameKey nameKey;
 
-        public ModuleDefinitionResolveReferance(StaticScope scope, IResolveReference<ICodeElement>[] resolveReferance, Func<IScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, NameKey nameKey)
+        public ModuleDefinitionResolveReferance(IResolvableScope scope, IResolveReference<ICodeElement>[] resolveReferance, Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, NameKey nameKey)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
