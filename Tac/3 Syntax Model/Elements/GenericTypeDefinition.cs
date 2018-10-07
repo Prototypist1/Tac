@@ -41,9 +41,9 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public IBox<ITypeDefinition> ReturnType()
+        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return root.GetTypeOrThrow(RootScope.TypeType);
+            return rootScope.TypeType;
         }
     }
 

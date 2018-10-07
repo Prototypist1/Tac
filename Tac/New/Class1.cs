@@ -64,6 +64,7 @@ namespace Tac.New
     public interface IPipelineContext<T,TScope,TSelf>
         where TSelf: IPipelineContext<T, TScope, TSelf>
     {
+        RootScope RootScope { get; }
         bool TryGetParentContext(out TSelf parent);
         bool TryGetParent<TT>(out TT parent) where TT :T;
         TSelf Child(T step);

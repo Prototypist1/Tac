@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IBox<ITypeDefinition> ReturnType()
+        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
             return new Box<ITypeDefinition>(this);
         }
@@ -113,7 +113,7 @@ namespace Tac.Semantic_Model
         
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.root.GetTypeOrThrow(RootScope.ModuleType);
+            return context.RootScope.ModuleType;
         }
     }
 }

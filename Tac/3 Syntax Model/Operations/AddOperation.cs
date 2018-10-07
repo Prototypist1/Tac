@@ -13,14 +13,14 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType() {
-            if (left.ReturnType() == RootScope.NumberType && right.ReturnType() == RootScope.NumberType)
+        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope) {
+            if (left.ReturnType(rootScope) == rootScope.NumberType && right.ReturnType(rootScope) == rootScope.NumberType)
             {
-                return scope.GetTypeOrThrow(RootScope.NumberType);
+                return rootScope.NumberType;
             }
-            else if (left.ReturnType() == RootScope.StringType || right.ReturnType() == RootScope.StringType)
+            else if (left.ReturnType(rootScope) == rootScope.StringType || right.ReturnType(rootScope) == rootScope.StringType)
             {
-                return scope.GetTypeOrThrow(RootScope.StringType);
+                return rootScope.StringType;
             }
             else
             {

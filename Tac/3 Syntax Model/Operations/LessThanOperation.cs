@@ -11,9 +11,9 @@ namespace Tac.Semantic_Model.CodeStuff
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType()
+        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return scope.GetTypeOrThrow(RootScope.BooleanType);
+            return rootScope.BooleanType;
         }
     }
     

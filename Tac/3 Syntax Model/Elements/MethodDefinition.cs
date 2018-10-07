@@ -31,16 +31,13 @@ namespace Tac.Semantic_Model
         {
             get
             {
-                return RootScope.MethodType(new[] { InputType.GetValue().Key, OutputType.GetValue().Key });
+                return new GenericNameKey(RootKeys.MethodType, InputType.GetValue().Key, OutputType.GetValue().Key);
             }
         }
 
-        public override IBox<ITypeDefinition> ReturnType()
+        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            if (root.TryGetType(Key, out var res)) {
-                return res;
-            }
-            throw new Exception("the name key could not be found");
+            return rootScope.MemberType(InputType.GetValue().Key, OutputType.GetValue().Key);
         }
     }
 
@@ -140,7 +137,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return new ScopeStack(context.Tree, methodScope).GetType(RootScope.ImplementationType(new[] { parameterKey, outputTypeName }));
+            return context.RootScope.MethodType(parameterKey, outputTypeName);
         }
         
         public MethodDefinition Run(IResolveReferanceContext context)

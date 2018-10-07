@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model.Operations
 
         public double Value { get; }
 
-        public IBox<ITypeDefinition> ReturnType()
+        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return root.GetTypeOrThrow(RootScope.NumberType);
+            return rootScope.NumberType;
         }
     }
 

@@ -19,9 +19,9 @@ namespace Tac.Semantic_Model
         // does return type ever depend on ScopeTree?
         // I mean we use the root scope pretty often
         // but do we juse use that?
-        public IBox<ITypeDefinition> ReturnType()
+        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return scope.GetTypeOrThrow(RootScope.MemberType( MemberDefinition.Key.ToArray()));
+            return rootScope.PathPartType(MemberDefinition.GetValue().Type.GetValue().Key);
         }
     }
 
@@ -97,7 +97,7 @@ namespace Tac.Semantic_Model
 
             // I think delegate boxes are ok...
             // 
-            return context.Tree.root.GetTypeOrThrow(RootScope.PathPartType);
+            return context.RootScope.PathPartType(??);
         }
     }
 }

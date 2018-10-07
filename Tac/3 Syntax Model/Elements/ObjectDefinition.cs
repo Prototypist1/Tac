@@ -33,7 +33,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IBox<ITypeDefinition> ReturnType() {
+        public IBox<ITypeDefinition> ReturnType(RootScope rootScope) {
             return new Box<ITypeDefinition>(this);
         }
     }

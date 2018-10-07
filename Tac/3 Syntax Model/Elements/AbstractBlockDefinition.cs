@@ -19,6 +19,6 @@ namespace Tac.Semantic_Model
         public ICodeElement[] Body { get; }
         public IEnumerable<ICodeElement> StaticInitailizers { get; }
 
-        public abstract IBox<ITypeDefinition> ReturnType();
+        public abstract IBox<ITypeDefinition> ReturnType(RootScope rootScope);
     }
 }

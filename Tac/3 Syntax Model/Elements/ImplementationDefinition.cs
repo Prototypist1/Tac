@@ -50,16 +50,12 @@ namespace Tac.Semantic_Model
         {
             get
             {
-                return new GenericNameKey(RootScope.ImplementationType, ContextDefinition.Type.GetValue().Key, ParameterDefinition.Type.GetValue().Key, OutputType.GetValue().Key);
+                return new GenericNameKey(RootKeys.MethodType, ContextDefinition.Type.GetValue().Key, new GenericNameKey(RootKeys.MethodType,  ParameterDefinition.Type.GetValue().Key, OutputType.GetValue().Key));
             }
         }
 
-        public IBox<ITypeDefinition> ReturnType() {
-            if (root.TryGetType(Key, out var res)) {
-                return res;
-            }
-            throw new Exception("should exist");
-        }
+        public IBox<ITypeDefinition> ReturnType(RootScope rootScope) {
+            return rootScope.MethodType(ContextDefinition.Type.GetValue().Key, new GenericNameKey(RootKeys.MethodType, ParameterDefinition.Type.GetValue().Key, OutputType.GetValue().Key));
     }
 
     public class ImplementationDefinitionMaker : IMaker<ImplementationDefinition>
@@ -86,7 +82,7 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                var methodScope = Scope.LocalStaticScope();
+                var methodScope = Tac.Semantic_Model.Scope.LocalStaticScope();
 
                 var newMatchingContext = matchingContext.Child(methodScope);
                 var elements = newMatchingContext.ParseBlock(body);
@@ -142,7 +138,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<ImplementationDefinition> Run(IPopulateScopeContext context)
         {
             var resolve = methodScope.ToResolvable();
-            var newContext = context.Child(this, resolve);
+            var newContext = context.Child(this, methodScope);
             return new ImplementationDefinitionResolveReferance(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), resolve, elements.Select(x => x.Run(newContext)).ToArray(), outputTypeName, make,parameterKey,contextKey);
         }
 

@@ -12,9 +12,9 @@ namespace Tac.Semantic_Model
     {
         public BlockDefinition(ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(scope ?? throw new System.ArgumentNullException(nameof(scope)), body, staticInitailizers) { }
 
-        public override IBox<ITypeDefinition> ReturnType()
+        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return root.GetTypeOrThrow(RootScope.BlockType);
+            return rootScope.BlockType;
         }
     }
 

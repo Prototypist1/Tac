@@ -27,12 +27,9 @@ namespace Tac.Semantic_Model
         public IKey Key { get; }
         public IResolvableScope Scope { get; }
         
-        public IBox<ITypeDefinition> ReturnType()
+        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            if (root.TryGetType(RootScope.TypeType, out var res)) {
-                return res;
-            }
-            throw new Exception("types types should be found");
+            return rootScope.TypeType;
         }
     }
     

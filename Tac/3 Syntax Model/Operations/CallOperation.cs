@@ -13,9 +13,9 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IBox<ITypeDefinition> ReturnType()
+        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return right.ReturnType().GetValue().Scope.GetTypeOrThrow(RootScope.methodOutput.Key);
+            return right.ReturnType(rootScope).GetValue().Scope.GetTypeOrThrow(rootScope.MethodOutput.Key);
         }
     }
 
@@ -32,9 +32,9 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IBox<ITypeDefinition> ReturnType()
+        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return left.ReturnType().GetValue().Scope.GetTypeOrThrow(RootScope.methodOutput.Key);
+            return left.ReturnType(rootScope).GetValue().Scope.GetTypeOrThrow(rootScope.MethodOutput.Key);
         }
     }
 
