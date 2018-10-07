@@ -5,7 +5,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class GenericScope : IResolvableScope, IScope
+    public class GenericScope : IResolvableScope
     {
 
         private IResolvableScope Backing { get; }

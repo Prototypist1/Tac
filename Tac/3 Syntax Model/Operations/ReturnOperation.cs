@@ -93,7 +93,7 @@ namespace Tac.Semantic_Model.Operations
         {
             var nextContext = context.Child(this);
             var res = make(left.Run(nextContext));
-            followBox.Follow(res.ReturnType(context.Tree.root));
+            followBox.Follow(res.ReturnType(context.RootScope));
             return res;
         }
     }

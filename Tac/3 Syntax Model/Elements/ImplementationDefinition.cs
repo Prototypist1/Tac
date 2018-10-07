@@ -54,8 +54,10 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope) {
+        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        {
             return rootScope.MethodType(ContextDefinition.Type.GetValue().Key, new GenericNameKey(RootKeys.MethodType, ParameterDefinition.Type.GetValue().Key, OutputType.GetValue().Key));
+        }
     }
 
     public class ImplementationDefinitionMaker : IMaker<ImplementationDefinition>
@@ -168,7 +170,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.GetTypeDefintion(RootScope.ImplementationType(new IKey[] { contextKey, parameterKey, outputTypeName }));
+            return context.RootScope.MethodType(contextKey, new GenericNameKey(RootKeys.MethodType, parameterKey, outputTypeName ));
         }
 
         public ImplementationDefinition Run(IResolveReferanceContext context)

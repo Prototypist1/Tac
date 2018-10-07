@@ -31,13 +31,13 @@ namespace Tac.Parser
     {
         Func<int, IBox<MemberDefinition>, Member> Member { get; }
         Func<string, ITypeDefinition[], GenericNameKey> GenericExplicitTypeName { get; }
-        Func<IScope, IEnumerable<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
-        Func<IScope, IEnumerable<ICodeElement>, ModuleDefinition> ModuleDefinition { get; }
-        Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, MethodDefinition> MethodDefinition { get; }
-        Func<IScope, TypeDefinition> TypeDefinition { get; }
-        Func<NameKey, ObjectScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; }
-        Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IScope, IEnumerable<ICodeElement>, ImplementationDefinition> ImplementationDefinition { get; }
-        Func<ICodeElement[], IScope, IEnumerable<ICodeElement>, BlockDefinition> BlockDefinition { get; }
+        Func<IResolvableScope, IEnumerable<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
+        Func<IResolvableScope, IEnumerable<ICodeElement>, ModuleDefinition> ModuleDefinition { get; }
+        Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, MethodDefinition> MethodDefinition { get; }
+        Func<IResolvableScope, TypeDefinition> TypeDefinition { get; }
+        Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; }
+        Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> ImplementationDefinition { get; }
+        Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> BlockDefinition { get; }
         Func<double, ConstantNumber> ConstantNumber { get; }
         Func<int, MemberDefinition, Member> MemberPath { get; }
         Func<IBox<MemberDefinition>, PathPart> PathPart { get; }

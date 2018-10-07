@@ -11,21 +11,13 @@ namespace Tac.Semantic_Model
         IResolvableScope Scope { get; }
     }
 
-    public static class ScopedExtensions
-    {
-
-        public static ScopeStack GrowScopeStack(this IScoped scope, ScopeStack stack)
-        {
-            return new ScopeStack(stack, scope.Scope);
-        }
-    }
 
     public class ScopeTree
     {
 
-        public readonly IScope root;
+        public readonly Scope root;
 
-        public ScopeTree(IScope root)
+        public ScopeTree(Scope root)
         {
             root = root ?? throw new ArgumentNullException(nameof(root));
         }
@@ -43,14 +35,14 @@ namespace Tac.Semantic_Model
         /// 
         /// ScopeParent[B] = A;
         /// </summary>
-        private Dictionary<IScope, IScope> ScopeParent { get; } = new Dictionary<IScope, IScope>();
+        private Dictionary<Scope, Scope> ScopeParent { get; } = new Dictionary<Scope, Scope>();
 
 
-        public IScope[] Scopes(IScope scope)
+        public Scope[] Scopes(Scope scope)
         {
             return Inner().ToArray();
 
-            IEnumerable<IScope> Inner()
+            IEnumerable<Scope> Inner()
             {
                 yield return scope;
                 while (ScopeParent.ContainsKey(scope))
@@ -61,7 +53,7 @@ namespace Tac.Semantic_Model
             }
         }
         
-        internal ScopeTree Add(IScope oldTop, IScope newTop)
+        internal ScopeTree Add(Scope oldTop, Scope newTop)
         {
             ScopeParent[newTop] = oldTop;
             return this;
@@ -71,16 +63,16 @@ namespace Tac.Semantic_Model
     public class ScopeStack
     {
 
-        public ScopeStack(ScopeTree scopeTree, IScope topScope)
+        public ScopeStack(ScopeTree scopeTree, Scope topScope)
         {
             ScopeTree = scopeTree ?? throw new ArgumentNullException(nameof(scopeTree));
             TopScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
         }
 
-        public ScopeStack(ScopeStack scopes, IScope newScope) : this(scopes.ScopeTree.Add(scopes.TopScope, newScope), newScope) { }
+        public ScopeStack(ScopeStack scopes, Scope newScope) : this(scopes.ScopeTree.Add(scopes.TopScope, newScope), newScope) { }
 
         public ScopeTree ScopeTree { get; }
-        public IScope TopScope { get; }
+        public Scope TopScope { get; }
         
         public IBox<ITypeDefinition> GetType(IKey key)
         {

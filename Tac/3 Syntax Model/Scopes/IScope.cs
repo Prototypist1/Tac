@@ -57,7 +57,7 @@ namespace Tac.Semantic_Model
 
         public MemberDefinition GetValue()
         {
-            if (inner.GetValue().Cast<IScope>().TryGetMember(Key, false, out var res)) {
+            if (inner.GetValue().Cast<IScoped>().Scope.Cast<IResolvableScope>().TryGetMember(Key, false, out var res)) {
                 return res.GetValue() ;
             }
             throw new Exception("this code will not complie, the object does not have a member");

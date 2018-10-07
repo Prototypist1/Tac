@@ -144,12 +144,7 @@ namespace Tac.Semantic_Model
         {
             return this;
         }
-
-        public IScope ToScope()
-        {
-            return this;
-        }
-
+        
         public IReadOnlyList<IBox<ITypeDefinition>> Types
         {
             get

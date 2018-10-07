@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<BlockDefinition> Run(IPopulateScopeContext context)
         {
             var resolvable = Scope.ToResolvable();
-            var nextContext = context.Child(this, resolvable);
+            var nextContext = context.Child(this, Scope);
             return new ResolveReferanceBlockDefinition(resolvable, Elements.Select(x => x.Run(nextContext)).ToArray(), Make);
         }
     }
@@ -90,7 +90,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.root.GetTypeOrThrow(RootScope.BlockType);
+            return context.RootScope.BlockType;
         }
     }
 }

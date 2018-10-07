@@ -155,7 +155,7 @@ namespace Tac.Semantic_Model
             var encolsing = context.TryAddType(nameKey, box);
 
             var resolvable = scope.ToResolvable();
-            var nextContext = context.Child(this, resolvable);
+            var nextContext = context.Child(this, scope);
             lines.Select(x => x.Run(nextContext)).ToArray();
             return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, resolvable, box, make);
         }
@@ -181,7 +181,7 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.Tree.root.GetTypeOrThrow(RootScope.TypeType);
+            return context.RootScope.TypeType;
         }
 
         public GenericTypeDefinition Run(IResolveReferanceContext context)
