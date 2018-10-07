@@ -32,35 +32,30 @@ namespace Tac.Semantic_Model
             throw new Exception("whatever whatever your code is a pile of shit 💩💥");
         }
     }
-    
-    public class PathBox : IBox<MemberDefinition>
-    {
-        private IBox<MemberDefinition> inner;
 
-        public NameKey Key { get; }
+    public class DelegateBox<T> : IBox<T> where T:class {
+        private Func<T> func;
 
-        public PathBox(NameKey memberKey)
+        public DelegateBox()
         {
-            this.Key = memberKey ?? throw new ArgumentNullException(nameof(memberKey));
         }
 
-
-        public PathBox Follow(IBox<MemberDefinition> box)
-        {
-            if (inner != null)
-            {
-                throw new Exception();
+        public DelegateBox<T> Set(Func<T> func) {
+            if (func == null) {
+                throw new Exception("func already set");
             }
-            inner = box;
+            this.func = func ?? throw new ArgumentNullException(nameof(func));
             return this;
         }
 
-        public MemberDefinition GetValue()
+        public DelegateBox(Func<T> func)
         {
-            if (inner.GetValue().Cast<IScoped>().Scope.Cast<IResolvableScope>().TryGetMember(Key, false, out var res)) {
-                return res.GetValue() ;
-            }
-            throw new Exception("this code will not complie, the object does not have a member");
+            this.func = func ?? throw new ArgumentNullException(nameof(func));
+        }
+
+        public T GetValue()
+        {
+            return func();
         }
     }
 

@@ -78,13 +78,6 @@ namespace Tac.Semantic_Model
                     new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("input"),
                     MethodOutput });
-
-            //ImplementationType = AddGeneric(
-            //        new NameKey("implementation"),
-            //        new GenericTypeParameterDefinition[] {
-            //        new GenericTypeParameterDefinition("context"),
-            //        new GenericTypeParameterDefinition("input"),
-            //        new GenericTypeParameterDefinition("output") });
         }
 
 
