@@ -24,6 +24,10 @@ namespace Tac.Semantic_Model
         public static NameKey MethodType { get; } = new NameKey("method");
         // implementations are just sugar... it is just a method that returns a method
         //public static NameKey ImplementationType { get; } = new NameKey("implementation")
+
+
+        public static GenericTypeParameterDefinition MethodOutputParamete { get; } = new GenericTypeParameterDefinition("output");
+        public static GenericTypeParameterDefinition MemberTypeParameter { get; } = new GenericTypeParameterDefinition("type");
     }
 
     public class RootScope
@@ -44,7 +48,6 @@ namespace Tac.Semantic_Model
         public GetGenericType MemberType { get; }
         public GetGenericType MethodType { get; }
 
-        public GenericTypeParameterDefinition MethodOutput { get; }
 
 
         //public Func<IKey[], GenericNameKey> ImplementationType { get; }
@@ -69,15 +72,13 @@ namespace Tac.Semantic_Model
             MemberType = AddGeneric(
                     RootKeys.MemberType,
                     new GenericTypeParameterDefinition[] {
-                    new GenericTypeParameterDefinition("type") });
-
-            MethodOutput = new GenericTypeParameterDefinition("output");
-
+                    RootKeys.MemberTypeParameter });
+           
             MethodType = AddGeneric(
                     RootKeys.MethodType,
                     new GenericTypeParameterDefinition[] {
                     new GenericTypeParameterDefinition("input"),
-                    MethodOutput });
+                    RootKeys.MethodOutputParamete });
         }
 
 

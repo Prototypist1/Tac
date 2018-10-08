@@ -80,21 +80,40 @@ namespace Tac.Semantic_Model
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
         {
-            return context.RootScope.MemberType(??);
+            if (!context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op))
+            {
+                throw new Exception("the parent must be assign");
+            }
+
+            return new DelegateBox<ITypeDefinition>(() => {
+                var type = op.left.GetReturnType(context).GetValue();
+
+                if (type.Key == RootKeys.MemberType)
+                {
+                    return type.Scope.GetTypeOrThrow(RootKeys.MemberTypeParameter.Key).GetValue();
+                }
+
+                return type;
+
+            });
         }
 
         public Member Run(IResolveReferanceContext context)
         {
-            // TODO the left might be Member<T> or T
-            // but we do not know at this time
-            // we need a delegate box
-            // the determination of Member<T> or T would happen in the box
-            string s = 4;
-
-            if (context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op))
+            if (!context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op))
             {
-                typeDef.Follow(op.left.GetReturnType(context));
+                throw new Exception("the parent must be assign");
             }
+            typeDef.Follow(new DelegateBox<ITypeDefinition>(() => {
+                var type = op.left.GetReturnType(context).GetValue();
+
+                if (type.Key != RootKeys.MemberType) {
+                    return type;
+                }
+
+                return type.Scope.GetTypeOrThrow(RootKeys.MemberTypeParameter.Key).GetValue();
+
+            })); 
 
             return make(0, memberDef);
         }

@@ -66,9 +66,8 @@ namespace Tac.Semantic_Model
         public IResolveReference<Member> Run(IPopulateScopeContext context)
         {
             var nameKey = new NameKey(memberName);
-            var depth = 0;
             IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(new MemberDefinition(false, nameKey, context.RootScope.AnyType));
-            if (!context.TryGetMemberPath(nameKey, out depth, out memberDef) && !context.TryAddMember(nameKey, memberDef)) {
+            if (!context.TryGetMemberPath(nameKey, out var depth, out memberDef) && !context.TryAddMember(nameKey, memberDef)) {
                 throw new Exception("uhh that is not right");
             }
             
