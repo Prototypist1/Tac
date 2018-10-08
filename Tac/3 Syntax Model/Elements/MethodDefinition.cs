@@ -9,7 +9,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class MethodDefinition : AbstractBlockDefinition, ITypeDefinition
+    public class MethodDefinition : AbstractBlockDefinition, IReturnable
     {
         public MethodDefinition(IBox<ITypeDefinition> outputType, MemberDefinition parameterDefinition, ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
@@ -33,11 +33,6 @@ namespace Tac.Semantic_Model
             {
                 return new GenericNameKey(RootKeys.MethodType, InputType.GetValue().Key, OutputType.GetValue().Key);
             }
-        }
-
-        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
-        {
-            return rootScope.MemberType(InputType.GetValue().Key, OutputType.GetValue().Key);
         }
     }
 

@@ -7,7 +7,7 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model
 {
-    public abstract class AbstractBlockDefinition : ICodeElement, IScoped
+    public abstract class AbstractBlockDefinition : ICodeElement, IScoped, IReturnable
     {
         protected AbstractBlockDefinition(IResolvableScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers) {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -19,6 +19,6 @@ namespace Tac.Semantic_Model
         public ICodeElement[] Body { get; }
         public IEnumerable<ICodeElement> StaticInitailizers { get; }
 
-        public abstract IBox<ITypeDefinition> ReturnType(RootScope rootScope);
+        public IReturnable ReturnType(RootScope rootScope) { return this; }
     }
 }

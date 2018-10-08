@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
         bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out ITypeDefinition result);
     }
 
-    public class GenericTypeDefinition : ICodeElement, ITypeDefinition, IGenericTypeDefinition
+    public class GenericTypeDefinition : ICodeElement, ITypeDefinition, IGenericTypeDefinition, IReturnable
     {
         public GenericTypeDefinition(NameKey key, IResolvableScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
@@ -41,9 +41,9 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        public IReturnable ReturnType(RootScope rootScope)
         {
-            return rootScope.TypeType;
+            return this;
         }
     }
 
@@ -138,6 +138,7 @@ namespace Tac.Semantic_Model
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+        private readonly IBox<ITypeDefinition> box = new Box<ITypeDefinition>();
 
         public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ILocalStaticScope scope, GenericTypeParameterDefinition[] genericParameters, Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
@@ -150,14 +151,17 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<GenericTypeDefinition> Run(IPopulateScopeContext context)
         {
-            var box = new Box<ITypeDefinition>();
-
             var encolsing = context.TryAddType(nameKey, box);
 
             var resolvable = scope.ToResolvable();
             var nextContext = context.Child(this, scope);
             lines.Select(x => x.Run(nextContext)).ToArray();
             return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, resolvable, box, make);
+        }
+
+        public IBox<ITypeDefinition> GetReturnType(RootScope rootScope)
+        {
+            return box;
         }
 
     }

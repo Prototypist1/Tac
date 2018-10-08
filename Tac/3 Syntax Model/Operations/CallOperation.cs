@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac.Parser;
@@ -15,7 +16,7 @@ namespace Tac.Semantic_Model.Operations
         
         public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return right.ReturnType(rootScope).GetValue().Scope.GetTypeOrThrow(rootScope.MethodOutput.Key);
+            return right.ReturnType(rootScope).Cast<MethodDefinition>().ReturnType(rootScope);
         }
     }
 
@@ -34,7 +35,7 @@ namespace Tac.Semantic_Model.Operations
         
         public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
         {
-            return left.ReturnType(rootScope).GetValue().Scope.GetTypeOrThrow(rootScope.MethodOutput.Key);
+            return left.ReturnType(rootScope).Cast<MethodDefinition>().ReturnType(rootScope);
         }
     }
 

@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class ObjectDefinition: ITypeDefinition, ICodeElement
+    public class ObjectDefinition: ITypeDefinition, ICodeElement, IReturnable
     {
         public ObjectDefinition(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -33,8 +33,8 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope) {
-            return new Box<ITypeDefinition>(this);
+        public IReturnable ReturnType(RootScope rootScope) {
+            return this;
         }
     }
     

@@ -5,6 +5,14 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
+    // TODO how does this work???
+    // is it returnable?
+    // no
+    // it returns a number?
+    // one might say all numbers are the same
+    // but we do know more about constants
+    // I guess maybe there should be a class number extended by constant number?
+    // IDK!
     public class ConstantNumber : ICodeElement
     {
         public ConstantNumber(double value) 
@@ -56,6 +64,11 @@ namespace Tac.Semantic_Model.Operations
         public IResolveReference<ConstantNumber> Run(IPopulateScopeContext context)
         {
             return new ConstantNumberResolveReferance(dub, make);
+        }
+
+        public IBox<ITypeDefinition> GetReturnType(RootScope rootScope)
+        {
+            return rootScope.NumberType;
         }
     }
 

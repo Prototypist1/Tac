@@ -10,7 +10,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class ModuleDefinition : IScoped, ICodeElement, ITypeDefinition
+    public class ModuleDefinition : IScoped, ICodeElement, ITypeDefinition, IReturnable
     {
         public ModuleDefinition(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
@@ -27,9 +27,9 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        public IReturnable ReturnType(RootScope rootScope)
         {
-            return new Box<ITypeDefinition>(this);
+            return this;
         }
     }
 

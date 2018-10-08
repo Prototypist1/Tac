@@ -11,11 +11,7 @@ namespace Tac.Semantic_Model
     public class BlockDefinition : AbstractBlockDefinition
     {
         public BlockDefinition(ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(scope ?? throw new System.ArgumentNullException(nameof(scope)), body, staticInitailizers) { }
-
-        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
-        {
-            return rootScope.BlockType;
-        }
+        
     }
 
     public class BlockDefinitionMaker : IMaker<BlockDefinition>
@@ -65,6 +61,11 @@ namespace Tac.Semantic_Model
             var resolvable = Scope.ToResolvable();
             var nextContext = context.Child(this, Scope);
             return new ResolveReferanceBlockDefinition(resolvable, Elements.Select(x => x.Run(nextContext)).ToArray(), Make);
+        }
+
+        public IBox<ITypeDefinition> GetReturnType(RootScope rootScope)
+        {
+            return rootScope.BlockType;
         }
     }
 

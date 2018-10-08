@@ -87,7 +87,9 @@ namespace Tac.New
     // TODO I think I should protect these!
     // you are only allowed to put things in scope during this step
 
-    public interface IPopulateScope { }
+    public interface IPopulateScope {
+        IBox<ITypeDefinition> GetReturnType(RootScope rootScope);
+    }
 
     public interface IPopulateScope<out T> : IPopulateScope
     {

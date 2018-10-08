@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    public class MemberDefinition
+    public class MemberDefinition: IReturnable
     {
         public MemberDefinition(bool readOnly, NameKey key, IBox<ITypeDefinition> type)
         {
@@ -26,6 +26,14 @@ namespace Tac.Semantic_Model
         public IBox<ITypeDefinition> Type { get; }
         public bool ReadOnly { get; }
         public NameKey Key { get; }
+        
+        // how does this work???
+        // it is not a code element
+        // does it need to have a return type?
+        //public IReturnable ReturnType(RootScope rootScope)
+        //{
+        //    return this;
+        //}
     }
 
     public class MemberDefinitionMaker : IMaker<Member>

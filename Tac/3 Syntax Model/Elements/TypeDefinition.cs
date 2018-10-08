@@ -16,7 +16,7 @@ namespace Tac.Semantic_Model
         IKey Key { get; }
     }
 
-    public class TypeDefinition : ITypeDefinition
+    public class TypeDefinition : ITypeDefinition, IReturnable
     {
         public TypeDefinition(IResolvableScope scope, IKey key)
         {
@@ -27,9 +27,9 @@ namespace Tac.Semantic_Model
         public IKey Key { get; }
         public IResolvableScope Scope { get; }
         
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        public IReturnable ReturnType(RootScope rootScope)
         {
-            return rootScope.TypeType;
+            return this;
         }
     }
     
