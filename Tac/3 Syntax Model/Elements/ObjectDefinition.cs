@@ -33,7 +33,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IReturnable ReturnType(RootScope rootScope) {
+        public IReturnable ReturnType() {
             return this;
         }
     }

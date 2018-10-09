@@ -12,7 +12,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        public override IBox<ITypeDefinition> ReturnType()
         {
             return rootScope.EmptyType;
         }

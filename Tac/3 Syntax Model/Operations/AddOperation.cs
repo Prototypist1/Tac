@@ -13,12 +13,12 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope) {
-            if (left.ReturnType(rootScope) == rootScope.NumberType && right.ReturnType(rootScope) == rootScope.NumberType)
+        public override IReturnable ReturnType() {
+            if (left.ReturnType() == rootScope.NumberType && right.ReturnType() == rootScope.NumberType)
             {
                 return rootScope.NumberType;
             }
-            else if (left.ReturnType(rootScope) == rootScope.StringType || right.ReturnType(rootScope) == rootScope.StringType)
+            else if (left.ReturnType() == rootScope.StringType || right.ReturnType() == rootScope.StringType)
             {
                 return rootScope.StringType;
             }

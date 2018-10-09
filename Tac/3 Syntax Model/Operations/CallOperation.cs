@@ -13,10 +13,10 @@ namespace Tac.Semantic_Model.Operations
         public NextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-        
-        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+
+        public override IReturnable ReturnType()
         {
-            return right.ReturnType(rootScope).Cast<MethodDefinition>().ReturnType(rootScope);
+            return right.Unwrap<MethodDefinition>().OutputType.GetValue();
         }
     }
 
@@ -32,10 +32,10 @@ namespace Tac.Semantic_Model.Operations
         public LastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-        
-        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+
+        public override IReturnable ReturnType()
         {
-            return left.ReturnType(rootScope).Cast<MethodDefinition>().ReturnType(rootScope);
+            return left.Unwrap<MethodDefinition>().OutputType.GetValue();
         }
     }
 
@@ -43,6 +43,15 @@ namespace Tac.Semantic_Model.Operations
     {
         public LastCallOperationMaker(Func<ICodeElement, ICodeElement, LastCallOperation> make) : base("<", make)
         {
+        }
+    }
+
+    public static class MemberUnwrapper{
+        public static T Unwrap<T>(this ICodeElement codeElement) {
+            if (codeElement.ReturnType() is Member member && member.MemberDefinition.GetValue() is T t) {
+                return t;
+            }
+            return codeElement.ReturnType().Cast<T>();
         }
     }
 }

@@ -57,7 +57,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public IReturnable ReturnType(RootScope rootScope)
+        public IReturnable ReturnType()
         {
             return this;
         }

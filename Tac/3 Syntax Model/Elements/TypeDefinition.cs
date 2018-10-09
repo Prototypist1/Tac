@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
         public IKey Key { get; }
         public IResolvableScope Scope { get; }
         
-        public IReturnable ReturnType(RootScope rootScope)
+        public IReturnable ReturnType()
         {
             return this;
         }

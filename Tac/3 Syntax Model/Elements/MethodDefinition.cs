@@ -11,7 +11,7 @@ namespace Tac.Semantic_Model
 {
     public class MethodDefinition : AbstractBlockDefinition, IReturnable
     {
-        public MethodDefinition(IBox<ITypeDefinition> outputType, MemberDefinition parameterDefinition, ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+        public MethodDefinition(IBox<IReturnable> outputType, MemberDefinition parameterDefinition, ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -24,7 +24,7 @@ namespace Tac.Semantic_Model
                 return ParameterDefinition.Type;
             }
         }
-        public IBox<ITypeDefinition> OutputType { get; }
+        public IBox<IReturnable> OutputType { get; }
         public MemberDefinition ParameterDefinition { get; }
 
         public IKey Key

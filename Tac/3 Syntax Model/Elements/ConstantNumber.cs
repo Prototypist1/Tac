@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model.Operations
 
         public double Value { get; }
 
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        public IBox<ITypeDefinition> ReturnType()
         {
             return rootScope.NumberType;
         }

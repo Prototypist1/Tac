@@ -9,7 +9,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class Member : ICodeElement
+    public class Member : ICodeElement, IReturnable
     {
         public Member(int scopesUp, IBox<MemberDefinition> memberDefinition)
         {
@@ -18,11 +18,11 @@ namespace Tac.Semantic_Model
         }
 
         public int ScopesUp { get; }
-        public IBox<MemberDefinition> MemberDefinition { get; }
+        public IBox<IReturnable> MemberDefinition { get; }
 
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        public IReturnable ReturnType()
         {
-            return rootScope.MemberType(MemberDefinition.GetValue().Key);
+            return this;
         }
     }
 

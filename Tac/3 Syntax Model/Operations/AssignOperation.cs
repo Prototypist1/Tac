@@ -14,13 +14,12 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        public override IReturnable ReturnType()
         {
-            return left.ReturnType(rootScope);
+            return left.Unwrap<IReturnable>();
         }
     }
-
-
+    
     public class AssignOperationMaker : BinaryOperationMaker<AssignOperation>
     {
         public AssignOperationMaker(Func<ICodeElement, ICodeElement, AssignOperation> make) : base(">", make)

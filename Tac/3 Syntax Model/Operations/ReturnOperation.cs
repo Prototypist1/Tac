@@ -15,9 +15,8 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public ICodeElement Result { get; }
-
-        // kind of a moot point really 
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        
+        public IReturnable ReturnType()
         {
             return rootScope.EmptyType;
         }

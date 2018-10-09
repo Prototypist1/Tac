@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        public override IReturnable ReturnType()
         {
             if (!left.Cast<IScoped>().Scope.TryGetMember(right.MemberDefinition.GetValue().Key,false,out var check)){
                 throw new Exception("Member should be defined");
@@ -24,7 +24,7 @@ namespace Tac.Semantic_Model.Operations
                 throw new Exception("we have two ways to get to the type, they better have the same value");
             }
             
-            return right.MemberDefinition.GetValue().Type;
+            return right.MemberDefinition.GetValue().Type.GetValue();
         }
     }
 

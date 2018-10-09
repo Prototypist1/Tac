@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public abstract IBox<ITypeDefinition> ReturnType(RootScope rootScope);
+        public abstract IReturnable ReturnType();
     }
 
 

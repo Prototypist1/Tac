@@ -8,7 +8,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class PathPart : ICodeElement
+    public class PathPart : ICodeElement, IReturnable
     {
         public PathPart(IBox<MemberDefinition> memberDefinition)
         {
@@ -16,13 +16,10 @@ namespace Tac.Semantic_Model
         }
 
         public IBox<MemberDefinition> MemberDefinition { get; }
-
-        // does return type ever depend on ScopeTree?
-        // I mean we use the root scope pretty often
-        // but do we juse use that?
-        public IBox<ITypeDefinition> ReturnType(RootScope rootScope)
+        
+        public IReturnable ReturnType()
         {
-            return rootScope.PathPartType(MemberDefinition.GetValue().Type.GetValue().Key);
+            return this;
         }
     }
 
