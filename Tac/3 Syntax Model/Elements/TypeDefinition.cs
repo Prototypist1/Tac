@@ -10,13 +10,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-
-    public interface ITypeDefinition : ICodeElement, IScoped
-    {
-        IKey Key { get; }
-    }
-
-    public class TypeDefinition : ITypeDefinition, IReturnable
+    public class TypeDefinition : IReturnable
     {
         public TypeDefinition(IResolvableScope scope, IKey key)
         {
