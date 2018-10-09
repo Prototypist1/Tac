@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class ObjectDefinition: ITypeDefinition, ICodeElement, IReturnable
+    public class ObjectDefinition: ICodeElement, IReturnable
     {
         public ObjectDefinition(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -83,7 +83,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<ObjectDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this, scope);
-            var box = new Box<ITypeDefinition>();
+            var box = new Box<IReturnable>();
             var key = new ImplicitKey();
             scope.TryAddStaticType(key, box);
             return new ResolveReferanceObjectDefinition(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make, box,key);
@@ -95,7 +95,7 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope scope;
         private readonly IResolveReference<ICodeElement>[] elements;
         private readonly Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
-        private readonly Box<ITypeDefinition> box;
+        private readonly Box<IReturnable> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(IResolvableScope scope, IResolveReference<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make, Box<ITypeDefinition> box, ImplicitKey key)
@@ -113,7 +113,7 @@ namespace Tac.Semantic_Model
             return box.Fill(make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray(), key));
         }
         
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
             return box;
         }

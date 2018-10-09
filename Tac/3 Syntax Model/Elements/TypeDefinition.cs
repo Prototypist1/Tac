@@ -96,7 +96,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
             return box;
         }

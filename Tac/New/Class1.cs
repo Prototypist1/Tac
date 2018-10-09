@@ -76,19 +76,19 @@ namespace Tac.New
     public interface IPopulateScopeContext: IPipelineContext<IPopulateScope, IPopulatableScope, IPopulateScopeContext> {
         bool TryGetMemberPath(NameKey name, out int depth, out IBox<MemberDefinition> box);
         bool TryAddMember(NameKey name, IBox<MemberDefinition> member);
-        bool TryAddType(IKey name, IBox<ITypeDefinition> type);
+        bool TryAddType(IKey name, IBox<IReturnable> type);
     }
     
     public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolvableScope, IResolveReferanceContext> {
         IBox<MemberDefinition> GetMemberDefinition(NameKey key);
-        IBox<ITypeDefinition> GetTypeDefintion(IKey key);
+        IBox<IReturnable> GetTypeDefintion(IKey key);
     }
     
     // TODO I think I should protect these!
     // you are only allowed to put things in scope during this step
 
     public interface IPopulateScope {
-        IBox<ITypeDefinition> GetReturnType(RootScope rootScope);
+        IBox<IReturnable> GetReturnType(RootScope rootScope);
     }
 
     public interface IPopulateScope<out T> : IPopulateScope
@@ -99,7 +99,7 @@ namespace Tac.New
     // TODO I think I should protect these!
     // you should only pull things out of scope during this step
     public interface IResolveReferance {
-        IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context);
+        IBox<IReturnable> GetReturnType(IResolveReferanceContext context);
     }
     
     // I think scopes have phases of production

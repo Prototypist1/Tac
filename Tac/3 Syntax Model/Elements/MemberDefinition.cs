@@ -16,7 +16,7 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     public class MemberDefinition
     {
-        public MemberDefinition(bool readOnly, NameKey key, IBox<ITypeDefinition> type)
+        public MemberDefinition(bool readOnly, NameKey key, IBox<IReturnable> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
@@ -53,10 +53,8 @@ namespace Tac.Semantic_Model
             }
             return ResultExtension.Bad<IPopulateScope<Member>>();
         }
-
     }
-
-
+    
     public class MemberDefinitionPopulateScope : IPopulateScope<Member>
     {
         private readonly string memberName;
@@ -109,7 +107,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
             return context.RootScope.MemberType(typeName);
         }

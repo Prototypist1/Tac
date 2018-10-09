@@ -50,7 +50,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<Member> Run(IPopulateScopeContext context)
         {
 
-            var typeDef = new FollowBox<ITypeDefinition>();
+            var typeDef = new FollowBox<IReturnable>();
             var innerType = new MemberDefinition(false, new NameKey(memberName), typeDef);
             IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
 
@@ -69,23 +69,23 @@ namespace Tac.Semantic_Model
     {
         private readonly MemberDefinition memberDef;
         private readonly Func<int, MemberDefinition, Member> make;
-        private readonly FollowBox<ITypeDefinition> typeDef;
+        private readonly FollowBox<IReturnable> typeDef;
 
-        public ImplicitMemberResolveReferance(MemberDefinition innerType, Func<int, MemberDefinition, Member> make, FollowBox<ITypeDefinition> typeDef)
+        public ImplicitMemberResolveReferance(MemberDefinition innerType, Func<int, MemberDefinition, Member> make, FollowBox<IReturnable> typeDef)
         {
             memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.typeDef = typeDef;
         }
 
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
             if (!context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op))
             {
                 throw new Exception("the parent must be assign");
             }
 
-            return new DelegateBox<ITypeDefinition>(() => {
+            return new DelegateBox<IReturnable>(() => {
                 var type = op.left.GetReturnType(context).GetValue();
 
                 if (type.Key == RootKeys.MemberType)
@@ -104,7 +104,7 @@ namespace Tac.Semantic_Model
             {
                 throw new Exception("the parent must be assign");
             }
-            typeDef.Follow(new DelegateBox<ITypeDefinition>(() => {
+            typeDef.Follow(new DelegateBox<IReturnable>(() => {
                 var type = op.left.GetReturnType(context).GetValue();
 
                 if (type.Key != RootKeys.MemberType) {

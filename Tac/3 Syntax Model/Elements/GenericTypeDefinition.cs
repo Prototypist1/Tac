@@ -11,10 +11,10 @@ namespace Tac.Semantic_Model
 {
     public interface IGenericTypeDefinition{
         GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
-        bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out ITypeDefinition result);
+        bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out IReturnable result);
     }
 
-    public class GenericTypeDefinition : ICodeElement, ITypeDefinition, IGenericTypeDefinition, IReturnable
+    public class GenericTypeDefinition : ICodeElement, IGenericTypeDefinition, IReturnable
     {
         public GenericTypeDefinition(NameKey key, IResolvableScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model
 
         public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
-        public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out ITypeDefinition result)
+        public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out IReturnable result)
         {
             if (genericTypeParameters.Select(x => x.Definition).SetEqual(TypeParameterDefinitions).Not())
             {
@@ -76,7 +76,7 @@ namespace Tac.Semantic_Model
             return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
         }
 
-        internal bool Accepts(ITypeDefinition b)
+        internal bool Accepts(IReturnable b)
         {
             // TODO generic constraints
             return true;
@@ -85,13 +85,13 @@ namespace Tac.Semantic_Model
 
     public class GenericTypeParameter
     {
-        public GenericTypeParameter(IBox<ITypeDefinition> typeDefinition, GenericTypeParameterDefinition definition)
+        public GenericTypeParameter(IBox<IReturnable> typeDefinition, GenericTypeParameterDefinition definition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        public IBox<ITypeDefinition> TypeDefinition { get; }
+        public IBox<IReturnable> TypeDefinition { get; }
         public GenericTypeParameterDefinition Definition { get; }
     }
 
@@ -138,7 +138,7 @@ namespace Tac.Semantic_Model
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
-        private readonly IBox<ITypeDefinition> box = new Box<ITypeDefinition>();
+        private readonly IBox<IReturnable> box = new Box<IReturnable>();
 
         public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ILocalStaticScope scope, GenericTypeParameterDefinition[] genericParameters, Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
@@ -159,7 +159,7 @@ namespace Tac.Semantic_Model
             return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, resolvable, box, make);
         }
 
-        public IBox<ITypeDefinition> GetReturnType(RootScope rootScope)
+        public IBox<IReturnable> GetReturnType(RootScope rootScope)
         {
             return box;
         }
@@ -171,10 +171,15 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly IResolvableScope scope;
-        private readonly Box<ITypeDefinition> box;
+        private readonly Box<IReturnable> box;
         private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
 
-        public GenericTypeDefinitionResolveReferance(NameKey nameKey, GenericTypeParameterDefinition[] genericParameters, IResolvableScope scope, Box<ITypeDefinition> box, Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
+        public GenericTypeDefinitionResolveReferance(
+            NameKey nameKey, 
+            GenericTypeParameterDefinition[] genericParameters, 
+            IResolvableScope scope, 
+            Box<IReturnable> box, 
+            Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.genericParameters = genericParameters;
@@ -183,7 +188,7 @@ namespace Tac.Semantic_Model
             this.make = make;
         }
 
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
             return context.RootScope.TypeType;
         }

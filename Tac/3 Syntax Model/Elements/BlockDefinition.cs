@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model
             return new ResolveReferanceBlockDefinition(resolvable, Elements.Select(x => x.Run(nextContext)).ToArray(), Make);
         }
 
-        public IBox<ITypeDefinition> GetReturnType()
+        public IBox<IReturnable> GetReturnType()
         {
             return rootScope.BlockType;
         }
@@ -89,7 +89,7 @@ namespace Tac.Semantic_Model
             return Make(ResolveReferance.Select(x => x.Run(nextContext)).ToArray(), Scope, new ICodeElement[0]);
         }
 
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
             return context.RootScope.BlockType;
         }

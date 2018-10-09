@@ -111,7 +111,7 @@ namespace Tac.Semantic_Model
             return make(scope, resolveReferance.Select(x => x.Run(nextContext)).ToArray(),nameKey);
         }
         
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
             return context.RootScope.ModuleType;
         }

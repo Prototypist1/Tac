@@ -120,7 +120,7 @@ namespace Tac.Semantic_Model
             });
         }
 
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
             return new DelegateBox<ITypeDefinition>(() => {
                 return MakeBox(context).GetValue().Type.GetValue();
