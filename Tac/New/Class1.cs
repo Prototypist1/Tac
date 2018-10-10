@@ -88,7 +88,7 @@ namespace Tac.New
     // you are only allowed to put things in scope during this step
 
     public interface IPopulateScope {
-        IBox<IReturnable> GetReturnType(RootScope rootScope);
+        IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders);
     }
 
     public interface IPopulateScope<out T> : IPopulateScope
@@ -99,6 +99,7 @@ namespace Tac.New
     // TODO I think I should protect these!
     // you should only pull things out of scope during this step
     public interface IResolveReferance {
+        // TODO I do not need this! 
         IBox<IReturnable> GetReturnType(IResolveReferanceContext context);
     }
     

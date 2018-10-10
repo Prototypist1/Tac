@@ -5,6 +5,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
+
     public static class RootKeys {
         public static NameKey StringType { get; } = new NameKey("string");
         public static NameKey NumberType { get; } = new NameKey("int");

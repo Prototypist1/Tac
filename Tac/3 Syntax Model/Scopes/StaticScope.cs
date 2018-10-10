@@ -8,7 +8,7 @@ namespace Tac.Semantic_Model
     public interface IStaticScope: IPopulatableScope
     {
 
-        bool TryAddStaticType(IKey key, IBox<ITypeDefinition> definition);
+        bool TryAddStaticType(IKey key, IBox<IReturnable> definition);
         bool TryAddStaticMember(IKey key, IBox<MemberDefinition> definition);
         bool TryAddStaticGenericType(IKey key, IBox<GenericTypeDefinition> definition);
     }

@@ -43,11 +43,12 @@ namespace Tac.Semantic_Model
     }
 
 
-    public class BlockDefinitionPopulateScope : IPopulateScope<BlockDefinition>
+    public class BlockDefinitionPopulateScope : IPopulateScope<BlockDefinition>, IReturnable
     {
         private ILocalStaticScope Scope { get; }
         private IPopulateScope<ICodeElement>[] Elements { get; }
         public Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public BlockDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make)
         {
@@ -60,12 +61,12 @@ namespace Tac.Semantic_Model
         {
             var resolvable = Scope.ToResolvable();
             var nextContext = context.Child(this, Scope);
-            return new ResolveReferanceBlockDefinition(resolvable, Elements.Select(x => x.Run(nextContext)).ToArray(), Make);
+            return new ResolveReferanceBlockDefinition(resolvable, Elements.Select(x => x.Run(nextContext)).ToArray(), Make,box);
         }
 
-        public IBox<IReturnable> GetReturnType()
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
-            return rootScope.BlockType;
+            return box;
         }
     }
 
@@ -74,19 +75,25 @@ namespace Tac.Semantic_Model
         private IResolvableScope Scope { get; }
         private IResolveReference<ICodeElement>[] ResolveReferance { get; }
         private Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+        private readonly Box<IReturnable> box;
 
-        public ResolveReferanceBlockDefinition(IResolvableScope scope, IResolveReference<ICodeElement>[] resolveReferance, Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make)
+        public ResolveReferanceBlockDefinition(
+            IResolvableScope scope, 
+            IResolveReference<ICodeElement>[] resolveReferance, 
+            Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make,
+            Box<IReturnable> box)
         {
-            Scope = scope;
-            ResolveReferance = resolveReferance;
-            Make = make;
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            ResolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
+            Make = make ?? throw new ArgumentNullException(nameof(make));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public BlockDefinition Run(IResolveReferanceContext context)
         {
 
             var nextContext = context.Child(this, Scope);
-            return Make(ResolveReferance.Select(x => x.Run(nextContext)).ToArray(), Scope, new ICodeElement[0]);
+            return box.Fill(Make(ResolveReferance.Select(x => x.Run(nextContext)).ToArray(), Scope, new ICodeElement[0]));
         }
 
         public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)

@@ -61,6 +61,7 @@ namespace Tac.Semantic_Model
         private readonly bool isReadonly;
         private readonly NameKey typeName;
         private readonly Func<int, IBox<MemberDefinition>, Member> make;
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken, Func<int, IBox<MemberDefinition>, Member> make)
         {
@@ -78,9 +79,13 @@ namespace Tac.Semantic_Model
             {
                 throw new Exception("bad bad bad!");
             }
-            return new MemberDefinitionResolveReferance( memberName, memberDef, isReadonly, typeName, make);
+            return new MemberDefinitionResolveReferance( memberName, memberDef, isReadonly, typeName, make, box);
         }
 
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
+        }
     }
 
     public class MemberDefinitionResolveReferance : IResolveReference<Member>
@@ -90,20 +95,28 @@ namespace Tac.Semantic_Model
         private readonly bool isReadonly;
         public readonly NameKey typeName;
         private readonly Func<int, IBox<MemberDefinition>, Member> make;
+        private readonly Box<IReturnable> box;
 
-        public MemberDefinitionResolveReferance(string memberName, Box<MemberDefinition> memberDef, bool isReadonly, NameKey explicitTypeName, Func<int, IBox<MemberDefinition>, Member> make)
+        public MemberDefinitionResolveReferance(
+            string memberName, 
+            Box<MemberDefinition> memberDef, 
+            bool isReadonly, 
+            NameKey explicitTypeName, 
+            Func<int, IBox<MemberDefinition>, Member> make,
+            Box<IReturnable> box)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
             this.isReadonly = isReadonly;
             this.typeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public Member Run(IResolveReferanceContext context)
         {
             memberDef.Fill(new MemberDefinition(isReadonly, new NameKey(memberName), context.GetTypeDefintion(typeName)));
-            return make(0, memberDef);
+            return box.Fill(make(0, memberDef));
         }
 
 

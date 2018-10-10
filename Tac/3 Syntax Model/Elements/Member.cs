@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model
         public int ScopesUp { get; }
         public IBox<IReturnable> MemberDefinition { get; }
 
-        public IReturnable ReturnType()
+        public IReturnable ReturnType(IElementBuilders builders)
         {
             return this;
         }
@@ -55,12 +55,17 @@ namespace Tac.Semantic_Model
     {
         private readonly string memberName;
         private readonly Func<int, IBox<MemberDefinition>, Member> make;
-        
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public MemberPopulateScope(string item, Func<int, IBox<MemberDefinition>, Member> make)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
         }
 
         public IResolveReference<Member> Run(IPopulateScopeContext context)
@@ -82,12 +87,19 @@ namespace Tac.Semantic_Model
         private readonly IBox<MemberDefinition> memberDef;
         private readonly Func<int, IBox<MemberDefinition>, Member> make;
         private readonly NameKey typeKey;
+        private readonly Box<IReturnable> box;
 
-        public MemberResolveReferance(int depth, IBox<MemberDefinition> memberDef, Func<int, IBox<MemberDefinition>, Member> make, NameKey key)
+        public MemberResolveReferance(
+            int depth, 
+            IBox<MemberDefinition> memberDef, 
+            Func<int, IBox<MemberDefinition>, Member> make, 
+            NameKey key,
+            Box<IReturnable> box)
         {
             this.depth = depth;
             this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
@@ -98,7 +110,7 @@ namespace Tac.Semantic_Model
 
         public Member Run(IResolveReferanceContext context)
         {
-            return make(depth, memberDef);
+            return box.Fill(make(depth, memberDef));
         }
     }
 

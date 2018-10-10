@@ -98,7 +98,7 @@ namespace Tac.Semantic_Model
         private readonly Box<IReturnable> box;
         private readonly ImplicitKey key;
 
-        public ResolveReferanceObjectDefinition(IResolvableScope scope, IResolveReference<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make, Box<ITypeDefinition> box, ImplicitKey key)
+        public ResolveReferanceObjectDefinition(IResolvableScope scope, IResolveReference<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make, Box<IReturnable> box, ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));

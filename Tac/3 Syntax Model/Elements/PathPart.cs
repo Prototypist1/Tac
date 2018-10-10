@@ -53,6 +53,7 @@ namespace Tac.Semantic_Model
     {
         private readonly string memberName;
         private readonly Func<IBox<MemberDefinition>, PathPart> make;
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public PathPartPopulateScope( string item, Func<IBox<MemberDefinition>, PathPart> make)
         {
@@ -63,7 +64,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<PathPart> Run(IPopulateScopeContext context)
         {
 
-            return new PathPartResolveReferance(memberName, make);
+            return new PathPartResolveReferance(memberName, make, box);
         }
     }
 
@@ -71,18 +72,20 @@ namespace Tac.Semantic_Model
     {
         private readonly string memberName;
         private readonly Func<IBox<MemberDefinition>, PathPart> make;
+        private readonly Box<IReturnable> box;
 
-        public PathPartResolveReferance(string memberName, Func<IBox<MemberDefinition>, PathPart> make)
+        public PathPartResolveReferance(string memberName, Func<IBox<MemberDefinition>, PathPart> make, Box<IReturnable> box)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public PathPart Run(IResolveReferanceContext context)
         {
             // TODO I need to build out the builder for Path Operation
             // I could be nice if the IResolvableScope to look in was injected
-            return make(MakeBox(context));
+            return box.Fill(make(MakeBox(context)));
         }
 
         private DelegateBox<MemberDefinition> MakeBox(IResolveReferanceContext context)

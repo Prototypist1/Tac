@@ -182,10 +182,10 @@ namespace Tac.Semantic_Model
             Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-            this.genericParameters = genericParameters;
-            this.scope = scope;
-            this.box = box;
-            this.make = make;
+            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
         public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)

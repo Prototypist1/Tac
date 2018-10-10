@@ -1,4 +1,5 @@
 ﻿using System;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -13,7 +14,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    public class ConstantNumber : ICodeElement
+    public class ConstantNumber : NumberType, ICodeElement
     {
         public ConstantNumber(double value) 
         {
@@ -22,9 +23,9 @@ namespace Tac.Semantic_Model.Operations
 
         public double Value { get; }
 
-        public IReturnable ReturnType()
+        public IReturnable ReturnType(IElementBuilders elementBuilders)
         {
-            return rootScope.NumberType;
+            return elementBuilders.NumberType();
         }
     }
 
@@ -54,6 +55,7 @@ namespace Tac.Semantic_Model.Operations
     {
         private readonly double dub;
         private readonly Func<double, ConstantNumber> make;
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public ConstantNumberPopulateScope(double dub, Func<double, ConstantNumber> Make)
         {
@@ -63,12 +65,12 @@ namespace Tac.Semantic_Model.Operations
 
         public IResolveReference<ConstantNumber> Run(IPopulateScopeContext context)
         {
-            return new ConstantNumberResolveReferance(dub, make);
+            return new ConstantNumberResolveReferance(dub, make,box);
         }
 
-        public IBox<ITypeDefinition> GetReturnType(RootScope rootScope)
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
-            return rootScope.NumberType;
+            return box;
         }
     }
 
@@ -76,11 +78,16 @@ namespace Tac.Semantic_Model.Operations
     {
         private readonly double dub;
         private readonly Func<double, ConstantNumber> make;
+        private readonly Box<IReturnable> box;
 
-        public ConstantNumberResolveReferance(double dub, Func<double, ConstantNumber> Make)
+        public ConstantNumberResolveReferance(
+            double dub, 
+            Func<double, ConstantNumber> Make, 
+            Box<IReturnable> box)
         {
             this.dub = dub;
-            make = Make;
+            make = Make ?? throw new ArgumentNullException(nameof(Make));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
@@ -90,7 +97,7 @@ namespace Tac.Semantic_Model.Operations
 
         public ConstantNumber Run(IResolveReferanceContext context)
         {
-            return make(dub);
+            return box.Fill(make(dub));
         }
     }
 }

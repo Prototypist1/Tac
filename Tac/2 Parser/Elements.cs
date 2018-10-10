@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac._2_Parser;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.New;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
@@ -41,6 +42,8 @@ namespace Tac.Parser
         Func<double, ConstantNumber> ConstantNumber { get; }
         Func<int, MemberDefinition, Member> MemberPath { get; }
         Func<IBox<MemberDefinition>, PathPart> PathPart { get; }
+        Func<NumberType> NumberType { get; }
+        Func<StringType> StringType { get; }
     }
 
     public class ElementMatchingContext

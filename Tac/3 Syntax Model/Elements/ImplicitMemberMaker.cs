@@ -40,6 +40,7 @@ namespace Tac.Semantic_Model
     {
         private readonly string memberName;
         private readonly Func<int, MemberDefinition, Member> make;
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public ImplicitMemberPopulateScope(string item, Func<int, MemberDefinition, Member> make)
         {
@@ -60,8 +61,15 @@ namespace Tac.Semantic_Model
             }
 
 
-            return new ImplicitMemberResolveReferance(innerType, make, typeDef);
+            return new ImplicitMemberResolveReferance(innerType, make, typeDef, box);
         }
+
+
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
+        }
+
 
     }
 
@@ -70,12 +78,18 @@ namespace Tac.Semantic_Model
         private readonly MemberDefinition memberDef;
         private readonly Func<int, MemberDefinition, Member> make;
         private readonly FollowBox<IReturnable> typeDef;
+        private readonly Box<IReturnable> box;
 
-        public ImplicitMemberResolveReferance(MemberDefinition innerType, Func<int, MemberDefinition, Member> make, FollowBox<IReturnable> typeDef)
+        public ImplicitMemberResolveReferance(
+            MemberDefinition innerType, 
+            Func<int, MemberDefinition, Member> make, 
+            FollowBox<IReturnable> typeDef,
+            Box<IReturnable> box)
         {
             memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
-            this.typeDef = typeDef;
+            this.typeDef = typeDef ?? throw new ArgumentNullException(nameof(typeDef));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
@@ -115,7 +129,7 @@ namespace Tac.Semantic_Model
 
             })); 
 
-            return make(0, memberDef);
+            return box.Fill(make(0, memberDef));
         }
     }
 }

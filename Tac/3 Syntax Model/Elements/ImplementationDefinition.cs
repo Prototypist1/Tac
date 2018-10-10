@@ -57,7 +57,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public IReturnable ReturnType()
+        public IReturnable ReturnType(IElementBuilders elementBuilders)
         {
             return this;
         }
@@ -127,7 +127,7 @@ namespace Tac.Semantic_Model
         private readonly NameKey parameterKey;
         private readonly NameKey contextKey;
         private readonly Func<MemberDefinition, MemberDefinition, IBox<IReturnable>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
-        private readonly IBox<IReturnable> box = new Box<IReturnable>();
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public PopulateScopeImplementationDefinition(IPopulateScope<MemberDefinition> contextDefinition, IPopulateScope<MemberDefinition> parameterDefinition, ILocalStaticScope methodScope, IPopulateScope<ICodeElement>[] elements, NameKey outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<IReturnable>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> make, NameKey parameterKey, NameKey contextKey)
         {

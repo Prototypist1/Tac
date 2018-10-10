@@ -10,7 +10,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class ModuleDefinition : IScoped, ICodeElement, ITypeDefinition, IReturnable
+    public class ModuleDefinition : IScoped, ICodeElement, IReturnable
     {
         public ModuleDefinition(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
@@ -73,13 +73,20 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
         private readonly NameKey nameKey;
+        private readonly Box<IReturnable> box;
 
-        public ModuleDefinitionPopulateScope(IStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, NameKey nameKey)
+        public ModuleDefinitionPopulateScope(
+            IStaticScope scope, 
+            IPopulateScope<ICodeElement>[] elements, 
+            Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, 
+            NameKey nameKey, 
+            Box<IReturnable> box)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public IResolveReference<ModuleDefinition> Run(IPopulateScopeContext context)
@@ -96,19 +103,26 @@ namespace Tac.Semantic_Model
         private readonly IResolveReference<ICodeElement>[] resolveReferance;
         private readonly Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
         private readonly NameKey nameKey;
+        private readonly Box<IReturnable> box;
 
-        public ModuleDefinitionResolveReferance(IResolvableScope scope, IResolveReference<ICodeElement>[] resolveReferance, Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, NameKey nameKey)
+        public ModuleDefinitionResolveReferance(
+            IResolvableScope scope, 
+            IResolveReference<ICodeElement>[] resolveReferance, 
+            Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, 
+            NameKey nameKey,
+            Box<IReturnable> box)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public ModuleDefinition Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this, scope);
-            return make(scope, resolveReferance.Select(x => x.Run(nextContext)).ToArray(),nameKey);
+            return box.Fill(make(scope, resolveReferance.Select(x => x.Run(nextContext)).ToArray(),nameKey));
         }
         
         public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
