@@ -64,7 +64,7 @@ namespace Tac.New
     public interface IPipelineContext<T,TScope,TSelf>
         where TSelf: IPipelineContext<T, TScope, TSelf>
     {
-        RootScope RootScope { get; }
+        IElementBuilders ElementBuilders { get; }
         bool TryGetParentContext(out TSelf parent);
         bool TryGetParent<TT>(out TT parent) where TT :T;
         TSelf Child(T step);
@@ -99,8 +99,6 @@ namespace Tac.New
     // TODO I think I should protect these!
     // you should only pull things out of scope during this step
     public interface IResolveReferance {
-        // TODO I do not need this! 
-        IBox<IReturnable> GetReturnType(IResolveReferanceContext context);
     }
     
     // I think scopes have phases of production

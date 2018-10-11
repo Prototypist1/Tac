@@ -30,8 +30,8 @@ namespace Tac.Semantic_Model.CodeStuff
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
-
-        public abstract IReturnable ReturnType();
+        
+        public abstract IReturnable ReturnType(IElementBuilders elementBuilders);
     }
 
 
@@ -72,6 +72,7 @@ namespace Tac.Semantic_Model.CodeStuff
         private readonly IPopulateScope<ICodeElement> left;
         private readonly IPopulateScope<ICodeElement> right;
         private readonly Func<ICodeElement, ICodeElement, T> make;
+        private readonly DelegateBox<IReturnable> box = new DelegateBox<IReturnable>();
 
         public BinaryPopulateScope(IPopulateScope<ICodeElement> left, IPopulateScope<ICodeElement> right, Func<ICodeElement, ICodeElement, T> make)
         {
@@ -80,10 +81,15 @@ namespace Tac.Semantic_Model.CodeStuff
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
+        }
+
         public IResolveReference<T> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this);
-            return new BinaryResolveReferance<T>(left.Run(nextContext), right.Run(nextContext), make);
+            return new BinaryResolveReferance<T>(left.Run(nextContext), right.Run(nextContext), make, box);
         }
     }
 
@@ -95,25 +101,26 @@ namespace Tac.Semantic_Model.CodeStuff
         public readonly IResolveReference<ICodeElement> left;
         public readonly IResolveReference<ICodeElement> right;
         private readonly Func<ICodeElement, ICodeElement, T> make;
-        private readonly FollowBox<ITypeDefinition> followBox = new FollowBox<ITypeDefinition>();
+        private readonly DelegateBox<IReturnable> box;
 
-        public BinaryResolveReferance(IResolveReference<ICodeElement> resolveReferance1, IResolveReference<ICodeElement> resolveReferance2, Func<ICodeElement, ICodeElement, T> make)
+        public BinaryResolveReferance(
+            IResolveReference<ICodeElement> resolveReferance1,
+            IResolveReference<ICodeElement> resolveReferance2,
+            Func<ICodeElement, ICodeElement, T> make,
+            DelegateBox<IReturnable> box)
         {
-            left = resolveReferance1;
-            right = resolveReferance2;
-            this.make = make;
+            left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+            right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
-
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
-        {
-            return followBox;
-        }
+        
 
         public T Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this);
             var res = make(left.Run(nextContext), right.Run(nextContext));
-            followBox.Follow(res.ReturnType(context.RootScope));
+            box.Set(()=>res.ReturnType(context.ElementBuilders));
             return res;
         }
     }

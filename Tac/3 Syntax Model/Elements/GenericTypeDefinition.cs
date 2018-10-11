@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public IReturnable ReturnType()
+        public IReturnable ReturnType(IElementBuilders elementBuilders)
         {
             return this;
         }
@@ -138,7 +138,7 @@ namespace Tac.Semantic_Model
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
-        private readonly IBox<IReturnable> box = new Box<IReturnable>();
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ILocalStaticScope scope, GenericTypeParameterDefinition[] genericParameters, Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
         {
@@ -159,7 +159,7 @@ namespace Tac.Semantic_Model
             return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, resolvable, box, make);
         }
 
-        public IBox<IReturnable> GetReturnType(RootScope rootScope)
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
@@ -187,12 +187,7 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return context.RootScope.TypeType;
-        }
-
+        
         public GenericTypeDefinition Run(IResolveReferanceContext context)
         {
             return box.Fill(make(nameKey, scope, genericParameters));

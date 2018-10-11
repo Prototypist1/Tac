@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model
 
         public IBox<MemberDefinition> MemberDefinition { get; }
         
-        public IReturnable ReturnType()
+        public IReturnable ReturnType(IElementBuilders elementBuilders)
         {
             return this;
         }
@@ -59,6 +59,11 @@ namespace Tac.Semantic_Model
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
         }
 
         public IResolveReference<PathPart> Run(IPopulateScopeContext context)
@@ -120,13 +125,6 @@ namespace Tac.Semantic_Model
                 }
 
                 return member.GetValue();
-            });
-        }
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return new DelegateBox<ITypeDefinition>(() => {
-                return MakeBox(context).GetValue().Type.GetValue();
             });
         }
     }

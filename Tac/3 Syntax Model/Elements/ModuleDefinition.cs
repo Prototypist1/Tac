@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IReturnable ReturnType()
+        public IReturnable ReturnType(IElementBuilders elementBuilders)
         {
             return this;
         }
@@ -73,26 +73,29 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
         private readonly NameKey nameKey;
-        private readonly Box<IReturnable> box;
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public ModuleDefinitionPopulateScope(
             IStaticScope scope, 
             IPopulateScope<ICodeElement>[] elements, 
             Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, 
-            NameKey nameKey, 
-            Box<IReturnable> box)
+            NameKey nameKey)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
+        }
+
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
         }
 
         public IResolveReference<ModuleDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this,scope);
-            return new ModuleDefinitionResolveReferance(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make,nameKey);
+            return new ModuleDefinitionResolveReferance(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make,nameKey,box);
         }
 
     }
@@ -123,11 +126,6 @@ namespace Tac.Semantic_Model
         {
             var nextContext = context.Child(this, scope);
             return box.Fill(make(scope, resolveReferance.Select(x => x.Run(nextContext)).ToArray(),nameKey));
-        }
-        
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return context.RootScope.ModuleType;
         }
     }
 }

@@ -16,9 +16,9 @@ namespace Tac.Semantic_Model.Operations
 
         public ICodeElement Result { get; }
         
-        public IReturnable ReturnType()
+        public IReturnable ReturnType(IElementBuilders elementBuilders)
         {
-            return rootScope.EmptyType;
+            return elementBuilders.EmptyType();
         }
     }
     
@@ -54,6 +54,7 @@ namespace Tac.Semantic_Model.Operations
     {
         private readonly IPopulateScope<ICodeElement> left;
         private readonly Func<ICodeElement, T> make;
+        private readonly DelegateBox<IReturnable> box = new DelegateBox<IReturnable>();
 
         public TrailingPopulateScope(IPopulateScope<ICodeElement> left, Func<ICodeElement, T> make)
         {
@@ -61,10 +62,15 @@ namespace Tac.Semantic_Model.Operations
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            throw new NotImplementedException();
+        }
+
         public IResolveReference<T> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this);
-            return new TrailingResolveReferance<T>(left.Run(nextContext),  make);
+            return new TrailingResolveReferance<T>(left.Run(nextContext),  make, box);
         }
     }
 
@@ -75,24 +81,25 @@ namespace Tac.Semantic_Model.Operations
     {
         public readonly IResolveReference<ICodeElement> left;
         private readonly Func<ICodeElement, T> make;
-        private readonly FollowBox<ITypeDefinition> followBox = new FollowBox<ITypeDefinition>();
+        private readonly DelegateBox<IReturnable> box;
 
-        public TrailingResolveReferance(IResolveReference<ICodeElement> resolveReferance1,  Func<ICodeElement, T> make)
+        public TrailingResolveReferance(IResolveReference<ICodeElement> resolveReferance1,  Func<ICodeElement, T> make, DelegateBox<IReturnable> box)
         {
-            left = resolveReferance1;
-            this.make = make;
+            left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
+        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
         {
-            return followBox;
+            return box;
         }
 
         public T Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this);
             var res = make(left.Run(nextContext));
-            followBox.Follow(res.ReturnType(context.RootScope));
+            box.Set(()=>res.ReturnType(context.ElementBuilders));
             return res;
         }
     }

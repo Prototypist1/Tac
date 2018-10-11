@@ -90,11 +90,6 @@ namespace Tac.Semantic_Model.Operations
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IBox<ITypeDefinition> GetReturnType(IResolveReferanceContext context)
-        {
-            return context.RootScope.NumberType;
-        }
-
         public ConstantNumber Run(IResolveReferanceContext context)
         {
             return box.Fill(make(dub));

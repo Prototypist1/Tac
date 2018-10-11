@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model
         }
 
         public int ScopesUp { get; }
-        public IBox<IReturnable> MemberDefinition { get; }
+        public IBox<MemberDefinition> MemberDefinition { get; }
 
         public IReturnable ReturnType(IElementBuilders builders)
         {
@@ -71,12 +71,12 @@ namespace Tac.Semantic_Model
         public IResolveReference<Member> Run(IPopulateScopeContext context)
         {
             var nameKey = new NameKey(memberName);
-            IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(new MemberDefinition(false, nameKey, context.RootScope.AnyType));
+            IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(new MemberDefinition(false, nameKey, new Box<IReturnable>(context.ElementBuilders.AnyType())));
             if (!context.TryGetMemberPath(nameKey, out var depth, out memberDef) && !context.TryAddMember(nameKey, memberDef)) {
                 throw new Exception("uhh that is not right");
             }
             
-            return new MemberResolveReferance(depth, memberDef, make, RootKeys.AnyType);
+            return new MemberResolveReferance(depth, memberDef, make, RootKeys.AnyType,box);
         }
 
     }
@@ -100,12 +100,6 @@ namespace Tac.Semantic_Model
             this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
-        }
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return 
-                context.RootScope.MemberType(typeKey);
         }
 
         public Member Run(IResolveReferanceContext context)

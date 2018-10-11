@@ -13,9 +13,9 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBox<ITypeDefinition> ReturnType()
+        public override IReturnable ReturnType(IElementBuilders elementBuilders)
         {
-            return rootScope.BooleanType;
+            return elementBuilders.BooleanType();
         }
     }
 

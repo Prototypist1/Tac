@@ -27,6 +27,7 @@ namespace Tac.Semantic_Model
         public IBox<IReturnable> OutputType { get; }
         public MemberDefinition ParameterDefinition { get; }
 
+        // TODO do I need this?
         public IKey Key
         {
             get
@@ -112,6 +113,11 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
+        }
+
         public IResolveReference<MethodDefinition> Run(IPopulateScopeContext context)
         {
 
@@ -148,11 +154,6 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return context.RootScope.MethodType(parameterKey, outputTypeName);
-        }
-        
         public MethodDefinition Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this, methodScope);

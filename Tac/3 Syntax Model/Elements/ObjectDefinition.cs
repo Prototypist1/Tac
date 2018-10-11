@@ -72,6 +72,7 @@ namespace Tac.Semantic_Model
         private readonly ILocalStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
+        private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public ObjectDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
         {
@@ -80,10 +81,14 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
+        }
+
         public IResolveReference<ObjectDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child(this, scope);
-            var box = new Box<IReturnable>();
             var key = new ImplicitKey();
             scope.TryAddStaticType(key, box);
             return new ResolveReferanceObjectDefinition(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make, box,key);
@@ -111,11 +116,6 @@ namespace Tac.Semantic_Model
         {
             var nextContext = context.Child(this, scope);
             return box.Fill(make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray(), key));
-        }
-        
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return box;
         }
     }
 }

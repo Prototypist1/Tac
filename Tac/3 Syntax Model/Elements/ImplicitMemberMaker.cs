@@ -91,27 +91,7 @@ namespace Tac.Semantic_Model
             this.typeDef = typeDef ?? throw new ArgumentNullException(nameof(typeDef));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            if (!context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op))
-            {
-                throw new Exception("the parent must be assign");
-            }
-
-            return new DelegateBox<IReturnable>(() => {
-                var type = op.left.GetReturnType(context).GetValue();
-
-                if (type.Key == RootKeys.MemberType)
-                {
-                    return type.Scope.GetTypeOrThrow(RootKeys.MemberTypeParameter.Key).GetValue();
-                }
-
-                return type;
-
-            });
-        }
-
+        
         public Member Run(IResolveReferanceContext context)
         {
             if (!context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op))

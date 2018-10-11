@@ -118,11 +118,5 @@ namespace Tac.Semantic_Model
             memberDef.Fill(new MemberDefinition(isReadonly, new NameKey(memberName), context.GetTypeDefintion(typeName)));
             return box.Fill(make(0, memberDef));
         }
-
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return context.RootScope.MemberType(typeName);
-        }
     }
 }

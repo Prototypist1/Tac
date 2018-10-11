@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IReturnable ReturnType()
+        public override IReturnable ReturnType(IElementBuilders elementBuilders)
         {
-            return left.Unwrap<IReturnable>();
+            return left.Unwrap<IReturnable>(elementBuilders);
         }
     }
     

@@ -44,6 +44,9 @@ namespace Tac.Parser
         Func<IBox<MemberDefinition>, PathPart> PathPart { get; }
         Func<NumberType> NumberType { get; }
         Func<StringType> StringType { get; }
+        Func<EmptyType> EmptyType { get; }
+        Func<BooleanType> BooleanType { get; }
+        Func<AnyType> AnyType { get; }
     }
 
     public class ElementMatchingContext

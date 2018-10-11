@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
@@ -13,14 +14,14 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IReturnable ReturnType() {
-            if (left.ReturnType() == rootScope.NumberType && right.ReturnType() == rootScope.NumberType)
+        public override IReturnable ReturnType(IElementBuilders elementBuilders) {
+            if (left.ReturnType(elementBuilders) is NumberType && right.ReturnType(elementBuilders) is NumberType)
             {
-                return rootScope.NumberType;
+                return elementBuilders.NumberType();
             }
-            else if (left.ReturnType() == rootScope.StringType || right.ReturnType() == rootScope.StringType)
+            else if (left.ReturnType(elementBuilders) is StringType || right.ReturnType(elementBuilders) is StringType)
             {
-                return rootScope.StringType;
+                return elementBuilders.StringType();
             }
             else
             {

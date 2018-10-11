@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
     // this is really just a method....
     // should this even exist?
      
-    public class ImplementationDefinition: IReturnable
+    public class ImplementationDefinition: IReturnable, ICodeElement
     {
         public ImplementationDefinition(MemberDefinition contextDefinition,  MemberDefinition parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers)
         {
@@ -49,6 +49,7 @@ namespace Tac.Semantic_Model
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
 
+        // TODO do i need this??
         public IKey Key
         {
             get
@@ -157,7 +158,7 @@ namespace Tac.Semantic_Model
                 box);
         }
         
-        public IBox<IReturnable> GetReturnType(RootScope rootScope)
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
@@ -196,12 +197,7 @@ namespace Tac.Semantic_Model
             this.contextKey = contextKey ?? throw new ArgumentNullException(nameof(contextKey));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return context.RootScope.MethodType(contextKey, new GenericNameKey(RootKeys.MethodType, parameterKey, outputTypeName ));
-        }
-
+        
         public ImplementationDefinition Run(IResolveReferanceContext context)
         {
             var newContext = context.Child(this, methodScope);

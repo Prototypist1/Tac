@@ -95,10 +95,5 @@ namespace Tac.Semantic_Model
             var nextContext = context.Child(this, Scope);
             return box.Fill(Make(ResolveReferance.Select(x => x.Run(nextContext)).ToArray(), Scope, new ICodeElement[0]));
         }
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return context.RootScope.BlockType;
-        }
     }
 }

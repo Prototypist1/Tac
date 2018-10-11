@@ -10,7 +10,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class TypeDefinition : IReturnable
+    public class TypeDefinition : IReturnable, ICodeElement
     {
         public TypeDefinition(IResolvableScope scope, IKey key)
         {
@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model
         public IKey Key { get; }
         public IResolvableScope Scope { get; }
         
-        public IReturnable ReturnType()
+        public IReturnable ReturnType(IElementBuilders elementBuilders)
         {
             return this;
         }
@@ -63,6 +63,7 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IKey key;
         private readonly Func<IResolvableScope, IKey, TypeDefinition> make;
+        private readonly Box<TypeDefinition> box = new Box<TypeDefinition>();
 
         public TypeDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, IKey typeName, Func<IResolvableScope, IKey, TypeDefinition> make)
         {
@@ -72,9 +73,13 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
+        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        {
+            return box;
+        }
+
         public IResolveReference<TypeDefinition> Run(IPopulateScopeContext context)
         {
-            var box = new Box<TypeDefinition>();
             var encolsing = context.TryAddType(key, box);
             var nextContext = context.Child(this, scope);
             elements.Select(x => x.Run(nextContext)).ToArray();
@@ -94,11 +99,6 @@ namespace Tac.Semantic_Model
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
-        }
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return box;
         }
 
         public TypeDefinition Run(IResolveReferanceContext context)
