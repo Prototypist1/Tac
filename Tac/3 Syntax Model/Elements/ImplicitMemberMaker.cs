@@ -11,12 +11,15 @@ namespace Tac.Semantic_Model
 {
     public class ImplicitMemberMaker : IMaker<Member>
     {
-        public ImplicitMemberMaker(Func<int, IBox<MemberDefinition>, Member> make)
+        private readonly IBox<IReturnable> type;
+
+        public ImplicitMemberMaker(Func<int, MemberDefinition, Member> make, IBox<IReturnable> type)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        private Func<int, IBox<MemberDefinition>, Member> Make { get; }
+        private Func<int, MemberDefinition, Member> Make { get; }
 
         public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -27,7 +30,7 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                return ResultExtension.Good(new MemberPopulateScope(first.Item, Make));
+                return ResultExtension.Good(new ImplicitMemberPopulateScope(first.Item, Make, type));
             }
 
             return ResultExtension.Bad<IPopulateScope<Member>>();
@@ -40,19 +43,20 @@ namespace Tac.Semantic_Model
     {
         private readonly string memberName;
         private readonly Func<int, MemberDefinition, Member> make;
+        private readonly IBox<IReturnable> type;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public ImplicitMemberPopulateScope(string item, Func<int, MemberDefinition, Member> make)
+        public ImplicitMemberPopulateScope(string item, Func<int, MemberDefinition, Member> make, IBox<IReturnable> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public IResolveReference<Member> Run(IPopulateScopeContext context)
         {
-
-            var typeDef = new FollowBox<IReturnable>();
-            var innerType = new MemberDefinition(false, new NameKey(memberName), typeDef);
+            
+            var innerType = new MemberDefinition(false, new NameKey(memberName), type);
             IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
 
             if (!context.TryAddMember(new NameKey(memberName), memberDef))
@@ -61,7 +65,7 @@ namespace Tac.Semantic_Model
             }
 
 
-            return new ImplicitMemberResolveReferance(innerType, make, typeDef, box);
+            return new ImplicitMemberResolveReferance(innerType, make, box);
         }
 
 
@@ -77,38 +81,20 @@ namespace Tac.Semantic_Model
     {
         private readonly MemberDefinition memberDef;
         private readonly Func<int, MemberDefinition, Member> make;
-        private readonly FollowBox<IReturnable> typeDef;
         private readonly Box<IReturnable> box;
 
         public ImplicitMemberResolveReferance(
             MemberDefinition innerType, 
             Func<int, MemberDefinition, Member> make, 
-            FollowBox<IReturnable> typeDef,
             Box<IReturnable> box)
         {
             memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
-            this.typeDef = typeDef ?? throw new ArgumentNullException(nameof(typeDef));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
         public Member Run(IResolveReferanceContext context)
         {
-            if (!context.TryGetParent<BinaryResolveReferance<AssignOperation>>(out var op))
-            {
-                throw new Exception("the parent must be assign");
-            }
-            typeDef.Follow(new DelegateBox<IReturnable>(() => {
-                var type = op.left.GetReturnType(context).GetValue();
-
-                if (type.Key != RootKeys.MemberType) {
-                    return type;
-                }
-
-                return type.Scope.GetTypeOrThrow(RootKeys.MemberTypeParameter.Key).GetValue();
-
-            })); 
-
             return box.Fill(make(0, memberDef));
         }
     }

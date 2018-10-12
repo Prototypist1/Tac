@@ -24,5 +24,14 @@ namespace Tac.Semantic_Model
             }
             throw new Exception($"{name} should exist in scope");
         }
+
+        public static IBox<MemberDefinition> GetMemberOrThrow(this IResolvableScope scope, NameKey name, bool staticOnly)
+        {
+            if (scope.TryGetMember(name, staticOnly, out var thing))
+            {
+                return thing;
+            }
+            throw new Exception($"{name} should exist in scope");
+        }
     }
 }
