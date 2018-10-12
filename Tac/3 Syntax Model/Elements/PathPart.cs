@@ -26,12 +26,14 @@ namespace Tac.Semantic_Model
     public class PathPartMaker : IMaker<PathPart>
     {
         public PathPartMaker(Func<IBox<MemberDefinition>, PathPart> make,
-            IElementBuilders elementBuilders)
+            IElementBuilders elementBuilders, IBox<IReturnable> lhs)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
+            this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
+        private readonly IBox<IReturnable> lhs;
         private Func<IBox<MemberDefinition>, PathPart> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
@@ -42,7 +44,7 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                return ResultExtension.Good(new PathPartPopulateScope(first.Item, Make));
+                return ResultExtension.Good(new PathPartPopulateScope(first.Item, Make, lhs));
             }
 
             return ResultExtension.Bad<IPopulateScope<PathPart>>();
@@ -53,14 +55,15 @@ namespace Tac.Semantic_Model
     {
 
         private readonly IBox<IReturnable> lhs;
-        private readonly Ikey memberName;
+        private readonly string memberName;
         private readonly Func<IBox<MemberDefinition>, PathPart> make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public PathPartPopulateScope( string item, Func<IBox<MemberDefinition>, PathPart> make)
+        public PathPartPopulateScope( string item, Func<IBox<MemberDefinition>, PathPart> make,IBox<IReturnable> lhs)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
         public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -71,7 +74,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<PathPart> Run(IPopulateScopeContext context)
         {
 
-            return new PathPartResolveReferance(memberName, make, box);
+            return new PathPartResolveReferance(memberName, make, box,lhs);
         }
     }
 
