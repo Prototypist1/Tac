@@ -80,6 +80,7 @@ namespace Tac.Semantic_Model
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("implementation"), out var _)
+                // WHY doe this return AtomicToken?? it should return IKey
                 .Has(ElementMatcher.Generic3, out AtomicToken contextType, out AtomicToken inputType, out AtomicToken outputType)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken contextName)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
@@ -93,19 +94,21 @@ namespace Tac.Semantic_Model
                 var newMatchingContext = matchingContext.Child(methodScope);
                 var elements = newMatchingContext.ParseBlock(body);
 
-                var contextKey = new NameKey(parameterName?.Item ?? "context");
-                var contextDefinition = ElementBuilders.MemberDefinition.Make(
+                var contextNameString = contextName?.Item ?? "context";
+                var contextDefinition = new MemberDefinitionPopulateScope(
+                        contextNameString,
                         false,
-                        contextKey,
-                        new NameKey(contextType.Item)
+                        new NameKey(contextType.Item),
+                        matchingContext.Builders.Member
                         );
 
 
-                var parameterKey = new NameKey(parameterName?.Item ?? "input");
-                var parameterDefinition = ElementBuilders.MemberDefinition.Make(
+                var parameterNameString = parameterName?.Item ?? "input";
+                var parameterDefinition = new MemberDefinitionPopulateScope(
+                        parameterNameString,
                         false,
-                        parameterKey,
-                        new NameKey(inputType.Item)
+                        new NameKey(inputType.Item),
+                        matchingContext.Builders.Member
                         );
 
                 var outputTypeName= new NameKey(outputType.Item);

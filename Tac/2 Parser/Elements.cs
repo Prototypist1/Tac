@@ -93,8 +93,11 @@ namespace Tac.Parser
                 new TypeDefinitionMaker(builders.TypeDefinition,builders.NamedTypeDefinition),
             }, scope){}
 
+        
         private readonly IMaker<ICodeElement>[] ElementMakers;
         private readonly IOperationMaker<ICodeElement>[] OperationMatchers;
+
+        public IElementBuilders Builders { get; } 
 
         public ScopeStack ScopeStack { get;  }
 
