@@ -17,7 +17,11 @@ namespace Tac.Semantic_Model
      
     public class ImplementationDefinition: IReturnable, ICodeElement
     {
-        public ImplementationDefinition(MemberDefinition contextDefinition,  MemberDefinition parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers)
+        // this is an interesting pattern
+        // we define the delegate here to communicate that it should be ti8red to the constructor
+        public delegate ImplementationDefinition Make(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers);
+
+        public ImplementationDefinition(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -32,19 +36,19 @@ namespace Tac.Semantic_Model
         {
             get
             {
-                return ContextDefinition.Type;
+                return ContextDefinition.GetValue().Type;
             }
         }
         public IBox<IReturnable> InputType
         {
             get
             {
-                return ParameterDefinition.Type;
+                return ParameterDefinition.GetValue().Type;
             }
         }
         public IBox<IReturnable> OutputType { get; }
-        public MemberDefinition ContextDefinition { get; }
-        public MemberDefinition ParameterDefinition { get; }
+        public IBox<MemberDefinition> ContextDefinition { get; }
+        public IBox<MemberDefinition> ParameterDefinition { get; }
         public IResolvableScope Scope { get; }
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
@@ -66,14 +70,14 @@ namespace Tac.Semantic_Model
 
     public class ImplementationDefinitionMaker : IMaker<ImplementationDefinition>
     {
-        public ImplementationDefinitionMaker(Func<MemberDefinition  , MemberDefinition , IBox<IReturnable>, IEnumerable<ICodeElement> , IResolvableScope, IEnumerable<ICodeElement> , ImplementationDefinition> make,
+        public ImplementationDefinitionMaker(ImplementationDefinition.Make make,
             IElementBuilders elementBuilders)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
-        private Func<MemberDefinition,  MemberDefinition, IBox<IReturnable>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> Make { get; }
+        private ImplementationDefinition.Make Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
         public IResult<IPopulateScope<ImplementationDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
@@ -113,7 +117,14 @@ namespace Tac.Semantic_Model
 
                 var outputTypeName= new NameKey(outputType.Item);
 
-                return ResultExtension.Good(new PopulateScopeImplementationDefinition(contextDefinition, parameterDefinition, methodScope, elements, outputTypeName,Make, parameterKey, contextKey));
+                return ResultExtension.Good(
+                    new PopulateScopeImplementationDefinition(
+                        contextDefinition, 
+                        parameterDefinition, 
+                        methodScope, 
+                        elements, 
+                        outputTypeName,
+                        Make));
             }
 
 
@@ -123,17 +134,21 @@ namespace Tac.Semantic_Model
 
     public class PopulateScopeImplementationDefinition : IPopulateScope<ImplementationDefinition>
     {
-        private readonly IPopulateScope<MemberDefinition> contextDefinition;
-        private readonly IPopulateScope<MemberDefinition> parameterDefinition;
+        private readonly IPopulateScope<Member> contextDefinition;
+        private readonly IPopulateScope<Member> parameterDefinition;
         private readonly ILocalStaticScope methodScope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly NameKey parameterKey;
-        private readonly NameKey contextKey;
-        private readonly Func<MemberDefinition, MemberDefinition, IBox<IReturnable>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
+        private readonly ImplementationDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public PopulateScopeImplementationDefinition(IPopulateScope<MemberDefinition> contextDefinition, IPopulateScope<MemberDefinition> parameterDefinition, ILocalStaticScope methodScope, IPopulateScope<ICodeElement>[] elements, NameKey outputTypeName, Func<MemberDefinition, MemberDefinition, IBox<IReturnable>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> make, NameKey parameterKey, NameKey contextKey)
+        public PopulateScopeImplementationDefinition(
+            IPopulateScope<Member> contextDefinition,
+            IPopulateScope<Member> parameterDefinition,
+            ILocalStaticScope methodScope,
+            IPopulateScope<ICodeElement>[] elements,
+            NameKey outputTypeName,
+            ImplementationDefinition.Make make)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -141,8 +156,6 @@ namespace Tac.Semantic_Model
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
-            this.parameterKey = parameterKey ?? throw new ArgumentNullException(nameof(parameterKey));
-            this.contextKey = contextKey ?? throw new ArgumentNullException(nameof(contextKey));
         }
 
         public IResolveReference<ImplementationDefinition> Run(IPopulateScopeContext context)
@@ -156,8 +169,6 @@ namespace Tac.Semantic_Model
                 elements.Select(x => x.Run(newContext)).ToArray(),
                 outputTypeName,
                 make,
-                parameterKey,
-                contextKey,
                 box);
         }
         
@@ -170,25 +181,21 @@ namespace Tac.Semantic_Model
 
     public class ImplementationDefinitionResolveReferance : IResolveReference<ImplementationDefinition>
     {
-        private readonly IResolveReference<MemberDefinition> contextDefinition;
-        private readonly IResolveReference<MemberDefinition> parameterDefinition;
+        private readonly IResolveReference<Member> contextDefinition;
+        private readonly IResolveReference<Member> parameterDefinition;
         private readonly IResolvableScope methodScope;
         private readonly IResolveReference<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly NameKey parameterKey;
-        private readonly NameKey contextKey;
-        private readonly Func<MemberDefinition, MemberDefinition, IBox<IReturnable>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> make;
+        private readonly ImplementationDefinition.Make make;
         private readonly Box<IReturnable> box;
 
         public ImplementationDefinitionResolveReferance(
-            IResolveReference<MemberDefinition> contextDefinition,
-            IResolveReference<MemberDefinition> parameterDefinition,
+            IResolveReference<Member> contextDefinition,
+            IResolveReference<Member> parameterDefinition,
             IResolvableScope methodScope,
             IResolveReference<ICodeElement>[] elements,
             NameKey outputTypeName,
-            Func<MemberDefinition, MemberDefinition, IBox<IReturnable>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> make,
-            NameKey parameterKey,
-            NameKey contextKey, 
+            ImplementationDefinition.Make make,
             Box<IReturnable> box)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
@@ -196,15 +203,13 @@ namespace Tac.Semantic_Model
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
-            this.parameterKey = parameterKey ?? throw new ArgumentNullException(nameof(parameterKey));
-            this.contextKey = contextKey ?? throw new ArgumentNullException(nameof(contextKey));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
         public ImplementationDefinition Run(IResolveReferanceContext context)
         {
             var newContext = context.Child(this, methodScope);
-            return box.Fill(make(contextDefinition.Run(newContext), parameterDefinition.Run(newContext), context.GetTypeDefintion(outputTypeName), elements.Select(x => x.Run(newContext)).ToArray(), methodScope, new ICodeElement[0]));
+            return box.Fill(make(contextDefinition.Run(newContext).MemberDefinition, parameterDefinition.Run(newContext).MemberDefinition, context.GetTypeDefintion(outputTypeName), elements.Select(x => x.Run(newContext)).ToArray(), methodScope, new ICodeElement[0]));
         }
     }
 }
