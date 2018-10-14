@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model
         //    }
         //}
 
-        private readonly ConcurrentDictionary<NameKey, IBox<ITypeDefinition>> RealizedGenericTypes = new ConcurrentDictionary<NameKey, IBox<ITypeDefinition>>();
+        private readonly ConcurrentDictionary<NameKey, IBox<IReturnable>> RealizedGenericTypes = new ConcurrentDictionary<NameKey, IBox<IReturnable>>();
 
         public GenericScope(IResolvableScope backing, IEnumerable<GenericTypeParameter> typeParameters)
         {
@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model
             return Backing.TryGetMember(name, staticOnly, out member);
         }
 
-        public bool TryGetType(IKey name, out IBox<ITypeDefinition> type)
+        public bool TryGetType(IKey name, out IBox<IReturnable> type)
         {
             if (name is NameKey nameKey && RealizedGenericTypes.TryGetValue(nameKey, out var innerType))
             {

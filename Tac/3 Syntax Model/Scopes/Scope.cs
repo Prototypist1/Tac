@@ -60,7 +60,7 @@ namespace Tac.Semantic_Model
             return TryAddMember(DefintionLifetime.Static, key, definition);
         }
 
-        public bool TryAddStaticType(IKey key, IBox<ITypeDefinition> definition)
+        public bool TryAddStaticType(IKey key, IBox<IReturnable> definition)
         {
             return TryAddType(DefintionLifetime.Static, key, definition);
         }
@@ -73,8 +73,8 @@ namespace Tac.Semantic_Model
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<MemberDefinition>>>> members
     = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<MemberDefinition>>>>();
 
-        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<ITypeDefinition>>>> types
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<ITypeDefinition>>>>();
+        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IReturnable>>>> types
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IReturnable>>>>();
 
 
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>>();
@@ -86,10 +86,10 @@ namespace Tac.Semantic_Model
             return list.TryAdd(visiblity);
         }
 
-        protected bool TryAddType(DefintionLifetime defintionLifetime, IKey key, IBox<ITypeDefinition> definition)
+        protected bool TryAddType(DefintionLifetime defintionLifetime, IKey key, IBox<IReturnable> definition)
         {
-            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<ITypeDefinition>>>());
-            var visiblity = new Visiblity<IBox<ITypeDefinition>>(defintionLifetime, definition);
+            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IReturnable>>>());
+            var visiblity = new Visiblity<IBox<IReturnable>>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
 
@@ -120,7 +120,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetType(IKey name, out IBox<ITypeDefinition> type)
+        public bool TryGetType(IKey name, out IBox<IReturnable> type)
         {
             if (!types.TryGetValue(name, out var items))
             {
@@ -145,7 +145,7 @@ namespace Tac.Semantic_Model
             return this;
         }
         
-        public IReadOnlyList<IBox<ITypeDefinition>> Types
+        public IReadOnlyList<IBox<IReturnable>> Types
         {
             get
             {

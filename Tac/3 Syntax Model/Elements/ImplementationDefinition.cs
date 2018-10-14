@@ -52,16 +52,7 @@ namespace Tac.Semantic_Model
         public IResolvableScope Scope { get; }
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
-
-        // TODO do i need this??
-        public IKey Key
-        {
-            get
-            {
-                return new GenericNameKey(RootKeys.MethodType, ContextDefinition.Type.GetValue().Key, new GenericNameKey(RootKeys.MethodType,  ParameterDefinition.Type.GetValue().Key, OutputType.GetValue().Key));
-            }
-        }
-
+        
         public IReturnable ReturnType(IElementBuilders elementBuilders)
         {
             return this;

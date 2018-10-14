@@ -12,13 +12,13 @@ namespace Tac.Semantic_Model
     }
 
     public interface IResolvableScope {
-        bool TryGetType(IKey name, out IBox<ITypeDefinition> type);
+        bool TryGetType(IKey name, out IBox<IReturnable> type);
         bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member);
     }
     
     public static class IIResolvableScopeExtension
     {
-        public static IBox<ITypeDefinition> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
+        public static IBox<IReturnable> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }

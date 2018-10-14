@@ -76,7 +76,7 @@ namespace Tac.Semantic_Model
                 throw new Exception("uhh that is not right");
             }
             
-            return new MemberResolveReferance(depth, memberDef, make, RootKeys.AnyType,box);
+            return new MemberResolveReferance(depth, memberDef, make, box);
         }
 
     }
@@ -86,14 +86,12 @@ namespace Tac.Semantic_Model
         private readonly int depth;
         private readonly IBox<MemberDefinition> memberDef;
         private readonly Func<int, IBox<MemberDefinition>, Member> make;
-        private readonly NameKey typeKey;
         private readonly Box<IReturnable> box;
 
         public MemberResolveReferance(
             int depth, 
             IBox<MemberDefinition> memberDef, 
             Func<int, IBox<MemberDefinition>, Member> make, 
-            NameKey key,
             Box<IReturnable> box)
         {
             this.depth = depth;

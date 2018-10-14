@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model
         public ScopeTree ScopeTree { get; }
         public Scope TopScope { get; }
         
-        public IBox<ITypeDefinition> GetType(IKey key)
+        public IBox<IReturnable> GetType(IKey key)
         {
             foreach (var scope in ScopeTree.Scopes(TopScope))
             {

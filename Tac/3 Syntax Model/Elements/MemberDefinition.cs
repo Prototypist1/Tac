@@ -54,7 +54,7 @@ namespace Tac.Semantic_Model
             return ResultExtension.Bad<IPopulateScope<Member>>();
         }
     }
-    
+
     public class MemberDefinitionPopulateScope : IPopulateScope<Member>
     {
         private readonly string memberName;
@@ -79,7 +79,7 @@ namespace Tac.Semantic_Model
             {
                 throw new Exception("bad bad bad!");
             }
-            return new MemberDefinitionResolveReferance( memberName, memberDef, isReadonly, typeName, make, box);
+            return new MemberDefinitionResolveReferance(memberName, memberDef, isReadonly, typeName, make, box);
         }
 
         public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -98,10 +98,10 @@ namespace Tac.Semantic_Model
         private readonly Box<IReturnable> box;
 
         public MemberDefinitionResolveReferance(
-            string memberName, 
-            Box<MemberDefinition> memberDef, 
-            bool isReadonly, 
-            NameKey explicitTypeName, 
+            string memberName,
+            Box<MemberDefinition> memberDef,
+            bool isReadonly,
+            NameKey explicitTypeName,
             Func<int, IBox<MemberDefinition>, Member> make,
             Box<IReturnable> box)
         {
@@ -119,3 +119,4 @@ namespace Tac.Semantic_Model
             return box.Fill(make(0, memberDef));
         }
     }
+}

@@ -9,18 +9,19 @@ namespace Tac.Semantic_Model
         T GetValue();
     }
 
-    public class GenericBox : IBox<ITypeDefinition>
+    // TODO unused?
+    public class GenericBox : IBox<IReturnable>
     {
         private IBox<IGenericTypeDefinition> definition;
-        private readonly IEnumerable<IBox<ITypeDefinition>> genericTypeParameters;
+        private readonly IEnumerable<IBox<IReturnable>> genericTypeParameters;
 
-        public GenericBox(IBox<IGenericTypeDefinition> definition, IEnumerable<IBox<ITypeDefinition>> genericTypeParameters)
+        public GenericBox(IBox<IGenericTypeDefinition> definition, IEnumerable<IBox<IReturnable>> genericTypeParameters)
         {
             this.definition = definition ?? throw new ArgumentNullException(nameof(definition));
             this.genericTypeParameters = genericTypeParameters ?? throw new ArgumentNullException(nameof(genericTypeParameters));
         }
 
-        public ITypeDefinition GetValue()
+        public IReturnable GetValue()
         {
             var genericType = definition.GetValue();
             if (genericType.TryCreateConcrete(genericType.TypeParameterDefinitions.Zip(genericTypeParameters, (x, y) => new GenericTypeParameter(y, x)), out var box))
