@@ -12,6 +12,8 @@ namespace Tac.Semantic_Model
 
     public class ModuleDefinition : IScoped, ICodeElement, IReturnable
     {
+        public delegate ModuleDefinition Make(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Ke);
+
         public ModuleDefinition(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -36,12 +38,12 @@ namespace Tac.Semantic_Model
 
     public class ModuleDefinitionMaker : IMaker<ModuleDefinition>
     {
-        public ModuleDefinitionMaker(Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make)
+        public ModuleDefinitionMaker(ModuleDefinition.Make make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> Make { get; }
+        private ModuleDefinition.Make Make { get; }
 
         public IResult<IPopulateScope<ModuleDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -71,14 +73,14 @@ namespace Tac.Semantic_Model
     {
         private readonly IStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
+        private readonly ModuleDefinition.Make make;
         private readonly NameKey nameKey;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public ModuleDefinitionPopulateScope(
             IStaticScope scope, 
-            IPopulateScope<ICodeElement>[] elements, 
-            Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, 
+            IPopulateScope<ICodeElement>[] elements,
+            ModuleDefinition.Make make, 
             NameKey nameKey)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -104,14 +106,14 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope scope;
         private readonly IResolveReference<ICodeElement>[] resolveReferance;
-        private readonly Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make;
+        private readonly ModuleDefinition.Make make;
         private readonly NameKey nameKey;
         private readonly Box<IReturnable> box;
 
         public ModuleDefinitionResolveReferance(
             IResolvableScope scope, 
-            IResolveReference<ICodeElement>[] resolveReferance, 
-            Func<IResolvableScope, IEnumerable<ICodeElement>, NameKey, ModuleDefinition> make, 
+            IResolveReference<ICodeElement>[] resolveReferance,
+            ModuleDefinition.Make make, 
             NameKey nameKey,
             Box<IReturnable> box)
         {

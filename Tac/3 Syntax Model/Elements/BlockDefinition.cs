@@ -10,18 +10,27 @@ namespace Tac.Semantic_Model
 
     public class BlockDefinition : AbstractBlockDefinition
     {
-        public BlockDefinition(ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(scope ?? throw new System.ArgumentNullException(nameof(scope)), body, staticInitailizers) { }
+
+        public delegate BlockDefinition Make(ICodeElement[] body,
+            IResolvableScope scope,
+            IEnumerable<ICodeElement> staticInitailizers);
+
+        public BlockDefinition(
+            ICodeElement[] body,
+            IResolvableScope scope,
+            IEnumerable<ICodeElement> staticInitailizers) : 
+            base(scope, body, staticInitailizers) { }
         
     }
 
     public class BlockDefinitionMaker : IMaker<BlockDefinition>
     {
-        public BlockDefinitionMaker(Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make)
+        public BlockDefinitionMaker(BlockDefinition.Make make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+        private BlockDefinition.Make Make { get; }
 
         public IResult<IPopulateScope<BlockDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -47,10 +56,10 @@ namespace Tac.Semantic_Model
     {
         private ILocalStaticScope Scope { get; }
         private IPopulateScope<ICodeElement>[] Elements { get; }
-        public Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+        public BlockDefinition.Make Make { get; }
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public BlockDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make)
+        public BlockDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, BlockDefinition.Make make)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -74,13 +83,13 @@ namespace Tac.Semantic_Model
     {
         private IResolvableScope Scope { get; }
         private IResolveReference<ICodeElement>[] ResolveReferance { get; }
-        private Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> Make { get; }
+        private BlockDefinition.Make Make { get; }
         private readonly Box<IReturnable> box;
 
         public ResolveReferanceBlockDefinition(
             IResolvableScope scope, 
-            IResolveReference<ICodeElement>[] resolveReferance, 
-            Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> make,
+            IResolveReference<ICodeElement>[] resolveReferance,
+            BlockDefinition.Make make,
             Box<IReturnable> box)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));

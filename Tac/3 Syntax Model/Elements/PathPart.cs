@@ -10,6 +10,8 @@ namespace Tac.Semantic_Model
 {
     public class PathPart : ICodeElement, IReturnable
     {
+        public delegate PathPart Make(IBox<MemberDefinition> memberDefinition);
+
         public PathPart(IBox<MemberDefinition> memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
@@ -25,8 +27,9 @@ namespace Tac.Semantic_Model
 
     public class PathPartMaker : IMaker<PathPart>
     {
-        public PathPartMaker(Func<IBox<MemberDefinition>, PathPart> make,
-            IElementBuilders elementBuilders, IBox<IReturnable> lhs)
+        public PathPartMaker(PathPart.Make make,
+            IElementBuilders elementBuilders, 
+            IBox<IReturnable> lhs)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
@@ -34,7 +37,7 @@ namespace Tac.Semantic_Model
         }
 
         private readonly IBox<IReturnable> lhs;
-        private Func<IBox<MemberDefinition>, PathPart> Make { get; }
+        private PathPart.Make Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
         public IResult<IPopulateScope<PathPart>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
@@ -56,10 +59,10 @@ namespace Tac.Semantic_Model
 
         private readonly IBox<IReturnable> lhs;
         private readonly string memberName;
-        private readonly Func<IBox<MemberDefinition>, PathPart> make;
+        private readonly PathPart.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public PathPartPopulateScope( string item, Func<IBox<MemberDefinition>, PathPart> make,IBox<IReturnable> lhs)
+        public PathPartPopulateScope( string item, PathPart.Make make,IBox<IReturnable> lhs)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -83,10 +86,10 @@ namespace Tac.Semantic_Model
 
         private readonly string memberName;
         private readonly IBox<IReturnable> lhs;
-        private readonly Func<IBox<MemberDefinition>, PathPart> make;
+        private readonly PathPart.Make make;
         private readonly Box<IReturnable> box;
 
-        public PathPartResolveReferance(string memberName,Func<IBox<MemberDefinition>, PathPart> make, Box<IReturnable> box, IBox<IReturnable> lhs)
+        public PathPartResolveReferance(string memberName, PathPart.Make make, Box<IReturnable> box, IBox<IReturnable> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));

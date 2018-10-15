@@ -30,7 +30,7 @@ namespace Tac.Parser
 
     public interface IElementBuilders
     {
-        Func<int, IBox<MemberDefinition>, Member> Member { get; }
+        Member.Make Member { get; }
         Func<string, ITypeDefinition[], GenericNameKey> GenericExplicitTypeName { get; }
         Func<IResolvableScope, IEnumerable<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
         Func<IResolvableScope, IEnumerable<ICodeElement>, ModuleDefinition> ModuleDefinition { get; }

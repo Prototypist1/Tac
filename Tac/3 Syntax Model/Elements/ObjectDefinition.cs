@@ -14,6 +14,8 @@ namespace Tac.Semantic_Model
 {
     public class ObjectDefinition: ICodeElement, IReturnable
     {
+        public delegate ObjectDefinition Make(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key);
+
         public ObjectDefinition(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
             {
@@ -40,12 +42,12 @@ namespace Tac.Semantic_Model
     
     public class ObjectDefinitionMaker : IMaker<ObjectDefinition>
     {
-        public ObjectDefinitionMaker(Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
+        public ObjectDefinitionMaker(ObjectDefinition.Make make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> Make { get; }
+        private ObjectDefinition.Make Make { get; }
 
         public IResult<IPopulateScope<ObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -71,10 +73,10 @@ namespace Tac.Semantic_Model
     {
         private readonly ILocalStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
+        private readonly ObjectDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public ObjectDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make)
+        public ObjectDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, ObjectDefinition.Make make)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -99,11 +101,16 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope scope;
         private readonly IResolveReference<ICodeElement>[] elements;
-        private readonly Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make;
+        private readonly ObjectDefinition.Make make;
         private readonly Box<IReturnable> box;
         private readonly ImplicitKey key;
 
-        public ResolveReferanceObjectDefinition(IResolvableScope scope, IResolveReference<ICodeElement>[] elements, Func<IResolvableScope, IEnumerable<AssignOperation>, ImplicitKey, ObjectDefinition> make, Box<IReturnable> box, ImplicitKey key)
+        public ResolveReferanceObjectDefinition(
+            IResolvableScope scope, 
+            IResolveReference<ICodeElement>[] elements, 
+            ObjectDefinition.Make make, 
+            Box<IReturnable> box, 
+            ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));

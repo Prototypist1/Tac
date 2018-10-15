@@ -13,13 +13,13 @@ namespace Tac.Semantic_Model
     {
         private readonly IBox<IReturnable> type;
 
-        public ImplicitMemberMaker(Func<int, MemberDefinition, Member> make, IBox<IReturnable> type)
+        public ImplicitMemberMaker(Member.Make make, IBox<IReturnable> type)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        private Func<int, MemberDefinition, Member> Make { get; }
+        private Member.Make Make { get; }
 
         public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -42,11 +42,11 @@ namespace Tac.Semantic_Model
     public class ImplicitMemberPopulateScope : IPopulateScope<Member>
     {
         private readonly string memberName;
-        private readonly Func<int, MemberDefinition, Member> make;
+        private readonly Member.Make make;
         private readonly IBox<IReturnable> type;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public ImplicitMemberPopulateScope(string item, Func<int, MemberDefinition, Member> make, IBox<IReturnable> type)
+        public ImplicitMemberPopulateScope(string item, Member.Make make, IBox<IReturnable> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -65,7 +65,7 @@ namespace Tac.Semantic_Model
             }
 
 
-            return new ImplicitMemberResolveReferance(innerType, make, box);
+            return new ImplicitMemberResolveReferance(memberDef, make, box);
         }
 
 
@@ -79,16 +79,16 @@ namespace Tac.Semantic_Model
 
     public class ImplicitMemberResolveReferance : IResolveReference<Member>
     {
-        private readonly MemberDefinition memberDef;
-        private readonly Func<int, MemberDefinition, Member> make;
+        private readonly IBox<MemberDefinition> memberDef;
+        private readonly Member.Make make;
         private readonly Box<IReturnable> box;
 
         public ImplicitMemberResolveReferance(
-            MemberDefinition innerType, 
-            Func<int, MemberDefinition, Member> make, 
+            IBox<MemberDefinition> memberDef,
+            Member.Make make, 
             Box<IReturnable> box)
         {
-            memberDef = innerType ?? throw new ArgumentNullException(nameof(innerType));
+            this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }

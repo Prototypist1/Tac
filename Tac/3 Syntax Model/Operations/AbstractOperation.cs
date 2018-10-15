@@ -11,7 +11,12 @@ namespace Tac.Semantic_Model.CodeStuff
         ICodeElement[] Operands { get; }
     }
 
-    public abstract class BinaryOperation<TLeft, TRight> : ICodeElement, IOperation
+    public abstract class BinaryOperation
+    {
+        public delegate T Make<T>(ICodeElement left, ICodeElement right);
+    }
+
+    public abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation
         where TLeft : class, ICodeElement
         where TRight : class, ICodeElement
     {
@@ -38,7 +43,7 @@ namespace Tac.Semantic_Model.CodeStuff
     public class BinaryOperationMaker<T> : IOperationMaker<T>
         where T : class, ICodeElement
     {
-        public BinaryOperationMaker(string name, Func<ICodeElement, ICodeElement, T> make
+        public BinaryOperationMaker(string name, BinaryOperation.Make<T> make
             )
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -46,7 +51,7 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
         public string Name { get; }
-        private Func<ICodeElement, ICodeElement, T> Make { get; }
+        private BinaryOperation.Make<T> Make { get; }
 
         public IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
@@ -71,10 +76,10 @@ namespace Tac.Semantic_Model.CodeStuff
     {
         private readonly IPopulateScope<ICodeElement> left;
         private readonly IPopulateScope<ICodeElement> right;
-        private readonly Func<ICodeElement, ICodeElement, T> make;
+        private readonly BinaryOperation.Make<T> make;
         private readonly DelegateBox<IReturnable> box = new DelegateBox<IReturnable>();
 
-        public BinaryPopulateScope(IPopulateScope<ICodeElement> left, IPopulateScope<ICodeElement> right, Func<ICodeElement, ICodeElement, T> make)
+        public BinaryPopulateScope(IPopulateScope<ICodeElement> left, IPopulateScope<ICodeElement> right, BinaryOperation.Make<T> make)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
@@ -100,13 +105,13 @@ namespace Tac.Semantic_Model.CodeStuff
     {
         public readonly IResolveReference<ICodeElement> left;
         public readonly IResolveReference<ICodeElement> right;
-        private readonly Func<ICodeElement, ICodeElement, T> make;
+        private readonly BinaryOperation.Make<T> make;
         private readonly DelegateBox<IReturnable> box;
 
         public BinaryResolveReferance(
             IResolveReference<ICodeElement> resolveReferance1,
             IResolveReference<ICodeElement> resolveReferance2,
-            Func<ICodeElement, ICodeElement, T> make,
+            BinaryOperation.Make<T> make,
             DelegateBox<IReturnable> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));

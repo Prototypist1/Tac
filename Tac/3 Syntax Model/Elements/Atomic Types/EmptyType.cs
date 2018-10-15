@@ -7,5 +7,6 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 {
     public class EmptyType: IReturnable
     {
+        public delegate EmptyType Make();
     }
 }

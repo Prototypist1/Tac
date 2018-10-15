@@ -16,6 +16,8 @@ namespace Tac.Semantic_Model.Operations
     // IDK!
     public class ConstantNumber : NumberType, ICodeElement
     {
+        public new delegate ConstantNumber Make(double value);
+
         public ConstantNumber(double value) 
         {
             Value = value;
@@ -31,9 +33,9 @@ namespace Tac.Semantic_Model.Operations
 
     public class ConstantNumberMaker : IMaker<ConstantNumber>
     {
-        private readonly Func<double, ConstantNumber> make;
+        private readonly ConstantNumber.Make make;
 
-        public ConstantNumberMaker(Func<double, ConstantNumber> Make) {
+        public ConstantNumberMaker(ConstantNumber.Make Make) {
             make = Make ?? throw new ArgumentNullException(nameof(Make));
         }
 
@@ -54,10 +56,10 @@ namespace Tac.Semantic_Model.Operations
     public class ConstantNumberPopulateScope : IPopulateScope<ConstantNumber>
     {
         private readonly double dub;
-        private readonly Func<double, ConstantNumber> make;
+        private readonly ConstantNumber.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public ConstantNumberPopulateScope(double dub, Func<double, ConstantNumber> Make)
+        public ConstantNumberPopulateScope(double dub, ConstantNumber.Make Make)
         {
             this.dub = dub;
             make = Make;
@@ -77,12 +79,12 @@ namespace Tac.Semantic_Model.Operations
     public class ConstantNumberResolveReferance : IResolveReference<ConstantNumber>
     {
         private readonly double dub;
-        private readonly Func<double, ConstantNumber> make;
+        private readonly ConstantNumber.Make make;
         private readonly Box<IReturnable> box;
 
         public ConstantNumberResolveReferance(
-            double dub, 
-            Func<double, ConstantNumber> Make, 
+            double dub,
+            ConstantNumber.Make Make, 
             Box<IReturnable> box)
         {
             this.dub = dub;

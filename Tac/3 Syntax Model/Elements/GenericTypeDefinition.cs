@@ -9,13 +9,10 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface IGenericTypeDefinition{
-        GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
-        bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out IReturnable result);
-    }
-
-    public class GenericTypeDefinition : ICodeElement, IGenericTypeDefinition, IReturnable
+    public class GenericTypeDefinition : ICodeElement, IReturnable
     {
+        public delegate GenericTypeDefinition Make(NameKey key, IResolvableScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions);
+
         public GenericTypeDefinition(NameKey key, IResolvableScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -97,9 +94,9 @@ namespace Tac.Semantic_Model
 
     public class GenericTypeDefinitionMaker : IMaker<GenericTypeDefinition>
     {
-        private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+        private readonly GenericTypeDefinition.Make make;
 
-        public GenericTypeDefinitionMaker(Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
+        public GenericTypeDefinitionMaker(GenericTypeDefinition.Make make)
         {
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
@@ -137,10 +134,10 @@ namespace Tac.Semantic_Model
         private readonly ILocalStaticScope scope;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
-        private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+        private readonly GenericTypeDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ILocalStaticScope scope, GenericTypeParameterDefinition[] genericParameters, Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
+        public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ILocalStaticScope scope, GenericTypeParameterDefinition[] genericParameters, GenericTypeDefinition.Make make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
@@ -172,14 +169,14 @@ namespace Tac.Semantic_Model
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly IResolvableScope scope;
         private readonly Box<IReturnable> box;
-        private readonly Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make;
+        private readonly GenericTypeDefinition.Make make;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             GenericTypeParameterDefinition[] genericParameters, 
             IResolvableScope scope, 
-            Box<IReturnable> box, 
-            Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> make)
+            Box<IReturnable> box,
+            GenericTypeDefinition.Make make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));

@@ -11,6 +11,8 @@ namespace Tac.Semantic_Model
 {
     public class Member : ICodeElement, IReturnable
     {
+        public delegate Member Make(int scopesUp, IBox<MemberDefinition> memberDefinition);
+
         public Member(int scopesUp, IBox<MemberDefinition> memberDefinition)
         {
             ScopesUp = scopesUp;

@@ -12,6 +12,8 @@ namespace Tac.Semantic_Model
 {
     public class TypeDefinition : IReturnable, ICodeElement
     {
+        public delegate TypeDefinition Make(IResolvableScope scope, IKey key);
+
         public TypeDefinition(IResolvableScope scope, IKey key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -29,12 +31,12 @@ namespace Tac.Semantic_Model
     
     public class TypeDefinitionMaker : IMaker<TypeDefinition>
     {
-        public TypeDefinitionMaker(Func<IResolvableScope, IKey, TypeDefinition> make)
+        public TypeDefinitionMaker(TypeDefinition.Make make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private Func<IResolvableScope, IKey, TypeDefinition> Make { get; }
+        private TypeDefinition.Make Make { get; }
         
         public IResult<IPopulateScope<TypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -62,10 +64,10 @@ namespace Tac.Semantic_Model
         private readonly ILocalStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IKey key;
-        private readonly Func<IResolvableScope, IKey, TypeDefinition> make;
+        private readonly TypeDefinition.Make make;
         private readonly Box<TypeDefinition> box = new Box<TypeDefinition>();
 
-        public TypeDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, IKey typeName, Func<IResolvableScope, IKey, TypeDefinition> make)
+        public TypeDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, IKey typeName, TypeDefinition.Make make)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -92,9 +94,9 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope scope;
         private readonly Box<TypeDefinition> box;
         private readonly IKey key;
-        private readonly Func<IResolvableScope, IKey, TypeDefinition> make;
+        private readonly TypeDefinition.Make make;
 
-        public TypeDefinitionResolveReference(IResolvableScope scope, Box<TypeDefinition> box, Func<IResolvableScope, IKey, TypeDefinition> make, IKey key)
+        public TypeDefinitionResolveReference(IResolvableScope scope, Box<TypeDefinition> box, TypeDefinition.Make make, IKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));

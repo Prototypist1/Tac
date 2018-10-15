@@ -8,30 +8,7 @@ namespace Tac.Semantic_Model
     {
         T GetValue();
     }
-
-    // TODO unused?
-    public class GenericBox : IBox<IReturnable>
-    {
-        private IBox<IGenericTypeDefinition> definition;
-        private readonly IEnumerable<IBox<IReturnable>> genericTypeParameters;
-
-        public GenericBox(IBox<IGenericTypeDefinition> definition, IEnumerable<IBox<IReturnable>> genericTypeParameters)
-        {
-            this.definition = definition ?? throw new ArgumentNullException(nameof(definition));
-            this.genericTypeParameters = genericTypeParameters ?? throw new ArgumentNullException(nameof(genericTypeParameters));
-        }
-
-        public IReturnable GetValue()
-        {
-            var genericType = definition.GetValue();
-            if (genericType.TryCreateConcrete(genericType.TypeParameterDefinitions.Zip(genericTypeParameters, (x, y) => new GenericTypeParameter(y, x)), out var box))
-            {
-                return box;
-            }
-            throw new Exception("whatever whatever your code is a pile of shit 💩💥");
-        }
-    }
-
+    
     public class DelegateBox<T> : IBox<T> where T : class
     {
         private Func<T> func;
