@@ -52,29 +52,36 @@ namespace Tac.Parser
 
 
         internal ElementMatchingContext ExpectPathPart(IBox<IReturnable> box) {
-
+            return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
+                new PathPartMaker(Builders.PathPart,Builders,box)
+            }, ScopeStack);
         }
 
 
-        internal object AcceptImplicit(IBox<IReturnable> box)
+        internal ElementMatchingContext AcceptImplicit(IBox<IReturnable> box)
         {
-
+            return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
+                new BlockDefinitionMaker(Builders.BlockDefinition),
+                new ConstantNumberMaker(Builders.ConstantNumber),
+                new GenericTypeDefinitionMaker(Builders.GenericTypeDefinition),
+                new ImplementationDefinitionMaker(Builders.ImplementationDefinition,Builders),
+                new MemberDefinitionMaker(Builders.Member,Builders),
+                new MethodDefinitionMaker(Builders.MethodDefinition,Builders),
+                new ModuleDefinitionMaker(Builders.ModuleDefinition),
+                new ObjectDefinitionMaker(Builders.ObjectDefinition),
+                new TypeDefinitionMaker(Builders.TypeDefinition),
+                new ImplicitMemberMaker(Builders.Member,box),
+                new MemberMaker(Builders.Member,Builders),
+            }, ScopeStack);
         }
 
 
         internal ElementMatchingContext Child(IPopulatableScope scope)
         {
-            return new ElementMatchingContext(OperationMatchers, ElementMakers, new ScopeStack(ScopeStack, scope));
+            return new ElementMatchingContext(Builders,operationMatchers, elementMakers, new ScopeStack(ScopeStack.ScopeTree, scope));
         }
-
-        public ElementMatchingContext(IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers, ScopeStack scope)
-        {
-            this.OperationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers)) ;
-            ElementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
-            ScopeStack = scope ?? throw new ArgumentNullException(nameof(scope));
-        }
-
-        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) : this(new IOperationMaker<ICodeElement>[] {
+        
+        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) : this(builders,new IOperationMaker<ICodeElement>[] {
                 new AddOperationMaker(operationBuilder.AddOperation),
                 new SubtractOperationMaker(operationBuilder.SubtractOperation),
                 new MultiplyOperationMaker(operationBuilder.MultiplyOperation),
@@ -90,22 +97,30 @@ namespace Tac.Parser
                 new ConstantNumberMaker(builders.ConstantNumber),
                 new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
                 new ImplementationDefinitionMaker(builders.ImplementationDefinition,builders),
-                new MemberMaker(builders.Member,builders),
                 new MemberDefinitionMaker(builders.Member,builders),
                 new MethodDefinitionMaker(builders.MethodDefinition,builders),
                 new ModuleDefinitionMaker(builders.ModuleDefinition),
                 new ObjectDefinitionMaker(builders.ObjectDefinition),
                 new TypeDefinitionMaker(builders.TypeDefinition),
+                new MemberMaker(builders.Member,builders),
             }, scope){}
 
         
-        private readonly IMaker<ICodeElement>[] ElementMakers;
-        private readonly IOperationMaker<ICodeElement>[] OperationMatchers;
 
-        public IElementBuilders Builders { get; } 
+        public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers, ScopeStack scope)
+        {
+            this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
+            this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
+            ScopeStack = scope ?? throw new ArgumentNullException(nameof(scope));
+        }
 
-        public ScopeStack ScopeStack { get;  }
+        private readonly IMaker<ICodeElement>[] elementMakers;
+        private readonly IOperationMaker<ICodeElement>[] operationMatchers;
 
+        public IElementBuilders Builders { get; }
+        public ScopeStack ScopeStack { get; }
+        
+        
         #region Parse
 
         public IPopulateScope<ICodeElement> ParseParenthesisOrElement(IToken token)
@@ -118,7 +133,7 @@ namespace Tac.Parser
                     return ParseLine(parenthesisToken.Tokens);
                 }
 
-                foreach (var tryMatch in ElementMakers)
+                foreach (var tryMatch in elementMakers)
                 {
                     if (tryMatch.TryMake(elementToken, this).TryGetValue(out var obj))
                     {
@@ -136,7 +151,7 @@ namespace Tac.Parser
 
         public IPopulateScope<ICodeElement> ParseLine(IEnumerable<IToken> tokens)
         {
-            foreach (var operationMatcher in OperationMatchers)
+            foreach (var operationMatcher in operationMatchers)
             {
                 if (operationMatcher.TryMake(tokens, this).TryGetValue(out var obj))
                 {

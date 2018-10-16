@@ -7,11 +7,15 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface IPopulatableScope {
+    public interface ISomeScope { }
+
+    public interface IPopulatableScope: ISomeScope
+    {
         IResolvableScope ToResolvable();
     }
 
-    public interface IResolvableScope {
+    public interface IResolvableScope: ISomeScope
+    {
         bool TryGetType(IKey name, out IBox<IReturnable> type);
         bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member);
     }
