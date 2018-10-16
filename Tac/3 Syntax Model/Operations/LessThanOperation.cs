@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model.CodeStuff
     
     public class LessThanOperationMaker : BinaryOperationMaker<LessThanOperation>
     {
-        public LessThanOperationMaker(Func<ICodeElement, ICodeElement, LessThanOperation> make) : base("<?", make)
+        public LessThanOperationMaker(BinaryOperation.Make<LessThanOperation> make) : base("<?", make)
         {
         }
     }

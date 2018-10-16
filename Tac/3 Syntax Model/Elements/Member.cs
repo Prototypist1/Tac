@@ -30,14 +30,14 @@ namespace Tac.Semantic_Model
 
     public class MemberMaker : IMaker<Member>
     {
-        public MemberMaker(Func<int, IBox<MemberDefinition>, Member> make,
+        public MemberMaker(Member.Make make,
             IElementBuilders elementBuilders)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
-        private Func<int, IBox<MemberDefinition>, Member> Make { get; }
+        private Member.Make Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
         public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
@@ -56,10 +56,10 @@ namespace Tac.Semantic_Model
     public class MemberPopulateScope : IPopulateScope<Member>
     {
         private readonly string memberName;
-        private readonly Func<int, IBox<MemberDefinition>, Member> make;
+        private readonly Member.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public MemberPopulateScope(string item, Func<int, IBox<MemberDefinition>, Member> make)
+        public MemberPopulateScope(string item, Member.Make make)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -87,13 +87,13 @@ namespace Tac.Semantic_Model
     {
         private readonly int depth;
         private readonly IBox<MemberDefinition> memberDef;
-        private readonly Func<int, IBox<MemberDefinition>, Member> make;
+        private readonly Member.Make make;
         private readonly Box<IReturnable> box;
 
         public MemberResolveReferance(
             int depth, 
-            IBox<MemberDefinition> memberDef, 
-            Func<int, IBox<MemberDefinition>, Member> make, 
+            IBox<MemberDefinition> memberDef,
+            Member.Make make, 
             Box<IReturnable> box)
         {
             this.depth = depth;

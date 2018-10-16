@@ -32,7 +32,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class AddOperationMaker : BinaryOperationMaker<AddOperation>
     {
-        public AddOperationMaker(Func<ICodeElement, ICodeElement, AddOperation> make) : base("+", make)
+        public AddOperationMaker(BinaryOperation.Make<AddOperation> make) : base("+", make)
         {
         }
     }

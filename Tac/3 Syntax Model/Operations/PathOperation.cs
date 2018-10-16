@@ -32,24 +32,22 @@ namespace Tac.Semantic_Model.Operations
 
     public class PathOperationMaker : IOperationMaker<PathOperation>
     {
-        public PathOperationMaker(string name, Func<ICodeElement, ICodeElement, PathOperation> make
+        public PathOperationMaker( BinaryOperation.Make<PathOperation> make
             )
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
-
-        public string Name { get; }
-        private Func<ICodeElement, ICodeElement, PathOperation> Make { get; }
+        
+        private BinaryOperation.Make<PathOperation> Make { get; }
 
         public IResult<IPopulateScope<PathOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(Name), out var perface, out var token, out var rhs)
+            .Has(ElementMatcher.IsBinaryOperation("."), out var perface, out var token, out var rhs)
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);
-                var right = matchingContext.ExpectPathPart().ParseParenthesisOrElement(rhs);
+                var right = matchingContext.ExpectPathPart(left.GetReturnType(matchingContext.Builders)).ParseParenthesisOrElement(rhs);
 
                 return ResultExtension.Good(new BinaryPopulateScope<PathOperation>(left, right, Make));
             }

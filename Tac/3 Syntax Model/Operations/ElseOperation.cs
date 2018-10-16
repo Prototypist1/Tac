@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class ElseOperationMaker : BinaryOperationMaker<ElseOperation>
     {
-        public ElseOperationMaker(Func<ICodeElement, ICodeElement, ElseOperation> make) : base("else", make)
+        public ElseOperationMaker(BinaryOperation.Make<ElseOperation> make) : base("else", make)
         {
         }
     }

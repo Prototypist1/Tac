@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class NextCallOperationMaker : BinaryOperationMaker<NextCallOperation>
     {
-        public NextCallOperationMaker(Func<ICodeElement, ICodeElement, NextCallOperation> make) : base(">", make)
+        public NextCallOperationMaker(BinaryOperation.Make<NextCallOperation> make) : base(">", make)
         {
         }
     }
@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class LastCallOperationMaker : BinaryOperationMaker<LastCallOperation>
     {
-        public LastCallOperationMaker(Func<ICodeElement, ICodeElement, LastCallOperation> make) : base("<", make)
+        public LastCallOperationMaker(BinaryOperation.Make<LastCallOperation> make) : base("<", make)
         {
         }
     }

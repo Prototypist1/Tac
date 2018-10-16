@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class IfTrueOperationMaker : BinaryOperationMaker<IfTrueOperation>
     {
-        public IfTrueOperationMaker(Func<ICodeElement, ICodeElement, IfTrueOperation> make) : base("if", make)
+        public IfTrueOperationMaker(BinaryOperation.Make<IfTrueOperation> make) : base("if", make)
         {
         }
     }

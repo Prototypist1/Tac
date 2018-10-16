@@ -15,45 +15,52 @@ namespace Tac.Parser
 {
     public interface IOperationBuilder
     {
-        IReadOnlyList<Func<ICodeElement, ICodeElement, ICodeElement>> Operations { get; }
-        Func<ICodeElement, ICodeElement, AddOperation> AddOperation { get; }
-        Func<ICodeElement, ICodeElement, SubtractOperation> SubtractOperation { get; }
-        Func<ICodeElement, ICodeElement, MultiplyOperation> MultiplyOperation { get; }
-        Func<ICodeElement, ICodeElement, IfTrueOperation> IfTrueOperation { get; }
-        Func<ICodeElement, ICodeElement, ElseOperation> ElseOperation { get; }
-        Func<ICodeElement, ICodeElement, LessThanOperation> LessThanOperation { get; }
-        Func<ICodeElement, ICodeElement, NextCallOperation> NextCallOperation { get; }
-        Func<ICodeElement, ICodeElement, AssignOperation> AssignOperation { get; }
-        Func<ICodeElement, ICodeElement, PathOperation> PathOperation { get; }
-        Func<ICodeElement, ReturnOperation> ReturnOperation { get; }
+        IReadOnlyList< BinaryOperation.Make<ICodeElement>> Operations { get; }
+        BinaryOperation.Make<AddOperation> AddOperation { get; }
+        BinaryOperation.Make<SubtractOperation> SubtractOperation { get; }
+        BinaryOperation.Make<MultiplyOperation> MultiplyOperation { get; }
+        BinaryOperation.Make<IfTrueOperation> IfTrueOperation { get; }
+        BinaryOperation.Make<ElseOperation> ElseOperation { get; }
+        BinaryOperation.Make<LessThanOperation> LessThanOperation { get; }
+        BinaryOperation.Make<NextCallOperation> NextCallOperation { get; }
+        BinaryOperation.Make<AssignOperation> AssignOperation { get; }
+        BinaryOperation.Make<PathOperation> PathOperation { get; }
+        TrailingOperation.Make<ReturnOperation> ReturnOperation { get; }
     }
 
     public interface IElementBuilders
     {
         Member.Make Member { get; }
-        Func<string, ITypeDefinition[], GenericNameKey> GenericExplicitTypeName { get; }
-        Func<IResolvableScope, IEnumerable<AssignOperation>, ObjectDefinition> ObjectDefinition { get; }
-        Func<IResolvableScope, IEnumerable<ICodeElement>, ModuleDefinition> ModuleDefinition { get; }
-        Func<MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, MethodDefinition> MethodDefinition { get; }
-        Func<IResolvableScope, TypeDefinition> TypeDefinition { get; }
-        Func<NameKey, IResolvableScope, GenericTypeParameterDefinition[], GenericTypeDefinition> GenericTypeDefinition { get; }
-        Func<MemberDefinition, MemberDefinition, IBox<ITypeDefinition>, IEnumerable<ICodeElement>, IResolvableScope, IEnumerable<ICodeElement>, ImplementationDefinition> ImplementationDefinition { get; }
-        Func<ICodeElement[], IResolvableScope, IEnumerable<ICodeElement>, BlockDefinition> BlockDefinition { get; }
-        Func<double, ConstantNumber> ConstantNumber { get; }
-        Func<int, MemberDefinition, Member> MemberPath { get; }
-        Func<IBox<MemberDefinition>, PathPart> PathPart { get; }
-        Func<NumberType> NumberType { get; }
-        Func<StringType> StringType { get; }
-        Func<EmptyType> EmptyType { get; }
-        Func<BooleanType> BooleanType { get; }
-        Func<AnyType> AnyType { get; }
+        ObjectDefinition.Make ObjectDefinition { get; }
+        ModuleDefinition.Make ModuleDefinition { get; }
+        MethodDefinition.Make MethodDefinition { get; }
+        TypeDefinition.Make TypeDefinition { get; }
+        GenericTypeDefinition.Make GenericTypeDefinition { get; }
+        ImplementationDefinition.Make ImplementationDefinition { get; }
+        BlockDefinition.Make BlockDefinition { get; }
+        ConstantNumber.Make ConstantNumber { get; }
+        PathPart.Make PathPart { get; }
+        NumberType.Make NumberType { get; }
+        StringType.Make StringType { get; }
+        EmptyType.Make EmptyType { get; }
+        BooleanType.Make BooleanType { get; }
+        AnyType.Make AnyType { get; }
     }
 
     public class ElementMatchingContext
     {
-        internal ElementMatchingContext ExpectPathPart() {
+
+
+        internal ElementMatchingContext ExpectPathPart(IBox<IReturnable> box) {
 
         }
+
+
+        internal object AcceptImplicit(IBox<IReturnable> box)
+        {
+
+        }
+
 
         internal ElementMatchingContext Child(IPopulatableScope scope)
         {
@@ -82,15 +89,13 @@ namespace Tac.Parser
                 new BlockDefinitionMaker(builders.BlockDefinition),
                 new ConstantNumberMaker(builders.ConstantNumber),
                 new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
-                new ImplicitMemberMaker(builders.Member),
                 new ImplementationDefinitionMaker(builders.ImplementationDefinition,builders),
                 new MemberMaker(builders.Member,builders),
                 new MemberDefinitionMaker(builders.Member,builders),
                 new MethodDefinitionMaker(builders.MethodDefinition,builders),
                 new ModuleDefinitionMaker(builders.ModuleDefinition),
                 new ObjectDefinitionMaker(builders.ObjectDefinition),
-                new PathPartMaker(builders.PathPart,builders),
-                new TypeDefinitionMaker(builders.TypeDefinition,builders.NamedTypeDefinition),
+                new TypeDefinitionMaker(builders.TypeDefinition),
             }, scope){}
 
         
