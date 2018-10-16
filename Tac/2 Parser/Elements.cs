@@ -10,6 +10,7 @@ using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
+using static Tac.Semantic_Model.ScopeTree;
 
 namespace Tac.Parser
 {
@@ -50,14 +51,12 @@ namespace Tac.Parser
     public class ElementMatchingContext
     {
 
-
         internal ElementMatchingContext ExpectPathPart(IBox<IReturnable> box) {
             return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
                 new PathPartMaker(Builders.PathPart,Builders,box)
             }, ScopeStack);
         }
-
-
+        
         internal ElementMatchingContext AcceptImplicit(IBox<IReturnable> box)
         {
             return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
@@ -74,11 +73,10 @@ namespace Tac.Parser
                 new MemberMaker(Builders.Member,Builders),
             }, ScopeStack);
         }
-
-
-        internal ElementMatchingContext Child(IPopulatableScope scope)
+        
+        internal ElementMatchingContext Child(ScopeStack scope)
         {
-            return new ElementMatchingContext(Builders,operationMatchers, elementMakers, new ScopeStack(ScopeStack.ScopeTree, scope));
+            return new ElementMatchingContext(Builders,operationMatchers, elementMakers, scope);
         }
         
         public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) : this(builders,new IOperationMaker<ICodeElement>[] {

@@ -46,9 +46,9 @@ namespace Tac.Semantic_Model
                             .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                             .IsMatch)
             {
-                var scope = Scope.LocalStaticScope();
+                var (scope,stack) = matchingContext.ScopeStack.LocalStaticScope();
 
-                var elementMatchingContext = matchingContext.Child(scope);
+                var elementMatchingContext = matchingContext.Child(stack);
                 var elements = elementMatchingContext.ParseBlock(body);
 
                 

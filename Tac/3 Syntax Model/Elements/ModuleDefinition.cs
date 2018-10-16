@@ -55,9 +55,9 @@ namespace Tac.Semantic_Model
                             .IsMatch)
             {
 
-                var scope = Scope.StaticScope();
+                var (scope,stack) = matchingContext.ScopeStack.StaticScope();
 
-                var elementMatchingContext = matchingContext.Child(scope);
+                var elementMatchingContext = matchingContext.Child(stack);
                 var elements = elementMatchingContext.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
 

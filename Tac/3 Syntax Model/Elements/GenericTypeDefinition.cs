@@ -111,9 +111,9 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                var scope = Scope.LocalStaticScope();
+                var (scope,stack) = matchingContext.ScopeStack.LocalStaticScope();
 
-                var elementMatchingContext = matchingContext.Child(scope);
+                var elementMatchingContext = matchingContext.Child(stack);
                 var elements = elementMatchingContext.ParseBlock(body);
 
                 var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();

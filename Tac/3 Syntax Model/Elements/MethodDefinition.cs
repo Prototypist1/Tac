@@ -67,9 +67,9 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                var methodScope = Scope.LocalStaticScope();
+                var (methodScope,stack) = matchingContext.ScopeStack.LocalStaticScope();
 
-                var newMatchingContext = matchingContext.Child(methodScope);
+                var newMatchingContext = matchingContext.Child(stack);
                 var elements = newMatchingContext.ParseBlock(body);
                 
                 var parameterDefinition = new MemberDefinitionPopulateScope(

@@ -39,9 +39,9 @@ namespace Tac.Semantic_Model
                .Has(ElementMatcher.IsDone)
                .IsMatch)
             {
-                var scope = Scope.LocalStaticScope();
+                var (scope, stack) = matchingContext.ScopeStack.LocalStaticScope();
 
-                var innerMatchingContext = matchingContext.Child(scope);
+                var innerMatchingContext = matchingContext.Child(stack);
                 var elements = innerMatchingContext.ParseBlock(body);
 
                 return ResultExtension.Good(new BlockDefinitionPopulateScope(scope, elements, Make));

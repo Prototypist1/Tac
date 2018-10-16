@@ -1,5 +1,7 @@
 ﻿using Prototypist.LeftToRight;
+using Prototypist.TaskChain.DataTypes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Semantic_Model.Names;
@@ -14,21 +16,9 @@ namespace Tac.Semantic_Model
 
     public class ScopeTree
     {
-
-
         private class Scope : IPopulatableScope, IResolvableScope,
             IInstanceScope
         {
-
-            public static IStaticScope StaticScope()
-            {
-                return new Scope();
-            }
-
-            public static ILocalStaticScope LocalStaticScope()
-            {
-                return new Scope();
-            }
 
             public bool TryAddInstanceMember(IKey key, IBox<MemberDefinition> definition)
             {
@@ -185,26 +175,34 @@ namespace Tac.Semantic_Model
             }
         }
         
-        internal ScopeTree Add(Scope oldTop, Scope newTop)
+        private ScopeTree Add(Scope oldTop, Scope newTop)
         {
             ScopeParent[newTop] = oldTop;
             return this;
         }
-
-
+        
         public class ScopeStack
         {
-
-            public ScopeStack(ScopeTree scopeTree, ISomeScope topScope)
+            public (IStaticScope,ScopeStack) StaticScope()
             {
-                ScopeTree = scopeTree ?? throw new ArgumentNullException(nameof(scopeTree));
-                // I hate 'as'
-                // yes, this knows all ISomeScope are really just a Scope 
-                TopScope = topScope as Scope ?? throw new ArgumentNullException(nameof(topScope));
+                var res = new Scope();
+                ScopeTree.Add(TopScope, res);
+                return (res, new ScopeStack(this.ScopeTree, res));
             }
 
-            public ScopeStack(ScopeStack scopes, Scope newScope) : this(scopes.ScopeTree.Add(scopes.TopScope, newScope), newScope) { }
+            public (ILocalStaticScope,ScopeStack) LocalStaticScope()
+            {
+                var res = new Scope();
+                ScopeTree.Add(TopScope, res);
+                return (res, new ScopeStack(this.ScopeTree,res));
+            }
 
+            private ScopeStack(ScopeTree scopeTree, Scope topScope)
+            {
+                ScopeTree = scopeTree ?? throw new ArgumentNullException(nameof(scopeTree));
+                TopScope = topScope ?? throw new ArgumentNullException(nameof(topScope));
+            }
+            
             public ScopeTree ScopeTree { get; }
             private Scope TopScope { get; }
 
@@ -252,6 +250,5 @@ namespace Tac.Semantic_Model
             }
         }
     }
-
 }
 
