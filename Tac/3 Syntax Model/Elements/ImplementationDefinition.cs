@@ -194,6 +194,7 @@ namespace Tac.Semantic_Model
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         

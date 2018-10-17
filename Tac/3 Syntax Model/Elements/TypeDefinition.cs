@@ -71,7 +71,7 @@ namespace Tac.Semantic_Model
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-            this.key = typeName ?? throw new ArgumentNullException(nameof(typeName));
+            key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
@@ -101,6 +101,7 @@ namespace Tac.Semantic_Model
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public TypeDefinition Run(IResolveReferanceContext context)

@@ -110,7 +110,7 @@ namespace Tac.Semantic_Model
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
             this.isReadonly = isReadonly;
-            this.typeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
+            typeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }

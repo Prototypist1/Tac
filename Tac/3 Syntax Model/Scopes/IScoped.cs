@@ -187,14 +187,14 @@ namespace Tac.Semantic_Model
             {
                 var res = new Scope();
                 ScopeTree.Add(TopScope, res);
-                return (res, new ScopeStack(this.ScopeTree, res));
+                return (res, new ScopeStack(ScopeTree, res));
             }
 
             public (ILocalStaticScope,ScopeStack) LocalStaticScope()
             {
                 var res = new Scope();
                 ScopeTree.Add(TopScope, res);
-                return (res, new ScopeStack(this.ScopeTree,res));
+                return (res, new ScopeStack(ScopeTree,res));
             }
 
             private ScopeStack(ScopeTree scopeTree, Scope topScope)
