@@ -6,12 +6,13 @@ using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 using System.Linq;
 using Prototypist.LeftToRight;
+using System;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedObjectDefinition : ObjectDefinition, IInterpeted
     {
-        public InterpetedObjectDefinition(ObjectScope scope, IEnumerable<AssignOperation> codeElements) : base(scope, codeElements)
+        public InterpetedObjectDefinition(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) : base(scope, assigns, key)
         {
         }
 
@@ -29,6 +30,11 @@ namespace Tac.Syntaz_Model_Interpeter
             }
 
             return InterpetedResult.Create(scope);
+        }
+
+        internal static ObjectDefinition MakeNew(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key)
+        {
+            return new InterpetedObjectDefinition(scope, assigns, key);
         }
     }
 }

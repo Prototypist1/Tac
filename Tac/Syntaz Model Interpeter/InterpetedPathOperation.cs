@@ -1,4 +1,5 @@
-﻿using Prototypist.LeftToRight;
+﻿using System;
+using Prototypist.LeftToRight;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
@@ -7,7 +8,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedPathOperation : PathOperation, IInterpeted
     {
-        public InterpetedPathOperation(ICodeElement left, MemberDefinition right) : base(left, right)
+        public InterpetedPathOperation(Member left, PathPart right) : base(left, right)
         {
         }
 
@@ -15,7 +16,12 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var scope = left.Cast<IInterpeted>().Interpet(interpetedContext).Cast<IInterpetedScope>();
 
-            return  InterpetedResult.Create(scope.GetMember(right.Key.Key));
+            return  InterpetedResult.Create(scope.GetMember(right.Key));
+        }
+
+        internal static PathOperation MakeNew(ICodeElement left, ICodeElement right)
+        {
+            return new InterpetedPathOperation(left, right);
         }
     }
 }

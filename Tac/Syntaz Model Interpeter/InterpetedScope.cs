@@ -37,7 +37,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return Backing.GetOrThrow(name);
         }
         
-        public static InterpetedStaticScope Make(IScope scopeDefinition)
+        public static InterpetedStaticScope Make(IResolvableScope scopeDefinition)
         {
             var backing = new ConcurrentIndexed<NameKey, InterpetedMember>();
 
@@ -63,7 +63,7 @@ namespace Tac.Syntaz_Model_Interpeter
         private InterpetedStaticScope StaticBacking { get; }
 
 
-        public static InterpetedInstanceScope Make(InterpetedStaticScope staticBacking, IScope scopeDefinition) {
+        public static InterpetedInstanceScope Make(InterpetedStaticScope staticBacking, IResolvableScope scopeDefinition) {
             var backing = new ConcurrentIndexed<NameKey, InterpetedMember>();
 
             var scope = new InterpetedInstanceScope(backing, staticBacking);

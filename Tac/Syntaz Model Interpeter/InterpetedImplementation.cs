@@ -8,7 +8,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedImplementation
     {
-        public InterpetedImplementation(MemberDefinition parameterDefinition, ICodeElement[] body, InterpetedContext context, IScope scope)
+        public InterpetedImplementation(MemberDefinition parameterDefinition, ICodeElement[] body, InterpetedContext context, IResolvableScope scope)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             Body = body ?? throw new ArgumentNullException(nameof(body));
@@ -19,7 +19,7 @@ namespace Tac.Syntaz_Model_Interpeter
         private MemberDefinition ParameterDefinition { get; }
         private ICodeElement[] Body { get; }
         private InterpetedContext Context { get; }
-        private IScope Scope { get; }
+        private IResolvableScope Scope { get; }
         
         public InterpetedResult Invoke(object input)
         {

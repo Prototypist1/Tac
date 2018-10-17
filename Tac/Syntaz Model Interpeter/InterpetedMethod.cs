@@ -5,7 +5,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedMethod {
-        public InterpetedMethod(MemberDefinition parameterDefinition, ICodeElement[] body, InterpetedContext context, IScope scope) 
+        public InterpetedMethod(MemberDefinition parameterDefinition, ICodeElement[] body, InterpetedContext context, IResolvableScope scope) 
         {
             ParameterDefinition = parameterDefinition ?? throw new System.ArgumentNullException(nameof(parameterDefinition));
             Body = body ?? throw new System.ArgumentNullException(nameof(body));
@@ -16,14 +16,17 @@ namespace Tac.Syntaz_Model_Interpeter
         private MemberDefinition ParameterDefinition { get; }
         private ICodeElement[] Body { get; }
         private InterpetedContext Context { get; }
-        private IScope Scope { get; }
+        private IResolvableScope Scope { get; }
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
         
         public InterpetedResult Invoke(object input) {
+            // TODO unwrap members
+            // infact I need to do that all over!
+
 
             var res = InterpetedInstanceScope.Make(StaticScope, Scope);
 
-            res.GetMember(ParameterDefinition.Key.Key).Value = input;
+            res.GetMember(ParameterDefinition.Key).Value = input;
 
             var scope = Context.Child(res);
 

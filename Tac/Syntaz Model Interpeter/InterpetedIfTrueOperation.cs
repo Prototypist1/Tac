@@ -1,4 +1,5 @@
-﻿using Prototypist.LeftToRight;
+﻿using System;
+using Prototypist.LeftToRight;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
 
@@ -18,6 +19,11 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Create(true);
             }
             return InterpetedResult.Create(false);
+        }
+
+        internal static IfTrueOperation MakeNew(ICodeElement left, ICodeElement right)
+        {
+            return new InterpetedIfTrueOperation(left, right);
         }
     }
 }

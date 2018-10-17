@@ -31,6 +31,11 @@ namespace Tac.Syntaz_Model_Interpeter
             throw new Exception("we can only call things that are callable");
 
         }
+
+        internal static LastCallOperation MakeNew(ICodeElement left, ICodeElement right)
+        {
+            return new InterpetedLastCallOperation(left, right);
+        }
     }
 
     public class InterpetedNextCallOperation : NextCallOperation, IInterpeted
@@ -59,6 +64,11 @@ namespace Tac.Syntaz_Model_Interpeter
 
             throw new Exception("we can only call things that are callable");
 
+        }
+
+        internal static NextCallOperation MakeNew(ICodeElement left, ICodeElement right)
+        {
+            return new InterpetedNextCallOperation(left, right);
         }
     }
 }

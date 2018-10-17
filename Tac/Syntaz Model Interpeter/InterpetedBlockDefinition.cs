@@ -1,5 +1,6 @@
 ﻿using Prototypist.LeftToRight;
 using Prototypist.TaskChain.DataTypes;
+using System;
 using System.Collections.Generic;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
@@ -9,7 +10,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedBlockDefinition : BlockDefinition, IInterpeted
     {
-        public InterpetedBlockDefinition(ICodeElement[] body, IScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(body, scope, staticInitailizers)
+        public InterpetedBlockDefinition(ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(body, scope, staticInitailizers)
         {
         }
 
@@ -38,6 +39,11 @@ namespace Tac.Syntaz_Model_Interpeter
             }
 
             return InterpetedResult.Create();
+        }
+
+        internal static BlockDefinition MakeNew(ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitailizers)
+        {
+            return new InterpetedBlockDefinition(body, scope, staticInitailizers);
         }
     }
 }

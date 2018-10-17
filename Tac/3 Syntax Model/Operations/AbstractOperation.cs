@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     public abstract class BinaryOperation
     {
-        public delegate T Make<T>(ICodeElement left, ICodeElement right);
+        public delegate T Make<out T>(ICodeElement left, ICodeElement right);
     }
 
     public abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation
