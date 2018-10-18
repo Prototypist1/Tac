@@ -94,7 +94,7 @@ namespace Tac.Semantic_Model
                         contextNameString,
                         false,
                         new NameKey(contextType.Item),
-                        matchingContext.Builders.Member
+                        matchingContext.Builders.MemberDefinition
                         );
 
 
@@ -103,7 +103,7 @@ namespace Tac.Semantic_Model
                         parameterNameString,
                         false,
                         new NameKey(inputType.Item),
-                        matchingContext.Builders.Member
+                        matchingContext.Builders.MemberDefinition
                         );
 
                 var outputTypeName= new NameKey(outputType.Item);

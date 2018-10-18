@@ -16,11 +16,8 @@ namespace Tac.Semantic_Model.Operations
 
         public override IReturnable Returns(IElementBuilders elementBuilders)
         {
-            string s = 5;
-            // TODO the left might no be a member!
-            // 
-
-            return left.Returns(elementBuilders).Cast<Member>().Child(right.Cast<PathPart>().MemberDefinition);
+            // should this check to see if the left contains the member defined on the rhs?
+            return right.Cast<MemberDefinition>();
         }
     }
 

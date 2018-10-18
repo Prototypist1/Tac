@@ -9,7 +9,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class ImplicitMemberMaker : IMaker<Member>
+    public class ImplicitMemberMaker : IMaker<MemberDefinition>
     {
         private readonly IBox<IReturnable> type;
 
@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model
 
         private MemberDefinition.Make Make { get; }
 
-        public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<MemberDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("var"), out var _)
@@ -33,13 +33,13 @@ namespace Tac.Semantic_Model
                 return ResultExtension.Good(new ImplicitMemberPopulateScope(first.Item, Make, type));
             }
 
-            return ResultExtension.Bad<IPopulateScope<Member>>();
+            return ResultExtension.Bad<IPopulateScope<MemberDefinition>>();
         }
 
     }
 
 
-    public class ImplicitMemberPopulateScope : IPopulateScope<Member>
+    public class ImplicitMemberPopulateScope : IPopulateScope<MemberDefinition>
     {
         private readonly string memberName;
         private readonly MemberDefinition.Make make;
@@ -53,11 +53,10 @@ namespace Tac.Semantic_Model
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public IResolveReference<Member> Run(IPopulateScopeContext context)
+        public IResolveReference<MemberDefinition> Run(IPopulateScopeContext context)
         {
             
-            var innerType = new MemberDefinition(false, new NameKey(memberName), type);
-            IBox<MemberDefinition> memberDef = new Box<MemberDefinition>(innerType);
+            IBox<MemberDefinition> memberDef = new Box<MemberDefinition>();
 
             if (!context.TryAddMember(new NameKey(memberName), memberDef))
             {
@@ -65,7 +64,7 @@ namespace Tac.Semantic_Model
             }
 
 
-            return new ImplicitMemberResolveReferance(memberDef, make, box);
+            return new ImplicitMemberResolveReferance(memberName,make, box,type);
         }
 
 
@@ -77,25 +76,29 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ImplicitMemberResolveReferance : IResolveReference<Member>
+    public class ImplicitMemberResolveReferance : IResolveReference<MemberDefinition>
     {
-        private readonly IBox<MemberDefinition> memberDef;
         private readonly MemberDefinition.Make make;
         private readonly Box<IReturnable> box;
+        private readonly string memberName;
+        private readonly IBox<IReturnable> type;
 
         public ImplicitMemberResolveReferance(
-            IBox<MemberDefinition> memberDef,
+            string memberName,
             MemberDefinition.Make make, 
-            Box<IReturnable> box)
+            Box<IReturnable> box,
+            IBox<IReturnable> type)
         {
-            this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+            this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
         
-        public Member Run(IResolveReferanceContext context)
+        public MemberDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(0, memberDef));
+            return box.Fill(
+                new MemberDefinition(false, new NameKey(memberName), type));
         }
     }
 }

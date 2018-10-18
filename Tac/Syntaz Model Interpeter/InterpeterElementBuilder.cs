@@ -143,7 +143,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public class InterpeterElementBuilder : IElementBuilders
     {
-        public Member.Make Member { get; } = InterpetedMemberPath.MakeNew;
+        public MemberDefinition.Make MemberDefinition { get; } = InterpetedMemberDefinition.MakeNew;
         public ObjectDefinition.Make ObjectDefinition { get; } = InterpetedObjectDefinition.MakeNew;
         public ModuleDefinition.Make ModuleDefinition { get; } = InterpetedModuleDefinition.MakeNew;
         public MethodDefinition.Make MethodDefinition { get; } = InterpetedMethodDefinition.MakeNew;

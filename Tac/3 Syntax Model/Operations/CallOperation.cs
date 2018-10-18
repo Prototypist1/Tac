@@ -46,10 +46,10 @@ namespace Tac.Semantic_Model.Operations
         {
         }
     }
-
+    
     public static class MemberUnwrapper{
-        public static T Unwrap<T>(this ICodeElement codeElement, IElementBuilders elementBuilders) {
-            if (codeElement.Returns(elementBuilders) is Member member && member.MemberDefinitions.Last().GetValue() is T t) {
+        public static T Unwrap<T>(this ICodeElement codeElement, IElementBuilders elementBuilders) where T:IReturnable {
+            if (codeElement.Returns(elementBuilders) is MemberDefinition member && member.Type.GetValue() is T t) {
                 return t;
             }
             return codeElement.Returns(elementBuilders).Cast<T>();

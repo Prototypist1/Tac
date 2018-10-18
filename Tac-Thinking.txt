@@ -23,7 +23,6 @@ type Named {
 [int;int] // what is this? the lazy type notation?
 [int x; int y]
 
-
 object {
     5 => x ;
     7 => y ;
@@ -463,3 +462,6 @@ shift-left                                      bit-shift
 shift-right                                     bit-shift right
 
 
+================================= NumberType vs double 
+
+I think probably I need to wrap all my doubles in numberType

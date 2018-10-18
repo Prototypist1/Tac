@@ -30,7 +30,7 @@ namespace Tac.Parser
 
     public interface IElementBuilders
     {
-        Member.Make Member { get; }
+        MemberDefinition.Make MemberDefinition { get; }
         ObjectDefinition.Make ObjectDefinition { get; }
         ModuleDefinition.Make ModuleDefinition { get; }
         MethodDefinition.Make MethodDefinition { get; }
@@ -63,13 +63,13 @@ namespace Tac.Parser
                 new ConstantNumberMaker(Builders.ConstantNumber),
                 new GenericTypeDefinitionMaker(Builders.GenericTypeDefinition),
                 new ImplementationDefinitionMaker(Builders.ImplementationDefinition,Builders),
-                new MemberDefinitionMaker(Builders.Member,Builders),
+                new MemberDefinitionMaker(Builders.MemberDefinition,Builders),
                 new MethodDefinitionMaker(Builders.MethodDefinition,Builders),
                 new ModuleDefinitionMaker(Builders.ModuleDefinition),
                 new ObjectDefinitionMaker(Builders.ObjectDefinition),
                 new TypeDefinitionMaker(Builders.TypeDefinition),
-                new ImplicitMemberMaker(Builders.Member,box),
-                new MemberMaker(Builders.Member,Builders),
+                new ImplicitMemberMaker(Builders.MemberDefinition,box),
+                new MemberMaker(Builders.MemberDefinition,Builders),
             }, ScopeStack);
         }
         
@@ -94,12 +94,12 @@ namespace Tac.Parser
                 new ConstantNumberMaker(builders.ConstantNumber),
                 new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
                 new ImplementationDefinitionMaker(builders.ImplementationDefinition,builders),
-                new MemberDefinitionMaker(builders.Member,builders),
+                new MemberDefinitionMaker(builders.MemberDefinition,builders),
                 new MethodDefinitionMaker(builders.MethodDefinition,builders),
                 new ModuleDefinitionMaker(builders.ModuleDefinition),
                 new ObjectDefinitionMaker(builders.ObjectDefinition),
                 new TypeDefinitionMaker(builders.TypeDefinition),
-                new MemberMaker(builders.Member,builders),
+                new MemberMaker(builders.MemberDefinition,builders),
             }, scope){}
 
         
