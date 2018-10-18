@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    public class MemberDefinition
+    public class MemberDefinition: IReturnable, ICodeElement
     {
         public delegate MemberDefinition Make(bool readOnly, NameKey key, IBox<IReturnable> type);
 
@@ -28,21 +28,26 @@ namespace Tac.Semantic_Model
         public IBox<IReturnable> Type { get; }
         public bool ReadOnly { get; }
         public NameKey Key { get; }
+
+        public IReturnable Returns(IElementBuilders elementBuilders)
+        {
+            return this;
+        }
     }
 
-    public class MemberDefinitionMaker : IMaker<Member>
+    public class MemberDefinitionMaker : IMaker<MemberDefinition>
     {
-        public MemberDefinitionMaker(Member.Make make,
+        public MemberDefinitionMaker(MemberDefinition.Make make,
             IElementBuilders elementBuilders)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
-        private Member.Make Make { get; }
+        private MemberDefinition.Make Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<MemberDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
@@ -53,19 +58,19 @@ namespace Tac.Semantic_Model
             {
                 return ResultExtension.Good(new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, typeToken, Make));
             }
-            return ResultExtension.Bad<IPopulateScope<Member>>();
+            return ResultExtension.Bad<IPopulateScope<MemberDefinition>>();
         }
     }
 
-    public class MemberDefinitionPopulateScope : IPopulateScope<Member>
+    public class MemberDefinitionPopulateScope : IPopulateScope<MemberDefinition>
     {
         private readonly string memberName;
         private readonly bool isReadonly;
         private readonly NameKey typeName;
-        private readonly Member.Make make;
+        private readonly MemberDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken, Member.Make make)
+        public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken, MemberDefinition.Make make)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             isReadonly = v;
@@ -73,7 +78,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<Member> Run(IPopulateScopeContext context)
+        public IResolveReference<MemberDefinition> Run(IPopulateScopeContext context)
         {
             var memberDef = new Box<MemberDefinition>();
             var key = new NameKey(memberName);
@@ -90,13 +95,13 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberDefinitionResolveReferance : IResolveReference<Member>
+    public class MemberDefinitionResolveReferance : IResolveReference<MemberDefinition>
     {
         private readonly string memberName;
         private readonly Box<MemberDefinition> memberDef;
         private readonly bool isReadonly;
         public readonly NameKey typeName;
-        private readonly Member.Make make;
+        private readonly MemberDefinition.Make make;
         private readonly Box<IReturnable> box;
 
         public MemberDefinitionResolveReferance(
@@ -104,7 +109,7 @@ namespace Tac.Semantic_Model
             Box<MemberDefinition> memberDef,
             bool isReadonly,
             NameKey explicitTypeName,
-            Member.Make make,
+            MemberDefinition.Make make,
             Box<IReturnable> box)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
@@ -115,7 +120,7 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public Member Run(IResolveReferanceContext context)
+        public MemberDefinition Run(IResolveReferanceContext context)
         {
             memberDef.Fill(new MemberDefinition(isReadonly, new NameKey(memberName), context.GetTypeDefintion(typeName)));
             return box.Fill(make(0, memberDef));

@@ -91,7 +91,7 @@ namespace Tac.Semantic_Model
 
     public class MethodDefinitionPopulateScope : IPopulateScope<MethodDefinition>
     {
-        private readonly IPopulateScope<Member> parameterDefinition;
+        private readonly IPopulateScope<MemberDefinition> parameterDefinition;
         private readonly ILocalStaticScope methodScope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
@@ -99,7 +99,7 @@ namespace Tac.Semantic_Model
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public MethodDefinitionPopulateScope(
-            IPopulateScope<Member> parameterDefinition, 
+            IPopulateScope<MemberDefinition> parameterDefinition, 
             ILocalStaticScope methodScope, 
             IPopulateScope<ICodeElement>[] elements, 
             NameKey outputTypeName,
@@ -129,7 +129,7 @@ namespace Tac.Semantic_Model
 
     public class MethodDefinitionResolveReferance : IResolveReference<MethodDefinition>
     {
-        private readonly IResolveReference<Member> parameter;
+        private readonly IResolveReference<MemberDefinition> parameter;
         private readonly IResolvableScope methodScope;
         private readonly IResolveReference<ICodeElement>[] lines;
         private readonly NameKey outputTypeName;
@@ -137,7 +137,7 @@ namespace Tac.Semantic_Model
         private readonly Box<IReturnable> box;
 
         public MethodDefinitionResolveReferance(
-            IResolveReference<Member> parameter, 
+            IResolveReference<MemberDefinition> parameter, 
             IResolvableScope methodScope, 
             IResolveReference<ICodeElement>[] resolveReferance2, 
             NameKey outputTypeName,

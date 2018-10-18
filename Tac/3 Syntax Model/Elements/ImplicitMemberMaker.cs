@@ -13,13 +13,13 @@ namespace Tac.Semantic_Model
     {
         private readonly IBox<IReturnable> type;
 
-        public ImplicitMemberMaker(Member.Make make, IBox<IReturnable> type)
+        public ImplicitMemberMaker(MemberDefinition.Make make, IBox<IReturnable> type)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        private Member.Make Make { get; }
+        private MemberDefinition.Make Make { get; }
 
         public IResult<IPopulateScope<Member>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -42,11 +42,11 @@ namespace Tac.Semantic_Model
     public class ImplicitMemberPopulateScope : IPopulateScope<Member>
     {
         private readonly string memberName;
-        private readonly Member.Make make;
+        private readonly MemberDefinition.Make make;
         private readonly IBox<IReturnable> type;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public ImplicitMemberPopulateScope(string item, Member.Make make, IBox<IReturnable> type)
+        public ImplicitMemberPopulateScope(string item, MemberDefinition.Make make, IBox<IReturnable> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -80,12 +80,12 @@ namespace Tac.Semantic_Model
     public class ImplicitMemberResolveReferance : IResolveReference<Member>
     {
         private readonly IBox<MemberDefinition> memberDef;
-        private readonly Member.Make make;
+        private readonly MemberDefinition.Make make;
         private readonly Box<IReturnable> box;
 
         public ImplicitMemberResolveReferance(
             IBox<MemberDefinition> memberDef,
-            Member.Make make, 
+            MemberDefinition.Make make, 
             Box<IReturnable> box)
         {
             this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));

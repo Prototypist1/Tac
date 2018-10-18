@@ -9,7 +9,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class PathPart : ICodeElement, IReturnable
+    public class PathPart : ICodeElement
     {
         public delegate PathPart Make(IBox<MemberDefinition> memberDefinition);
 
@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
         
         public IReturnable Returns(IElementBuilders elementBuilders)
         {
-            return this;
+            return MemberDefinition.GetValue();
         }
     }
 
@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model
         private readonly IBox<IReturnable> lhs;
         private readonly string memberName;
         private readonly PathPart.Make make;
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private readonly DelegateBox<MemberDefinition> box = new DelegateBox<MemberDefinition>();
 
         public PathPartPopulateScope( string item, PathPart.Make make,IBox<IReturnable> lhs)
         {
@@ -88,9 +88,9 @@ namespace Tac.Semantic_Model
         private readonly string memberName;
         private readonly IBox<IReturnable> lhs;
         private readonly PathPart.Make make;
-        private readonly Box<IReturnable> box;
+        private readonly DelegateBox<MemberDefinition> box;
 
-        public PathPartResolveReferance(string memberName, PathPart.Make make, Box<IReturnable> box, IBox<IReturnable> lhs)
+        public PathPartResolveReferance(string memberName, PathPart.Make make, DelegateBox<MemberDefinition> box, IBox<IReturnable> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -100,14 +100,17 @@ namespace Tac.Semantic_Model
 
         public PathPart Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(new DelegateBox<MemberDefinition>().Set(() =>
+            box.Set(() =>
             {
                 var lshtype = lhs.GetValue();
-                if (lshtype is Member member) {
-                    lshtype = member.MemberDefinitions.Last().GetValue().Type.GetValue();
+                if (lshtype is MemberDefinition memberDefinitions)
+                {
+                    lshtype = memberDefinitions.Type.GetValue();
                 }
                 return lshtype.Cast<IScoped>().Scope.GetMemberOrThrow(new NameKey(memberName), false).GetValue();
-            })));
+            });
+
+            return make(box);
         }
         
     }
