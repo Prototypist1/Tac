@@ -12,40 +12,40 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public class InterpetedStaticScope : IInterpetedScope
     {
-        protected InterpetedStaticScope(ConcurrentIndexed<NameKey, InterpetedMember> backing)
+        protected InterpetedStaticScope(ConcurrentIndexed<IKey, InterpetedMember> backing)
         {
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
         internal static InterpetedStaticScope Empty()
         {
-            return new InterpetedStaticScope(new ConcurrentIndexed<NameKey, InterpetedMember>());
+            return new InterpetedStaticScope(new ConcurrentIndexed<IKey, InterpetedMember>());
         }
 
         // yeah, this is a really slow way to do this
         // we should be able to do this with object[]
-        private ConcurrentIndexed<NameKey, InterpetedMember> Backing { get; }
+        private ConcurrentIndexed<IKey, InterpetedMember> Backing { get; }
 
 
-        public bool ContainsMember(NameKey name)
+        public bool ContainsMember(IKey name)
         {
             return Backing.ContainsKey(name);
         }
 
-        public InterpetedMember GetMember(NameKey name)
+        public InterpetedMember GetMember(IKey name)
         {
             return Backing.GetOrThrow(name);
         }
         
         public static InterpetedStaticScope Make(IResolvableScope scopeDefinition)
         {
-            var backing = new ConcurrentIndexed<NameKey, InterpetedMember>();
+            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
 
             var scope = new InterpetedStaticScope(backing);
 
-            foreach (var member in scopeDefinition.Members)
+            foreach (var memberKey in scopeDefinition.MembersKeys)
             {
-                backing[member.Key.Key] = new InterpetedMember();
+                backing[memberKey] = new InterpetedMember();
             }
 
             return scope;
@@ -55,7 +55,7 @@ namespace Tac.Syntaz_Model_Interpeter
     public class InterpetedInstanceScope: InterpetedStaticScope
     {
 
-        private InterpetedInstanceScope(ConcurrentIndexed<NameKey, InterpetedMember> backing, InterpetedStaticScope staticBacking): base(backing)
+        private InterpetedInstanceScope(ConcurrentIndexed<IKey, InterpetedMember> backing, InterpetedStaticScope staticBacking): base(backing)
         {
             StaticBacking = staticBacking ?? throw new ArgumentNullException(nameof(staticBacking));
         }
@@ -64,13 +64,13 @@ namespace Tac.Syntaz_Model_Interpeter
 
 
         public static InterpetedInstanceScope Make(InterpetedStaticScope staticBacking, IResolvableScope scopeDefinition) {
-            var backing = new ConcurrentIndexed<NameKey, InterpetedMember>();
+            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
 
             var scope = new InterpetedInstanceScope(backing, staticBacking);
             
-            foreach (var member in scopeDefinition.Members)
+            foreach (var memberKey in scopeDefinition.MembersKeys)
             {
-                backing[member.Key.Key] = new InterpetedMember();
+                backing[memberKey] = new InterpetedMember();
             }
             
             return scope;

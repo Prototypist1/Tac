@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
         
-        public abstract IReturnable ReturnType(IElementBuilders elementBuilders);
+        public abstract IReturnable Returns(IElementBuilders elementBuilders);
     }
 
 
@@ -125,7 +125,7 @@ namespace Tac.Semantic_Model.CodeStuff
         {
             var nextContext = context.Child(this);
             var res = make(left.Run(nextContext), right.Run(nextContext));
-            box.Set(()=>res.ReturnType(context.ElementBuilders));
+            box.Set(()=>res.Returns(context.ElementBuilders));
             return res;
         }
     }

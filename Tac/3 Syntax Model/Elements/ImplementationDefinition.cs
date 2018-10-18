@@ -53,7 +53,7 @@ namespace Tac.Semantic_Model
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
         
-        public IReturnable ReturnType(IElementBuilders elementBuilders)
+        public IReturnable Returns(IElementBuilders elementBuilders)
         {
             return this;
         }
@@ -201,7 +201,7 @@ namespace Tac.Semantic_Model
         public ImplementationDefinition Run(IResolveReferanceContext context)
         {
             var newContext = context.Child(this, methodScope);
-            return box.Fill(make(contextDefinition.Run(newContext).MemberDefinition, parameterDefinition.Run(newContext).MemberDefinition, context.GetTypeDefintion(outputTypeName), elements.Select(x => x.Run(newContext)).ToArray(), methodScope, new ICodeElement[0]));
+            return box.Fill(make(contextDefinition.Run(newContext).MemberDefinitions, parameterDefinition.Run(newContext).MemberDefinitions, context.GetTypeDefintion(outputTypeName), elements.Select(x => x.Run(newContext)).ToArray(), methodScope, new ICodeElement[0]));
         }
     }
 }

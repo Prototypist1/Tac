@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model.Operations
 
         public ICodeElement Result { get; }
         
-        public IReturnable ReturnType(IElementBuilders elementBuilders)
+        public IReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.EmptyType();
         }
@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model.Operations
 
         public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
-            throw new NotImplementedException();
+            return box;
         }
 
         public IResolveReference<T> Run(IPopulateScopeContext context)
@@ -94,17 +94,12 @@ namespace Tac.Semantic_Model.Operations
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
-
-        public IBox<IReturnable> GetReturnType(IResolveReferanceContext context)
-        {
-            return box;
-        }
-
+        
         public T Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this);
             var res = make(left.Run(nextContext));
-            box.Set(()=>res.ReturnType(context.ElementBuilders));
+            box.Set(()=>res.Returns(context.ElementBuilders));
             return res;
         }
     }

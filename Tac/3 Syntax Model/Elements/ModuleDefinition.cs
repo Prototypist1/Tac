@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IReturnable ReturnType(IElementBuilders elementBuilders)
+        public IReturnable Returns(IElementBuilders elementBuilders)
         {
             return this;
         }

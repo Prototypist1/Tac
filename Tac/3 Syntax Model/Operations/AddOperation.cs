@@ -14,12 +14,12 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IReturnable ReturnType(IElementBuilders elementBuilders) {
-            if (left.ReturnType(elementBuilders) is NumberType && right.ReturnType(elementBuilders) is NumberType)
+        public override IReturnable Returns(IElementBuilders elementBuilders) {
+            if (left.Returns(elementBuilders) is NumberType && right.Returns(elementBuilders) is NumberType)
             {
                 return elementBuilders.NumberType();
             }
-            else if (left.ReturnType(elementBuilders) is StringType || right.ReturnType(elementBuilders) is StringType)
+            else if (left.Returns(elementBuilders) is StringType || right.Returns(elementBuilders) is StringType)
             {
                 return elementBuilders.StringType();
             }

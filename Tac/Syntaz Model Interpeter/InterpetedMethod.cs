@@ -20,9 +20,6 @@ namespace Tac.Syntaz_Model_Interpeter
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
         
         public InterpetedResult Invoke(object input) {
-            // TODO unwrap members
-            // infact I need to do that all over!
-
 
             var res = InterpetedInstanceScope.Make(StaticScope, Scope);
 

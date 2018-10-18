@@ -16,7 +16,6 @@ namespace Tac.Parser
 {
     public interface IOperationBuilder
     {
-        IReadOnlyList< BinaryOperation.Make<ICodeElement>> Operations { get; }
         BinaryOperation.Make<AddOperation> AddOperation { get; }
         BinaryOperation.Make<SubtractOperation> SubtractOperation { get; }
         BinaryOperation.Make<MultiplyOperation> MultiplyOperation { get; }

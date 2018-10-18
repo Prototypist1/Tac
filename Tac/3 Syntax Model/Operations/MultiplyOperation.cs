@@ -10,7 +10,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IReturnable ReturnType(IElementBuilders elementBuilders)
+        public override IReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.NumberType();
         }

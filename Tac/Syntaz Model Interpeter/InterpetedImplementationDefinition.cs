@@ -16,7 +16,11 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedImplementation(ParameterDefinition.GetValue(),MethodBody.ToArray(),interpetedContext,Scope));
+            return InterpetedResult.Create(new InterpetedImplementation(
+                ParameterDefinition.GetValue(),
+                MethodBody.ToArray(),
+                interpetedContext,
+                Scope));
         }
 
         internal static ImplementationDefinition MakeNew(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers)

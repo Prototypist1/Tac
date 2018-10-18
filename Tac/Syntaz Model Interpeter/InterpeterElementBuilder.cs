@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
@@ -52,16 +53,30 @@ namespace Tac.Syntaz_Model_Interpeter
             {
                 throw new Exception($"{nameof(InterpetedResult)} does not have a value");
             }
-            return (T)Value;
+            return Value.Cast<T>();
         }
 
-        public object Get()
+        public T GetAndUnwrapMemberWhenNeeded<T>()
         {
             if (HasValue)
             {
                 throw new Exception($"{nameof(InterpetedResult)} does not have a value");
             }
-            return Value;
+            if (Value is InterpetedMember member) {
+                return member.Value.Cast<T>();
+            }
+            return Value.Cast<T>();
+        }
+
+
+        public object GetAndUnwrapMemberWhenNeeded()
+        {
+            return GetAndUnwrapMemberWhenNeeded<object>();
+        }
+
+        public object Get()
+        {
+            return Get<object>();
         }
 
         public static InterpetedResult Return(object value)
@@ -101,26 +116,17 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpeterOperationBuilder()
         {
-            AddOperation = Include(InterpetedAddOperation.MakeNew);
-            SubtractOperation = Include(InterpetedSubtractOperation.MakeNew);
-            MultiplyOperation = Include(InterpetedMultiplyOperation.MakeNew);
-            IfTrueOperation = Include(InterpetedIfTrueOperation.MakeNew);
-            ElseOperation = Include(InterpetedElseOperation.MakeNew);
-            LessThanOperation = Include(InterpetedLessThanOperation.MakeNew);
-            NextCallOperation = Include(InterpetedNextCallOperation.MakeNew);
-            AssignOperation = Include(InterpetedAssignOperation.MakeNew);
-            ReturnOperation = Include(InterpetedReturnOperation.MakeNew);
-            PathOperation = Include(InterpetedPathOperation.MakeNew);
+            AddOperation = InterpetedAddOperation.MakeNew;
+            SubtractOperation = InterpetedSubtractOperation.MakeNew;
+            MultiplyOperation = InterpetedMultiplyOperation.MakeNew;
+            IfTrueOperation = InterpetedIfTrueOperation.MakeNew;
+            ElseOperation = InterpetedElseOperation.MakeNew;
+            LessThanOperation = InterpetedLessThanOperation.MakeNew;
+            NextCallOperation = InterpetedNextCallOperation.MakeNew;
+            AssignOperation = InterpetedAssignOperation.MakeNew;
+            ReturnOperation = InterpetedReturnOperation.MakeNew;
+            PathOperation = InterpetedPathOperation.MakeNew;
         }
-
-        private BinaryOperation.Make<T> Include<T>(BinaryOperation.Make<T> t) where T : ICodeElement
-        {
-            _operations.Add(t);
-            return t;
-        }
-
-        private readonly List<BinaryOperation.Make<ICodeElement>> _operations = new List<BinaryOperation.Make<ICodeElement>>();
-        public IReadOnlyList<BinaryOperation.Make<ICodeElement>> Operations { get { return _operations; } }
 
         public BinaryOperation.Make<AddOperation> AddOperation { get; }
         public BinaryOperation.Make<SubtractOperation> SubtractOperation { get; }
@@ -137,8 +143,6 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public class InterpeterElementBuilder : IElementBuilders
     {
-
-
         public Member.Make Member { get; } = InterpetedMemberPath.MakeNew;
         public ObjectDefinition.Make ObjectDefinition { get; } = InterpetedObjectDefinition.MakeNew;
         public ModuleDefinition.Make ModuleDefinition { get; } = InterpetedModuleDefinition.MakeNew;

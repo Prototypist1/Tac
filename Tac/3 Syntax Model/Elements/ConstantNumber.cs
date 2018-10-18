@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model.Operations
 
         public double Value { get; }
 
-        public IReturnable ReturnType(IElementBuilders elementBuilders)
+        public IReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.NumberType();
         }

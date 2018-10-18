@@ -11,7 +11,7 @@ namespace Tac.Semantic_Model.CodeStuff
         {
         }
 
-        public override IReturnable ReturnType(IElementBuilders elementBuilders)
+        public override IReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.BooleanType();
         }

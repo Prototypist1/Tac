@@ -13,7 +13,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Return(Result.Cast<IInterpeted>().Interpet(interpetedContext).Get());
+            return InterpetedResult.Return(Result.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded());
         }
 
         internal static ReturnOperation MakeNew(ICodeElement left)

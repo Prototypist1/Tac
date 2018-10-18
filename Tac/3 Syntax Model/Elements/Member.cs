@@ -1,5 +1,6 @@
 ﻿using Prototypist.LeftToRight;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Tac.New;
 using Tac.Parser;
@@ -13,18 +14,24 @@ namespace Tac.Semantic_Model
     {
         public delegate Member Make(int scopesUp, IBox<MemberDefinition> memberDefinition);
 
-        public Member(int scopesUp, IBox<MemberDefinition> memberDefinition)
+        public Member(int scopesUp, IReadOnlyList<IBox<MemberDefinition>> memberDefinitions)
         {
             ScopesUp = scopesUp;
-            MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
+            MemberDefinitions = memberDefinitions ?? throw new ArgumentNullException(nameof(memberDefinitions));
         }
-
+        
         public int ScopesUp { get; }
-        public IBox<MemberDefinition> MemberDefinition { get; }
+        public IReadOnlyList<IBox<MemberDefinition>> MemberDefinitions { get; }
 
-        public IReturnable ReturnType(IElementBuilders builders)
+        public IReturnable Returns(IElementBuilders builders)
         {
             return this;
+        }
+
+        public Member Child(IBox<MemberDefinition> member) {
+            var list = MemberDefinitions.ToList();
+            list.Add(member);
+            return new Member(this.ScopesUp, list);
         }
     }
 

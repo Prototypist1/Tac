@@ -19,6 +19,6 @@ namespace Tac.Semantic_Model
         public ICodeElement[] Body { get; }
         public IEnumerable<ICodeElement> StaticInitailizers { get; }
 
-        public IReturnable ReturnType(IElementBuilders elementBuilders) { return this; }
+        public IReturnable Returns(IElementBuilders elementBuilders) { return this; }
     }
 }

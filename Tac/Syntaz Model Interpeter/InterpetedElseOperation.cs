@@ -12,7 +12,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext) {
-            if (!left.Cast<IInterpeted>().Interpet(interpetedContext).Get<bool>())
+            if (!left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<bool>())
             {
                 right.Cast<IInterpeted>().Interpet(interpetedContext);
                 return InterpetedResult.Create(true);

@@ -1,5 +1,6 @@
 ﻿using Prototypist.LeftToRight;
 using System;
+using System.Linq;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -19,7 +20,7 @@ namespace Tac.Semantic_Model
         
         public IBox<MemberDefinition> MemberDefinition { get; }
         
-        public IReturnable ReturnType(IElementBuilders elementBuilders)
+        public IReturnable Returns(IElementBuilders elementBuilders)
         {
             return this;
         }
@@ -103,7 +104,7 @@ namespace Tac.Semantic_Model
             {
                 var lshtype = lhs.GetValue();
                 if (lshtype is Member member) {
-                    lshtype = member.MemberDefinition.GetValue().Type.GetValue();
+                    lshtype = member.MemberDefinitions.Last().GetValue().Type.GetValue();
                 }
                 return lshtype.Cast<IScoped>().Scope.GetMemberOrThrow(new NameKey(memberName), false).GetValue();
             })));

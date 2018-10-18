@@ -1,6 +1,7 @@
 ﻿using Prototypist.LeftToRight;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -14,7 +15,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IReturnable ReturnType(IElementBuilders elementBuilders)
+        public override IReturnable Returns(IElementBuilders elementBuilders)
         {
             return right.Unwrap<MethodDefinition>(elementBuilders).OutputType.GetValue();
         }
@@ -33,7 +34,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IReturnable ReturnType(IElementBuilders elementBuilders)
+        public override IReturnable Returns(IElementBuilders elementBuilders)
         {
             return left.Unwrap<MethodDefinition>(elementBuilders).OutputType.GetValue();
         }
@@ -48,10 +49,10 @@ namespace Tac.Semantic_Model.Operations
 
     public static class MemberUnwrapper{
         public static T Unwrap<T>(this ICodeElement codeElement, IElementBuilders elementBuilders) {
-            if (codeElement.ReturnType(elementBuilders) is Member member && member.MemberDefinition.GetValue() is T t) {
+            if (codeElement.Returns(elementBuilders) is Member member && member.MemberDefinitions.Last().GetValue() is T t) {
                 return t;
             }
-            return codeElement.ReturnType(elementBuilders).Cast<T>();
+            return codeElement.Returns(elementBuilders).Cast<T>();
         }
     }
 }

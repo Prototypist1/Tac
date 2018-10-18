@@ -15,20 +15,12 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IReturnable ReturnType(IElementBuilders elementBuilders)
+        public override IReturnable Returns(IElementBuilders elementBuilders)
         {
-            return left.Unwrap<IReturnable>(elementBuilders);
+            return left.Returns(elementBuilders);
         }
     }
     
-    //public class AssignOperationMaker : BinaryOperationMaker<AssignOperation>
-    //{
-    //    public AssignOperationMaker(BinaryOperation.Make<AssignOperation> make) : base(">", make)
-    //    {
-    //    }
-    //}
-
-
     public class AssignOperationMaker : IOperationMaker<AssignOperation>
     {
         public AssignOperationMaker(BinaryOperation.Make<AssignOperation> make)

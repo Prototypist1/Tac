@@ -155,7 +155,7 @@ namespace Tac.Semantic_Model
         public MethodDefinition Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this, methodScope);
-            return box.Fill(make(context.GetTypeDefintion(outputTypeName),parameter.Run(nextContext).MemberDefinition, lines.Select(x => x.Run(nextContext)).ToArray(), methodScope, new ICodeElement[0]));
+            return box.Fill(make(context.GetTypeDefintion(outputTypeName),parameter.Run(nextContext).MemberDefinitions, lines.Select(x => x.Run(nextContext)).ToArray(), methodScope, new ICodeElement[0]));
         }
     }
 }

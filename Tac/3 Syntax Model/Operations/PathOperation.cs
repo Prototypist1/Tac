@@ -8,24 +8,19 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class PathOperation : BinaryOperation<Member, PathPart>
+    public class PathOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
-        public PathOperation(Member left, PathPart right) : base(left, right)
+        public PathOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable ReturnType(IElementBuilders elementBuilders)
+        public override IReturnable Returns(IElementBuilders elementBuilders)
         {
-            // is this really where these checks should be??
-            if (!left.Cast<IScoped>().Scope.TryGetMember(right.MemberDefinition.GetValue().Key,false,out var check)){
-                throw new Exception("Member should be defined");
-            }
+            string s = 5;
+            // TODO the left might no be a member!
+            // 
 
-            if (!check.GetValue().Equals(right.MemberDefinition.GetValue())) {
-                throw new Exception("we have two ways to get to the member def, they better have the same value");
-            }
-            
-            return right.MemberDefinition.GetValue().Type.GetValue();
+            return left.Returns(elementBuilders).Cast<Member>().Child(right.Cast<PathPart>().MemberDefinition);
         }
     }
 

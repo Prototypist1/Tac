@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model
         public IKey Key { get; }
         public IResolvableScope Scope { get; }
         
-        public IReturnable ReturnType(IElementBuilders elementBuilders)
+        public IReturnable Returns(IElementBuilders elementBuilders)
         {
             return this;
         }

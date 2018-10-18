@@ -13,8 +13,8 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var toCall = left.Cast<IInterpeted>().Interpet(interpetedContext).Get();
-            var parameter = right.Cast<IInterpeted>().Interpet(interpetedContext).Get();
+            var toCall = left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
+            var parameter = right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
 
 
             // maybe there is a "callable" interface here?
