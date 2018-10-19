@@ -10,13 +10,13 @@ namespace Tac.Semantic_Model
 
         private IResolvableScope Backing { get; }
 
-        //public IReadOnlyList<IBox<MemberDefinition>> Members
-        //{
-        //    get
-        //    {
-        //        return Backing.Members;
-        //    }
-        //}
+        public IEnumerable<IKey> MembersKeys
+        {
+            get
+            {
+                return Backing.MembersKeys;
+            }
+        }
 
         private readonly ConcurrentDictionary<NameKey, IBox<IReturnable>> RealizedGenericTypes = new ConcurrentDictionary<NameKey, IBox<IReturnable>>();
 

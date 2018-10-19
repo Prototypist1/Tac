@@ -68,7 +68,7 @@ namespace Tac.Semantic_Model
         private readonly bool isReadonly;
         private readonly NameKey typeName;
         private readonly MemberDefinition.Make make;
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private readonly Box<MemberDefinition> box = new Box<MemberDefinition>();
 
         public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken, MemberDefinition.Make make)
         {
@@ -80,13 +80,12 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<MemberDefinition> Run(IPopulateScopeContext context)
         {
-            var memberDef = new Box<MemberDefinition>();
             var key = new NameKey(memberName);
-            if (context.TryAddMember(key, memberDef))
+            if (context.TryAddMember(key, box))
             {
                 throw new Exception("bad bad bad!");
             }
-            return new MemberDefinitionResolveReferance(memberName, memberDef, isReadonly, typeName, make, box);
+            return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, make);
         }
 
         public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -98,32 +97,29 @@ namespace Tac.Semantic_Model
     public class MemberDefinitionResolveReferance : IResolveReference<MemberDefinition>
     {
         private readonly string memberName;
-        private readonly Box<MemberDefinition> memberDef;
+        private readonly Box<MemberDefinition> box;
         private readonly bool isReadonly;
         public readonly NameKey typeName;
         private readonly MemberDefinition.Make make;
-        private readonly Box<IReturnable> box;
 
         public MemberDefinitionResolveReferance(
             string memberName,
-            Box<MemberDefinition> memberDef,
+            Box<MemberDefinition> box,
             bool isReadonly,
             NameKey explicitTypeName,
-            MemberDefinition.Make make,
-            Box<IReturnable> box)
+            MemberDefinition.Make make)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
-            this.memberDef = memberDef ?? throw new ArgumentNullException(nameof(memberDef));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.isReadonly = isReadonly;
             typeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public MemberDefinition Run(IResolveReferanceContext context)
         {
-            memberDef.Fill(new MemberDefinition(isReadonly, new NameKey(memberName), context.GetTypeDefintion(typeName)));
-            return box.Fill(make(0, memberDef));
+            var res =new MemberDefinition(isReadonly, new NameKey(memberName), context.GetTypeDefintion(typeName));
+            return box.Fill(res);
         }
     }
 }

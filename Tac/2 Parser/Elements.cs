@@ -69,7 +69,7 @@ namespace Tac.Parser
                 new ObjectDefinitionMaker(Builders.ObjectDefinition),
                 new TypeDefinitionMaker(Builders.TypeDefinition),
                 new ImplicitMemberMaker(Builders.MemberDefinition,box),
-                new MemberMaker(Builders.MemberDefinition,Builders),
+                new MemberMaker(Builders.PathPart,Builders),
             }, ScopeStack);
         }
         
@@ -99,7 +99,7 @@ namespace Tac.Parser
                 new ModuleDefinitionMaker(builders.ModuleDefinition),
                 new ObjectDefinitionMaker(builders.ObjectDefinition),
                 new TypeDefinitionMaker(builders.TypeDefinition),
-                new MemberMaker(builders.MemberDefinition,builders),
+                new MemberMaker(builders.PathPart,builders),
             }, scope){}
 
         

@@ -76,7 +76,7 @@ namespace Tac.Semantic_Model
                         parameterName?.Item ?? "input",
                         false,
                          new NameKey(inputType.Item),
-                        matchingContext.Builders.Member
+                        matchingContext.Builders.MemberDefinition
                         );
                 
 
@@ -123,7 +123,13 @@ namespace Tac.Semantic_Model
         {
 
             var nextContext = context.Child(this,methodScope);
-            return new MethodDefinitionResolveReferance(parameterDefinition.Run(nextContext), methodScope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), outputTypeName, make, box);
+            return new MethodDefinitionResolveReferance(
+                parameterDefinition.Run(nextContext), 
+                methodScope.ToResolvable(), 
+                elements.Select(x => x.Run(nextContext)).ToArray(), 
+                outputTypeName, 
+                make, 
+                box);
         }
     }
 
@@ -155,7 +161,13 @@ namespace Tac.Semantic_Model
         public MethodDefinition Run(IResolveReferanceContext context)
         {
             var nextContext = context.Child(this, methodScope);
-            return box.Fill(make(context.GetTypeDefintion(outputTypeName),parameter.Run(nextContext).MemberDefinitions, lines.Select(x => x.Run(nextContext)).ToArray(), methodScope, new ICodeElement[0]));
+            return box.Fill(
+                make(
+                    context.GetTypeDefintion(outputTypeName),
+                    new Box<MemberDefinition>(parameter.Run(nextContext)), 
+                    lines.Select(x => x.Run(nextContext)).ToArray(),
+                    methodScope,
+                    new ICodeElement[0]));
         }
     }
 }

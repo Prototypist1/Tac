@@ -9,23 +9,22 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    // is path part really a thing??
-    //public class PathPart : ICodeElement
-    //{
-    //    public delegate PathPart Make(IBox<MemberDefinition> memberDefinition);
+    public class PathPart : ICodeElement, IReturnable
+    {
+        public delegate PathPart Make(IBox<MemberDefinition> memberDefinition);
 
-    //    public PathPart(IBox<MemberDefinition> memberDefinition)
-    //    {
-    //        MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
-    //    }
-        
-    //    public IBox<MemberDefinition> MemberDefinition { get; }
-        
-    //    public IReturnable Returns(IElementBuilders elementBuilders)
-    //    {
-    //        return MemberDefinition.GetValue();
-    //    }
-    //}
+        public PathPart(IBox<MemberDefinition> memberDefinition)
+        {
+            MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
+        }
+
+        public IBox<MemberDefinition> MemberDefinition { get; }
+
+        public IReturnable Returns(IElementBuilders elementBuilders)
+        {
+            return MemberDefinition.GetValue();
+        }
+    }
 
     public class PathPartMaker : IMaker<PathPart>
     {

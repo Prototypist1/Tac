@@ -21,7 +21,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         internal static PathOperation MakeNew(ICodeElement left, ICodeElement right)
         {
-            return new InterpetedPathOperation(left.Cast<Member>(), right);
+            return new InterpetedPathOperation(left, right);
         }
     }
 }
