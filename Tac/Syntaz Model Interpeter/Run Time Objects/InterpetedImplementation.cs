@@ -3,10 +3,11 @@ using System;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using System.Linq;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedImplementation
+    public class InterpetedImplementation : IRunTime
     {
         public InterpetedImplementation(MemberDefinition parameterDefinition, ICodeElement[] body, InterpetedContext context, IResolvableScope scope)
         {

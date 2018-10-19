@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Tac.Semantic_Model;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Text;
+//using Tac.Semantic_Model;
 
-namespace Tac._3_Syntax_Model.Elements.Atomic_Types
-{
-    public class StringType: IReturnable
-    {
-        public delegate StringType Make();
-    }
-}
+//namespace Tac._3_Syntax_Model.Elements.Atomic_Types
+//{
+//    public class StringType: IReturnable
+//    {
+//        public delegate StringType Make();
+//    }
+//}

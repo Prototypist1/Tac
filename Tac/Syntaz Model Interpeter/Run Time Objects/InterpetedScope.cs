@@ -6,6 +6,7 @@ using System.Text;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -67,7 +68,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    public class InterpetedInstanceScope: InterpetedStaticScope
+    public class InterpetedInstanceScope: InterpetedStaticScope, IRunTime
     {
 
         private InterpetedInstanceScope(ConcurrentIndexed<IKey, InterpetedMember> backing, InterpetedStaticScope staticBacking): base(backing)

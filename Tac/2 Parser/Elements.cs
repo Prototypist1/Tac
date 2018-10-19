@@ -40,11 +40,11 @@ namespace Tac.Parser
         BlockDefinition.Make BlockDefinition { get; }
         ConstantNumber.Make ConstantNumber { get; }
         MemberReferance.Make PathPart { get; }
-        NumberType.Make NumberType { get; }
-        StringType.Make StringType { get; }
-        EmptyType.Make EmptyType { get; }
-        BooleanType.Make BooleanType { get; }
-        AnyType.Make AnyType { get; }
+        PrimitiveType.Make NumberType { get; }
+        PrimitiveType.Make StringType { get; }
+        PrimitiveType.Make EmptyType { get; }
+        PrimitiveType.Make BooleanType { get; }
+        PrimitiveType.Make AnyType { get; }
     }
 
     public class ElementMatchingContext

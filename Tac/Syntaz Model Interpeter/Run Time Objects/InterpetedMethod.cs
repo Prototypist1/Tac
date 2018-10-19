@@ -1,10 +1,12 @@
 ﻿using Prototypist.LeftToRight;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedMethod {
+    public class InterpetedMethod: IRunTime
+    {
         public InterpetedMethod(MemberDefinition parameterDefinition, ICodeElement[] body, InterpetedContext context, IResolvableScope scope) 
         {
             ParameterDefinition = parameterDefinition ?? throw new System.ArgumentNullException(nameof(parameterDefinition));
