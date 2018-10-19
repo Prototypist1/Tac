@@ -28,8 +28,8 @@ namespace Tac.Syntaz_Model_Interpeter
                 new InterpetedMethod(
                     ParameterDefinition,
                     Body,
-                    Context.
-                    Child(input.Cast<IInterpetedScope>()), Scope));
+                    Context.Child(input.Cast<IInterpetedScope>()) // what if the input is an int or something... 
+                    Scope));
         }
     }
 }

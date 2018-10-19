@@ -10,6 +10,12 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
+    // TODO you are here
+    // IInterpetedScope is a pretty big mess
+    // objects and modules needs to be an interpeted scope
+
+    // I also need to handle primitive types
+
     public class InterpetedStaticScope : IInterpetedScope
     {
         protected InterpetedStaticScope(ConcurrentIndexed<IKey, InterpetedMember> backing)
