@@ -36,19 +36,19 @@ namespace Tac.Semantic_Model
     //    }
     //}
 
-    public class MemberMaker : IMaker<PathPart>
+    public class MemberMaker : IMaker<MemberReferance>
     {
-        public MemberMaker(PathPart.Make make,
+        public MemberMaker(MemberReferance.Make make,
             IElementBuilders elementBuilders)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
-        private PathPart.Make Make { get; }
+        private MemberReferance.Make Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public IResult<IPopulateScope<PathPart>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<MemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
@@ -57,17 +57,17 @@ namespace Tac.Semantic_Model
             {
                 return ResultExtension.Good(new MemberPopulateScope( first.Item, Make)); ;
             }
-            return ResultExtension.Bad<IPopulateScope<PathPart>>();
+            return ResultExtension.Bad<IPopulateScope<MemberReferance>>();
         }
     }
     
-    public class MemberPopulateScope : IPopulateScope<PathPart>
+    public class MemberPopulateScope : IPopulateScope<MemberReferance>
     {
         private readonly string memberName;
-        private readonly PathPart.Make make;
+        private readonly MemberReferance.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public MemberPopulateScope(string item, PathPart.Make make)
+        public MemberPopulateScope(string item, MemberReferance.Make make)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -78,7 +78,7 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IResolveReference<PathPart> Run(IPopulateScopeContext context)
+        public IResolveReference<MemberReferance> Run(IPopulateScopeContext context)
         {
             var nameKey = new NameKey(memberName);
             if (!context.TryGetMemberPath(nameKey, out var depth, out var memberDef) && 
@@ -92,16 +92,16 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class MemberResolveReferance : IResolveReference<PathPart>
+    public class MemberResolveReferance : IResolveReference<MemberReferance>
     {
 
         private readonly NameKey key;
-        private readonly PathPart.Make make;
+        private readonly MemberReferance.Make make;
         private readonly Box<IReturnable> box;
 
         public MemberResolveReferance(
             NameKey key, 
-            PathPart.Make make, 
+            MemberReferance.Make make, 
             Box<IReturnable> box)
         {
             this.key = key ?? throw new ArgumentNullException(nameof(key));
@@ -109,7 +109,7 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public PathPart Run(IResolveReferanceContext context)
+        public MemberReferance Run(IResolveReferanceContext context)
         {
             return box.Fill(make(context.GetMemberDefinition(key)));
         }

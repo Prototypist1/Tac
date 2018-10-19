@@ -9,11 +9,11 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class PathPart : ICodeElement, IReturnable
+    public class MemberReferance : ICodeElement, IReturnable
     {
-        public delegate PathPart Make(IBox<MemberDefinition> memberDefinition);
+        public delegate MemberReferance Make(IBox<MemberDefinition> memberDefinition);
 
-        public PathPart(IBox<MemberDefinition> memberDefinition)
+        public MemberReferance(IBox<MemberDefinition> memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
@@ -26,9 +26,9 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class PathPartMaker : IMaker<PathPart>
+    public class MemberReferanceMaker : IMaker<MemberReferance>
     {
-        public PathPartMaker(PathPart.Make make,
+        public MemberReferanceMaker(MemberReferance.Make make,
             IElementBuilders elementBuilders, 
             IBox<IReturnable> lhs)
         {
@@ -38,32 +38,32 @@ namespace Tac.Semantic_Model
         }
 
         private readonly IBox<IReturnable> lhs;
-        private PathPart.Make Make { get; }
+        private MemberReferance.Make Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public IResult<IPopulateScope<PathPart>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<MemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsName, out AtomicToken first)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                return ResultExtension.Good(new PathPartPopulateScope(first.Item, Make, lhs));
+                return ResultExtension.Good(new MemberReferancePopulateScope(first.Item, Make, lhs));
             }
 
-            return ResultExtension.Bad<IPopulateScope<PathPart>>();
+            return ResultExtension.Bad<IPopulateScope<MemberReferance>>();
         }
     }
 
-    public class PathPartPopulateScope : IPopulateScope<PathPart>
+    public class MemberReferancePopulateScope : IPopulateScope<MemberReferance>
     {
 
         private readonly IBox<IReturnable> lhs;
         private readonly string memberName;
-        private readonly PathPart.Make make;
+        private readonly MemberReferance.Make make;
         private readonly DelegateBox<MemberDefinition> box = new DelegateBox<MemberDefinition>();
 
-        public PathPartPopulateScope( string item, PathPart.Make make,IBox<IReturnable> lhs)
+        public MemberReferancePopulateScope( string item, MemberReferance.Make make,IBox<IReturnable> lhs)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -75,22 +75,22 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IResolveReference<PathPart> Run(IPopulateScopeContext context)
+        public IResolveReference<MemberReferance> Run(IPopulateScopeContext context)
         {
 
-            return new PathPartResolveReferance(memberName, make, box,lhs);
+            return new MemberReferanceResolveReferance(memberName, make, box,lhs);
         }
     }
 
-    public class PathPartResolveReferance : IResolveReference<PathPart>
+    public class MemberReferanceResolveReferance : IResolveReference<MemberReferance>
     {
 
         private readonly string memberName;
         private readonly IBox<IReturnable> lhs;
-        private readonly PathPart.Make make;
+        private readonly MemberReferance.Make make;
         private readonly DelegateBox<MemberDefinition> box;
 
-        public PathPartResolveReferance(string memberName, PathPart.Make make, DelegateBox<MemberDefinition> box, IBox<IReturnable> lhs)
+        public MemberReferanceResolveReferance(string memberName, MemberReferance.Make make, DelegateBox<MemberDefinition> box, IBox<IReturnable> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -98,7 +98,7 @@ namespace Tac.Semantic_Model
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public PathPart Run(IResolveReferanceContext context)
+        public MemberReferance Run(IResolveReferanceContext context)
         {
             box.Set(() =>
             {

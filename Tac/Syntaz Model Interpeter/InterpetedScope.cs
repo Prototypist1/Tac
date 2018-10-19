@@ -50,6 +50,15 @@ namespace Tac.Syntaz_Model_Interpeter
 
             return scope;
         }
+
+        public static InterpetedStaticScope Make()
+        {
+            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
+
+            var scope = new InterpetedStaticScope(backing);
+            
+            return scope;
+        }
     }
 
     public class InterpetedInstanceScope: InterpetedStaticScope

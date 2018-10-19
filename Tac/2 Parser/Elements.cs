@@ -39,7 +39,7 @@ namespace Tac.Parser
         ImplementationDefinition.Make ImplementationDefinition { get; }
         BlockDefinition.Make BlockDefinition { get; }
         ConstantNumber.Make ConstantNumber { get; }
-        PathPart.Make PathPart { get; }
+        MemberReferance.Make PathPart { get; }
         NumberType.Make NumberType { get; }
         StringType.Make StringType { get; }
         EmptyType.Make EmptyType { get; }
@@ -52,7 +52,7 @@ namespace Tac.Parser
 
         internal ElementMatchingContext ExpectPathPart(IBox<IReturnable> box) {
             return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
-                new PathPartMaker(Builders.PathPart,Builders,box)
+                new MemberReferanceMaker(Builders.PathPart,Builders,box)
             }, ScopeStack);
         }
         

@@ -151,7 +151,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public ImplementationDefinition.Make ImplementationDefinition { get; } = InterpetedImplementationDefinition.MakeNew;
         public BlockDefinition.Make BlockDefinition { get; } = InterpetedBlockDefinition.MakeNew;
         public ConstantNumber.Make ConstantNumber { get; } = InterpetedConstantNumber.MakeNew;
-        public PathPart.Make PathPart { get; } = InterpetedPathPart.MakeNew;
+        public MemberReferance.Make PathPart { get; } = InterpetedPathPart.MakeNew;
         public NumberType.Make NumberType { get; } = InterpetedNumberType.MakeNew;
         public StringType.Make StringType { get; } = InterpetedStringType.MakeNew;
         public EmptyType.Make EmptyType { get; } = InterpetedEmptyType.MakeNew;

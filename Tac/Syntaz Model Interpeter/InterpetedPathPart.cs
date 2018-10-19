@@ -2,9 +2,9 @@
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedPathPart : PathPart, IInterpeted
+    internal class InterpetedPathPart : MemberReferance, IInterpeted
     {
-        internal static readonly PathPart.Make MakeNew = (memberDefinition) => new InterpetedPathPart(memberDefinition);
+        internal static readonly MemberReferance.Make MakeNew = (memberDefinition) => new InterpetedPathPart(memberDefinition);
 
         public InterpetedPathPart(IBox<MemberDefinition> memberDefinition) : base(memberDefinition)
         {

@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var scope = left.Cast<IInterpeted>().Interpet(interpetedContext).Cast<InterpetedMember>().Value.Cast<IInterpetedScope>();
             
-            return  InterpetedResult.Create(scope.GetMember(right.Cast<PathPart>().MemberDefinition.GetValue().Key));
+            return  InterpetedResult.Create(scope.GetMember(right.Cast<MemberReferance>().MemberDefinition.GetValue().Key));
         }
 
         internal static PathOperation MakeNew(ICodeElement left, ICodeElement right)
