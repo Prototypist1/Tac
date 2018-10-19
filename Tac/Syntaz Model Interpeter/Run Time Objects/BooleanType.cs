@@ -4,13 +4,13 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    class NumberType: IRunTime
+    public class BooleanType: IRunTime
     {
-        public readonly double d;
+        public readonly bool b;
 
-        public NumberType(double d)
+        public BooleanType(bool b)
         {
-            this.d = d;
+            this.b = b;
         }
     }
 }

@@ -2,6 +2,7 @@
 using Prototypist.LeftToRight;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -12,12 +13,12 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext) {
-            if (!left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<bool>())
+            if (!left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<BooleanType>().b)
             {
                 right.Cast<IInterpeted>().Interpet(interpetedContext);
-                return InterpetedResult.Create(true);
+                return InterpetedResult.Create(new BooleanType(true));
             }
-            return InterpetedResult.Create(false);
+            return InterpetedResult.Create(new BooleanType(false));
         }
 
         internal static ElseOperation MakeNew(ICodeElement left, ICodeElement right)

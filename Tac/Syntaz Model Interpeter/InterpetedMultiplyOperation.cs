@@ -2,6 +2,7 @@
 using Prototypist.LeftToRight;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -13,9 +14,9 @@ namespace Tac.Syntaz_Model_Interpeter
         
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(
-                left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<double>() *
-                right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<double>());
+            return InterpetedResult.Create(new NumberType(
+                left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<NumberType>().d *
+                right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<NumberType>().d));
         }
 
         internal static MultiplyOperation MakeNew(ICodeElement left, ICodeElement right)

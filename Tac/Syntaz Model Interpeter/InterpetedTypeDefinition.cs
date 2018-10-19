@@ -3,7 +3,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedTypeDefinition: TypeDefinition
+    internal class InterpetedTypeDefinition: TypeDefinition, IInterpeted
     {
         internal static readonly TypeDefinition.Make MakeNew = (scope,key)=> new InterpetedTypeDefinition(scope,key);
 

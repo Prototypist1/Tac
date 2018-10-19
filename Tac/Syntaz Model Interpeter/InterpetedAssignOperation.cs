@@ -3,6 +3,7 @@ using System;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -16,7 +17,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var res = right.Cast<IInterpeted>().Interpet(interpetedContext).Get<InterpetedMember>();
 
-            res.Value = left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
+            res.Value = left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
             return InterpetedResult.Create(res);
         }
 

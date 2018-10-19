@@ -4,10 +4,13 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    // TODO 
-    // not null!
     class StringType: IRunTime
     {
-        public string s;
+        public readonly string s;
+
+        public StringType(string s)
+        {
+            this.s = s ?? throw new ArgumentNullException(nameof(s));
+        }
     }
 }
