@@ -92,6 +92,20 @@ namespace Tac.Syntaz_Model_Interpeter
             return scope;
         }
 
-        
+        public static InterpetedInstanceScope Make(params (IKey, InterpetedMember)[] members)
+        {
+            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
+
+            var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Empty());
+
+            foreach (var memberKey in members)
+            {
+                backing[memberKey.Item1] = memberKey.Item2;
+            }
+
+            return scope;
+        }
+
+
     }
 }

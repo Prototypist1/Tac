@@ -14,9 +14,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new NumberType(
-                left.Cast<IInterpeted>().Interpet(interpetedContext).Get<NumberType>().d -
-                right.Cast<IInterpeted>().Interpet(interpetedContext).Get<NumberType>().d));
+            return InterpetedResult.Create(new RunTimeNumber(
+                left.Cast<IInterpeted>().Interpet(interpetedContext).Get<RunTimeNumber>().d -
+                right.Cast<IInterpeted>().Interpet(interpetedContext).Get<RunTimeNumber>().d));
         }
 
         internal static SubtractOperation MakeNew(ICodeElement left, ICodeElement right)

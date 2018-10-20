@@ -3,7 +3,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedGenericTypeDefinition : GenericTypeDefinition, IInterpeted
+    internal class InterpetedGenericTypeDefinition : GenericTypeDefinition, IInterpeted, IInterpetedPrimitiveType
     {
         internal static readonly GenericTypeDefinition.Make MakeNew = (key,scope, typeParameterDefinitions) => new InterpetedGenericTypeDefinition(key,scope,typeParameterDefinitions);
 
@@ -13,7 +13,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-
+            // yeah, this returns a type
         }
     }
 }

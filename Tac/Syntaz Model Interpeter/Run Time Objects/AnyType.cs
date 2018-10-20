@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    public class InterpetedEmptyType : IInterpetedPrimitiveType
+    public class InterpetedAnyType : IInterpetedPrimitiveType
     {
         public IRunTime GetDefault()
         {
-            return new RunTimeEmpty();
+            return new RuntimeAnyType();
         }
     }
 
-    public class RunTimeEmpty: IRunTime
+    public class RuntimeAnyType: IRunTime
     {
     }
 }

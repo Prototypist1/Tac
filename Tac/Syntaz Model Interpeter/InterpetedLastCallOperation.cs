@@ -2,6 +2,7 @@
 using System;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -14,7 +15,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             var toCall = left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
-            var parameter = right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
+            var parameter = right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
 
 
             // maybe there is a "callable" interface here?
@@ -46,8 +47,8 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var toCall = right.Cast<IInterpeted>().Interpet(interpetedContext).Get();
-            var parameter = left.Cast<IInterpeted>().Interpet(interpetedContext).Get();
+            var toCall = right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
+            var parameter = left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
 
 
             // maybe there is a "callable" interface here?

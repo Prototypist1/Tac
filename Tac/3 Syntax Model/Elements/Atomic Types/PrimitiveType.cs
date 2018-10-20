@@ -2,7 +2,12 @@
 
 namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 {
-    public class PrimitiveType : IReturnable {
-        public delegate IReturnable Make();
+    public interface IPrimitiveType : IReturnable {
+        
+    }
+
+    public static class PrimitiveType
+    {
+        public delegate IPrimitiveType Make();
     }
 }

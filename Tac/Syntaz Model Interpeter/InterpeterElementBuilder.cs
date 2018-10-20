@@ -7,6 +7,7 @@ using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -152,10 +153,10 @@ namespace Tac.Syntaz_Model_Interpeter
         public BlockDefinition.Make BlockDefinition { get; } = InterpetedBlockDefinition.MakeNew;
         public ConstantNumber.Make ConstantNumber { get; } = InterpetedConstantNumber.MakeNew;
         public MemberReferance.Make PathPart { get; } = InterpetedPathPart.MakeNew;
-        public NumberType.Make NumberType { get; } = InterpetedNumberType.MakeNew;
-        public StringType.Make StringType { get; } = InterpetedStringType.MakeNew;
-        public EmptyType.Make EmptyType { get; } = InterpetedEmptyType.MakeNew;
-        public BooleanType.Make BooleanType { get; } = InterpetedBooleanType.MakeNew;
-        public AnyType.Make AnyType { get; } = InterpetedAnyType.MakeNew;
+        public PrimitiveType.Make NumberType { get; } = ()=> new InterpetedNumberType();
+        public PrimitiveType.Make StringType { get; } = () => new InterpetedStringType();
+        public PrimitiveType.Make EmptyType { get; } = () => new InterpetedEmptyType();
+        public PrimitiveType.Make BooleanType { get; } = () => new InterpetedBooleanType();
+        public PrimitiveType.Make AnyType { get; } = () => new InterpetedAnyType();
     }
 }

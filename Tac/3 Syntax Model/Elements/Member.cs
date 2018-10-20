@@ -82,7 +82,7 @@ namespace Tac.Semantic_Model
         {
             var nameKey = new NameKey(memberName);
             if (!context.TryGetMemberPath(nameKey, out var depth, out var memberDef) && 
-                !context.TryAddMember(nameKey, new Box<MemberDefinition>(context.ElementBuilders.MemberDefinition(false,nameKey,new Box<AnyType>(context.ElementBuilders.AnyType())))))
+                !context.TryAddMember(nameKey, new Box<MemberDefinition>(context.ElementBuilders.MemberDefinition(false,nameKey,new Box<IReturnable>(context.ElementBuilders.AnyType())))))
             {
                 throw new Exception("uhh that is not right");
             }

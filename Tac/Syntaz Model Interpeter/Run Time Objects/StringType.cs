@@ -4,11 +4,15 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    class StringType: IRunTime
+    public class InterpetedStringType : IInterpetedPrimitiveType {
+
+    }
+
+    class RunTimeString: IRunTime
     {
         public readonly string s;
 
-        public StringType(string s)
+        public RunTimeString(string s)
         {
             this.s = s ?? throw new ArgumentNullException(nameof(s));
         }

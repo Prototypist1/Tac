@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    public class ConstantNumber : NumberType, ICodeElement
+    public class ConstantNumber : ICodeElement, IReturnable
     {
-        public new delegate ConstantNumber Make(double value);
+        public delegate ConstantNumber Make(double value);
 
         public ConstantNumber(double value) 
         {

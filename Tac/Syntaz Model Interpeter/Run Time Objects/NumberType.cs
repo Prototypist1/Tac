@@ -4,11 +4,15 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    class NumberType: IRunTime
+    public class InterpetedNumberType : IInterpetedPrimitiveType {
+
+    }
+
+    class RunTimeNumber: IRunTime
     {
         public readonly double d;
 
-        public NumberType(double d)
+        public RunTimeNumber(double d)
         {
             this.d = d;
         }

@@ -8,7 +8,7 @@ using System;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedImplementationDefinition : ImplementationDefinition, IInterpeted
+    public class InterpetedImplementationDefinition : ImplementationDefinition, IInterpeted, IInterpetedPrimitiveType
     {
         public InterpetedImplementationDefinition(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers) : base(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers)
         {
@@ -18,6 +18,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return InterpetedResult.Create(new InterpetedImplementation(
                 ParameterDefinition.GetValue(),
+                ContextDefinition.GetValue(),
                 MethodBody.ToArray(),
                 interpetedContext,
                 Scope));

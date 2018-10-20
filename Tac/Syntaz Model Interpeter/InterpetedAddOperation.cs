@@ -14,9 +14,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new NumberType(
-                left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<NumberType>().d +
-                right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<NumberType>().d
+            return InterpetedResult.Create(new RunTimeNumber(
+                left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RunTimeNumber>().d +
+                right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RunTimeNumber>().d
             ));
         }
 

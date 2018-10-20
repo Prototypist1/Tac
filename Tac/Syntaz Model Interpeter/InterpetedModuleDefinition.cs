@@ -7,7 +7,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedModuleDefinition : ModuleDefinition, IInterpeted
+    public class InterpetedModuleDefinition : ModuleDefinition, IInterpeted, IInterpetedPrimitiveType
     {
         public InterpetedModuleDefinition(
             IResolvableScope scope, 

@@ -10,7 +10,7 @@ using System;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedObjectDefinition : ObjectDefinition, IInterpeted
+    public class InterpetedObjectDefinition : ObjectDefinition, IInterpeted, IInterpetedPrimitiveType
     {
         public InterpetedObjectDefinition(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) : base(scope, assigns, key)
         {
