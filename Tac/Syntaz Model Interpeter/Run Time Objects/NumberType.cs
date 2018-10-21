@@ -4,8 +4,12 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    public class InterpetedNumberType : IInterpetedPrimitiveType {
-
+    public class InterpetedNumberType : IInterpetedPrimitiveType
+    {
+        public IRunTime GetDefault(InterpetedContext interpetedContext)
+        {
+            return new RunTimeNumber(0);
+        }
     }
 
     class RunTimeNumber: IRunTime

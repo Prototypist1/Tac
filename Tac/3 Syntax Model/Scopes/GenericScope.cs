@@ -10,11 +10,11 @@ namespace Tac.Semantic_Model
 
         private IResolvableScope Backing { get; }
 
-        public IEnumerable<IKey> MembersKeys
+        public IReadOnlyList<IBox<MemberDefinition>> Members
         {
             get
             {
-                return Backing.MembersKeys;
+                return Backing.Members;
             }
         }
 

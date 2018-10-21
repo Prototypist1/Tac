@@ -135,14 +135,6 @@ namespace Tac.Semantic_Model
                     return members.Select(x => x.Value.Single().Definition).ToArray();
                 }
             }
-
-            public IEnumerable<IKey> MembersKeys
-            {
-                get
-                {
-                    return members.Keys;
-                }
-            }
         }
 
         private readonly Scope root;

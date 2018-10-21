@@ -21,9 +21,9 @@ namespace Tac.Syntaz_Model_Interpeter
         private IResolvableScope Scope { get; }
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
         
-        public InterpetedResult Invoke(IRunTime input) {
+        public InterpetedResult Invoke(InterpetedContext interpetedContext,IRunTime input) {
 
-            var res = InterpetedInstanceScope.Make(StaticScope, Scope);
+            var res = InterpetedInstanceScope.Make(interpetedContext, StaticScope, Scope);
 
             res.GetMember(ParameterDefinition.Key).Value = input;
 

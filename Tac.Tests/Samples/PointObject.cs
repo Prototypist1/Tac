@@ -90,7 +90,7 @@ namespace Tac.Tests.Samples
 
         public TestScope(Dictionary<IKey, (bool, MemberDefinition)> backingMembers): this(backingMembers, new Dictionary<IKey, IReturnable>()){}
 
-        public IEnumerable<IKey> MembersKeys
+        public IEnumerable<IKey> Members
         {
             get
             {

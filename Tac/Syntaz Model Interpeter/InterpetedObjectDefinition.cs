@@ -7,6 +7,7 @@ using Tac.Semantic_Model.Operations;
 using System.Linq;
 using Prototypist.LeftToRight;
 using System;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -20,7 +21,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var scope = InterpetedInstanceScope.Make(StaticStuff, Scope);
+            var scope = InterpetedInstanceScope.Make(interpetedContext,StaticStuff, Scope);
 
             var context = interpetedContext.Child(scope);
 
@@ -35,6 +36,11 @@ namespace Tac.Syntaz_Model_Interpeter
         internal static ObjectDefinition MakeNew(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key)
         {
             return new InterpetedObjectDefinition(scope, assigns, key);
+        }
+
+        public IRunTime GetDefault(InterpetedContext interpetedContext)
+        {
+            return InterpetedInstanceScope.Make();
         }
     }
 }

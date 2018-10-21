@@ -16,7 +16,7 @@ namespace Tac.Semantic_Model
 
     public interface IResolvableScope: ISomeScope
     {
-        IEnumerable<IKey> MembersKeys { get; }
+        IReadOnlyList<IBox<MemberDefinition>> Members { get; }
 
         bool TryGetType(IKey name, out IBox<IReturnable> type);
         bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member);

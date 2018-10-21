@@ -6,7 +6,7 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
     public class InterpetedAnyType : IInterpetedPrimitiveType
     {
-        public IRunTime GetDefault()
+        public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
             return new RuntimeAnyType();
         }

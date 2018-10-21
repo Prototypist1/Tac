@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -19,7 +20,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var scope = InterpetedStaticScope.Make(Scope);
+            var scope = InterpetedStaticScope.Make(interpetedContext,Scope);
 
             var context = interpetedContext.Child(scope);
 
@@ -34,6 +35,11 @@ namespace Tac.Syntaz_Model_Interpeter
         internal static ModuleDefinition MakeNew(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey key)
         {
             return new InterpetedModuleDefinition(scope, staticInitialization, key);
+        }
+
+        public IRunTime GetDefault(InterpetedContext interpetedContext)
+        {
+            return InterpetedStaticScope.Make();
         }
     }
 }

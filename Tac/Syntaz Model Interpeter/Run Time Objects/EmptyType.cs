@@ -7,7 +7,7 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
     public class InterpetedEmptyType : IInterpetedPrimitiveType
     {
-        public IRunTime GetDefault()
+        public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
             return new RunTimeEmpty();
         }

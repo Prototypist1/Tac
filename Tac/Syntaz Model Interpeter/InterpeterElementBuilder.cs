@@ -13,9 +13,11 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedContext
     {
+        public readonly IElementBuilders elementBuilders;
 
-        private InterpetedContext(IInterpetedScope[] scopes)
+        private InterpetedContext(IElementBuilders elementBuilders,IInterpetedScope[] scopes)
         {
+            this.elementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
             Scopes = scopes ?? throw new ArgumentNullException(nameof(scopes));
         }
 
@@ -25,12 +27,12 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var scopes = new List<IInterpetedScope> { scope };
             scopes.AddRange(Scopes);
-            return new InterpetedContext(scopes.ToArray());
+            return new InterpetedContext(elementBuilders,scopes.ToArray());
         }
 
-        public static InterpetedContext Root()
+        public static InterpetedContext Root(IElementBuilders elementBuilders)
         {
-            return new InterpetedContext(new IInterpetedScope[0]);
+            return new InterpetedContext(elementBuilders,new IInterpetedScope[0]);
         }
     }
 

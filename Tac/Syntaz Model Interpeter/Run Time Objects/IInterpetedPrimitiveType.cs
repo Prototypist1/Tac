@@ -5,6 +5,6 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal interface IInterpetedPrimitiveType: IPrimitiveType
     {
-        IRunTime GetDefault();
+        IRunTime GetDefault(InterpetedContext interpetedContext);
     }
 }

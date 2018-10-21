@@ -1,5 +1,6 @@
 ﻿using Tac.Semantic_Model;
 using Tac.Semantic_Model.Names;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -11,9 +12,14 @@ namespace Tac.Syntaz_Model_Interpeter
         {
         }
 
+        public IRunTime GetDefault(InterpetedContext interpetedContext)
+        {
+            return new RunTimeGenericType();
+        }
+
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            // yeah, this returns a type
+            return InterpetedResult.Create(new RunTimeGenericType());
         }
     }
 }

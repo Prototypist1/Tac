@@ -6,7 +6,7 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
     public class InterpetedBooleanType : IInterpetedPrimitiveType
     {
-        public IRunTime GetDefault()
+        public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
             return new RunTimeBoolean(false);
         }

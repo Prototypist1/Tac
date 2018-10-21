@@ -28,13 +28,13 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedResult Invoke(IRunTime input)
         {
 
-            Context.Child(InterpetedInstanceScope.Make((contextDefinition.Key, new InterpetedMember(input))));
+            var context = Context.Child(InterpetedInstanceScope.Make((contextDefinition.Key, new InterpetedMember(input))));
 
             return InterpetedResult.Create(
                 new InterpetedMethod(
                     ParameterDefinition,
                     Body,
-                    Context.Child(input.Cast<IInterpetedScope>()),
+                    context,
                     Scope));
         }
     }

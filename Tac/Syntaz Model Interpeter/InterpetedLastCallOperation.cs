@@ -21,7 +21,7 @@ namespace Tac.Syntaz_Model_Interpeter
             // maybe there is a "callable" interface here?
 
             if (toCall is InterpetedMethod method) {
-                return InterpetedResult.Create(method.Invoke(parameter));
+                return InterpetedResult.Create(method.Invoke(interpetedContext,parameter));
             }
 
             if (toCall is InterpetedImplementation implementation)
@@ -55,7 +55,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (toCall is InterpetedMethod method)
             {
-                return InterpetedResult.Create(method.Invoke(parameter));
+                return InterpetedResult.Create(method.Invoke(interpetedContext,parameter));
             }
 
             if (toCall is InterpetedImplementation implementation)

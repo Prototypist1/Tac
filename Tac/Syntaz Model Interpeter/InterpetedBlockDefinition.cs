@@ -18,7 +18,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var res = InterpetedInstanceScope.Make(StaticStuff, Scope);
+            var res = InterpetedInstanceScope.Make(interpetedContext,StaticStuff, Scope);
 
             var scope = interpetedContext.Child(res);
 
