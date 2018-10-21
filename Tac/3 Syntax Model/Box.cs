@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model
             return InnerType;
         }
 
-        internal TT Fill<TT>(TT t)
+        public TT Fill<TT>(TT t)
             where TT : class, T
         {
             if (InnerType != null) {

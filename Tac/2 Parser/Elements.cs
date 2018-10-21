@@ -78,32 +78,35 @@ namespace Tac.Parser
             return new ElementMatchingContext(Builders,operationMatchers, elementMakers, scope);
         }
         
-        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) : this(builders,new IOperationMaker<ICodeElement>[] {
-                new AddOperationMaker(operationBuilder.AddOperation),
-                new SubtractOperationMaker(operationBuilder.SubtractOperation),
-                new MultiplyOperationMaker(operationBuilder.MultiplyOperation),
-                new IfTrueOperationMaker(operationBuilder.IfTrueOperation),
-                new ElseOperationMaker(operationBuilder.ElseOperation),
-                new LessThanOperationMaker(operationBuilder.LessThanOperation),
-                new NextCallOperationMaker(operationBuilder.NextCallOperation),
-                new AssignOperationMaker(operationBuilder.AssignOperation),
-                new PathOperationMaker(operationBuilder.PathOperation),
-                new ReturnOperationMaker(operationBuilder.ReturnOperation)
-            },new IMaker<ICodeElement>[] {
-                new BlockDefinitionMaker(builders.BlockDefinition),
-                new ConstantNumberMaker(builders.ConstantNumber),
-                new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
-                new ImplementationDefinitionMaker(builders.ImplementationDefinition,builders),
-                new MemberDefinitionMaker(builders.MemberDefinition,builders),
-                new MethodDefinitionMaker(builders.MethodDefinition,builders),
-                new ModuleDefinitionMaker(builders.ModuleDefinition),
-                new ObjectDefinitionMaker(builders.ObjectDefinition),
-                new TypeDefinitionMaker(builders.TypeDefinition),
-                new MemberMaker(builders.PathPart,builders),
-            }, scope){}
-
+        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) : 
+            this(
+                builders,
+                new IOperationMaker<ICodeElement>[] {
+                    new AddOperationMaker(operationBuilder.AddOperation),
+                    new SubtractOperationMaker(operationBuilder.SubtractOperation),
+                    new MultiplyOperationMaker(operationBuilder.MultiplyOperation),
+                    new IfTrueOperationMaker(operationBuilder.IfTrueOperation),
+                    new ElseOperationMaker(operationBuilder.ElseOperation),
+                    new LessThanOperationMaker(operationBuilder.LessThanOperation),
+                    new NextCallOperationMaker(operationBuilder.NextCallOperation),
+                    new AssignOperationMaker(operationBuilder.AssignOperation),
+                    new PathOperationMaker(operationBuilder.PathOperation),
+                    new ReturnOperationMaker(operationBuilder.ReturnOperation)
+                },
+                new IMaker<ICodeElement>[] {
+                    new BlockDefinitionMaker(builders.BlockDefinition),
+                    new ConstantNumberMaker(builders.ConstantNumber),
+                    new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
+                    new ImplementationDefinitionMaker(builders.ImplementationDefinition,builders),
+                    new MemberDefinitionMaker(builders.MemberDefinition,builders),
+                    new MethodDefinitionMaker(builders.MethodDefinition,builders),
+                    new ModuleDefinitionMaker(builders.ModuleDefinition),
+                    new ObjectDefinitionMaker(builders.ObjectDefinition),
+                    new TypeDefinitionMaker(builders.TypeDefinition),
+                    new MemberMaker(builders.PathPart,builders),
+                }, 
+                scope){}
         
-
         public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers, ScopeStack scope)
         {
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));

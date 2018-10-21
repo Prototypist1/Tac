@@ -7,6 +7,7 @@ using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 using Tac.Syntaz_Model_Interpeter;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
@@ -75,55 +76,60 @@ namespace Tac.Tests.Samples
         {
             get
             {
-                var intType = default(IBox<TypeDefinition>);
-                var methodIntInt = default(IBox<TypeDefinition>);
+                
+                var ifBlock = new TestScope(new Dictionary<IKey, (bool, MemberDefinition)> {});
+                var elseBlock = new TestScope(new Dictionary<IKey, (bool, MemberDefinition)> { });
 
-                var rootScope = new StaticScope();
-                var methodScope = new MethodScope();
-                var ifBlock = new LocalStaticScope();
-                var elseBlock = new LocalStaticScope();
-
+                var inputKey = new NameKey("input");
                 var input = new MemberDefinition(
                                 false,
-                                new NameKey("input"),
-                                intType);
-
+                                inputKey,
+                                new Box<IReturnable>(new InterpetedNumberType()));
+                var inputBox = new Box<MemberDefinition>(input);
+                var facBox = new Box<MemberDefinition>();
+                var facKey = new NameKey("fac");
                 var fac = new MemberDefinition(
-                                false,
-                                new NameKey("fac"),
-                                methodIntInt);
+                        false,
+                        facKey,
+                        facBox);
+                facBox.Fill(fac);
 
-                return new[] {
-                    new MethodDefinition(
-                        intType,
-                        input,
+                var methodScope = new TestScope(new Dictionary<IKey, (bool, MemberDefinition)> { { inputKey, (false, input) } });
+                
+                var method = new InterpetedMethodDefinition(
+                        new Box<IReturnable>(new InterpetedNumberType()),
+                        inputBox,
                         new ICodeElement[]{
-                            new ElseOperation(
-                                new IfTrueOperation(
-                                    new LessThanOperation(
-                                        new InterpetedMemberPath(0,input),
-                                        new ConstantNumber(2)),
-                                    new BlockDefinition(
+                            new InterpetedElseOperation(
+                                new InterpetedIfTrueOperation(
+                                    new InterpetedLessThanOperation(
+                                        new InterpetedMemberReferance(inputBox),
+                                        new InterpetedConstantNumber(2)),
+                                    new InterpetedBlockDefinition(
                                         new ICodeElement[]{
-                                            new ReturnOperation(
-                                                new ConstantNumber(1))},
+                                            new InterpetedReturnOperation(
+                                                new InterpetedConstantNumber(1))},
                                         ifBlock,
                                         new ICodeElement[0])),
-                                new BlockDefinition(
+                                new InterpetedBlockDefinition(
                                     new ICodeElement[]{
-                                        new ReturnOperation(
-                                            new MultiplyOperation(
-                                                new NextCallOperation(
-                                                    new SubtractOperation(
-                                                        new InterpetedMemberPath(1,input),
-                                                        new ConstantNumber(1)),
-                                                    new InterpetedMemberPath(2,fac)),
-                                                new InterpetedMemberPath(1,input)))},
+                                        new InterpetedReturnOperation(
+                                            new InterpetedMultiplyOperation(
+                                                new InterpetedNextCallOperation(
+                                                    new InterpetedSubtractOperation(
+                                                        new InterpetedMemberReferance(inputBox),
+                                                        new InterpetedConstantNumber(1)),
+                                                    new InterpetedMemberReferance(facBox)),
+                                                new InterpetedMemberReferance(inputBox)))},
                                     elseBlock,
                                     new ICodeElement[0]))},
                         methodScope,
-                        new ICodeElement[0])
-                    
+                        new ICodeElement[0]);
+
+                var rootScope = new TestScope(new Dictionary<IKey, (bool, MemberDefinition)> { { facKey, (false, fac) }});
+                
+                return new[] {
+                    method
                 };
             }
         }

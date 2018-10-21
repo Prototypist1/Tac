@@ -22,6 +22,7 @@ namespace Tac.Tests
         [Theory]
         [InlineData(nameof(Factorial))]
         [InlineData(nameof(Arithmetic))]
+        [InlineData(nameof(PointObject))]
         public void Token_CodeElements(string className)
         {
             //💩💩💩
@@ -47,6 +48,7 @@ namespace Tac.Tests
         [Theory]
         [InlineData(nameof(Factorial))]
         [InlineData(nameof(Arithmetic))]
+        [InlineData(nameof(PointObject))]
         public void Text_Token(string className)
         {
             //💩💩💩
