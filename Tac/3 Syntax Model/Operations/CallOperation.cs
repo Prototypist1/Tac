@@ -11,6 +11,9 @@ namespace Tac.Semantic_Model.Operations
 {
     public class NextCallOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
+
+        public const string Identifier = ">";
+
         public NextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
@@ -23,13 +26,15 @@ namespace Tac.Semantic_Model.Operations
 
     public class NextCallOperationMaker : BinaryOperationMaker<NextCallOperation>
     {
-        public NextCallOperationMaker(BinaryOperation.Make<NextCallOperation> make) : base(">", make)
+        public NextCallOperationMaker(BinaryOperation.Make<NextCallOperation> make) : base(NextCallOperation.Identifier, make)
         {
         }
     }
 
     public class LastCallOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
+        public const string Identifier = "<";
+
         public LastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
@@ -42,7 +47,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class LastCallOperationMaker : BinaryOperationMaker<LastCallOperation>
     {
-        public LastCallOperationMaker(BinaryOperation.Make<LastCallOperation> make) : base("<", make)
+        public LastCallOperationMaker(BinaryOperation.Make<LastCallOperation> make) : base(LastCallOperation.Identifier, make)
         {
         }
     }

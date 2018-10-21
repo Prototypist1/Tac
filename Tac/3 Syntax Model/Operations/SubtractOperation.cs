@@ -6,6 +6,8 @@ namespace Tac.Semantic_Model.Operations
 {
     public class SubtractOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
+        public const string Identifier = "-";
+
         public SubtractOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
@@ -18,7 +20,7 @@ namespace Tac.Semantic_Model.Operations
     
     public class SubtractOperationMaker : BinaryOperationMaker<SubtractOperation>
     {
-        public SubtractOperationMaker(BinaryOperation.Make<SubtractOperation> make) : base("-", make)
+        public SubtractOperationMaker(BinaryOperation.Make<SubtractOperation> make) : base(SubtractOperation.Identifier, make)
         {
         }
     }

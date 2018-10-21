@@ -28,11 +28,9 @@ namespace Tac.Tests
             //💩💩💩
             var type = Type.GetType($"Tac.Tests.Samples.{className}, Tac.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
             var sample = Activator.CreateInstance(type).Cast<ISample>();
-
-            var tree = new ScopeTree();
-
-            var elementMatchingContest = ElementMatchingContext.Root(tree,
-                new InterpeterElementBuilder(),new InterpeterOperationBuilder());
+            
+            var elementMatchingContest = new ElementMatchingContext(
+                new InterpeterElementBuilder(),new InterpeterOperationBuilder(), ScopeTree.ScopeStack.Root());
 
             var res = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
@@ -59,7 +57,7 @@ namespace Tac.Tests
 
             var operationBuilder =  new InterpeterOperationBuilder();
             
-            var tokenizer = new Tac.Parser.Tokenizer(operationBuilder.Operations.Select(x=>x.Expressed).ToArray());
+            var tokenizer = new Tac.Parser.Tokenizer(operationBuilder.Identifiers);
             var res = tokenizer.Tokenize(text);
 
             var target = sample.Token;

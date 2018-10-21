@@ -465,3 +465,10 @@ shift-right                                     bit-shift right
 ================================= NumberType vs double 
 
 I think probably I need to wrap all my doubles in numberType
+
+======================== idea: tags and contracts
+
+you can tag ojects or modules
+    they are kind of an alernate way to do types
+and you can define contracts on tags
+    everything with tag X must have a method with signeture y could be static method or an extension method

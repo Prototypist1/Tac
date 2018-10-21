@@ -158,8 +158,7 @@ namespace Tac.Semantic_Model
         /// ScopeParent[B] = A;
         /// </summary>
         private Dictionary<Scope, Scope> ScopeParent { get; } = new Dictionary<Scope, Scope>();
-
-
+        
         private Scope[] Scopes(Scope scope)
         {
             return Inner().ToArray();
@@ -183,6 +182,12 @@ namespace Tac.Semantic_Model
         
         public class ScopeStack
         {
+            public static ScopeStack Root() {
+
+                var scopeTree = new ScopeTree();
+                return new ScopeStack(scopeTree, scopeTree.root);
+            }
+
             public (IStaticScope,ScopeStack) StaticScope()
             {
                 var res = new Scope();

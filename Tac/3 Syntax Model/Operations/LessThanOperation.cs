@@ -7,6 +7,8 @@ namespace Tac.Semantic_Model.CodeStuff
 {
     public class LessThanOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
+        public const string Identifier = "<?";
+
         public LessThanOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
@@ -19,7 +21,7 @@ namespace Tac.Semantic_Model.CodeStuff
     
     public class LessThanOperationMaker : BinaryOperationMaker<LessThanOperation>
     {
-        public LessThanOperationMaker(BinaryOperation.Make<LessThanOperation> make) : base("<?", make)
+        public LessThanOperationMaker(BinaryOperation.Make<LessThanOperation> make) : base(LessThanOperation.Identifier, make)
         {
         }
     }

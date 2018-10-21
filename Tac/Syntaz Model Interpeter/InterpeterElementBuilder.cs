@@ -118,28 +118,38 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpeterOperationBuilder()
         {
-            AddOperation = InterpetedAddOperation.MakeNew;
-            SubtractOperation = InterpetedSubtractOperation.MakeNew;
-            MultiplyOperation = InterpetedMultiplyOperation.MakeNew;
-            IfTrueOperation = InterpetedIfTrueOperation.MakeNew;
-            ElseOperation = InterpetedElseOperation.MakeNew;
-            LessThanOperation = InterpetedLessThanOperation.MakeNew;
-            NextCallOperation = InterpetedNextCallOperation.MakeNew;
-            AssignOperation = InterpetedAssignOperation.MakeNew;
-            ReturnOperation = InterpetedReturnOperation.MakeNew;
-            PathOperation = InterpetedPathOperation.MakeNew;
+            AddOperation = Add(new Operation<BinaryOperation.Make<AddOperation>>(InterpetedAddOperation.MakeNew, InterpetedAddOperation.Identifier));
+            SubtractOperation = Add(new Operation<BinaryOperation.Make<SubtractOperation>>(InterpetedSubtractOperation.MakeNew, InterpetedSubtractOperation.Identifier));
+            MultiplyOperation = Add(new Operation<BinaryOperation.Make<MultiplyOperation>>( InterpetedMultiplyOperation.MakeNew, InterpetedMultiplyOperation.Identifier));
+            IfTrueOperation = Add(new Operation<BinaryOperation.Make<IfTrueOperation>>( InterpetedIfTrueOperation.MakeNew, InterpetedIfTrueOperation.Identifier));
+            ElseOperation = Add(new Operation<BinaryOperation.Make<ElseOperation>>( InterpetedElseOperation.MakeNew, InterpetedElseOperation.Identifier));
+            LessThanOperation = Add(new Operation<BinaryOperation.Make<LessThanOperation>>( InterpetedLessThanOperation.MakeNew, InterpetedLessThanOperation.Identifier));
+            NextCallOperation = Add(new Operation<BinaryOperation.Make<NextCallOperation>>( InterpetedNextCallOperation.MakeNew, InterpetedNextCallOperation.Identifier));
+            AssignOperation = Add(new Operation<BinaryOperation.Make<AssignOperation>>( InterpetedAssignOperation.MakeNew, InterpetedAssignOperation.Identifier));
+            ReturnOperation = Add(new Operation<TrailingOperation.Make<ReturnOperation>>( InterpetedReturnOperation.MakeNew, InterpetedReturnOperation.Identifier));
+            PathOperation = Add(new Operation<BinaryOperation.Make<PathOperation>>( InterpetedPathOperation.MakeNew, InterpetedPathOperation.Identifier));
         }
 
-        public BinaryOperation.Make<AddOperation> AddOperation { get; }
-        public BinaryOperation.Make<SubtractOperation> SubtractOperation { get; }
-        public BinaryOperation.Make<MultiplyOperation> MultiplyOperation { get; }
-        public BinaryOperation.Make<IfTrueOperation> IfTrueOperation { get; }
-        public BinaryOperation.Make<ElseOperation> ElseOperation { get; }
-        public BinaryOperation.Make<LessThanOperation> LessThanOperation { get; }
-        public BinaryOperation.Make<NextCallOperation> NextCallOperation { get; }
-        public BinaryOperation.Make<AssignOperation> AssignOperation { get; }
-        public BinaryOperation.Make<PathOperation> PathOperation { get; }
-        public TrailingOperation.Make<ReturnOperation> ReturnOperation { get; }
+        private Operation<T> Add<T>(Operation<T> operation)
+            where T: Delegate
+        {
+            identifiers.Add(operation.idenifier);
+            return operation;
+        }
+
+        public Operation<BinaryOperation.Make<AddOperation>> AddOperation { get; }
+        public Operation<BinaryOperation.Make<SubtractOperation>> SubtractOperation { get; }
+        public Operation<BinaryOperation.Make<MultiplyOperation>> MultiplyOperation { get; }
+        public Operation<BinaryOperation.Make<IfTrueOperation>> IfTrueOperation { get; }
+        public Operation<BinaryOperation.Make<ElseOperation>> ElseOperation { get; }
+        public Operation<BinaryOperation.Make<LessThanOperation>> LessThanOperation { get; }
+        public Operation<BinaryOperation.Make<NextCallOperation>> NextCallOperation { get; }
+        public Operation<BinaryOperation.Make<AssignOperation>> AssignOperation { get; }
+        public Operation<BinaryOperation.Make<PathOperation>> PathOperation { get; }
+        public Operation<TrailingOperation.Make<ReturnOperation>> ReturnOperation { get; }
+
+        private readonly List<string> identifiers = new List<string>();
+        public IReadOnlyList<string> Identifiers { get { return identifiers; }  } 
     }
 
 

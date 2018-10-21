@@ -11,6 +11,8 @@ namespace Tac.Semantic_Model.Operations
 
     public class AssignOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
+        public const string Identifier = "=:";
+        
         public AssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
@@ -33,7 +35,7 @@ namespace Tac.Semantic_Model.Operations
         public IResult<IPopulateScope<AssignOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(""), out var perface, out var token, out var rhs)
+            .Has(ElementMatcher.IsBinaryOperation(AssignOperation.Identifier), out var perface, out var token, out var rhs)
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);

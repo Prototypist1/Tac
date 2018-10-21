@@ -8,6 +8,8 @@ namespace Tac.Semantic_Model.Operations
 {
     public class IfTrueOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
+        public const string Identifier = "if";
+
         // right should have more validation
         public IfTrueOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
@@ -21,7 +23,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class IfTrueOperationMaker : BinaryOperationMaker<IfTrueOperation>
     {
-        public IfTrueOperationMaker(BinaryOperation.Make<IfTrueOperation> make) : base("if", make)
+        public IfTrueOperationMaker(BinaryOperation.Make<IfTrueOperation> make) : base(IfTrueOperation.Identifier, make)
         {
         }
     }

@@ -7,6 +7,9 @@ namespace Tac.Semantic_Model.Operations
     // really an if not
     public class ElseOperation : BinaryOperation<ICodeElement, ICodeElement>
     {
+
+        public const string Identifier = "else";
+
         // right should have more validation
         public ElseOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
@@ -21,7 +24,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class ElseOperationMaker : BinaryOperationMaker<ElseOperation>
     {
-        public ElseOperationMaker(BinaryOperation.Make<ElseOperation> make) : base("else", make)
+        public ElseOperationMaker(BinaryOperation.Make<ElseOperation> make) : base(ElseOperation.Identifier, make)
         {
         }
     }

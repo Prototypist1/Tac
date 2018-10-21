@@ -10,6 +10,8 @@ namespace Tac.Semantic_Model.Operations
     public class ReturnOperation : TrailingOperation, ICodeElement
     {
 
+        public const string Identifier = "return";
+
         public ReturnOperation(ICodeElement result)
         {
             Result = result;
@@ -107,7 +109,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class ReturnOperationMaker : TrailingOperationMaker<ReturnOperation>
     {
-        public ReturnOperationMaker(TrailingOperation.Make<ReturnOperation> make) : base("return", make)
+        public ReturnOperationMaker(TrailingOperation.Make<ReturnOperation> make) : base(ReturnOperation.Identifier, make)
         {
         }
     }

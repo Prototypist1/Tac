@@ -14,18 +14,32 @@ using static Tac.Semantic_Model.ScopeTree;
 
 namespace Tac.Parser
 {
+    public class Operation<T>
+        where T: Delegate
+    {
+        public readonly T make;
+        public readonly string idenifier;
+
+        public Operation(T make, string idenifier)
+        {
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.idenifier = idenifier ?? throw new ArgumentNullException(nameof(idenifier));
+        }
+    }
+
     public interface IOperationBuilder
     {
-        BinaryOperation.Make<AddOperation> AddOperation { get; }
-        BinaryOperation.Make<SubtractOperation> SubtractOperation { get; }
-        BinaryOperation.Make<MultiplyOperation> MultiplyOperation { get; }
-        BinaryOperation.Make<IfTrueOperation> IfTrueOperation { get; }
-        BinaryOperation.Make<ElseOperation> ElseOperation { get; }
-        BinaryOperation.Make<LessThanOperation> LessThanOperation { get; }
-        BinaryOperation.Make<NextCallOperation> NextCallOperation { get; }
-        BinaryOperation.Make<AssignOperation> AssignOperation { get; }
-        BinaryOperation.Make<PathOperation> PathOperation { get; }
-        TrailingOperation.Make<ReturnOperation> ReturnOperation { get; }
+        IReadOnlyList<string> Identifiers { get; }
+        Operation<BinaryOperation.Make<AddOperation>> AddOperation { get; }
+        Operation<BinaryOperation.Make<SubtractOperation>> SubtractOperation { get; }
+        Operation<BinaryOperation.Make<MultiplyOperation>> MultiplyOperation { get; }
+        Operation<BinaryOperation.Make<IfTrueOperation>> IfTrueOperation { get; }
+        Operation<BinaryOperation.Make<ElseOperation>> ElseOperation { get; }
+        Operation<BinaryOperation.Make<LessThanOperation>> LessThanOperation { get; }
+        Operation<BinaryOperation.Make<NextCallOperation>> NextCallOperation { get; }
+        Operation<BinaryOperation.Make<AssignOperation>> AssignOperation { get; }
+        Operation<BinaryOperation.Make<PathOperation>> PathOperation { get; }
+        Operation<TrailingOperation.Make<ReturnOperation>> ReturnOperation { get; }
     }
 
     public interface IElementBuilders
@@ -82,16 +96,16 @@ namespace Tac.Parser
             this(
                 builders,
                 new IOperationMaker<ICodeElement>[] {
-                    new AddOperationMaker(operationBuilder.AddOperation),
-                    new SubtractOperationMaker(operationBuilder.SubtractOperation),
-                    new MultiplyOperationMaker(operationBuilder.MultiplyOperation),
-                    new IfTrueOperationMaker(operationBuilder.IfTrueOperation),
-                    new ElseOperationMaker(operationBuilder.ElseOperation),
-                    new LessThanOperationMaker(operationBuilder.LessThanOperation),
-                    new NextCallOperationMaker(operationBuilder.NextCallOperation),
-                    new AssignOperationMaker(operationBuilder.AssignOperation),
-                    new PathOperationMaker(operationBuilder.PathOperation),
-                    new ReturnOperationMaker(operationBuilder.ReturnOperation)
+                    new AddOperationMaker(operationBuilder.AddOperation.make),
+                    new SubtractOperationMaker(operationBuilder.SubtractOperation.make),
+                    new MultiplyOperationMaker(operationBuilder.MultiplyOperation.make),
+                    new IfTrueOperationMaker(operationBuilder.IfTrueOperation.make),
+                    new ElseOperationMaker(operationBuilder.ElseOperation.make),
+                    new LessThanOperationMaker(operationBuilder.LessThanOperation.make),
+                    new NextCallOperationMaker(operationBuilder.NextCallOperation.make),
+                    new AssignOperationMaker(operationBuilder.AssignOperation.make),
+                    new PathOperationMaker(operationBuilder.PathOperation.make),
+                    new ReturnOperationMaker(operationBuilder.ReturnOperation.make)
                 },
                 new IMaker<ICodeElement>[] {
                     new BlockDefinitionMaker(builders.BlockDefinition),
