@@ -180,7 +180,7 @@ namespace Tac.Semantic_Model
             return this;
         }
         
-        public class ScopeStack
+        public class ScopeStack: IPopulatableScope, IResolvableScope,
         {
             public static ScopeStack Root() {
 
@@ -224,25 +224,21 @@ namespace Tac.Semantic_Model
 
             }
 
-            public bool TryGetMemberPath(NameKey name, out int depth, out IBox<MemberDefinition> box)
+            public bool TryGetMemberPath(NameKey name,  out IBox<MemberDefinition> box)
             {
-                var up = 0;
                 foreach (var scope in ScopeTree.Scopes(TopScope))
                 {
                     if (scope.TryGetMember(name, false, out var memberDefinition))
                     {
-                        depth = up;
                         box = memberDefinition;
                         return true;
                     }
-                    up++;
                 }
-                depth = 0;
                 box = default;
                 return false;
             }
 
-            internal IBox<MemberDefinition> GetMemberDefinition(NameKey key)
+            public bool IBox<MemberDefinition> TryGetMemberDefinition(NameKey key)
             {
                 foreach (var scope in ScopeTree.Scopes(TopScope))
                 {

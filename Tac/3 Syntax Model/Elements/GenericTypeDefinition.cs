@@ -151,7 +151,7 @@ namespace Tac.Semantic_Model
             var encolsing = context.TryAddType(nameKey, box);
 
             var resolvable = scope.ToResolvable();
-            var nextContext = context.Child(this, scope);
+            var nextContext = context.Child(scope);
             lines.Select(x => x.Run(nextContext)).ToArray();
             return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, resolvable, box, make);
         }

@@ -5,6 +5,7 @@ using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
+using static Tac.Semantic_Model.ScopeTree;
 
 namespace Tac.New
 {
@@ -61,25 +62,41 @@ namespace Tac.New
         IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
     }
 
-    public interface IPipelineContext<T,TScope,TSelf>
-        where TSelf: IPipelineContext<T, TScope, TSelf>
+    public interface IPipelineContext
     {
         IElementBuilders ElementBuilders { get; }
-        bool TryGetParentContext(out TSelf parent);
-        bool TryGetParent<TT>(out TT parent) where TT :T;
-        TSelf Child(T step);
-        TSelf Child(T step, TScope scope);
     }
 
     // hmm the parsing is almost a step as well? 
 
-    public interface IPopulateScopeContext: IPipelineContext<IPopulateScope, IPopulatableScope, IPopulateScopeContext> {
-        bool TryGetMemberPath(NameKey name, out int depth, out IBox<MemberDefinition> box);
-        bool TryAddMember(NameKey name, IBox<MemberDefinition> member);
-        bool TryAddType(IKey name, IBox<IReturnable> type);
+    public interface IPopulateScopeContext: IPipelineContext {
+
+        IPopulatableScope Scope { get; }
+        IPopulateScopeContext Child(IPopulateScope step, IPopulatableScope scope);
+
     }
-    
-    public interface IResolveReferanceContext : IPipelineContext<IResolveReferance, IResolvableScope, IResolveReferanceContext> {
+
+    public class PopulateScopeContext : IPopulateScopeContext
+    {
+        private readonly ScopeStack stack;
+
+        public IPopulatableScope Scope
+        {
+            get;
+        }
+
+        public IElementBuilders ElementBuilders
+        {
+            get;
+        }
+
+        public IPopulateScopeContext Child(IPopulatableScope scope)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public interface IResolveReferanceContext : IPipelineContext {
         IBox<MemberDefinition> GetMemberDefinition(NameKey key);
         IBox<IReturnable> GetTypeDefintion(IKey key);
     }

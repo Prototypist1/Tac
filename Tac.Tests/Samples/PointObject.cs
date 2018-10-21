@@ -35,15 +35,13 @@ namespace Tac.Tests.Samples
                                    TokenHelp.Atom("object"),
                                    TokenHelp.Curl(
                                        TokenHelp.Line(
-                                           TokenHelp.Ele(
-                                               TokenHelp.Ele(TokenHelp.Atom("5")),
-                                               TokenHelp.Atom("=:"),
-                                               TokenHelp.Ele(TokenHelp.Atom("x")))),
+                                            TokenHelp.Ele(TokenHelp.Atom("5")),
+                                            TokenHelp.Atom("=:"),
+                                            TokenHelp.Ele(TokenHelp.Atom("x"))),
                                        TokenHelp.Line(
-                                           TokenHelp.Ele(
-                                               TokenHelp.Ele(TokenHelp.Atom("2")),
-                                               TokenHelp.Atom("=:"),
-                                               TokenHelp.Ele(TokenHelp.Atom("y"))))))));
+                                            TokenHelp.Ele(TokenHelp.Atom("2")),
+                                            TokenHelp.Atom("=:"),
+                                            TokenHelp.Ele(TokenHelp.Atom("y")))))));
             }
         }
 

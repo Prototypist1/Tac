@@ -83,7 +83,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<TypeDefinition> Run(IPopulateScopeContext context)
         {
             var encolsing = context.TryAddType(key, box);
-            var nextContext = context.Child(this, scope);
+            var nextContext = context.Child(scope);
             elements.Select(x => x.Run(nextContext)).ToArray();
             return new TypeDefinitionResolveReference(scope.ToResolvable(), box, make, key);
         }

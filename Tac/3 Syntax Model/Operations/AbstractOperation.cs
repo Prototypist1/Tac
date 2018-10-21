@@ -93,8 +93,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
         public IResolveReference<T> Run(IPopulateScopeContext context)
         {
-            var nextContext = context.Child(this);
-            return new BinaryResolveReferance<T>(left.Run(nextContext), right.Run(nextContext), make, box);
+            return new BinaryResolveReferance<T>(left.Run(context), right.Run(context), make, box);
         }
     }
 
@@ -123,8 +122,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
         public T Run(IResolveReferanceContext context)
         {
-            var nextContext = context.Child(this);
-            var res = make(left.Run(nextContext), right.Run(nextContext));
+            var res = make(left.Run(context), right.Run(context));
             box.Set(()=>res.Returns(context.ElementBuilders));
             return res;
         }

@@ -152,7 +152,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<ImplementationDefinition> Run(IPopulateScopeContext context)
         {
             var resolve = methodScope.ToResolvable();
-            var newContext = context.Child(this, methodScope);
+            var newContext = context.Child(methodScope);
             return new ImplementationDefinitionResolveReferance(
                 contextDefinition.Run(newContext), 
                 parameterDefinition.Run(newContext), 

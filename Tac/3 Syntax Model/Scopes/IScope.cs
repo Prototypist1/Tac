@@ -7,11 +7,16 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface ISomeScope { }
+    public interface ISomeScope {
+        bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> box);
+    }
 
     public interface IPopulatableScope: ISomeScope
     {
         IResolvableScope ToResolvable();
+
+        bool TryAddMember(IKey name, IBox<MemberDefinition> type);
+        bool TryAddType(IKey name, IBox<IReturnable> type);
     }
 
     public interface IResolvableScope: ISomeScope
@@ -19,7 +24,6 @@ namespace Tac.Semantic_Model
         IReadOnlyList<IBox<MemberDefinition>> Members { get; }
 
         bool TryGetType(IKey name, out IBox<IReturnable> type);
-        bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member);
     }
     
     public static class IIResolvableScopeExtension

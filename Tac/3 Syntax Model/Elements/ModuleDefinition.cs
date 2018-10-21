@@ -96,7 +96,7 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<ModuleDefinition> Run(IPopulateScopeContext context)
         {
-            var nextContext = context.Child(this,scope);
+            var nextContext = context.Child(scope);
             return new ModuleDefinitionResolveReferance(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make,nameKey,box);
         }
 

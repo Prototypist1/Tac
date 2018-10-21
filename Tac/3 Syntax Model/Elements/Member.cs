@@ -81,8 +81,8 @@ namespace Tac.Semantic_Model
         public IResolveReference<MemberReferance> Run(IPopulateScopeContext context)
         {
             var nameKey = new NameKey(memberName);
-            if (!context.TryGetMemberPath(nameKey, out var depth, out var memberDef) && 
-                !context.TryAddMember(nameKey, new Box<MemberDefinition>(context.ElementBuilders.MemberDefinition(false,nameKey,new Box<IReturnable>(context.ElementBuilders.AnyType())))))
+            if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) && 
+                !context.Scope.TryAddMember(nameKey, new Box<MemberDefinition>(context.ElementBuilders.MemberDefinition(false,nameKey,new Box<IReturnable>(context.ElementBuilders.AnyType())))))
             {
                 throw new Exception("uhh that is not right");
             }

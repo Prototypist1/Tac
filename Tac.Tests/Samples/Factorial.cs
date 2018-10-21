@@ -19,7 +19,7 @@ namespace Tac.Tests.Samples
             get
             {
                 return @"
-    method [ int , int ] input {
+    method [ int ; int ; ] input {
         input <? 2 if {
             1 return ;
         } else {

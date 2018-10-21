@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<BlockDefinition> Run(IPopulateScopeContext context)
         {
             var resolvable = Scope.ToResolvable();
-            var nextContext = context.Child(this, Scope);
+            var nextContext = context.Child(Scope);
             return new ResolveReferanceBlockDefinition(resolvable, Elements.Select(x => x.Run(nextContext)).ToArray(), Make,box);
         }
 

@@ -90,7 +90,7 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<ObjectDefinition> Run(IPopulateScopeContext context)
         {
-            var nextContext = context.Child(this, scope);
+            var nextContext = context.Child(scope);
             var key = new ImplicitKey();
             scope.TryAddStaticType(key, box);
             return new ResolveReferanceObjectDefinition(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make, box,key);

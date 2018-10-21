@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
@@ -19,44 +20,69 @@ namespace Tac.Tests
 {
     public class PipelineTests
     {
-        [Theory]
-        [InlineData(nameof(Factorial))]
-        [InlineData(nameof(Arithmetic))]
-        [InlineData(nameof(PointObject))]
-        public void Token_CodeElements(string className)
+        [Fact]
+        public void Token_CodeElements_Factorial()
         {
-            //💩💩💩
-            var type = Type.GetType($"Tac.Tests.Samples.{className}, Tac.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var sample = Activator.CreateInstance(type).Cast<ISample>();
-            
-            var elementMatchingContest = new ElementMatchingContext(
-                new InterpeterElementBuilder(),new InterpeterOperationBuilder(), ScopeTree.ScopeStack.Root());
+            Toke_CodeElements(new Factorial());
+        }
 
-            var res = elementMatchingContest.ParseFile(sample.Token as FileToken);
+        [Fact]
+        public void Token_CodeElements_Arithmetic()
+        {
+            Toke_CodeElements(new Arithmetic());
+        }
+
+        [Fact]
+        public void Token_CodeElements_PointObject()
+        {
+            Toke_CodeElements(new PointObject());
+        }
+
+        private static void Toke_CodeElements(ISample sample)
+        {
+            var elementMatchingContest = new ElementMatchingContext(
+                new InterpeterElementBuilder(), new InterpeterOperationBuilder(), ScopeTree.ScopeStack.Root());
+
+            var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
+
+            foreach (var populateScope in scopePopulators)
+            {
+                populateScope.Run(new PopulateScopeContext());
+            }
 
             var target = sample.CodeElements.ToArray();
-            
+
             Assert.Equal(target.Length, target.Length);
             for (var i = 0; i < target.Length; i++)
             {
-                res[i].ValueEqualOrThrow(target[i]);
+                scopePopulators[i].ValueEqualOrThrow(target[i]);
             }
         }
-        
-        [Theory]
-        [InlineData(nameof(Factorial))]
-        [InlineData(nameof(Arithmetic))]
-        [InlineData(nameof(PointObject))]
-        public void Text_Token(string className)
-        {
-            //💩💩💩
-            var type = Type.GetType($"Tac.Tests.Samples.{className}, Tac.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var sample = Activator.CreateInstance(type).Cast<ISample>();
 
+        [Fact]
+        public void Text_Token_Factorial()
+        {
+            Text_Token(new Factorial());
+        }
+
+        [Fact]
+        public void Text_Token_Arithmetic()
+        {
+            Text_Token(new Arithmetic());
+        }
+
+        [Fact]
+        public void Text_Token_PointObject()
+        {
+            Text_Token(new PointObject());
+        }
+
+        private static void Text_Token(ISample sample)
+        {
             var text = sample.Text;
 
-            var operationBuilder =  new InterpeterOperationBuilder();
-            
+            var operationBuilder = new InterpeterOperationBuilder();
+
             var tokenizer = new Tac.Parser.Tokenizer(operationBuilder.Identifiers);
             var res = tokenizer.Tokenize(text);
 
@@ -67,6 +93,5 @@ namespace Tac.Tests
 
             target.ValueEqualOrThrow(res);
         }
-
     }
 }

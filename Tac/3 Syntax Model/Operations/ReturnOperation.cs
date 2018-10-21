@@ -76,8 +76,7 @@ namespace Tac.Semantic_Model.Operations
 
         public IResolveReference<T> Run(IPopulateScopeContext context)
         {
-            var nextContext = context.Child(this);
-            return new TrailingResolveReferance<T>(left.Run(nextContext),  make, box);
+            return new TrailingResolveReferance<T>(left.Run(context),  make, box);
         }
     }
 
@@ -99,8 +98,7 @@ namespace Tac.Semantic_Model.Operations
         
         public T Run(IResolveReferanceContext context)
         {
-            var nextContext = context.Child(this);
-            var res = make(left.Run(nextContext));
+            var res = make(left.Run(context));
             box.Set(()=>res.Returns(context.ElementBuilders));
             return res;
         }
