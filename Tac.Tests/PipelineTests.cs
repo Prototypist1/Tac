@@ -46,22 +46,19 @@ namespace Tac.Tests
 
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
-            foreach (var populateScope in scopePopulators)
-            {
-                var (scope,stack) = ScopeStack.Root();
-                populateScope.Run(new PopulateScopeContext(stack,scope,new InterpeterElementBuilder()));
-            }
+            var (scope, stack) = ScopeStack.Root();
+            var populateScopeContex = new PopulateScopeContext(stack, scope, new InterpeterElementBuilder());
+            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
 
-            string s = 5;
-            // TODO you are here!
-            // we still need to resolve referances!
-
+            var resolveReferanceContext = new ResolveReferanceContext(new InterpeterElementBuilder());
+            var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray();
+            
             var target = sample.CodeElements.ToArray();
 
-            Assert.Equal(target.Length, target.Length);
-            for (var i = 0; i < target.Length; i++)
+            Assert.Equal(result.Length, target.Length);
+            for (var i = 0; i < result.Length; i++)
             {
-                scopePopulators[i].ValueEqualOrThrow(target[i]);
+                result[i].ValueEqualOrThrow(target[i]);
             }
         }
 

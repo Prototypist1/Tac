@@ -32,7 +32,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member)
+        public bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> member)
         {
             return Backing.TryGetMember(name, staticOnly, out member);
         }

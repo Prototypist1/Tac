@@ -112,7 +112,20 @@ namespace Tac.New
 
     public interface IResolveReferanceContext : IPipelineContext {
     }
-    
+
+    public class ResolveReferanceContext : IResolveReferanceContext
+    {
+        public ResolveReferanceContext(IElementBuilders elementBuilders)
+        {
+            ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
+        }
+
+        public IElementBuilders ElementBuilders
+        {
+            get;
+        }
+    }
+
     // TODO I think I should protect these!
     // you are only allowed to put things in scope during this step
 

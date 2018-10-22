@@ -51,7 +51,7 @@ namespace Tac.Syntaz_Model_Interpeter
             }
         }
 
-        public bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member)
+        public bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> member)
         {
             member = default;
             return false;
