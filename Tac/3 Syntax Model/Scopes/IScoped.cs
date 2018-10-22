@@ -152,10 +152,10 @@ namespace Tac.Semantic_Model
         
         public class ScopeStack: IPopulatableScope, IResolvableScope
         {
-            public static ScopeStack Root() {
+            public static (IPopulatableScope, ScopeStack) Root() {
 
                 var scopeTree = new ScopeTree();
-                return new ScopeStack(scopeTree, scopeTree.root);
+                return (scopeTree.root,new ScopeStack(scopeTree, scopeTree.root));
             }
 
             public (IPopulatableScope, ScopeStack) ChildScope()

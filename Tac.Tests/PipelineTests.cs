@@ -15,6 +15,7 @@ using Tac.Tests.Help;
 using Tac.Tests.Samples;
 using Tac.Tests.Tokenizer;
 using Xunit;
+using static Tac.Semantic_Model.ScopeTree;
 
 namespace Tac.Tests
 {
@@ -41,14 +42,19 @@ namespace Tac.Tests
         private static void Toke_CodeElements(ISample sample)
         {
             var elementMatchingContest = new ElementMatchingContext(
-                new InterpeterElementBuilder(), new InterpeterOperationBuilder(), ScopeTree.ScopeStack.Root());
+                new InterpeterElementBuilder(), new InterpeterOperationBuilder());
 
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
             foreach (var populateScope in scopePopulators)
             {
-                populateScope.Run(new PopulateScopeContext());
+                var (scope,stack) = ScopeStack.Root();
+                populateScope.Run(new PopulateScopeContext(stack,scope,new InterpeterElementBuilder()));
             }
+
+            string s = 5;
+            // TODO you are here!
+            // we still need to resolve referances!
 
             var target = sample.CodeElements.ToArray();
 
