@@ -16,7 +16,6 @@ namespace Tac.Semantic_Model
     {
         Static,
         Instance,
-        Local,
     }
 
     public class Visiblity<TReferanced> where TReferanced : class

@@ -84,10 +84,8 @@ namespace Tac.Semantic_Model
                 .IsMatch)
             {
 
-                var (methodScope,stack) = matchingContext.ScopeStack.LocalStaticScope();
 
-                var newMatchingContext = matchingContext.Child(stack);
-                var elements = newMatchingContext.ParseBlock(body);
+                var elements = matchingContext.ParseBlock(body);
 
                 var contextNameString = contextName?.Item ?? "context";
                 var contextDefinition = new MemberDefinitionPopulateScope(
@@ -112,7 +110,6 @@ namespace Tac.Semantic_Model
                     new PopulateScopeImplementationDefinition(
                         contextDefinition, 
                         parameterDefinition, 
-                        methodScope, 
                         elements, 
                         outputTypeName,
                         Make));
@@ -127,7 +124,6 @@ namespace Tac.Semantic_Model
     {
         private readonly IPopulateScope<MemberDefinition> contextDefinition;
         private readonly IPopulateScope<MemberDefinition> parameterDefinition;
-        private readonly ILocalStaticScope methodScope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
         private readonly ImplementationDefinition.Make make;
@@ -136,14 +132,12 @@ namespace Tac.Semantic_Model
         public PopulateScopeImplementationDefinition(
             IPopulateScope<MemberDefinition> contextDefinition,
             IPopulateScope<MemberDefinition> parameterDefinition,
-            ILocalStaticScope methodScope,
             IPopulateScope<ICodeElement>[] elements,
             NameKey outputTypeName,
             ImplementationDefinition.Make make)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-            this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -151,13 +145,13 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<ImplementationDefinition> Run(IPopulateScopeContext context)
         {
-            var resolve = methodScope.ToResolvable();
-            var newContext = context.Child(methodScope);
+
+            var nextContext = context.Child();
             return new ImplementationDefinitionResolveReferance(
-                contextDefinition.Run(newContext), 
-                parameterDefinition.Run(newContext), 
-                resolve, 
-                elements.Select(x => x.Run(newContext)).ToArray(),
+                contextDefinition.Run(nextContext), 
+                parameterDefinition.Run(nextContext),
+                nextContext.GetResolvableScope(), 
+                elements.Select(x => x.Run(nextContext)).ToArray(),
                 outputTypeName,
                 make,
                 box);
@@ -200,8 +194,13 @@ namespace Tac.Semantic_Model
         
         public ImplementationDefinition Run(IResolveReferanceContext context)
         {
-            var newContext = context.Child(this, methodScope);
-            return box.Fill(make(new Box<MemberDefinition>(contextDefinition.Run(newContext)),new Box<MemberDefinition>(parameterDefinition.Run(newContext)), context.GetTypeDefintion(outputTypeName), elements.Select(x => x.Run(newContext)).ToArray(), methodScope, new ICodeElement[0]));
+            return box.Fill(make(
+                new Box<MemberDefinition>(contextDefinition.Run(context)),
+                new Box<MemberDefinition>(parameterDefinition.Run(context)),
+                methodScope.GetType(outputTypeName), 
+                elements.Select(x => x.Run(context)).ToArray(), 
+                methodScope, 
+                new ICodeElement[0]));
         }
     }
 }

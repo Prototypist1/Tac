@@ -16,34 +16,9 @@ namespace Tac.Semantic_Model
 
     public class ScopeTree
     {
-        private class Scope : IPopulatableScope, IResolvableScope,
-            IInstanceScope
+        private class Scope : IPopulatableScope, IResolvableScope
+            
         {
-
-            public bool TryAddInstanceMember(IKey key, IBox<MemberDefinition> definition)
-            {
-                return TryAddMember(DefintionLifetime.Instance, key, definition);
-            }
-
-            public bool TryAddLocal(IKey key, IBox<MemberDefinition> definition)
-            {
-                return TryAddMember(DefintionLifetime.Local, key, definition);
-            }
-
-            public bool TryAddStaticMember(IKey key, IBox<MemberDefinition> definition)
-            {
-                return TryAddMember(DefintionLifetime.Static, key, definition);
-            }
-
-            public bool TryAddStaticType(IKey key, IBox<IReturnable> definition)
-            {
-                return TryAddType(DefintionLifetime.Static, key, definition);
-            }
-
-            public bool TryAddStaticGenericType(IKey key, IBox<GenericTypeDefinition> definition)
-            {
-                return TryAddGeneric(DefintionLifetime.Static, key, definition);
-            }
 
             protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<MemberDefinition>>>> members
         = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<MemberDefinition>>>>();
@@ -54,17 +29,17 @@ namespace Tac.Semantic_Model
 
             protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>>();
 
-            protected bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<MemberDefinition> definition)
+            public bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<MemberDefinition> definition)
             {
                 var list = members.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<MemberDefinition>>>());
                 var visiblity = new Visiblity<IBox<MemberDefinition>>(defintionLifetime, definition);
                 return list.TryAdd(visiblity);
             }
 
-            protected bool TryAddType(DefintionLifetime defintionLifetime, IKey key, IBox<IReturnable> definition)
+            public bool TryAddType(IKey key, IBox<IReturnable> definition)
             {
                 var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IReturnable>>>());
-                var visiblity = new Visiblity<IBox<IReturnable>>(defintionLifetime, definition);
+                var visiblity = new Visiblity<IBox<IReturnable>>(DefintionLifetime.Static, definition);
                 return list.TryAdd(visiblity);
             }
 
@@ -75,7 +50,7 @@ namespace Tac.Semantic_Model
                 return list.TryAdd(visiblity);
             }
 
-            public bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member)
+            public bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> member)
             {
                 if (!members.TryGetValue(name, out var items))
                 {
@@ -114,12 +89,7 @@ namespace Tac.Semantic_Model
                 type = thing.Definition;
                 return true;
             }
-
-            public IResolvableScope ToResolvable()
-            {
-                return this;
-            }
-
+            
             public IReadOnlyList<IBox<IReturnable>> Types
             {
                 get
@@ -180,7 +150,7 @@ namespace Tac.Semantic_Model
             return this;
         }
         
-        public class ScopeStack: IPopulatableScope, IResolvableScope,
+        public class ScopeStack: IPopulatableScope, IResolvableScope
         {
             public static ScopeStack Root() {
 
@@ -188,20 +158,13 @@ namespace Tac.Semantic_Model
                 return new ScopeStack(scopeTree, scopeTree.root);
             }
 
-            public (IStaticScope,ScopeStack) StaticScope()
+            public (IPopulatableScope, ScopeStack) ChildScope()
             {
                 var res = new Scope();
                 ScopeTree.Add(TopScope, res);
                 return (res, new ScopeStack(ScopeTree, res));
             }
-
-            public (ILocalStaticScope,ScopeStack) LocalStaticScope()
-            {
-                var res = new Scope();
-                ScopeTree.Add(TopScope, res);
-                return (res, new ScopeStack(ScopeTree,res));
-            }
-
+            
             private ScopeStack(ScopeTree scopeTree, Scope topScope)
             {
                 ScopeTree = scopeTree ?? throw new ArgumentNullException(nameof(scopeTree));
@@ -210,6 +173,14 @@ namespace Tac.Semantic_Model
             
             public ScopeTree ScopeTree { get; }
             private Scope TopScope { get; }
+
+            public IReadOnlyList<IBox<MemberDefinition>> Members
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
 
             public IBox<IReturnable> GetType(IKey key)
             {
@@ -224,11 +195,11 @@ namespace Tac.Semantic_Model
 
             }
 
-            public bool TryGetMemberPath(NameKey name,  out IBox<MemberDefinition> box)
+            public bool TryGetMember(IKey name, bool staticOnly,  out IBox<MemberDefinition> box)
             {
                 foreach (var scope in ScopeTree.Scopes(TopScope))
                 {
-                    if (scope.TryGetMember(name, false, out var memberDefinition))
+                    if (scope.TryGetMember(name, staticOnly, out var memberDefinition))
                     {
                         box = memberDefinition;
                         return true;
@@ -238,17 +209,35 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
-            public bool IBox<MemberDefinition> TryGetMemberDefinition(NameKey key)
+            public bool TryGetType(IKey key, out IBox<IReturnable> result)
             {
                 foreach (var scope in ScopeTree.Scopes(TopScope))
                 {
-                    if (scope.TryGetMember(key, false, out var memberDefinition))
+                    if (scope.TryGetType(key, out var typeDefinition))
                     {
-                        return memberDefinition;
+                        result = typeDefinition;
+                        return true;
                     }
                 }
-                return default;
+                result = default;
+                return false;
             }
+            
+            public IResolvableScope ToResolvable()
+            {
+                return this;
+            }
+
+            public bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<MemberDefinition> member)
+            {
+                return TopScope.TryAddMember(lifeTime, name, member);
+            }
+
+            public bool TryAddType(IKey name, IBox<IReturnable> type)
+            {
+                return TopScope.TryAddType(name, type);
+            }
+
         }
     }
 }

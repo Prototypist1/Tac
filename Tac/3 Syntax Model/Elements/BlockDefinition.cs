@@ -39,12 +39,9 @@ namespace Tac.Semantic_Model
                .Has(ElementMatcher.IsDone)
                .IsMatch)
             {
-                var (scope, stack) = matchingContext.ScopeStack.LocalStaticScope();
+                var elements = matchingContext.ParseBlock(body);
 
-                var innerMatchingContext = matchingContext.Child(stack);
-                var elements = innerMatchingContext.ParseBlock(body);
-
-                return ResultExtension.Good(new BlockDefinitionPopulateScope(scope, elements, Make));
+                return ResultExtension.Good(new BlockDefinitionPopulateScope( elements, Make));
             }
 
             return ResultExtension.Bad<IPopulateScope<BlockDefinition>>();
@@ -54,23 +51,20 @@ namespace Tac.Semantic_Model
 
     public class BlockDefinitionPopulateScope : IPopulateScope<BlockDefinition>, IReturnable
     {
-        private ILocalStaticScope Scope { get; }
         private IPopulateScope<ICodeElement>[] Elements { get; }
         public BlockDefinition.Make Make { get; }
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public BlockDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, BlockDefinition.Make make)
+        public BlockDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements, BlockDefinition.Make make)
         {
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
         public IResolveReference<BlockDefinition> Run(IPopulateScopeContext context)
         {
-            var resolvable = Scope.ToResolvable();
-            var nextContext = context.Child(Scope);
-            return new ResolveReferanceBlockDefinition(resolvable, Elements.Select(x => x.Run(nextContext)).ToArray(), Make,box);
+            var nextContext = context.Child();
+            return new ResolveReferanceBlockDefinition(nextContext.GetResolvableScope(), Elements.Select(x => x.Run(nextContext)).ToArray(), Make,box);
         }
 
         public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -100,9 +94,7 @@ namespace Tac.Semantic_Model
 
         public BlockDefinition Run(IResolveReferanceContext context)
         {
-
-            var nextContext = context.Child(this, Scope);
-            return box.Fill(Make(ResolveReferance.Select(x => x.Run(nextContext)).ToArray(), Scope, new ICodeElement[0]));
+            return box.Fill(Make(ResolveReferance.Select(x => x.Run(context)).ToArray(), Scope, new ICodeElement[0]));
         }
     }
 }

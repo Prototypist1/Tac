@@ -8,24 +8,40 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
     public interface ISomeScope {
-        bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> box);
+        bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> box);
     }
 
     public interface IPopulatableScope: ISomeScope
     {
-        IResolvableScope ToResolvable();
-
-        bool TryAddMember(IKey name, IBox<MemberDefinition> type);
+        bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<MemberDefinition> type);
         bool TryAddType(IKey name, IBox<IReturnable> type);
     }
-
+    
     public interface IResolvableScope: ISomeScope
     {
         IReadOnlyList<IBox<MemberDefinition>> Members { get; }
-
         bool TryGetType(IKey name, out IBox<IReturnable> type);
     }
-    
+
+    public static class ResolvableScopeExtensions {
+
+        public static IBox<IReturnable> GetType(this IResolvableScope self, IKey name) {
+            if (self.TryGetType(name, out var res)) {
+                return res;
+            }
+            throw new Exception($"could not find type: {name}");
+        }
+        public static IBox<MemberDefinition> GetMember(this IResolvableScope self, bool staticOnly, IKey name) {
+            if (self.TryGetMember(name, staticOnly, out var res))
+            {
+                return res;
+            }
+            throw new Exception($"could not find member: {name}");
+        }
+    }
+
+
+
     public static class IIResolvableScopeExtension
     {
         public static IBox<IReturnable> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {

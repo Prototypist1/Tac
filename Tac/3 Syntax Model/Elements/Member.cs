@@ -82,28 +82,30 @@ namespace Tac.Semantic_Model
         {
             var nameKey = new NameKey(memberName);
             if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) && 
-                !context.Scope.TryAddMember(nameKey, new Box<MemberDefinition>(context.ElementBuilders.MemberDefinition(false,nameKey,new Box<IReturnable>(context.ElementBuilders.AnyType())))))
+                !context.Scope.TryAddMember(DefintionLifetime.Instance,nameKey, new Box<MemberDefinition>(context.ElementBuilders.MemberDefinition(false,nameKey,new Box<IReturnable>(context.ElementBuilders.AnyType())))))
             {
                 throw new Exception("uhh that is not right");
             }
             
-            return new MemberResolveReferance(nameKey, make, box);
+            return new MemberResolveReferance(context.Scope.ToResolvable(), nameKey, make, box);
         }
 
     }
 
     public class MemberResolveReferance : IResolveReference<MemberReferance>
     {
-
+        private readonly IResolvableScope resolvableScope;
         private readonly NameKey key;
         private readonly MemberReferance.Make make;
         private readonly Box<IReturnable> box;
 
         public MemberResolveReferance(
+            IResolvableScope resolvableScope,
             NameKey key, 
             MemberReferance.Make make, 
             Box<IReturnable> box)
         {
+            this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
             this.key = key ?? throw new ArgumentNullException(nameof(key));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
@@ -111,7 +113,7 @@ namespace Tac.Semantic_Model
 
         public MemberReferance Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(context.GetMemberDefinition(key)));
+            return box.Fill(make(resolvableScope.GetMember(false, key)));
         }
     }
 

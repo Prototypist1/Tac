@@ -57,12 +57,10 @@ namespace Tac.Semantic_Model
                            .Has(ElementMatcher.IsDone)
                            .IsMatch)
             {
-                var (scope,stack) = matchingContext.ScopeStack.LocalStaticScope();
 
-                var elementMatchingContext = matchingContext.Child(stack);
-                var elements = elementMatchingContext.ParseBlock(block);
+                var elements = matchingContext.ParseBlock(block);
                 
-                return ResultExtension.Good(new ObjectDefinitionPopulateScope(scope, elements, Make));
+                return ResultExtension.Good(new ObjectDefinitionPopulateScope(elements, Make));
             }
             return ResultExtension.Bad<IPopulateScope<ObjectDefinition>>();
         }
@@ -71,14 +69,12 @@ namespace Tac.Semantic_Model
     
     public class ObjectDefinitionPopulateScope : IPopulateScope<ObjectDefinition>
     {
-        private readonly ILocalStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly ObjectDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public ObjectDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, ObjectDefinition.Make make)
+        public ObjectDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements, ObjectDefinition.Make make)
         {
-            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
@@ -90,10 +86,15 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<ObjectDefinition> Run(IPopulateScopeContext context)
         {
-            var nextContext = context.Child(scope);
+            var nextContext = context.Child();
             var key = new ImplicitKey();
-            scope.TryAddStaticType(key, box);
-            return new ResolveReferanceObjectDefinition(scope.ToResolvable(), elements.Select(x => x.Run(nextContext)).ToArray(), make, box,key);
+            nextContext.Scope.TryAddType(key, box);
+            return new ResolveReferanceObjectDefinition(
+                nextContext.GetResolvableScope(),
+                elements.Select(x => x.Run(nextContext)).ToArray(),
+                make, 
+                box,
+                key);
         }
     }
 
@@ -121,8 +122,7 @@ namespace Tac.Semantic_Model
 
         public ObjectDefinition Run(IResolveReferanceContext context)
         {
-            var nextContext = context.Child(this, scope);
-            return box.Fill(make(scope, elements.Select(x => x.Run(nextContext).Cast<AssignOperation>()).ToArray(), key));
+            return box.Fill(make(scope, elements.Select(x => x.Run(context).Cast<AssignOperation>()).ToArray(), key));
         }
     }
 }

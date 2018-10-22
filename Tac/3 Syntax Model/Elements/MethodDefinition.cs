@@ -66,11 +66,7 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-
-                var (methodScope,stack) = matchingContext.ScopeStack.LocalStaticScope();
-
-                var newMatchingContext = matchingContext.Child(stack);
-                var elements = newMatchingContext.ParseBlock(body);
+                var elements = matchingContext.ParseBlock(body);
                 
                 var parameterDefinition = new MemberDefinitionPopulateScope(
                         parameterName?.Item ?? "input",
@@ -82,7 +78,11 @@ namespace Tac.Semantic_Model
 
                 var outputTypeName = new NameKey(outputType.Item);
                 
-                return ResultExtension.Good(new MethodDefinitionPopulateScope(parameterDefinition, methodScope, elements, outputTypeName, Make));
+                return ResultExtension.Good(new MethodDefinitionPopulateScope(
+                    parameterDefinition,
+                    elements, 
+                    outputTypeName, 
+                    Make));
             }
 
             return ResultExtension.Bad<IPopulateScope<MethodDefinition>>();
@@ -92,22 +92,19 @@ namespace Tac.Semantic_Model
     public class MethodDefinitionPopulateScope : IPopulateScope<MethodDefinition>
     {
         private readonly IPopulateScope<MemberDefinition> parameterDefinition;
-        private readonly ILocalStaticScope methodScope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
         private readonly MethodDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public MethodDefinitionPopulateScope(
-            IPopulateScope<MemberDefinition> parameterDefinition, 
-            ILocalStaticScope methodScope, 
+            IPopulateScope<MemberDefinition> parameterDefinition,
             IPopulateScope<ICodeElement>[] elements, 
             NameKey outputTypeName,
             MethodDefinition.Make make
             )
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-            this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -122,10 +119,10 @@ namespace Tac.Semantic_Model
         public IResolveReference<MethodDefinition> Run(IPopulateScopeContext context)
         {
 
-            var nextContext = context.Child(methodScope);
+            var nextContext = context.Child();
             return new MethodDefinitionResolveReferance(
-                parameterDefinition.Run(nextContext), 
-                methodScope.ToResolvable(), 
+                parameterDefinition.Run(nextContext),
+                nextContext.GetResolvableScope(), 
                 elements.Select(x => x.Run(nextContext)).ToArray(), 
                 outputTypeName, 
                 make, 
@@ -160,12 +157,11 @@ namespace Tac.Semantic_Model
 
         public MethodDefinition Run(IResolveReferanceContext context)
         {
-            var nextContext = context.Child(this, methodScope);
             return box.Fill(
                 make(
-                    context.GetTypeDefintion(outputTypeName),
-                    new Box<MemberDefinition>(parameter.Run(nextContext)), 
-                    lines.Select(x => x.Run(nextContext)).ToArray(),
+                    methodScope.GetType(outputTypeName),
+                    new Box<MemberDefinition>(parameter.Run(context)), 
+                    lines.Select(x => x.Run(context)).ToArray(),
                     methodScope,
                     new ICodeElement[0]));
         }

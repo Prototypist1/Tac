@@ -46,13 +46,14 @@ namespace Tac.Semantic_Model
                             .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                             .IsMatch)
             {
-                var (scope,stack) = matchingContext.ScopeStack.LocalStaticScope();
 
-                var elementMatchingContext = matchingContext.Child(stack);
-                var elements = elementMatchingContext.ParseBlock(body);
+                var elements = matchingContext.ParseBlock(body);
 
                 
-               return ResultExtension.Good(new TypeDefinitionPopulateScope(scope, elements, typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey() , Make));
+               return ResultExtension.Good(new TypeDefinitionPopulateScope(
+                   elements, 
+                   typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey() , 
+                   Make));
             }
 
             return ResultExtension.Bad<IPopulateScope<TypeDefinition>>(); ;
@@ -61,15 +62,13 @@ namespace Tac.Semantic_Model
     
     public class TypeDefinitionPopulateScope : IPopulateScope<TypeDefinition>
     {
-        private readonly ILocalStaticScope scope;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IKey key;
         private readonly TypeDefinition.Make make;
         private readonly Box<TypeDefinition> box = new Box<TypeDefinition>();
 
-        public TypeDefinitionPopulateScope(ILocalStaticScope scope, IPopulateScope<ICodeElement>[] elements, IKey typeName, TypeDefinition.Make make)
+        public TypeDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements, IKey typeName, TypeDefinition.Make make)
         {
-            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -82,10 +81,14 @@ namespace Tac.Semantic_Model
 
         public IResolveReference<TypeDefinition> Run(IPopulateScopeContext context)
         {
-            var encolsing = context.TryAddType(key, box);
-            var nextContext = context.Child(scope);
+            var encolsing = context.Scope.TryAddType(key, box);
+            var nextContext = context.Child();
             elements.Select(x => x.Run(nextContext)).ToArray();
-            return new TypeDefinitionResolveReference(scope.ToResolvable(), box, make, key);
+            return new TypeDefinitionResolveReference(
+                nextContext.GetResolvableScope(), 
+                box, 
+                make, 
+                key);
         }
     }
 

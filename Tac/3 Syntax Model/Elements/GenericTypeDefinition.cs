@@ -110,15 +110,11 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                 .IsMatch)
             {
-
-                var (scope,stack) = matchingContext.ScopeStack.LocalStaticScope();
-
-                var elementMatchingContext = matchingContext.Child(stack);
-                var elements = elementMatchingContext.ParseBlock(body);
-
-                var genericParameters = genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray();
-
-                return ResultExtension.Good(new GenericTypeDefinitionPopulateScope(new NameKey(typeName.Item), elements, scope, genericParameters, make));
+                return ResultExtension.Good(new GenericTypeDefinitionPopulateScope(
+                    new NameKey(typeName.Item),
+                    matchingContext.ParseBlock(body),
+                    genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray(), 
+                    make));
             }
 
             return ResultExtension.Bad<IPopulateScope<GenericTypeDefinition>>();
@@ -131,29 +127,30 @@ namespace Tac.Semantic_Model
     public class GenericTypeDefinitionPopulateScope : IPopulateScope<GenericTypeDefinition>
     {
         private readonly NameKey nameKey;
-        private readonly ILocalStaticScope scope;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly GenericTypeDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
-        public GenericTypeDefinitionPopulateScope(NameKey nameKey, IEnumerable<IPopulateScope<ICodeElement>> lines, ILocalStaticScope scope, GenericTypeParameterDefinition[] genericParameters, GenericTypeDefinition.Make make)
+        public GenericTypeDefinitionPopulateScope(
+            NameKey nameKey, 
+            IEnumerable<IPopulateScope<ICodeElement>> lines,
+            GenericTypeParameterDefinition[] genericParameters, 
+            GenericTypeDefinition.Make make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
-            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
         public IResolveReference<GenericTypeDefinition> Run(IPopulateScopeContext context)
         {
-            var encolsing = context.TryAddType(nameKey, box);
-
-            var resolvable = scope.ToResolvable();
-            var nextContext = context.Child(scope);
+            var encolsing = context.Scope.TryAddType(nameKey, box);
+            
+            var nextContext = context.Child();
             lines.Select(x => x.Run(nextContext)).ToArray();
-            return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, resolvable, box, make);
+            return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, nextContext.GetResolvableScope(), box, make);
         }
 
         public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)

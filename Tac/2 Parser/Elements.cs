@@ -67,7 +67,7 @@ namespace Tac.Parser
         internal ElementMatchingContext ExpectPathPart(IBox<IReturnable> box) {
             return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
                 new MemberReferanceMaker(Builders.PathPart,Builders,box)
-            }, ScopeStack);
+            });
         }
         
         internal ElementMatchingContext AcceptImplicit(IBox<IReturnable> box)
@@ -84,15 +84,15 @@ namespace Tac.Parser
                 new TypeDefinitionMaker(Builders.TypeDefinition),
                 new ImplicitMemberMaker(Builders.MemberDefinition,box),
                 new MemberMaker(Builders.PathPart,Builders),
-            }, ScopeStack);
+            });
         }
         
-        internal ElementMatchingContext Child(ScopeStack scope)
-        {
-            return new ElementMatchingContext(Builders,operationMatchers, elementMakers, scope);
-        }
+        //internal ElementMatchingContext Child(ScopeStack scope)
+        //{
+        //    return new ElementMatchingContext(Builders,operationMatchers, elementMakers, scope);
+        //}
         
-        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder, ScopeStack scope) : 
+        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder) : 
             this(
                 builders,
                 new IOperationMaker<ICodeElement>[] {
@@ -118,21 +118,19 @@ namespace Tac.Parser
                     new ObjectDefinitionMaker(builders.ObjectDefinition),
                     new TypeDefinitionMaker(builders.TypeDefinition),
                     new MemberMaker(builders.PathPart,builders),
-                }, 
-                scope){}
+                }){}
         
-        public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers, ScopeStack scope)
+        public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers)
         {
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
             this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
-            ScopeStack = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         private readonly IMaker<ICodeElement>[] elementMakers;
         private readonly IOperationMaker<ICodeElement>[] operationMatchers;
 
         public IElementBuilders Builders { get; }
-        public ScopeStack ScopeStack { get; }
+        //public ScopeStack ScopeStack { get; }
         
         
         #region Parse

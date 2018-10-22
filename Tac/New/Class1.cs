@@ -72,13 +72,21 @@ namespace Tac.New
     public interface IPopulateScopeContext: IPipelineContext {
 
         IPopulatableScope Scope { get; }
-        IPopulateScopeContext Child(IPopulateScope step, IPopulatableScope scope);
+        IPopulateScopeContext Child();
+        IResolvableScope GetResolvableScope();
 
     }
 
     public class PopulateScopeContext : IPopulateScopeContext
     {
         private readonly ScopeStack stack;
+
+        public PopulateScopeContext(ScopeStack stack, IPopulatableScope scope, IElementBuilders elementBuilders)
+        {
+            this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
+        }
 
         public IPopulatableScope Scope
         {
@@ -90,15 +98,19 @@ namespace Tac.New
             get;
         }
 
-        public IPopulateScopeContext Child(IPopulatableScope scope)
+        public IPopulateScopeContext Child()
         {
-            throw new NotImplementedException();
+            var (child, nextStack) = stack.ChildScope();
+            return new PopulateScopeContext(nextStack, child, ElementBuilders);
+        }
+
+        public IResolvableScope GetResolvableScope()
+        {
+            return stack.ToResolvable();
         }
     }
 
     public interface IResolveReferanceContext : IPipelineContext {
-        IBox<MemberDefinition> GetMemberDefinition(NameKey key);
-        IBox<IReturnable> GetTypeDefintion(IKey key);
     }
     
     // TODO I think I should protect these!
