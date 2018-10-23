@@ -37,30 +37,8 @@ namespace Tac.Syntaz_Model_Interpeter
                     interpetedContext.elementBuilders.MemberDefinition(false, new NameKey("countex"), new Box<IReturnable>(new InterpetedAnyType())),
                     new ICodeElement[] { },
                     interpetedContext,
-                    new EmptyScope());
+                    new FinalizedScope(new Dictionary<IKey,IBox<MemberDefinition>>()));
         }
     }
-
-    public class EmptyScope : IFinalizedScope
-    {
-        public IReadOnlyList<IBox<MemberDefinition>> Members
-        {
-            get
-            {
-                return new List<IBox<MemberDefinition>>();
-            }
-        }
-
-        //public bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> member)
-        //{
-        //    member = default;
-        //    return false;
-        //}
-
-        //public bool TryGetType(IKey name, out IBox<IReturnable> type)
-        //{
-        //    type = default;
-        //    return false;
-        //}
-    }
+    
 }

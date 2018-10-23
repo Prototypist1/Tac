@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model
 
     public class ScopeTree
     {
-        private class Scope : IPopulatableScope, IResolvableScope, IFinalizedScope
+        private class Scope : IPopulatableScope, IResolvableScope
             
         {
 
@@ -90,7 +90,12 @@ namespace Tac.Semantic_Model
                 type = thing.Definition;
                 return true;
             }
-            
+
+            public IFinalizedScope GetFinalized()
+            {
+                return new FinalizedScope(members.ToDictionary(x => x.Key, x => x.Value.Single().Definition));
+            }
+
             public IReadOnlyList<IBox<IReturnable>> Types
             {
                 get
@@ -151,7 +156,7 @@ namespace Tac.Semantic_Model
             return this;
         }
         
-        public class ScopeStack: IPopulatableScope, IResolvableScope
+        public class ScopeStack: IPopulatableScope
         {
             public static (IPopulatableScope, ScopeStack) Root() {
 
@@ -218,7 +223,7 @@ namespace Tac.Semantic_Model
             
             public IResolvableScope ToResolvable()
             {
-                return this;
+                return TopScope;
             }
 
             public bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<MemberDefinition> member)

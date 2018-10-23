@@ -109,7 +109,7 @@ namespace Tac.Semantic_Model
 
         public TypeDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope.Finalize(), key));
+            return box.Fill(make(scope.GetFinalized(), key));
         }
     }
 }

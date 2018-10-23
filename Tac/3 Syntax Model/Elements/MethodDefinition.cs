@@ -162,7 +162,7 @@ namespace Tac.Semantic_Model
                     methodScope.GetType(outputTypeName),
                     new Box<MemberDefinition>(parameter.Run(context)), 
                     lines.Select(x => x.Run(context)).ToArray(),
-                    methodScope.Finalize(),
+                    methodScope.GetFinalized(),
                     new ICodeElement[0]));
         }
     }

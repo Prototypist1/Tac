@@ -31,7 +31,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 interpetedContext.elementBuilders.MemberDefinition(false, new NameKey("input"), new Box<IReturnable>(new InterpetedAnyType())),
                 new ICodeElement[] { },
                 interpetedContext,
-                new EmptyScope());
+                new FinalizedScope(new Dictionary<IKey,IBox<MemberDefinition>>()));
         }
     }
 }

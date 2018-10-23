@@ -51,7 +51,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var scope = new InterpetedStaticScope(backing);
 
-            foreach (var member in scopeDefinition.Members.Select(x=>x.GetValue()))
+            foreach (var member in scopeDefinition.Members.Values.Select(x=>x.GetValue()))
             {
                 backing[member.Key] = new InterpetedMember(member.Type.GetValue().Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext));
             }
@@ -85,7 +85,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var scope = new InterpetedInstanceScope(backing, staticBacking);
             
-            foreach (var member in scopeDefinition.Members.Select(x => x.GetValue()))
+            foreach (var member in scopeDefinition.Members.Values.Select(x => x.GetValue()))
             {
                 backing[member.Key] = new InterpetedMember(member.Type.GetValue().Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext));
             }

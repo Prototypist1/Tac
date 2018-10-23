@@ -94,7 +94,7 @@ namespace Tac.Semantic_Model
 
         public BlockDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(Make(ResolveReferance.Select(x => x.Run(context)).ToArray(), Scope.Finalize(), new ICodeElement[0]));
+            return box.Fill(Make(ResolveReferance.Select(x => x.Run(context)).ToArray(), Scope.GetFinalized(), new ICodeElement[0]));
         }
     }
 }

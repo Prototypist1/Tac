@@ -8,7 +8,7 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         internal static readonly TypeDefinition.Make MakeNew = (scope,key)=> new InterpetedTypeDefinition(scope,key);
 
-        public InterpetedTypeDefinition(IResolvableScope scope, IKey key) : base(scope, key)
+        public InterpetedTypeDefinition(IFinalizedScope scope, IKey key) : base(scope, key)
         {
         }
 

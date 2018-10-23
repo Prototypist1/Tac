@@ -77,8 +77,8 @@ namespace Tac.Tests.Samples
             get
             {
                 
-                var ifBlock = new TestScope(new Dictionary<IKey, (bool, MemberDefinition)> {});
-                var elseBlock = new TestScope(new Dictionary<IKey, (bool, MemberDefinition)> { });
+                var ifBlock = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> {});
+                var elseBlock = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { });
 
                 var inputKey = new NameKey("input");
                 var input = new MemberDefinition(
@@ -94,7 +94,7 @@ namespace Tac.Tests.Samples
                         facBox);
                 facBox.Fill(fac);
 
-                var methodScope = new TestScope(new Dictionary<IKey, (bool, MemberDefinition)> { { inputKey, (false, input) } });
+                var methodScope = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { { inputKey, inputBox } });
                 
                 var method = new InterpetedMethodDefinition(
                         new Box<IReturnable>(new InterpetedNumberType()),
@@ -126,7 +126,7 @@ namespace Tac.Tests.Samples
                         methodScope,
                         new ICodeElement[0]);
 
-                var rootScope = new TestScope(new Dictionary<IKey, (bool, MemberDefinition)> { { facKey, (false, fac) }});
+                var rootScope = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { { facKey, facBox }});
                 
                 return new[] {
                     method

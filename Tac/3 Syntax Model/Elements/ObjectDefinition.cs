@@ -122,7 +122,7 @@ namespace Tac.Semantic_Model
 
         public ObjectDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope.Finalize(), elements.Select(x => x.Run(context).Cast<AssignOperation>()).ToArray(), key));
+            return box.Fill(make(scope.GetFinalized(), elements.Select(x => x.Run(context).Cast<AssignOperation>()).ToArray(), key));
         }
     }
 }

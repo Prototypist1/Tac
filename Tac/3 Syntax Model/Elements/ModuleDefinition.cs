@@ -125,7 +125,7 @@ namespace Tac.Semantic_Model
 
         public ModuleDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope.Finalize(), resolveReferance.Select(x => x.Run(context)).ToArray(),nameKey));
+            return box.Fill(make(scope.GetFinalized(), resolveReferance.Select(x => x.Run(context)).ToArray(),nameKey));
         }
     }
 }

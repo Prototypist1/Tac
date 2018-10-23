@@ -19,13 +19,39 @@ namespace Tac.Semantic_Model
     
     public interface IResolvableScope: ISomeScope
     {
-        IFinalizedScope Finalize();
+        IFinalizedScope GetFinalized();
         bool TryGetType(IKey name, out IBox<IReturnable> type);
+    }
+
+    public class ScopeEnty<T>
+        where T: class
+    {
+        public readonly IBox<T> element;
+        public readonly IKey key;
+
+        public ScopeEnty(IBox<T> element, IKey key)
+        {
+            this.element = element ?? throw new ArgumentNullException(nameof(element));
+            this.key = key ?? throw new ArgumentNullException(nameof(key));
+        }
     }
 
     public interface IFinalizedScope
     {
-        IReadOnlyList<IBox<MemberDefinition>> Members { get; }
+        IReadOnlyDictionary<IKey, IBox<MemberDefinition>> Members { get; }
+    }
+
+    public class FinalizedScope : IFinalizedScope
+    {
+        public FinalizedScope(IReadOnlyDictionary<IKey, IBox<MemberDefinition>> members)
+        {
+            Members = members ?? throw new ArgumentNullException(nameof(members));
+        }
+
+        public IReadOnlyDictionary<IKey, IBox<MemberDefinition>> Members
+        {
+            get;
+        }
     }
 
     public static class ResolvableScopeExtensions {

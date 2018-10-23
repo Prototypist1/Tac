@@ -107,7 +107,7 @@ namespace Tac.Semantic_Model
                 {
                     lshtype = memberDefinitions.Type.GetValue();
                 }
-                return lshtype.Cast<IScoped>().Scope.GetMemberOrThrow(new NameKey(memberName), false).GetValue();
+                return lshtype.Cast<IScoped>().Scope.Members[new NameKey(memberName)].GetValue();
             });
 
             return make(box);

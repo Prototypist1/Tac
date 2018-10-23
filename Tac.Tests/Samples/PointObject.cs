@@ -57,10 +57,10 @@ namespace Tac.Tests.Samples
                                 
                 return new ICodeElement[] {
                     new InterpetedObjectDefinition(
-                        new TestScope(
-                        new Dictionary<IKey, (bool, MemberDefinition)> {
-                            { keyX, (false,localX) },
-                            { keyY, (false,localY) }
+                        new FinalizedScope(
+                        new Dictionary<IKey, IBox<MemberDefinition>> {
+                            { keyX, new Box<MemberDefinition>(localX) },
+                            { keyY, new Box<MemberDefinition>(localY) }
                         }),
                         new InterpetedAssignOperation[]{
                             new InterpetedAssignOperation(new InterpetedConstantNumber(5),localX),

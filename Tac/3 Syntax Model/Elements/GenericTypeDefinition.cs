@@ -26,17 +26,20 @@ namespace Tac.Semantic_Model
 
         public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
-        public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out IReturnable result)
-        {
-            if (genericTypeParameters.Select(x => x.Definition).SetEqual(TypeParameterDefinitions).Not())
-            {
-                result = default;
-                return false;
-            }
+        // huh? this seems to have no uses
+        // and that means GenericScope has no uses
+        // I have not build that part out yet so it is ok.
+        //public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out IReturnable result)
+        //{
+        //    if (genericTypeParameters.Select(x => x.Definition).SetEqual(TypeParameterDefinitions).Not())
+        //    {
+        //        result = default;
+        //        return false;
+        //    }
 
-            result = new TypeDefinition(new GenericScope(Scope, genericTypeParameters),Key);
-            return true;
-        }
+        //    result = new TypeDefinition(new GenericScope(Scope, genericTypeParameters),Key);
+        //    return true;
+        //}
 
         public IReturnable Returns(IElementBuilders elementBuilders)
         {
@@ -184,7 +187,7 @@ namespace Tac.Semantic_Model
         
         public GenericTypeDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(nameKey, scope.Finalize(), genericParameters));
+            return box.Fill(make(nameKey, scope.GetFinalized(), genericParameters));
         }
     }
 
