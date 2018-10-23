@@ -5,22 +5,14 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class GenericScope : IResolvableScope
+    public class GenericScope : IFinalizedScope
     {
 
-        private IResolvableScope Backing { get; }
-
-        public IReadOnlyList<IBox<MemberDefinition>> Members
-        {
-            get
-            {
-                return Backing.Members;
-            }
-        }
-
+        private IFinalizedScope Backing { get; }
+        
         private readonly ConcurrentDictionary<NameKey, IBox<IReturnable>> RealizedGenericTypes = new ConcurrentDictionary<NameKey, IBox<IReturnable>>();
 
-        public GenericScope(IResolvableScope backing, IEnumerable<GenericTypeParameter> typeParameters)
+        public GenericScope(IFinalizedScope backing, IEnumerable<GenericTypeParameter> typeParameters)
         {
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
             foreach (var typeParameter in typeParameters)

@@ -10,18 +10,18 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class TypeDefinition : IReturnable, ICodeElement
+    public class TypeDefinition : IReturnable, ICodeElement, IScoped
     {
-        public delegate TypeDefinition Make(IResolvableScope scope, IKey key);
+        public delegate TypeDefinition Make(IFinalizedScope scope, IKey key);
 
-        public TypeDefinition(IResolvableScope scope, IKey key)
+        public TypeDefinition(IFinalizedScope scope, IKey key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public IKey Key { get; }
-        public IResolvableScope Scope { get; }
+        public IFinalizedScope Scope { get; }
         
         public IReturnable Returns(IElementBuilders elementBuilders)
         {
@@ -109,7 +109,7 @@ namespace Tac.Semantic_Model
 
         public TypeDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope, key));
+            return box.Fill(make(scope.Finalize(), key));
         }
     }
 }

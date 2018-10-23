@@ -10,7 +10,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedBlockDefinition : BlockDefinition, IInterpeted
     {
-        public InterpetedBlockDefinition(ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(body, scope, staticInitailizers)
+        public InterpetedBlockDefinition(ICodeElement[] body, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(body, scope, staticInitailizers)
         {
         }
 
@@ -41,7 +41,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create();
         }
 
-        internal static BlockDefinition MakeNew(ICodeElement[] body, IResolvableScope scope, IEnumerable<ICodeElement> staticInitailizers)
+        internal static BlockDefinition MakeNew(ICodeElement[] body, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitailizers)
         {
             return new InterpetedBlockDefinition(body, scope, staticInitailizers);
         }

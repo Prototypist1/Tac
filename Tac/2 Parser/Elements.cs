@@ -122,6 +122,7 @@ namespace Tac.Parser
         
         public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers)
         {
+            this.Builders = Builders ?? throw new ArgumentNullException(nameof(Builders));
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
             this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
         }
@@ -130,7 +131,6 @@ namespace Tac.Parser
         private readonly IOperationMaker<ICodeElement>[] operationMatchers;
 
         public IElementBuilders Builders { get; }
-        //public ScopeStack ScopeStack { get; }
         
         
         #region Parse

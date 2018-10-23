@@ -11,7 +11,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedImplementationDefinition : ImplementationDefinition, IInterpeted, IInterpetedPrimitiveType
     {
-        public InterpetedImplementationDefinition(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers) : base(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers)
+        public InterpetedImplementationDefinition(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitializers) : base(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers)
         {
         }
 
@@ -25,7 +25,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 Scope));
         }
 
-        internal static ImplementationDefinition MakeNew(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers)
+        internal static ImplementationDefinition MakeNew(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitializers)
         {
             return new InterpetedImplementationDefinition(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers);
         }
@@ -41,7 +41,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    public class EmptyScope : IResolvableScope
+    public class EmptyScope : IFinalizedScope
     {
         public IReadOnlyList<IBox<MemberDefinition>> Members
         {
@@ -51,16 +51,16 @@ namespace Tac.Syntaz_Model_Interpeter
             }
         }
 
-        public bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> member)
-        {
-            member = default;
-            return false;
-        }
+        //public bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> member)
+        //{
+        //    member = default;
+        //    return false;
+        //}
 
-        public bool TryGetType(IKey name, out IBox<IReturnable> type)
-        {
-            type = default;
-            return false;
-        }
+        //public bool TryGetType(IKey name, out IBox<IReturnable> type)
+        //{
+        //    type = default;
+        //    return false;
+        //}
     }
 }

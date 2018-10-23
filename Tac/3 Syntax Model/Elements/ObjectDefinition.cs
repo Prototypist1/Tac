@@ -12,11 +12,11 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class ObjectDefinition: ICodeElement, IReturnable
+    public class ObjectDefinition: ICodeElement, IReturnable, IScoped
     {
-        public delegate ObjectDefinition Make(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key);
+        public delegate ObjectDefinition Make(IFinalizedScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key);
 
-        public ObjectDefinition(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
+        public ObjectDefinition(IFinalizedScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model
             Assignments = assigns.ToArray();
         }
 
-        public IResolvableScope Scope { get; }
+        public IFinalizedScope Scope { get; }
         public AssignOperation[] Assignments { get; }
 
         public IKey Key
@@ -122,7 +122,7 @@ namespace Tac.Semantic_Model
 
         public ObjectDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope, elements.Select(x => x.Run(context).Cast<AssignOperation>()).ToArray(), key));
+            return box.Fill(make(scope.Finalize(), elements.Select(x => x.Run(context).Cast<AssignOperation>()).ToArray(), key));
         }
     }
 }

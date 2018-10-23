@@ -13,7 +13,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedObjectDefinition : ObjectDefinition, IInterpeted, IInterpetedPrimitiveType
     {
-        public InterpetedObjectDefinition(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) : base(scope, assigns, key)
+        public InterpetedObjectDefinition(IFinalizedScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) : base(scope, assigns, key)
         {
         }
 
@@ -33,7 +33,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(scope);
         }
 
-        internal static ObjectDefinition MakeNew(IResolvableScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key)
+        internal static ObjectDefinition MakeNew(IFinalizedScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key)
         {
             return new InterpetedObjectDefinition(scope, assigns, key);
         }

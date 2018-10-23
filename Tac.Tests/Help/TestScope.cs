@@ -5,7 +5,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Tests.Samples
 {
-    internal class TestScope : IResolvableScope
+    internal class TestScope : IFinalizedScope
     {
         private readonly Dictionary<IKey, (bool,MemberDefinition)> backingMembers;
         private readonly Dictionary<IKey, IReturnable> backingTypes;
@@ -26,32 +26,32 @@ namespace Tac.Tests.Samples
             }
         }
 
-        public bool TryGetMember(NameKey name, bool staticOnly, out IBox<MemberDefinition> member)
-        {
-            if (!backingMembers.TryGetValue(name, out var entry)) {
-                member = default;
-                return false;
-            }
+        //public bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> member)
+        //{
+        //    if (!backingMembers.TryGetValue(name, out var entry)) {
+        //        member = default;
+        //        return false;
+        //    }
 
-            if (staticOnly && !entry.Item1) {
-                member = default;
-                return false;
-            }
+        //    if (staticOnly && !entry.Item1) {
+        //        member = default;
+        //        return false;
+        //    }
 
-            member = new Box<MemberDefinition>(entry.Item2);
-            return true;
-        }
+        //    member = new Box<MemberDefinition>(entry.Item2);
+        //    return true;
+        //}
 
-        public bool TryGetType(IKey name, out IBox<IReturnable> type)
-        {
-            if (!backingTypes.TryGetValue(name, out var entry))
-            {
-                type = default;
-                return false;
-            }
+        //public bool TryGetType(IKey name, out IBox<IReturnable> type)
+        //{
+        //    if (!backingTypes.TryGetValue(name, out var entry))
+        //    {
+        //        type = default;
+        //        return false;
+        //    }
             
-            type = new Box<IReturnable>(entry);
-            return true;
-        }
+        //    type = new Box<IReturnable>(entry);
+        //    return true;
+        //}
     }
 }

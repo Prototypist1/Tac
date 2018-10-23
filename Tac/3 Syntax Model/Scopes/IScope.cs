@@ -19,8 +19,13 @@ namespace Tac.Semantic_Model
     
     public interface IResolvableScope: ISomeScope
     {
-        IReadOnlyList<IBox<MemberDefinition>> Members { get; }
+        IFinalizedScope Finalize();
         bool TryGetType(IKey name, out IBox<IReturnable> type);
+    }
+
+    public interface IFinalizedScope
+    {
+        IReadOnlyList<IBox<MemberDefinition>> Members { get; }
     }
 
     public static class ResolvableScopeExtensions {

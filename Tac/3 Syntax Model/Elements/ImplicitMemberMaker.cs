@@ -58,7 +58,7 @@ namespace Tac.Semantic_Model
             
             IBox<MemberDefinition> memberDef = new Box<MemberDefinition>();
 
-            if (!context.TryAddMember(new NameKey(memberName), memberDef))
+            if (!context.Scope.TryAddMember(DefintionLifetime.Instance,new NameKey(memberName), memberDef))
             {
                 throw new Exception("bad bad bad!");
             }

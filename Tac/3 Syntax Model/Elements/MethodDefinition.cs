@@ -15,14 +15,14 @@ namespace Tac.Semantic_Model
             IBox<IReturnable> outputType,
             IBox<MemberDefinition> parameterDefinition,
             ICodeElement[] body,
-            IResolvableScope scope,
+            IFinalizedScope scope,
             IEnumerable<ICodeElement> staticInitializers);
 
         public MethodDefinition(
             IBox<IReturnable> outputType, 
             IBox<MemberDefinition> parameterDefinition,
             ICodeElement[] body,
-            IResolvableScope scope,
+            IFinalizedScope scope,
             IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -59,7 +59,7 @@ namespace Tac.Semantic_Model
         public IResult<IPopulateScope<MethodDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("implementation"), out var _)
+                .Has(ElementMatcher.KeyWord("method"), out var _)
                 .Has(ElementMatcher.Generic2, out AtomicToken inputType, out AtomicToken outputType)
                 .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
                 .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
@@ -162,7 +162,7 @@ namespace Tac.Semantic_Model
                     methodScope.GetType(outputTypeName),
                     new Box<MemberDefinition>(parameter.Run(context)), 
                     lines.Select(x => x.Run(context)).ToArray(),
-                    methodScope,
+                    methodScope.Finalize(),
                     new ICodeElement[0]));
         }
     }

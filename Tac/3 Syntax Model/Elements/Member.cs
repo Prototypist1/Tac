@@ -87,7 +87,7 @@ namespace Tac.Semantic_Model
                 throw new Exception("uhh that is not right");
             }
             
-            return new MemberResolveReferance(context.Scope.ToResolvable(), nameKey, make, box);
+            return new MemberResolveReferance(context.GetResolvableScope(), nameKey, make, box);
         }
 
     }

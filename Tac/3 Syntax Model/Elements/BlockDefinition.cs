@@ -12,12 +12,12 @@ namespace Tac.Semantic_Model
     {
 
         public delegate BlockDefinition Make(ICodeElement[] body,
-            IResolvableScope scope,
+            IFinalizedScope scope,
             IEnumerable<ICodeElement> staticInitailizers);
 
         public BlockDefinition(
             ICodeElement[] body,
-            IResolvableScope scope,
+            IFinalizedScope scope,
             IEnumerable<ICodeElement> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
         
@@ -94,7 +94,7 @@ namespace Tac.Semantic_Model
 
         public BlockDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(Make(ResolveReferance.Select(x => x.Run(context)).ToArray(), Scope, new ICodeElement[0]));
+            return box.Fill(Make(ResolveReferance.Select(x => x.Run(context)).ToArray(), Scope.Finalize(), new ICodeElement[0]));
         }
     }
 }

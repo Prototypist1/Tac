@@ -11,9 +11,9 @@ namespace Tac.Semantic_Model
 {
     public class GenericTypeDefinition : ICodeElement, IReturnable
     {
-        public delegate GenericTypeDefinition Make(NameKey key, IResolvableScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions);
+        public delegate GenericTypeDefinition Make(NameKey key, IFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions);
 
-        public GenericTypeDefinition(NameKey key, IResolvableScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
+        public GenericTypeDefinition(NameKey key, IFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
 
         public IKey Key { get; }
 
-        public IResolvableScope Scope { get; }
+        public IFinalizedScope Scope { get; }
 
         public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
@@ -184,7 +184,7 @@ namespace Tac.Semantic_Model
         
         public GenericTypeDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(nameKey, scope, genericParameters));
+            return box.Fill(make(nameKey, scope.Finalize(), genericParameters));
         }
     }
 

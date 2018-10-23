@@ -19,9 +19,15 @@ namespace Tac.Semantic_Model
     {
         // this is an interesting pattern
         // we define the delegate here to communicate that it should be ti8red to the constructor
-        public delegate ImplementationDefinition Make(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers);
+        public delegate ImplementationDefinition Make(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitializers);
 
-        public ImplementationDefinition(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IResolvableScope scope, IEnumerable<ICodeElement> staticInitializers)
+        public ImplementationDefinition(
+            IBox<MemberDefinition> contextDefinition, 
+            IBox<MemberDefinition> parameterDefinition, 
+            IBox<IReturnable> outputType, 
+            IEnumerable<ICodeElement> metohdBody,
+            IFinalizedScope scope, 
+            IEnumerable<ICodeElement> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -49,7 +55,7 @@ namespace Tac.Semantic_Model
         public IBox<IReturnable> OutputType { get; }
         public IBox<MemberDefinition> ContextDefinition { get; }
         public IBox<MemberDefinition> ParameterDefinition { get; }
-        public IResolvableScope Scope { get; }
+        public IFinalizedScope Scope { get; }
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
         
@@ -199,7 +205,7 @@ namespace Tac.Semantic_Model
                 new Box<MemberDefinition>(parameterDefinition.Run(context)),
                 methodScope.GetType(outputTypeName), 
                 elements.Select(x => x.Run(context)).ToArray(), 
-                methodScope, 
+                methodScope.Finalize(), 
                 new ICodeElement[0]));
         }
     }

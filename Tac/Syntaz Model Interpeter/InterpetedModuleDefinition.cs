@@ -11,7 +11,7 @@ namespace Tac.Syntaz_Model_Interpeter
     public class InterpetedModuleDefinition : ModuleDefinition, IInterpeted, IInterpetedPrimitiveType
     {
         public InterpetedModuleDefinition(
-            IResolvableScope scope, 
+            IFinalizedScope scope, 
             IEnumerable<ICodeElement> staticInitialization, 
             NameKey Key) : 
             base(scope, staticInitialization, Key)
@@ -32,7 +32,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(scope);
         }
 
-        internal static ModuleDefinition MakeNew(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey key)
+        internal static ModuleDefinition MakeNew(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey key)
         {
             return new InterpetedModuleDefinition(scope, staticInitialization, key);
         }

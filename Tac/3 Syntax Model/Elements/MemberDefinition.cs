@@ -81,11 +81,11 @@ namespace Tac.Semantic_Model
         public IResolveReference<MemberDefinition> Run(IPopulateScopeContext context)
         {
             var key = new NameKey(memberName);
-            if (context.TryAddMember(key, box))
+            if (context.Scope.TryAddMember(DefintionLifetime.Instance,key, box))
             {
                 throw new Exception("bad bad bad!");
             }
-            return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, make);
+            return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, make, context.GetResolvableScope());
         }
 
         public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -101,25 +101,31 @@ namespace Tac.Semantic_Model
         private readonly bool isReadonly;
         public readonly NameKey typeName;
         private readonly MemberDefinition.Make make;
+        private readonly IResolvableScope scope;
 
         public MemberDefinitionResolveReferance(
             string memberName,
             Box<MemberDefinition> box,
             bool isReadonly,
             NameKey explicitTypeName,
-            MemberDefinition.Make make)
+            MemberDefinition.Make make,
+            IResolvableScope scope)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.isReadonly = isReadonly;
             typeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public MemberDefinition Run(IResolveReferanceContext context)
         {
-            var res =new MemberDefinition(isReadonly, new NameKey(memberName), context.GetTypeDefintion(typeName));
-            return box.Fill(res);
+            return box.Fill(
+                context.ElementBuilders.MemberDefinition(
+                    isReadonly,
+                    new NameKey(memberName),
+                    scope.GetType(typeName)));
         }
     }
 }

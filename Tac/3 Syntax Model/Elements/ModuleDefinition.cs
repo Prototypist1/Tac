@@ -12,16 +12,16 @@ namespace Tac.Semantic_Model
 
     public class ModuleDefinition : IScoped, ICodeElement, IReturnable
     {
-        public delegate ModuleDefinition Make(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Ke);
+        public delegate ModuleDefinition Make(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Ke);
 
-        public ModuleDefinition(IResolvableScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
+        public ModuleDefinition(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
             this.Key = Key ?? throw new ArgumentNullException(nameof(Key));
         }
         
-        public IResolvableScope Scope { get; }
+        public IFinalizedScope Scope { get; }
         public IEnumerable<ICodeElement> StaticInitialization { get; }
 
         public IKey Key
@@ -125,7 +125,7 @@ namespace Tac.Semantic_Model
 
         public ModuleDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope, resolveReferance.Select(x => x.Run(context)).ToArray(),nameKey));
+            return box.Fill(make(scope.Finalize(), resolveReferance.Select(x => x.Run(context)).ToArray(),nameKey));
         }
     }
 }

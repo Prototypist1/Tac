@@ -8,15 +8,16 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+    // I am not really sure this is a useful concept
+    //
     public interface IScoped
     {
-        IResolvableScope Scope { get; }
+        IFinalizedScope Scope { get; }
     }
-
 
     public class ScopeTree
     {
-        private class Scope : IPopulatableScope, IResolvableScope
+        private class Scope : IPopulatableScope, IResolvableScope, IFinalizedScope
             
         {
 
@@ -173,15 +174,7 @@ namespace Tac.Semantic_Model
             
             public ScopeTree ScopeTree { get; }
             private Scope TopScope { get; }
-
-            public IReadOnlyList<IBox<MemberDefinition>> Members
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
+            
             public IBox<IReturnable> GetType(IKey key)
             {
                 foreach (var scope in ScopeTree.Scopes(TopScope))
