@@ -35,19 +35,19 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberDefinitionMaker : IMaker<MemberDefinition>
+    public class MemberDefinitionMaker : IMaker<MemberReferance>
     {
-        public MemberDefinitionMaker(MemberDefinition.Make make,
+        public MemberDefinitionMaker(MemberReferance.Make make,
             IElementBuilders elementBuilders)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
-        private MemberDefinition.Make Make { get; }
+        private MemberReferance.Make Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public IResult<IPopulateScope<MemberDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<MemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
@@ -58,19 +58,20 @@ namespace Tac.Semantic_Model
             {
                 return ResultExtension.Good(new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, typeToken, Make));
             }
-            return ResultExtension.Bad<IPopulateScope<MemberDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<MemberReferance>>();
         }
     }
 
-    public class MemberDefinitionPopulateScope : IPopulateScope<MemberDefinition>
+    public class MemberDefinitionPopulateScope : IPopulateScope<MemberReferance>
     {
         private readonly string memberName;
         private readonly bool isReadonly;
         private readonly NameKey typeName;
-        private readonly MemberDefinition.Make make;
-        private readonly Box<MemberDefinition> box = new Box<MemberDefinition>();
+        private readonly MemberReferance.Make make;
+        private readonly Box<MemberReferance> box = new Box<MemberReferance>();
+        private readonly Box<MemberDefinition> memberDefinitionBox = new Box<MemberDefinition>();
 
-        public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken, MemberDefinition.Make make)
+        public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken, MemberReferance.Make make)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             isReadonly = v;
@@ -78,14 +79,14 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<MemberDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<MemberReferance> Run(IPopulateScopeContext context)
         {
             var key = new NameKey(memberName);
-            if (context.Scope.TryAddMember(DefintionLifetime.Instance,key, box))
+            if (context.Scope.TryAddMember(DefintionLifetime.Instance,key, memberDefinitionBox))
             {
                 throw new Exception("bad bad bad!");
             }
-            return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, make, context.GetResolvableScope());
+            return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, make, context.GetResolvableScope(), memberDefinitionBox);
         }
 
         public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -94,22 +95,24 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberDefinitionResolveReferance : IResolveReference<MemberDefinition>
+    public class MemberDefinitionResolveReferance : IResolveReference<MemberReferance>
     {
         private readonly string memberName;
-        private readonly Box<MemberDefinition> box;
+        private readonly Box<MemberReferance> box;
         private readonly bool isReadonly;
         public readonly NameKey typeName;
-        private readonly MemberDefinition.Make make;
+        private readonly MemberReferance.Make make;
         private readonly IResolvableScope scope;
+        private readonly Box<MemberDefinition> memberDefinitionBox;
 
         public MemberDefinitionResolveReferance(
             string memberName,
-            Box<MemberDefinition> box,
+            Box<MemberReferance> box,
             bool isReadonly,
             NameKey explicitTypeName,
-            MemberDefinition.Make make,
-            IResolvableScope scope)
+            MemberReferance.Make make,
+            IResolvableScope scope,
+            Box<MemberDefinition> memberDefinitionBox)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
@@ -117,15 +120,18 @@ namespace Tac.Semantic_Model
             typeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
         }
 
-        public MemberDefinition Run(IResolveReferanceContext context)
+        public MemberReferance Run(IResolveReferanceContext context)
         {
-            return box.Fill(
+            memberDefinitionBox.Fill(
                 context.ElementBuilders.MemberDefinition(
                     isReadonly,
                     new NameKey(memberName),
                     scope.GetType(typeName)));
+
+            return box.Fill(make(memberDefinitionBox));
         }
     }
 }

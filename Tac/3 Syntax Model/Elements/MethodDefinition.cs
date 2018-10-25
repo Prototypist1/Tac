@@ -72,7 +72,7 @@ namespace Tac.Semantic_Model
                         parameterName?.Item ?? "input",
                         false,
                          new NameKey(inputType.Item),
-                        matchingContext.Builders.MemberDefinition
+                        matchingContext.Builders.MemberReferance
                         );
                 
 
@@ -91,14 +91,14 @@ namespace Tac.Semantic_Model
 
     public class MethodDefinitionPopulateScope : IPopulateScope<MethodDefinition>
     {
-        private readonly IPopulateScope<MemberDefinition> parameterDefinition;
+        private readonly IPopulateScope<MemberReferance> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
         private readonly MethodDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public MethodDefinitionPopulateScope(
-            IPopulateScope<MemberDefinition> parameterDefinition,
+            IPopulateScope<MemberReferance> parameterDefinition,
             IPopulateScope<ICodeElement>[] elements, 
             NameKey outputTypeName,
             MethodDefinition.Make make
@@ -132,7 +132,7 @@ namespace Tac.Semantic_Model
 
     public class MethodDefinitionResolveReferance : IResolveReference<MethodDefinition>
     {
-        private readonly IResolveReference<MemberDefinition> parameter;
+        private readonly IResolveReference<MemberReferance> parameter;
         private readonly IResolvableScope methodScope;
         private readonly IResolveReference<ICodeElement>[] lines;
         private readonly NameKey outputTypeName;
@@ -140,7 +140,7 @@ namespace Tac.Semantic_Model
         private readonly Box<IReturnable> box;
 
         public MethodDefinitionResolveReferance(
-            IResolveReference<MemberDefinition> parameter, 
+            IResolveReference<MemberReferance> parameter, 
             IResolvableScope methodScope, 
             IResolveReference<ICodeElement>[] resolveReferance2, 
             NameKey outputTypeName,
@@ -160,7 +160,7 @@ namespace Tac.Semantic_Model
             return box.Fill(
                 make(
                     methodScope.GetType(outputTypeName),
-                    new Box<MemberDefinition>(parameter.Run(context)), 
+                    parameter.Run(context).MemberDefinition, 
                     lines.Select(x => x.Run(context)).ToArray(),
                     methodScope.GetFinalized(),
                     new ICodeElement[0]));

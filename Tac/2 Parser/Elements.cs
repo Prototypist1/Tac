@@ -53,7 +53,7 @@ namespace Tac.Parser
         ImplementationDefinition.Make ImplementationDefinition { get; }
         BlockDefinition.Make BlockDefinition { get; }
         ConstantNumber.Make ConstantNumber { get; }
-        MemberReferance.Make PathPart { get; }
+        MemberReferance.Make MemberReferance { get; }
         PrimitiveType.Make NumberType { get; }
         PrimitiveType.Make StringType { get; }
         PrimitiveType.Make EmptyType { get; }
@@ -66,7 +66,7 @@ namespace Tac.Parser
 
         internal ElementMatchingContext ExpectPathPart(IBox<IReturnable> box) {
             return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
-                new MemberReferanceMaker(Builders.PathPart,Builders,box)
+                new MemberReferanceMaker(Builders.MemberReferance,Builders,box)
             });
         }
         
@@ -77,13 +77,13 @@ namespace Tac.Parser
                 new ConstantNumberMaker(Builders.ConstantNumber),
                 new GenericTypeDefinitionMaker(Builders.GenericTypeDefinition),
                 new ImplementationDefinitionMaker(Builders.ImplementationDefinition,Builders),
-                new MemberDefinitionMaker(Builders.MemberDefinition,Builders),
+                new MemberDefinitionMaker(Builders.MemberReferance,Builders),
                 new MethodDefinitionMaker(Builders.MethodDefinition,Builders),
                 new ModuleDefinitionMaker(Builders.ModuleDefinition),
                 new ObjectDefinitionMaker(Builders.ObjectDefinition),
                 new TypeDefinitionMaker(Builders.TypeDefinition),
                 new ImplicitMemberMaker(Builders.MemberDefinition,box),
-                new MemberMaker(Builders.PathPart,Builders),
+                new MemberMaker(Builders.MemberReferance,Builders),
             });
         }
         
@@ -112,12 +112,12 @@ namespace Tac.Parser
                     new ConstantNumberMaker(builders.ConstantNumber),
                     new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
                     new ImplementationDefinitionMaker(builders.ImplementationDefinition,builders),
-                    new MemberDefinitionMaker(builders.MemberDefinition,builders),
+                    new MemberDefinitionMaker(builders.MemberReferance,builders),
                     new MethodDefinitionMaker(builders.MethodDefinition,builders),
                     new ModuleDefinitionMaker(builders.ModuleDefinition),
                     new ObjectDefinitionMaker(builders.ObjectDefinition),
                     new TypeDefinitionMaker(builders.TypeDefinition),
-                    new MemberMaker(builders.PathPart,builders),
+                    new MemberMaker(builders.MemberReferance,builders),
                 }){}
         
         public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers)

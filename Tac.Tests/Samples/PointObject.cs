@@ -63,8 +63,12 @@ namespace Tac.Tests.Samples
                             { keyY, new Box<MemberDefinition>(localY) }
                         }),
                         new InterpetedAssignOperation[]{
-                            new InterpetedAssignOperation(new InterpetedConstantNumber(5),localX),
-                            new InterpetedAssignOperation(new InterpetedConstantNumber(2),localY)
+                            new InterpetedAssignOperation(
+                                new InterpetedConstantNumber(5),
+                                new InterpetedMemberReferance(new Box<MemberDefinition>(localX))),
+                            new InterpetedAssignOperation(
+                                new InterpetedConstantNumber(2),
+                                new InterpetedMemberReferance(new Box<MemberDefinition>(localY)))
                         },
                         new ImplicitKey())
                 };

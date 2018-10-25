@@ -98,7 +98,7 @@ namespace Tac.Semantic_Model
                         contextNameString,
                         false,
                         new NameKey(contextType.Item),
-                        matchingContext.Builders.MemberDefinition
+                        matchingContext.Builders.MemberReferance
                         );
 
 
@@ -107,7 +107,7 @@ namespace Tac.Semantic_Model
                         parameterNameString,
                         false,
                         new NameKey(inputType.Item),
-                        matchingContext.Builders.MemberDefinition
+                        matchingContext.Builders.MemberReferance
                         );
 
                 var outputTypeName= new NameKey(outputType.Item);
@@ -128,16 +128,16 @@ namespace Tac.Semantic_Model
 
     public class PopulateScopeImplementationDefinition : IPopulateScope<ImplementationDefinition>
     {
-        private readonly IPopulateScope<MemberDefinition> contextDefinition;
-        private readonly IPopulateScope<MemberDefinition> parameterDefinition;
+        private readonly IPopulateScope<MemberReferance> contextDefinition;
+        private readonly IPopulateScope<MemberReferance> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
         private readonly ImplementationDefinition.Make make;
         private readonly Box<IReturnable> box = new Box<IReturnable>();
 
         public PopulateScopeImplementationDefinition(
-            IPopulateScope<MemberDefinition> contextDefinition,
-            IPopulateScope<MemberDefinition> parameterDefinition,
+            IPopulateScope<MemberReferance> contextDefinition,
+            IPopulateScope<MemberReferance> parameterDefinition,
             IPopulateScope<ICodeElement>[] elements,
             NameKey outputTypeName,
             ImplementationDefinition.Make make)
@@ -172,8 +172,8 @@ namespace Tac.Semantic_Model
 
     public class ImplementationDefinitionResolveReferance : IResolveReference<ImplementationDefinition>
     {
-        private readonly IResolveReference<MemberDefinition> contextDefinition;
-        private readonly IResolveReference<MemberDefinition> parameterDefinition;
+        private readonly IResolveReference<MemberReferance> contextDefinition;
+        private readonly IResolveReference<MemberReferance> parameterDefinition;
         private readonly IResolvableScope methodScope;
         private readonly IResolveReference<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
@@ -181,8 +181,8 @@ namespace Tac.Semantic_Model
         private readonly Box<IReturnable> box;
 
         public ImplementationDefinitionResolveReferance(
-            IResolveReference<MemberDefinition> contextDefinition,
-            IResolveReference<MemberDefinition> parameterDefinition,
+            IResolveReference<MemberReferance> contextDefinition,
+            IResolveReference<MemberReferance> parameterDefinition,
             IResolvableScope methodScope,
             IResolveReference<ICodeElement>[] elements,
             NameKey outputTypeName,
@@ -201,8 +201,8 @@ namespace Tac.Semantic_Model
         public ImplementationDefinition Run(IResolveReferanceContext context)
         {
             return box.Fill(make(
-                new Box<MemberDefinition>(contextDefinition.Run(context)),
-                new Box<MemberDefinition>(parameterDefinition.Run(context)),
+                contextDefinition.Run(context).MemberDefinition,
+                parameterDefinition.Run(context).MemberDefinition,
                 methodScope.GetType(outputTypeName), 
                 elements.Select(x => x.Run(context)).ToArray(), 
                 methodScope.GetFinalized(), 
