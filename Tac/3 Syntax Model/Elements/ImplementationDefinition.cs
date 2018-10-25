@@ -203,7 +203,7 @@ namespace Tac.Semantic_Model
             return box.Fill(make(
                 contextDefinition.Run(context).MemberDefinition,
                 parameterDefinition.Run(context).MemberDefinition,
-                methodScope.GetType(outputTypeName), 
+                methodScope.GetTypeOrThrow(outputTypeName), 
                 elements.Select(x => x.Run(context)).ToArray(), 
                 methodScope.GetFinalized(), 
                 new ICodeElement[0]));

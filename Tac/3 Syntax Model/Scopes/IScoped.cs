@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model
 
     public class ScopeTree
     {
-        private class Scope : IPopulatableScope, IResolvableScope
+        private class Scope 
             
         {
 
@@ -163,19 +163,19 @@ namespace Tac.Semantic_Model
             return this;
         }
         
-        public class ScopeStack: IPopulatableScope
+        public class ScopeStack: IPopulatableScope, IResolvableScope
         {
-            public static (IPopulatableScope, ScopeStack) Root(IElementBuilders elementBuilders) {
+            public static ScopeStack Root(IElementBuilders elementBuilders) {
 
                 var scopeTree = new ScopeTree(elementBuilders);
-                return (scopeTree.root,new ScopeStack(scopeTree, scopeTree.root));
+                return new ScopeStack(scopeTree, scopeTree.root);
             }
 
-            public (IPopulatableScope, ScopeStack) ChildScope()
+            public  ScopeStack ChildScope()
             {
                 var res = new Scope();
                 ScopeTree.Add(TopScope, res);
-                return (res, new ScopeStack(ScopeTree, res));
+                return  new ScopeStack(ScopeTree, res);
             }
             
             private ScopeStack(ScopeTree scopeTree, Scope topScope)
@@ -230,7 +230,7 @@ namespace Tac.Semantic_Model
             
             public IResolvableScope ToResolvable()
             {
-                return TopScope;
+                return this;
             }
 
             public bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<MemberDefinition> member)
@@ -243,6 +243,10 @@ namespace Tac.Semantic_Model
                 return TopScope.TryAddType(name, type);
             }
 
+            public IFinalizedScope GetFinalized()
+            {
+                return TopScope.GetFinalized();
+            }
         }
     }
 }

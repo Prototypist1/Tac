@@ -93,7 +93,24 @@ namespace Tac.Semantic_Model.CodeStuff
 
         public IResolveReference<T> Run(IPopulateScopeContext context)
         {
-            return new BinaryResolveReferance<T>(left.Run(context), right.Run(context), make, box);
+            // TODO
+            // this is something I don't much like
+            // right runs first because of assign
+            // in assign you might have something like
+            // method [int;int] input { input < ? 2 if { 1 return; } else { input - 1 > fac * input return; } } =: fac
+            // if the left runs first than fac will not be found
+            // and so it will add it to the scope
+            // but if the right is run first 
+            // fac works
+            // if I add an assign that goes the other way...
+            // this will break
+            var rightres = right.Run(context);
+
+            return new BinaryResolveReferance<T>(
+                left.Run(context),
+                rightres, 
+                make, 
+                box);
         }
     }
 
@@ -122,8 +139,10 @@ namespace Tac.Semantic_Model.CodeStuff
 
         public T Run(IResolveReferanceContext context)
         {
-            var res = make(left.Run(context), right.Run(context));
-            box.Set(()=>res.Returns(context.ElementBuilders));
+            var res = make(
+                left.Run(context), 
+                right.Run(context));
+                box.Set(()=>res.Returns(context.ElementBuilders));
             return res;
         }
     }

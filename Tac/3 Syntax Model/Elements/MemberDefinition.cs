@@ -129,7 +129,7 @@ namespace Tac.Semantic_Model
                 context.ElementBuilders.MemberDefinition(
                     isReadonly,
                     new NameKey(memberName),
-                    scope.GetType(typeName)));
+                    scope.GetTypeOrThrow(typeName)));
 
             return box.Fill(make(memberDefinitionBox));
         }

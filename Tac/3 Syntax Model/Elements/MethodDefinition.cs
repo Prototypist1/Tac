@@ -159,7 +159,7 @@ namespace Tac.Semantic_Model
         {
             return box.Fill(
                 make(
-                    methodScope.GetType(outputTypeName),
+                    methodScope.GetTypeOrThrow(outputTypeName),
                     parameter.Run(context).MemberDefinition, 
                     lines.Select(x => x.Run(context)).ToArray(),
                     methodScope.GetFinalized(),

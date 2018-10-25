@@ -8,50 +8,50 @@ namespace Tac.Tests.Help
 {
     public static class EqualityHelper
     {
-        public static void ValueEqualOrThrow(this object left, object right) {
-            if (!PublicStateIsValueEqual(left, right, out var res)) {
+        public static void ValueEqualOrThrow(this object target, object actual) {
+            if (!PublicStateIsValueEqual(target, actual, out var res)) {
                 throw new Exception(res);
             }
         }
 
-        private static bool PublicStateIsValueEqual(this object left, object right, out string error)
+        private static bool PublicStateIsValueEqual(this object target, object actual, out string error)
         {
-            if (left == null && right == null)
+            if (target == null && actual == null)
             {
                 error = null;
                 return true;
             }
 
-            if (left == null)
+            if (target == null)
             {
-                error = $" {nameof(left)} is null, {nameof(right)} is {right}";
+                error = $" {nameof(target)} is null, {nameof(actual)} is {actual}";
                 return false;
             }
 
-            if (right == null)
+            if (actual == null)
             {
-                error = $" {nameof(left)} is {left}, {nameof(right)} is null";
+                error = $" {nameof(target)} is {target}, {nameof(actual)} is null";
                 return false;
             }
 
-            if (right.GetType() != left.GetType())
-            {
-                error = $" {nameof(left)} is of type {left.GetType()}, {nameof(right)} is of type {right.GetType()}";
-                return false;
-            }
+            //if (target.GetType().IsAssignableFrom())
+            //{
+            //    error = $" {nameof(target)} is of type {target.GetType()}, {nameof(actual)} is of type {actual.GetType()}";
+            //    return false;
+            //}
 
-            var type = right.GetType();
+            var type = target.GetType();
 
             if (type.IsPrimitive)
             {
-                if (!left.Equals(right))
+                if (!target.Equals(actual))
                 {
-                    error = $" {nameof(left)} is {left}, {nameof(right)} is {right}";
+                    error = $" {nameof(target)} is {target}, {nameof(actual)} is {actual}";
                     return false;
                 }
             }
             
-            if (left is IEnumerable<object> leftEnum && right is IEnumerable<object> rightEnum) {
+            if (target is IEnumerable<object> leftEnum && actual is IEnumerable<object> rightEnum) {
                 var leftEnumor = leftEnum.GetEnumerator();
                 var rightEnumor = rightEnum.GetEnumerator();
                 var i = 0;
@@ -61,6 +61,7 @@ namespace Tac.Tests.Help
                         error = $"[{i}]{err}";
                         return false;
                     }
+                    i++;
                 }
             }
             
@@ -68,9 +69,9 @@ namespace Tac.Tests.Help
             {
                 if (propertyInfo.CanRead && propertyInfo.GetGetMethod().IsPublic && propertyInfo.GetIndexParameters().Count() == 0)
                 {
-                    var firstValue = propertyInfo.GetValue(left, null);
-                    var secondValue = propertyInfo.GetValue(right, null);
-                    if (!ReferenceEquals(firstValue,left) && !ReferenceEquals(secondValue, right) && !PublicStateIsValueEqual(firstValue, secondValue, out var res))
+                    var firstValue = propertyInfo.GetValue(target, null);
+                    var secondValue = propertyInfo.GetValue(actual, null);
+                    if (!ReferenceEquals(firstValue,target) && !ReferenceEquals(secondValue, actual) && !PublicStateIsValueEqual(firstValue, secondValue, out var res))
                     {
                         error = $".{propertyInfo.Name}{res}";
                         return false;
@@ -82,8 +83,8 @@ namespace Tac.Tests.Help
             {
                 if (fieldInfo.IsPublic)
                 {
-                    var firstValue = fieldInfo.GetValue(left);
-                    var secondValue = fieldInfo.GetValue(right);
+                    var firstValue = fieldInfo.GetValue(target);
+                    var secondValue = fieldInfo.GetValue(actual);
                     if (!PublicStateIsValueEqual(firstValue, secondValue, out var res))
                     {
                         error = $".{fieldInfo.Name}{res}";

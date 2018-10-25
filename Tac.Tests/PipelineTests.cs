@@ -47,8 +47,8 @@ namespace Tac.Tests
 
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
-            var (scope, stack) = ScopeStack.Root(builders);
-            var populateScopeContex = new PopulateScopeContext(stack, scope, builders);
+            var  stack = ScopeStack.Root(builders);
+            var populateScopeContex = new PopulateScopeContext(stack, builders);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
 
             var resolveReferanceContext = new ResolveReferanceContext(builders);

@@ -96,40 +96,41 @@ namespace Tac.Tests.Samples
 
                 var methodScope = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { { inputKey, inputBox } });
                 
-                var method = new InterpetedMethodDefinition(
-                        new Box<IReturnable>(new InterpetedNumberType()),
-                        inputBox,
-                        new ICodeElement[]{
-                            new InterpetedElseOperation(
-                                new InterpetedIfTrueOperation(
-                                    new InterpetedLessThanOperation(
-                                        new InterpetedMemberReferance(inputBox),
-                                        new InterpetedConstantNumber(2)),
+                var rootScope = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { { facKey, facBox }});
+                
+                return new ICodeElement[] {
+                    new InterpetedAssignOperation(
+                        new InterpetedMethodDefinition(
+                            new Box<IReturnable>(new InterpetedNumberType()),
+                            inputBox,
+                            new ICodeElement[]{
+                                new InterpetedElseOperation(
+                                    new InterpetedIfTrueOperation(
+                                        new InterpetedLessThanOperation(
+                                            new InterpetedMemberReferance(inputBox),
+                                            new InterpetedConstantNumber(2)),
+                                        new InterpetedBlockDefinition(
+                                            new ICodeElement[]{
+                                                new InterpetedReturnOperation(
+                                                    new InterpetedConstantNumber(1))},
+                                            ifBlock,
+                                            new ICodeElement[0])),
                                     new InterpetedBlockDefinition(
                                         new ICodeElement[]{
                                             new InterpetedReturnOperation(
-                                                new InterpetedConstantNumber(1))},
-                                        ifBlock,
-                                        new ICodeElement[0])),
-                                new InterpetedBlockDefinition(
-                                    new ICodeElement[]{
-                                        new InterpetedReturnOperation(
-                                            new InterpetedMultiplyOperation(
-                                                new InterpetedNextCallOperation(
-                                                    new InterpetedSubtractOperation(
-                                                        new InterpetedMemberReferance(inputBox),
-                                                        new InterpetedConstantNumber(1)),
-                                                    new InterpetedMemberReferance(facBox)),
-                                                new InterpetedMemberReferance(inputBox)))},
-                                    elseBlock,
-                                    new ICodeElement[0]))},
-                        methodScope,
-                        new ICodeElement[0]);
-
-                var rootScope = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { { facKey, facBox }});
-                
-                return new[] {
-                    method
+                                                new InterpetedMultiplyOperation(
+                                                    new InterpetedNextCallOperation(
+                                                        new InterpetedSubtractOperation(
+                                                            new InterpetedMemberReferance(inputBox),
+                                                            new InterpetedConstantNumber(1)),
+                                                        new InterpetedMemberReferance(facBox)),
+                                                    new InterpetedMemberReferance(inputBox)))},
+                                        elseBlock,
+                                        new ICodeElement[0]))},
+                            methodScope,
+                            new ICodeElement[0]),
+                        new InterpetedMemberReferance(
+                            facBox)),
                 };
             }
         }

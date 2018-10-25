@@ -113,7 +113,7 @@ namespace Tac.Semantic_Model
 
         public MemberReferance Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(resolvableScope.GetMember(false, key)));
+            return box.Fill(make(resolvableScope.GetMemberOrThrow(key, false)));
         }
     }
 

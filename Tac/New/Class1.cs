@@ -81,16 +81,15 @@ namespace Tac.New
     {
         private readonly ScopeStack stack;
 
-        public PopulateScopeContext(ScopeStack stack, IPopulatableScope scope, IElementBuilders elementBuilders)
+        public PopulateScopeContext(ScopeStack stack, IElementBuilders elementBuilders)
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
         public IPopulatableScope Scope
         {
-            get;
+            get { return stack; }
         }
 
         public IElementBuilders ElementBuilders
@@ -100,8 +99,7 @@ namespace Tac.New
 
         public IPopulateScopeContext Child()
         {
-            var (child, nextStack) = stack.ChildScope();
-            return new PopulateScopeContext(nextStack, child, ElementBuilders);
+            return new PopulateScopeContext(stack.ChildScope(), ElementBuilders);
         }
 
         public IResolvableScope GetResolvableScope()

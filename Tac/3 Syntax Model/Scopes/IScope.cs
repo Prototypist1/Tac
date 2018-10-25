@@ -54,26 +54,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public static class ResolvableScopeExtensions {
-
-        public static IBox<IReturnable> GetType(this IResolvableScope self, IKey name) {
-            if (self.TryGetType(name, out var res)) {
-                return res;
-            }
-            throw new Exception($"could not find type: {name}");
-        }
-        public static IBox<MemberDefinition> GetMember(this IResolvableScope self, bool staticOnly, IKey name) {
-            if (self.TryGetMember(name, staticOnly, out var res))
-            {
-                return res;
-            }
-            throw new Exception($"could not find member: {name}");
-        }
-    }
-
-
-
-    public static class IIResolvableScopeExtension
+    public static class ResolvableScopeExtension
     {
         public static IBox<IReturnable> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
             if (scope.TryGetType(name, out var thing)) {
