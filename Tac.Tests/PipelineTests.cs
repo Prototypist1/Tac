@@ -41,16 +41,17 @@ namespace Tac.Tests
 
         private static void Toke_CodeElements(ISample sample)
         {
+            var builders = new InterpeterElementBuilder();
             var elementMatchingContest = new ElementMatchingContext(
-                new InterpeterElementBuilder(), new InterpeterOperationBuilder());
+                builders, new InterpeterOperationBuilder());
 
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
-            var (scope, stack) = ScopeStack.Root();
-            var populateScopeContex = new PopulateScopeContext(stack, scope, new InterpeterElementBuilder());
+            var (scope, stack) = ScopeStack.Root(builders);
+            var populateScopeContex = new PopulateScopeContext(stack, scope, builders);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
 
-            var resolveReferanceContext = new ResolveReferanceContext(new InterpeterElementBuilder());
+            var resolveReferanceContext = new ResolveReferanceContext(builders);
             var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray();
             
             var target = sample.CodeElements.ToArray();

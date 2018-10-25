@@ -4,6 +4,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Parser;
 using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
@@ -115,9 +117,14 @@ namespace Tac.Semantic_Model
 
         private readonly Scope root;
 
-        public ScopeTree()
+        public ScopeTree(IElementBuilders elementBuilders)
         {
             root = new Scope();
+            root.TryAddType(new NameKey("int"), new Box<IPrimitiveType>(elementBuilders.NumberType()));
+            root.TryAddType(new NameKey("string"), new Box<IPrimitiveType>(elementBuilders.StringType()));
+            root.TryAddType(new NameKey("any"), new Box<IPrimitiveType>(elementBuilders.AnyType()));
+            root.TryAddType(new NameKey("empty"), new Box<IPrimitiveType>(elementBuilders.EmptyType()));
+            root.TryAddType(new NameKey("bool"), new Box<IPrimitiveType>(elementBuilders.BooleanType()));
         }
 
         /// <summary>
@@ -158,9 +165,9 @@ namespace Tac.Semantic_Model
         
         public class ScopeStack: IPopulatableScope
         {
-            public static (IPopulatableScope, ScopeStack) Root() {
+            public static (IPopulatableScope, ScopeStack) Root(IElementBuilders elementBuilders) {
 
-                var scopeTree = new ScopeTree();
+                var scopeTree = new ScopeTree(elementBuilders);
                 return (scopeTree.root,new ScopeStack(scopeTree, scopeTree.root));
             }
 

@@ -82,7 +82,7 @@ namespace Tac.Semantic_Model
         public IResolveReference<MemberReferance> Run(IPopulateScopeContext context)
         {
             var key = new NameKey(memberName);
-            if (context.Scope.TryAddMember(DefintionLifetime.Instance,key, memberDefinitionBox))
+            if (!context.Scope.TryAddMember(DefintionLifetime.Instance,key, memberDefinitionBox))
             {
                 throw new Exception("bad bad bad!");
             }
