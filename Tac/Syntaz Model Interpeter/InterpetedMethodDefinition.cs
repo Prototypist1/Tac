@@ -7,9 +7,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedMethodDefinition : MethodDefinition, IInterpeted, IInterpetedPrimitiveType
+    public class InterpetedMethodDefinition : WeakMethodDefinition, IInterpeted, IInterpetedPrimitiveType
     {
-        public InterpetedMethodDefinition(IBox<IReturnable> outputType, IBox<MemberDefinition> parameterDefinition, ICodeElement[] body, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitializers) : base(outputType, parameterDefinition, body, scope, staticInitializers)
+        public InterpetedMethodDefinition(IBox<IWeakReturnable> outputType, IBox<WeakMemberDefinition> parameterDefinition, IWeakCodeElement[] body, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitializers) : base(outputType, parameterDefinition, body, scope, staticInitializers)
         {
         }
 
@@ -20,7 +20,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 Body, interpetedContext, Scope));
         }
 
-        internal static MethodDefinition MakeNew(IBox<IReturnable> outputType, IBox<MemberDefinition> parameterDefinition, ICodeElement[] body, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitializers)
+        internal static WeakMethodDefinition MakeNew(IBox<IWeakReturnable> outputType, IBox<WeakMemberDefinition> parameterDefinition, IWeakCodeElement[] body, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitializers)
         {
             return new InterpetedMethodDefinition(outputType, parameterDefinition, body, scope, staticInitializers);
         }
@@ -28,10 +28,10 @@ namespace Tac.Syntaz_Model_Interpeter
         public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedMethod(
-                interpetedContext.elementBuilders.MemberDefinition(false, new NameKey("input"), new Box<IReturnable>(new InterpetedAnyType())),
-                new ICodeElement[] { },
+                interpetedContext.elementBuilders.MemberDefinition(false, new NameKey("input"), new Box<IWeakReturnable>(new InterpetedAnyType())),
+                new IWeakCodeElement[] { },
                 interpetedContext,
-                new FinalizedScope(new Dictionary<IKey,IBox<MemberDefinition>>()));
+                new FinalizedScope(new Dictionary<IKey,IBox<WeakMemberDefinition>>()));
         }
     }
 }

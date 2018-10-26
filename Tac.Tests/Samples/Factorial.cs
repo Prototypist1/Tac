@@ -72,51 +72,51 @@ namespace Tac.Tests.Samples
             }
         }
 
-        public IEnumerable<ICodeElement> CodeElements
+        public IEnumerable<IWeakCodeElement> CodeElements
         {
             get
             {
                 
-                var ifBlock = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> {});
-                var elseBlock = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { });
+                var ifBlock = new FinalizedScope(new Dictionary<IKey, IBox<WeakMemberDefinition>> {});
+                var elseBlock = new FinalizedScope(new Dictionary<IKey, IBox<WeakMemberDefinition>> { });
 
                 var inputKey = new NameKey("input");
-                var input = new MemberDefinition(
+                var input = new WeakMemberDefinition(
                                 false,
                                 inputKey,
-                                new Box<IReturnable>(new InterpetedNumberType()));
-                var inputBox = new Box<MemberDefinition>(input);
-                var facBox = new Box<MemberDefinition>();
+                                new Box<IWeakReturnable>(new InterpetedNumberType()));
+                var inputBox = new Box<WeakMemberDefinition>(input);
+                var facBox = new Box<WeakMemberDefinition>();
                 var facKey = new NameKey("fac");
-                var fac = new MemberDefinition(
+                var fac = new WeakMemberDefinition(
                         false,
                         facKey,
                         facBox);
                 facBox.Fill(fac);
 
-                var methodScope = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { { inputKey, inputBox } });
+                var methodScope = new FinalizedScope(new Dictionary<IKey, IBox<WeakMemberDefinition>> { { inputKey, inputBox } });
                 
-                var rootScope = new FinalizedScope(new Dictionary<IKey, IBox<MemberDefinition>> { { facKey, facBox }});
+                var rootScope = new FinalizedScope(new Dictionary<IKey, IBox<WeakMemberDefinition>> { { facKey, facBox }});
                 
-                return new ICodeElement[] {
+                return new IWeakCodeElement[] {
                     new InterpetedAssignOperation(
                         new InterpetedMethodDefinition(
-                            new Box<IReturnable>(new InterpetedNumberType()),
+                            new Box<IWeakReturnable>(new InterpetedNumberType()),
                             inputBox,
-                            new ICodeElement[]{
+                            new IWeakCodeElement[]{
                                 new InterpetedElseOperation(
                                     new InterpetedIfTrueOperation(
                                         new InterpetedLessThanOperation(
                                             new InterpetedMemberReferance(inputBox),
                                             new InterpetedConstantNumber(2)),
                                         new InterpetedBlockDefinition(
-                                            new ICodeElement[]{
+                                            new IWeakCodeElement[]{
                                                 new InterpetedReturnOperation(
                                                     new InterpetedConstantNumber(1))},
                                             ifBlock,
-                                            new ICodeElement[0])),
+                                            new IWeakCodeElement[0])),
                                     new InterpetedBlockDefinition(
-                                        new ICodeElement[]{
+                                        new IWeakCodeElement[]{
                                             new InterpetedReturnOperation(
                                                 new InterpetedMultiplyOperation(
                                                     new InterpetedNextCallOperation(
@@ -126,9 +126,9 @@ namespace Tac.Tests.Samples
                                                         new InterpetedMemberReferance(facBox)),
                                                     new InterpetedMemberReferance(inputBox)))},
                                         elseBlock,
-                                        new ICodeElement[0]))},
+                                        new IWeakCodeElement[0]))},
                             methodScope,
-                            new ICodeElement[0]),
+                            new IWeakCodeElement[0]),
                         new InterpetedMemberReferance(
                             facBox)),
                 };

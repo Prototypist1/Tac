@@ -9,19 +9,19 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class ImplicitMemberMaker : IMaker<MemberDefinition>
+    public class ImplicitMemberMaker : IMaker<WeakMemberDefinition>
     {
-        private readonly IBox<IReturnable> type;
+        private readonly IBox<IWeakReturnable> type;
 
-        public ImplicitMemberMaker(MemberDefinition.Make make, IBox<IReturnable> type)
+        public ImplicitMemberMaker(WeakMemberDefinition.Make make, IBox<IWeakReturnable> type)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        private MemberDefinition.Make Make { get; }
+        private WeakMemberDefinition.Make Make { get; }
 
-        public IResult<IPopulateScope<MemberDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakMemberDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("var"), out var _)
@@ -33,30 +33,30 @@ namespace Tac.Semantic_Model
                 return ResultExtension.Good(new ImplicitMemberPopulateScope(first.Item, Make, type));
             }
 
-            return ResultExtension.Bad<IPopulateScope<MemberDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<WeakMemberDefinition>>();
         }
 
     }
 
 
-    public class ImplicitMemberPopulateScope : IPopulateScope<MemberDefinition>
+    public class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberDefinition>
     {
         private readonly string memberName;
-        private readonly MemberDefinition.Make make;
-        private readonly IBox<IReturnable> type;
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private readonly WeakMemberDefinition.Make make;
+        private readonly IBox<IWeakReturnable> type;
+        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
-        public ImplicitMemberPopulateScope(string item, MemberDefinition.Make make, IBox<IReturnable> type)
+        public ImplicitMemberPopulateScope(string item, WeakMemberDefinition.Make make, IBox<IWeakReturnable> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public IResolveReference<MemberDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<WeakMemberDefinition> Run(IPopulateScopeContext context)
         {
             
-            IBox<MemberDefinition> memberDef = new Box<MemberDefinition>();
+            IBox<WeakMemberDefinition> memberDef = new Box<WeakMemberDefinition>();
 
             if (!context.Scope.TryAddMember(DefintionLifetime.Instance,new NameKey(memberName), memberDef))
             {
@@ -68,7 +68,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
@@ -76,18 +76,18 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ImplicitMemberResolveReferance : IResolveReference<MemberDefinition>
+    public class ImplicitMemberResolveReferance : IResolveReference<WeakMemberDefinition>
     {
-        private readonly MemberDefinition.Make make;
-        private readonly Box<IReturnable> box;
+        private readonly WeakMemberDefinition.Make make;
+        private readonly Box<IWeakReturnable> box;
         private readonly string memberName;
-        private readonly IBox<IReturnable> type;
+        private readonly IBox<IWeakReturnable> type;
 
         public ImplicitMemberResolveReferance(
             string memberName,
-            MemberDefinition.Make make, 
-            Box<IReturnable> box,
-            IBox<IReturnable> type)
+            WeakMemberDefinition.Make make, 
+            Box<IWeakReturnable> box,
+            IBox<IWeakReturnable> type)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -95,10 +95,10 @@ namespace Tac.Semantic_Model
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
         
-        public MemberDefinition Run(IResolveReferanceContext context)
+        public WeakMemberDefinition Run(IResolveReferanceContext context)
         {
             return box.Fill(
-                new MemberDefinition(false, new NameKey(memberName), type));
+                new WeakMemberDefinition(false, new NameKey(memberName), type));
         }
     }
 }

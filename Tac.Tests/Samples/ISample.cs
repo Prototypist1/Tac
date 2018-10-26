@@ -8,6 +8,6 @@ namespace Tac.Tests.Samples
     {
         string Text { get; }
         IToken Token { get; }
-        IEnumerable<ICodeElement> CodeElements { get; }
+        IEnumerable<IWeakCodeElement> CodeElements { get; }
     }
 }

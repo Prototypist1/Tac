@@ -5,9 +5,9 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedReturnOperation : ReturnOperation, IInterpeted
+    public class InterpetedReturnOperation : WeakReturnOperation, IInterpeted
     {
-        public InterpetedReturnOperation(ICodeElement result) : base(result)
+        public InterpetedReturnOperation(IWeakCodeElement result) : base(result)
         {
         }
 
@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Return(Result.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded());
         }
 
-        internal static ReturnOperation MakeNew(ICodeElement left)
+        internal static WeakReturnOperation MakeNew(IWeakCodeElement left)
         {
             return new InterpetedReturnOperation(left);
         }

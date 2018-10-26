@@ -8,19 +8,19 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
     public interface ISomeScope {
-        bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> box);
+        bool TryGetMember(IKey name, bool staticOnly, out IBox<WeakMemberDefinition> box);
     }
 
     public interface IPopulatableScope: ISomeScope
     {
-        bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<MemberDefinition> type);
-        bool TryAddType(IKey name, IBox<IReturnable> type);
+        bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<WeakMemberDefinition> type);
+        bool TryAddType(IKey name, IBox<IWeakReturnable> type);
     }
     
     public interface IResolvableScope: ISomeScope
     {
-        IFinalizedScope GetFinalized();
-        bool TryGetType(IKey name, out IBox<IReturnable> type);
+        IWeakFinalizedScope GetFinalized();
+        bool TryGetType(IKey name, out IBox<IWeakReturnable> type);
     }
 
     public class ScopeEnty<T>
@@ -36,19 +36,25 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public interface IFinalizedScope
+    public interface IWeakFinalizedScope
     {
-        IReadOnlyDictionary<IKey, IBox<MemberDefinition>> Members { get; }
+        IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> Members { get; }
     }
 
-    public class FinalizedScope : IFinalizedScope
+
+    public interface IFinalizedScope
     {
-        public FinalizedScope(IReadOnlyDictionary<IKey, IBox<MemberDefinition>> members)
+        IReadOnlyDictionary<IKey, IMemberDefinition> Members { get; }
+    }
+
+    public class FinalizedScope : IWeakFinalizedScope
+    {
+        public FinalizedScope(IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> members)
         {
             Members = members ?? throw new ArgumentNullException(nameof(members));
         }
 
-        public IReadOnlyDictionary<IKey, IBox<MemberDefinition>> Members
+        public IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> Members
         {
             get;
         }
@@ -56,14 +62,14 @@ namespace Tac.Semantic_Model
 
     public static class ResolvableScopeExtension
     {
-        public static IBox<IReturnable> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
+        public static IBox<IWeakReturnable> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }
             throw new Exception($"{name} should exist in scope");
         }
 
-        public static IBox<MemberDefinition> GetMemberOrThrow(this IResolvableScope scope, NameKey name, bool staticOnly)
+        public static IBox<WeakMemberDefinition> GetMemberOrThrow(this IResolvableScope scope, NameKey name, bool staticOnly)
         {
             if (scope.TryGetMember(name, staticOnly, out var thing))
             {

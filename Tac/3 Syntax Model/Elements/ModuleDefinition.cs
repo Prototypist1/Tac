@@ -9,43 +9,50 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+    public interface IModuleDefinition {
+        IFinalizedScope Scope { get; }
+        IEnumerable<IWeakCodeElement> StaticInitialization { get; }
+        // why does this know it's own key??
+        IKey Key{get; }
+    }
 
-    public class ModuleDefinition : IScoped, ICodeElement, IReturnable
+
+    public class WeakModuleDefinition : IScoped, IWeakCodeElement, IWeakReturnable
     {
-        public delegate ModuleDefinition Make(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Ke);
+        public delegate WeakModuleDefinition Make(IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitialization, NameKey Ke);
 
-        public ModuleDefinition(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
+        public WeakModuleDefinition(IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitialization, NameKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
             this.Key = Key ?? throw new ArgumentNullException(nameof(Key));
         }
         
-        public IFinalizedScope Scope { get; }
-        public IEnumerable<ICodeElement> StaticInitialization { get; }
+        public IWeakFinalizedScope Scope { get; }
+        public IEnumerable<IWeakCodeElement> StaticInitialization { get; }
 
         public IKey Key
         {
             get;
         }
 
-        public IReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return this;
         }
     }
 
 
-    public class ModuleDefinitionMaker : IMaker<ModuleDefinition>
+    public class ModuleDefinitionMaker : IMaker<WeakModuleDefinition>
     {
-        public ModuleDefinitionMaker(ModuleDefinition.Make make)
+        public ModuleDefinitionMaker(WeakModuleDefinition.Make make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private ModuleDefinition.Make Make { get; }
+        private WeakModuleDefinition.Make Make { get; }
 
-        public IResult<IPopulateScope<ModuleDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakModuleDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                             .Has(ElementMatcher.KeyWord("module"), out var frist)
@@ -62,20 +69,20 @@ namespace Tac.Semantic_Model
                 return ResultExtension.Good(new ModuleDefinitionPopulateScope(elements, Make, nameKey));
 
             }
-            return ResultExtension.Bad<IPopulateScope<ModuleDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<WeakModuleDefinition>>();
         }
     }
     
-    public class ModuleDefinitionPopulateScope : IPopulateScope<ModuleDefinition>
+    public class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition>
     {
-        private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly ModuleDefinition.Make make;
+        private readonly IPopulateScope<IWeakCodeElement>[] elements;
+        private readonly WeakModuleDefinition.Make make;
         private readonly NameKey nameKey;
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
         public ModuleDefinitionPopulateScope(
-            IPopulateScope<ICodeElement>[] elements,
-            ModuleDefinition.Make make, 
+            IPopulateScope<IWeakCodeElement>[] elements,
+            WeakModuleDefinition.Make make, 
             NameKey nameKey)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -83,12 +90,12 @@ namespace Tac.Semantic_Model
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
 
-        public IResolveReference<ModuleDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<WeakModuleDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
             return new ModuleDefinitionResolveReferance(
@@ -101,20 +108,20 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ModuleDefinitionResolveReferance : IResolveReference<ModuleDefinition>
+    public class ModuleDefinitionResolveReferance : IResolveReference<WeakModuleDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IResolveReference<ICodeElement>[] resolveReferance;
-        private readonly ModuleDefinition.Make make;
+        private readonly IResolveReference<IWeakCodeElement>[] resolveReferance;
+        private readonly WeakModuleDefinition.Make make;
         private readonly NameKey nameKey;
-        private readonly Box<IReturnable> box;
+        private readonly Box<IWeakReturnable> box;
 
         public ModuleDefinitionResolveReferance(
             IResolvableScope scope, 
-            IResolveReference<ICodeElement>[] resolveReferance,
-            ModuleDefinition.Make make, 
+            IResolveReference<IWeakCodeElement>[] resolveReferance,
+            WeakModuleDefinition.Make make, 
             NameKey nameKey,
-            Box<IReturnable> box)
+            Box<IWeakReturnable> box)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
@@ -123,7 +130,7 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public ModuleDefinition Run(IResolveReferanceContext context)
+        public WeakModuleDefinition Run(IResolveReferanceContext context)
         {
             return box.Fill(make(scope.GetFinalized(), resolveReferance.Select(x => x.Run(context)).ToArray(),nameKey));
         }

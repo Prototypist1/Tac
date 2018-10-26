@@ -39,7 +39,7 @@ namespace Tac.Tests.Samples
             }
         }
 
-        public IEnumerable<ICodeElement> CodeElements
+        public IEnumerable<IWeakCodeElement> CodeElements
         {
             get
             {

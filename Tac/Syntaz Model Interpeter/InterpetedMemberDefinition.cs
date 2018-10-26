@@ -6,13 +6,13 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedMemberDefinition: MemberDefinition, IInterpeted
+    internal class InterpetedMemberDefinition: WeakMemberDefinition, IInterpeted
     {
-        public InterpetedMemberDefinition(bool readOnly, NameKey key, IBox<IReturnable> type) : base(readOnly, key, type)
+        public InterpetedMemberDefinition(bool readOnly, NameKey key, IBox<IWeakReturnable> type) : base(readOnly, key, type)
         {
         }
 
-        internal static MemberDefinition MakeNew(bool readOnly, NameKey key, IBox<IReturnable> type)
+        internal static WeakMemberDefinition MakeNew(bool readOnly, NameKey key, IBox<IWeakReturnable> type)
         {
             return new InterpetedMemberDefinition(readOnly, key, type);
         }

@@ -3,6 +3,10 @@
 namespace Tac.Semantic_Model.CodeStuff
 {
     public interface ICodeElement {
-        IReturnable Returns(IElementBuilders elementBuilders);
+
+    }
+
+    public interface IWeakCodeElement {
+        IWeakReturnable Returns(IElementBuilders elementBuilders);
     }
 }

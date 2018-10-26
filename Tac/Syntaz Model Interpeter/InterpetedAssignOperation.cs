@@ -7,9 +7,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedAssignOperation : AssignOperation, IInterpeted
+    public class InterpetedAssignOperation : WeakAssignOperation, IInterpeted
     {
-        public InterpetedAssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public InterpetedAssignOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
@@ -21,7 +21,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(res);
         }
 
-        internal static AssignOperation MakeNew(ICodeElement left, ICodeElement right)
+        internal static WeakAssignOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
         {
             return new InterpetedAssignOperation(left, right);
         }

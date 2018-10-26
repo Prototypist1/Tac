@@ -12,11 +12,18 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class ObjectDefinition: ICodeElement, IReturnable, IScoped
-    {
-        public delegate ObjectDefinition Make(IFinalizedScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key);
+    public interface IObjectDefiniton {
+        IFinalizedScope Scope { get; }
+        IEnumerable<IAssignOperation> Assignments { get; }
+        // why does this know it own key?
+        IKey Key { get; }
+    }
 
-        public ObjectDefinition(IFinalizedScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) {
+    public class WeakObjectDefinition: IWeakCodeElement, IWeakReturnable, IScoped
+    {
+        public delegate WeakObjectDefinition Make(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key);
+
+        public WeakObjectDefinition(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -27,29 +34,29 @@ namespace Tac.Semantic_Model
             Assignments = assigns.ToArray();
         }
 
-        public IFinalizedScope Scope { get; }
-        public AssignOperation[] Assignments { get; }
+        public IWeakFinalizedScope Scope { get; }
+        public WeakAssignOperation[] Assignments { get; }
 
         public IKey Key
         {
             get;
         }
 
-        public IReturnable Returns(IElementBuilders elementBuilders) {
+        public IWeakReturnable Returns(IElementBuilders elementBuilders) {
             return this;
         }
     }
     
-    public class ObjectDefinitionMaker : IMaker<ObjectDefinition>
+    public class ObjectDefinitionMaker : IMaker<WeakObjectDefinition>
     {
-        public ObjectDefinitionMaker(ObjectDefinition.Make make)
+        public ObjectDefinitionMaker(WeakObjectDefinition.Make make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private ObjectDefinition.Make Make { get; }
+        private WeakObjectDefinition.Make Make { get; }
 
-        public IResult<IPopulateScope<ObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                            .Has(ElementMatcher.KeyWord("object"), out var keyword)
@@ -62,29 +69,29 @@ namespace Tac.Semantic_Model
                 
                 return ResultExtension.Good(new ObjectDefinitionPopulateScope(elements, Make));
             }
-            return ResultExtension.Bad<IPopulateScope<ObjectDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<WeakObjectDefinition>>();
         }
         
     }
     
-    public class ObjectDefinitionPopulateScope : IPopulateScope<ObjectDefinition>
+    public class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
-        private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly ObjectDefinition.Make make;
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private readonly IPopulateScope<IWeakCodeElement>[] elements;
+        private readonly WeakObjectDefinition.Make make;
+        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
-        public ObjectDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements, ObjectDefinition.Make make)
+        public ObjectDefinitionPopulateScope(IPopulateScope<IWeakCodeElement>[] elements, WeakObjectDefinition.Make make)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
 
-        public IResolveReference<ObjectDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<WeakObjectDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
             var key = new ImplicitKey();
@@ -98,19 +105,19 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class ResolveReferanceObjectDefinition : IResolveReference<ObjectDefinition>
+    public class ResolveReferanceObjectDefinition : IResolveReference<WeakObjectDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IResolveReference<ICodeElement>[] elements;
-        private readonly ObjectDefinition.Make make;
-        private readonly Box<IReturnable> box;
+        private readonly IResolveReference<IWeakCodeElement>[] elements;
+        private readonly WeakObjectDefinition.Make make;
+        private readonly Box<IWeakReturnable> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
-            IResolveReference<ICodeElement>[] elements, 
-            ObjectDefinition.Make make, 
-            Box<IReturnable> box, 
+            IResolveReference<IWeakCodeElement>[] elements, 
+            WeakObjectDefinition.Make make, 
+            Box<IWeakReturnable> box, 
             ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -120,9 +127,9 @@ namespace Tac.Semantic_Model
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public ObjectDefinition Run(IResolveReferanceContext context)
+        public WeakObjectDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope.GetFinalized(), elements.Select(x => x.Run(context).Cast<AssignOperation>()).ToArray(), key));
+            return box.Fill(make(scope.GetFinalized(), elements.Select(x => x.Run(context).Cast<WeakAssignOperation>()).ToArray(), key));
         }
     }
 }

@@ -8,45 +8,49 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class PathOperation : BinaryOperation<ICodeElement, ICodeElement>
+    public interface IPathOperation : IBinaryOperation<ICodeElement, IMemberReferance>
+    {
+    }
+
+    public class WeakPathOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
         public const string Identifier = ".";
 
-        public PathOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakPathOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             // should this check to see if the left contains the member defined on the rhs?
-            return right.Cast<MemberDefinition>();
+            return right.Cast<WeakMemberDefinition>();
         }
     }
 
 
-    public class PathOperationMaker : IOperationMaker<PathOperation>
+    public class PathOperationMaker : IOperationMaker<WeakPathOperation>
     {
-        public PathOperationMaker( BinaryOperation.Make<PathOperation> make
+        public PathOperationMaker( BinaryOperation.Make<WeakPathOperation> make
             )
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
         
-        private BinaryOperation.Make<PathOperation> Make { get; }
+        private BinaryOperation.Make<WeakPathOperation> Make { get; }
 
-        public IResult<IPopulateScope<PathOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakPathOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(PathOperation.Identifier), out var perface, out var token, out var rhs)
+            .Has(ElementMatcher.IsBinaryOperation(WeakPathOperation.Identifier), out var perface, out var token, out var rhs)
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);
                 var right = matchingContext.ExpectPathPart(left.GetReturnType(matchingContext.Builders)).ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<PathOperation>(left, right, Make));
+                return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, Make));
             }
 
-            return ResultExtension.Bad<IPopulateScope<PathOperation>>();
+            return ResultExtension.Bad<IPopulateScope<WeakPathOperation>>();
         }
 
     }

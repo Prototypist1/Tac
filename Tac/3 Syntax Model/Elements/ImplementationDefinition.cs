@@ -6,6 +6,7 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
@@ -15,19 +16,28 @@ namespace Tac.Semantic_Model
     // this is really just a method....
     // should this even exist?
      
-    public class ImplementationDefinition: IReturnable, ICodeElement
+    public interface IImplementationDefinition{
+        IWeakReturnable OutputType { get; }
+        IMemberDefinition ContextDefinition { get; }
+        IMemberDefinition ParameterDefinition { get; }
+        IFinalizedScope Scope { get; }
+        IEnumerable<IWeakCodeElement> MethodBody { get; }
+        IEnumerable<IAssignOperation> StaticInitialzers { get; }
+    }
+
+    public class WeakImplementationDefinition: IWeakReturnable, IWeakCodeElement
     {
         // this is an interesting pattern
         // we define the delegate here to communicate that it should be ti8red to the constructor
-        public delegate ImplementationDefinition Make(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitializers);
+        public delegate WeakImplementationDefinition Make(IBox<WeakMemberDefinition> contextDefinition, IBox<WeakMemberDefinition> parameterDefinition, IBox<IWeakReturnable> outputType, IEnumerable<IWeakCodeElement> metohdBody, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitializers);
 
-        public ImplementationDefinition(
-            IBox<MemberDefinition> contextDefinition, 
-            IBox<MemberDefinition> parameterDefinition, 
-            IBox<IReturnable> outputType, 
-            IEnumerable<ICodeElement> metohdBody,
-            IFinalizedScope scope, 
-            IEnumerable<ICodeElement> staticInitializers)
+        public WeakImplementationDefinition(
+            IBox<WeakMemberDefinition> contextDefinition, 
+            IBox<WeakMemberDefinition> parameterDefinition, 
+            IBox<IWeakReturnable> outputType, 
+            IEnumerable<IWeakCodeElement> metohdBody,
+            IWeakFinalizedScope scope, 
+            IEnumerable<IWeakCodeElement> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -38,46 +48,46 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public IBox<IReturnable> ContextType
+        public IBox<IWeakReturnable> ContextType
         {
             get
             {
                 return ContextDefinition.GetValue().Type;
             }
         }
-        public IBox<IReturnable> InputType
+        public IBox<IWeakReturnable> InputType
         {
             get
             {
                 return ParameterDefinition.GetValue().Type;
             }
         }
-        public IBox<IReturnable> OutputType { get; }
-        public IBox<MemberDefinition> ContextDefinition { get; }
-        public IBox<MemberDefinition> ParameterDefinition { get; }
-        public IFinalizedScope Scope { get; }
-        public IEnumerable<ICodeElement> MethodBody { get; }
-        public IEnumerable<ICodeElement> StaticInitialzers { get; }
+        public IBox<IWeakReturnable> OutputType { get; }
+        public IBox<WeakMemberDefinition> ContextDefinition { get; }
+        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
+        public IWeakFinalizedScope Scope { get; }
+        public IEnumerable<IWeakCodeElement> MethodBody { get; }
+        public IEnumerable<IWeakCodeElement> StaticInitialzers { get; }
         
-        public IReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return this;
         }
     }
 
-    public class ImplementationDefinitionMaker : IMaker<ImplementationDefinition>
+    public class ImplementationDefinitionMaker : IMaker<WeakImplementationDefinition>
     {
-        public ImplementationDefinitionMaker(ImplementationDefinition.Make make,
+        public ImplementationDefinitionMaker(WeakImplementationDefinition.Make make,
             IElementBuilders elementBuilders)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
-        private ImplementationDefinition.Make Make { get; }
+        private WeakImplementationDefinition.Make Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public IResult<IPopulateScope<ImplementationDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakImplementationDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("implementation"), out var _)
@@ -122,25 +132,25 @@ namespace Tac.Semantic_Model
             }
 
 
-            return ResultExtension.Bad<IPopulateScope<ImplementationDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<WeakImplementationDefinition>>();
         }
     }
 
-    public class PopulateScopeImplementationDefinition : IPopulateScope<ImplementationDefinition>
+    public class PopulateScopeImplementationDefinition : IPopulateScope<WeakImplementationDefinition>
     {
-        private readonly IPopulateScope<MemberReferance> contextDefinition;
-        private readonly IPopulateScope<MemberReferance> parameterDefinition;
-        private readonly IPopulateScope<ICodeElement>[] elements;
+        private readonly IPopulateScope<WeakMemberReferance> contextDefinition;
+        private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
+        private readonly IPopulateScope<IWeakCodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly ImplementationDefinition.Make make;
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private readonly WeakImplementationDefinition.Make make;
+        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
         public PopulateScopeImplementationDefinition(
-            IPopulateScope<MemberReferance> contextDefinition,
-            IPopulateScope<MemberReferance> parameterDefinition,
-            IPopulateScope<ICodeElement>[] elements,
+            IPopulateScope<WeakMemberReferance> contextDefinition,
+            IPopulateScope<WeakMemberReferance> parameterDefinition,
+            IPopulateScope<IWeakCodeElement>[] elements,
             NameKey outputTypeName,
-            ImplementationDefinition.Make make)
+            WeakImplementationDefinition.Make make)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -149,7 +159,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<ImplementationDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<WeakImplementationDefinition> Run(IPopulateScopeContext context)
         {
 
             var nextContext = context.Child();
@@ -163,31 +173,31 @@ namespace Tac.Semantic_Model
                 box);
         }
         
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
 
     }
 
-    public class ImplementationDefinitionResolveReferance : IResolveReference<ImplementationDefinition>
+    public class ImplementationDefinitionResolveReferance : IResolveReference<WeakImplementationDefinition>
     {
-        private readonly IResolveReference<MemberReferance> contextDefinition;
-        private readonly IResolveReference<MemberReferance> parameterDefinition;
+        private readonly IResolveReference<WeakMemberReferance> contextDefinition;
+        private readonly IResolveReference<WeakMemberReferance> parameterDefinition;
         private readonly IResolvableScope methodScope;
-        private readonly IResolveReference<ICodeElement>[] elements;
+        private readonly IResolveReference<IWeakCodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly ImplementationDefinition.Make make;
-        private readonly Box<IReturnable> box;
+        private readonly WeakImplementationDefinition.Make make;
+        private readonly Box<IWeakReturnable> box;
 
         public ImplementationDefinitionResolveReferance(
-            IResolveReference<MemberReferance> contextDefinition,
-            IResolveReference<MemberReferance> parameterDefinition,
+            IResolveReference<WeakMemberReferance> contextDefinition,
+            IResolveReference<WeakMemberReferance> parameterDefinition,
             IResolvableScope methodScope,
-            IResolveReference<ICodeElement>[] elements,
+            IResolveReference<IWeakCodeElement>[] elements,
             NameKey outputTypeName,
-            ImplementationDefinition.Make make,
-            Box<IReturnable> box)
+            WeakImplementationDefinition.Make make,
+            Box<IWeakReturnable> box)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -198,7 +208,7 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
-        public ImplementationDefinition Run(IResolveReferanceContext context)
+        public WeakImplementationDefinition Run(IResolveReferanceContext context)
         {
             return box.Fill(make(
                 contextDefinition.Run(context).MemberDefinition,
@@ -206,7 +216,7 @@ namespace Tac.Semantic_Model
                 methodScope.GetTypeOrThrow(outputTypeName), 
                 elements.Select(x => x.Run(context)).ToArray(), 
                 methodScope.GetFinalized(), 
-                new ICodeElement[0]));
+                new IWeakCodeElement[0]));
         }
     }
 }

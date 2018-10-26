@@ -9,11 +9,19 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public class GenericTypeDefinition : ICodeElement, IReturnable
+    public interface IGenericTypeDefinition
     {
-        public delegate GenericTypeDefinition Make(NameKey key, IFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions);
+        IFinalizedScope Scope { get; }
+        GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        // why does this know it's own key?
+        IKey Key { get; }
+    }
 
-        public GenericTypeDefinition(NameKey key, IFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
+    public class WeakGenericTypeDefinition : IWeakCodeElement, IWeakReturnable
+    {
+        public delegate WeakGenericTypeDefinition Make(NameKey key, IWeakFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions);
+
+        public WeakGenericTypeDefinition(NameKey key, IWeakFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -22,7 +30,7 @@ namespace Tac.Semantic_Model
 
         public IKey Key { get; }
 
-        public IFinalizedScope Scope { get; }
+        public IWeakFinalizedScope Scope { get; }
 
         public GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
@@ -41,7 +49,7 @@ namespace Tac.Semantic_Model
         //    return true;
         //}
 
-        public IReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return this;
         }
@@ -76,7 +84,7 @@ namespace Tac.Semantic_Model
             return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
         }
 
-        internal bool Accepts(IReturnable b)
+        internal bool Accepts(IWeakReturnable b)
         {
             // TODO generic constraints
             return true;
@@ -85,26 +93,26 @@ namespace Tac.Semantic_Model
 
     public class GenericTypeParameter
     {
-        public GenericTypeParameter(IBox<IReturnable> typeDefinition, GenericTypeParameterDefinition definition)
+        public GenericTypeParameter(IBox<IWeakReturnable> typeDefinition, GenericTypeParameterDefinition definition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        public IBox<IReturnable> TypeDefinition { get; }
+        public IBox<IWeakReturnable> TypeDefinition { get; }
         public GenericTypeParameterDefinition Definition { get; }
     }
 
-    public class GenericTypeDefinitionMaker : IMaker<GenericTypeDefinition>
+    public class GenericTypeDefinitionMaker : IMaker<WeakGenericTypeDefinition>
     {
-        private readonly GenericTypeDefinition.Make make;
+        private readonly WeakGenericTypeDefinition.Make make;
 
-        public GenericTypeDefinitionMaker(GenericTypeDefinition.Make make)
+        public GenericTypeDefinitionMaker(WeakGenericTypeDefinition.Make make)
         {
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResult<IPopulateScope<GenericTypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakGenericTypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
@@ -120,26 +128,26 @@ namespace Tac.Semantic_Model
                     make));
             }
 
-            return ResultExtension.Bad<IPopulateScope<GenericTypeDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<WeakGenericTypeDefinition>>();
         }
 
 
 
     }
 
-    public class GenericTypeDefinitionPopulateScope : IPopulateScope<GenericTypeDefinition>
+    public class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
-        private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
+        private readonly IEnumerable<IPopulateScope<IWeakCodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
-        private readonly GenericTypeDefinition.Make make;
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private readonly WeakGenericTypeDefinition.Make make;
+        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
-            IEnumerable<IPopulateScope<ICodeElement>> lines,
+            IEnumerable<IPopulateScope<IWeakCodeElement>> lines,
             GenericTypeParameterDefinition[] genericParameters, 
-            GenericTypeDefinition.Make make)
+            WeakGenericTypeDefinition.Make make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
@@ -147,7 +155,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<GenericTypeDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
         {
             var encolsing = context.Scope.TryAddType(nameKey, box);
             
@@ -156,27 +164,27 @@ namespace Tac.Semantic_Model
             return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, nextContext.GetResolvableScope(), box, make);
         }
 
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
 
     }
 
-    public class GenericTypeDefinitionResolveReferance : IResolveReference<GenericTypeDefinition>
+    public class GenericTypeDefinitionResolveReferance : IResolveReference<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly IResolvableScope scope;
-        private readonly Box<IReturnable> box;
-        private readonly GenericTypeDefinition.Make make;
+        private readonly Box<IWeakReturnable> box;
+        private readonly WeakGenericTypeDefinition.Make make;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             GenericTypeParameterDefinition[] genericParameters, 
             IResolvableScope scope, 
-            Box<IReturnable> box,
-            GenericTypeDefinition.Make make)
+            Box<IWeakReturnable> box,
+            WeakGenericTypeDefinition.Make make)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
@@ -185,7 +193,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
         
-        public GenericTypeDefinition Run(IResolveReferanceContext context)
+        public WeakGenericTypeDefinition Run(IResolveReferanceContext context)
         {
             return box.Fill(make(nameKey, scope.GetFinalized(), genericParameters));
         }

@@ -8,9 +8,9 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedBlockDefinition : BlockDefinition, IInterpeted
+    public class InterpetedBlockDefinition : WeakBlockDefinition, IInterpeted
     {
-        public InterpetedBlockDefinition(ICodeElement[] body, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitailizers) : base(body, scope, staticInitailizers)
+        public InterpetedBlockDefinition(IWeakCodeElement[] body, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitailizers) : base(body, scope, staticInitailizers)
         {
         }
 
@@ -41,7 +41,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create();
         }
 
-        internal static BlockDefinition MakeNew(ICodeElement[] body, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitailizers)
+        internal static WeakBlockDefinition MakeNew(IWeakCodeElement[] body, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitailizers)
         {
             return new InterpetedBlockDefinition(body, scope, staticInitailizers);
         }

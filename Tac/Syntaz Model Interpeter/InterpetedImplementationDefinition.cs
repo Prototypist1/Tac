@@ -9,9 +9,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedImplementationDefinition : ImplementationDefinition, IInterpeted, IInterpetedPrimitiveType
+    public class InterpetedImplementationDefinition : WeakImplementationDefinition, IInterpeted, IInterpetedPrimitiveType
     {
-        public InterpetedImplementationDefinition(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitializers) : base(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers)
+        public InterpetedImplementationDefinition(IBox<WeakMemberDefinition> contextDefinition, IBox<WeakMemberDefinition> parameterDefinition, IBox<IWeakReturnable> outputType, IEnumerable<IWeakCodeElement> metohdBody, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitializers) : base(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers)
         {
         }
 
@@ -25,7 +25,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 Scope));
         }
 
-        internal static ImplementationDefinition MakeNew(IBox<MemberDefinition> contextDefinition, IBox<MemberDefinition> parameterDefinition, IBox<IReturnable> outputType, IEnumerable<ICodeElement> metohdBody, IFinalizedScope scope, IEnumerable<ICodeElement> staticInitializers)
+        internal static WeakImplementationDefinition MakeNew(IBox<WeakMemberDefinition> contextDefinition, IBox<WeakMemberDefinition> parameterDefinition, IBox<IWeakReturnable> outputType, IEnumerable<IWeakCodeElement> metohdBody, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitializers)
         {
             return new InterpetedImplementationDefinition(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers);
         }
@@ -33,11 +33,11 @@ namespace Tac.Syntaz_Model_Interpeter
         public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation(
-                    interpetedContext.elementBuilders.MemberDefinition(false,new NameKey("input"),new Box<IReturnable>(new InterpetedAnyType())),
-                    interpetedContext.elementBuilders.MemberDefinition(false, new NameKey("countex"), new Box<IReturnable>(new InterpetedAnyType())),
-                    new ICodeElement[] { },
+                    interpetedContext.elementBuilders.MemberDefinition(false,new NameKey("input"),new Box<IWeakReturnable>(new InterpetedAnyType())),
+                    interpetedContext.elementBuilders.MemberDefinition(false, new NameKey("countex"), new Box<IWeakReturnable>(new InterpetedAnyType())),
+                    new IWeakCodeElement[] { },
                     interpetedContext,
-                    new FinalizedScope(new Dictionary<IKey,IBox<MemberDefinition>>()));
+                    new FinalizedScope(new Dictionary<IKey,IBox<WeakMemberDefinition>>()));
         }
     }
     

@@ -10,7 +10,7 @@ namespace Tac.Syntaz_Model_Interpeter
     public class InterpetedImplementation : IRunTime
     {
 
-        public InterpetedImplementation(MemberDefinition parameterDefinition, MemberDefinition contextDefinition, ICodeElement[] body, InterpetedContext context, IFinalizedScope scope)
+        public InterpetedImplementation(WeakMemberDefinition parameterDefinition, WeakMemberDefinition contextDefinition, IWeakCodeElement[] body, InterpetedContext context, IWeakFinalizedScope scope)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
@@ -19,11 +19,11 @@ namespace Tac.Syntaz_Model_Interpeter
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        private readonly MemberDefinition contextDefinition;
-        private MemberDefinition ParameterDefinition { get; }
-        private ICodeElement[] Body { get; }
+        private readonly WeakMemberDefinition contextDefinition;
+        private WeakMemberDefinition ParameterDefinition { get; }
+        private IWeakCodeElement[] Body { get; }
         private InterpetedContext Context { get; }
-        private IFinalizedScope Scope { get; }
+        private IWeakFinalizedScope Scope { get; }
         
         public InterpetedResult Invoke(IRunTime input)
         {

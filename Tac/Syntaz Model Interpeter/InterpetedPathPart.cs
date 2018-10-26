@@ -2,11 +2,11 @@
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedMemberReferance : MemberReferance, IInterpeted
+    public class InterpetedMemberReferance : WeakMemberReferance, IInterpeted
     {
-        public static readonly MemberReferance.Make MakeNew = (memberDefinition) => new InterpetedMemberReferance(memberDefinition);
+        public static readonly WeakMemberReferance.Make MakeNew = (memberDefinition) => new InterpetedMemberReferance(memberDefinition);
 
-        public InterpetedMemberReferance(IBox<MemberDefinition> memberDefinition) : base(memberDefinition)
+        public InterpetedMemberReferance(IBox<WeakMemberDefinition> memberDefinition) : base(memberDefinition)
         {
         }
 

@@ -30,30 +30,30 @@ namespace Tac.Parser
     public interface IOperationBuilder
     {
         IReadOnlyList<string> Identifiers { get; }
-        Operation<BinaryOperation.Make<AddOperation>> AddOperation { get; }
-        Operation<BinaryOperation.Make<SubtractOperation>> SubtractOperation { get; }
-        Operation<BinaryOperation.Make<MultiplyOperation>> MultiplyOperation { get; }
-        Operation<BinaryOperation.Make<IfTrueOperation>> IfTrueOperation { get; }
-        Operation<BinaryOperation.Make<ElseOperation>> ElseOperation { get; }
-        Operation<BinaryOperation.Make<LessThanOperation>> LessThanOperation { get; }
-        Operation<BinaryOperation.Make<NextCallOperation>> NextCallOperation { get; }
-        Operation<BinaryOperation.Make<AssignOperation>> AssignOperation { get; }
-        Operation<BinaryOperation.Make<PathOperation>> PathOperation { get; }
-        Operation<TrailingOperation.Make<ReturnOperation>> ReturnOperation { get; }
+        Operation<BinaryOperation.Make<WeakAddOperation>> AddOperation { get; }
+        Operation<BinaryOperation.Make<WeakSubtractOperation>> SubtractOperation { get; }
+        Operation<BinaryOperation.Make<WeakMultiplyOperation>> MultiplyOperation { get; }
+        Operation<BinaryOperation.Make<WeakIfTrueOperation>> IfTrueOperation { get; }
+        Operation<BinaryOperation.Make<WeakElseOperation>> ElseOperation { get; }
+        Operation<BinaryOperation.Make<WeakLessThanOperation>> LessThanOperation { get; }
+        Operation<BinaryOperation.Make<WeakNextCallOperation>> NextCallOperation { get; }
+        Operation<BinaryOperation.Make<WeakAssignOperation>> AssignOperation { get; }
+        Operation<BinaryOperation.Make<WeakPathOperation>> PathOperation { get; }
+        Operation<TrailingOperation.Make<WeakReturnOperation>> ReturnOperation { get; }
     }
 
     public interface IElementBuilders
     {
-        MemberDefinition.Make MemberDefinition { get; }
-        ObjectDefinition.Make ObjectDefinition { get; }
-        ModuleDefinition.Make ModuleDefinition { get; }
-        MethodDefinition.Make MethodDefinition { get; }
-        TypeDefinition.Make TypeDefinition { get; }
-        GenericTypeDefinition.Make GenericTypeDefinition { get; }
-        ImplementationDefinition.Make ImplementationDefinition { get; }
-        BlockDefinition.Make BlockDefinition { get; }
-        ConstantNumber.Make ConstantNumber { get; }
-        MemberReferance.Make MemberReferance { get; }
+        WeakMemberDefinition.Make MemberDefinition { get; }
+        WeakObjectDefinition.Make ObjectDefinition { get; }
+        WeakModuleDefinition.Make ModuleDefinition { get; }
+        WeakMethodDefinition.Make MethodDefinition { get; }
+        WeakTypeDefinition.Make TypeDefinition { get; }
+        WeakGenericTypeDefinition.Make GenericTypeDefinition { get; }
+        WeakImplementationDefinition.Make ImplementationDefinition { get; }
+        WeakBlockDefinition.Make BlockDefinition { get; }
+        WeakConstantNumber.Make ConstantNumber { get; }
+        WeakMemberReferance.Make MemberReferance { get; }
         PrimitiveType.Make NumberType { get; }
         PrimitiveType.Make StringType { get; }
         PrimitiveType.Make EmptyType { get; }
@@ -64,15 +64,15 @@ namespace Tac.Parser
     public class ElementMatchingContext
     {
 
-        internal ElementMatchingContext ExpectPathPart(IBox<IReturnable> box) {
-            return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
+        internal ElementMatchingContext ExpectPathPart(IBox<IWeakReturnable> box) {
+            return new ElementMatchingContext(Builders, operationMatchers, new IMaker<IWeakCodeElement>[] {
                 new MemberReferanceMaker(Builders.MemberReferance,Builders,box)
             });
         }
         
-        internal ElementMatchingContext AcceptImplicit(IBox<IReturnable> box)
+        internal ElementMatchingContext AcceptImplicit(IBox<IWeakReturnable> box)
         {
-            return new ElementMatchingContext(Builders, operationMatchers, new IMaker<ICodeElement>[] {
+            return new ElementMatchingContext(Builders, operationMatchers, new IMaker<IWeakCodeElement>[] {
                 new BlockDefinitionMaker(Builders.BlockDefinition),
                 new ConstantNumberMaker(Builders.ConstantNumber),
                 new GenericTypeDefinitionMaker(Builders.GenericTypeDefinition),
@@ -95,7 +95,7 @@ namespace Tac.Parser
         public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder) : 
             this(
                 builders,
-                new IOperationMaker<ICodeElement>[] {
+                new IOperationMaker<IWeakCodeElement>[] {
                     new AddOperationMaker(operationBuilder.AddOperation.make),
                     new SubtractOperationMaker(operationBuilder.SubtractOperation.make),
                     new MultiplyOperationMaker(operationBuilder.MultiplyOperation.make),
@@ -107,7 +107,7 @@ namespace Tac.Parser
                     new PathOperationMaker(operationBuilder.PathOperation.make),
                     new ReturnOperationMaker(operationBuilder.ReturnOperation.make)
                 },
-                new IMaker<ICodeElement>[] {
+                new IMaker<IWeakCodeElement>[] {
                     new BlockDefinitionMaker(builders.BlockDefinition),
                     new ConstantNumberMaker(builders.ConstantNumber),
                     new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
@@ -120,22 +120,22 @@ namespace Tac.Parser
                     new MemberMaker(builders.MemberReferance,builders),
                 }){}
         
-        public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers)
+        public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<IWeakCodeElement>[] operationMatchers, IMaker<IWeakCodeElement>[] elementMakers)
         {
             this.Builders = Builders ?? throw new ArgumentNullException(nameof(Builders));
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
             this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
         }
 
-        private readonly IMaker<ICodeElement>[] elementMakers;
-        private readonly IOperationMaker<ICodeElement>[] operationMatchers;
+        private readonly IMaker<IWeakCodeElement>[] elementMakers;
+        private readonly IOperationMaker<IWeakCodeElement>[] operationMatchers;
 
         public IElementBuilders Builders { get; }
         
         
         #region Parse
 
-        public IPopulateScope<ICodeElement> ParseParenthesisOrElement(IToken token)
+        public IPopulateScope<IWeakCodeElement> ParseParenthesisOrElement(IToken token)
         {
             if (token is ElementToken elementToken)
             {
@@ -161,7 +161,7 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<ICodeElement> ParseLine(IEnumerable<IToken> tokens)
+        public IPopulateScope<IWeakCodeElement> ParseLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in operationMatchers)
             {
@@ -179,12 +179,12 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<ICodeElement>[] ParseFile(FileToken file)
+        public IPopulateScope<IWeakCodeElement>[] ParseFile(FileToken file)
         {
             return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
         }
 
-        public IPopulateScope<ICodeElement>[] ParseBlock(CurleyBracketToken block)
+        public IPopulateScope<IWeakCodeElement>[] ParseBlock(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {

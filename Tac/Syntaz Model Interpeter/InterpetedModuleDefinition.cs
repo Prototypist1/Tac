@@ -8,11 +8,11 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedModuleDefinition : ModuleDefinition, IInterpeted, IInterpetedPrimitiveType
+    public class InterpetedModuleDefinition : WeakModuleDefinition, IInterpeted, IInterpetedPrimitiveType
     {
         public InterpetedModuleDefinition(
-            IFinalizedScope scope, 
-            IEnumerable<ICodeElement> staticInitialization, 
+            IWeakFinalizedScope scope, 
+            IEnumerable<IWeakCodeElement> staticInitialization, 
             NameKey Key) : 
             base(scope, staticInitialization, Key)
         {
@@ -32,7 +32,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(scope);
         }
 
-        internal static ModuleDefinition MakeNew(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey key)
+        internal static WeakModuleDefinition MakeNew(IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitialization, NameKey key)
         {
             return new InterpetedModuleDefinition(scope, staticInitialization, key);
         }

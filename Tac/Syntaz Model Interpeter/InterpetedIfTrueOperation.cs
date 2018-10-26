@@ -6,9 +6,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedIfTrueOperation : IfTrueOperation, IInterpeted
+    public class InterpetedIfTrueOperation : WeakIfTrueOperation, IInterpeted
     {
-        public InterpetedIfTrueOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public InterpetedIfTrueOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
@@ -22,7 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(new RunTimeBoolean(false));
         }
 
-        internal static IfTrueOperation MakeNew(ICodeElement left, ICodeElement right)
+        internal static WeakIfTrueOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
         {
             return new InterpetedIfTrueOperation(left, right);
         }

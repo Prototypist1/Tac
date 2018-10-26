@@ -4,23 +4,27 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class MultiplyOperation : BinaryOperation<ICodeElement, ICodeElement>
+    public interface IMultiplyOperation : IBinaryOperation<ICodeElement, ICodeElement>
+    {
+    }
+
+    public class WeakMultiplyOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
         public const string Identifier = "*";
 
-        public MultiplyOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakMultiplyOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.NumberType();
         }
     }
     
-    public class MultiplyOperationMaker : BinaryOperationMaker<MultiplyOperation>
+    public class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation>
     {
-        public MultiplyOperationMaker(BinaryOperation.Make<MultiplyOperation> make) : base(MultiplyOperation.Identifier, make)
+        public MultiplyOperationMaker(BinaryOperation.Make<WeakMultiplyOperation> make) : base(WeakMultiplyOperation.Identifier, make)
         {
         }
     }

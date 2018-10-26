@@ -4,27 +4,31 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
+    public interface IElseOperation : IBinaryOperation<ICodeElement, ICodeElement>
+    {
+    }
+
     // really an if not
-    public class ElseOperation : BinaryOperation<ICodeElement, ICodeElement>
+    public class WeakElseOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
 
         public const string Identifier = "else";
 
         // right should have more validation
-        public ElseOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakElseOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.EmptyType();
         }
     }
 
 
-    public class ElseOperationMaker : BinaryOperationMaker<ElseOperation>
+    public class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation>
     {
-        public ElseOperationMaker(BinaryOperation.Make<ElseOperation> make) : base(ElseOperation.Identifier, make)
+        public ElseOperationMaker(BinaryOperation.Make<WeakElseOperation> make) : base(WeakElseOperation.Identifier, make)
         {
         }
     }

@@ -6,9 +6,9 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedPathOperation : PathOperation, IInterpeted
+    public class InterpetedPathOperation : WeakPathOperation, IInterpeted
     {
-        public InterpetedPathOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public InterpetedPathOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
@@ -16,10 +16,10 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var scope = left.Cast<IInterpeted>().Interpet(interpetedContext).Cast<InterpetedMember>().Value.Cast<IInterpetedScope>();
             
-            return  InterpetedResult.Create(scope.GetMember(right.Cast<MemberReferance>().MemberDefinition.GetValue().Key));
+            return  InterpetedResult.Create(scope.GetMember(right.Cast<WeakMemberReferance>().MemberDefinition.GetValue().Key));
         }
 
-        internal static PathOperation MakeNew(ICodeElement left, ICodeElement right)
+        internal static WeakPathOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
         {
             return new InterpetedPathOperation(left, right);
         }

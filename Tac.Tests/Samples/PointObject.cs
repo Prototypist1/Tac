@@ -45,30 +45,30 @@ namespace Tac.Tests.Samples
             }
         }
 
-        public IEnumerable<ICodeElement> CodeElements
+        public IEnumerable<IWeakCodeElement> CodeElements
         {
             get
             {
 
                 var keyX = new NameKey("x");
-                var localX = new MemberDefinition(false, keyX, new Box<IReturnable>(new InterpetedAnyType()));
+                var localX = new WeakMemberDefinition(false, keyX, new Box<IWeakReturnable>(new InterpetedAnyType()));
                 var keyY = new NameKey("y");
-                var localY = new MemberDefinition(false, keyY, new Box<IReturnable>(new InterpetedAnyType()));
+                var localY = new WeakMemberDefinition(false, keyY, new Box<IWeakReturnable>(new InterpetedAnyType()));
                                 
-                return new ICodeElement[] {
+                return new IWeakCodeElement[] {
                     new InterpetedObjectDefinition(
                         new FinalizedScope(
-                        new Dictionary<IKey, IBox<MemberDefinition>> {
-                            { keyX, new Box<MemberDefinition>(localX) },
-                            { keyY, new Box<MemberDefinition>(localY) }
+                        new Dictionary<IKey, IBox<WeakMemberDefinition>> {
+                            { keyX, new Box<WeakMemberDefinition>(localX) },
+                            { keyY, new Box<WeakMemberDefinition>(localY) }
                         }),
                         new InterpetedAssignOperation[]{
                             new InterpetedAssignOperation(
                                 new InterpetedConstantNumber(5),
-                                new InterpetedMemberReferance(new Box<MemberDefinition>(localX))),
+                                new InterpetedMemberReferance(new Box<WeakMemberDefinition>(localX))),
                             new InterpetedAssignOperation(
                                 new InterpetedConstantNumber(2),
-                                new InterpetedMemberReferance(new Box<MemberDefinition>(localY)))
+                                new InterpetedMemberReferance(new Box<WeakMemberDefinition>(localY)))
                         },
                         new ImplicitKey())
                 };

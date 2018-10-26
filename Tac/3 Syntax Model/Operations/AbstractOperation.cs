@@ -8,25 +8,30 @@ namespace Tac.Semantic_Model.CodeStuff
 {
     internal interface IOperation
     {
-        ICodeElement[] Operands { get; }
+        IWeakCodeElement[] Operands { get; }
+    }
+
+    public interface IBinaryOperation<TLeft, TRight> {
+        TLeft Left { get; }
+        TLeft Right { get; }
     }
 
     public abstract class BinaryOperation
     {
-        public delegate T Make<out T>(ICodeElement left, ICodeElement right);
+        public delegate T Make<out T>(IWeakCodeElement left, IWeakCodeElement right);
     }
 
-    public abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation
-        where TLeft : class, ICodeElement
-        where TRight : class, ICodeElement
+    public abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, IWeakCodeElement, IOperation
+        where TLeft : class, IWeakCodeElement
+        where TRight : class, IWeakCodeElement
     {
         public readonly TLeft left;
         public readonly TRight right;
-        public ICodeElement[] Operands
+        public IWeakCodeElement[] Operands
         {
             get
             {
-                return new ICodeElement[] { left, right };
+                return new IWeakCodeElement[] { left, right };
             }
         }
 
@@ -36,12 +41,12 @@ namespace Tac.Semantic_Model.CodeStuff
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
         
-        public abstract IReturnable Returns(IElementBuilders elementBuilders);
+        public abstract IWeakReturnable Returns(IElementBuilders elementBuilders);
     }
 
 
     public class BinaryOperationMaker<T> : IOperationMaker<T>
-        where T : class, ICodeElement
+        where T : class, IWeakCodeElement
     {
         public BinaryOperationMaker(string name, BinaryOperation.Make<T> make
             )
@@ -72,21 +77,21 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
     public class BinaryPopulateScope<T> : IPopulateScope<T>
-        where T : ICodeElement
+        where T : IWeakCodeElement
     {
-        private readonly IPopulateScope<ICodeElement> left;
-        private readonly IPopulateScope<ICodeElement> right;
+        private readonly IPopulateScope<IWeakCodeElement> left;
+        private readonly IPopulateScope<IWeakCodeElement> right;
         private readonly BinaryOperation.Make<T> make;
-        private readonly DelegateBox<IReturnable> box = new DelegateBox<IReturnable>();
+        private readonly DelegateBox<IWeakReturnable> box = new DelegateBox<IWeakReturnable>();
 
-        public BinaryPopulateScope(IPopulateScope<ICodeElement> left, IPopulateScope<ICodeElement> right, BinaryOperation.Make<T> make)
+        public BinaryPopulateScope(IPopulateScope<IWeakCodeElement> left, IPopulateScope<IWeakCodeElement> right, BinaryOperation.Make<T> make)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
@@ -104,6 +109,9 @@ namespace Tac.Semantic_Model.CodeStuff
             // fac works
             // if I add an assign that goes the other way...
             // this will break
+
+            // part of me just thinks 
+            // force 'var' on member definition 
             var rightres = right.Run(context);
 
             return new BinaryResolveReferance<T>(
@@ -117,18 +125,18 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
     public class BinaryResolveReferance<T> : IResolveReference<T>
-        where T : ICodeElement
+        where T : IWeakCodeElement
     {
-        public readonly IResolveReference<ICodeElement> left;
-        public readonly IResolveReference<ICodeElement> right;
+        public readonly IResolveReference<IWeakCodeElement> left;
+        public readonly IResolveReference<IWeakCodeElement> right;
         private readonly BinaryOperation.Make<T> make;
-        private readonly DelegateBox<IReturnable> box;
+        private readonly DelegateBox<IWeakReturnable> box;
 
         public BinaryResolveReferance(
-            IResolveReference<ICodeElement> resolveReferance1,
-            IResolveReference<ICodeElement> resolveReferance2,
+            IResolveReference<IWeakCodeElement> resolveReferance1,
+            IResolveReference<IWeakCodeElement> resolveReferance2,
             BinaryOperation.Make<T> make,
-            DelegateBox<IReturnable> box)
+            DelegateBox<IWeakReturnable> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));

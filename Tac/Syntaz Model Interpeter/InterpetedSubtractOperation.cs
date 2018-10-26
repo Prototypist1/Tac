@@ -6,9 +6,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedSubtractOperation : SubtractOperation, IInterpeted
+    public class InterpetedSubtractOperation : WeakSubtractOperation, IInterpeted
     {
-        public InterpetedSubtractOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public InterpetedSubtractOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
@@ -19,7 +19,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 right.Cast<IInterpeted>().Interpet(interpetedContext).Get<RunTimeNumber>().d));
         }
 
-        internal static SubtractOperation MakeNew(ICodeElement left, ICodeElement right)
+        internal static WeakSubtractOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
         {
             return new InterpetedSubtractOperation(left, right);
         }

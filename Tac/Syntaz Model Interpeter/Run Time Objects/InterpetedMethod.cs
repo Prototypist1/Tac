@@ -7,7 +7,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     public class InterpetedMethod: IRunTime
     {
-        public InterpetedMethod(MemberDefinition parameterDefinition, ICodeElement[] body, InterpetedContext context, IFinalizedScope scope) 
+        public InterpetedMethod(WeakMemberDefinition parameterDefinition, IWeakCodeElement[] body, InterpetedContext context, IWeakFinalizedScope scope) 
         {
             ParameterDefinition = parameterDefinition ?? throw new System.ArgumentNullException(nameof(parameterDefinition));
             Body = body ?? throw new System.ArgumentNullException(nameof(body));
@@ -15,10 +15,10 @@ namespace Tac.Syntaz_Model_Interpeter
             Scope = scope ?? throw new System.ArgumentNullException(nameof(scope));
         }
 
-        private MemberDefinition ParameterDefinition { get; }
-        private ICodeElement[] Body { get; }
+        private WeakMemberDefinition ParameterDefinition { get; }
+        private IWeakCodeElement[] Body { get; }
         private InterpetedContext Context { get; }
-        private IFinalizedScope Scope { get; }
+        private IWeakFinalizedScope Scope { get; }
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
         
         public InterpetedResult Invoke(InterpetedContext interpetedContext,IRunTime input) {

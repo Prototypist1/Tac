@@ -2,7 +2,7 @@
 
 namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 {
-    public interface IPrimitiveType : IReturnable {
+    public interface IPrimitiveType : IWeakReturnable {
         
     }
 

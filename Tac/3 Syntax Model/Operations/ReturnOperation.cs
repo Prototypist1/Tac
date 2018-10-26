@@ -7,30 +7,37 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class ReturnOperation : TrailingOperation, ICodeElement
+    public interface IReturnOperation<ICodeElement> {
+
+    }
+
+    public class WeakReturnOperation : TrailingOperation, IWeakCodeElement
     {
 
         public const string Identifier = "return";
 
-        public ReturnOperation(ICodeElement result)
+        public WeakReturnOperation(IWeakCodeElement result)
         {
             Result = result;
         }
 
-        public ICodeElement Result { get; }
+        public IWeakCodeElement Result { get; }
         
-        public IReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.EmptyType();
         }
     }
 
+    public class ITrailingOperion<T> {
+    }
+
     public class TrailingOperation {
-        public delegate T Make<T>(ICodeElement codeElement);
+        public delegate T Make<T>(IWeakCodeElement codeElement);
     }
 
     public class TrailingOperationMaker<T> : IOperationMaker<T>
-        where T : class, ICodeElement
+        where T : class, IWeakCodeElement
     {
         public TrailingOperationMaker(string name, TrailingOperation.Make<T> make)
         {
@@ -57,19 +64,19 @@ namespace Tac.Semantic_Model.Operations
     }
 
     public class TrailingPopulateScope<T> : IPopulateScope<T>
-        where T : ICodeElement
+        where T : IWeakCodeElement
     {
-        private readonly IPopulateScope<ICodeElement> left;
+        private readonly IPopulateScope<IWeakCodeElement> left;
         private readonly TrailingOperation.Make<T> make;
-        private readonly DelegateBox<IReturnable> box = new DelegateBox<IReturnable>();
+        private readonly DelegateBox<IWeakReturnable> box = new DelegateBox<IWeakReturnable>();
 
-        public TrailingPopulateScope(IPopulateScope<ICodeElement> left, TrailingOperation.Make<T> make)
+        public TrailingPopulateScope(IPopulateScope<IWeakCodeElement> left, TrailingOperation.Make<T> make)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
@@ -83,13 +90,13 @@ namespace Tac.Semantic_Model.Operations
 
 
     public class TrailingResolveReferance<T> : IResolveReference<T>
-        where T : ICodeElement
+        where T : IWeakCodeElement
     {
-        public readonly IResolveReference<ICodeElement> left;
+        public readonly IResolveReference<IWeakCodeElement> left;
         private readonly TrailingOperation.Make<T> make;
-        private readonly DelegateBox<IReturnable> box;
+        private readonly DelegateBox<IWeakReturnable> box;
 
-        public TrailingResolveReferance(IResolveReference<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IReturnable> box)
+        public TrailingResolveReferance(IResolveReference<IWeakCodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IWeakReturnable> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -105,9 +112,9 @@ namespace Tac.Semantic_Model.Operations
     }
 
 
-    public class ReturnOperationMaker : TrailingOperationMaker<ReturnOperation>
+    public class ReturnOperationMaker : TrailingOperationMaker<WeakReturnOperation>
     {
-        public ReturnOperationMaker(TrailingOperation.Make<ReturnOperation> make) : base(ReturnOperation.Identifier, make)
+        public ReturnOperationMaker(TrailingOperation.Make<WeakReturnOperation> make) : base(WeakReturnOperation.Identifier, make)
         {
         }
     }

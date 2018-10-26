@@ -4,23 +4,28 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class SubtractOperation : BinaryOperation<ICodeElement, ICodeElement>
+    public interface ISubtractOperation: IBinaryOperation<ICodeElement, ICodeElement>
+    {
+
+    }
+
+    public class WeakSubtractOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
         public const string Identifier = "-";
 
-        public SubtractOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakSubtractOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.NumberType();
         }
     }
     
-    public class SubtractOperationMaker : BinaryOperationMaker<SubtractOperation>
+    public class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation>
     {
-        public SubtractOperationMaker(BinaryOperation.Make<SubtractOperation> make) : base(SubtractOperation.Identifier, make)
+        public SubtractOperationMaker(BinaryOperation.Make<WeakSubtractOperation> make) : base(WeakSubtractOperation.Identifier, make)
         {
         }
     }

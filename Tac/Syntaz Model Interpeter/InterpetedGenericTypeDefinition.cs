@@ -4,11 +4,11 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedGenericTypeDefinition : GenericTypeDefinition, IInterpeted, IInterpetedPrimitiveType
+    internal class InterpetedGenericTypeDefinition : WeakGenericTypeDefinition, IInterpeted, IInterpetedPrimitiveType
     {
-        internal static readonly GenericTypeDefinition.Make MakeNew = (key,scope, typeParameterDefinitions) => new InterpetedGenericTypeDefinition(key,scope,typeParameterDefinitions);
+        internal static readonly WeakGenericTypeDefinition.Make MakeNew = (key,scope, typeParameterDefinitions) => new InterpetedGenericTypeDefinition(key,scope,typeParameterDefinitions);
 
-        public InterpetedGenericTypeDefinition(NameKey key, IFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions) : base(key, scope, typeParameterDefinitions)
+        public InterpetedGenericTypeDefinition(NameKey key, IWeakFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions) : base(key, scope, typeParameterDefinitions)
         {
         }
 

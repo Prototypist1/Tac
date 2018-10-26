@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedConstantNumber : ConstantNumber, IInterpeted
+    public class InterpetedConstantNumber : WeakConstantNumber, IInterpeted
     {
         public InterpetedConstantNumber(double value) : base(value)
         {
@@ -15,7 +15,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(new RunTimeNumber(Value));
         }
 
-        internal static ConstantNumber MakeNew(double value)
+        internal static WeakConstantNumber MakeNew(double value)
         {
             return new InterpetedConstantNumber(value);
         }

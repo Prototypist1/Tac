@@ -6,9 +6,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedElseOperation : ElseOperation, IInterpeted
+    public class InterpetedElseOperation : WeakElseOperation, IInterpeted
     {
-        public InterpetedElseOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public InterpetedElseOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
@@ -21,7 +21,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(new RunTimeBoolean(false));
         }
 
-        internal static ElseOperation MakeNew(ICodeElement left, ICodeElement right)
+        internal static WeakElseOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
         {
             return new InterpetedElseOperation(left, right);
         }

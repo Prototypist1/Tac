@@ -7,32 +7,35 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model
 {
+    public interface IBlockDefinition: IAbstractBlockDefinition
+    {
+    }
 
-    public class BlockDefinition : AbstractBlockDefinition
+    public class WeakBlockDefinition : WeakAbstractBlockDefinition
     {
 
-        public delegate BlockDefinition Make(ICodeElement[] body,
-            IFinalizedScope scope,
-            IEnumerable<ICodeElement> staticInitailizers);
+        public delegate WeakBlockDefinition Make(IWeakCodeElement[] body,
+            IWeakFinalizedScope scope,
+            IEnumerable<IWeakCodeElement> staticInitailizers);
 
-        public BlockDefinition(
-            ICodeElement[] body,
-            IFinalizedScope scope,
-            IEnumerable<ICodeElement> staticInitailizers) : 
+        public WeakBlockDefinition(
+            IWeakCodeElement[] body,
+            IWeakFinalizedScope scope,
+            IEnumerable<IWeakCodeElement> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
         
     }
 
-    public class BlockDefinitionMaker : IMaker<BlockDefinition>
+    public class BlockDefinitionMaker : IMaker<WeakBlockDefinition>
     {
-        public BlockDefinitionMaker(BlockDefinition.Make make)
+        public BlockDefinitionMaker(WeakBlockDefinition.Make make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private BlockDefinition.Make Make { get; }
+        private WeakBlockDefinition.Make Make { get; }
 
-        public IResult<IPopulateScope<BlockDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakBlockDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
@@ -44,47 +47,47 @@ namespace Tac.Semantic_Model
                 return ResultExtension.Good(new BlockDefinitionPopulateScope( elements, Make));
             }
 
-            return ResultExtension.Bad<IPopulateScope<BlockDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<WeakBlockDefinition>>();
         }
     }
 
 
-    public class BlockDefinitionPopulateScope : IPopulateScope<BlockDefinition>, IReturnable
+    public class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition>, IWeakReturnable
     {
-        private IPopulateScope<ICodeElement>[] Elements { get; }
-        public BlockDefinition.Make Make { get; }
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private IPopulateScope<IWeakCodeElement>[] Elements { get; }
+        public WeakBlockDefinition.Make Make { get; }
+        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
-        public BlockDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements, BlockDefinition.Make make)
+        public BlockDefinitionPopulateScope(IPopulateScope<IWeakCodeElement>[] elements, WeakBlockDefinition.Make make)
         {
             Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<BlockDefinition> Run(IPopulateScopeContext context)
+        public IResolveReference<WeakBlockDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
             return new ResolveReferanceBlockDefinition(nextContext.GetResolvableScope(), Elements.Select(x => x.Run(nextContext)).ToArray(), Make,box);
         }
 
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
     }
 
-    public class ResolveReferanceBlockDefinition : IResolveReference<BlockDefinition>
+    public class ResolveReferanceBlockDefinition : IResolveReference<WeakBlockDefinition>
     {
         private IResolvableScope Scope { get; }
-        private IResolveReference<ICodeElement>[] ResolveReferance { get; }
-        private BlockDefinition.Make Make { get; }
-        private readonly Box<IReturnable> box;
+        private IResolveReference<IWeakCodeElement>[] ResolveReferance { get; }
+        private WeakBlockDefinition.Make Make { get; }
+        private readonly Box<IWeakReturnable> box;
 
         public ResolveReferanceBlockDefinition(
             IResolvableScope scope, 
-            IResolveReference<ICodeElement>[] resolveReferance,
-            BlockDefinition.Make make,
-            Box<IReturnable> box)
+            IResolveReference<IWeakCodeElement>[] resolveReferance,
+            WeakBlockDefinition.Make make,
+            Box<IWeakReturnable> box)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             ResolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
@@ -92,9 +95,9 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public BlockDefinition Run(IResolveReferanceContext context)
+        public WeakBlockDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(Make(ResolveReferance.Select(x => x.Run(context)).ToArray(), Scope.GetFinalized(), new ICodeElement[0]));
+            return box.Fill(Make(ResolveReferance.Select(x => x.Run(context)).ToArray(), Scope.GetFinalized(), new IWeakCodeElement[0]));
         }
     }
 }

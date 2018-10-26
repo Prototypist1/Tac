@@ -51,13 +51,13 @@ namespace Tac.New
     }
     
     public interface IMaker<out T>
-        where T : ICodeElement
+        where T : IWeakCodeElement
     {
         IResult<IPopulateScope<T>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext);
     }
 
     public interface IOperationMaker<out T>
-    where T : ICodeElement
+    where T : IWeakCodeElement
     {
         IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
     }
@@ -128,7 +128,7 @@ namespace Tac.New
     // you are only allowed to put things in scope during this step
 
     public interface IPopulateScope {
-        IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders);
+        IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders);
     }
 
     public interface IPopulateScope<out T> : IPopulateScope

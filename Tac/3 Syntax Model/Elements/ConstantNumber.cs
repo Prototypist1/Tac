@@ -6,6 +6,10 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
+    public interface IConstantNumber {
+        double Value { get; }
+    }
+
     // TODO how does this work???
     // is it returnable?
     // no
@@ -14,32 +18,32 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    public class ConstantNumber : ICodeElement, IReturnable
+    public class WeakConstantNumber : IWeakCodeElement, IWeakReturnable
     {
-        public delegate ConstantNumber Make(double value);
+        public delegate WeakConstantNumber Make(double value);
 
-        public ConstantNumber(double value) 
+        public WeakConstantNumber(double value) 
         {
             Value = value;
         }
 
         public double Value { get; }
 
-        public IReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.NumberType();
         }
     }
 
-    public class ConstantNumberMaker : IMaker<ConstantNumber>
+    public class ConstantNumberMaker : IMaker<WeakConstantNumber>
     {
-        private readonly ConstantNumber.Make make;
+        private readonly WeakConstantNumber.Make make;
 
-        public ConstantNumberMaker(ConstantNumber.Make Make) {
+        public ConstantNumberMaker(WeakConstantNumber.Make Make) {
             make = Make ?? throw new ArgumentNullException(nameof(Make));
         }
 
-        public IResult<IPopulateScope<ConstantNumber>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakConstantNumber>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsNumber, out double dub)
@@ -49,50 +53,50 @@ namespace Tac.Semantic_Model.Operations
                 return ResultExtension.Good(new ConstantNumberPopulateScope(dub, make));
             }
             
-            return ResultExtension.Bad<IPopulateScope<ConstantNumber>>();
+            return ResultExtension.Bad<IPopulateScope<WeakConstantNumber>>();
         }
     }
     
-    public class ConstantNumberPopulateScope : IPopulateScope<ConstantNumber>
+    public class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly ConstantNumber.Make make;
-        private readonly Box<IReturnable> box = new Box<IReturnable>();
+        private readonly WeakConstantNumber.Make make;
+        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
-        public ConstantNumberPopulateScope(double dub, ConstantNumber.Make Make)
+        public ConstantNumberPopulateScope(double dub, WeakConstantNumber.Make Make)
         {
             this.dub = dub;
             make = Make;
         }
 
-        public IResolveReference<ConstantNumber> Run(IPopulateScopeContext context)
+        public IResolveReference<WeakConstantNumber> Run(IPopulateScopeContext context)
         {
             return new ConstantNumberResolveReferance(dub, make,box);
         }
 
-        public IBox<IReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
         {
             return box;
         }
     }
 
-    public class ConstantNumberResolveReferance : IResolveReference<ConstantNumber>
+    public class ConstantNumberResolveReferance : IResolveReference<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly ConstantNumber.Make make;
-        private readonly Box<IReturnable> box;
+        private readonly WeakConstantNumber.Make make;
+        private readonly Box<IWeakReturnable> box;
 
         public ConstantNumberResolveReferance(
             double dub,
-            ConstantNumber.Make Make, 
-            Box<IReturnable> box)
+            WeakConstantNumber.Make Make, 
+            Box<IWeakReturnable> box)
         {
             this.dub = dub;
             make = Make ?? throw new ArgumentNullException(nameof(Make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public ConstantNumber Run(IResolveReferanceContext context)
+        public WeakConstantNumber Run(IResolveReferanceContext context)
         {
             return box.Fill(make(dub));
         }

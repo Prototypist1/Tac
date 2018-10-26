@@ -6,9 +6,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedLastCallOperation : LastCallOperation, IInterpeted
+    public class InterpetedLastCallOperation : WeakLastCallOperation, IInterpeted
     {
-        public InterpetedLastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public InterpetedLastCallOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
@@ -33,15 +33,15 @@ namespace Tac.Syntaz_Model_Interpeter
 
         }
 
-        internal static LastCallOperation MakeNew(ICodeElement left, ICodeElement right)
+        internal static WeakLastCallOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
         {
             return new InterpetedLastCallOperation(left, right);
         }
     }
 
-    public class InterpetedNextCallOperation : NextCallOperation, IInterpeted
+    public class InterpetedNextCallOperation : WeakNextCallOperation, IInterpeted
     {
-        public InterpetedNextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public InterpetedNextCallOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
@@ -67,7 +67,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         }
 
-        internal static NextCallOperation MakeNew(ICodeElement left, ICodeElement right)
+        internal static WeakNextCallOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
         {
             return new InterpetedNextCallOperation(left, right);
         }

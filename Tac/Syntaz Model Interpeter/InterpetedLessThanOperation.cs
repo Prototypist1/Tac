@@ -5,9 +5,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedLessThanOperation : LessThanOperation, IInterpeted
+    public class InterpetedLessThanOperation : WeakLessThanOperation, IInterpeted
     {
-        public InterpetedLessThanOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public InterpetedLessThanOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
@@ -19,7 +19,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RunTimeNumber>().d));
         }
 
-        internal static LessThanOperation MakeNew(ICodeElement left, ICodeElement right)
+        internal static WeakLessThanOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
         {
             return new InterpetedLessThanOperation(left, right);
         }

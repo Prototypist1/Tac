@@ -5,23 +5,27 @@ using Tac.Parser;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
-    public class LessThanOperation : BinaryOperation<ICodeElement, ICodeElement>
+    public interface ILessThanOperation : IBinaryOperation<ICodeElement, ICodeElement>
+    {
+    }
+
+    public class WeakLessThanOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
         public const string Identifier = "<?";
 
-        public LessThanOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakLessThanOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
             return elementBuilders.BooleanType();
         }
     }
     
-    public class LessThanOperationMaker : BinaryOperationMaker<LessThanOperation>
+    public class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation>
     {
-        public LessThanOperationMaker(BinaryOperation.Make<LessThanOperation> make) : base(LessThanOperation.Identifier, make)
+        public LessThanOperationMaker(BinaryOperation.Make<WeakLessThanOperation> make) : base(WeakLessThanOperation.Identifier, make)
         {
         }
     }

@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
     //
     public interface IScoped
     {
-        IFinalizedScope Scope { get; }
+        IWeakFinalizedScope Scope { get; }
     }
 
     public class ScopeTree
@@ -23,37 +23,37 @@ namespace Tac.Semantic_Model
             
         {
 
-            protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<MemberDefinition>>>> members
-        = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<MemberDefinition>>>>();
+            protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>> members
+        = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>>();
 
-            protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IReturnable>>>> types
-                = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IReturnable>>>>();
+            protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IWeakReturnable>>>> types
+                = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IWeakReturnable>>>>();
 
 
-            protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>>();
+            protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakGenericTypeDefinition>>>> genericTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakGenericTypeDefinition>>>>();
 
-            public bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<MemberDefinition> definition)
+            public bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<WeakMemberDefinition> definition)
             {
-                var list = members.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<MemberDefinition>>>());
-                var visiblity = new Visiblity<IBox<MemberDefinition>>(defintionLifetime, definition);
+                var list = members.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>());
+                var visiblity = new Visiblity<IBox<WeakMemberDefinition>>(defintionLifetime, definition);
                 return list.TryAdd(visiblity);
             }
 
-            public bool TryAddType(IKey key, IBox<IReturnable> definition)
+            public bool TryAddType(IKey key, IBox<IWeakReturnable> definition)
             {
-                var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IReturnable>>>());
-                var visiblity = new Visiblity<IBox<IReturnable>>(DefintionLifetime.Static, definition);
+                var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IWeakReturnable>>>());
+                var visiblity = new Visiblity<IBox<IWeakReturnable>>(DefintionLifetime.Static, definition);
                 return list.TryAdd(visiblity);
             }
 
-            protected bool TryAddGeneric(DefintionLifetime defintionLifetime, IKey key, IBox<GenericTypeDefinition> definition)
+            protected bool TryAddGeneric(DefintionLifetime defintionLifetime, IKey key, IBox<WeakGenericTypeDefinition> definition)
             {
-                var list = genericTypes.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<GenericTypeDefinition>>>());
-                var visiblity = new Visiblity<IBox<GenericTypeDefinition>>(defintionLifetime, definition);
+                var list = genericTypes.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<WeakGenericTypeDefinition>>>());
+                var visiblity = new Visiblity<IBox<WeakGenericTypeDefinition>>(defintionLifetime, definition);
                 return list.TryAdd(visiblity);
             }
 
-            public bool TryGetMember(IKey name, bool staticOnly, out IBox<MemberDefinition> member)
+            public bool TryGetMember(IKey name, bool staticOnly, out IBox<WeakMemberDefinition> member)
             {
                 if (!members.TryGetValue(name, out var items))
                 {
@@ -73,7 +73,7 @@ namespace Tac.Semantic_Model
                 return true;
             }
 
-            public bool TryGetType(IKey name, out IBox<IReturnable> type)
+            public bool TryGetType(IKey name, out IBox<IWeakReturnable> type)
             {
                 if (!types.TryGetValue(name, out var items))
                 {
@@ -93,12 +93,12 @@ namespace Tac.Semantic_Model
                 return true;
             }
 
-            public IFinalizedScope GetFinalized()
+            public IWeakFinalizedScope GetFinalized()
             {
                 return new FinalizedScope(members.ToDictionary(x => x.Key, x => x.Value.Single().Definition));
             }
 
-            public IReadOnlyList<IBox<IReturnable>> Types
+            public IReadOnlyList<IBox<IWeakReturnable>> Types
             {
                 get
                 {
@@ -106,7 +106,7 @@ namespace Tac.Semantic_Model
                 }
             }
 
-            public IReadOnlyList<IBox<MemberDefinition>> Members
+            public IReadOnlyList<IBox<WeakMemberDefinition>> Members
             {
                 get
                 {
@@ -187,7 +187,7 @@ namespace Tac.Semantic_Model
             public ScopeTree ScopeTree { get; }
             private Scope TopScope { get; }
             
-            public IBox<IReturnable> GetType(IKey key)
+            public IBox<IWeakReturnable> GetType(IKey key)
             {
                 foreach (var scope in ScopeTree.Scopes(TopScope))
                 {
@@ -200,7 +200,7 @@ namespace Tac.Semantic_Model
 
             }
 
-            public bool TryGetMember(IKey name, bool staticOnly,  out IBox<MemberDefinition> box)
+            public bool TryGetMember(IKey name, bool staticOnly,  out IBox<WeakMemberDefinition> box)
             {
                 foreach (var scope in ScopeTree.Scopes(TopScope))
                 {
@@ -214,7 +214,7 @@ namespace Tac.Semantic_Model
                 return false;
             }
 
-            public bool TryGetType(IKey key, out IBox<IReturnable> result)
+            public bool TryGetType(IKey key, out IBox<IWeakReturnable> result)
             {
                 foreach (var scope in ScopeTree.Scopes(TopScope))
                 {
@@ -233,17 +233,17 @@ namespace Tac.Semantic_Model
                 return this;
             }
 
-            public bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<MemberDefinition> member)
+            public bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<WeakMemberDefinition> member)
             {
                 return TopScope.TryAddMember(lifeTime, name, member);
             }
 
-            public bool TryAddType(IKey name, IBox<IReturnable> type)
+            public bool TryAddType(IKey name, IBox<IWeakReturnable> type)
             {
                 return TopScope.TryAddType(name, type);
             }
 
-            public IFinalizedScope GetFinalized()
+            public IWeakFinalizedScope GetFinalized()
             {
                 return TopScope.GetFinalized();
             }

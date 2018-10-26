@@ -11,9 +11,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedObjectDefinition : ObjectDefinition, IInterpeted, IInterpetedPrimitiveType
+    public class InterpetedObjectDefinition : WeakObjectDefinition, IInterpeted, IInterpetedPrimitiveType
     {
-        public InterpetedObjectDefinition(IFinalizedScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key) : base(scope, assigns, key)
+        public InterpetedObjectDefinition(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) : base(scope, assigns, key)
         {
         }
 
@@ -33,7 +33,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(scope);
         }
 
-        internal static ObjectDefinition MakeNew(IFinalizedScope scope, IEnumerable<AssignOperation> assigns, ImplicitKey key)
+        internal static WeakObjectDefinition MakeNew(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key)
         {
             return new InterpetedObjectDefinition(scope, assigns, key);
         }

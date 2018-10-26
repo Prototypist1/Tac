@@ -9,52 +9,60 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public class NextCallOperation : BinaryOperation<ICodeElement, ICodeElement>
+    public interface INextCallOperation : IBinaryOperation<ICodeElement, ICodeElement>
+    {
+    }
+
+    public class WeakNextCallOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
 
         public const string Identifier = ">";
 
-        public NextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakNextCallOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
-            return right.Unwrap<MethodDefinition>(elementBuilders).OutputType.GetValue();
+            return right.Unwrap<WeakMethodDefinition>(elementBuilders).OutputType.GetValue();
         }
     }
 
-    public class NextCallOperationMaker : BinaryOperationMaker<NextCallOperation>
+    public class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation>
     {
-        public NextCallOperationMaker(BinaryOperation.Make<NextCallOperation> make) : base(NextCallOperation.Identifier, make)
+        public NextCallOperationMaker(BinaryOperation.Make<WeakNextCallOperation> make) : base(WeakNextCallOperation.Identifier, make)
         {
         }
     }
 
-    public class LastCallOperation : BinaryOperation<ICodeElement, ICodeElement>
+    public interface ILastCallOperation : IBinaryOperation<ICodeElement, ICodeElement>
+    {
+    }
+
+    public class WeakLastCallOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
         public const string Identifier = "<";
 
-        public LastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakLastCallOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
         {
-            return left.Unwrap<MethodDefinition>(elementBuilders).OutputType.GetValue();
+            return left.Unwrap<WeakMethodDefinition>(elementBuilders).OutputType.GetValue();
         }
     }
 
-    public class LastCallOperationMaker : BinaryOperationMaker<LastCallOperation>
+    public class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation>
     {
-        public LastCallOperationMaker(BinaryOperation.Make<LastCallOperation> make) : base(LastCallOperation.Identifier, make)
+        public LastCallOperationMaker(BinaryOperation.Make<WeakLastCallOperation> make) : base(WeakLastCallOperation.Identifier, make)
         {
         }
     }
     
     public static class MemberUnwrapper{
-        public static T Unwrap<T>(this ICodeElement codeElement, IElementBuilders elementBuilders) where T:IReturnable {
-            if (codeElement.Returns(elementBuilders) is MemberDefinition member && member.Type.GetValue() is T t) {
+        public static T Unwrap<T>(this IWeakCodeElement codeElement, IElementBuilders elementBuilders) where T:IWeakReturnable {
+            if (codeElement.Returns(elementBuilders) is WeakMemberDefinition member && member.Type.GetValue() is T t) {
                 return t;
             }
             return codeElement.Returns(elementBuilders).Cast<T>();

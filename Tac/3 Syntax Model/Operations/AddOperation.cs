@@ -8,22 +8,28 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class AddOperation : BinaryOperation<ICodeElement,ICodeElement>
+
+    public interface IAddOperation : IBinaryOperation<ICodeElement, ICodeElement>
+    {
+
+    }
+
+    public class WeakAddOperation : BinaryOperation<IWeakCodeElement,IWeakCodeElement>
     {
         public const string Identifier = "+";
 
-        public AddOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakAddOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
         {
         }
 
-        public override IReturnable Returns(IElementBuilders elementBuilders) {
+        public override IWeakReturnable Returns(IElementBuilders elementBuilders) {
             return elementBuilders.NumberType();
         }
     }
 
-    public class AddOperationMaker : BinaryOperationMaker<AddOperation>
+    public class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
     {
-        public AddOperationMaker(BinaryOperation.Make<AddOperation> make) : base(AddOperation.Identifier, make)
+        public AddOperationMaker(BinaryOperation.Make<WeakAddOperation> make) : base(WeakAddOperation.Identifier, make)
         {
         }
     }
