@@ -12,7 +12,8 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public interface IObjectDefiniton {
+    public interface IObjectDefiniton : ICodeElement, IReturnable
+    {
         IFinalizedScope Scope { get; }
         IEnumerable<IAssignOperation> Assignments { get; }
         // why does this know it own key?
@@ -91,7 +92,7 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IResolveReference<WeakObjectDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakObjectDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
             var key = new ImplicitKey();
@@ -105,17 +106,17 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class ResolveReferanceObjectDefinition : IResolveReference<WeakObjectDefinition>
+    public class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IResolveReference<IWeakCodeElement>[] elements;
+        private readonly IPopulateBoxes<IWeakCodeElement>[] elements;
         private readonly WeakObjectDefinition.Make make;
         private readonly Box<IWeakReturnable> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
-            IResolveReference<IWeakCodeElement>[] elements, 
+            IPopulateBoxes<IWeakCodeElement>[] elements, 
             WeakObjectDefinition.Make make, 
             Box<IWeakReturnable> box, 
             ImplicitKey key)

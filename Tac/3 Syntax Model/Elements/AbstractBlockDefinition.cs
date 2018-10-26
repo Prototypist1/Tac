@@ -8,7 +8,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public interface IAbstractBlockDefinition {
+    public interface IAbstractBlockDefinition: ICodeElement, IReturnable {
         IFinalizedScope Scope { get; }
         IWeakCodeElement[] Body { get; }
         IEnumerable<IAssignOperation> StaticInitailizers { get; }

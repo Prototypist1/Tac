@@ -11,7 +11,10 @@ namespace Tac.Semantic_Model.CodeStuff
         IWeakCodeElement[] Operands { get; }
     }
 
-    public interface IBinaryOperation<TLeft, TRight> {
+    public interface IBinaryOperation<TLeft, TRight>: ICodeElement
+    where TLeft :ICodeElement
+    where TRight : ICodeElement
+    {
         TLeft Left { get; }
         TLeft Right { get; }
     }
@@ -96,7 +99,7 @@ namespace Tac.Semantic_Model.CodeStuff
             return box;
         }
 
-        public IResolveReference<T> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<T> Run(IPopulateScopeContext context)
         {
             // TODO
             // this is something I don't much like
@@ -124,17 +127,17 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
 
-    public class BinaryResolveReferance<T> : IResolveReference<T>
+    public class BinaryResolveReferance<T> : IPopulateBoxes<T>
         where T : IWeakCodeElement
     {
-        public readonly IResolveReference<IWeakCodeElement> left;
-        public readonly IResolveReference<IWeakCodeElement> right;
+        public readonly IPopulateBoxes<IWeakCodeElement> left;
+        public readonly IPopulateBoxes<IWeakCodeElement> right;
         private readonly BinaryOperation.Make<T> make;
         private readonly DelegateBox<IWeakReturnable> box;
 
         public BinaryResolveReferance(
-            IResolveReference<IWeakCodeElement> resolveReferance1,
-            IResolveReference<IWeakCodeElement> resolveReferance2,
+            IPopulateBoxes<IWeakCodeElement> resolveReferance1,
+            IPopulateBoxes<IWeakCodeElement> resolveReferance2,
             BinaryOperation.Make<T> make,
             DelegateBox<IWeakReturnable> box)
         {

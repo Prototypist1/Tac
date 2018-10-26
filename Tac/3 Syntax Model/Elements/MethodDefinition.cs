@@ -124,7 +124,7 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IResolveReference<WeakMethodDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMethodDefinition> Run(IPopulateScopeContext context)
         {
 
             var nextContext = context.Child();
@@ -138,19 +138,19 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MethodDefinitionResolveReferance : IResolveReference<WeakMethodDefinition>
+    public class MethodDefinitionResolveReferance : IPopulateBoxes<WeakMethodDefinition>
     {
-        private readonly IResolveReference<WeakMemberReferance> parameter;
+        private readonly IPopulateBoxes<WeakMemberReferance> parameter;
         private readonly IResolvableScope methodScope;
-        private readonly IResolveReference<IWeakCodeElement>[] lines;
+        private readonly IPopulateBoxes<IWeakCodeElement>[] lines;
         private readonly NameKey outputTypeName;
         private readonly WeakMethodDefinition.Make make;
         private readonly Box<IWeakReturnable> box;
 
         public MethodDefinitionResolveReferance(
-            IResolveReference<WeakMemberReferance> parameter, 
+            IPopulateBoxes<WeakMemberReferance> parameter, 
             IResolvableScope methodScope, 
-            IResolveReference<IWeakCodeElement>[] resolveReferance2, 
+            IPopulateBoxes<IWeakCodeElement>[] resolveReferance2, 
             NameKey outputTypeName,
             WeakMethodDefinition.Make make, 
             Box<IWeakReturnable> box)

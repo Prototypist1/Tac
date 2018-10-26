@@ -81,7 +81,7 @@ namespace Tac.Semantic_Model.Operations
             return box;
         }
 
-        public IResolveReference<T> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<T> Run(IPopulateScopeContext context)
         {
             return new TrailingResolveReferance<T>(left.Run(context),  make, box);
         }
@@ -89,14 +89,14 @@ namespace Tac.Semantic_Model.Operations
 
 
 
-    public class TrailingResolveReferance<T> : IResolveReference<T>
+    public class TrailingResolveReferance<T> : IPopulateBoxes<T>
         where T : IWeakCodeElement
     {
-        public readonly IResolveReference<IWeakCodeElement> left;
+        public readonly IPopulateBoxes<IWeakCodeElement> left;
         private readonly TrailingOperation.Make<T> make;
         private readonly DelegateBox<IWeakReturnable> box;
 
-        public TrailingResolveReferance(IResolveReference<IWeakCodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IWeakReturnable> box)
+        public TrailingResolveReferance(IPopulateBoxes<IWeakCodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IWeakReturnable> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             this.make = make ?? throw new ArgumentNullException(nameof(make));

@@ -9,7 +9,8 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public interface IMemberReferance {
+    public interface IMemberReferance : ICodeElement, IReturnable
+    {
         IMemberDefinition MemberDefinition { get; }
     }
 
@@ -79,14 +80,14 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IResolveReference<WeakMemberReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
         {
 
             return new MemberReferanceResolveReferance(memberName, make, box,lhs);
         }
     }
 
-    public class MemberReferanceResolveReferance : IResolveReference<WeakMemberReferance>
+    public class MemberReferanceResolveReferance : IPopulateBoxes<WeakMemberReferance>
     {
 
         private readonly string memberName;

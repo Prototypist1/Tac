@@ -53,7 +53,7 @@ namespace Tac.Semantic_Model
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public IResolveReference<WeakMemberDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberDefinition> Run(IPopulateScopeContext context)
         {
             
             IBox<WeakMemberDefinition> memberDef = new Box<WeakMemberDefinition>();
@@ -76,7 +76,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ImplicitMemberResolveReferance : IResolveReference<WeakMemberDefinition>
+    public class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberDefinition>
     {
         private readonly WeakMemberDefinition.Make make;
         private readonly Box<IWeakReturnable> box;

@@ -9,7 +9,8 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface IModuleDefinition {
+    public interface IModuleDefinition : ICodeElement, IReturnable
+    {
         IFinalizedScope Scope { get; }
         IEnumerable<IWeakCodeElement> StaticInitialization { get; }
         // why does this know it's own key??
@@ -95,7 +96,7 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IResolveReference<WeakModuleDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakModuleDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
             return new ModuleDefinitionResolveReferance(
@@ -108,17 +109,17 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ModuleDefinitionResolveReferance : IResolveReference<WeakModuleDefinition>
+    public class ModuleDefinitionResolveReferance : IPopulateBoxes<WeakModuleDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IResolveReference<IWeakCodeElement>[] resolveReferance;
+        private readonly IPopulateBoxes<IWeakCodeElement>[] resolveReferance;
         private readonly WeakModuleDefinition.Make make;
         private readonly NameKey nameKey;
         private readonly Box<IWeakReturnable> box;
 
         public ModuleDefinitionResolveReferance(
             IResolvableScope scope, 
-            IResolveReference<IWeakCodeElement>[] resolveReferance,
+            IPopulateBoxes<IWeakCodeElement>[] resolveReferance,
             WeakModuleDefinition.Make make, 
             NameKey nameKey,
             Box<IWeakReturnable> box)

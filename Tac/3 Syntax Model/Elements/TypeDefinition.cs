@@ -10,7 +10,8 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface ITypeDefinition {
+    public interface ITypeDefinition : ICodeElement, IReturnable
+    {
         // why does this know it own key?
         IKey Key { get; }
         IFinalizedScope Scope { get; }
@@ -85,7 +86,7 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IResolveReference<WeakTypeDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakTypeDefinition> Run(IPopulateScopeContext context)
         {
             var encolsing = context.Scope.TryAddType(key, box);
             var nextContext = context.Child();
@@ -98,7 +99,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class TypeDefinitionResolveReference : IResolveReference<WeakTypeDefinition>
+    public class TypeDefinitionResolveReference : IPopulateBoxes<WeakTypeDefinition>
     {
         private readonly IResolvableScope scope;
         private readonly Box<WeakTypeDefinition> box;

@@ -78,7 +78,7 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IResolveReference<WeakMemberReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
         {
             var nameKey = new NameKey(memberName);
             if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) && 
@@ -92,7 +92,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class MemberResolveReferance : IResolveReference<WeakMemberReferance>
+    public class MemberResolveReferance : IPopulateBoxes<WeakMemberReferance>
     {
         private readonly IResolvableScope resolvableScope;
         private readonly NameKey key;

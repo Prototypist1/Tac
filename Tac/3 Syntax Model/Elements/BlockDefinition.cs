@@ -64,7 +64,7 @@ namespace Tac.Semantic_Model
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<WeakBlockDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakBlockDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
             return new ResolveReferanceBlockDefinition(nextContext.GetResolvableScope(), Elements.Select(x => x.Run(nextContext)).ToArray(), Make,box);
@@ -76,16 +76,16 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class ResolveReferanceBlockDefinition : IResolveReference<WeakBlockDefinition>
+    public class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
     {
         private IResolvableScope Scope { get; }
-        private IResolveReference<IWeakCodeElement>[] ResolveReferance { get; }
+        private IPopulateBoxes<IWeakCodeElement>[] ResolveReferance { get; }
         private WeakBlockDefinition.Make Make { get; }
         private readonly Box<IWeakReturnable> box;
 
         public ResolveReferanceBlockDefinition(
             IResolvableScope scope, 
-            IResolveReference<IWeakCodeElement>[] resolveReferance,
+            IPopulateBoxes<IWeakCodeElement>[] resolveReferance,
             WeakBlockDefinition.Make make,
             Box<IWeakReturnable> box)
         {

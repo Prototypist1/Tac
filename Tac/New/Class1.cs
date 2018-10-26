@@ -77,6 +77,10 @@ namespace Tac.New
 
     }
 
+    public interface IOpenBoxesContext : IPipelineContext
+    {
+    }
+
     public class PopulateScopeContext : IPopulateScopeContext
     {
         private readonly ScopeStack stack;
@@ -133,7 +137,7 @@ namespace Tac.New
 
     public interface IPopulateScope<out T> : IPopulateScope
     {
-        IResolveReference<T> Run(IPopulateScopeContext context);
+        IPopulateBoxes<T> Run(IPopulateScopeContext context);
     }
 
     // TODO I think I should protect these!
@@ -144,8 +148,13 @@ namespace Tac.New
     // I think scopes have phases of production
     //
 
-    public interface IResolveReference<out T> : IResolveReferance
+    public interface IPopulateBoxes<out T> : IResolveReferance
     {
-        T Run(IResolveReferanceContext context);
+        IOpenBoxes<T> Run(IResolveReferanceContext context);
+    }
+
+    public interface IOpenBoxes<out T> { 
+
+        T Run(IOpenBoxesContext context);
     }
 }

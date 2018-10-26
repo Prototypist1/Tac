@@ -9,7 +9,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface IGenericTypeDefinition
+    public interface IGenericTypeDefinition : ICodeElement, IReturnable
     {
         IFinalizedScope Scope { get; }
         GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
@@ -155,7 +155,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
         {
             var encolsing = context.Scope.TryAddType(nameKey, box);
             
@@ -171,7 +171,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class GenericTypeDefinitionResolveReferance : IResolveReference<WeakGenericTypeDefinition>
+    public class GenericTypeDefinitionResolveReferance : IPopulateBoxes<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
         private readonly GenericTypeParameterDefinition[] genericParameters;

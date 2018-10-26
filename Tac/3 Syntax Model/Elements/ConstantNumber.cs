@@ -6,7 +6,7 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public interface IConstantNumber {
+    public interface IConstantNumber: ICodeElement, IReturnable {
         double Value { get; }
     }
 
@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model.Operations
             make = Make;
         }
 
-        public IResolveReference<WeakConstantNumber> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakConstantNumber> Run(IPopulateScopeContext context)
         {
             return new ConstantNumberResolveReferance(dub, make,box);
         }
@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class ConstantNumberResolveReferance : IResolveReference<WeakConstantNumber>
+    public class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
     {
         private readonly double dub;
         private readonly WeakConstantNumber.Make make;

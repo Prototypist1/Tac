@@ -11,7 +11,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    public interface IMemberDefinition
+    public interface IMemberDefinition : ICodeElement, IReturnable
     {
         IWeakReturnable Type { get; }
         bool ReadOnly { get; }
@@ -88,7 +88,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<WeakMemberReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
         {
             var key = new NameKey(memberName);
             if (!context.Scope.TryAddMember(DefintionLifetime.Instance,key, memberDefinitionBox))
@@ -104,7 +104,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberDefinitionResolveReferance : IResolveReference<WeakMemberReferance>
+    public class MemberDefinitionResolveReferance : IPopulateBoxes<WeakMemberReferance>
     {
         private readonly string memberName;
         private readonly Box<WeakMemberReferance> box;

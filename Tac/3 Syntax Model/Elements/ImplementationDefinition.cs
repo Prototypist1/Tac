@@ -16,7 +16,8 @@ namespace Tac.Semantic_Model
     // this is really just a method....
     // should this even exist?
      
-    public interface IImplementationDefinition{
+    public interface IImplementationDefinition : ICodeElement, IReturnable
+    {
         IWeakReturnable OutputType { get; }
         IMemberDefinition ContextDefinition { get; }
         IMemberDefinition ParameterDefinition { get; }
@@ -159,7 +160,7 @@ namespace Tac.Semantic_Model
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResolveReference<WeakImplementationDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakImplementationDefinition> Run(IPopulateScopeContext context)
         {
 
             var nextContext = context.Child();
@@ -180,21 +181,21 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ImplementationDefinitionResolveReferance : IResolveReference<WeakImplementationDefinition>
+    public class ImplementationDefinitionResolveReferance : IPopulateBoxes<WeakImplementationDefinition>
     {
-        private readonly IResolveReference<WeakMemberReferance> contextDefinition;
-        private readonly IResolveReference<WeakMemberReferance> parameterDefinition;
+        private readonly IPopulateBoxes<WeakMemberReferance> contextDefinition;
+        private readonly IPopulateBoxes<WeakMemberReferance> parameterDefinition;
         private readonly IResolvableScope methodScope;
-        private readonly IResolveReference<IWeakCodeElement>[] elements;
+        private readonly IPopulateBoxes<IWeakCodeElement>[] elements;
         private readonly NameKey outputTypeName;
         private readonly WeakImplementationDefinition.Make make;
         private readonly Box<IWeakReturnable> box;
 
         public ImplementationDefinitionResolveReferance(
-            IResolveReference<WeakMemberReferance> contextDefinition,
-            IResolveReference<WeakMemberReferance> parameterDefinition,
+            IPopulateBoxes<WeakMemberReferance> contextDefinition,
+            IPopulateBoxes<WeakMemberReferance> parameterDefinition,
             IResolvableScope methodScope,
-            IResolveReference<IWeakCodeElement>[] elements,
+            IPopulateBoxes<IWeakCodeElement>[] elements,
             NameKey outputTypeName,
             WeakImplementationDefinition.Make make,
             Box<IWeakReturnable> box)
