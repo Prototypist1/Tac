@@ -41,12 +41,6 @@ namespace Tac.Semantic_Model
         IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> Members { get; }
     }
 
-
-    public interface IFinalizedScope
-    {
-        IReadOnlyDictionary<IKey, IMemberDefinition> Members { get; }
-    }
-
     public class FinalizedScope : IWeakFinalizedScope
     {
         public FinalizedScope(IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> members)

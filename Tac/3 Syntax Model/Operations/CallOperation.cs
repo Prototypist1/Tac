@@ -10,9 +10,6 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public interface INextCallOperation : IBinaryOperation<ICodeElement, ICodeElement>
-    {
-    }
 
     public class WeakNextCallOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
@@ -42,10 +39,6 @@ namespace Tac.Semantic_Model.Operations
                 return context.NextCallOperation(co);
             }
         }
-    }
-
-    public interface ILastCallOperation : IBinaryOperation<ICodeElement, ICodeElement>
-    {
     }
 
     public class WeakLastCallOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>

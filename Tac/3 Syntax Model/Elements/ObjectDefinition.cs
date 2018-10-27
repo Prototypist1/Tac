@@ -12,13 +12,6 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public interface IObjectDefiniton : ICodeElement, IReturnable
-    {
-        IFinalizedScope Scope { get; }
-        IEnumerable<IAssignOperation> Assignments { get; }
-        // why does this know it own key?
-        IKey Key { get; }
-    }
 
     public class WeakObjectDefinition: IWeakCodeElement, IWeakReturnable, IScoped
     {

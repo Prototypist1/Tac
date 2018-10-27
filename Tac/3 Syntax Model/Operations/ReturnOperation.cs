@@ -8,9 +8,6 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public interface IReturnOperation<ICodeElement> {
-
-    }
 
     public class WeakReturnOperation : TrailingOperation, IWeakCodeElement
     {
@@ -68,7 +65,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     public class TrailingPopulateScope<T> : IPopulateScope<T>
-        where T : IWeakCodeElement
+        where T : class, IWeakCodeElement
     {
         private readonly IPopulateScope<IWeakCodeElement> left;
         private readonly TrailingOperation.Make<T> make;
@@ -96,7 +93,7 @@ namespace Tac.Semantic_Model.Operations
 
 
     public class TrailingResolveReferance<T> : IPopulateBoxes<T>
-        where T : IWeakCodeElement
+        where T : class, IWeakCodeElement
     {
         public readonly IPopulateBoxes<IWeakCodeElement> left;
         private readonly TrailingOperation.Make<T> make;
@@ -120,7 +117,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     public class TrailingOpenBoxes<T> : IOpenBoxes<T>
-        where T : IWeakCodeElement
+        where T : class, IWeakCodeElement
     {
         public T CodeElement { get; }
         private readonly IConverter<T> converter;

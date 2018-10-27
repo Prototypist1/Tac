@@ -9,13 +9,6 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface IGenericTypeDefinition : ICodeElement, IReturnable
-    {
-        IFinalizedScope Scope { get; }
-        GenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
-        // why does this know it's own key?
-        IKey Key { get; }
-    }
 
     public class WeakGenericTypeDefinition : IWeakCodeElement, IWeakReturnable
     {

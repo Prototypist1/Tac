@@ -7,7 +7,6 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model.Names
 {
-    public interface IKey { }
 
     public class ImplicitKey : IKey {
 

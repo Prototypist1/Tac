@@ -9,10 +9,6 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public interface IMemberReferance : ICodeElement, IReturnable
-    {
-        IMemberDefinition MemberDefinition { get; }
-    }
 
     public class WeakMemberReferance : IWeakCodeElement, IWeakReturnable
     {

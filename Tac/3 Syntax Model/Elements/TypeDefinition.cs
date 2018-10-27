@@ -10,12 +10,6 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface ITypeDefinition : ICodeElement, IReturnable
-    {
-        // why does this know it own key?
-        IKey Key { get; }
-        IFinalizedScope Scope { get; }
-    }
 
     public class WeakTypeDefinition : IWeakReturnable, IWeakCodeElement, IScoped
     {

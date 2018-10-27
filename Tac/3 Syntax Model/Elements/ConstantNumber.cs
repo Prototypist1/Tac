@@ -6,9 +6,6 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public interface IConstantNumber: ICodeElement, IReturnable {
-        double Value { get; }
-    }
 
     // TODO how does this work???
     // is it returnable?

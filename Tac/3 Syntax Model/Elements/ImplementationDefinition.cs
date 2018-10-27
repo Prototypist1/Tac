@@ -6,25 +6,9 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
-using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    // really really not sure how these work atm
-    // for now they just hold everything you need to ake a method
-
-    // this is really just a method....
-    // should this even exist?
-     
-    public interface IImplementationDefinition : ICodeElement, IReturnable
-    {
-        IWeakReturnable OutputType { get; }
-        IMemberDefinition ContextDefinition { get; }
-        IMemberDefinition ParameterDefinition { get; }
-        IFinalizedScope Scope { get; }
-        IEnumerable<IWeakCodeElement> MethodBody { get; }
-        IEnumerable<IAssignOperation> StaticInitialzers { get; }
-    }
 
     public class WeakImplementationDefinition: IWeakReturnable, IWeakCodeElement
     {

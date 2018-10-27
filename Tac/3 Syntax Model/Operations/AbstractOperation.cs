@@ -12,14 +12,6 @@ namespace Tac.Semantic_Model.CodeStuff
         IWeakCodeElement[] Operands { get; }
     }
 
-    public interface IBinaryOperation<TLeft, TRight> : ICodeElement
-    where TLeft : ICodeElement
-    where TRight : ICodeElement
-    {
-        TLeft Left { get; }
-        TLeft Right { get; }
-    }
-
     public abstract class BinaryOperation
     {
         public delegate T Make<out T>(IWeakCodeElement left, IWeakCodeElement right);

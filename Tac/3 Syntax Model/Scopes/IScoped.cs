@@ -117,14 +117,14 @@ namespace Tac.Semantic_Model
 
         private readonly Scope root;
 
-        public ScopeTree(IElementBuilders elementBuilders)
+        public ScopeTree()
         {
             root = new Scope();
-            root.TryAddType(new NameKey("int"), new Box<IPrimitiveType>(elementBuilders.NumberType()));
-            root.TryAddType(new NameKey("string"), new Box<IPrimitiveType>(elementBuilders.StringType()));
-            root.TryAddType(new NameKey("any"), new Box<IPrimitiveType>(elementBuilders.AnyType()));
-            root.TryAddType(new NameKey("empty"), new Box<IPrimitiveType>(elementBuilders.EmptyType()));
-            root.TryAddType(new NameKey("bool"), new Box<IPrimitiveType>(elementBuilders.BooleanType()));
+            root.TryAddType(new NameKey("int"), new Box<IPrimitiveType>(new NumberType()));
+            root.TryAddType(new NameKey("string"), new Box<IPrimitiveType>(new StringType()));
+            root.TryAddType(new NameKey("any"), new Box<IPrimitiveType>(new AnyType()));
+            root.TryAddType(new NameKey("empty"), new Box<IPrimitiveType>(new EmptyType()));
+            root.TryAddType(new NameKey("bool"), new Box<IPrimitiveType>(new BooleanType()));
         }
 
         /// <summary>
@@ -165,9 +165,9 @@ namespace Tac.Semantic_Model
         
         public class ScopeStack: IPopulatableScope, IResolvableScope
         {
-            public static ScopeStack Root(IElementBuilders elementBuilders) {
+            public static ScopeStack Root() {
 
-                var scopeTree = new ScopeTree(elementBuilders);
+                var scopeTree = new ScopeTree();
                 return new ScopeStack(scopeTree, scopeTree.root);
             }
 

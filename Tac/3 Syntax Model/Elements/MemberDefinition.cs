@@ -11,14 +11,6 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    public interface IMemberDefinition : ICodeElement, IReturnable
-    {
-        IWeakReturnable Type { get; }
-        bool ReadOnly { get; }
-        // why does this know it's own key??
-        NameKey Key { get; }
-    }
-
     // it is possible members are single instances with look up
     // up I don't think so
     // it is easier just to have simple value objects

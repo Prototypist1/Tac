@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tac\Tac.csproj" />
+    <ProjectReference Include="..\Tac\Tac.FrontEnd.csproj" />
   </ItemGroup>
 
 </Project>

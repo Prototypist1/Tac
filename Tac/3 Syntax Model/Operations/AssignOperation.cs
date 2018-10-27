@@ -9,10 +9,6 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public interface IAssignOperation : IBinaryOperation<IMemberReferance, ICodeElement>
-    {
-    }
-
     public class WeakAssignOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {
         public const string Identifier = "=:";

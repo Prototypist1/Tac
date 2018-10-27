@@ -8,9 +8,6 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
-    public interface IPathOperation : IBinaryOperation<ICodeElement, IMemberReferance>
-    {
-    }
 
     public class WeakPathOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
     {

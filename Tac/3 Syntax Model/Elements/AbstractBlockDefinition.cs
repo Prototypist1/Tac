@@ -4,15 +4,9 @@ using System.Linq;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public interface IAbstractBlockDefinition: ICodeElement, IReturnable {
-        IFinalizedScope Scope { get; }
-        IWeakCodeElement[] Body { get; }
-        IEnumerable<IAssignOperation> StaticInitailizers { get; }
-    }
 
     public abstract class WeakAbstractBlockDefinition : IWeakCodeElement, IScoped, IWeakReturnable
     {

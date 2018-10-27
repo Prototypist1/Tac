@@ -9,13 +9,6 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface IModuleDefinition : ICodeElement, IReturnable
-    {
-        IFinalizedScope Scope { get; }
-        IEnumerable<IWeakCodeElement> StaticInitialization { get; }
-        // why does this know it's own key??
-        IKey Key{get; }
-    }
 
 
     public class WeakModuleDefinition : IScoped, IWeakCodeElement, IWeakReturnable

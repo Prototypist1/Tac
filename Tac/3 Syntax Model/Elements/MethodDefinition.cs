@@ -10,13 +10,6 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public interface IMethodDefinition: IBlockDefinition {
-
-        IReturnable InputType { get; }
-        IReturnable OutputType { get; }
-        IMemberDefinition ParameterDefinition { get; }
-    }
-
     public class WeakMethodDefinition : WeakAbstractBlockDefinition, IWeakReturnable
     {
         public WeakMethodDefinition(

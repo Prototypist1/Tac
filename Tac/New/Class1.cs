@@ -56,7 +56,7 @@ namespace Tac.New
         IResult<IPopulateScope<TCodeElement>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext);
     }
 
-    public interface IOperationMaker<TCodeElement>
+    public interface IOperationMaker<out TCodeElement>
     {
         IResult<IPopulateScope<TCodeElement>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
     }
