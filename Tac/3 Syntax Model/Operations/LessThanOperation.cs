@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.New;
 using Tac.Parser;
 
 namespace Tac.Semantic_Model.CodeStuff
@@ -25,8 +26,10 @@ namespace Tac.Semantic_Model.CodeStuff
     
     public class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation>
     {
-        public LessThanOperationMaker(BinaryOperation.Make<WeakLessThanOperation> make) : base(WeakLessThanOperation.Identifier, make)
+        public LessThanOperationMaker(BinaryOperation.Make<WeakLessThanOperation> make) : base(WeakLessThanOperation.Identifier, make, new LessThanConverter())
         {
         }
+
+
     }
 }

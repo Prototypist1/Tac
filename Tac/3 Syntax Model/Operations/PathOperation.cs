@@ -47,10 +47,19 @@ namespace Tac.Semantic_Model.Operations
                 var left = matchingContext.ParseLine(perface);
                 var right = matchingContext.ExpectPathPart(left.GetReturnType(matchingContext.Builders)).ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, Make));
+                return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, Make, new Converter()));
             }
 
             return ResultExtension.Bad<IPopulateScope<WeakPathOperation>>();
+        }
+
+
+        private class Converter : IConverter<WeakPathOperation>
+        {
+            public T Convert<T>(IOpenBoxesContext<T> context, WeakPathOperation co)
+            {
+                return context.PathOperation(co);
+            }
         }
 
     }

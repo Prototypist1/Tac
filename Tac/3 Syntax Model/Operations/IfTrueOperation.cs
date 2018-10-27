@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
@@ -28,8 +29,17 @@ namespace Tac.Semantic_Model.Operations
 
     public class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation>
     {
-        public IfTrueOperationMaker(BinaryOperation.Make<WeakIfTrueOperation> make) : base(WeakIfTrueOperation.Identifier, make)
+        public IfTrueOperationMaker(BinaryOperation.Make<WeakIfTrueOperation> make) : base(WeakIfTrueOperation.Identifier, make,new IfConverter())
         {
         }
+        
+        private class IfConverter : IConverter<WeakIfTrueOperation>
+        {
+            public T Convert<T>(IOpenBoxesContext<T> context, WeakIfTrueOperation co)
+            {
+                return context.IfTrueOperation(co);
+            }
+        }
     }
+
 }

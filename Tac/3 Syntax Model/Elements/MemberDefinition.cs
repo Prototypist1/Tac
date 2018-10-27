@@ -42,19 +42,14 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberDefinitionMaker<T> : IMaker<T, WeakMemberReferance>
+    public class MemberDefinitionMaker : IMaker<WeakMemberReferance>
     {
-        public MemberDefinitionMaker(Func<WeakMemberReferance,T> make,
-            IElementBuilders elementBuilders)
+        public MemberDefinitionMaker()
         {
-            Make = make ?? throw new ArgumentNullException(nameof(make));
-            ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
+        
 
-        private Func<WeakMemberReferance,T> Make { get; }
-        private IElementBuilders ElementBuilders { get; }
-
-        public IResult<IPopulateScope<T, WeakMemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakMemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
@@ -63,37 +58,35 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                return ResultExtension.Good(new MemberDefinitionPopulateScope<T>(nameToken.Item, readonlyToken != default, typeToken, Make));
+                return ResultExtension.Good(new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, typeToken));
             }
-            return ResultExtension.Bad<IPopulateScope<T, WeakMemberReferance>>();
+            return ResultExtension.Bad<IPopulateScope<WeakMemberReferance>>();
         }
     }
 
-    public class MemberDefinitionPopulateScope<T> : IPopulateScope<T, WeakMemberReferance>
+    public class MemberDefinitionPopulateScope : IPopulateScope< WeakMemberReferance>
     {
         private readonly string memberName;
         private readonly bool isReadonly;
         private readonly NameKey typeName;
-        private readonly Func<WeakMemberReferance,T> make;
         private readonly Box<WeakMemberReferance> box = new Box<WeakMemberReferance>();
         private readonly Box<WeakMemberDefinition> memberDefinitionBox = new Box<WeakMemberDefinition>();
 
-        public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken, Func<WeakMemberReferance,T> make)
+        public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             isReadonly = v;
             typeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IPopulateBoxes<T, WeakMemberReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
         {
             var key = new NameKey(memberName);
             if (!context.Scope.TryAddMember(DefintionLifetime.Instance,key, memberDefinitionBox))
             {
                 throw new Exception("bad bad bad!");
             }
-            return new MemberDefinitionResolveReferance<T>(memberName, box, isReadonly, typeName, make, context.GetResolvableScope(), memberDefinitionBox);
+            return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, context.GetResolvableScope(), memberDefinitionBox);
         }
 
         public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -102,13 +95,12 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberDefinitionResolveReferance<T> : IPopulateBoxes<T, WeakMemberReferance>
+    public class MemberDefinitionResolveReferance : IPopulateBoxes< WeakMemberReferance>
     {
         private readonly string memberName;
         private readonly Box<WeakMemberReferance> box;
         private readonly bool isReadonly;
         public readonly NameKey typeName;
-        private readonly Func<WeakMemberReferance,T> make;
         private readonly IResolvableScope scope;
         private readonly Box<WeakMemberDefinition> memberDefinitionBox;
 
@@ -117,7 +109,6 @@ namespace Tac.Semantic_Model
             Box<WeakMemberReferance> box,
             bool isReadonly,
             NameKey explicitTypeName,
-            Func<WeakMemberReferance,T> make,
             IResolvableScope scope,
             Box<WeakMemberDefinition> memberDefinitionBox)
         {
@@ -125,12 +116,11 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.isReadonly = isReadonly;
             typeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
         }
 
-        public IOpenBoxes<T, WeakMemberReferance> Run(IResolveReferanceContext context)
+        public IOpenBoxes<WeakMemberReferance> Run(IResolveReferanceContext context)
         {
             memberDefinitionBox.Fill(
                 new WeakMemberDefinition(
@@ -139,24 +129,22 @@ namespace Tac.Semantic_Model
                     scope.GetTypeOrThrow(typeName)));
 
             var item=  box.Fill(new WeakMemberReferance(memberDefinitionBox));
-            return new MemberDefinitionOpenBoxes<T>(item, make);
+            return new MemberDefinitionOpenBoxes(item);
         }
     }
 
-    internal class MemberDefinitionOpenBoxes<T> : IOpenBoxes<T, WeakMemberReferance>
+    internal class MemberDefinitionOpenBoxes : IOpenBoxes<WeakMemberReferance>
     {
         public WeakMemberReferance CodeElement { get; }
-        private readonly Func<WeakMemberReferance, T> make;
 
-        public MemberDefinitionOpenBoxes(WeakMemberReferance item, Func<WeakMemberReferance, T> make)
+        public MemberDefinitionOpenBoxes(WeakMemberReferance item)
         {
             this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public T Run(IOpenBoxesContext context)
+        public T Run<T>(IOpenBoxesContext<T> context)
         {
-            return make(CodeElement);
+            return context.MemberReferance(CodeElement);
         }
     }
 }

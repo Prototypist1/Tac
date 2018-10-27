@@ -33,43 +33,37 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class ConstantNumberMaker<T> : IMaker<T, WeakConstantNumber>
+    public class ConstantNumberMaker<T> : IMaker<WeakConstantNumber>
     {
-        private readonly Func<WeakConstantNumber,T> make;
+        public ConstantNumberMaker() {}
 
-        public ConstantNumberMaker(Func<WeakConstantNumber, T> Make) {
-            make = Make ?? throw new ArgumentNullException(nameof(Make));
-        }
-
-        public IResult<IPopulateScope<T, WeakConstantNumber>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakConstantNumber>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsNumber, out double dub)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                return ResultExtension.Good(new ConstantNumberPopulateScope<T>(dub, make));
+                return ResultExtension.Good(new ConstantNumberPopulateScope(dub));
             }
             
-            return ResultExtension.Bad<IPopulateScope<T, WeakConstantNumber>>();
+            return ResultExtension.Bad<IPopulateScope<WeakConstantNumber>>();
         }
     }
     
-    public class ConstantNumberPopulateScope<T> : IPopulateScope<T, WeakConstantNumber>
+    public class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Func<WeakConstantNumber, T> make;
         private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
-        public ConstantNumberPopulateScope(double dub, Func<WeakConstantNumber, T> Make)
+        public ConstantNumberPopulateScope(double dub)
         {
             this.dub = dub;
-            make = Make;
         }
 
-        public IPopulateBoxes<T, WeakConstantNumber> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakConstantNumber> Run(IPopulateScopeContext context)
         {
-            return new ConstantNumberResolveReferance<T>(dub, make,box);
+            return new ConstantNumberResolveReferance(dub, box);
         }
 
         public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -78,43 +72,38 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class ConstantNumberResolveReferance<T> : IPopulateBoxes<T, WeakConstantNumber>
+    public class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Func<WeakConstantNumber, T> make;
         private readonly Box<IWeakReturnable> box;
 
         public ConstantNumberResolveReferance(
             double dub,
-             Func<WeakConstantNumber, T> Make, 
             Box<IWeakReturnable> box)
         {
             this.dub = dub;
-            make = Make ?? throw new ArgumentNullException(nameof(Make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IOpenBoxes<T, WeakConstantNumber> Run(IResolveReferanceContext context)
+        public IOpenBoxes<WeakConstantNumber> Run(IResolveReferanceContext context)
         {
             var item = box.Fill(new WeakConstantNumber(dub));
-            return new ConstantNumberOpenBoxes<T>(item,make);
+            return new ConstantNumberOpenBoxes(item);
         }
     }
 
-    internal class ConstantNumberOpenBoxes<T> : IOpenBoxes<T, WeakConstantNumber>
+    internal class ConstantNumberOpenBoxes : IOpenBoxes<WeakConstantNumber>
     {
         public WeakConstantNumber CodeElement { get; }
-        private readonly Func<WeakConstantNumber, T> make;
 
-        public ConstantNumberOpenBoxes(WeakConstantNumber item, Func<WeakConstantNumber, T> make)
+        public ConstantNumberOpenBoxes(WeakConstantNumber item)
         {
             this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public T Run(IOpenBoxesContext context)
+        public T Run<T>(IOpenBoxesContext<T> context)
         {
-            return make(CodeElement);
+            return context.ConstantNumber(CodeElement);
         }
     }
 }

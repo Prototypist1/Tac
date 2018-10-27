@@ -101,16 +101,14 @@ namespace Tac.Semantic_Model
         public GenericTypeParameterDefinition Definition { get; }
     }
 
-    public class GenericTypeDefinitionMaker<T> : IMaker<T, WeakGenericTypeDefinition>
+    public class GenericTypeDefinitionMaker : IMaker<WeakGenericTypeDefinition>
     {
-        private readonly Func<WeakGenericTypeDefinition,T> make;
 
-        public GenericTypeDefinitionMaker(Func<WeakGenericTypeDefinition, T> make)
+        public GenericTypeDefinitionMaker()
         {
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IResult<IPopulateScope<T, WeakGenericTypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<WeakGenericTypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("type"), out var _)
@@ -119,47 +117,43 @@ namespace Tac.Semantic_Model
                 .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
                 .IsMatch)
             {
-                return ResultExtension.Good(new GenericTypeDefinitionPopulateScope<T>(
+                return ResultExtension.Good(new GenericTypeDefinitionPopulateScope(
                     new NameKey(typeName.Item),
                     matchingContext.ParseBlock(body),
-                    genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray(), 
-                    make));
+                    genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray()));
             }
 
-            return ResultExtension.Bad<IPopulateScope<T, WeakGenericTypeDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<WeakGenericTypeDefinition>>();
         }
 
 
 
     }
 
-    public class GenericTypeDefinitionPopulateScope<T> : IPopulateScope<T, WeakGenericTypeDefinition>
+    public class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
-        private readonly IEnumerable<IPopulateScope<,IWeakCodeElement>> lines;
+        private readonly IEnumerable<IPopulateScope<IWeakCodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
-        private readonly Func<WeakGenericTypeDefinition, T> make;
         private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
-            IEnumerable<IPopulateScope<,IWeakCodeElement>> lines,
-            GenericTypeParameterDefinition[] genericParameters,
-            Func<WeakGenericTypeDefinition, T> make)
+            IEnumerable<IPopulateScope<IWeakCodeElement>> lines,
+            GenericTypeParameterDefinition[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IPopulateBoxes<T, WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
         {
             var encolsing = context.Scope.TryAddType(nameKey, box);
             
             var nextContext = context.Child();
             lines.Select(x => x.Run(nextContext)).ToArray();
-            return new GenericTypeDefinitionResolveReferance<T>(nameKey, genericParameters, nextContext.GetResolvableScope(), box, make);
+            return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, nextContext.GetResolvableScope(), box);
         }
 
         public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -169,49 +163,44 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class GenericTypeDefinitionResolveReferance<T> : IPopulateBoxes<T, WeakGenericTypeDefinition>
+    public class GenericTypeDefinitionResolveReferance : IPopulateBoxes<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly IResolvableScope scope;
         private readonly Box<IWeakReturnable> box;
-        private readonly Func<WeakGenericTypeDefinition, T> make;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             GenericTypeParameterDefinition[] genericParameters, 
             IResolvableScope scope, 
-            Box<IWeakReturnable> box,
-            Func<WeakGenericTypeDefinition, T> make)
+            Box<IWeakReturnable> box)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
         
-        public IOpenBoxes<T, WeakGenericTypeDefinition> Run(IResolveReferanceContext context)
+        public IOpenBoxes<WeakGenericTypeDefinition> Run(IResolveReferanceContext context)
         {
             var item=  box.Fill(new WeakGenericTypeDefinition(nameKey, scope.GetFinalized(), genericParameters));
-            return new GenericTypeDefinitionOpenBoxes<T>(item, make);
+            return new GenericTypeDefinitionOpenBoxes(item);
         }
     }
 
-    internal class GenericTypeDefinitionOpenBoxes<T> : IOpenBoxes<T, WeakGenericTypeDefinition>
+    internal class GenericTypeDefinitionOpenBoxes : IOpenBoxes<WeakGenericTypeDefinition>
     {
         public WeakGenericTypeDefinition CodeElement { get; }
-        private readonly Func<WeakGenericTypeDefinition, T> make;
 
-        public GenericTypeDefinitionOpenBoxes(WeakGenericTypeDefinition item, Func<WeakGenericTypeDefinition, T> make)
+        public GenericTypeDefinitionOpenBoxes(WeakGenericTypeDefinition item)
         {
             this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public T Run(IOpenBoxesContext context)
+        public T Run<T>(IOpenBoxesContext<T> context)
         {
-            return make(CodeElement);
+            return context.GenericTypeDefinition(CodeElement);
         }
     }
 }

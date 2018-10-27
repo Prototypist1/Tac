@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
@@ -29,8 +30,16 @@ namespace Tac.Semantic_Model.Operations
 
     public class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
     {
-        public AddOperationMaker(BinaryOperation.Make<WeakAddOperation> make) : base(WeakAddOperation.Identifier, make)
+        public AddOperationMaker(BinaryOperation.Make<WeakAddOperation> make) : base(WeakAddOperation.Identifier, make, new AddConverter())
         {
+        }
+
+        private class AddConverter : IConverter<WeakAddOperation>
+        {
+            public T Convert<T>(IOpenBoxesContext<T> context, WeakAddOperation co)
+            {
+                return context.AddOperation(co);
+            }
         }
     }
 }

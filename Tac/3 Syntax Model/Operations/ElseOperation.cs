@@ -1,4 +1,5 @@
 ﻿using System;
+using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
@@ -28,8 +29,17 @@ namespace Tac.Semantic_Model.Operations
 
     public class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation>
     {
-        public ElseOperationMaker(BinaryOperation.Make<WeakElseOperation> make) : base(WeakElseOperation.Identifier, make)
+        public ElseOperationMaker(BinaryOperation.Make<WeakElseOperation> make) : base(WeakElseOperation.Identifier, make, new ElseConverter())
         {
+        }
+    }
+
+
+    public class ElseConverter : IConverter<WeakElseOperation>
+    {
+        public T Convert<T>(IOpenBoxesContext<T> context, WeakElseOperation co)
+        {
+            return context.ElseOperation(co);
         }
     }
 }

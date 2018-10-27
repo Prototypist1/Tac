@@ -45,11 +45,21 @@ namespace Tac.Semantic_Model.Operations
                 var left = matchingContext.ParseLine(perface);
                 var right = matchingContext.AcceptImplicit(left.GetReturnType(matchingContext.Builders)).ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<WeakAssignOperation>(left, right, Make));
+                return ResultExtension.Good(new BinaryPopulateScope<WeakAssignOperation>(left, right, Make, new AssignConverter()));
             }
 
             return ResultExtension.Bad<IPopulateScope<WeakAssignOperation>>();
         }
 
+
+        private class AssignConverter : IConverter<WeakAssignOperation>
+        {
+            public T Convert<T>(IOpenBoxesContext<T> context, WeakAssignOperation co)
+            {
+                return context.AssignOperation(co);
+            }
+        }
+
     }
+
 }

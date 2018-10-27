@@ -1,4 +1,5 @@
 ﻿using System;
+using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
@@ -25,8 +26,17 @@ namespace Tac.Semantic_Model.Operations
     
     public class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation>
     {
-        public SubtractOperationMaker(BinaryOperation.Make<WeakSubtractOperation> make) : base(WeakSubtractOperation.Identifier, make)
+        public SubtractOperationMaker(BinaryOperation.Make<WeakSubtractOperation> make) : base(WeakSubtractOperation.Identifier, make, new Converter())
         {
         }
+
+        private class Converter : IConverter<WeakSubtractOperation>
+        {
+            public T Convert<T>(IOpenBoxesContext<T> context, WeakSubtractOperation co)
+            {
+                return context.SubtractOperation(co);
+            }
+        }
+
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
@@ -30,8 +31,16 @@ namespace Tac.Semantic_Model.Operations
 
     public class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation>
     {
-        public NextCallOperationMaker(BinaryOperation.Make<WeakNextCallOperation> make) : base(WeakNextCallOperation.Identifier, make)
+        public NextCallOperationMaker(BinaryOperation.Make<WeakNextCallOperation> make) : base(WeakNextCallOperation.Identifier, make, new NextCallConverter())
         {
+        }
+
+        private class NextCallConverter : IConverter<WeakNextCallOperation>
+        {
+            public T Convert<T>(IOpenBoxesContext<T> context, WeakNextCallOperation co)
+            {
+                return context.NextCallOperation(co);
+            }
         }
     }
 
@@ -55,8 +64,16 @@ namespace Tac.Semantic_Model.Operations
 
     public class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation>
     {
-        public LastCallOperationMaker(BinaryOperation.Make<WeakLastCallOperation> make) : base(WeakLastCallOperation.Identifier, make)
+        public LastCallOperationMaker(BinaryOperation.Make<WeakLastCallOperation> make) : base(WeakLastCallOperation.Identifier, make, new LastCallConverter())
         {
+        }
+
+        private class LastCallConverter : IConverter<WeakLastCallOperation>
+        {
+            public T Convert<T>(IOpenBoxesContext<T> context, WeakLastCallOperation co)
+            {
+                return context.LastCallOperation(co);
+            }
         }
     }
     
@@ -68,4 +85,6 @@ namespace Tac.Semantic_Model.Operations
             return codeElement.Returns(elementBuilders).Cast<T>();
         }
     }
+
+
 }
