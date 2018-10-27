@@ -179,5 +179,10 @@ namespace Tac.Semantic_Model.CodeStuff
             this.CodeElement = res;
             this.makeT = makeT ?? throw new ArgumentNullException(nameof(makeT));
         }
+
+        public T Run(IOpenBoxesContext context)
+        {
+            return make(CodeElement);
+        }
     }
 }
