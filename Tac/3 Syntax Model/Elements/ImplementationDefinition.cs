@@ -235,4 +235,16 @@ namespace Tac.Semantic_Model
             return make(CodeElement);
         }
     }
+
+    // TODO TODO
+    // you are here!
+    // ok so instead of this shitty pass make threw thing
+    // nothing is <T>
+    // public T Run(IOpenBoxesContext context)
+    // becomes 
+    // public T Run<T>(IOpenBoxesContext<T> context)
+    // and that has makes for all the types
+    // also, run can just be on the weak code elements
+    
+
 }

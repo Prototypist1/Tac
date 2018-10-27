@@ -136,14 +136,14 @@ namespace Tac.Semantic_Model
     public class GenericTypeDefinitionPopulateScope<T> : IPopulateScope<T, WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
-        private readonly IEnumerable<IPopulateScope<IWeakCodeElement>> lines;
+        private readonly IEnumerable<IPopulateScope<,IWeakCodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly Func<WeakGenericTypeDefinition, T> make;
         private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
-            IEnumerable<IPopulateScope<IWeakCodeElement>> lines,
+            IEnumerable<IPopulateScope<,IWeakCodeElement>> lines,
             GenericTypeParameterDefinition[] genericParameters,
             Func<WeakGenericTypeDefinition, T> make)
         {
