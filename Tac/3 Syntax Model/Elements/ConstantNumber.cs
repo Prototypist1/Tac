@@ -20,8 +20,6 @@ namespace Tac.Semantic_Model.Operations
     // IDK!
     public class WeakConstantNumber : IWeakCodeElement, IWeakReturnable
     {
-        public delegate WeakConstantNumber Make(double value);
-
         public WeakConstantNumber(double value) 
         {
             Value = value;
@@ -35,43 +33,43 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class ConstantNumberMaker : IMaker<WeakConstantNumber>
+    public class ConstantNumberMaker<T> : IMaker<T, WeakConstantNumber>
     {
-        private readonly WeakConstantNumber.Make make;
+        private readonly Func<WeakConstantNumber,T> make;
 
-        public ConstantNumberMaker(WeakConstantNumber.Make Make) {
+        public ConstantNumberMaker(Func<WeakConstantNumber, T> Make) {
             make = Make ?? throw new ArgumentNullException(nameof(Make));
         }
 
-        public IResult<IPopulateScope<WeakConstantNumber>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<T, WeakConstantNumber>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.IsNumber, out double dub)
                 .Has(ElementMatcher.IsDone)
                 .IsMatch)
             {
-                return ResultExtension.Good(new ConstantNumberPopulateScope(dub, make));
+                return ResultExtension.Good(new ConstantNumberPopulateScope<T>(dub, make));
             }
             
-            return ResultExtension.Bad<IPopulateScope<WeakConstantNumber>>();
+            return ResultExtension.Bad<IPopulateScope<T, WeakConstantNumber>>();
         }
     }
     
-    public class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
+    public class ConstantNumberPopulateScope<T> : IPopulateScope<T, WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly WeakConstantNumber.Make make;
+        private readonly Func<WeakConstantNumber, T> make;
         private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
-        public ConstantNumberPopulateScope(double dub, WeakConstantNumber.Make Make)
+        public ConstantNumberPopulateScope(double dub, Func<WeakConstantNumber, T> Make)
         {
             this.dub = dub;
             make = Make;
         }
 
-        public IPopulateBoxes<WeakConstantNumber> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<T, WeakConstantNumber> Run(IPopulateScopeContext context)
         {
-            return new ConstantNumberResolveReferance(dub, make,box);
+            return new ConstantNumberResolveReferance<T>(dub, make,box);
         }
 
         public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -80,15 +78,15 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
+    public class ConstantNumberResolveReferance<T> : IPopulateBoxes<T, WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly WeakConstantNumber.Make make;
+        private readonly Func<WeakConstantNumber, T> make;
         private readonly Box<IWeakReturnable> box;
 
         public ConstantNumberResolveReferance(
             double dub,
-            WeakConstantNumber.Make Make, 
+             Func<WeakConstantNumber, T> Make, 
             Box<IWeakReturnable> box)
         {
             this.dub = dub;
@@ -96,9 +94,22 @@ namespace Tac.Semantic_Model.Operations
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public WeakConstantNumber Run(IResolveReferanceContext context)
+        public IOpenBoxes<T, WeakConstantNumber> Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(dub));
+            var item = box.Fill(new WeakConstantNumber(dub));
+            return new ConstantNumberOpenBoxes<T>(item,make);
+        }
+    }
+
+    internal class ConstantNumberOpenBoxes<T> : IOpenBoxes<T, WeakConstantNumber>
+    {
+        public WeakConstantNumber CodeElement { get; }
+        private readonly Func<WeakConstantNumber, T> make;
+
+        public ConstantNumberOpenBoxes(WeakConstantNumber item, Func<WeakConstantNumber, T> make)
+        {
+            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
     }
 }

@@ -20,8 +20,6 @@ namespace Tac.Semantic_Model
 
     public class WeakModuleDefinition : IScoped, IWeakCodeElement, IWeakReturnable
     {
-        public delegate WeakModuleDefinition Make(IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitialization, NameKey Ke);
-
         public WeakModuleDefinition(IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitialization, NameKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -44,16 +42,16 @@ namespace Tac.Semantic_Model
     }
 
 
-    public class ModuleDefinitionMaker : IMaker<WeakModuleDefinition>
+    public class ModuleDefinitionMaker<T> : IMaker<T, WeakModuleDefinition>
     {
-        public ModuleDefinitionMaker(WeakModuleDefinition.Make make)
+        public ModuleDefinitionMaker(Func<WeakModuleDefinition,T> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private WeakModuleDefinition.Make Make { get; }
+        private Func<WeakModuleDefinition,T> Make { get; }
 
-        public IResult<IPopulateScope<WeakModuleDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<T, WeakModuleDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                             .Has(ElementMatcher.KeyWord("module"), out var frist)
@@ -67,23 +65,23 @@ namespace Tac.Semantic_Model
                 var elements = matchingContext.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
                 
-                return ResultExtension.Good(new ModuleDefinitionPopulateScope(elements, Make, nameKey));
+                return ResultExtension.Good(new ModuleDefinitionPopulateScope<T>(elements, Make, nameKey));
 
             }
-            return ResultExtension.Bad<IPopulateScope<WeakModuleDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<T, WeakModuleDefinition>>();
         }
     }
     
-    public class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition>
+    public class ModuleDefinitionPopulateScope<T> : IPopulateScope<T, WeakModuleDefinition>
     {
-        private readonly IPopulateScope<IWeakCodeElement>[] elements;
-        private readonly WeakModuleDefinition.Make make;
+        private readonly IPopulateScope<,IWeakCodeElement>[] elements;
+        private readonly Func<WeakModuleDefinition,T> make;
         private readonly NameKey nameKey;
         private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
         public ModuleDefinitionPopulateScope(
-            IPopulateScope<IWeakCodeElement>[] elements,
-            WeakModuleDefinition.Make make, 
+            IPopulateScope<,IWeakCodeElement>[] elements,
+            Func<WeakModuleDefinition,T> make, 
             NameKey nameKey)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -96,10 +94,10 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IPopulateBoxes<WeakModuleDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<T, WeakModuleDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
-            return new ModuleDefinitionResolveReferance(
+            return new ModuleDefinitionResolveReferance<T>(
                 nextContext.GetResolvableScope(),
                 elements.Select(x => x.Run(nextContext)).ToArray(),
                 make,
@@ -109,18 +107,18 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ModuleDefinitionResolveReferance : IPopulateBoxes<WeakModuleDefinition>
+    public class ModuleDefinitionResolveReferance<T> : IPopulateBoxes<T, WeakModuleDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IPopulateBoxes<IWeakCodeElement>[] resolveReferance;
-        private readonly WeakModuleDefinition.Make make;
+        private readonly IPopulateBoxes<,IWeakCodeElement>[] resolveReferance;
+        private readonly Func<WeakModuleDefinition,T> make;
         private readonly NameKey nameKey;
         private readonly Box<IWeakReturnable> box;
 
         public ModuleDefinitionResolveReferance(
             IResolvableScope scope, 
-            IPopulateBoxes<IWeakCodeElement>[] resolveReferance,
-            WeakModuleDefinition.Make make, 
+            IPopulateBoxes<,IWeakCodeElement>[] resolveReferance,
+            Func<WeakModuleDefinition,T> make, 
             NameKey nameKey,
             Box<IWeakReturnable> box)
         {
@@ -131,9 +129,25 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public WeakModuleDefinition Run(IResolveReferanceContext context)
+        public IOpenBoxes<T, WeakModuleDefinition> Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope.GetFinalized(), resolveReferance.Select(x => x.Run(context)).ToArray(),nameKey));
+            var item =  box.Fill(new WeakMemberDefinition(
+                scope.GetFinalized(), 
+                resolveReferance.Select(x => x.Run(context)).ToArray(),
+                nameKey));
+            return new MuldieDefinitionOpenBoxes<T>(item, make);
+        }
+    }
+
+    internal class MuldieDefinitionOpenBoxes<T> : IOpenBoxes<T, WeakModuleDefinition>
+    {
+        public WeakMemberDefinition CodeElement { get; }
+        private readonly Func<WeakModuleDefinition, T> make;
+
+        public MuldieDefinitionOpenBoxes(WeakMemberDefinition item, Func<WeakModuleDefinition, T> make)
+        {
+            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
     }
 }

@@ -13,11 +13,6 @@ namespace Tac.Semantic_Model
 
     public class WeakBlockDefinition : WeakAbstractBlockDefinition
     {
-
-        public delegate WeakBlockDefinition Make(IWeakCodeElement[] body,
-            IWeakFinalizedScope scope,
-            IEnumerable<IWeakCodeElement> staticInitailizers);
-
         public WeakBlockDefinition(
             IWeakCodeElement[] body,
             IWeakFinalizedScope scope,
@@ -26,16 +21,16 @@ namespace Tac.Semantic_Model
         
     }
 
-    public class BlockDefinitionMaker : IMaker<WeakBlockDefinition>
+    public class BlockDefinitionMaker<T> : IMaker<T, WeakBlockDefinition>
     {
-        public BlockDefinitionMaker(WeakBlockDefinition.Make make)
+        public BlockDefinitionMaker(Func<WeakBlockDefinition, T> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private WeakBlockDefinition.Make Make { get; }
+        private Func<WeakBlockDefinition, T> Make { get; }
 
-        public IResult<IPopulateScope<WeakBlockDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<T, WeakBlockDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
@@ -44,30 +39,33 @@ namespace Tac.Semantic_Model
             {
                 var elements = matchingContext.ParseBlock(body);
 
-                return ResultExtension.Good(new BlockDefinitionPopulateScope( elements, Make));
+                return ResultExtension.Good(new BlockDefinitionPopulateScope<T>( elements, Make));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakBlockDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<T, WeakBlockDefinition>>();
         }
     }
 
 
-    public class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition>, IWeakReturnable
+    public class BlockDefinitionPopulateScope<T> : IPopulateScope<T, WeakBlockDefinition>
     {
-        private IPopulateScope<IWeakCodeElement>[] Elements { get; }
-        public WeakBlockDefinition.Make Make { get; }
+        // TODO object??
+        // is it worth adding another T?
+        // this is the type the backend owns
+        private IPopulateScope<object,IWeakCodeElement>[] Elements { get; }
+        public Func<WeakBlockDefinition, T> Make { get; }
         private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
-        public BlockDefinitionPopulateScope(IPopulateScope<IWeakCodeElement>[] elements, WeakBlockDefinition.Make make)
+        public BlockDefinitionPopulateScope(IPopulateScope<object,IWeakCodeElement>[] elements, Func<WeakBlockDefinition, T> make)
         {
             Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IPopulateBoxes<WeakBlockDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<T, WeakBlockDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
-            return new ResolveReferanceBlockDefinition(nextContext.GetResolvableScope(), Elements.Select(x => x.Run(nextContext)).ToArray(), Make,box);
+            return new ResolveReferanceBlockDefinition<T>(nextContext.GetResolvableScope(), Elements.Select(x => x.Run(nextContext)).ToArray(), Make,box);
         }
 
         public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
@@ -76,17 +74,17 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
+    public class ResolveReferanceBlockDefinition<T> : IPopulateBoxes<T, WeakBlockDefinition>
     {
         private IResolvableScope Scope { get; }
-        private IPopulateBoxes<IWeakCodeElement>[] ResolveReferance { get; }
-        private WeakBlockDefinition.Make Make { get; }
+        private IPopulateBoxes<object,IWeakCodeElement>[] ResolveReferance { get; }
+        private Func<WeakBlockDefinition, T> Make { get; }
         private readonly Box<IWeakReturnable> box;
 
         public ResolveReferanceBlockDefinition(
             IResolvableScope scope, 
-            IPopulateBoxes<IWeakCodeElement>[] resolveReferance,
-            WeakBlockDefinition.Make make,
+            IPopulateBoxes<object,IWeakCodeElement>[] resolveReferance,
+            Func<WeakBlockDefinition, T> make,
             Box<IWeakReturnable> box)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -95,9 +93,24 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public WeakBlockDefinition Run(IResolveReferanceContext context)
+        public IOpenBoxes<T, WeakBlockDefinition> Run(IResolveReferanceContext context)
         {
-            return box.Fill(Make(ResolveReferance.Select(x => x.Run(context)).ToArray(), Scope.GetFinalized(), new IWeakCodeElement[0]));
+            var item = box.Fill(new WeakBlockDefinition(ResolveReferance.Select(x => x.Run(context).CodeElement).ToArray(), Scope.GetFinalized(), new IWeakCodeElement[0]));
+            return new ResolveReferanceOpenBoxes<T>(item,Make);
+        }
+        
+    }
+
+    public class ResolveReferanceOpenBoxes<T> : IOpenBoxes<T, WeakBlockDefinition>
+    {
+        public WeakBlockDefinition CodeElement { get; }
+        private readonly Func<WeakBlockDefinition, T> make;
+
+        public ResolveReferanceOpenBoxes(WeakBlockDefinition item, Func<WeakBlockDefinition, T> make)
+        {
+            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
     }
+
 }

@@ -19,13 +19,6 @@ namespace Tac.Semantic_Model
 
     public class WeakMethodDefinition : WeakAbstractBlockDefinition, IWeakReturnable
     {
-        public delegate WeakMethodDefinition Make(
-            IBox<IWeakReturnable> outputType,
-            IBox<WeakMemberDefinition> parameterDefinition,
-            IWeakCodeElement[] body,
-            IWeakFinalizedScope scope,
-            IEnumerable<IWeakCodeElement> staticInitializers);
-
         public WeakMethodDefinition(
             IBox<IWeakReturnable> outputType, 
             IBox<WeakMemberDefinition> parameterDefinition,
@@ -51,20 +44,20 @@ namespace Tac.Semantic_Model
     }
 
 
-    public class MethodDefinitionMaker : IMaker<WeakMethodDefinition>
+    public class MethodDefinitionMaker<T> : IMaker<T, WeakMethodDefinition>
     {
         public MethodDefinitionMaker(
-            WeakMethodDefinition.Make make,
+            Func<WeakMethodDefinition,T> make,
             IElementBuilders elementBuilders)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
             ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
-        private WeakMethodDefinition.Make Make { get; }
+        private Func<WeakMethodDefinition,T> Make { get; }
         private IElementBuilders ElementBuilders { get; }
 
-        public IResult<IPopulateScope<WeakMethodDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<T, WeakMethodDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                 .Has(ElementMatcher.KeyWord("method"), out var _)
@@ -76,7 +69,7 @@ namespace Tac.Semantic_Model
             {
                 var elements = matchingContext.ParseBlock(body);
                 
-                var parameterDefinition = new MemberDefinitionPopulateScope(
+                var parameterDefinition = new MemberDefinitionPopulateScope<T>(
                         parameterName?.Item ?? "input",
                         false,
                          new NameKey(inputType.Item),
@@ -86,30 +79,30 @@ namespace Tac.Semantic_Model
 
                 var outputTypeName = new NameKey(outputType.Item);
                 
-                return ResultExtension.Good(new MethodDefinitionPopulateScope(
+                return ResultExtension.Good(new MethodDefinitionPopulateScope<T>(
                     parameterDefinition,
                     elements, 
                     outputTypeName, 
                     Make));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakMethodDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<T, WeakMethodDefinition>>();
         }
     }
 
-    public class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
+    public class MethodDefinitionPopulateScope<T> : IPopulateScope<T, WeakMethodDefinition>
     {
-        private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
-        private readonly IPopulateScope<IWeakCodeElement>[] elements;
+        private readonly IPopulateScope<,WeakMemberReferance> parameterDefinition;
+        private readonly IPopulateScope<,IWeakCodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly WeakMethodDefinition.Make make;
+        private readonly Func<WeakMethodDefinition,T> make;
         private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
         public MethodDefinitionPopulateScope(
-            IPopulateScope<WeakMemberReferance> parameterDefinition,
-            IPopulateScope<IWeakCodeElement>[] elements, 
+            IPopulateScope<,WeakMemberReferance> parameterDefinition,
+            IPopulateScope<,IWeakCodeElement>[] elements, 
             NameKey outputTypeName,
-            WeakMethodDefinition.Make make
+            Func<WeakMethodDefinition,T> make
             )
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -124,11 +117,11 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IPopulateBoxes<WeakMethodDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<T, WeakMethodDefinition> Run(IPopulateScopeContext context)
         {
 
             var nextContext = context.Child();
-            return new MethodDefinitionResolveReferance(
+            return new MethodDefinitionResolveReferance<T>(
                 parameterDefinition.Run(nextContext),
                 nextContext.GetResolvableScope(), 
                 elements.Select(x => x.Run(nextContext)).ToArray(), 
@@ -138,21 +131,21 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MethodDefinitionResolveReferance : IPopulateBoxes<WeakMethodDefinition>
+    public class MethodDefinitionResolveReferance<T> : IPopulateBoxes<T, WeakMethodDefinition>
     {
-        private readonly IPopulateBoxes<WeakMemberReferance> parameter;
+        private readonly IPopulateBoxes<,WeakMemberReferance> parameter;
         private readonly IResolvableScope methodScope;
-        private readonly IPopulateBoxes<IWeakCodeElement>[] lines;
+        private readonly IPopulateBoxes<,IWeakCodeElement>[] lines;
         private readonly NameKey outputTypeName;
-        private readonly WeakMethodDefinition.Make make;
+        private readonly Func<WeakMethodDefinition,T> make;
         private readonly Box<IWeakReturnable> box;
 
         public MethodDefinitionResolveReferance(
-            IPopulateBoxes<WeakMemberReferance> parameter, 
+            IPopulateBoxes<,WeakMemberReferance> parameter, 
             IResolvableScope methodScope, 
-            IPopulateBoxes<IWeakCodeElement>[] resolveReferance2, 
+            IPopulateBoxes<,IWeakCodeElement>[] resolveReferance2, 
             NameKey outputTypeName,
-            WeakMethodDefinition.Make make, 
+            Func<WeakMethodDefinition,T> make, 
             Box<IWeakReturnable> box)
         {
             this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
@@ -163,15 +156,28 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public WeakMethodDefinition Run(IResolveReferanceContext context)
+        public IOpenBoxes<T, WeakMethodDefinition> Run(IResolveReferanceContext context)
         {
-            return box.Fill(
-                make(
+            var item = box.Fill(
+                new WeakMethodDefinition(
                     methodScope.GetTypeOrThrow(outputTypeName),
-                    parameter.Run(context).MemberDefinition, 
-                    lines.Select(x => x.Run(context)).ToArray(),
+                    parameter.Run(context).CodeElement.MemberDefinition, 
+                    lines.Select(x => x.Run(context).CodeElement).ToArray(),
                     methodScope.GetFinalized(),
                     new IWeakCodeElement[0]));
+            return new MethodDefinitionOpenBoxes<T>(item, make);
+        }
+    }
+
+    internal class MethodDefinitionOpenBoxes<T> : IOpenBoxes<T, WeakMethodDefinition>
+    {
+        public WeakMethodDefinition CodeElement { get; }
+        private readonly Func<WeakMethodDefinition, T> make;
+
+        public MethodDefinitionOpenBoxes(WeakMethodDefinition item, Func<WeakMethodDefinition, T> make)
+        {
+            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
     }
 }

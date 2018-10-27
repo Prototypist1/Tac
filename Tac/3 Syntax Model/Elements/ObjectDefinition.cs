@@ -22,8 +22,6 @@ namespace Tac.Semantic_Model
 
     public class WeakObjectDefinition: IWeakCodeElement, IWeakReturnable, IScoped
     {
-        public delegate WeakObjectDefinition Make(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key);
-
         public WeakObjectDefinition(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
             {
@@ -48,16 +46,16 @@ namespace Tac.Semantic_Model
         }
     }
     
-    public class ObjectDefinitionMaker : IMaker<WeakObjectDefinition>
+    public class ObjectDefinitionMaker<T> : IMaker<T, WeakObjectDefinition>
     {
-        public ObjectDefinitionMaker(WeakObjectDefinition.Make make)
+        public ObjectDefinitionMaker(Func<WeakObjectDefinition,T> make)
         {
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        private WeakObjectDefinition.Make Make { get; }
+        private Func<WeakObjectDefinition,T> Make { get; }
 
-        public IResult<IPopulateScope<WeakObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public IResult<IPopulateScope<T, WeakObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(elementToken.Tokens)
                            .Has(ElementMatcher.KeyWord("object"), out var keyword)
@@ -68,20 +66,20 @@ namespace Tac.Semantic_Model
 
                 var elements = matchingContext.ParseBlock(block);
                 
-                return ResultExtension.Good(new ObjectDefinitionPopulateScope(elements, Make));
+                return ResultExtension.Good(new ObjectDefinitionPopulateScope<T>(elements, Make));
             }
-            return ResultExtension.Bad<IPopulateScope<WeakObjectDefinition>>();
+            return ResultExtension.Bad<IPopulateScope<T, WeakObjectDefinition>>();
         }
         
     }
     
-    public class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
+    public class ObjectDefinitionPopulateScope<T> : IPopulateScope<T, WeakObjectDefinition>
     {
-        private readonly IPopulateScope<IWeakCodeElement>[] elements;
-        private readonly WeakObjectDefinition.Make make;
+        private readonly IPopulateScope<,IWeakCodeElement>[] elements;
+        private readonly Func<WeakObjectDefinition,T> make;
         private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
 
-        public ObjectDefinitionPopulateScope(IPopulateScope<IWeakCodeElement>[] elements, WeakObjectDefinition.Make make)
+        public ObjectDefinitionPopulateScope(IPopulateScope<,IWeakCodeElement>[] elements, Func<WeakObjectDefinition,T> make)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -92,12 +90,12 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IPopulateBoxes<WeakObjectDefinition> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<T, WeakObjectDefinition> Run(IPopulateScopeContext context)
         {
             var nextContext = context.Child();
             var key = new ImplicitKey();
             nextContext.Scope.TryAddType(key, box);
-            return new ResolveReferanceObjectDefinition(
+            return new ResolveReferanceObjectDefinition<T>(
                 nextContext.GetResolvableScope(),
                 elements.Select(x => x.Run(nextContext)).ToArray(),
                 make, 
@@ -106,18 +104,18 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
+    public class ResolveReferanceObjectDefinition<T> : IPopulateBoxes<T, WeakObjectDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IPopulateBoxes<IWeakCodeElement>[] elements;
-        private readonly WeakObjectDefinition.Make make;
+        private readonly IPopulateBoxes<,IWeakCodeElement>[] elements;
+        private readonly Func<WeakObjectDefinition,T> make;
         private readonly Box<IWeakReturnable> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
-            IPopulateBoxes<IWeakCodeElement>[] elements, 
-            WeakObjectDefinition.Make make, 
+            IPopulateBoxes<,IWeakCodeElement>[] elements, 
+            Func<WeakObjectDefinition,T> make, 
             Box<IWeakReturnable> box, 
             ImplicitKey key)
         {
@@ -128,9 +126,22 @@ namespace Tac.Semantic_Model
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public WeakObjectDefinition Run(IResolveReferanceContext context)
+        public IOpenBoxes<T, WeakObjectDefinition> Run(IResolveReferanceContext context)
         {
-            return box.Fill(make(scope.GetFinalized(), elements.Select(x => x.Run(context).Cast<WeakAssignOperation>()).ToArray(), key));
+            var item = box.Fill(new WeakObjectDefinition(scope.GetFinalized(), elements.Select(x => x.Run(context).Cast<WeakAssignOperation>()).ToArray(), key));
+            return new ObjectDefinitionOpenBoxes<T>(item, make);
+        }
+    }
+
+    internal class ObjectDefinitionOpenBoxes<T> : IOpenBoxes<T, WeakObjectDefinition>
+    {
+        public WeakObjectDefinition CodeElement { get; }
+        private readonly Func<WeakObjectDefinition, T> make;
+
+        public ObjectDefinitionOpenBoxes(WeakObjectDefinition item, Func<WeakObjectDefinition, T> make)
+        {
+            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
     }
 }

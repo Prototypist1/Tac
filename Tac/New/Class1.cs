@@ -50,16 +50,15 @@ namespace Tac.New
 
     }
     
-    public interface IMaker<out T>
-        where T : IWeakCodeElement
+    public interface IMaker<out T, out TCodeElement>
     {
-        IResult<IPopulateScope<T>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext);
+        IResult<IPopulateScope<T,TCodeElement>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext);
     }
 
-    public interface IOperationMaker<out T>
+    public interface IOperationMaker<out T, TCodeElement>
     where T : IWeakCodeElement
     {
-        IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
+        IResult<IPopulateScope<T, TCodeElement>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
     }
 
     public interface IPipelineContext
@@ -135,9 +134,9 @@ namespace Tac.New
         IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders);
     }
 
-    public interface IPopulateScope<out T> : IPopulateScope
+    public interface IPopulateScope<out T, out TCodeElement> : IPopulateScope
     {
-        IPopulateBoxes<T> Run(IPopulateScopeContext context);
+        IPopulateBoxes<T, TCodeElement> Run(IPopulateScopeContext context);
     }
 
     // TODO I think I should protect these!
@@ -148,13 +147,14 @@ namespace Tac.New
     // I think scopes have phases of production
     //
 
-    public interface IPopulateBoxes<out T> : IResolveReferance
+    public interface IPopulateBoxes<out T, out TCodeElement> : IResolveReferance
     {
-        IOpenBoxes<T> Run(IResolveReferanceContext context);
+        IOpenBoxes<T, TCodeElement> Run(IResolveReferanceContext context);
     }
 
-    public interface IOpenBoxes<out T> { 
-
+    public interface IOpenBoxes<out T, out TCodeElement>
+    { 
+        TCodeElement CodeElement { get; }
         T Run(IOpenBoxesContext context);
     }
 }
