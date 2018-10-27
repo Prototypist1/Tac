@@ -23,8 +23,8 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IWeakReturnable Returns(IElementBuilders elementBuilders) {
-            return elementBuilders.NumberType();
+        public override IWeakReturnable Returns() {
+            return new NumberType();
         }
     }
 

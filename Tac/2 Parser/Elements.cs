@@ -26,53 +26,19 @@ namespace Tac.Parser
             this.idenifier = idenifier ?? throw new ArgumentNullException(nameof(idenifier));
         }
     }
-
-    public interface IOperationBuilder
-    {
-        IReadOnlyList<string> Identifiers { get; }
-        Operation<BinaryOperation.Make<WeakAddOperation>> AddOperation { get; }
-        Operation<BinaryOperation.Make<WeakSubtractOperation>> SubtractOperation { get; }
-        Operation<BinaryOperation.Make<WeakMultiplyOperation>> MultiplyOperation { get; }
-        Operation<BinaryOperation.Make<WeakIfTrueOperation>> IfTrueOperation { get; }
-        Operation<BinaryOperation.Make<WeakElseOperation>> ElseOperation { get; }
-        Operation<BinaryOperation.Make<WeakLessThanOperation>> LessThanOperation { get; }
-        Operation<BinaryOperation.Make<WeakNextCallOperation>> NextCallOperation { get; }
-        Operation<BinaryOperation.Make<WeakAssignOperation>> AssignOperation { get; }
-        Operation<BinaryOperation.Make<WeakPathOperation>> PathOperation { get; }
-        Operation<TrailingOperation.Make<WeakReturnOperation>> ReturnOperation { get; }
-    }
-
-    public interface IElementBuilders
-    {
-        WeakMemberDefinition.Make MemberDefinition { get; }
-        WeakObjectDefinition.Make ObjectDefinition { get; }
-        WeakModuleDefinition.Make ModuleDefinition { get; }
-        WeakMethodDefinition.Make MethodDefinition { get; }
-        WeakTypeDefinition.Make TypeDefinition { get; }
-        WeakGenericTypeDefinition.Make GenericTypeDefinition { get; }
-        WeakImplementationDefinition.Make ImplementationDefinition { get; }
-        WeakBlockDefinition.Make BlockDefinition { get; }
-        WeakConstantNumber.Make ConstantNumber { get; }
-        WeakMemberReferance.Make MemberReferance { get; }
-        PrimitiveType.Make NumberType { get; }
-        PrimitiveType.Make StringType { get; }
-        PrimitiveType.Make EmptyType { get; }
-        PrimitiveType.Make BooleanType { get; }
-        PrimitiveType.Make AnyType { get; }
-    }
-
+    
     public class ElementMatchingContext
     {
 
         internal ElementMatchingContext ExpectPathPart(IBox<IWeakReturnable> box) {
-            return new ElementMatchingContext(Builders, operationMatchers, new IMaker<IWeakCodeElement>[] {
-                new MemberReferanceMaker(Builders.MemberReferance,Builders,box)
+            return new ElementMatchingContext(operationMatchers, new IMaker<IWeakCodeElement>[] {
+                new MemberReferanceMaker(box)
             });
         }
         
         internal ElementMatchingContext AcceptImplicit(IBox<IWeakReturnable> box)
         {
-            return new ElementMatchingContext(Builders, operationMatchers, new IMaker<IWeakCodeElement>[] {
+            return new ElementMatchingContext(operationMatchers, new IMaker<IWeakCodeElement>[] {
                 new BlockDefinitionMaker(),
                 new ConstantNumberMaker(),
                 new GenericTypeDefinitionMaker(),
@@ -92,20 +58,19 @@ namespace Tac.Parser
         //    return new ElementMatchingContext(Builders,operationMatchers, elementMakers, scope);
         //}
         
-        public ElementMatchingContext(IElementBuilders builders, IOperationBuilder operationBuilder) : 
+        public ElementMatchingContext() : 
             this(
-                builders,
                 new IOperationMaker<IWeakCodeElement>[] {
-                    new AddOperationMaker(operationBuilder.AddOperation.make),
-                    new SubtractOperationMaker(operationBuilder.SubtractOperation.make),
-                    new MultiplyOperationMaker(operationBuilder.MultiplyOperation.make),
-                    new IfTrueOperationMaker(operationBuilder.IfTrueOperation.make),
-                    new ElseOperationMaker(operationBuilder.ElseOperation.make),
-                    new LessThanOperationMaker(operationBuilder.LessThanOperation.make),
-                    new NextCallOperationMaker(operationBuilder.NextCallOperation.make),
-                    new AssignOperationMaker(operationBuilder.AssignOperation.make),
-                    new PathOperationMaker(operationBuilder.PathOperation.make),
-                    new ReturnOperationMaker(operationBuilder.ReturnOperation.make)
+                    new AddOperationMaker(),
+                    new SubtractOperationMaker(),
+                    new MultiplyOperationMaker(),
+                    new IfTrueOperationMaker(),
+                    new ElseOperationMaker(),
+                    new LessThanOperationMaker(),
+                    new NextCallOperationMaker(),
+                    new AssignOperationMaker(),
+                    new PathOperationMaker(),
+                    new ReturnOperationMaker()
                 },
                 new IMaker<IWeakCodeElement>[] {
                     new BlockDefinitionMaker(),
@@ -120,17 +85,14 @@ namespace Tac.Parser
                     new MemberMaker(),
                 }){}
         
-        public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<IWeakCodeElement>[] operationMatchers, IMaker<IWeakCodeElement>[] elementMakers)
+        public ElementMatchingContext(IOperationMaker<IWeakCodeElement>[] operationMatchers, IMaker<IWeakCodeElement>[] elementMakers)
         {
-            this.Builders = Builders ?? throw new ArgumentNullException(nameof(Builders));
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
             this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
         }
 
         private readonly IMaker<IWeakCodeElement>[] elementMakers;
         private readonly IOperationMaker<IWeakCodeElement>[] operationMatchers;
-
-        public IElementBuilders Builders { get; }
         
         #region Parse
 

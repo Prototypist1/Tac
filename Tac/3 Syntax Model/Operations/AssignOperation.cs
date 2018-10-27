@@ -21,9 +21,9 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns()
         {
-            return left.Returns(elementBuilders);
+            return left.Returns();
         }
     }
     
@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model.Operations
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);
-                var right = matchingContext.AcceptImplicit(left.GetReturnType(matchingContext.Builders)).ParseParenthesisOrElement(rhs);
+                var right = matchingContext.AcceptImplicit(left.GetReturnType()).ParseParenthesisOrElement(rhs);
 
                 return ResultExtension.Good(new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r)=>new WeakAssignOperation(l,r), new AssignConverter()));
             }

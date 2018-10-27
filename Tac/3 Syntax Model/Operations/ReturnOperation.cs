@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -23,9 +24,9 @@ namespace Tac.Semantic_Model.Operations
 
         public IWeakCodeElement Result { get; }
         
-        public IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns()
         {
-            return elementBuilders.EmptyType();
+            return new EmptyType();
         }
     }
 
@@ -81,7 +82,7 @@ namespace Tac.Semantic_Model.Operations
             this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }
@@ -113,7 +114,7 @@ namespace Tac.Semantic_Model.Operations
         public IOpenBoxes<T> Run(IResolveReferanceContext context)
         {
             var res = make(left.Run(context).CodeElement);
-            box.Set(()=>res.Returns(context.ElementBuilders));
+            box.Set(()=>res.Returns());
             return new TrailingOpenBoxes<T>(res, converter);
         }
     }

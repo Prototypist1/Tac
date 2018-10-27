@@ -45,7 +45,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public abstract IWeakReturnable Returns(IElementBuilders elementBuilders);
+        public abstract IWeakReturnable Returns();
     }
 
 
@@ -104,7 +104,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }
@@ -167,7 +167,7 @@ namespace Tac.Semantic_Model.CodeStuff
             var res = make(
                 left.Run(context).CodeElement,
                 right.Run(context).CodeElement);
-            box.Set(() => res.Returns(context.ElementBuilders));
+            box.Set(() => res.Returns());
             return new BinaryOpenBoxes<TCodeElement>(res, converter);
         }
     }

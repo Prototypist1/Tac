@@ -64,7 +64,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }

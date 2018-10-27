@@ -27,9 +27,9 @@ namespace Tac.Semantic_Model.Operations
 
         public double Value { get; }
 
-        public IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns()
         {
-            return elementBuilders.NumberType();
+            return new NumberType();
         }
     }
 
@@ -66,7 +66,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantNumberResolveReferance(dub, box);
         }
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }

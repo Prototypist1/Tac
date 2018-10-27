@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model
         public bool ReadOnly { get; }
         public NameKey Key { get; }
 
-        public IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns()
         {
             return this;
         }
@@ -89,7 +89,7 @@ namespace Tac.Semantic_Model
             return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, context.GetResolvableScope(), memberDefinitionBox);
         }
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }

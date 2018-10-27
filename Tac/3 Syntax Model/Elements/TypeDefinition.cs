@@ -28,7 +28,7 @@ namespace Tac.Semantic_Model
         public IKey Key { get; }
         public IWeakFinalizedScope Scope { get; }
         
-        public IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns()
         {
             return this;
         }
@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
         }
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }

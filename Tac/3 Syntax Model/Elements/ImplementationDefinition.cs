@@ -67,7 +67,7 @@ namespace Tac.Semantic_Model
         public IEnumerable<IWeakCodeElement> MethodBody { get; }
         public IEnumerable<IWeakCodeElement> StaticInitialzers { get; }
         
-        public IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns()
         {
             return this;
         }
@@ -159,7 +159,7 @@ namespace Tac.Semantic_Model
                 box);
         }
         
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }

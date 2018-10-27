@@ -57,19 +57,14 @@ namespace Tac.New
     }
 
     public interface IOperationMaker<TCodeElement>
-
     {
         IResult<IPopulateScope<TCodeElement>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
     }
-
-    public interface IPipelineContext
-    {
-        IElementBuilders ElementBuilders { get; }
-    }
+    
 
     // hmm the parsing is almost a step as well? 
 
-    public interface IPopulateScopeContext: IPipelineContext {
+    public interface IPopulateScopeContext {
 
         IPopulatableScope Scope { get; }
         IPopulateScopeContext Child();
@@ -91,7 +86,7 @@ namespace Tac.New
     // here the visited classes know they are being visited
     // and so it requires an entry here
     // which forces the front end to up
-    public interface IOpenBoxesContext<T> : IPipelineContext
+    public interface IOpenBoxesContext<T> 
     {
         T BlockDefinition(WeakBlockDefinition codeElement);
         T AssignOperation(WeakAssignOperation co);
@@ -120,25 +115,20 @@ namespace Tac.New
     {
         private readonly ScopeStack stack;
 
-        public PopulateScopeContext(ScopeStack stack, IElementBuilders elementBuilders)
+        public PopulateScopeContext(ScopeStack stack)
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
-            ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
         }
 
         public IPopulatableScope Scope
         {
             get { return stack; }
         }
-
-        public IElementBuilders ElementBuilders
-        {
-            get;
-        }
+        
 
         public IPopulateScopeContext Child()
         {
-            return new PopulateScopeContext(stack.ChildScope(), ElementBuilders);
+            return new PopulateScopeContext(stack.ChildScope());
         }
 
         public IResolvableScope GetResolvableScope()
@@ -147,27 +137,18 @@ namespace Tac.New
         }
     }
 
-    public interface IResolveReferanceContext : IPipelineContext {
+    public interface IResolveReferanceContext  {
     }
 
     public class ResolveReferanceContext : IResolveReferanceContext
     {
-        public ResolveReferanceContext(IElementBuilders elementBuilders)
-        {
-            ElementBuilders = elementBuilders ?? throw new ArgumentNullException(nameof(elementBuilders));
-        }
-
-        public IElementBuilders ElementBuilders
-        {
-            get;
-        }
     }
 
     // TODO I think I should protect these!
     // you are only allowed to put things in scope during this step
 
     public interface IPopulateScope {
-        IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders);
+        IBox<IWeakReturnable> GetReturnType();
     }
 
     public interface IPopulateScope<out TCodeElement> : IPopulateScope

@@ -26,6 +26,6 @@ namespace Tac.Semantic_Model
         public IWeakCodeElement[] Body { get; }
         public IEnumerable<IWeakCodeElement> StaticInitailizers { get; }
 
-        public IWeakReturnable Returns(IElementBuilders elementBuilders) { return this; }
+        public IWeakReturnable Returns() { return this; }
     }
 }

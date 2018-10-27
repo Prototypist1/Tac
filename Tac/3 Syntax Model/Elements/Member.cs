@@ -65,7 +65,7 @@ namespace Tac.Semantic_Model
             memberName = item ?? throw new ArgumentNullException(nameof(item));
         }
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }
@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model
         {
             var nameKey = new NameKey(memberName);
             if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) && 
-                !context.Scope.TryAddMember(DefintionLifetime.Instance,nameKey, new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,nameKey,new Box<IWeakReturnable>(context.ElementBuilders.AnyType())))))
+                !context.Scope.TryAddMember(DefintionLifetime.Instance,nameKey, new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,nameKey,new Box<IWeakReturnable>(new AnyType())))))
             {
                 throw new Exception("uhh that is not right");
             }

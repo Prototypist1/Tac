@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.New;
 using Tac.Parser;
 
@@ -18,9 +19,9 @@ namespace Tac.Semantic_Model.CodeStuff
         {
         }
 
-        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns()
         {
-            return elementBuilders.BooleanType();
+            return new BooleanType();
         }
     }
     

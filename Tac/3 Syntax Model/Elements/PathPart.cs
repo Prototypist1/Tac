@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model
 
         public IBox<WeakMemberDefinition> MemberDefinition { get; }
 
-        public IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public IWeakReturnable Returns()
         {
             return MemberDefinition.GetValue();
         }
@@ -66,7 +66,7 @@ namespace Tac.Semantic_Model
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }

@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IWeakReturnable Returns(IElementBuilders elementBuilders) {
+        public IWeakReturnable Returns() {
             return this;
         }
     }
@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
 
-        public IBox<IWeakReturnable> GetReturnType(IElementBuilders elementBuilders)
+        public IBox<IWeakReturnable> GetReturnType()
         {
             return box;
         }

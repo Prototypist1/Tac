@@ -23,9 +23,9 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns()
         {
-            return right.Unwrap<WeakMethodDefinition>(elementBuilders).OutputType.GetValue();
+            return right.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
         }
     }
 
@@ -56,9 +56,9 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns()
         {
-            return left.Unwrap<WeakMethodDefinition>(elementBuilders).OutputType.GetValue();
+            return left.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
         }
     }
 
@@ -78,11 +78,11 @@ namespace Tac.Semantic_Model.Operations
     }
     
     public static class MemberUnwrapper{
-        public static T Unwrap<T>(this IWeakCodeElement codeElement, IElementBuilders elementBuilders) where T:IWeakReturnable {
-            if (codeElement.Returns(elementBuilders) is WeakMemberDefinition member && member.Type.GetValue() is T t) {
+        public static T Unwrap<T>(this IWeakCodeElement codeElement) where T:IWeakReturnable {
+            if (codeElement.Returns() is WeakMemberDefinition member && member.Type.GetValue() is T t) {
                 return t;
             }
-            return codeElement.Returns(elementBuilders).Cast<T>();
+            return codeElement.Returns().Cast<T>();
         }
     }
 

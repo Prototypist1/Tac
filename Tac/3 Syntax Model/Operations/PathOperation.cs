@@ -20,10 +20,10 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
-            return right.Cast<WeakMemberDefinition>();
+            return right.Cast<WeakMemberReferance>();
         }
     }
 
@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model.Operations
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);
-                var right = matchingContext.ExpectPathPart(left.GetReturnType(matchingContext.Builders)).ParseParenthesisOrElement(rhs);
+                var right = matchingContext.ExpectPathPart(left.GetReturnType()).ParseParenthesisOrElement(rhs);
 
                 return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> new WeakPathOperation(l,r), new Converter()));
             }

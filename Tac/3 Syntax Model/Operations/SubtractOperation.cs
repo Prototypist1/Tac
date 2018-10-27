@@ -1,4 +1,5 @@
 ﻿using System;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -18,9 +19,9 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IWeakReturnable Returns(IElementBuilders elementBuilders)
+        public override IWeakReturnable Returns()
         {
-            return elementBuilders.NumberType();
+            return new NumberType();
         }
     }
     
