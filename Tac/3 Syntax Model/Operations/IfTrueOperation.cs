@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation>
     {
-        public IfTrueOperationMaker(BinaryOperation.Make<WeakIfTrueOperation> make) : base(WeakIfTrueOperation.Identifier, make,new IfConverter())
+        public IfTrueOperationMaker() : base(WeakIfTrueOperation.Identifier, (l,r)=>new WeakIfTrueOperation(l,r),new IfConverter())
         {
         }
         

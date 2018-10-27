@@ -132,13 +132,13 @@ namespace Tac.Semantic_Model.Operations
 
         public T1 Run<T1>(IOpenBoxesContext<T1> context)
         {
-            return converter.Convert<T1>(context, CodeElement);
+            return converter.Convert(context, CodeElement);
         }
     }
     
     public class ReturnOperationMaker : TrailingOperationMaker<WeakReturnOperation>
     {
-        public ReturnOperationMaker(TrailingOperation.Make<WeakReturnOperation> make) : base(WeakReturnOperation.Identifier, make, new Converter())
+        public ReturnOperationMaker() : base(WeakReturnOperation.Identifier, x=>new WeakReturnOperation(x), new Converter())
         {
         }
 

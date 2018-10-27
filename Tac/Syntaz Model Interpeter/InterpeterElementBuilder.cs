@@ -152,7 +152,6 @@ namespace Tac.Syntaz_Model_Interpeter
         public IReadOnlyList<string> Identifiers { get { return identifiers; }  } 
     }
 
-
     public class InterpeterElementBuilder : IElementBuilders
     {
         public WeakMemberDefinition.Make MemberDefinition { get; } = InterpetedMemberDefinition.MakeNew;

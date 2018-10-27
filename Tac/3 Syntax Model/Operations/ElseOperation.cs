@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation>
     {
-        public ElseOperationMaker(BinaryOperation.Make<WeakElseOperation> make) : base(WeakElseOperation.Identifier, make, new ElseConverter())
+        public ElseOperationMaker() : base(WeakElseOperation.Identifier, (l,r)=>new WeakElseOperation(l,r), new ElseConverter())
         {
         }
     }

@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation>
     {
-        public NextCallOperationMaker(BinaryOperation.Make<WeakNextCallOperation> make) : base(WeakNextCallOperation.Identifier, make, new NextCallConverter())
+        public NextCallOperationMaker() : base(WeakNextCallOperation.Identifier, (l,r)=> new WeakNextCallOperation(l,r), new NextCallConverter())
         {
         }
 
@@ -64,7 +64,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation>
     {
-        public LastCallOperationMaker(BinaryOperation.Make<WeakLastCallOperation> make) : base(WeakLastCallOperation.Identifier, make, new LastCallConverter())
+        public LastCallOperationMaker() : base(WeakLastCallOperation.Identifier, (l,r)=>new WeakLastCallOperation(l,r), new LastCallConverter())
         {
         }
 

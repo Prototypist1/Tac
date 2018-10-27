@@ -26,7 +26,7 @@ namespace Tac.Semantic_Model.Operations
     
     public class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation>
     {
-        public SubtractOperationMaker(BinaryOperation.Make<WeakSubtractOperation> make) : base(WeakSubtractOperation.Identifier, make, new Converter())
+        public SubtractOperationMaker() : base(WeakSubtractOperation.Identifier, (l,r)=>new WeakSubtractOperation(l,r), new Converter())
         {
         }
 

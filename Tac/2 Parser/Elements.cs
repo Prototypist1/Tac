@@ -73,17 +73,17 @@ namespace Tac.Parser
         internal ElementMatchingContext AcceptImplicit(IBox<IWeakReturnable> box)
         {
             return new ElementMatchingContext(Builders, operationMatchers, new IMaker<IWeakCodeElement>[] {
-                new BlockDefinitionMaker(Builders.BlockDefinition),
-                new ConstantNumberMaker(Builders.ConstantNumber),
-                new GenericTypeDefinitionMaker(Builders.GenericTypeDefinition),
-                new ImplementationDefinitionMaker(Builders.ImplementationDefinition,Builders),
-                new MemberDefinitionMaker(Builders.MemberReferance,Builders),
-                new MethodDefinitionMaker(Builders.MethodDefinition,Builders),
-                new ModuleDefinitionMaker(Builders.ModuleDefinition),
-                new ObjectDefinitionMaker(Builders.ObjectDefinition),
-                new TypeDefinitionMaker(Builders.TypeDefinition),
-                new ImplicitMemberMaker(Builders.MemberDefinition,box),
-                new MemberMaker(Builders.MemberReferance,Builders),
+                new BlockDefinitionMaker(),
+                new ConstantNumberMaker(),
+                new GenericTypeDefinitionMaker(),
+                new ImplementationDefinitionMaker(),
+                new MemberDefinitionMaker(),
+                new MethodDefinitionMaker(),
+                new ModuleDefinitionMaker(),
+                new ObjectDefinitionMaker(),
+                new TypeDefinitionMaker(),
+                new ImplicitMemberMaker(box),
+                new MemberMaker(),
             });
         }
         
@@ -108,16 +108,16 @@ namespace Tac.Parser
                     new ReturnOperationMaker(operationBuilder.ReturnOperation.make)
                 },
                 new IMaker<IWeakCodeElement>[] {
-                    new BlockDefinitionMaker(builders.BlockDefinition),
-                    new ConstantNumberMaker(builders.ConstantNumber),
-                    new GenericTypeDefinitionMaker(builders.GenericTypeDefinition),
-                    new ImplementationDefinitionMaker(builders.ImplementationDefinition,builders),
-                    new MemberDefinitionMaker(builders.MemberReferance,builders),
-                    new MethodDefinitionMaker(builders.MethodDefinition,builders),
-                    new ModuleDefinitionMaker(builders.ModuleDefinition),
-                    new ObjectDefinitionMaker(builders.ObjectDefinition),
-                    new TypeDefinitionMaker(builders.TypeDefinition),
-                    new MemberMaker(builders.MemberReferance,builders),
+                    new BlockDefinitionMaker(),
+                    new ConstantNumberMaker(),
+                    new GenericTypeDefinitionMaker(),
+                    new ImplementationDefinitionMaker(),
+                    new MemberDefinitionMaker(),
+                    new MethodDefinitionMaker(),
+                    new ModuleDefinitionMaker(),
+                    new ObjectDefinitionMaker(),
+                    new TypeDefinitionMaker(),
+                    new MemberMaker(),
                 }){}
         
         public ElementMatchingContext(IElementBuilders Builders, IOperationMaker<IWeakCodeElement>[] operationMatchers, IMaker<IWeakCodeElement>[] elementMakers)
@@ -131,7 +131,6 @@ namespace Tac.Parser
         private readonly IOperationMaker<IWeakCodeElement>[] operationMatchers;
 
         public IElementBuilders Builders { get; }
-        
         
         #region Parse
 

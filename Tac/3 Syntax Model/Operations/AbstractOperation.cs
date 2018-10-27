@@ -197,5 +197,4 @@ namespace Tac.Semantic_Model.CodeStuff
     {
         T Convert<T>(IOpenBoxesContext<T> context, TOperation co);
     }
-
 }

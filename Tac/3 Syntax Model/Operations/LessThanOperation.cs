@@ -26,10 +26,16 @@ namespace Tac.Semantic_Model.CodeStuff
     
     public class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation>
     {
-        public LessThanOperationMaker(BinaryOperation.Make<WeakLessThanOperation> make) : base(WeakLessThanOperation.Identifier, make, new LessThanConverter())
+        public LessThanOperationMaker() : base(WeakLessThanOperation.Identifier, (l,r)=>new WeakLessThanOperation(l,r), new Converter())
         {
         }
-
-
+        
+        private class Converter : IConverter<WeakLessThanOperation>
+        {
+            public T Convert<T>(IOpenBoxesContext<T> context, WeakLessThanOperation co)
+            {
+                return context.LessThanOperation(co);
+            }
+        }
     }
 }

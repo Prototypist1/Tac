@@ -29,12 +29,10 @@ namespace Tac.Semantic_Model.Operations
     
     public class AssignOperationMaker : IOperationMaker<WeakAssignOperation>
     {
-        public AssignOperationMaker(BinaryOperation.Make<WeakAssignOperation> make)
+        public AssignOperationMaker()
         {
-            Make = make ?? throw new ArgumentNullException(nameof(make));
         }
         
-        private BinaryOperation.Make<WeakAssignOperation> Make { get; }
 
         public IResult<IPopulateScope<WeakAssignOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
@@ -45,7 +43,7 @@ namespace Tac.Semantic_Model.Operations
                 var left = matchingContext.ParseLine(perface);
                 var right = matchingContext.AcceptImplicit(left.GetReturnType(matchingContext.Builders)).ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<WeakAssignOperation>(left, right, Make, new AssignConverter()));
+                return ResultExtension.Good(new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r)=>new WeakAssignOperation(l,r), new AssignConverter()));
             }
 
             return ResultExtension.Bad<IPopulateScope<WeakAssignOperation>>();

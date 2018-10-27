@@ -30,7 +30,7 @@ namespace Tac.Semantic_Model.Operations
 
     public class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
     {
-        public AddOperationMaker(BinaryOperation.Make<WeakAddOperation> make) : base(WeakAddOperation.Identifier, make, new AddConverter())
+        public AddOperationMaker() : base(WeakAddOperation.Identifier, (l,r)=>new WeakAddOperation(l,r), new AddConverter())
         {
         }
 

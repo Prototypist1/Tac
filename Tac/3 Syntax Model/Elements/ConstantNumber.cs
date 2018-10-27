@@ -33,7 +33,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class ConstantNumberMaker<T> : IMaker<WeakConstantNumber>
+    public class ConstantNumberMaker : IMaker<WeakConstantNumber>
     {
         public ConstantNumberMaker() {}
 

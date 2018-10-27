@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model.Operations
     
     public class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation>
     {
-        public MultiplyOperationMaker(BinaryOperation.Make<WeakMultiplyOperation> make) : base(WeakMultiplyOperation.Identifier, make, new Converter())
+        public MultiplyOperationMaker() : base(WeakMultiplyOperation.Identifier, (l,r)=>new WeakMultiplyOperation(l,r), new Converter())
         {
         }
         

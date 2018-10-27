@@ -30,14 +30,6 @@ namespace Tac.Semantic_Model.Operations
 
     public class PathOperationMaker : IOperationMaker<WeakPathOperation>
     {
-        public PathOperationMaker( BinaryOperation.Make<WeakPathOperation> make
-            )
-        {
-            Make = make ?? throw new ArgumentNullException(nameof(make));
-        }
-        
-        private BinaryOperation.Make<WeakPathOperation> Make { get; }
-
         public IResult<IPopulateScope<WeakPathOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
@@ -47,7 +39,7 @@ namespace Tac.Semantic_Model.Operations
                 var left = matchingContext.ParseLine(perface);
                 var right = matchingContext.ExpectPathPart(left.GetReturnType(matchingContext.Builders)).ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, Make, new Converter()));
+                return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> new WeakPathOperation(l,r), new Converter()));
             }
 
             return ResultExtension.Bad<IPopulateScope<WeakPathOperation>>();
