@@ -12,7 +12,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakAddOperation : BinaryOperation<ICodeElement, ICodeElement>, IAddOperation
+    internal class WeakAddOperation : BinaryOperation<ICodeElement, ICodeElement>, IAddOperation
     {
         public const string Identifier = "+";
 
@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
+    internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
     {
         public AddOperationMaker() : base(WeakAddOperation.Identifier, (l,r)=>new WeakAddOperation(l,r), new AddConverter())
         {

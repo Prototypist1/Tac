@@ -6,22 +6,13 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedSubtractOperation : WeakSubtractOperation, IInterpeted
+    internal class InterpetedSubtractOperation : InterpetedBinaryOperation
     {
-        public InterpetedSubtractOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
-        {
-        }
-
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(new RunTimeNumber(
-                left.Cast<IInterpeted>().Interpet(interpetedContext).Get<RunTimeNumber>().d -
-                right.Cast<IInterpeted>().Interpet(interpetedContext).Get<RunTimeNumber>().d));
-        }
-
-        internal static WeakSubtractOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
-        {
-            return new InterpetedSubtractOperation(left, right);
+                Left.Interpet(interpetedContext).Get<RunTimeNumber>().d -
+                Right.Interpet(interpetedContext).Get<RunTimeNumber>().d));
         }
     }
 }

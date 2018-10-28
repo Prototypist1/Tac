@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakAssignOperation : BinaryOperation<ICodeElement, ICodeElement>, IAssignOperation
+    internal class WeakAssignOperation : BinaryOperation<ICodeElement, ICodeElement>, IAssignOperation
     {
         public const string Identifier = "=:";
         
@@ -25,8 +25,8 @@ namespace Tac.Semantic_Model.Operations
             return Left.Returns();
         }
     }
-    
-    public class AssignOperationMaker : IOperationMaker<WeakAssignOperation>
+
+    internal class AssignOperationMaker : IOperationMaker<WeakAssignOperation>
     {
         public AssignOperationMaker()
         {

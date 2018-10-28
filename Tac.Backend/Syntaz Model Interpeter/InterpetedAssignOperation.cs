@@ -7,23 +7,14 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedAssignOperation : WeakAssignOperation, IInterpeted
+    internal class InterpetedAssignOperation : InterpetedBinaryOperation
     {
-        public InterpetedAssignOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
+        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-        }
+            var res = Right.Interpet(interpetedContext).Get<InterpetedMember>();
 
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
-        {
-            var res = right.Cast<IInterpeted>().Interpet(interpetedContext).Get<InterpetedMember>();
-
-            res.Value = left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
+            res.Value = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
             return InterpetedResult.Create(res);
-        }
-
-        internal static WeakAssignOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
-        {
-            return new InterpetedAssignOperation(left, right);
         }
     }
 }

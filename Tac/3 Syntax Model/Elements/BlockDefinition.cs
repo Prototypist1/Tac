@@ -11,7 +11,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakBlockDefinition : WeakAbstractBlockDefinition, IBlockDefinition
+    internal class WeakBlockDefinition : WeakAbstractBlockDefinition, IBlockDefinition
     {
         public WeakBlockDefinition(
             ICodeElement[] body,
@@ -26,7 +26,7 @@ namespace Tac.Semantic_Model
         #endregion
     }
 
-    public class BlockDefinitionMaker : IMaker<WeakBlockDefinition>
+    internal class BlockDefinitionMaker : IMaker<WeakBlockDefinition>
     {
         public BlockDefinitionMaker()
         {
@@ -50,7 +50,7 @@ namespace Tac.Semantic_Model
     }
 
 
-    public class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition>
+    internal class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition>
     {
         // TODO object??
         // is it worth adding another T?
@@ -75,7 +75,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
+    internal class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
     {
         private IResolvableScope Scope { get; }
         private IPopulateBoxes<ICodeElement>[] ResolveReferance { get; }
@@ -102,7 +102,7 @@ namespace Tac.Semantic_Model
         
     }
 
-    public class BlockDefinitionOpenBoxes : IOpenBoxes<WeakBlockDefinition>
+    internal class BlockDefinitionOpenBoxes : IOpenBoxes<WeakBlockDefinition>
     {
         public WeakBlockDefinition CodeElement { get; }
 

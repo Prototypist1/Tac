@@ -6,16 +6,12 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedLastCallOperation : WeakLastCallOperation, IInterpeted
+    internal class InterpetedLastCallOperation : InterpetedBinaryOperation
     {
-        public InterpetedLastCallOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
+        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-        }
-
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
-        {
-            var toCall = left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
-            var parameter = right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
+            var toCall = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
+            var parameter = Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
 
 
             // maybe there is a "callable" interface here?
@@ -32,23 +28,14 @@ namespace Tac.Syntaz_Model_Interpeter
             throw new Exception("we can only call things that are callable");
 
         }
-
-        internal static WeakLastCallOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
-        {
-            return new InterpetedLastCallOperation(left, right);
-        }
     }
 
-    public class InterpetedNextCallOperation : WeakNextCallOperation, IInterpeted
+    internal class InterpetedNextCallOperation : InterpetedBinaryOperation
     {
-        public InterpetedNextCallOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
+        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-        }
-
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
-        {
-            var toCall = right.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
-            var parameter = left.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
+            var toCall = Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded();
+            var parameter = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>();
 
 
             // maybe there is a "callable" interface here?
@@ -66,10 +53,6 @@ namespace Tac.Syntaz_Model_Interpeter
             throw new Exception("we can only call things that are callable");
 
         }
-
-        internal static WeakNextCallOperation MakeNew(IWeakCodeElement left, IWeakCodeElement right)
-        {
-            return new InterpetedNextCallOperation(left, right);
-        }
+        
     }
 }

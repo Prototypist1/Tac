@@ -5,20 +5,12 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedReturnOperation : WeakReturnOperation, IInterpeted
+    internal class InterpetedReturnOperation : InterpetedTrailingOperation
     {
-        public InterpetedReturnOperation(IWeakCodeElement result) : base(result)
+        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
+            return InterpetedResult.Return(Argument.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded());
         }
-
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
-        {
-            return InterpetedResult.Return(Result.Cast<IInterpeted>().Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded());
-        }
-
-        internal static WeakReturnOperation MakeNew(IWeakCodeElement left)
-        {
-            return new InterpetedReturnOperation(left);
-        }
+        
     }
 }
