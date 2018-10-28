@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -9,19 +12,19 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakReturnOperation : TrailingOperation, IWeakCodeElement
+    public class WeakReturnOperation : TrailingOperation, ICodeElement, IReturnOperation
     {
 
         public const string Identifier = "return";
 
-        public WeakReturnOperation(IWeakCodeElement result)
+        public WeakReturnOperation(ICodeElement result)
         {
             Result = result;
         }
 
-        public IWeakCodeElement Result { get; }
+        public ICodeElement Result { get; }
         
-        public IWeakReturnable Returns()
+        public IType Returns()
         {
             return new EmptyType();
         }
@@ -31,11 +34,11 @@ namespace Tac.Semantic_Model.Operations
     }
 
     public class TrailingOperation {
-        public delegate T Make<T>(IWeakCodeElement codeElement);
+        public delegate T Make<T>(ICodeElement codeElement);
     }
 
     public class TrailingOperationMaker<T> : IOperationMaker<T>
-        where T : class, IWeakCodeElement
+        where T : class, ICodeElement
     {
         private readonly IConverter<T> converter;
 
@@ -65,21 +68,21 @@ namespace Tac.Semantic_Model.Operations
     }
 
     public class TrailingPopulateScope<T> : IPopulateScope<T>
-        where T : class, IWeakCodeElement
+        where T : class, ICodeElement
     {
-        private readonly IPopulateScope<IWeakCodeElement> left;
+        private readonly IPopulateScope<ICodeElement> left;
         private readonly TrailingOperation.Make<T> make;
         private readonly IConverter<T> converter;
-        private readonly DelegateBox<IWeakReturnable> box = new DelegateBox<IWeakReturnable>();
+        private readonly DelegateBox<IType> box = new DelegateBox<IType>();
 
-        public TrailingPopulateScope(IPopulateScope<IWeakCodeElement> left, TrailingOperation.Make<T> make, IConverter<T> converter)
+        public TrailingPopulateScope(IPopulateScope<ICodeElement> left, TrailingOperation.Make<T> make, IConverter<T> converter)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }
@@ -93,14 +96,14 @@ namespace Tac.Semantic_Model.Operations
 
 
     public class TrailingResolveReferance<T> : IPopulateBoxes<T>
-        where T : class, IWeakCodeElement
+        where T : class, ICodeElement
     {
-        public readonly IPopulateBoxes<IWeakCodeElement> left;
+        public readonly IPopulateBoxes<ICodeElement> left;
         private readonly TrailingOperation.Make<T> make;
-        private readonly DelegateBox<IWeakReturnable> box;
+        private readonly DelegateBox<IType> box;
         private readonly IConverter<T> converter;
 
-        public TrailingResolveReferance(IPopulateBoxes<IWeakCodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IWeakReturnable> box, IConverter<T> converte)
+        public TrailingResolveReferance(IPopulateBoxes<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IType> box, IConverter<T> converte)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -117,7 +120,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     public class TrailingOpenBoxes<T> : IOpenBoxes<T>
-        where T : class, IWeakCodeElement
+        where T : class, ICodeElement
     {
         public T CodeElement { get; }
         private readonly IConverter<T> converter;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -8,18 +10,18 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    public abstract class WeakAbstractBlockDefinition : IWeakCodeElement, IScoped, IWeakReturnable
+    public abstract class WeakAbstractBlockDefinition : ICodeElement, IScoped, IBlockDefinition
     {
-        protected WeakAbstractBlockDefinition(IWeakFinalizedScope scope, IWeakCodeElement[] body, IEnumerable<IWeakCodeElement> staticInitailizers) {
+        protected WeakAbstractBlockDefinition(IWeakFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers) {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Body = body ?? throw new ArgumentNullException(nameof(body));
             StaticInitailizers = staticInitailizers ?? throw new ArgumentNullException(nameof(staticInitailizers));
         }
 
         public IWeakFinalizedScope Scope { get; }
-        public IWeakCodeElement[] Body { get; }
-        public IEnumerable<IWeakCodeElement> StaticInitailizers { get; }
+        public ICodeElement[] Body { get; }
+        public IEnumerable<ICodeElement> StaticInitailizers { get; }
 
-        public IWeakReturnable Returns() { return this; }
+        public IType Returns() { return this; }
     }
 }

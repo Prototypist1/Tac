@@ -1,5 +1,7 @@
 ﻿using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -15,7 +17,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    public class WeakConstantNumber : IWeakCodeElement, IWeakReturnable
+    public class WeakConstantNumber : ICodeElement, IType, IConstantNumber
     {
         public WeakConstantNumber(double value) 
         {
@@ -24,7 +26,7 @@ namespace Tac.Semantic_Model.Operations
 
         public double Value { get; }
 
-        public IWeakReturnable Returns()
+        public IType Returns()
         {
             return new NumberType();
         }
@@ -51,7 +53,7 @@ namespace Tac.Semantic_Model.Operations
     public class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
+        private readonly Box<IType> box = new Box<IType>();
 
         public ConstantNumberPopulateScope(double dub)
         {
@@ -63,7 +65,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantNumberResolveReferance(dub, box);
         }
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }
@@ -72,11 +74,11 @@ namespace Tac.Semantic_Model.Operations
     public class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IWeakReturnable> box;
+        private readonly Box<IType> box;
 
         public ConstantNumberResolveReferance(
             double dub,
-            Box<IWeakReturnable> box)
+            Box<IType> box)
         {
             this.dub = dub;
             this.box = box ?? throw new ArgumentNullException(nameof(box));

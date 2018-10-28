@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -12,9 +13,9 @@ namespace Tac.Semantic_Model
 {
 
 
-    public class WeakModuleDefinition : IScoped, IWeakCodeElement, IWeakReturnable
+    public class WeakModuleDefinition : IScoped, ICodeElement, IType, IModuleDefinition
     {
-        public WeakModuleDefinition(IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitialization, NameKey Key)
+        public WeakModuleDefinition(IWeakFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
@@ -22,14 +23,14 @@ namespace Tac.Semantic_Model
         }
         
         public IWeakFinalizedScope Scope { get; }
-        public IEnumerable<IWeakCodeElement> StaticInitialization { get; }
+        public IEnumerable<ICodeElement> StaticInitialization { get; }
 
         public IKey Key
         {
             get;
         }
 
-        public IWeakReturnable Returns()
+        public IType Returns()
         {
             return this;
         }
@@ -66,19 +67,19 @@ namespace Tac.Semantic_Model
     
     public class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition>
     {
-        private readonly IPopulateScope<IWeakCodeElement>[] elements;
+        private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey nameKey;
-        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
+        private readonly Box<IType> box = new Box<IType>();
 
         public ModuleDefinitionPopulateScope(
-            IPopulateScope<IWeakCodeElement>[] elements,
+            IPopulateScope<ICodeElement>[] elements,
             NameKey nameKey)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }
@@ -98,15 +99,15 @@ namespace Tac.Semantic_Model
     public class ModuleDefinitionResolveReferance : IPopulateBoxes<WeakModuleDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IPopulateBoxes<IWeakCodeElement>[] resolveReferance;
+        private readonly IPopulateBoxes<ICodeElement>[] resolveReferance;
         private readonly NameKey nameKey;
-        private readonly Box<IWeakReturnable> box;
+        private readonly Box<IType> box;
 
         public ModuleDefinitionResolveReferance(
             IResolvableScope scope, 
-            IPopulateBoxes<IWeakCodeElement>[] resolveReferance,
+            IPopulateBoxes<ICodeElement>[] resolveReferance,
             NameKey nameKey,
-            Box<IWeakReturnable> box)
+            Box<IType> box)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));

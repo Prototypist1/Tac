@@ -1,6 +1,7 @@
 ﻿using Prototypist.LeftToRight;
 using System;
 using System.Linq;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -11,9 +12,9 @@ namespace Tac.Semantic_Model
 {
     public class ImplicitMemberMaker : IMaker<WeakMemberReferance>
     {
-        private readonly IBox<IWeakReturnable> type;
+        private readonly IBox<IType> type;
 
-        public ImplicitMemberMaker( IBox<IWeakReturnable> type)
+        public ImplicitMemberMaker( IBox<IType> type)
         {
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
@@ -40,10 +41,10 @@ namespace Tac.Semantic_Model
     public class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReferance>
     {
         private readonly string memberName;
-        private readonly IBox<IWeakReturnable> type;
-        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
+        private readonly IBox<IType> type;
+        private readonly Box<IType> box = new Box<IType>();
 
-        public ImplicitMemberPopulateScope(string item, IBox<IWeakReturnable> type)
+        public ImplicitMemberPopulateScope(string item, IBox<IType> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -64,7 +65,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }
@@ -74,14 +75,14 @@ namespace Tac.Semantic_Model
 
     public class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReferance>
     {
-        private readonly Box<IWeakReturnable> box;
+        private readonly Box<IType> box;
         private readonly string memberName;
-        private readonly IBox<IWeakReturnable> type;
+        private readonly IBox<IType> type;
 
         public ImplicitMemberResolveReferance(
             string memberName,
-            Box<IWeakReturnable> box,
-            IBox<IWeakReturnable> type)
+            Box<IType> box,
+            IBox<IType> type)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));

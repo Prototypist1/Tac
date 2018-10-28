@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -12,7 +13,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakTypeDefinition : IWeakReturnable, IWeakCodeElement, IScoped
+    public class WeakTypeDefinition : IType, ICodeElement, IScoped, ITypeDefinition
     {
         public WeakTypeDefinition(IWeakFinalizedScope scope, IKey key)
         {
@@ -23,7 +24,7 @@ namespace Tac.Semantic_Model
         public IKey Key { get; }
         public IWeakFinalizedScope Scope { get; }
         
-        public IWeakReturnable Returns()
+        public IType Returns()
         {
             return this;
         }
@@ -59,17 +60,17 @@ namespace Tac.Semantic_Model
     
     public class TypeDefinitionPopulateScope : IPopulateScope< WeakTypeDefinition>
     {
-        private readonly IPopulateScope<IWeakCodeElement>[] elements;
+        private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IKey key;
         private readonly Box<WeakTypeDefinition> box = new Box<WeakTypeDefinition>();
 
-        public TypeDefinitionPopulateScope(IPopulateScope<IWeakCodeElement>[] elements, IKey typeName)
+        public TypeDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements, IKey typeName)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
         }
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.Operations;
@@ -9,40 +11,40 @@ namespace Tac.Semantic_Model.CodeStuff
 {
     internal interface IOperation
     {
-        IWeakCodeElement[] Operands { get; }
+        ICodeElement[] Operands { get; }
     }
 
     public abstract class BinaryOperation
     {
-        public delegate T Make<out T>(IWeakCodeElement left, IWeakCodeElement right);
+        public delegate T Make<out T>(ICodeElement left, ICodeElement right);
     }
 
-    public abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, IWeakCodeElement, IOperation
-        where TLeft : class, IWeakCodeElement
-        where TRight : class, IWeakCodeElement
+    public abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation
+        where TLeft : class, ICodeElement
+        where TRight : class, ICodeElement
     {
-        public readonly TLeft left;
-        public readonly TRight right;
-        public IWeakCodeElement[] Operands
+        public TLeft Left { get; }
+        public TRight Right { get; }
+        public ICodeElement[] Operands
         {
             get
             {
-                return new IWeakCodeElement[] { left, right };
+                return new ICodeElement[] { Left, Right };
             }
         }
 
         public BinaryOperation(TLeft left, TRight right)
         {
-            this.left = left ?? throw new ArgumentNullException(nameof(left));
-            this.right = right ?? throw new ArgumentNullException(nameof(right));
+            this.Left = left ?? throw new ArgumentNullException(nameof(left));
+            this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public abstract IWeakReturnable Returns();
+        public abstract IType Returns();
     }
 
 
     public class BinaryOperationMaker<TCodeElement> : IOperationMaker<TCodeElement>
-        where TCodeElement : class, IWeakCodeElement
+        where TCodeElement : class, ICodeElement
     {
         private readonly IConverter<TCodeElement> converter;
 
@@ -77,16 +79,16 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
     public class BinaryPopulateScope<TCodeElement> : IPopulateScope<TCodeElement>
-                where TCodeElement : class, IWeakCodeElement
+                where TCodeElement : class, ICodeElement
     {
-        private readonly IPopulateScope<IWeakCodeElement> left;
-        private readonly IPopulateScope<IWeakCodeElement> right;
+        private readonly IPopulateScope<ICodeElement> left;
+        private readonly IPopulateScope<ICodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
         private readonly IConverter<TCodeElement> converter;
-        private readonly DelegateBox<IWeakReturnable> box = new DelegateBox<IWeakReturnable>();
+        private readonly DelegateBox<IType> box = new DelegateBox<IType>();
 
-        public BinaryPopulateScope(IPopulateScope<IWeakCodeElement> left,
-            IPopulateScope<IWeakCodeElement> right,
+        public BinaryPopulateScope(IPopulateScope<ICodeElement> left,
+            IPopulateScope<ICodeElement> right,
             BinaryOperation.Make<TCodeElement> make,
             IConverter<TCodeElement> converter)
         {
@@ -96,7 +98,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }
@@ -131,19 +133,19 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
     public class BinaryResolveReferance<TCodeElement> : IPopulateBoxes<TCodeElement>
-        where TCodeElement : class, IWeakCodeElement
+        where TCodeElement : class, ICodeElement
     {
-        public readonly IPopulateBoxes<IWeakCodeElement> left;
-        public readonly IPopulateBoxes<IWeakCodeElement> right;
+        public readonly IPopulateBoxes<ICodeElement> left;
+        public readonly IPopulateBoxes<ICodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
-        private readonly DelegateBox<IWeakReturnable> box;
+        private readonly DelegateBox<IType> box;
         private readonly IConverter<TCodeElement> converter;
 
         public BinaryResolveReferance(
-            IPopulateBoxes<IWeakCodeElement> resolveReferance1,
-            IPopulateBoxes<IWeakCodeElement> resolveReferance2,
+            IPopulateBoxes<ICodeElement> resolveReferance1,
+            IPopulateBoxes<ICodeElement> resolveReferance2,
             BinaryOperation.Make<TCodeElement> make,
-            DelegateBox<IWeakReturnable> box,
+            DelegateBox<IType> box,
             IConverter<TCodeElement> converter)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
@@ -165,7 +167,7 @@ namespace Tac.Semantic_Model.CodeStuff
     }
 
     internal class BinaryOpenBoxes<TCodeElement> : IOpenBoxes<TCodeElement>
-        where TCodeElement : class, IWeakCodeElement
+        where TCodeElement : class, ICodeElement
     {
         public TCodeElement CodeElement { get; }
         private readonly IConverter<TCodeElement> converter;

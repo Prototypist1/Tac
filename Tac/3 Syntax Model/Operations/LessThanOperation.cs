@@ -2,21 +2,24 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
 
-    public class WeakLessThanOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
+    public class WeakLessThanOperation : BinaryOperation<ICodeElement, ICodeElement>, ILessThanOperation
     {
         public const string Identifier = "<?";
 
-        public WeakLessThanOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
+        public WeakLessThanOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
 
-        public override IWeakReturnable Returns()
+        public override IType Returns()
         {
             return new BooleanType();
         }

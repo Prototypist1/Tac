@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -14,7 +15,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakObjectDefinition: IWeakCodeElement, IWeakReturnable, IScoped
+    public class WeakObjectDefinition: ICodeElement, IType, IScoped, IObjectDefiniton
     {
         public WeakObjectDefinition(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -35,7 +36,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IWeakReturnable Returns() {
+        public IType Returns() {
             return this;
         }
     }
@@ -66,15 +67,15 @@ namespace Tac.Semantic_Model
     
     public class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
-        private readonly IPopulateScope<IWeakCodeElement>[] elements;
-        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
+        private readonly IPopulateScope<ICodeElement>[] elements;
+        private readonly Box<IType> box = new Box<IType>();
 
-        public ObjectDefinitionPopulateScope(IPopulateScope<IWeakCodeElement>[] elements)
+        public ObjectDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }
@@ -95,14 +96,14 @@ namespace Tac.Semantic_Model
     public class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IPopulateBoxes<IWeakCodeElement>[] elements;
-        private readonly Box<IWeakReturnable> box;
+        private readonly IPopulateBoxes<ICodeElement>[] elements;
+        private readonly Box<IType> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
-            IPopulateBoxes<IWeakCodeElement>[] elements, 
-            Box<IWeakReturnable> box, 
+            IPopulateBoxes<ICodeElement>[] elements, 
+            Box<IType> box, 
             ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));

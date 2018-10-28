@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -9,17 +12,17 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakAssignOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
+    public class WeakAssignOperation : BinaryOperation<ICodeElement, ICodeElement>, IAssignOperation
     {
         public const string Identifier = "=:";
         
-        public WeakAssignOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
+        public WeakAssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
 
-        public override IWeakReturnable Returns()
+        public override IType Returns()
         {
-            return left.Returns();
+            return Left.Returns();
         }
     }
     

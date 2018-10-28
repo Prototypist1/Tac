@@ -1,8 +1,10 @@
-﻿using Tac.Semantic_Model;
+﻿using Tac.Model.Elements;
+using Tac.Semantic_Model;
 
 namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 {
-    public interface IPrimitiveType : IWeakReturnable {
+    public interface IPrimitiveType : IType
+    {
         
     }
 

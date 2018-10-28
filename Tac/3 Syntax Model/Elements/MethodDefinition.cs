@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -10,14 +12,14 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakMethodDefinition : WeakAbstractBlockDefinition, IWeakReturnable
+    public class WeakMethodDefinition : WeakAbstractBlockDefinition, IType, IMethodDefinition
     {
         public WeakMethodDefinition(
-            IBox<IWeakReturnable> outputType, 
+            IBox<IType> outputType, 
             IBox<WeakMemberDefinition> parameterDefinition,
-            IWeakCodeElement[] body,
+            ICodeElement[] body,
             IWeakFinalizedScope scope,
-            IEnumerable<IWeakCodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+            IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -25,14 +27,14 @@ namespace Tac.Semantic_Model
         
 
 
-        public IBox<IWeakReturnable> InputType
+        public IBox<IType> InputType
         {
             get
             {
                 return ParameterDefinition.GetValue().Type;
             }
         }
-        public IBox<IWeakReturnable> OutputType { get; }
+        public IBox<IType> OutputType { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
     }
 
@@ -77,13 +79,13 @@ namespace Tac.Semantic_Model
     public class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
     {
         private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
-        private readonly IPopulateScope<IWeakCodeElement>[] elements;
+        private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly Box<IWeakReturnable> box = new Box<IWeakReturnable>();
+        private readonly Box<IType> box = new Box<IType>();
 
         public MethodDefinitionPopulateScope(
             IPopulateScope<WeakMemberReferance> parameterDefinition,
-            IPopulateScope<IWeakCodeElement>[] elements, 
+            IPopulateScope<ICodeElement>[] elements, 
             NameKey outputTypeName
             )
         {
@@ -93,7 +95,7 @@ namespace Tac.Semantic_Model
 
         }
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }
@@ -115,16 +117,16 @@ namespace Tac.Semantic_Model
     {
         private readonly IPopulateBoxes<WeakMemberReferance> parameter;
         private readonly IResolvableScope methodScope;
-        private readonly IPopulateBoxes<IWeakCodeElement>[] lines;
+        private readonly IPopulateBoxes<ICodeElement>[] lines;
         private readonly NameKey outputTypeName;
-        private readonly Box<IWeakReturnable> box;
+        private readonly Box<IType> box;
 
         public MethodDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReferance> parameter, 
             IResolvableScope methodScope, 
-            IPopulateBoxes<IWeakCodeElement>[] resolveReferance2, 
+            IPopulateBoxes<ICodeElement>[] resolveReferance2, 
             NameKey outputTypeName,
-            Box<IWeakReturnable> box)
+            Box<IType> box)
         {
             this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
@@ -141,7 +143,7 @@ namespace Tac.Semantic_Model
                     parameter.Run(context).CodeElement.MemberDefinition, 
                     lines.Select(x => x.Run(context).CodeElement).ToArray(),
                     methodScope.GetFinalized(),
-                    new IWeakCodeElement[0]));
+                    new ICodeElement[0]));
             return new MethodDefinitionOpenBoxes(item);
         }
     }

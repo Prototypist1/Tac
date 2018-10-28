@@ -1,5 +1,5 @@
 ﻿namespace Tac.Model.Operations
 {
-    public interface IReturnOperation<ICodeElement> {
+    public interface IReturnOperation : ICodeElement{
     }
 }

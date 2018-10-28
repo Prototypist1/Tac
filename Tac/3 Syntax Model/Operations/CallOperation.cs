@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -11,18 +14,18 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakNextCallOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
+    public class WeakNextCallOperation : BinaryOperation<ICodeElement, ICodeElement>, INextCallOperation
     {
 
         public const string Identifier = ">";
 
-        public WeakNextCallOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
+        public WeakNextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
 
-        public override IWeakReturnable Returns()
+        public override IType Returns()
         {
-            return right.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
+            return Right.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
         }
     }
 
@@ -41,17 +44,17 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class WeakLastCallOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
+    public class WeakLastCallOperation : BinaryOperation<ICodeElement, ICodeElement>, ILastCallOperation
     {
         public const string Identifier = "<";
 
-        public WeakLastCallOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
+        public WeakLastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
 
-        public override IWeakReturnable Returns()
+        public override IType Returns()
         {
-            return left.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
+            return Left.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
         }
     }
 
@@ -71,7 +74,7 @@ namespace Tac.Semantic_Model.Operations
     }
     
     public static class MemberUnwrapper{
-        public static T Unwrap<T>(this IWeakCodeElement codeElement) where T:IWeakReturnable {
+        public static T Unwrap<T>(this ICodeElement codeElement) where T:IType {
             if (codeElement.Returns() is WeakMemberDefinition member && member.Type.GetValue() is T t) {
                 return t;
             }

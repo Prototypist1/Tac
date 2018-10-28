@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -15,20 +17,20 @@ namespace Tac.Semantic_Model
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    public class WeakMemberDefinition: IWeakReturnable, IWeakCodeElement
+    public class WeakMemberDefinition: IType, ICodeElement, IMemberDefinition
     {
-        public WeakMemberDefinition(bool readOnly, NameKey key, IBox<IWeakReturnable> type)
+        public WeakMemberDefinition(bool readOnly, NameKey key, IBox<IType> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IBox<IWeakReturnable> Type { get; }
+        public IBox<IType> Type { get; }
         public bool ReadOnly { get; }
         public NameKey Key { get; }
 
-        public IWeakReturnable Returns()
+        public IType Returns()
         {
             return this;
         }
@@ -81,7 +83,7 @@ namespace Tac.Semantic_Model
             return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, context.GetResolvableScope(), memberDefinitionBox);
         }
 
-        public IBox<IWeakReturnable> GetReturnType()
+        public IBox<IType> GetReturnType()
         {
             return box;
         }

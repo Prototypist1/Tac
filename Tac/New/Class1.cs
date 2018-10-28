@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Model.Elements;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
@@ -148,7 +149,7 @@ namespace Tac.New
     // you are only allowed to put things in scope during this step
 
     public interface IPopulateScope {
-        IBox<IWeakReturnable> GetReturnType();
+        IBox<IType> GetReturnType();
     }
 
     public interface IPopulateScope<out TCodeElement> : IPopulateScope

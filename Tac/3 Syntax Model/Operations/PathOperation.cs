@@ -1,6 +1,9 @@
 ﻿using Prototypist.LeftToRight;
 using System;
 using System.Collections.Generic;
+using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -9,18 +12,18 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakPathOperation : BinaryOperation<IWeakCodeElement, IWeakCodeElement>
+    public class WeakPathOperation : BinaryOperation<ICodeElement, ICodeElement>, IPathOperation
     {
         public const string Identifier = ".";
 
-        public WeakPathOperation(IWeakCodeElement left, IWeakCodeElement right) : base(left, right)
+        public WeakPathOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
 
-        public override IWeakReturnable Returns()
+        public override IType Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
-            return right.Cast<WeakMemberReferance>();
+            return Right.Cast<WeakMemberReferance>();
         }
     }
 

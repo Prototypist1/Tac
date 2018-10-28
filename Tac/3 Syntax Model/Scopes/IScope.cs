@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 
@@ -15,13 +16,13 @@ namespace Tac.Semantic_Model
     public interface IPopulatableScope: ISomeScope
     {
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<WeakMemberDefinition> type);
-        bool TryAddType(IKey name, IBox<IWeakReturnable> type);
+        bool TryAddType(IKey name, IBox<IType> type);
     }
     
     public interface IResolvableScope: ISomeScope
     {
         IWeakFinalizedScope GetFinalized();
-        bool TryGetType(IKey name, out IBox<IWeakReturnable> type);
+        bool TryGetType(IKey name, out IBox<IType> type);
     }
 
     public class ScopeEnty<T>
@@ -57,7 +58,7 @@ namespace Tac.Semantic_Model
 
     public static class ResolvableScopeExtension
     {
-        public static IBox<IWeakReturnable> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
+        public static IBox<IType> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }

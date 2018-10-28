@@ -2,8 +2,10 @@
 
 namespace Tac.Model.Elements
 {
-    public interface ITypeDefinition : ICodeElement
+    public interface ITypeDefinition : ICodeElement, IType
     {
         IFinalizedScope Scope { get; }
     }
+
+    public interface IType { }
 }

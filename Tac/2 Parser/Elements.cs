@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Tac._2_Parser;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
@@ -30,15 +31,15 @@ namespace Tac.Parser
     public class ElementMatchingContext
     {
 
-        internal ElementMatchingContext ExpectPathPart(IBox<IWeakReturnable> box) {
-            return new ElementMatchingContext(operationMatchers, new IMaker<IWeakCodeElement>[] {
+        internal ElementMatchingContext ExpectPathPart(IBox<IType> box) {
+            return new ElementMatchingContext(operationMatchers, new IMaker<ICodeElement>[] {
                 new MemberReferanceMaker(box)
             });
         }
         
-        internal ElementMatchingContext AcceptImplicit(IBox<IWeakReturnable> box)
+        internal ElementMatchingContext AcceptImplicit(IBox<IType> box)
         {
-            return new ElementMatchingContext(operationMatchers, new IMaker<IWeakCodeElement>[] {
+            return new ElementMatchingContext(operationMatchers, new IMaker<ICodeElement>[] {
                 new BlockDefinitionMaker(),
                 new ConstantNumberMaker(),
                 new GenericTypeDefinitionMaker(),
@@ -60,7 +61,7 @@ namespace Tac.Parser
         
         public ElementMatchingContext() : 
             this(
-                new IOperationMaker<IWeakCodeElement>[] {
+                new IOperationMaker<ICodeElement>[] {
                     new AddOperationMaker(),
                     new SubtractOperationMaker(),
                     new MultiplyOperationMaker(),
@@ -72,7 +73,7 @@ namespace Tac.Parser
                     new PathOperationMaker(),
                     new ReturnOperationMaker()
                 },
-                new IMaker<IWeakCodeElement>[] {
+                new IMaker<ICodeElement>[] {
                     new BlockDefinitionMaker(),
                     new ConstantNumberMaker(),
                     new GenericTypeDefinitionMaker(),
@@ -85,18 +86,18 @@ namespace Tac.Parser
                     new MemberMaker(),
                 }){}
         
-        public ElementMatchingContext(IOperationMaker<IWeakCodeElement>[] operationMatchers, IMaker<IWeakCodeElement>[] elementMakers)
+        public ElementMatchingContext(IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers)
         {
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
             this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
         }
 
-        private readonly IMaker<IWeakCodeElement>[] elementMakers;
-        private readonly IOperationMaker<IWeakCodeElement>[] operationMatchers;
+        private readonly IMaker<ICodeElement>[] elementMakers;
+        private readonly IOperationMaker<ICodeElement>[] operationMatchers;
         
         #region Parse
 
-        public IPopulateScope<IWeakCodeElement> ParseParenthesisOrElement(IToken token)
+        public IPopulateScope<ICodeElement> ParseParenthesisOrElement(IToken token)
         {
             if (token is ElementToken elementToken)
             {
@@ -122,7 +123,7 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<IWeakCodeElement> ParseLine(IEnumerable<IToken> tokens)
+        public IPopulateScope<ICodeElement> ParseLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in operationMatchers)
             {
@@ -140,12 +141,12 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<IWeakCodeElement>[] ParseFile(FileToken file)
+        public IPopulateScope<ICodeElement>[] ParseFile(FileToken file)
         {
             return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
         }
 
-        public IPopulateScope<IWeakCodeElement>[] ParseBlock(CurleyBracketToken block)
+        public IPopulateScope<ICodeElement>[] ParseBlock(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {
