@@ -1,5 +1,5 @@
 ﻿
-namespace Tac.Semantic_Model.CodeStuff
+namespace Tac.Model
 {
     public interface ICodeElement {
 

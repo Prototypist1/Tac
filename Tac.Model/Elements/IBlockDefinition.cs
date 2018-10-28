@@ -1,4 +1,4 @@
-﻿namespace Tac.Semantic_Model
+﻿namespace Tac.Model.Elements
 {
     public interface IBlockDefinition: IAbstractBlockDefinition
     {

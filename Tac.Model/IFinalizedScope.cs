@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Tac.Semantic_Model.Names;
+using Tac.Model.Elements;
 
-namespace Tac.Semantic_Model
+namespace Tac.Model
 {
     public interface IFinalizedScope
     {

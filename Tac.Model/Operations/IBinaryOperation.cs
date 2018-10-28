@@ -1,4 +1,4 @@
-﻿namespace Tac.Semantic_Model.CodeStuff
+﻿namespace Tac.Model.Operations
 {
     public interface IBinaryOperation<TLeft, TRight> : ICodeElement
     where TLeft : ICodeElement

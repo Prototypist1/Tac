@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Model;
 using Tac.Parser;
 using Tac.Semantic_Model.Names;
 

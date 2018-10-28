@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 

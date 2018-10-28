@@ -1,4 +1,4 @@
-﻿namespace Tac.Semantic_Model.Names
+﻿namespace Tac.Model
 {
     public interface IKey { }
 }

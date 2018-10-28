@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 
-namespace Tac.Semantic_Model
+namespace Tac.Model.Elements
 {
     public interface IModuleDefinition : ICodeElement
     {

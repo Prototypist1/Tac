@@ -1,6 +1,6 @@
-﻿using Tac.Semantic_Model.CodeStuff;
+﻿using Tac.Model.Elements;
 
-namespace Tac.Semantic_Model.Operations
+namespace Tac.Model.Operations
 {
     public interface IPathOperation : IBinaryOperation<ICodeElement, IMemberReferance>
     {

@@ -1,6 +1,4 @@
-﻿using Tac.Semantic_Model.CodeStuff;
-
-namespace Tac.Semantic_Model.Operations
+﻿namespace Tac.Model.Elements
 {
     public interface IConstantNumber: ICodeElement {
         double Value { get; }

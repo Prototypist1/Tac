@@ -16,4 +16,8 @@
     <PackageReference Include="Prototypist.TaskChain" Version="1.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Tac.Model\Tac.Model.csproj" />
+  </ItemGroup>
+
 </Project>
