@@ -1,5 +1,6 @@
 ﻿using Prototypist.LeftToRight;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -20,6 +21,13 @@ namespace Tac.Semantic_Model
         }
 
         public IBox<WeakMemberDefinition> MemberDefinition { get; }
+
+        #region IMemberReferance
+
+        IMemberDefinition IMemberReferance.MemberDefinition => MemberDefinition.GetValue();
+
+        #endregion
+
 
         public IType Returns()
         {
@@ -99,7 +107,7 @@ namespace Tac.Semantic_Model
                 {
                     lshtype = memberDefinitions.Type.GetValue();
                 }
-                return lshtype.Cast<IScoped>().Scope.Members[new NameKey(memberName)].GetValue();
+                return lshtype.Cast<IScoped>().Scope[new NameKey(memberName)].GetValue();
             });
 
             var itme = new WeakMemberReferance(box);

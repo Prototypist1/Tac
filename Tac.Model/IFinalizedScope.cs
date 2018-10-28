@@ -3,8 +3,7 @@ using Tac.Model.Elements;
 
 namespace Tac.Model
 {
-    public interface IFinalizedScope
+    public interface IFinalizedScope: IReadOnlyDictionary<IKey, IMemberDefinition>
     {
-        IReadOnlyDictionary<IKey, IMemberDefinition> Members { get; }
     }
 }

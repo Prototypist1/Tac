@@ -1,42 +1,12 @@
-﻿using Prototypist.LeftToRight;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
-using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    //public class Member : ICodeElement
-    //{
-    //    public delegate Member Make(int scopesUp, IBox<MemberDefinition> memberDefinition);
-
-    //    public Member(int scopesUp, IReadOnlyList<IBox<MemberDefinition>> memberDefinitions)
-    //    {
-    //        ScopesUp = scopesUp;
-    //        MemberDefinitions = memberDefinitions ?? throw new ArgumentNullException(nameof(memberDefinitions));
-    //    }
-        
-    //    public int ScopesUp { get; }
-    //    public IReadOnlyList<IBox<MemberDefinition>> MemberDefinitions { get; }
-
-    //    public IReturnable Returns(IElementBuilders builders)
-    //    {
-    //        return this;
-    //    }
-
-    //    public Member Child(IBox<MemberDefinition> member) {
-    //        var list = MemberDefinitions.ToList();
-    //        list.Add(member);
-    //        return new Member(ScopesUp, list);
-    //    }
-    //}
-
     public class MemberMaker : IMaker<WeakMemberReferance>
     {
         public MemberMaker()

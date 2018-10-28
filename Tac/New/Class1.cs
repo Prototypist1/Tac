@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
@@ -89,27 +90,27 @@ namespace Tac.New
     // which forces the front end to up
     public interface IOpenBoxesContext<T> 
     {
-        T BlockDefinition(WeakBlockDefinition codeElement);
-        T AssignOperation(WeakAssignOperation co);
-        T ConstantNumber(WeakConstantNumber codeElement);
-        T PathOperation(WeakPathOperation co);
-        T GenericTypeDefinition(WeakGenericTypeDefinition codeElement);
-        T ImplementationDefinition(WeakImplementationDefinition codeElement);
-        T MemberDefinition(WeakMemberDefinition codeElement);
-        T MemberReferance(WeakMemberReferance codeElement);
-        T MethodDefinition(WeakMethodDefinition codeElement);
-        T ModuleDefinition(WeakModuleDefinition codeElement);
-        T LastCallOperation(WeakLastCallOperation co);
-        T ObjectDefinition(WeakObjectDefinition codeElement);
-        T TypeDefinition(WeakTypeDefinition codeElement);
-        T AddOperation(WeakAddOperation co);
-        T NextCallOperation(WeakNextCallOperation co);
-        T ElseOperation(WeakElseOperation co);
-        T IfTrueOperation(WeakIfTrueOperation co);
-        T LessThanOperation(WeakLessThanOperation co);
-        T MultiplyOperation(WeakMultiplyOperation co);
-        T SubtractOperation(WeakSubtractOperation co);
-        T ReturnOperation(WeakReturnOperation co);
+        T BlockDefinition(IBlockDefinition codeElement);
+        T AssignOperation(IAssignOperation co);
+        T ConstantNumber(IConstantNumber codeElement);
+        T PathOperation(IPathOperation co);
+        T GenericTypeDefinition(IGenericTypeDefinition codeElement);
+        T ImplementationDefinition(IImplementationDefinition codeElement);
+        T MemberDefinition(IMemberDefinition codeElement);
+        T MemberReferance(IMemberReferance codeElement);
+        T MethodDefinition(IMethodDefinition codeElement);
+        T ModuleDefinition(IModuleDefinition codeElement);
+        T LastCallOperation(ILastCallOperation co);
+        T ObjectDefinition(IObjectDefiniton codeElement);
+        T TypeDefinition(ITypeDefinition codeElement);
+        T AddOperation(IAddOperation co);
+        T NextCallOperation(INextCallOperation co);
+        T ElseOperation(IElseOperation co);
+        T IfTrueOperation(IIfOperation co);
+        T LessThanOperation(ILessThanOperation co);
+        T MultiplyOperation(IMultiplyOperation co);
+        T SubtractOperation(ISubtractOperation co);
+        T ReturnOperation(IReturnOperation co);
     }
 
     public class PopulateScopeContext : IPopulateScopeContext

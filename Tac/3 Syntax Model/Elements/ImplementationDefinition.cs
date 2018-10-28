@@ -32,14 +32,14 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public IBox<IType> ContextType
+        public IBox<IType> ContextTypeBox
         {
             get
             {
                 return ContextDefinition.GetValue().Type;
             }
         }
-        public IBox<IType> InputType
+        public IBox<IType> InputTypeBox
         {
             get
             {
@@ -52,6 +52,15 @@ namespace Tac.Semantic_Model
         public IWeakFinalizedScope Scope { get; }
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
+
+        #region IImplementationDefinition
+
+        IType IImplementationDefinition.OutputType => OutputType.GetValue();
+        IMemberDefinition IImplementationDefinition.ContextDefinition => ContextDefinition.GetValue();
+        IMemberDefinition IImplementationDefinition.ParameterDefinition => ParameterDefinition.GetValue();
+        IFinalizedScope IImplementationDefinition.Scope => Scope;
+
+        #endregion
         
         public IType Returns()
         {

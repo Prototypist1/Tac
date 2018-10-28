@@ -25,17 +25,17 @@ namespace Tac.Semantic_Model
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
         
-
-
-        public IBox<IType> InputType
-        {
-            get
-            {
-                return ParameterDefinition.GetValue().Type;
-            }
-        }
+        public IBox<IType> InputType => ParameterDefinition.GetValue().Type;
         public IBox<IType> OutputType { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
+
+        #region IMethodDefinition
+
+        IType IMethodDefinition.InputType => InputType.GetValue();
+        IType IMethodDefinition.OutputType => OutputType.GetValue();
+        IMemberDefinition IMethodDefinition.ParameterDefinition => ParameterDefinition.GetValue();
+
+        #endregion
     }
 
 

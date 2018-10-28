@@ -18,9 +18,12 @@ namespace Tac.Semantic_Model
             IWeakFinalizedScope scope,
             IEnumerable<ICodeElement> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
-        
-        IEnumerable<IAssignOperation> IAbstractBlockDefinition.StaticInitailizers => StaticInitailizers;
+
+        #region IBlockDefinition
+
         IFinalizedScope IAbstractBlockDefinition.Scope => Scope;
+        
+        #endregion
     }
 
     public class BlockDefinitionMaker : IMaker<WeakBlockDefinition>
@@ -90,7 +93,10 @@ namespace Tac.Semantic_Model
 
         public IOpenBoxes< WeakBlockDefinition> Run(IResolveReferanceContext context)
         {
-            var item = box.Fill(new WeakBlockDefinition(ResolveReferance.Select(x => x.Run(context).CodeElement).ToArray(), Scope.GetFinalized(), new ICodeElement[0]));
+            var item = box.Fill(new WeakBlockDefinition(
+                ResolveReferance.Select(x => x.Run(context).CodeElement).ToArray(), 
+                Scope.GetFinalized(), 
+                new ICodeElement[0]));
             return new BlockDefinitionOpenBoxes(item);
         }
         

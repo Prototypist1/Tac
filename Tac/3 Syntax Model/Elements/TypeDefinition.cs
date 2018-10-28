@@ -23,6 +23,12 @@ namespace Tac.Semantic_Model
 
         public IKey Key { get; }
         public IWeakFinalizedScope Scope { get; }
+
+        #region ITypeDefinition
+
+        IFinalizedScope ITypeDefinition.Scope => Scope;
+
+        #endregion
         
         public IType Returns()
         {

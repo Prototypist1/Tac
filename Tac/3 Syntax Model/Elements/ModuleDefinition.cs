@@ -30,6 +30,13 @@ namespace Tac.Semantic_Model
             get;
         }
 
+        #region IModuleDefinition
+        
+        IFinalizedScope IModuleDefinition.Scope => Scope;
+
+        #endregion
+
+
         public IType Returns()
         {
             return this;

@@ -6,6 +6,6 @@ namespace Tac.Model.Elements
     public interface IAbstractBlockDefinition: ICodeElement {
         IFinalizedScope Scope { get; }
         ICodeElement[] Body { get; }
-        IEnumerable<IAssignOperation> StaticInitailizers { get; }
+        IEnumerable<ICodeElement> StaticInitailizers { get; }
     }
 }

@@ -30,6 +30,12 @@ namespace Tac.Semantic_Model
         public bool ReadOnly { get; }
         public NameKey Key { get; }
 
+        #region IMemberDefinition
+
+        IType IMemberDefinition.Type => Type.GetValue();
+
+        #endregion
+        
         public IType Returns()
         {
             return this;

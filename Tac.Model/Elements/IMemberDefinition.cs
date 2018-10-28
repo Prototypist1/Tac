@@ -4,7 +4,7 @@ namespace Tac.Model.Elements
 {
     public interface IMemberDefinition : ICodeElement
     {
-        ITypeDefinition Type { get; }
+        IType Type { get; }
         bool ReadOnly { get; }
     }
 }

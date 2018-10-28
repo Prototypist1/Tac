@@ -27,7 +27,11 @@ namespace Tac.Semantic_Model
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
+        #region IGenericTypeDefinition
+
         IFinalizedScope IGenericTypeDefinition.Scope => Scope;
+
+        #endregion
         
         // huh? this seems to have no uses
         // and that means GenericScope has no uses
