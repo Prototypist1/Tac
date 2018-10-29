@@ -1,16 +1,11 @@
-﻿using Tac.Semantic_Model;
-using Tac.Semantic_Model.Names;
+﻿
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedTypeDefinition: WeakTypeDefinition, IInterpeted, IInterpetedPrimitiveType
+    internal class InterpetedTypeDefinition: IInterpeted, IInterpetedPrimitiveType
     {
-        internal static readonly WeakTypeDefinition.Make MakeNew = (scope,key)=> new InterpetedTypeDefinition(scope,key);
-
-        public InterpetedTypeDefinition(IWeakFinalizedScope scope, IKey key) : base(scope, key)
-        {
-        }
+        public void Init() { }
 
         public IRunTime GetDefault(InterpetedContext interpetedContext)
         {

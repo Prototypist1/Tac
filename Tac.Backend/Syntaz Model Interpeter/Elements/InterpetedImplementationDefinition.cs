@@ -1,35 +1,37 @@
 ﻿using Prototypist.LeftToRight;
 using System.Collections.Generic;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 using System.Linq;
 using System;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedImplementationDefinition : WeakImplementationDefinition, IInterpeted, IInterpetedPrimitiveType
+    internal class InterpetedImplementationDefinition : IInterpeted, IInterpetedPrimitiveType
     {
-        public InterpetedImplementationDefinition(IBox<WeakMemberDefinition> contextDefinition, IBox<WeakMemberDefinition> parameterDefinition, IBox<IWeakReturnable> outputType, IEnumerable<IWeakCodeElement> metohdBody, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitializers) : base(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers)
+        public void Init(InterpetedMemberDefinition parameterDefinition, InterpetedMemberDefinition contextDefinition, IInterpeted methodBody, IFinalizedScope scope)
         {
+            ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
+            MethodBody = methodBody ?? throw new ArgumentNullException(nameof(methodBody));
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
+
+        public InterpetedMemberDefinition ParameterDefinition { get; private set; }
+        public InterpetedMemberDefinition ContextDefinition { get; private set; }
+        public IInterpeted MethodBody { get; private set; }
+        public IFinalizedScope Scope { get; private set; }
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(new InterpetedImplementation(
-                ParameterDefinition.GetValue(),
-                ContextDefinition.GetValue(),
+                ParameterDefinition,
+                ContextDefinition,
                 MethodBody.ToArray(),
                 interpetedContext,
                 Scope));
         }
-
-        internal static WeakImplementationDefinition MakeNew(IBox<WeakMemberDefinition> contextDefinition, IBox<WeakMemberDefinition> parameterDefinition, IBox<IWeakReturnable> outputType, IEnumerable<IWeakCodeElement> metohdBody, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitializers)
-        {
-            return new InterpetedImplementationDefinition(contextDefinition, parameterDefinition, outputType, metohdBody, scope, staticInitializers);
-        }
-
+        
         public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation(

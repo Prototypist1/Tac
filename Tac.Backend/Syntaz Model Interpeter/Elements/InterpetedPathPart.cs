@@ -1,18 +1,20 @@
-﻿using Tac.Semantic_Model;
+﻿using System;
+using Tac.Semantic_Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedMemberReferance : WeakMemberReferance, IInterpeted
+    public class InterpetedMemberReferance :  IInterpeted
     {
-        public static readonly WeakMemberReferance.Make MakeNew = (memberDefinition) => new InterpetedMemberReferance(memberDefinition);
-
-        public InterpetedMemberReferance(IBox<WeakMemberDefinition> memberDefinition) : base(memberDefinition)
+        public void Init(InterpetedMemberReferance memberReferance)
         {
+            MemberReferance = memberReferance ?? throw new ArgumentNullException(nameof(memberReferance));
         }
+
+        public InterpetedMemberReferance MemberReferance { get; private set; }
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(MemberDefinition.GetValue());
+            return InterpetedResult.Create(MemberDefinition);
         }
     }
 }

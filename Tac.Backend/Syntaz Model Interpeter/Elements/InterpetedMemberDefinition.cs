@@ -1,25 +1,23 @@
 ﻿using Prototypist.LeftToRight;
 using System;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.Names;
+using Tac.Model.Elements;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedMemberDefinition: WeakMemberDefinition, IInterpeted
+    internal class InterpetedMemberDefinition: IInterpeted
     {
-        public InterpetedMemberDefinition(bool readOnly, NameKey key, IBox<IWeakReturnable> type) : base(readOnly, key, type)
+        public void Init(IType type)
         {
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        internal static WeakMemberDefinition MakeNew(bool readOnly, NameKey key, IBox<IWeakReturnable> type)
-        {
-            return new InterpetedMemberDefinition(readOnly, key, type);
-        }
-
+        public IType Type { get; private set; }
+        
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedMember(Type.GetValue().Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext)));
+            return InterpetedResult.Create(new InterpetedMember(
+                Type.Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext)));
         }
     }
 }

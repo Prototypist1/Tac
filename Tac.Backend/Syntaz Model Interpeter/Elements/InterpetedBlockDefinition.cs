@@ -4,7 +4,7 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedBlockDefinition :  IInterpeted
+    internal class InterpetedBlockDefinition :  IInterpeted
     {
         public void Init(IInterpeted[] body, IFinalizedScope scope)
         {
