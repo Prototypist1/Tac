@@ -12,7 +12,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakReturnOperation : TrailingOperation, ICodeElement, IReturnOperation
+    internal class WeakReturnOperation : TrailingOperation, ICodeElement, IReturnOperation
     {
 
         public const string Identifier = "return";
@@ -22,6 +22,13 @@ namespace Tac.Semantic_Model.Operations
             Result = result;
         }
 
+
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.ReturnOperation(this);
+        }
+
+
         public ICodeElement Result { get; }
         
         public IType Returns()
@@ -30,23 +37,20 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class ITrailingOperion<T> {
+    internal class ITrailingOperion<T> {
     }
 
-    public class TrailingOperation {
+    internal class TrailingOperation {
         public delegate T Make<T>(ICodeElement codeElement);
     }
 
-    public class TrailingOperationMaker<T> : IOperationMaker<T>
+    internal class TrailingOperationMaker<T> : IOperationMaker<T>
         where T : class, ICodeElement
     {
-        private readonly IConverter<T> converter;
-
-        public TrailingOperationMaker(string name, TrailingOperation.Make<T> make, IConverter<T> converter)
+        public TrailingOperationMaker(string name, TrailingOperation.Make<T> make)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Make = make ?? throw new ArgumentNullException(nameof(make));
-            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
         public string Name { get; }
@@ -60,26 +64,24 @@ namespace Tac.Semantic_Model.Operations
             {
                 var left = matchingContext.ParseLine(perface);
                 
-                return ResultExtension.Good(new TrailingPopulateScope<T>(left,Make,converter));
+                return ResultExtension.Good(new TrailingPopulateScope<T>(left,Make));
             }
             return ResultExtension.Bad<IPopulateScope<T>>();
         }
         
     }
 
-    public class TrailingPopulateScope<T> : IPopulateScope<T>
+    internal class TrailingPopulateScope<T> : IPopulateScope<T>
         where T : class, ICodeElement
     {
         private readonly IPopulateScope<ICodeElement> left;
         private readonly TrailingOperation.Make<T> make;
-        private readonly IConverter<T> converter;
         private readonly DelegateBox<IType> box = new DelegateBox<IType>();
 
-        public TrailingPopulateScope(IPopulateScope<ICodeElement> left, TrailingOperation.Make<T> make, IConverter<T> converter)
+        public TrailingPopulateScope(IPopulateScope<ICodeElement> left, TrailingOperation.Make<T> make)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
-            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
         public IBox<IType> GetReturnType()
@@ -89,67 +91,39 @@ namespace Tac.Semantic_Model.Operations
 
         public IPopulateBoxes<T> Run(IPopulateScopeContext context)
         {
-            return new TrailingResolveReferance<T>(left.Run(context),  make, box, converter);
+            return new TrailingResolveReferance<T>(left.Run(context),  make, box);
         }
     }
 
 
 
-    public class TrailingResolveReferance<T> : IPopulateBoxes<T>
+    internal class TrailingResolveReferance<T> : IPopulateBoxes<T>
         where T : class, ICodeElement
     {
         public readonly IPopulateBoxes<ICodeElement> left;
         private readonly TrailingOperation.Make<T> make;
         private readonly DelegateBox<IType> box;
-        private readonly IConverter<T> converter;
 
-        public TrailingResolveReferance(IPopulateBoxes<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IType> box, IConverter<T> converte)
+        public TrailingResolveReferance(IPopulateBoxes<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IType> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
-            this.converter = converte ?? throw new ArgumentNullException(nameof(converte));
         }
         
-        public IOpenBoxes<T> Run(IResolveReferanceContext context)
+        public T Run(IResolveReferanceContext context)
         {
-            var res = make(left.Run(context).CodeElement);
+            var res = make(left.Run(context));
             box.Set(()=>res.Returns());
-            return new TrailingOpenBoxes<T>(res, converter);
+            return res;
         }
     }
 
-    public class TrailingOpenBoxes<T> : IOpenBoxes<T>
-        where T : class, ICodeElement
+
+    internal class ReturnOperationMaker : TrailingOperationMaker<WeakReturnOperation>
     {
-        public T CodeElement { get; }
-        private readonly IConverter<T> converter;
-
-        public TrailingOpenBoxes(T res, IConverter<T> converter)
+        public ReturnOperationMaker() : base(WeakReturnOperation.Identifier, x=>new WeakReturnOperation(x))
         {
-            this.CodeElement = res ?? throw new ArgumentNullException(nameof(res));
-            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
-        }
-
-        public T1 Run<T1>(IOpenBoxesContext<T1> context)
-        {
-            return converter.Convert(context, CodeElement);
-        }
-    }
-    
-    public class ReturnOperationMaker : TrailingOperationMaker<WeakReturnOperation>
-    {
-        public ReturnOperationMaker() : base(WeakReturnOperation.Identifier, x=>new WeakReturnOperation(x), new Converter())
-        {
-        }
-
-
-        private class Converter : IConverter<WeakReturnOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakReturnOperation co)
-            {
-                return context.ReturnOperation(co);
-            }
         }
     }
 }

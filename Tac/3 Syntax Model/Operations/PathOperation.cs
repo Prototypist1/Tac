@@ -12,14 +12,19 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakPathOperation : BinaryOperation<ICodeElement, ICodeElement>, IPathOperation
+    internal class WeakPathOperation : BinaryOperation<ICodeElement, ICodeElement>, IPathOperation
     {
         public const string Identifier = ".";
 
         public WeakPathOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-
+        
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.PathOperation(this);
+        }
+        
         public override IType Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
@@ -28,7 +33,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
 
-    public class PathOperationMaker : IOperationMaker<WeakPathOperation>
+    internal class PathOperationMaker : IOperationMaker<WeakPathOperation>
     {
         public IResult<IPopulateScope<WeakPathOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
@@ -39,20 +44,10 @@ namespace Tac.Semantic_Model.Operations
                 var left = matchingContext.ParseLine(perface);
                 var right = matchingContext.ExpectPathPart(left.GetReturnType()).ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> new WeakPathOperation(l,r), new Converter()));
+                return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> new WeakPathOperation(l,r)));
             }
 
             return ResultExtension.Bad<IPopulateScope<WeakPathOperation>>();
         }
-
-
-        private class Converter : IConverter<WeakPathOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakPathOperation co)
-            {
-                return context.PathOperation(co);
-            }
-        }
-
     }
 }

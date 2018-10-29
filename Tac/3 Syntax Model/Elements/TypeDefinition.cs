@@ -13,7 +13,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakTypeDefinition : IType, ICodeElement, IScoped, ITypeDefinition
+    internal class WeakTypeDefinition : IType, ICodeElement, IScoped, ITypeDefinition
     {
         public WeakTypeDefinition(IWeakFinalizedScope scope, IKey key)
         {
@@ -30,13 +30,18 @@ namespace Tac.Semantic_Model
 
         #endregion
         
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.TypeDefinition(this);
+        }
+        
         public IType Returns()
         {
             return this;
         }
     }
-    
-    public class TypeDefinitionMaker : IMaker<WeakTypeDefinition>
+
+    internal class TypeDefinitionMaker : IMaker<WeakTypeDefinition>
     {
         public TypeDefinitionMaker()
         {
@@ -63,8 +68,8 @@ namespace Tac.Semantic_Model
             return ResultExtension.Bad<IPopulateScope<WeakTypeDefinition>>(); ;
         }
     }
-    
-    public class TypeDefinitionPopulateScope : IPopulateScope< WeakTypeDefinition>
+
+    internal class TypeDefinitionPopulateScope : IPopulateScope< WeakTypeDefinition>
     {
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IKey key;
@@ -93,7 +98,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class TypeDefinitionResolveReference : IPopulateBoxes<WeakTypeDefinition>
+    internal class TypeDefinitionResolveReference : IPopulateBoxes<WeakTypeDefinition>
     {
         private readonly IResolvableScope scope;
         private readonly Box<WeakTypeDefinition> box;
@@ -106,25 +111,9 @@ namespace Tac.Semantic_Model
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IOpenBoxes<WeakTypeDefinition> Run(IResolveReferanceContext context)
+        public WeakTypeDefinition Run(IResolveReferanceContext context)
         {
-            var item = box.Fill(new WeakTypeDefinition(scope.GetFinalized(), key));
-            return new TypeDefinitionOpenBoxes(item);
-        }
-    }
-
-    internal class TypeDefinitionOpenBoxes : IOpenBoxes<WeakTypeDefinition>
-    {
-        public WeakTypeDefinition CodeElement { get; }
-
-        public TypeDefinitionOpenBoxes(WeakTypeDefinition item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.TypeDefinition(CodeElement);
+            return box.Fill(new WeakTypeDefinition(scope.GetFinalized(), key));
         }
     }
 }

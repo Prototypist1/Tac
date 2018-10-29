@@ -22,8 +22,14 @@ namespace Tac.Semantic_Model
         #region IBlockDefinition
 
         IFinalizedScope IAbstractBlockDefinition.Scope => Scope;
-        
+
         #endregion
+        
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.BlockDefinition(this);
+        }
+
     }
 
     internal class BlockDefinitionMaker : IMaker<WeakBlockDefinition>
@@ -91,30 +97,15 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IOpenBoxes< WeakBlockDefinition> Run(IResolveReferanceContext context)
+        public WeakBlockDefinition Run(IResolveReferanceContext context)
         {
-            var item = box.Fill(new WeakBlockDefinition(
-                ResolveReferance.Select(x => x.Run(context).CodeElement).ToArray(), 
+            return box.Fill(new WeakBlockDefinition(
+                ResolveReferance.Select(x => x.Run(context)).ToArray(), 
                 Scope.GetFinalized(), 
                 new ICodeElement[0]));
-            return new BlockDefinitionOpenBoxes(item);
         }
         
     }
-
-    internal class BlockDefinitionOpenBoxes : IOpenBoxes<WeakBlockDefinition>
-    {
-        public WeakBlockDefinition CodeElement { get; }
-
-        public BlockDefinitionOpenBoxes(WeakBlockDefinition item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.BlockDefinition(CodeElement);
-        }
-    }
+    
 
 }

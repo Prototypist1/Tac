@@ -13,13 +13,18 @@ namespace Tac.Semantic_Model.Operations
 {
 
 
-    public class WeakIfTrueOperation : BinaryOperation<ICodeElement, ICodeElement>, IIfOperation
+    internal class WeakIfTrueOperation : BinaryOperation<ICodeElement, ICodeElement>, IIfOperation
     {
         public const string Identifier = "if";
 
         // right should have more validation
         public WeakIfTrueOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
+        }
+        
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.IfTrueOperation(this);
         }
 
         public override IType Returns()
@@ -28,18 +33,10 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation>
+    internal class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation>
     {
-        public IfTrueOperationMaker() : base(WeakIfTrueOperation.Identifier, (l,r)=>new WeakIfTrueOperation(l,r),new IfConverter())
+        public IfTrueOperationMaker() : base(WeakIfTrueOperation.Identifier, (l,r)=>new WeakIfTrueOperation(l,r))
         {
-        }
-        
-        private class IfConverter : IConverter<WeakIfTrueOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakIfTrueOperation co)
-            {
-                return context.IfTrueOperation(co);
-            }
         }
     }
 

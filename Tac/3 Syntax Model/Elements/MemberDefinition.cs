@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    public class WeakMemberDefinition: IType, ICodeElement, IMemberDefinition
+    internal class WeakMemberDefinition: IType, ICodeElement, IMemberDefinition
     {
         public WeakMemberDefinition(bool readOnly, NameKey key, IBox<IType> type)
         {
@@ -36,13 +36,18 @@ namespace Tac.Semantic_Model
 
         #endregion
         
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.MemberDefinition(this);
+        }
+
         public IType Returns()
         {
             return this;
         }
     }
 
-    public class MemberDefinitionMaker : IMaker<WeakMemberReferance>
+    internal class MemberDefinitionMaker : IMaker<WeakMemberReferance>
     {
         public MemberDefinitionMaker()
         {
@@ -64,7 +69,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberDefinitionPopulateScope : IPopulateScope< WeakMemberReferance>
+    internal class MemberDefinitionPopulateScope : IPopulateScope< WeakMemberReferance>
     {
         private readonly string memberName;
         private readonly bool isReadonly;
@@ -95,7 +100,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberDefinitionResolveReferance : IPopulateBoxes< WeakMemberReferance>
+    internal class MemberDefinitionResolveReferance : IPopulateBoxes< WeakMemberReferance>
     {
         private readonly string memberName;
         private readonly Box<WeakMemberReferance> box;
@@ -120,7 +125,7 @@ namespace Tac.Semantic_Model
             this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
         }
 
-        public IOpenBoxes<WeakMemberReferance> Run(IResolveReferanceContext context)
+        public WeakMemberReferance Run(IResolveReferanceContext context)
         {
             memberDefinitionBox.Fill(
                 new WeakMemberDefinition(
@@ -128,23 +133,8 @@ namespace Tac.Semantic_Model
                     new NameKey(memberName),
                     scope.GetTypeOrThrow(typeName)));
 
-            var item=  box.Fill(new WeakMemberReferance(memberDefinitionBox));
-            return new MemberDefinitionOpenBoxes(item);
+            return box.Fill(new WeakMemberReferance(memberDefinitionBox));
         }
     }
-
-    internal class MemberDefinitionOpenBoxes : IOpenBoxes<WeakMemberReferance>
-    {
-        public WeakMemberReferance CodeElement { get; }
-
-        public MemberDefinitionOpenBoxes(WeakMemberReferance item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.MemberReferance(CodeElement);
-        }
-    }
+    
 }

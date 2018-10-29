@@ -1,6 +1,5 @@
 ﻿
 using Tac.Model.Elements;
-using Tac.New;
 
 namespace Tac.Model
 {

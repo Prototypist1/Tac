@@ -27,8 +27,8 @@ namespace Tac.Parser
             this.idenifier = idenifier ?? throw new ArgumentNullException(nameof(idenifier));
         }
     }
-    
-    public class ElementMatchingContext
+
+    internal class ElementMatchingContext
     {
 
         internal ElementMatchingContext ExpectPathPart(IBox<IType> box) {

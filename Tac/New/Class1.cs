@@ -51,21 +51,21 @@ namespace Tac.New
         public T Value {get;}
 
     }
-    
-    public interface IMaker<out TCodeElement>
+
+    internal interface IMaker<out TCodeElement>
     {
         IResult<IPopulateScope<TCodeElement>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext);
     }
 
-    public interface IOperationMaker<out TCodeElement>
+    internal interface IOperationMaker<out TCodeElement>
     {
         IResult<IPopulateScope<TCodeElement>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
     }
-    
+
 
     // hmm the parsing is almost a step as well? 
 
-    public interface IPopulateScopeContext {
+    internal interface IPopulateScopeContext {
 
         IPopulatableScope Scope { get; }
         IPopulateScopeContext Child();
@@ -73,7 +73,7 @@ namespace Tac.New
 
     }
 
-    public class PopulateScopeContext : IPopulateScopeContext
+    internal class PopulateScopeContext : IPopulateScopeContext
     {
         private readonly ScopeStack stack;
 
@@ -113,7 +113,7 @@ namespace Tac.New
         IBox<IType> GetReturnType();
     }
 
-    public interface IPopulateScope<out TCodeElement> : IPopulateScope
+    internal interface IPopulateScope<out TCodeElement> : IPopulateScope
     {
         IPopulateBoxes<TCodeElement> Run(IPopulateScopeContext context);
     }
@@ -128,12 +128,7 @@ namespace Tac.New
 
     public interface IPopulateBoxes<out TCodeElement> : IResolveReferance
     {
-        IOpenBoxes<TCodeElement> Run(IResolveReferanceContext context);
+        TCodeElement Run(IResolveReferanceContext context);
     }
-
-    public interface IOpenBoxes< out TCodeElement>
-    { 
-        TCodeElement CodeElement { get; }
-        T Run<T>(IOpenBoxesContext<T> context);
-    }
+    
 }

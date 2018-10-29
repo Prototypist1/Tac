@@ -16,7 +16,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakObjectDefinition: ICodeElement, IType, IScoped, IObjectDefiniton
+    internal class WeakObjectDefinition: ICodeElement, IType, IScoped, IObjectDefiniton
     {
         public WeakObjectDefinition(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -47,9 +47,15 @@ namespace Tac.Semantic_Model
         public IType Returns() {
             return this;
         }
+        
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.ObjectDefinition(this);
+        }
+
     }
-    
-    public class ObjectDefinitionMaker : IMaker<WeakObjectDefinition>
+
+    internal class ObjectDefinitionMaker : IMaker<WeakObjectDefinition>
     {
         public ObjectDefinitionMaker()
         {
@@ -72,8 +78,8 @@ namespace Tac.Semantic_Model
         }
         
     }
-    
-    public class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
+
+    internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly Box<IType> box = new Box<IType>();
@@ -101,7 +107,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
+    internal class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
     {
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<ICodeElement>[] elements;
@@ -120,25 +126,9 @@ namespace Tac.Semantic_Model
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IOpenBoxes<WeakObjectDefinition> Run(IResolveReferanceContext context)
+        public WeakObjectDefinition Run(IResolveReferanceContext context)
         {
-            var item = box.Fill(new WeakObjectDefinition(scope.GetFinalized(), elements.Select(x => x.Run(context).Cast<WeakAssignOperation>()).ToArray(), key));
-            return new ObjectDefinitionOpenBoxes(item);
-        }
-    }
-
-    internal class ObjectDefinitionOpenBoxes : IOpenBoxes< WeakObjectDefinition>
-    {
-        public WeakObjectDefinition CodeElement { get; }
-
-        public ObjectDefinitionOpenBoxes(WeakObjectDefinition item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.ObjectDefinition(CodeElement);
+            return box.Fill(new WeakObjectDefinition(scope.GetFinalized(), elements.Select(x => x.Run(context).Cast<WeakAssignOperation>()).ToArray(), key));
         }
     }
 }

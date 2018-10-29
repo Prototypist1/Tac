@@ -10,32 +10,29 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakMultiplyOperation : BinaryOperation<ICodeElement, ICodeElement>, IMultiplyOperation
+    internal class WeakMultiplyOperation : BinaryOperation<ICodeElement, ICodeElement>, IMultiplyOperation
     {
         public const string Identifier = "*";
 
         public WeakMultiplyOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-
+        
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.MultiplyOperation(this);
+        }
+        
         public override IType Returns()
         {
             return new NumberType();
         }
     }
-    
-    public class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation>
+
+    internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation>
     {
-        public MultiplyOperationMaker() : base(WeakMultiplyOperation.Identifier, (l,r)=>new WeakMultiplyOperation(l,r), new Converter())
+        public MultiplyOperationMaker() : base(WeakMultiplyOperation.Identifier, (l,r)=>new WeakMultiplyOperation(l,r))
         {
-        }
-        
-        private class Converter : IConverter<WeakMultiplyOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakMultiplyOperation co)
-            {
-                return context.MultiplyOperation(co);
-            }
         }
     }
 }

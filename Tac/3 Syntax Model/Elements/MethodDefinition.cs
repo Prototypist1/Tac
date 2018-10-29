@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakMethodDefinition : WeakAbstractBlockDefinition, IType, IMethodDefinition
+    internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IType, IMethodDefinition
     {
         public WeakMethodDefinition(
             IBox<IType> outputType, 
@@ -36,10 +36,17 @@ namespace Tac.Semantic_Model
         IMemberDefinition IMethodDefinition.ParameterDefinition => ParameterDefinition.GetValue();
 
         #endregion
+
+
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.MethodDefinition(this);
+        }
+
     }
 
 
-    public class MethodDefinitionMaker : IMaker<WeakMethodDefinition>
+    internal class MethodDefinitionMaker : IMaker<WeakMethodDefinition>
     {
         public MethodDefinitionMaker()
         {
@@ -76,7 +83,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
+    internal class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
     {
         private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
@@ -113,7 +120,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MethodDefinitionResolveReferance : IPopulateBoxes<WeakMethodDefinition>
+    internal class MethodDefinitionResolveReferance : IPopulateBoxes<WeakMethodDefinition>
     {
         private readonly IPopulateBoxes<WeakMemberReferance> parameter;
         private readonly IResolvableScope methodScope;
@@ -135,31 +142,16 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IOpenBoxes<WeakMethodDefinition> Run(IResolveReferanceContext context)
+        public WeakMethodDefinition Run(IResolveReferanceContext context)
         {
-            var item = box.Fill(
+            return box.Fill(
                 new WeakMethodDefinition(
                     methodScope.GetTypeOrThrow(outputTypeName),
-                    parameter.Run(context).CodeElement.MemberDefinition, 
-                    lines.Select(x => x.Run(context).CodeElement).ToArray(),
+                    parameter.Run(context).MemberDefinition, 
+                    lines.Select(x => x.Run(context)).ToArray(),
                     methodScope.GetFinalized(),
                     new ICodeElement[0]));
-            return new MethodDefinitionOpenBoxes(item);
         }
     }
-
-    internal class MethodDefinitionOpenBoxes : IOpenBoxes<WeakMethodDefinition>
-    {
-        public WeakMethodDefinition CodeElement { get; }
-
-        public MethodDefinitionOpenBoxes(WeakMethodDefinition item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.MethodDefinition(CodeElement);
-        }
-    }
+    
 }

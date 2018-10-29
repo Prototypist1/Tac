@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakGenericTypeDefinition : ICodeElement, IType, IGenericTypeDefinition
+    internal class WeakGenericTypeDefinition : ICodeElement, IType, IGenericTypeDefinition
     {
         public WeakGenericTypeDefinition(NameKey key, IWeakFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
@@ -32,7 +32,7 @@ namespace Tac.Semantic_Model
         IFinalizedScope IGenericTypeDefinition.Scope => Scope;
 
         #endregion
-        
+
         // huh? this seems to have no uses
         // and that means GenericScope has no uses
         // I have not build that part out yet so it is ok.
@@ -48,6 +48,12 @@ namespace Tac.Semantic_Model
         //    return true;
         //}
 
+
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.GenericTypeDefinition(this);
+        }
+
         public IType Returns()
         {
             return this;
@@ -55,7 +61,7 @@ namespace Tac.Semantic_Model
     }
 
 
-    public class GenericTypeParameterDefinition: IGenericTypeParameterDefinition
+    internal class GenericTypeParameterDefinition: IGenericTypeParameterDefinition
     {
         public GenericTypeParameterDefinition(string name)
         {
@@ -90,7 +96,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class GenericTypeParameter
+    internal class GenericTypeParameter
     {
         public GenericTypeParameter(IBox<IType> typeDefinition, GenericTypeParameterDefinition definition)
         {
@@ -102,7 +108,7 @@ namespace Tac.Semantic_Model
         public GenericTypeParameterDefinition Definition { get; }
     }
 
-    public class GenericTypeDefinitionMaker : IMaker<WeakGenericTypeDefinition>
+    internal class GenericTypeDefinitionMaker : IMaker<WeakGenericTypeDefinition>
     {
 
         public GenericTypeDefinitionMaker()
@@ -131,7 +137,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
+    internal class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
@@ -164,7 +170,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class GenericTypeDefinitionResolveReferance : IPopulateBoxes<WeakGenericTypeDefinition>
+    internal class GenericTypeDefinitionResolveReferance : IPopulateBoxes<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
         private readonly GenericTypeParameterDefinition[] genericParameters;
@@ -183,25 +189,9 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
-        public IOpenBoxes<WeakGenericTypeDefinition> Run(IResolveReferanceContext context)
+        public WeakGenericTypeDefinition Run(IResolveReferanceContext context)
         {
-            var item=  box.Fill(new WeakGenericTypeDefinition(nameKey, scope.GetFinalized(), genericParameters));
-            return new GenericTypeDefinitionOpenBoxes(item);
-        }
-    }
-
-    internal class GenericTypeDefinitionOpenBoxes : IOpenBoxes<WeakGenericTypeDefinition>
-    {
-        public WeakGenericTypeDefinition CodeElement { get; }
-
-        public GenericTypeDefinitionOpenBoxes(WeakGenericTypeDefinition item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.GenericTypeDefinition(CodeElement);
+            return box.Fill(new WeakGenericTypeDefinition(nameKey, scope.GetFinalized(), genericParameters));
         }
     }
 }

@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.Names;
-using Tac.Semantic_Model.Operations;
+using Tac.Model;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -45,15 +43,15 @@ namespace Tac.Syntaz_Model_Interpeter
             return Backing.GetOrThrow(name);
         }
         
-        public static InterpetedStaticScope Make(InterpetedContext interpetedContext, IWeakFinalizedScope scopeDefinition)
+        public static InterpetedStaticScope Make(InterpetedContext interpetedContext, IFinalizedScope scopeDefinition)
         {
             var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
 
             var scope = new InterpetedStaticScope(backing);
 
-            foreach (var member in scopeDefinition.Members.Values.Select(x=>x.GetValue()))
+            foreach (var member in scopeDefinition)
             {
-                backing[member.Key] = new InterpetedMember(member.Type.GetValue().Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext));
+                backing[member.Key] = new InterpetedMember(member.Value.Type.Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext));
             }
 
             return scope;
@@ -80,14 +78,14 @@ namespace Tac.Syntaz_Model_Interpeter
         private InterpetedStaticScope StaticBacking { get; }
 
 
-        public static InterpetedInstanceScope Make(InterpetedContext interpetedContext, InterpetedStaticScope staticBacking, IWeakFinalizedScope scopeDefinition) {
+        public static InterpetedInstanceScope Make(InterpetedContext interpetedContext, InterpetedStaticScope staticBacking, IFinalizedScope scopeDefinition) {
             var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
 
             var scope = new InterpetedInstanceScope(backing, staticBacking);
             
-            foreach (var member in scopeDefinition.Members.Values.Select(x => x.GetValue()))
+            foreach (var member in scopeDefinition)
             {
-                backing[member.Key] = new InterpetedMember(member.Type.GetValue().Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext));
+                backing[member.Key] = new InterpetedMember(member.Value.Type.Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext));
             }
 
             return scope;

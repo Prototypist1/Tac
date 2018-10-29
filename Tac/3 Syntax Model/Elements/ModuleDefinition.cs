@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model
 {
 
 
-    public class WeakModuleDefinition : IScoped, ICodeElement, IType, IModuleDefinition
+    internal class WeakModuleDefinition : IScoped, ICodeElement, IType, IModuleDefinition
     {
         public WeakModuleDefinition(IWeakFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
@@ -35,8 +35,12 @@ namespace Tac.Semantic_Model
         IFinalizedScope IModuleDefinition.Scope => Scope;
 
         #endregion
-
-
+        
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.ModuleDefinition(this);
+        }
+        
         public IType Returns()
         {
             return this;
@@ -44,7 +48,7 @@ namespace Tac.Semantic_Model
     }
 
 
-    public class ModuleDefinitionMaker : IMaker<WeakModuleDefinition>
+    internal class ModuleDefinitionMaker : IMaker<WeakModuleDefinition>
     {
         public ModuleDefinitionMaker()
         {
@@ -71,8 +75,8 @@ namespace Tac.Semantic_Model
             return ResultExtension.Bad<IPopulateScope<WeakModuleDefinition>>();
         }
     }
-    
-    public class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition>
+
+    internal class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition>
     {
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey nameKey;
@@ -103,7 +107,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ModuleDefinitionResolveReferance : IPopulateBoxes<WeakModuleDefinition>
+    internal class ModuleDefinitionResolveReferance : IPopulateBoxes<WeakModuleDefinition>
     {
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<ICodeElement>[] resolveReferance;
@@ -122,28 +126,12 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IOpenBoxes<WeakModuleDefinition> Run(IResolveReferanceContext context)
+        public WeakModuleDefinition Run(IResolveReferanceContext context)
         {
-            var item =  box.Fill(new WeakModuleDefinition(
+            return box.Fill(new WeakModuleDefinition(
                 scope.GetFinalized(), 
-                resolveReferance.Select(x => x.Run(context).CodeElement).ToArray(),
+                resolveReferance.Select(x => x.Run(context)).ToArray(),
                 nameKey));
-            return new MuldieDefinitionOpenBoxes(item);
-        }
-    }
-
-    internal class MuldieDefinitionOpenBoxes : IOpenBoxes<WeakModuleDefinition>
-    {
-        public WeakModuleDefinition CodeElement { get; }
-
-        public MuldieDefinitionOpenBoxes(WeakModuleDefinition item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.ModuleDefinition(CodeElement);
         }
     }
 }

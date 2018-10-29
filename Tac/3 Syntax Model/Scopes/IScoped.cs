@@ -14,12 +14,12 @@ namespace Tac.Semantic_Model
 {
     // I am not really sure this is a useful concept
     //
-    public interface IScoped
+    internal interface IScoped
     {
         IWeakFinalizedScope Scope { get; }
     }
 
-    public class ScopeTree
+    internal class ScopeTree
     {
         private class Scope 
             

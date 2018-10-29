@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public delegate T Make<out T>(ICodeElement left, ICodeElement right);
     }
 
-    public abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation
+    internal abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation
         where TLeft : class, ICodeElement
         where TRight : class, ICodeElement
     {
@@ -40,21 +40,20 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
         public abstract IType Returns();
+
+        public abstract T Convert<T>(IOpenBoxesContext<T> context);
     }
 
 
-    public class BinaryOperationMaker<TCodeElement> : IOperationMaker<TCodeElement>
+    internal class BinaryOperationMaker<TCodeElement> : IOperationMaker<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
-        private readonly IConverter<TCodeElement> converter;
 
-        public BinaryOperationMaker(string name, BinaryOperation.Make<TCodeElement> make,
-            IConverter<TCodeElement> converter
+        public BinaryOperationMaker(string name, BinaryOperation.Make<TCodeElement> make
             )
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Make = make ?? throw new ArgumentNullException(nameof(make));
-            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
         public string Name { get; }
@@ -69,7 +68,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 var left = matchingContext.ParseLine(perface);
                 var right = matchingContext.ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<TCodeElement>(left, right, Make, converter));
+                return ResultExtension.Good(new BinaryPopulateScope<TCodeElement>(left, right, Make));
             }
 
             return ResultExtension.Bad<IPopulateScope<TCodeElement>>();
@@ -78,24 +77,21 @@ namespace Tac.Semantic_Model.CodeStuff
     }
 
 
-    public class BinaryPopulateScope<TCodeElement> : IPopulateScope<TCodeElement>
+    internal class BinaryPopulateScope<TCodeElement> : IPopulateScope<TCodeElement>
                 where TCodeElement : class, ICodeElement
     {
         private readonly IPopulateScope<ICodeElement> left;
         private readonly IPopulateScope<ICodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
-        private readonly IConverter<TCodeElement> converter;
         private readonly DelegateBox<IType> box = new DelegateBox<IType>();
 
         public BinaryPopulateScope(IPopulateScope<ICodeElement> left,
             IPopulateScope<ICodeElement> right,
-            BinaryOperation.Make<TCodeElement> make,
-            IConverter<TCodeElement> converter)
+            BinaryOperation.Make<TCodeElement> make)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
-            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
         public IBox<IType> GetReturnType()
@@ -125,70 +121,40 @@ namespace Tac.Semantic_Model.CodeStuff
                 left.Run(context),
                 rightres,
                 make,
-                box,
-                converter);
+                box);
         }
     }
 
 
 
-    public class BinaryResolveReferance<TCodeElement> : IPopulateBoxes<TCodeElement>
+    internal class BinaryResolveReferance<TCodeElement> : IPopulateBoxes<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
         public readonly IPopulateBoxes<ICodeElement> left;
         public readonly IPopulateBoxes<ICodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
         private readonly DelegateBox<IType> box;
-        private readonly IConverter<TCodeElement> converter;
 
         public BinaryResolveReferance(
             IPopulateBoxes<ICodeElement> resolveReferance1,
             IPopulateBoxes<ICodeElement> resolveReferance2,
             BinaryOperation.Make<TCodeElement> make,
-            DelegateBox<IType> box,
-            IConverter<TCodeElement> converter)
+            DelegateBox<IType> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
-            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
 
-        public IOpenBoxes<TCodeElement> Run(IResolveReferanceContext context)
+        public TCodeElement Run(IResolveReferanceContext context)
         {
             var res = make(
-                left.Run(context).CodeElement,
-                right.Run(context).CodeElement);
+                left.Run(context),
+                right.Run(context));
             box.Set(() => res.Returns());
-            return new BinaryOpenBoxes<TCodeElement>(res, converter);
+            return res;
         }
-    }
-
-    internal class BinaryOpenBoxes<TCodeElement> : IOpenBoxes<TCodeElement>
-        where TCodeElement : class, ICodeElement
-    {
-        public TCodeElement CodeElement { get; }
-        private readonly IConverter<TCodeElement> converter;
-
-        public BinaryOpenBoxes(TCodeElement res, IConverter<TCodeElement> converter)
-        {
-            CodeElement = res ?? throw new ArgumentNullException(nameof(res));
-            this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return converter.Convert<T>(context, CodeElement);
-        }
-    }
-
-    // this is a very interesting pattern
-    // you can not make a generic Func
-    // so this achieve the goal
-    public interface IConverter<TOperation>
-    {
-        T Convert<T>(IOpenBoxesContext<T> context, TOperation co);
     }
 }

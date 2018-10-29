@@ -19,6 +19,11 @@ namespace Tac.Semantic_Model.Operations
         public WeakAssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
+        
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.AssignOperation(this);
+        }
 
         public override IType Returns()
         {
@@ -42,20 +47,12 @@ namespace Tac.Semantic_Model.Operations
                 var left = matchingContext.ParseLine(perface);
                 var right = matchingContext.AcceptImplicit(left.GetReturnType()).ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r)=>new WeakAssignOperation(l,r), new AssignConverter()));
+                return ResultExtension.Good(new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r)=>new WeakAssignOperation(l,r)));
             }
 
             return ResultExtension.Bad<IPopulateScope<WeakAssignOperation>>();
         }
-
-
-        private class AssignConverter : IConverter<WeakAssignOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakAssignOperation co)
-            {
-                return context.AssignOperation(co);
-            }
-        }
+        
 
     }
 

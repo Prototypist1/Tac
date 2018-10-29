@@ -11,7 +11,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    public abstract class WeakAbstractBlockDefinition : ICodeElement, IScoped, IBlockDefinition
+    internal abstract class WeakAbstractBlockDefinition : ICodeElement, IScoped, IBlockDefinition
     {
         protected WeakAbstractBlockDefinition(IWeakFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -31,7 +31,8 @@ namespace Tac.Semantic_Model
                 return Scope;
             }
         }
-        
+
+        public abstract T Convert<T>(IOpenBoxesContext<T> context);
         public IType Returns() { return this; }
     }
 }

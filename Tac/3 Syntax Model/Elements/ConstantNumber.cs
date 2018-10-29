@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    public class WeakConstantNumber : ICodeElement, IType, IConstantNumber
+    internal class WeakConstantNumber : ICodeElement, IType, IConstantNumber
     {
         public WeakConstantNumber(double value) 
         {
@@ -26,13 +26,19 @@ namespace Tac.Semantic_Model.Operations
 
         public double Value { get; }
 
+
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.ConstantNumber(this);
+        }
+
         public IType Returns()
         {
             return new NumberType();
         }
     }
 
-    public class ConstantNumberMaker : IMaker<WeakConstantNumber>
+    internal class ConstantNumberMaker : IMaker<WeakConstantNumber>
     {
         public ConstantNumberMaker() {}
 
@@ -49,8 +55,8 @@ namespace Tac.Semantic_Model.Operations
             return ResultExtension.Bad<IPopulateScope<WeakConstantNumber>>();
         }
     }
-    
-    public class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
+
+    internal class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
     {
         private readonly double dub;
         private readonly Box<IType> box = new Box<IType>();
@@ -71,7 +77,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    public class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
+    internal class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
     {
         private readonly double dub;
         private readonly Box<IType> box;
@@ -84,25 +90,10 @@ namespace Tac.Semantic_Model.Operations
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IOpenBoxes<WeakConstantNumber> Run(IResolveReferanceContext context)
+        public WeakConstantNumber Run(IResolveReferanceContext context)
         {
-            var item = box.Fill(new WeakConstantNumber(dub));
-            return new ConstantNumberOpenBoxes(item);
+            return box.Fill(new WeakConstantNumber(dub));
         }
     }
-
-    internal class ConstantNumberOpenBoxes : IOpenBoxes<WeakConstantNumber>
-    {
-        public WeakConstantNumber CodeElement { get; }
-
-        public ConstantNumberOpenBoxes(WeakConstantNumber item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.ConstantNumber(CodeElement);
-        }
-    }
+    
 }

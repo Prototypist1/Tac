@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakImplementationDefinition: IType, ICodeElement, IImplementationDefinition
+    internal class WeakImplementationDefinition: IType, ICodeElement, IImplementationDefinition
     {
 
         public WeakImplementationDefinition(
@@ -61,6 +61,12 @@ namespace Tac.Semantic_Model
         IFinalizedScope IImplementationDefinition.Scope => Scope;
 
         #endregion
+
+
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.ImplementationDefinition(this);
+        }
         
         public IType Returns()
         {
@@ -68,7 +74,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class ImplementationDefinitionMaker : IMaker<WeakImplementationDefinition>
+    internal class ImplementationDefinitionMaker : IMaker<WeakImplementationDefinition>
     {
         public ImplementationDefinitionMaker()
         {
@@ -121,7 +127,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class PopulateScopeImplementationDefinition : IPopulateScope<WeakImplementationDefinition>
+    internal class PopulateScopeImplementationDefinition : IPopulateScope<WeakImplementationDefinition>
     {
         private readonly IPopulateScope<WeakMemberReferance> contextDefinition;
         private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
@@ -161,7 +167,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ImplementationDefinitionResolveReferance : IPopulateBoxes<WeakImplementationDefinition>
+    internal class ImplementationDefinitionResolveReferance : IPopulateBoxes<WeakImplementationDefinition>
     {
         private readonly IPopulateBoxes<WeakMemberReferance> contextDefinition;
         private readonly IPopulateBoxes<WeakMemberReferance> parameterDefinition;
@@ -186,43 +192,17 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
-        public IOpenBoxes<WeakImplementationDefinition> Run(IResolveReferanceContext context)
+        public WeakImplementationDefinition Run(IResolveReferanceContext context)
         {
-            var item = box.Fill(new WeakImplementationDefinition(
-                contextDefinition.Run(context).CodeElement.MemberDefinition,
-                parameterDefinition.Run(context).CodeElement.MemberDefinition,
+            return box.Fill(new WeakImplementationDefinition(
+                contextDefinition.Run(context).MemberDefinition,
+                parameterDefinition.Run(context).MemberDefinition,
                 methodScope.GetTypeOrThrow(outputTypeName), 
-                elements.Select(x => x.Run(context).CodeElement).ToArray(), 
+                elements.Select(x => x.Run(context)).ToArray(), 
                 methodScope.GetFinalized(), 
                 new ICodeElement[0]));
-            return new ImplementationDefinitionPopulateBoxes(item);
         }
     }
 
-    internal class ImplementationDefinitionPopulateBoxes : IOpenBoxes<WeakImplementationDefinition>
-    {
-        public WeakImplementationDefinition CodeElement { get; }
-
-        public ImplementationDefinitionPopulateBoxes(WeakImplementationDefinition item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.ImplementationDefinition(CodeElement);
-        }
-    }
-
-    // TODO TODO
-    // you are here!
-    // ok so instead of this shitty pass make threw thing
-    // nothing is <T>
-    // public T Run(IOpenBoxesContext context)
-    // becomes 
-    // public T Run<T>(IOpenBoxesContext<T> context)
-    // and that has makes for all the types
-    // also, run can just be on the weak code elements
-    
 
 }

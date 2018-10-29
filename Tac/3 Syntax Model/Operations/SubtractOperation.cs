@@ -10,33 +10,29 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakSubtractOperation : BinaryOperation<ICodeElement, ICodeElement>, ISubtractOperation
+    internal class WeakSubtractOperation : BinaryOperation<ICodeElement, ICodeElement>, ISubtractOperation
     {
         public const string Identifier = "-";
 
         public WeakSubtractOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-
+        
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.SubtractOperation(this);
+        }
+        
         public override IType Returns()
         {
             return new NumberType();
         }
     }
-    
-    public class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation>
+
+    internal class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation>
     {
-        public SubtractOperationMaker() : base(WeakSubtractOperation.Identifier, (l,r)=>new WeakSubtractOperation(l,r), new Converter())
+        public SubtractOperationMaker() : base(WeakSubtractOperation.Identifier, (l,r)=>new WeakSubtractOperation(l,r))
         {
         }
-
-        private class Converter : IConverter<WeakSubtractOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakSubtractOperation co)
-            {
-                return context.SubtractOperation(co);
-            }
-        }
-
     }
 }

@@ -13,7 +13,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    public class WeakMemberReferance : ICodeElement, IMemberReferance
+    internal class WeakMemberReferance : ICodeElement, IMemberReferance
     {
         public WeakMemberReferance(IBox<WeakMemberDefinition> memberDefinition)
         {
@@ -29,13 +29,18 @@ namespace Tac.Semantic_Model
         #endregion
 
 
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.MemberReferance(this);
+        }
+        
         public IType Returns()
         {
             return MemberDefinition.GetValue();
         }
     }
 
-    public class MemberReferanceMaker : IMaker<WeakMemberReferance>
+    internal class MemberReferanceMaker : IMaker<WeakMemberReferance>
     {
         public MemberReferanceMaker(
             IBox<IType> lhs)
@@ -59,7 +64,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberReferancePopulateScope : IPopulateScope< WeakMemberReferance>
+    internal class MemberReferancePopulateScope : IPopulateScope< WeakMemberReferance>
     {
 
         private readonly IBox<IType> lhs;
@@ -84,7 +89,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public class MemberReferanceResolveReferance : IPopulateBoxes<WeakMemberReferance>
+    internal class MemberReferanceResolveReferance : IPopulateBoxes<WeakMemberReferance>
     {
 
         private readonly string memberName;
@@ -98,7 +103,7 @@ namespace Tac.Semantic_Model
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public IOpenBoxes<WeakMemberReferance> Run(IResolveReferanceContext context)
+        public WeakMemberReferance Run(IResolveReferanceContext context)
         {
             box.Set(() =>
             {
@@ -110,24 +115,9 @@ namespace Tac.Semantic_Model
                 return lshtype.Cast<IScoped>().Scope[new NameKey(memberName)].GetValue();
             });
 
-            var itme = new WeakMemberReferance(box);
-            return new MemberReferanceOpenBoxes(itme);
+            return new WeakMemberReferance(box);
         }
         
     }
-
-    internal class MemberReferanceOpenBoxes : IOpenBoxes< WeakMemberReferance>
-    {
-        public WeakMemberReferance CodeElement { get; }
-
-        public MemberReferanceOpenBoxes(WeakMemberReferance itme)
-        {
-            this.CodeElement = itme ?? throw new ArgumentNullException(nameof(itme));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.MemberReferance(CodeElement);
-        }
-    }
+    
 }

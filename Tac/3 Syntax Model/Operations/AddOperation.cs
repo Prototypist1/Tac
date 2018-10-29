@@ -20,6 +20,11 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.AddOperation(this);
+        }
+
         public override IType Returns() {
             return new NumberType();
         }
@@ -27,16 +32,8 @@ namespace Tac.Semantic_Model.Operations
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
     {
-        public AddOperationMaker() : base(WeakAddOperation.Identifier, (l,r)=>new WeakAddOperation(l,r), new AddConverter())
+        public AddOperationMaker() : base(WeakAddOperation.Identifier, (l,r)=>new WeakAddOperation(l,r))
         {
-        }
-
-        private class AddConverter : IConverter<WeakAddOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakAddOperation co)
-            {
-                return context.AddOperation(co);
-            }
         }
     }
 }

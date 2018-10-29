@@ -11,7 +11,7 @@ namespace Tac.Semantic_Model.Operations
 {
 
     // really an if not
-    public class WeakElseOperation : BinaryOperation<ICodeElement, ICodeElement>, IElseOperation
+    internal class WeakElseOperation : BinaryOperation<ICodeElement, ICodeElement>, IElseOperation
     {
 
         public const string Identifier = "else";
@@ -20,7 +20,12 @@ namespace Tac.Semantic_Model.Operations
         public WeakElseOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-
+        
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.ElseOperation(this);
+        }
+        
         public override IType Returns()
         {
             return new EmptyType();
@@ -28,19 +33,11 @@ namespace Tac.Semantic_Model.Operations
     }
 
 
-    public class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation>
+    internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation>
     {
-        public ElseOperationMaker() : base(WeakElseOperation.Identifier, (l,r)=>new WeakElseOperation(l,r), new ElseConverter())
+        public ElseOperationMaker() : base(WeakElseOperation.Identifier, (l,r)=>new WeakElseOperation(l,r))
         {
         }
     }
-
-
-    public class ElseConverter : IConverter<WeakElseOperation>
-    {
-        public T Convert<T>(IOpenBoxesContext<T> context, WeakElseOperation co)
-        {
-            return context.ElseOperation(co);
-        }
-    }
+    
 }

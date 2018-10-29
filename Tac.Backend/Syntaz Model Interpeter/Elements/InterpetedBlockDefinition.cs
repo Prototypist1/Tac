@@ -1,19 +1,20 @@
-﻿using Prototypist.LeftToRight;
-using Prototypist.TaskChain.DataTypes;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
+using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedBlockDefinition : WeakBlockDefinition, IInterpeted
+    public class InterpetedBlockDefinition :  IInterpeted
     {
-        public InterpetedBlockDefinition(IWeakCodeElement[] body, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitailizers) : base(body, scope, staticInitailizers)
+        public void Init(IInterpeted[] body, IFinalizedScope scope)
         {
+            Body = body ?? throw new ArgumentNullException(nameof(body));
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
+        public IInterpeted[] Body { get; private set; } 
+        public IFinalizedScope Scope { get; private set; }
+        
         private InterpetedStaticScope StaticStuff { get; } = InterpetedStaticScope.Empty();
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
@@ -24,7 +25,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var line in Body)
             {
-                var result = line.Cast<IInterpeted>().Interpet(scope);
+                var result = line.Interpet(scope);
                 if (result.IsReturn)
                 {
                     if (result.HasValue)
@@ -39,11 +40,6 @@ namespace Tac.Syntaz_Model_Interpeter
             }
 
             return InterpetedResult.Create();
-        }
-
-        internal static WeakBlockDefinition MakeNew(IWeakCodeElement[] body, IWeakFinalizedScope scope, IEnumerable<IWeakCodeElement> staticInitailizers)
-        {
-            return new InterpetedBlockDefinition(body, scope, staticInitailizers);
         }
     }
 }

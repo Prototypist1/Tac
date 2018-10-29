@@ -11,32 +11,29 @@ using Tac.Parser;
 namespace Tac.Semantic_Model.CodeStuff
 {
 
-    public class WeakLessThanOperation : BinaryOperation<ICodeElement, ICodeElement>, ILessThanOperation
+    internal class WeakLessThanOperation : BinaryOperation<ICodeElement, ICodeElement>, ILessThanOperation
     {
         public const string Identifier = "<?";
 
         public WeakLessThanOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-
+        
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.LessThanOperation(this);
+        }
+        
         public override IType Returns()
         {
             return new BooleanType();
         }
     }
-    
-    public class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation>
+
+    internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation>
     {
-        public LessThanOperationMaker() : base(WeakLessThanOperation.Identifier, (l,r)=>new WeakLessThanOperation(l,r), new Converter())
+        public LessThanOperationMaker() : base(WeakLessThanOperation.Identifier, (l,r)=>new WeakLessThanOperation(l,r))
         {
-        }
-        
-        private class Converter : IConverter<WeakLessThanOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakLessThanOperation co)
-            {
-                return context.LessThanOperation(co);
-            }
         }
     }
 }

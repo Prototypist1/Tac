@@ -10,7 +10,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    public class ImplicitMemberMaker : IMaker<WeakMemberReferance>
+    internal class ImplicitMemberMaker : IMaker<WeakMemberReferance>
     {
         private readonly IBox<IType> type;
 
@@ -38,7 +38,7 @@ namespace Tac.Semantic_Model
     }
 
 
-    public class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReferance>
+    internal class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReferance>
     {
         private readonly string memberName;
         private readonly IBox<IType> type;
@@ -73,7 +73,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    public class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReferance>
+    internal class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReferance>
     {
         private readonly Box<IType> box;
         private readonly string memberName;
@@ -89,28 +89,12 @@ namespace Tac.Semantic_Model
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
         
-        public IOpenBoxes<WeakMemberReferance> Run(IResolveReferanceContext context)
+        public WeakMemberReferance Run(IResolveReferanceContext context)
         {
-            var item = box.Fill(
+           return box.Fill(
                 new WeakMemberReferance(
                     new Box<WeakMemberDefinition>(
                         new WeakMemberDefinition(false, new NameKey(memberName), type))));
-            return new ImplicitMemberOpenBoxes(item);
-        }
-    }
-    
-    internal class ImplicitMemberOpenBoxes : IOpenBoxes<WeakMemberReferance>
-    {
-        public WeakMemberReferance CodeElement { get; }
-
-        public ImplicitMemberOpenBoxes(WeakMemberReferance item)
-        {
-            this.CodeElement = item ?? throw new ArgumentNullException(nameof(item));
-        }
-
-        public T Run<T>(IOpenBoxesContext<T> context)
-        {
-            return context.MemberReferance(CodeElement);
         }
     }
 }

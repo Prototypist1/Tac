@@ -10,17 +10,17 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    public interface ISomeScope {
+    internal interface ISomeScope {
         bool TryGetMember(IKey name, bool staticOnly, out IBox<WeakMemberDefinition> box);
     }
 
-    public interface IPopulatableScope: ISomeScope
+    internal interface IPopulatableScope: ISomeScope
     {
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<WeakMemberDefinition> type);
         bool TryAddType(IKey name, IBox<IType> type);
     }
-    
-    public interface IResolvableScope: ISomeScope
+
+    internal interface IResolvableScope: ISomeScope
     {
         IWeakFinalizedScope GetFinalized();
         bool TryGetType(IKey name, out IBox<IType> type);
@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public interface IWeakFinalizedScope: IFinalizedScope
+    internal interface IWeakFinalizedScope: IFinalizedScope
     {
         new IBox<WeakMemberDefinition> this[IKey key] { get; }
         new IEnumerable<IKey> Keys { get; }
@@ -47,8 +47,8 @@ namespace Tac.Semantic_Model
         new bool ContainsKey(IKey key);
         bool TryGetValue(IKey key, out IBox<WeakMemberDefinition> value);
     }
-    
-    public class FinalizedScope : IWeakFinalizedScope
+
+    internal class FinalizedScope : IWeakFinalizedScope
     {
         private readonly IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> Members;
 
@@ -142,16 +142,16 @@ namespace Tac.Semantic_Model
         }
     }
 
-    public static class ResolvableScopeExtension
+    internal static class ResolvableScopeExtension
     {
-        public static IBox<IType> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
+        internal static IBox<IType> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }
             throw new Exception($"{name} should exist in scope");
         }
 
-        public static IBox<WeakMemberDefinition> GetMemberOrThrow(this IResolvableScope scope, NameKey name, bool staticOnly)
+        internal static IBox<WeakMemberDefinition> GetMemberOrThrow(this IResolvableScope scope, NameKey name, bool staticOnly)
         {
             if (scope.TryGetMember(name, staticOnly, out var thing))
             {

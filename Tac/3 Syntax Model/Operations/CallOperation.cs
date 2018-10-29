@@ -14,7 +14,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
-    public class WeakNextCallOperation : BinaryOperation<ICodeElement, ICodeElement>, INextCallOperation
+    internal class WeakNextCallOperation : BinaryOperation<ICodeElement, ICodeElement>, INextCallOperation
     {
 
         public const string Identifier = ">";
@@ -23,28 +23,27 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
+
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.NextCallOperation(this);
+        }
+
+
         public override IType Returns()
         {
             return Right.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
         }
     }
 
-    public class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation>
+    internal class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation>
     {
-        public NextCallOperationMaker() : base(WeakNextCallOperation.Identifier, (l,r)=> new WeakNextCallOperation(l,r), new NextCallConverter())
+        public NextCallOperationMaker() : base(WeakNextCallOperation.Identifier, (l,r)=> new WeakNextCallOperation(l,r))
         {
-        }
-
-        private class NextCallConverter : IConverter<WeakNextCallOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakNextCallOperation co)
-            {
-                return context.NextCallOperation(co);
-            }
         }
     }
 
-    public class WeakLastCallOperation : BinaryOperation<ICodeElement, ICodeElement>, ILastCallOperation
+    internal class WeakLastCallOperation : BinaryOperation<ICodeElement, ICodeElement>, ILastCallOperation
     {
         public const string Identifier = "<";
 
@@ -52,28 +51,27 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
+
+        public override T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.LastCallOperation(this);
+        }
+
+
         public override IType Returns()
         {
             return Left.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
         }
     }
 
-    public class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation>
+    internal class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation>
     {
-        public LastCallOperationMaker() : base(WeakLastCallOperation.Identifier, (l,r)=>new WeakLastCallOperation(l,r), new LastCallConverter())
+        public LastCallOperationMaker() : base(WeakLastCallOperation.Identifier, (l,r)=>new WeakLastCallOperation(l,r))
         {
-        }
-
-        private class LastCallConverter : IConverter<WeakLastCallOperation>
-        {
-            public T Convert<T>(IOpenBoxesContext<T> context, WeakLastCallOperation co)
-            {
-                return context.LastCallOperation(co);
-            }
         }
     }
-    
-    public static class MemberUnwrapper{
+
+    internal static class MemberUnwrapper{
         public static T Unwrap<T>(this ICodeElement codeElement) where T:IType {
             if (codeElement.Returns() is WeakMemberDefinition member && member.Type.GetValue() is T t) {
                 return t;
