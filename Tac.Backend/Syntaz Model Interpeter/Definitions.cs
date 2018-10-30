@@ -7,19 +7,15 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 using Tac.Syntaz_Model_Interpeter;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Backend.Syntaz_Model_Interpeter
 {
 
-    internal class Definitions: IOpenBoxesContext<IInterpeted>
+    internal class Definitions: IOpenBoxesContext<IInterpeted>, ITypeConverter<IInterpetedType>
     {
         private readonly Dictionary<object, IInterpeted> backing = new Dictionary<object, IInterpeted>();
-
-        public static IInterpetedType Convert(IType member)
-        {
-            // how does this work?
-        }
-
+        
         public InterpetedMemberDefinition Convert(IMemberDefinition member)
         {
             if (backing.TryGetValue(member, out var res))
@@ -30,7 +26,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 var interpetedMemberDefinition = new InterpetedMemberDefinition();
                 backing.Add(member, interpetedMemberDefinition);
-                return interpetedMemberDefinition.Init(Convert(member.Type) , member.Key);
+                return interpetedMemberDefinition.Init(member.Type.Convert(this) , member.Key);
             }
         }
 
@@ -374,6 +370,31 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 return op;
             }
         }
+        
+        public InterpetedAnyType AnyType(IAnyType anyType)
+        {
+            return new InterpetedAnyType();
+        }
+
+        public InterpetedBooleanType BooleanType(IBooleanType booleanType)
+        {
+            return new InterpetedBooleanType();
+        }
+
+        public InterpetedStringType StringType(IStringType stringType)
+        {
+            return new InterpetedStringType();
+        }
+
+        public InterpetedEmptyType EmptyType(IEmptyType emptyType)
+        {
+            return new InterpetedEmptyType();
+        }
+
+        public InterpetedNumberType NumberType(INumberType numberType)
+        {
+            return new InterpetedNumberType();
+        }
 
         #region IOpenBoxesContext<IInterpeted>
 
@@ -399,6 +420,17 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         IInterpeted IOpenBoxesContext<IInterpeted>.MultiplyOperation(IMultiplyOperation codeElement) => MultiplyOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.SubtractOperation(ISubtractOperation codeElement) => SubtractOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ReturnOperation(IReturnOperation codeElement) => ReturnOperation(codeElement);
+
+
+        #endregion
+
+        #region ITypeConverter<IInterpetedType>
+
+        IInterpetedType ITypeConverter<IInterpetedType>.BooleanType(IBooleanType input) => BooleanType(input);
+        IInterpetedType ITypeConverter<IInterpetedType>.AnyType(IAnyType input) => AnyType(input);
+        IInterpetedType ITypeConverter<IInterpetedType>.StringType(IStringType input) => StringType(input);
+        IInterpetedType ITypeConverter<IInterpetedType>.EmptyType(IEmptyType input) => EmptyType(input);
+        IInterpetedType ITypeConverter<IInterpetedType>.NumberType(INumberType input) => NumberType(input);
 
         #endregion
 

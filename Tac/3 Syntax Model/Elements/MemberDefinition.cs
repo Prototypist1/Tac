@@ -17,9 +17,9 @@ namespace Tac.Semantic_Model
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    internal class WeakMemberDefinition: IType, ICodeElement, IMemberDefinition
+    internal class WeakMemberDefinition: ICodeElement, IMemberDefinition
     {
-        public WeakMemberDefinition(bool readOnly, NameKey key, IBox<IType> type)
+        public WeakMemberDefinition(bool readOnly, IKey key, IBox<IType> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
@@ -28,7 +28,7 @@ namespace Tac.Semantic_Model
 
         public IBox<IType> Type { get; }
         public bool ReadOnly { get; }
-        public NameKey Key { get; }
+        public IKey Key { get; }
 
         #region IMemberDefinition
 
@@ -40,7 +40,7 @@ namespace Tac.Semantic_Model
         {
             return context.MemberDefinition(this);
         }
-
+        
         public IType Returns()
         {
             return this;
