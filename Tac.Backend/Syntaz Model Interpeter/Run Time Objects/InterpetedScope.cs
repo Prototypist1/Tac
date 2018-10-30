@@ -9,6 +9,21 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
+    internal class InterpetedScopeTemplate : IInterpetedScopeTemplate
+    {
+        private readonly InterpetedStaticScope staticScope;
+        private readonly IFinalizedScope finalizedScope;
+
+        public InterpetedScopeTemplate(IFinalizedScope finalizedScope) {
+            this.staticScope = InterpetedStaticScope.Make();
+            this.finalizedScope = finalizedScope ?? throw new ArgumentNullException(nameof(finalizedScope));
+        }
+
+        public IInterpetedScope Create(InterpetedContext interpetedContext)
+        {
+            return InterpetedInstanceScope.Make(interpetedContext, staticScope, finalizedScope);
+        }
+    }
 
     // TODO you are here
     // IInterpetedScope is a pretty big mess
@@ -16,7 +31,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
     // I also need to handle primitive types
 
-    public class InterpetedStaticScope : IInterpetedScope
+    internal class InterpetedStaticScope : IInterpetedScope
     {
         protected InterpetedStaticScope(ConcurrentIndexed<IKey, InterpetedMember> backing)
         {
@@ -51,7 +66,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var member in scopeDefinition)
             {
-                backing[member.Key] = new InterpetedMember(member.Value.Type.Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext));
+                backing[member.Key] = new InterpetedMember(member.Value.Type.Cast<IInterpetedType>().GetDefault(interpetedContext));
             }
 
             return scope;
@@ -67,7 +82,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    public class InterpetedInstanceScope: InterpetedStaticScope
+    internal class InterpetedInstanceScope: InterpetedStaticScope
     {
 
         private InterpetedInstanceScope(ConcurrentIndexed<IKey, InterpetedMember> backing, InterpetedStaticScope staticBacking): base(backing)
@@ -78,14 +93,17 @@ namespace Tac.Syntaz_Model_Interpeter
         private InterpetedStaticScope StaticBacking { get; }
 
 
-        public static InterpetedInstanceScope Make(InterpetedContext interpetedContext, InterpetedStaticScope staticBacking, IFinalizedScope scopeDefinition) {
+        public static InterpetedInstanceScope Make(
+            InterpetedContext interpetedContext, 
+            InterpetedStaticScope staticBacking, 
+            IFinalizedScope scopeDefinition) {
             var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
 
             var scope = new InterpetedInstanceScope(backing, staticBacking);
             
             foreach (var member in scopeDefinition)
             {
-                backing[member.Key] = new InterpetedMember(member.Value.Type.Cast<IInterpetedPrimitiveType>().GetDefault(interpetedContext));
+                backing[member.Key] = new InterpetedMember(member.Value.Type.Cast<IInterpetedType>().GetDefault(interpetedContext));
             }
 
             return scope;

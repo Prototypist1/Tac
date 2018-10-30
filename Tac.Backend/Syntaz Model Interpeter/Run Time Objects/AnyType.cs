@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    public class InterpetedAnyType : IInterpetedPrimitiveType
+    internal class InterpetedAnyType : IInterpetedType
     {
         public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
@@ -12,7 +12,7 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
         }
     }
 
-    public class RuntimeAnyType: IRunTime
+    internal class RuntimeAnyType: IRunTime
     {
     }
 }

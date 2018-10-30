@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    public class InterpetedBooleanType : IInterpetedPrimitiveType
+    internal class InterpetedBooleanType : IInterpetedType
     {
         public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
@@ -12,7 +12,7 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
         }
     }
 
-    public class RunTimeBoolean: IRunTime
+    internal class RunTimeBoolean: IRunTime
     {
         public readonly bool b;
 

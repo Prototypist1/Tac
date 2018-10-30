@@ -1,8 +1,5 @@
 ﻿using System;
 using Prototypist.LeftToRight;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -12,7 +9,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var scope = Left.Interpet(interpetedContext).Cast<InterpetedMember>().Value.Cast<IInterpetedScope>();
             
-            return  InterpetedResult.Create(scope.GetMember(Right.Cast<InterpetedMemberReferance>().MemberDefinition.GetValue().Key));
+            return  InterpetedResult.Create(scope.GetMember(Right.Cast<InterpetedMemberReferance>().MemberDefinition.Key));
         }
     }
 }

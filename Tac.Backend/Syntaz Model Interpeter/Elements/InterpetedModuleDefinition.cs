@@ -6,20 +6,20 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedModuleDefinition : IInterpeted, IInterpetedPrimitiveType
+    internal class InterpetedModuleDefinition : IInterpeted, IInterpetedType
     {
-        public void Init(IFinalizedScope scope, IEnumerable<IInterpeted> staticInitialization)
+        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpeted> staticInitialization)
         {
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            ScopeTemplate = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
         }
 
-        public IFinalizedScope Scope { get; private set; }
+        public IInterpetedScopeTemplate ScopeTemplate { get; private set; }
         public IEnumerable<IInterpeted> StaticInitialization { get; private set; }
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var scope = InterpetedStaticScope.Make(interpetedContext,Scope);
+            var scope = ScopeTemplate.Create(interpetedContext);
 
             var context = interpetedContext.Child(scope);
 

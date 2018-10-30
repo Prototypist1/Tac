@@ -6,22 +6,19 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedBlockDefinition :  IInterpeted
     {
-        public void Init(IInterpeted[] body, IFinalizedScope scope)
+        public void Init(IInterpeted[] body, IInterpetedScopeTemplate scope)
         {
             Body = body ?? throw new ArgumentNullException(nameof(body));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public IInterpeted[] Body { get; private set; } 
-        public IFinalizedScope Scope { get; private set; }
-        
-        private InterpetedStaticScope StaticStuff { get; } = InterpetedStaticScope.Empty();
+        public IInterpetedScopeTemplate Scope { get; private set; }
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var res = InterpetedInstanceScope.Make(interpetedContext,StaticStuff, Scope);
 
-            var scope = interpetedContext.Child(res);
+            var scope = interpetedContext.Child(Scope.Create(interpetedContext));
 
             foreach (var line in Body)
             {

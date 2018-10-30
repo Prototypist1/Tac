@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedMember: IRunTime
+    internal class InterpetedMember: IRunTime
     {
         public InterpetedMember(IRunTime value)
         {

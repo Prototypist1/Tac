@@ -1,16 +1,16 @@
 ﻿using System;
-using Tac.Semantic_Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedMemberReferance :  IInterpeted
+    internal class InterpetedMemberReferance :  IInterpeted
     {
-        public void Init(InterpetedMemberReferance memberReferance)
+        public InterpetedMemberReferance Init(InterpetedMemberDefinition memberDefinition)
         {
-            MemberReferance = memberReferance ?? throw new ArgumentNullException(nameof(memberReferance));
+            MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
+            return this;
         }
 
-        public InterpetedMemberReferance MemberReferance { get; private set; }
+        public InterpetedMemberDefinition MemberDefinition { get; private set; }
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {

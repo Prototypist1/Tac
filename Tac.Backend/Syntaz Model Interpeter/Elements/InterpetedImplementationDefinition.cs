@@ -4,12 +4,17 @@ using System.Linq;
 using System;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Model;
+using Tac.Semantic_Model.Names;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedImplementationDefinition : IInterpeted, IInterpetedPrimitiveType
+    internal class InterpetedImplementationDefinition : IInterpeted, IInterpetedType
     {
-        public void Init(InterpetedMemberDefinition parameterDefinition, InterpetedMemberDefinition contextDefinition, IInterpeted methodBody, IFinalizedScope scope)
+        public void Init(
+            InterpetedMemberDefinition parameterDefinition, 
+            InterpetedMemberDefinition contextDefinition, 
+            IInterpeted[] methodBody,
+            IInterpetedScopeTemplate scope)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
@@ -19,15 +24,15 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedMemberDefinition ParameterDefinition { get; private set; }
         public InterpetedMemberDefinition ContextDefinition { get; private set; }
-        public IInterpeted MethodBody { get; private set; }
-        public IFinalizedScope Scope { get; private set; }
+        public IInterpeted[] MethodBody { get; private set; }
+        public IInterpetedScopeTemplate Scope { get; private set; }
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(new InterpetedImplementation(
                 ParameterDefinition,
                 ContextDefinition,
-                MethodBody.ToArray(),
+                MethodBody,
                 interpetedContext,
                 Scope));
         }
@@ -35,11 +40,11 @@ namespace Tac.Syntaz_Model_Interpeter
         public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation(
-                    interpetedContext.elementBuilders.MemberDefinition(false,new NameKey("input"),new Box<IWeakReturnable>(new InterpetedAnyType())),
-                    interpetedContext.elementBuilders.MemberDefinition(false, new NameKey("countex"), new Box<IWeakReturnable>(new InterpetedAnyType())),
-                    new IWeakCodeElement[] { },
+                    new InterpetedMemberDefinition().Init(new InterpetedAnyType(), new NameKey("input")),
+                    new InterpetedMemberDefinition().Init(new InterpetedAnyType(), new NameKey("context")),
+                    new IInterpeted[] { },
                     interpetedContext,
-                    new FinalizedScope(new Dictionary<IKey,IBox<WeakMemberDefinition>>()));
+                    Scope);
         }
     }
     

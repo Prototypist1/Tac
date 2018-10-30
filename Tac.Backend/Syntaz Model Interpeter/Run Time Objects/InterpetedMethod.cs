@@ -1,13 +1,16 @@
 ﻿using Prototypist.LeftToRight;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
+using Tac.Model;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public class InterpetedMethod: IRunTime
+    internal class InterpetedMethod: IRunTime
     {
-        public InterpetedMethod(WeakMemberDefinition parameterDefinition, IWeakCodeElement[] body, InterpetedContext context, IWeakFinalizedScope scope) 
+        public InterpetedMethod(
+            InterpetedMemberDefinition parameterDefinition,
+            IInterpeted[] body, 
+            InterpetedContext context,
+            IInterpetedScopeTemplate scope) 
         {
             ParameterDefinition = parameterDefinition ?? throw new System.ArgumentNullException(nameof(parameterDefinition));
             Body = body ?? throw new System.ArgumentNullException(nameof(body));
@@ -15,15 +18,15 @@ namespace Tac.Syntaz_Model_Interpeter
             Scope = scope ?? throw new System.ArgumentNullException(nameof(scope));
         }
 
-        private WeakMemberDefinition ParameterDefinition { get; }
-        private IWeakCodeElement[] Body { get; }
+        private InterpetedMemberDefinition ParameterDefinition { get; }
+        private IInterpeted[] Body { get; }
         private InterpetedContext Context { get; }
-        private IWeakFinalizedScope Scope { get; }
+        private IInterpetedScopeTemplate Scope { get; }
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
         
         public InterpetedResult Invoke(InterpetedContext interpetedContext,IRunTime input) {
 
-            var res = InterpetedInstanceScope.Make(interpetedContext, StaticScope, Scope);
+            var res = Scope.Create(interpetedContext);
 
             res.GetMember(ParameterDefinition.Key).Value = input;
 

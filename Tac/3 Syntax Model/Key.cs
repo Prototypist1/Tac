@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using Tac.Model;
 using Tac.Semantic_Model.CodeStuff;
@@ -11,27 +9,6 @@ namespace Tac.Semantic_Model.Names
 
     public class ImplicitKey : IKey {
 
-    }
-
-    public class NameKey : IKey
-    {
-        public NameKey(string name)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
-
-        public string Name { get; }
-
-        public override bool Equals(object obj)
-        {
-            return obj is NameKey key &&
-                   Name == key.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-        }
     }
 
     public class GenericNameKey : NameKey

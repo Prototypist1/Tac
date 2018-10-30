@@ -8,22 +8,20 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedObjectDefinition :  IInterpeted, IInterpetedPrimitiveType
+    internal class InterpetedObjectDefinition :  IInterpeted, IInterpetedType
     {
-        public void Init(IFinalizedScope scope, IEnumerable<InterpetedAssignOperation> assignments)
+        public void Init(IInterpetedScopeTemplate scope, IEnumerable<InterpetedAssignOperation> assignments)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Assignments = assignments ?? throw new ArgumentNullException(nameof(assignments));
         }
 
-        public IFinalizedScope Scope { get; private set; }
+        public IInterpetedScopeTemplate Scope { get; private set; }
         public IEnumerable<InterpetedAssignOperation> Assignments { get; private set; }
-
-        private InterpetedStaticScope StaticStuff { get; } = InterpetedStaticScope.Empty();
-
+        
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var scope = InterpetedInstanceScope.Make(interpetedContext,StaticStuff, Scope);
+            var scope = Scope.Create(interpetedContext);
 
             var context = interpetedContext.Child(scope);
 
