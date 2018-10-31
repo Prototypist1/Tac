@@ -38,11 +38,16 @@ namespace Tac.Semantic_Model
         #endregion
 
 
+
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.MethodDefinition(this);
         }
 
+        public override T Convert<T>(ITypeConverter<T> context)
+        {
+            return context.MethodDefinition(this);
+        }
     }
 
 

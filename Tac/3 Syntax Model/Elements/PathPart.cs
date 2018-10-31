@@ -33,7 +33,12 @@ namespace Tac.Semantic_Model
         {
             return context.MemberReferance(this);
         }
-        
+
+        public T Convert<T>(ITypeConverter<T> context)
+        {
+            return context.MemberReferance(this);
+        }
+
         public IType Returns()
         {
             return MemberDefinition.GetValue();

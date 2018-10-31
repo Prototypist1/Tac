@@ -44,6 +44,12 @@ namespace Tac.Semantic_Model
 
         #endregion
 
+
+        public T Convert<T>(ITypeConverter<T> context)
+        {
+            return context.ObjectDefinition(this);
+        }
+
         public IType Returns() {
             return this;
         }

@@ -35,12 +35,17 @@ namespace Tac.Semantic_Model
         IFinalizedScope IModuleDefinition.Scope => Scope;
 
         #endregion
-        
+
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ModuleDefinition(this);
         }
-        
+
+        public T Convert<T>(ITypeConverter<T> context)
+        {
+            return context.ModuleDefinition(this);
+        }
+
         public IType Returns()
         {
             return this;

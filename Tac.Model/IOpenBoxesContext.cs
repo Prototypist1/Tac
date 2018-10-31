@@ -48,5 +48,15 @@ namespace Tac.Model
         TType StringType(IStringType stringType);
         TType EmptyType(IEmptyType emptyType);
         TType NumberType(INumberType numberType);
+        TType TypeDefinition(ITypeDefinition weakTypeDefinition);
+        TType ObjectDefinition(IObjectDefiniton weakObjectDefinition);
+        TType ModuleDefinition(IModuleDefinition weakModuleDefinition);
+        TType MemberDefinition(IMemberReferance weakMemberReferance);
+        TType MethodDefinition(IMethodDefinition weakMethodDefinition);
+        TType MemberReferance(IMemberReferance weakMemberReferance);
+        TType MemberDefinition(IMemberDefinition weakMemberDefinition);
+        TType ImplementationDefinition(IImplementationDefinition weakImplementationDefinition);
+        TType GenericTypeDefinition(IGenericTypeDefinition weakGenericTypeDefinition);
+        TType BlockDefinition(IBlockDefinition weakBlockDefinition);
     }
 }

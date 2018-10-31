@@ -67,7 +67,12 @@ namespace Tac.Semantic_Model
         {
             return context.ImplementationDefinition(this);
         }
-        
+
+        public T Convert<T>(ITypeConverter<T> context)
+        {
+            return context.ImplementationDefinition(this);
+        }
+
         public IType Returns()
         {
             return this;

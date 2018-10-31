@@ -30,6 +30,10 @@ namespace Tac.Semantic_Model
             return context.BlockDefinition(this);
         }
 
+        public override T Convert<T>(ITypeConverter<T> context)
+        {
+            return context.BlockDefinition(this);
+        }
     }
 
     internal class BlockDefinitionMaker : IMaker<WeakBlockDefinition>

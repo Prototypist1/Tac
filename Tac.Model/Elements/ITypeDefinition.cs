@@ -6,7 +6,7 @@ namespace Tac.Model.Elements
     {
         IFinalizedScope Scope { get; }
     }
-
+    
     public interface IType {
         T Convert<T>(ITypeConverter<T> context);
     }
