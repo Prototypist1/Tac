@@ -4,15 +4,15 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    internal class InterpetedEmptyType : IInterpetedType
-    {
-        public IRunTime GetDefault(InterpetedContext interpetedContext)
-        {
-            return new RunTimeEmpty();
-        }
-    }
+    //internal class InterpetedEmptyType : IInterpetedType
+    //{
+    //    public IRunTime GetDefault(InterpetedContext interpetedContext)
+    //    {
+    //        return new RunTimeEmpty();
+    //    }
+    //}
 
-    internal class RunTimeEmpty: IRunTime
+    internal class RunTimeEmpty : IRunTime
     {
     }
 }

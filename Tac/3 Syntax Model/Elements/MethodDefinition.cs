@@ -43,11 +43,6 @@ namespace Tac.Semantic_Model
         {
             return context.MethodDefinition(this);
         }
-
-        public T Convert<T>(ITypeConverter<T> context)
-        {
-            return context.MethodType(this);
-        }
     }
 
 

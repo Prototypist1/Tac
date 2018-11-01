@@ -122,11 +122,11 @@ namespace Tac.Semantic_Model
         public ScopeTree()
         {
             root = new Scope();
-            root.TryAddType(new NameKey("int"), new Box<IPrimitiveType>(new NumberType()));
-            root.TryAddType(new NameKey("string"), new Box<IPrimitiveType>(new StringType()));
-            root.TryAddType(new NameKey("any"), new Box<IPrimitiveType>(new AnyType()));
-            root.TryAddType(new NameKey("empty"), new Box<IPrimitiveType>(new EmptyType()));
-            root.TryAddType(new NameKey("bool"), new Box<IPrimitiveType>(new BooleanType()));
+            root.TryAddType(new NameKey("int"), new Box<IVarifiableType>(new NumberType()));
+            root.TryAddType(new NameKey("string"), new Box<IVarifiableType>(new StringType()));
+            root.TryAddType(new NameKey("any"), new Box<IVarifiableType>(new AnyType()));
+            root.TryAddType(new NameKey("empty"), new Box<IVarifiableType>(new EmptyType()));
+            root.TryAddType(new NameKey("bool"), new Box<IVarifiableType>(new BooleanType()));
         }
 
         /// <summary>

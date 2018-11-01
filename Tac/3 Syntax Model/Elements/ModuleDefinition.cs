@@ -40,12 +40,7 @@ namespace Tac.Semantic_Model
         {
             return context.ModuleDefinition(this);
         }
-
-        public T Convert<T>(ITypeConverter<T> context)
-        {
-            return context.ModuleType(this);
-        }
-
+        
         public IVarifiableType Returns()
         {
             return this;

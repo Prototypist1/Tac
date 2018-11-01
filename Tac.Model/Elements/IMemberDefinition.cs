@@ -5,7 +5,7 @@ namespace Tac.Model.Elements
     public interface IMemberDefinition : ICodeElement
     {
         IKey Key { get; }
-        IConvertableType Type { get; }
+        IVarifiableType Type { get; }
         bool ReadOnly { get; }
     }
 }

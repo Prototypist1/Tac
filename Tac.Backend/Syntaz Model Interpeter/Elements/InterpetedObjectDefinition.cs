@@ -8,7 +8,7 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedObjectDefinition :  IInterpeted, IInterpetedType
+    internal class InterpetedObjectDefinition :  IInterpeted
     {
         public void Init(IInterpetedScopeTemplate scope, IEnumerable<InterpetedAssignOperation> assignments)
         {

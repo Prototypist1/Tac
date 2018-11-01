@@ -43,13 +43,7 @@ namespace Tac.Semantic_Model
         IEnumerable<IAssignOperation> IObjectDefiniton.Assignments => Assignments;
 
         #endregion
-
-
-        public T Convert<T>(ITypeConverter<T> context)
-        {
-            return context.ObjectType(this);
-        }
-
+        
         public IVarifiableType Returns() {
             return this;
         }

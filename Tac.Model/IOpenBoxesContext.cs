@@ -42,16 +42,16 @@ namespace Tac.Model
         T ReturnOperation(IReturnOperation co);
     }
 
-    public interface ITypeConverter<out TType> {
-        TType BooleanType(IBooleanType booleanType);
-        TType AnyType(IAnyType anyType);
-        TType StringType(IStringType stringType);
-        TType EmptyType(IEmptyType emptyType);
-        TType NumberType(INumberType numberType);
-        TType ObjectType(IObjectType weakObjectDefinition);
-        TType ModuleType(IModuleType weakModuleDefinition);
-        TType ImplementationType(IImplementationType weakImplementationDefinition);
-        TType MethodType(IMethodType weakMethodDefinition);
-        TType InterfaceType(IInterfaceType interfaceType);
-    }
+    //public interface ITypeConverter<out TType> {
+    //    TType BooleanType(IBooleanType booleanType);
+    //    TType AnyType(IAnyType anyType);
+    //    TType StringType(IStringType stringType);
+    //    TType EmptyType(IEmptyType emptyType);
+    //    TType NumberType(INumberType numberType);
+    //    TType ObjectType(IObjectType weakObjectDefinition);
+    //    TType ModuleType(IModuleType weakModuleDefinition);
+    //    TType ImplementationType(IImplementationType weakImplementationDefinition);
+    //    TType MethodType(IMethodType weakMethodDefinition);
+    //    TType InterfaceType(IInterfaceType interfaceType);
+    //}
 }

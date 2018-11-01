@@ -8,7 +8,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedImplementationDefinition : IInterpeted, IInterpetedType
+    internal class InterpetedImplementationDefinition : IInterpeted
     {
         public void Init(
             InterpetedMemberDefinition parameterDefinition, 
@@ -40,8 +40,8 @@ namespace Tac.Syntaz_Model_Interpeter
         public IRunTime GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation(
-                    new InterpetedMemberDefinition().Init(new InterpetedAnyType(), new NameKey("input")),
-                    new InterpetedMemberDefinition().Init(new InterpetedAnyType(), new NameKey("context")),
+                    new InterpetedMemberDefinition().Init(new NameKey("input")),
+                    new InterpetedMemberDefinition().Init(new NameKey("context")),
                     new IInterpeted[] { },
                     interpetedContext,
                     Scope);

@@ -31,12 +31,7 @@ namespace Tac.Semantic_Model.Operations
         {
             return context.ConstantNumber(this);
         }
-
-        public T Convert<T>(ITypeConverter<T> context)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public IVarifiableType Returns()
         {
             return new NumberType();

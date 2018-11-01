@@ -13,7 +13,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakTypeDefinition : IInterfaceType, ICodeElement, IScoped, ITypeDefinition
+    internal class WeakTypeDefinition : IInterfaceType, ICodeElement, IScoped
     {
         public WeakTypeDefinition(IWeakFinalizedScope scope, IKey key)
         {
@@ -24,22 +24,13 @@ namespace Tac.Semantic_Model
         public IKey Key { get; }
         public IWeakFinalizedScope Scope { get; }
 
-        #region ITypeDefinition
-
-        IFinalizedScope ITypeDefinition.Scope => Scope;
-
-        #endregion
+        IFinalizedScope IInterfaceType.Scope => Scope;
         
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.TypeDefinition(this);
         }
-
-        public T Convert<T>(ITypeConverter<T> context)
-        {
-            return context.InterfaceType(this);
-        }
-
+        
         public IVarifiableType Returns()
         {
             return this;

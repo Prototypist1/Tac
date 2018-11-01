@@ -8,19 +8,17 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedMemberDefinition: IInterpeted
     {
-        public InterpetedMemberDefinition Init(IInterpetedType type, IKey key)
+        public InterpetedMemberDefinition Init(IKey key)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
             Key = key ?? throw new ArgumentNullException(nameof(key));
             return this;
         }
-
-        public IInterpetedType Type { get; private set; }
+        
         public IKey Key { get; private set; }
         
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedMember(Type.GetDefault(interpetedContext)));
+            return InterpetedResult.Create(new InterpetedMember());
         }
     }
 }

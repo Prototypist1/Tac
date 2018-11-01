@@ -6,7 +6,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedModuleDefinition : IInterpeted, IInterpetedType
+    internal class InterpetedModuleDefinition : IInterpeted
     {
         public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpeted> staticInitialization)
         {
