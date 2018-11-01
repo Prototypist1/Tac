@@ -8,8 +8,6 @@ namespace Tac.Tests.Help
 {
     public static class EqualityHelper
     {
-        // TODO this will handle circular referances very badly 
-
         public static void ValueEqualOrThrow(this object target, object actual) {
             if (!PublicStateIsValueEqual(target, actual, out var res)) {
                 throw new Exception(res);

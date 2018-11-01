@@ -3,5 +3,4 @@
     internal class RunTimeGenericType : IRunTime
     {
     }
-
 }
