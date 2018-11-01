@@ -66,7 +66,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var member in scopeDefinition)
             {
-                backing[member.Key] = new InterpetedMember(member.Value.Type.Cast<IInterpetedType>().GetDefault(interpetedContext));
+                backing[member.Key] = new InterpetedMember();
             }
 
             return scope;
@@ -103,7 +103,7 @@ namespace Tac.Syntaz_Model_Interpeter
             
             foreach (var member in scopeDefinition)
             {
-                backing[member.Key] = new InterpetedMember(member.Value.Type.Cast<IInterpetedType>().GetDefault(interpetedContext));
+                backing[member.Key] = new InterpetedMember();
             }
 
             return scope;

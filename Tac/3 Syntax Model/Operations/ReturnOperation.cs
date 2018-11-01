@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model.Operations
 
         public ICodeElement Result { get; }
         
-        public IType Returns()
+        public IVarifiableType Returns()
         {
             return new EmptyType();
         }
@@ -76,7 +76,7 @@ namespace Tac.Semantic_Model.Operations
     {
         private readonly IPopulateScope<ICodeElement> left;
         private readonly TrailingOperation.Make<T> make;
-        private readonly DelegateBox<IType> box = new DelegateBox<IType>();
+        private readonly DelegateBox<IVarifiableType> box = new DelegateBox<IVarifiableType>();
 
         public TrailingPopulateScope(IPopulateScope<ICodeElement> left, TrailingOperation.Make<T> make)
         {
@@ -84,7 +84,7 @@ namespace Tac.Semantic_Model.Operations
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -102,9 +102,9 @@ namespace Tac.Semantic_Model.Operations
     {
         public readonly IPopulateBoxes<ICodeElement> left;
         private readonly TrailingOperation.Make<T> make;
-        private readonly DelegateBox<IType> box;
+        private readonly DelegateBox<IVarifiableType> box;
 
-        public TrailingResolveReferance(IPopulateBoxes<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IType> box)
+        public TrailingResolveReferance(IPopulateBoxes<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IVarifiableType> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             this.make = make ?? throw new ArgumentNullException(nameof(make));

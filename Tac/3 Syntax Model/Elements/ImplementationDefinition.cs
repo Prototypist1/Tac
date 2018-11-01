@@ -12,13 +12,13 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakImplementationDefinition: IType, ICodeElement, IImplementationDefinition
+    internal class WeakImplementationDefinition: IImplementationType, ICodeElement, IImplementationDefinition
     {
 
         public WeakImplementationDefinition(
             IBox<WeakMemberDefinition> contextDefinition, 
             IBox<WeakMemberDefinition> parameterDefinition, 
-            IBox<IType> outputType, 
+            IBox<IVarifiableType> outputType, 
             IEnumerable<ICodeElement> metohdBody,
             IWeakFinalizedScope scope, 
             IEnumerable<ICodeElement> staticInitializers)
@@ -32,21 +32,21 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public IBox<IType> ContextTypeBox
+        public IBox<IVarifiableType> ContextTypeBox
         {
             get
             {
                 return ContextDefinition.GetValue().Type;
             }
         }
-        public IBox<IType> InputTypeBox
+        public IBox<IVarifiableType> InputTypeBox
         {
             get
             {
                 return ParameterDefinition.GetValue().Type;
             }
         }
-        public IBox<IType> OutputType { get; }
+        public IBox<IVarifiableType> OutputType { get; }
         public IBox<WeakMemberDefinition> ContextDefinition { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
         public IWeakFinalizedScope Scope { get; }
@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model
 
         #region IImplementationDefinition
 
-        IType IImplementationDefinition.OutputType => OutputType.GetValue();
+        IVarifiableType IImplementationDefinition.OutputType => OutputType.GetValue();
         IMemberDefinition IImplementationDefinition.ContextDefinition => ContextDefinition.GetValue();
         IMemberDefinition IImplementationDefinition.ParameterDefinition => ParameterDefinition.GetValue();
         IFinalizedScope IImplementationDefinition.Scope => Scope;
@@ -70,10 +70,10 @@ namespace Tac.Semantic_Model
 
         public T Convert<T>(ITypeConverter<T> context)
         {
-            return context.ImplementationDefinition(this);
+            return context.ImplementationType(this);
         }
 
-        public IType Returns()
+        public IVarifiableType Returns()
         {
             return this;
         }
@@ -138,7 +138,7 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public PopulateScopeImplementationDefinition(
             IPopulateScope<WeakMemberReferance> contextDefinition,
@@ -165,7 +165,7 @@ namespace Tac.Semantic_Model
                 box);
         }
         
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -179,7 +179,7 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
 
         public ImplementationDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReferance> contextDefinition,
@@ -187,7 +187,7 @@ namespace Tac.Semantic_Model
             IResolvableScope methodScope,
             IPopulateBoxes<ICodeElement>[] elements,
             NameKey outputTypeName,
-            Box<IType> box)
+            Box<IVarifiableType> box)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));

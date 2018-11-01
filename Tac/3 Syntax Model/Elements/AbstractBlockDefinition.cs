@@ -33,9 +33,7 @@ namespace Tac.Semantic_Model
         }
 
         public abstract T Convert<T>(IOpenBoxesContext<T> context);
-
-        public abstract T Convert<T>(ITypeConverter<T> context);
-
-        public IType Returns() { return this; }
+        
+        public IVarifiableType Returns() { return this; }
     }
 }

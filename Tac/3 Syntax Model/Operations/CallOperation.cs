@@ -30,7 +30,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public override IType Returns()
+        public override IVarifiableType Returns()
         {
             return Right.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
         }
@@ -58,7 +58,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public override IType Returns()
+        public override IVarifiableType Returns()
         {
             return Left.Unwrap<WeakMethodDefinition>().OutputType.GetValue();
         }
@@ -72,7 +72,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal static class MemberUnwrapper{
-        public static T Unwrap<T>(this ICodeElement codeElement) where T:IType {
+        public static T Unwrap<T>(this ICodeElement codeElement) where T:IVarifiableType {
             if (codeElement.Returns() is WeakMemberDefinition member && member.Type.GetValue() is T t) {
                 return t;
             }

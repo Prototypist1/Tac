@@ -16,7 +16,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakObjectDefinition: ICodeElement, IType, IScoped, IObjectDefiniton
+    internal class WeakObjectDefinition: ICodeElement, IObjectType, IScoped, IObjectDefiniton
     {
         public WeakObjectDefinition(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -47,10 +47,10 @@ namespace Tac.Semantic_Model
 
         public T Convert<T>(ITypeConverter<T> context)
         {
-            return context.ObjectDefinition(this);
+            return context.ObjectType(this);
         }
 
-        public IType Returns() {
+        public IVarifiableType Returns() {
             return this;
         }
         
@@ -88,14 +88,14 @@ namespace Tac.Semantic_Model
     internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public ObjectDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -117,13 +117,13 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<ICodeElement>[] elements;
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
             IPopulateBoxes<ICodeElement>[] elements, 
-            Box<IType> box, 
+            Box<IVarifiableType> box, 
             ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));

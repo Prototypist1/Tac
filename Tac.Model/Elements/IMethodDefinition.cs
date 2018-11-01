@@ -4,8 +4,8 @@ namespace Tac.Model.Elements
 {
     public interface IMethodDefinition: IBlockDefinition {
 
-        IType InputType { get; }
-        IType OutputType { get; }
+        IConvertableType InputType { get; }
+        IConvertableType OutputType { get; }
         IMemberDefinition ParameterDefinition { get; }
     }
 }

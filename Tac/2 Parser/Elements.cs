@@ -31,13 +31,13 @@ namespace Tac.Parser
     internal class ElementMatchingContext
     {
 
-        internal ElementMatchingContext ExpectPathPart(IBox<IType> box) {
+        internal ElementMatchingContext ExpectPathPart(IBox<IVarifiableType> box) {
             return new ElementMatchingContext(operationMatchers, new IMaker<ICodeElement>[] {
                 new MemberReferanceMaker(box)
             });
         }
         
-        internal ElementMatchingContext AcceptImplicit(IBox<IType> box)
+        internal ElementMatchingContext AcceptImplicit(IBox<IVarifiableType> box)
         {
             return new ElementMatchingContext(operationMatchers, new IMaker<ICodeElement>[] {
                 new BlockDefinitionMaker(),

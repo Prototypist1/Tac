@@ -29,14 +29,14 @@ namespace Tac.Semantic_Model
     internal class MemberPopulateScope : IPopulateScope<WeakMemberReferance>
     {
         private readonly string memberName;
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public MemberPopulateScope(string item)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -45,7 +45,7 @@ namespace Tac.Semantic_Model
         {
             var nameKey = new NameKey(memberName);
             if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) && 
-                !context.Scope.TryAddMember(DefintionLifetime.Instance,nameKey, new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,nameKey,new Box<IType>(new AnyType())))))
+                !context.Scope.TryAddMember(DefintionLifetime.Instance,nameKey, new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,nameKey,new Box<IVarifiableType>(new AnyType())))))
             {
                 throw new Exception("uhh that is not right");
             }
@@ -59,12 +59,12 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope resolvableScope;
         private readonly NameKey key;
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
 
         public MemberResolveReferance(
             IResolvableScope resolvableScope,
             NameKey key, 
-            Box<IType> box)
+            Box<IVarifiableType> box)
         {
             this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
             this.key = key ?? throw new ArgumentNullException(nameof(key));

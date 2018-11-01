@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model
 {
 
 
-    internal class WeakModuleDefinition : IScoped, ICodeElement, IType, IModuleDefinition
+    internal class WeakModuleDefinition : IScoped, ICodeElement, IModuleType, IModuleDefinition
     {
         public WeakModuleDefinition(IWeakFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
@@ -43,10 +43,10 @@ namespace Tac.Semantic_Model
 
         public T Convert<T>(ITypeConverter<T> context)
         {
-            return context.ModuleDefinition(this);
+            return context.ModuleType(this);
         }
 
-        public IType Returns()
+        public IVarifiableType Returns()
         {
             return this;
         }
@@ -85,7 +85,7 @@ namespace Tac.Semantic_Model
     {
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey nameKey;
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public ModuleDefinitionPopulateScope(
             IPopulateScope<ICodeElement>[] elements,
@@ -95,7 +95,7 @@ namespace Tac.Semantic_Model
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -117,13 +117,13 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<ICodeElement>[] resolveReferance;
         private readonly NameKey nameKey;
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
 
         public ModuleDefinitionResolveReferance(
             IResolvableScope scope, 
             IPopulateBoxes<ICodeElement>[] resolveReferance,
             NameKey nameKey,
-            Box<IType> box)
+            Box<IVarifiableType> box)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));

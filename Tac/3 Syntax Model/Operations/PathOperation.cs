@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model.Operations
             return context.PathOperation(this);
         }
         
-        public override IType Returns()
+        public override IVarifiableType Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
             return Right.Cast<WeakMemberReferance>();

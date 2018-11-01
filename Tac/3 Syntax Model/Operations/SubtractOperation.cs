@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model.Operations
             return context.SubtractOperation(this);
         }
         
-        public override IType Returns()
+        public override IVarifiableType Returns()
         {
             return new NumberType();
         }

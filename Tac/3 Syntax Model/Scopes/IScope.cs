@@ -17,13 +17,13 @@ namespace Tac.Semantic_Model
     internal interface IPopulatableScope: ISomeScope
     {
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<WeakMemberDefinition> type);
-        bool TryAddType(IKey name, IBox<IType> type);
+        bool TryAddType(IKey name, IBox<IVarifiableType> type);
     }
 
     internal interface IResolvableScope: ISomeScope
     {
         IWeakFinalizedScope GetFinalized();
-        bool TryGetType(IKey name, out IBox<IType> type);
+        bool TryGetType(IKey name, out IBox<IVarifiableType> type);
     }
 
     public class ScopeEnty<T>
@@ -144,7 +144,7 @@ namespace Tac.Semantic_Model
 
     internal static class ResolvableScopeExtension
     {
-        internal static IBox<IType> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
+        internal static IBox<IVarifiableType> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }

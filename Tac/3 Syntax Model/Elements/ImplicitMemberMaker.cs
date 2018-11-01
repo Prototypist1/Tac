@@ -12,9 +12,9 @@ namespace Tac.Semantic_Model
 {
     internal class ImplicitMemberMaker : IMaker<WeakMemberReferance>
     {
-        private readonly IBox<IType> type;
+        private readonly IBox<IVarifiableType> type;
 
-        public ImplicitMemberMaker( IBox<IType> type)
+        public ImplicitMemberMaker( IBox<IVarifiableType> type)
         {
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
@@ -41,10 +41,10 @@ namespace Tac.Semantic_Model
     internal class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReferance>
     {
         private readonly string memberName;
-        private readonly IBox<IType> type;
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly IBox<IVarifiableType> type;
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
-        public ImplicitMemberPopulateScope(string item, IBox<IType> type)
+        public ImplicitMemberPopulateScope(string item, IBox<IVarifiableType> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -65,7 +65,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -75,14 +75,14 @@ namespace Tac.Semantic_Model
 
     internal class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReferance>
     {
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
         private readonly string memberName;
-        private readonly IBox<IType> type;
+        private readonly IBox<IVarifiableType> type;
 
         public ImplicitMemberResolveReferance(
             string memberName,
-            Box<IType> box,
-            IBox<IType> type)
+            Box<IVarifiableType> box,
+            IBox<IVarifiableType> type)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));

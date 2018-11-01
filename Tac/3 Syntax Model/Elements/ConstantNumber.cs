@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    internal class WeakConstantNumber : ICodeElement, IType, IConstantNumber
+    internal class WeakConstantNumber : ICodeElement, IVarifiableType, IConstantNumber
     {
         public WeakConstantNumber(double value) 
         {
@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model.Operations
             throw new NotImplementedException();
         }
 
-        public IType Returns()
+        public IVarifiableType Returns()
         {
             return new NumberType();
         }
@@ -64,7 +64,7 @@ namespace Tac.Semantic_Model.Operations
     internal class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public ConstantNumberPopulateScope(double dub)
         {
@@ -76,7 +76,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantNumberResolveReferance(dub, box);
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -85,11 +85,11 @@ namespace Tac.Semantic_Model.Operations
     internal class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
 
         public ConstantNumberResolveReferance(
             double dub,
-            Box<IType> box)
+            Box<IVarifiableType> box)
         {
             this.dub = dub;
             this.box = box ?? throw new ArgumentNullException(nameof(box));

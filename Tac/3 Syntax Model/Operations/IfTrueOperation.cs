@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model.Operations
             return context.IfTrueOperation(this);
         }
 
-        public override IType Returns()
+        public override IVarifiableType Returns()
         {
             return new BooleanType();
         }

@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model.Operations
             return context.AssignOperation(this);
         }
 
-        public override IType Returns()
+        public override IVarifiableType Returns()
         {
             return Left.Returns();
         }

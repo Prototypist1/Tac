@@ -29,11 +29,6 @@ namespace Tac.Semantic_Model
         {
             return context.BlockDefinition(this);
         }
-
-        public override T Convert<T>(ITypeConverter<T> context)
-        {
-            return context.BlockDefinition(this);
-        }
     }
 
     internal class BlockDefinitionMaker : IMaker<WeakBlockDefinition>
@@ -66,7 +61,7 @@ namespace Tac.Semantic_Model
         // is it worth adding another T?
         // this is the type the backend owns
         private IPopulateScope<ICodeElement>[] Elements { get; }
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public BlockDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements)
         {
@@ -79,7 +74,7 @@ namespace Tac.Semantic_Model
             return new ResolveReferanceBlockDefinition(nextContext.GetResolvableScope(), Elements.Select(x => x.Run(nextContext)).ToArray(), box);
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -89,12 +84,12 @@ namespace Tac.Semantic_Model
     {
         private IResolvableScope Scope { get; }
         private IPopulateBoxes<ICodeElement>[] ResolveReferance { get; }
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
 
         public ResolveReferanceBlockDefinition(
             IResolvableScope scope, 
             IPopulateBoxes<ICodeElement>[] resolveReferance,
-            Box<IType> box)
+            Box<IVarifiableType> box)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             ResolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));

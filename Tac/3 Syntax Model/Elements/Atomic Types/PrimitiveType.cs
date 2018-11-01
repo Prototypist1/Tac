@@ -4,40 +4,37 @@ using Tac.Semantic_Model;
 
 namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 {
-    public interface IPrimitiveType : IType
-    {
-        
-    }
 
-    public class StringType : IPrimitiveType, IStringType
+
+    public class StringType :  IStringType
     {
         public T Convert<T>(ITypeConverter<T> context)
         {
             return context.StringType(this);
         }
     }
-    public class EmptyType : IPrimitiveType, IEmptyType
+    public class EmptyType : IEmptyType
     {
         public T Convert<T>(ITypeConverter<T> context)
         {
             return context.EmptyType(this);
         }
     }
-    public class NumberType : IPrimitiveType, INumberType
+    public class NumberType : INumberType
     {
         public T Convert<T>(ITypeConverter<T> context)
         {
             return context.NumberType(this);
         }
     }
-    public class AnyType : IPrimitiveType, IAnyType
+    public class AnyType : IAnyType
     {
         public T Convert<T>(ITypeConverter<T> context)
         {
             return context.AnyType(this);
         }
     }
-    public class BooleanType : IPrimitiveType, IBooleanType
+    public class BooleanType : IBooleanType
     {
         public T Convert<T>(ITypeConverter<T> context)
         {

@@ -24,7 +24,7 @@ namespace Tac.Semantic_Model.CodeStuff
             return context.LessThanOperation(this);
         }
         
-        public override IType Returns()
+        public override IVarifiableType Returns()
         {
             return new BooleanType();
         }

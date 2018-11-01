@@ -33,13 +33,8 @@ namespace Tac.Semantic_Model
         {
             return context.MemberReferance(this);
         }
-
-        public T Convert<T>(ITypeConverter<T> context)
-        {
-            return context.MemberReferance(this);
-        }
-
-        public IType Returns()
+        
+        public IVarifiableType Returns()
         {
             return MemberDefinition.GetValue();
         }
@@ -48,12 +43,12 @@ namespace Tac.Semantic_Model
     internal class MemberReferanceMaker : IMaker<WeakMemberReferance>
     {
         public MemberReferanceMaker(
-            IBox<IType> lhs)
+            IBox<IVarifiableType> lhs)
         {
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        private readonly IBox<IType> lhs;
+        private readonly IBox<IVarifiableType> lhs;
 
         public IResult<IPopulateScope<WeakMemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
         {
@@ -72,17 +67,17 @@ namespace Tac.Semantic_Model
     internal class MemberReferancePopulateScope : IPopulateScope< WeakMemberReferance>
     {
 
-        private readonly IBox<IType> lhs;
+        private readonly IBox<IVarifiableType> lhs;
         private readonly string memberName;
         private readonly DelegateBox<WeakMemberDefinition> box = new DelegateBox<WeakMemberDefinition>();
 
-        public MemberReferancePopulateScope( string item, IBox<IType> lhs)
+        public MemberReferancePopulateScope( string item, IBox<IVarifiableType> lhs)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -98,10 +93,10 @@ namespace Tac.Semantic_Model
     {
 
         private readonly string memberName;
-        private readonly IBox<IType> lhs;
+        private readonly IBox<IVarifiableType> lhs;
         private readonly DelegateBox<WeakMemberDefinition> box;
 
-        public MemberReferanceResolveReferance(string memberName, DelegateBox<WeakMemberDefinition> box, IBox<IType> lhs)
+        public MemberReferanceResolveReferance(string memberName, DelegateBox<WeakMemberDefinition> box, IBox<IVarifiableType> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));

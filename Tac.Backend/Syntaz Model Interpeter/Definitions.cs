@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Backend.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -356,7 +357,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedTypeDefinition TypeDefinition(ITypeDefinition codeElement)
+        public InterpetedTypeDefinition TypeDefinition(IInterfaceType codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -396,6 +397,31 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             return new InterpetedNumberType();
         }
 
+        public ObjectType ObjectType(IObjectType weakObjectDefinition)
+        {
+            return new ObjectType();
+        }
+
+        public ObjectType ModuleType(IModuleType weakModuleDefinition)
+        {
+            return new ObjectType();
+        }
+
+        public IInterpetedType ImplementationType(IImplementationType weakImplementationDefinition)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IInterpetedType MethodType(IMethodType weakMethodDefinition)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ObjectType InterfaceType(IInterfaceType interfaceType)
+        {
+            return new ObjectType();
+        }
+
         #region IOpenBoxesContext<IInterpeted>
 
 
@@ -411,7 +437,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         IInterpeted IOpenBoxesContext<IInterpeted>.ModuleDefinition(IModuleDefinition codeElement) => ModuleDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.LastCallOperation(ILastCallOperation codeElement) => LastCallOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ObjectDefinition(IObjectDefiniton codeElement) => ObjectDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.TypeDefinition(ITypeDefinition codeElement) => TypeDefinition(codeElement);
+        IInterpeted IOpenBoxesContext<IInterpeted>.TypeDefinition(IInterfaceType codeElement) => TypeDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.AddOperation(IAddOperation codeElement) => AddOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.NextCallOperation(INextCallOperation codeElement) => NextCallOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ElseOperation(IElseOperation codeElement) => ElseOperation(codeElement);
@@ -431,6 +457,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         IInterpetedType ITypeConverter<IInterpetedType>.StringType(IStringType input) => StringType(input);
         IInterpetedType ITypeConverter<IInterpetedType>.EmptyType(IEmptyType input) => EmptyType(input);
         IInterpetedType ITypeConverter<IInterpetedType>.NumberType(INumberType input) => NumberType(input);
+
+
 
         #endregion
 

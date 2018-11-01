@@ -2,18 +2,25 @@
 
 namespace Tac.Model.Elements
 {
-    public interface ITypeDefinition : ICodeElement, IType
+    public interface IConvertableType
     {
-        IFinalizedScope Scope { get; }
-    }
-    
-    public interface IType {
         T Convert<T>(ITypeConverter<T> context);
     }
 
-    public interface INumberType: IType { }
-    public interface IAnyType: IType { }
-    public interface IEmptyType : IType { }
-    public interface IBooleanType: IType { }
-    public interface IStringType: IType { }
+    public interface IVarifiableType {
+    }
+
+    public interface INumberType: IVarifiableType, IConvertableType { }
+    public interface IAnyType: IVarifiableType, IConvertableType { }
+    public interface IEmptyType : IVarifiableType, IConvertableType { }
+    public interface IBooleanType: IVarifiableType, IConvertableType { }
+    public interface IStringType: IVarifiableType, IConvertableType { }
+    public interface IObjectType : IVarifiableType, IConvertableType { }
+    public interface IInterfaceType : IVarifiableType, IConvertableType { }
+    public interface IModuleType : IVarifiableType, IConvertableType { }
+    public interface IMethodType : IVarifiableType, IConvertableType { }
+    public interface IImplementationType : IVarifiableType, IConvertableType, ICodeElement
+    {
+        IFinalizedScope Scope { get; }
+    }
 }

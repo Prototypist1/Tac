@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public abstract IType Returns();
+        public abstract IVarifiableType Returns();
 
         public abstract T Convert<T>(IOpenBoxesContext<T> context);
     }
@@ -83,7 +83,7 @@ namespace Tac.Semantic_Model.CodeStuff
         private readonly IPopulateScope<ICodeElement> left;
         private readonly IPopulateScope<ICodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
-        private readonly DelegateBox<IType> box = new DelegateBox<IType>();
+        private readonly DelegateBox<IVarifiableType> box = new DelegateBox<IVarifiableType>();
 
         public BinaryPopulateScope(IPopulateScope<ICodeElement> left,
             IPopulateScope<ICodeElement> right,
@@ -94,7 +94,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -133,13 +133,13 @@ namespace Tac.Semantic_Model.CodeStuff
         public readonly IPopulateBoxes<ICodeElement> left;
         public readonly IPopulateBoxes<ICodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
-        private readonly DelegateBox<IType> box;
+        private readonly DelegateBox<IVarifiableType> box;
 
         public BinaryResolveReferance(
             IPopulateBoxes<ICodeElement> resolveReferance1,
             IPopulateBoxes<ICodeElement> resolveReferance2,
             BinaryOperation.Make<TCodeElement> make,
-            DelegateBox<IType> box)
+            DelegateBox<IVarifiableType> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));

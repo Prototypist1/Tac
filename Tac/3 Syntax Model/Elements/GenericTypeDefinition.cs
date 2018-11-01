@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakGenericTypeDefinition : ICodeElement, IType, IGenericTypeDefinition
+    internal class WeakGenericTypeDefinition : ICodeElement, IVarifiableType, IGenericTypeDefinition
     {
         public WeakGenericTypeDefinition(NameKey key, IWeakFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
@@ -53,13 +53,8 @@ namespace Tac.Semantic_Model
         {
             return context.GenericTypeDefinition(this);
         }
-
-        public T Convert<T>(ITypeConverter<T> context)
-        {
-            return context.GenericTypeDefinition(this);
-        }
-
-        public IType Returns()
+        
+        public IVarifiableType Returns()
         {
             return this;
         }
@@ -94,7 +89,7 @@ namespace Tac.Semantic_Model
             return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
         }
 
-        internal bool Accepts(IType b)
+        internal bool Accepts(IVarifiableType b)
         {
             // TODO generic constraints
             return true;
@@ -103,13 +98,13 @@ namespace Tac.Semantic_Model
 
     internal class GenericTypeParameter
     {
-        public GenericTypeParameter(IBox<IType> typeDefinition, GenericTypeParameterDefinition definition)
+        public GenericTypeParameter(IBox<IVarifiableType> typeDefinition, GenericTypeParameterDefinition definition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        public IBox<IType> TypeDefinition { get; }
+        public IBox<IVarifiableType> TypeDefinition { get; }
         public GenericTypeParameterDefinition Definition { get; }
     }
 
@@ -147,7 +142,7 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly GenericTypeParameterDefinition[] genericParameters;
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
@@ -168,7 +163,7 @@ namespace Tac.Semantic_Model
             return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, nextContext.GetResolvableScope(), box);
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -180,13 +175,13 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly IResolvableScope scope;
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             GenericTypeParameterDefinition[] genericParameters, 
             IResolvableScope scope, 
-            Box<IType> box)
+            Box<IVarifiableType> box)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));

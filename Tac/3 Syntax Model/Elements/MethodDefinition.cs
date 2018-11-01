@@ -12,10 +12,10 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IType, IMethodDefinition
+    internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IMethodType, IMethodDefinition
     {
         public WeakMethodDefinition(
-            IBox<IType> outputType, 
+            IBox<IVarifiableType> outputType, 
             IBox<WeakMemberDefinition> parameterDefinition,
             ICodeElement[] body,
             IWeakFinalizedScope scope,
@@ -25,14 +25,14 @@ namespace Tac.Semantic_Model
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
         
-        public IBox<IType> InputType => ParameterDefinition.GetValue().Type;
-        public IBox<IType> OutputType { get; }
+        public IBox<IVarifiableType> InputType => ParameterDefinition.GetValue().Type;
+        public IBox<IVarifiableType> OutputType { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
 
         #region IMethodDefinition
 
-        IType IMethodDefinition.InputType => InputType.GetValue();
-        IType IMethodDefinition.OutputType => OutputType.GetValue();
+        IVarifiableType IMethodDefinition.InputType => InputType.GetValue();
+        IVarifiableType IMethodDefinition.OutputType => OutputType.GetValue();
         IMemberDefinition IMethodDefinition.ParameterDefinition => ParameterDefinition.GetValue();
 
         #endregion
@@ -44,9 +44,9 @@ namespace Tac.Semantic_Model
             return context.MethodDefinition(this);
         }
 
-        public override T Convert<T>(ITypeConverter<T> context)
+        public T Convert<T>(ITypeConverter<T> context)
         {
-            return context.MethodDefinition(this);
+            return context.MethodType(this);
         }
     }
 
@@ -93,7 +93,7 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly NameKey outputTypeName;
-        private readonly Box<IType> box = new Box<IType>();
+        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public MethodDefinitionPopulateScope(
             IPopulateScope<WeakMemberReferance> parameterDefinition,
@@ -107,7 +107,7 @@ namespace Tac.Semantic_Model
 
         }
 
-        public IBox<IType> GetReturnType()
+        public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
@@ -131,14 +131,14 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<ICodeElement>[] lines;
         private readonly NameKey outputTypeName;
-        private readonly Box<IType> box;
+        private readonly Box<IVarifiableType> box;
 
         public MethodDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReferance> parameter, 
             IResolvableScope methodScope, 
             IPopulateBoxes<ICodeElement>[] resolveReferance2, 
             NameKey outputTypeName,
-            Box<IType> box)
+            Box<IVarifiableType> box)
         {
             this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
