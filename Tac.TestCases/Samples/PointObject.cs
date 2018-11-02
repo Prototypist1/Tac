@@ -1,51 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
-using Tac.Parser;
+using Tac.Model;
 using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
-using Tac.Syntaz_Model_Interpeter;
-using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
-using Tac.Tests.Tokenizer;
+using Tac.TestCases;
 
 namespace Tac.Tests.Samples
 {
-    public class PointObject : ISample
+    public class PointObject : ITestCase
     {
-        public string Text
-        {
-            get
-            {
-                return @"object {
+        public string Text => @"object {
                             5 =: x ;
                             2 =: y ;
                         }";
-            }
-        }
 
-        public IToken Token
-        {
-            get
-            {
-                return TokenHelp.File(
-                           TokenHelp.Line(
-                               TokenHelp.Ele(
-                                   TokenHelp.Atom("object"),
-                                   TokenHelp.Curl(
-                                       TokenHelp.Line(
-                                            TokenHelp.Ele(TokenHelp.Atom("5")),
-                                            TokenHelp.Atom("=:"),
-                                            TokenHelp.Ele(TokenHelp.Atom("x"))),
-                                       TokenHelp.Line(
-                                            TokenHelp.Ele(TokenHelp.Atom("2")),
-                                            TokenHelp.Atom("=:"),
-                                            TokenHelp.Ele(TokenHelp.Atom("y")))))));
-            }
-        }
-
-        public IEnumerable<IWeakCodeElement> CodeElements
+        public ICodeElement[] CodeElements
         {
             get
             {

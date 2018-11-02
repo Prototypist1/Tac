@@ -6,6 +6,8 @@ using System.Text;
 
 namespace Tac.Tests.Help
 {
+    // TODO this does not handle circular stuff very well
+
     public static class EqualityHelper
     {
         public static void ValueEqualOrThrow(this object target, object actual) {

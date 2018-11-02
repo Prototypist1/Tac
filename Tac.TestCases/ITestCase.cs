@@ -7,7 +7,7 @@ namespace Tac.TestCases
 {
     public interface ITestCase
     {
-        string Test { get; }
+        string Text { get; }
         ICodeElement[] CodeElements { get; }
     }
 }
