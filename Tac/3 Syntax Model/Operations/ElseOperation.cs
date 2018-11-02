@@ -28,7 +28,7 @@ namespace Tac.Semantic_Model.Operations
         
         public override IVarifiableType Returns()
         {
-            return new EmptyType();
+            return new BooleanType();
         }
     }
 

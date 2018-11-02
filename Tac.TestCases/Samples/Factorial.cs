@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Names;
 using Tac.TestCases;
+using Tac.TestCases.Help;
+
 namespace Tac.Tests.Samples
 {
     public class Factorial : ITestCase
@@ -20,7 +24,7 @@ namespace Tac.Tests.Samples
         } else {
             input - 1 > fac * input return ;      
         } ;
-    } =: fac ;
+    } ;
 ";
             }
         }
@@ -30,60 +34,56 @@ namespace Tac.Tests.Samples
             get
             {
                 
-                var ifBlock = new FinalizedScope(new Dictionary<IKey, IBox<WeakMemberDefinition>> {});
-                var elseBlock = new FinalizedScope(new Dictionary<IKey, IBox<WeakMemberDefinition>> { });
+                var ifBlockScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> {});
+                var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
 
                 var inputKey = new NameKey("input");
-                var input = new WeakMemberDefinition(
-                                false,
-                                inputKey,
-                                new Box<IWeakReturnable>(new InterpetedNumberType()));
-                var inputBox = new Box<WeakMemberDefinition>(input);
-                var facBox = new Box<WeakMemberDefinition>();
-                var facKey = new NameKey("fac");
-                var fac = new WeakMemberDefinition(
-                        false,
-                        facKey,
-                        facBox);
-                facBox.Fill(fac);
+                var input = new TestMemberDefinition(inputKey,new TestNumberType(),false);
 
-                var methodScope = new FinalizedScope(new Dictionary<IKey, IBox<WeakMemberDefinition>> { { inputKey, inputBox } });
+                var facKey = new NameKey("fac");
+                var fac = new TestMemberDefinition(facKey, new TestMethodType() , false);
+
+
+                var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } });
                 
-                var rootScope = new FinalizedScope(new Dictionary<IKey, IBox<WeakMemberDefinition>> { { facKey, facBox }});
-                
-                return new IWeakCodeElement[] {
-                    new InterpetedAssignOperation(
-                        new InterpetedMethodDefinition(
-                            new Box<IWeakReturnable>(new InterpetedNumberType()),
-                            inputBox,
-                            new IWeakCodeElement[]{
-                                new InterpetedElseOperation(
-                                    new InterpetedIfTrueOperation(
-                                        new InterpetedLessThanOperation(
-                                            new InterpetedMemberReferance(inputBox),
-                                            new InterpetedConstantNumber(2)),
-                                        new InterpetedBlockDefinition(
-                                            new IWeakCodeElement[]{
-                                                new InterpetedReturnOperation(
-                                                    new InterpetedConstantNumber(1))},
-                                            ifBlock,
-                                            new IWeakCodeElement[0])),
-                                    new InterpetedBlockDefinition(
-                                        new IWeakCodeElement[]{
-                                            new InterpetedReturnOperation(
-                                                new InterpetedMultiplyOperation(
-                                                    new InterpetedNextCallOperation(
-                                                        new InterpetedSubtractOperation(
-                                                            new InterpetedMemberReferance(inputBox),
-                                                            new InterpetedConstantNumber(1)),
-                                                        new InterpetedMemberReferance(facBox)),
-                                                    new InterpetedMemberReferance(inputBox)))},
-                                        elseBlock,
-                                        new IWeakCodeElement[0]))},
+                var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } });
+
+                var method = new TestMethodDefinition(
+                            new TestNumberType(),
+                            new TestNumberType(),
+                            input,
                             methodScope,
-                            new IWeakCodeElement[0]),
-                        new InterpetedMemberReferance(
-                            facBox)),
+                            new ICodeElement[]{
+                                new TestElseOperation(
+                                    new TestIfOperation(
+                                        new TestLessThanOperation(
+                                            new TestMemberReferance(input),
+                                            new TestConstantNumber(2)),
+                                        new TestBlockDefinition(
+                                            ifBlockScope,
+                                            new ICodeElement[]{
+                                                new TestReturnOperation(
+                                                    new TestConstantNumber(1))},
+                                            new ICodeElement[0])),
+                                    new TestBlockDefinition(
+                                        elseBlock,
+                                        new ICodeElement[]{
+                                            new TestReturnOperation(
+                                                new TestMultiplyOperation(
+                                                    new TestNextCallOperation(
+                                                        new TestSubtractOperation(
+                                                            new TestMemberReferance(input),
+                                                            new TestConstantNumber(1)),
+                                                        new TestMemberReferance(input)),
+                                                    new TestMemberReferance(input)))},
+                                        new ICodeElement[0]))},
+                            new ICodeElement[0]);
+                
+                return new ICodeElement[] {
+                    new TestAssignOperation(
+                        method,
+                        new TestMemberReferance(
+                            fac)),
                 };
             }
         }

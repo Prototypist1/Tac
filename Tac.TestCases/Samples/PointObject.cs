@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Names;
 using Tac.TestCases;
+using Tac.TestCases.Help;
 
 namespace Tac.Tests.Samples
 {
@@ -19,28 +22,26 @@ namespace Tac.Tests.Samples
         {
             get
             {
-
                 var keyX = new NameKey("x");
-                var localX = new WeakMemberDefinition(false, keyX, new Box<IWeakReturnable>(new InterpetedAnyType()));
+                var localX = new TestMemberDefinition(keyX,new TestAnyType(), false);
                 var keyY = new NameKey("y");
-                var localY = new WeakMemberDefinition(false, keyY, new Box<IWeakReturnable>(new InterpetedAnyType()));
+                var localY = new TestMemberDefinition(keyY, new TestAnyType(), false);
                                 
-                return new IWeakCodeElement[] {
-                    new InterpetedObjectDefinition(
+                return new ICodeElement[] {
+                    new TestObjectDefiniton(
                         new FinalizedScope(
-                        new Dictionary<IKey, IBox<WeakMemberDefinition>> {
-                            { keyX, new Box<WeakMemberDefinition>(localX) },
-                            { keyY, new Box<WeakMemberDefinition>(localY) }
+                        new Dictionary<IKey, IMemberDefinition> {
+                            { keyX, localX },
+                            { keyY, localY }
                         }),
-                        new InterpetedAssignOperation[]{
-                            new InterpetedAssignOperation(
-                                new InterpetedConstantNumber(5),
-                                new InterpetedMemberReferance(new Box<WeakMemberDefinition>(localX))),
-                            new InterpetedAssignOperation(
-                                new InterpetedConstantNumber(2),
-                                new InterpetedMemberReferance(new Box<WeakMemberDefinition>(localY)))
-                        },
-                        new ImplicitKey())
+                        new TestAssignOperation[]{
+                            new TestAssignOperation(
+                                new TestConstantNumber(5),
+                                new TestMemberReferance(localX)),
+                            new TestAssignOperation(
+                                new TestConstantNumber(2),
+                                new TestMemberReferance(localY))
+                        })
                 };
             }
         }

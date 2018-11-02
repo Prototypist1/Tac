@@ -1,12 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tac.Model.Operations;
 
 namespace Tac.Model.Elements
 {
-    public class TestAbstractBlockDefinition: IAbstractBlockDefinition
+    public abstract class TestAbstractBlockDefinition: IAbstractBlockDefinition
     {
-        public IFinalizedScope Scope { get; }
-        public ICodeElement[] Body { get; }
-        public IEnumerable<ICodeElement> StaticInitailizers { get; }
+        protected TestAbstractBlockDefinition(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers)
+        {
+            Scope = scope;
+            Body = body;
+            StaticInitailizers = staticInitailizers;
+        }
+
+        public IFinalizedScope Scope { get; set; }
+        public ICodeElement[] Body { get; set; }
+        public IEnumerable<ICodeElement> StaticInitailizers { get; set; }
+
+        public abstract T Convert<T>(IOpenBoxesContext<T> context);
+
+        public IVarifiableType Returns()
+        {
+            return new TestEmptyType();
+        }
     }
 }

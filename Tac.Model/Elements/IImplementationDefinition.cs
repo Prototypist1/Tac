@@ -3,7 +3,7 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Elements
 {
-    public interface IImplementationDefinition : ICodeElement
+    public interface IImplementationDefinition : ICodeElement, IVarifiableType
     {
         IVarifiableType OutputType { get; }
         IMemberDefinition ContextDefinition { get; }

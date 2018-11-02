@@ -2,7 +2,7 @@
 
 namespace Tac.Model.Elements
 {
-    public interface IMemberDefinition : ICodeElement
+    public interface IMemberDefinition : ICodeElement, IVarifiableType
     {
         IKey Key { get; }
         IVarifiableType Type { get; }

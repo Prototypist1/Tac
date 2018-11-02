@@ -2,7 +2,7 @@
 
 namespace Tac.Model.Elements
 {
-    public interface IModuleDefinition : ICodeElement
+    public interface IModuleDefinition : ICodeElement, IVarifiableType
     {
         IFinalizedScope Scope { get; }
         IEnumerable<ICodeElement> StaticInitialization { get; }

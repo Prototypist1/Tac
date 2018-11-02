@@ -1,6 +1,6 @@
 ﻿namespace Tac.Model.Elements
 {
-    public interface IGenericTypeDefinition : ICodeElement
+    public interface IGenericTypeDefinition : ICodeElement, IVarifiableType
     {
         IFinalizedScope Scope { get; }
         IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
