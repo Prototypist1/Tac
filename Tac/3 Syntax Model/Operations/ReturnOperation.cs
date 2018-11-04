@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model.Operations
 {
     internal class RetunrSymbols : ISymbols
     {
-        public string Symbols => ".";
+        public string Symbols => "return";
     }
     
     internal class WeakReturnOperation : TrailingOperation, ICodeElement, IReturnOperation

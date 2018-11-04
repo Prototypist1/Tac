@@ -52,7 +52,7 @@ namespace Tac.Tests
             var resolveReferanceContext = new ResolveReferanceContext();
             var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray();
             
-            var target = sample.CodeElements.ToArray();
+            var target = sample.CodeElements;
 
             Assert.Equal(result.Length, target.Length);
             for (var i = 0; i < result.Length; i++)

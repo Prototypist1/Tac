@@ -16,7 +16,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public static string[] GetSymbols()=> 
             AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(s => s.GetTypes())
-            .Where(p => typeof(ISymbols).IsAssignableFrom(p))
+            .Where(p => typeof(ISymbols).IsAssignableFrom(p) && p.IsClass && !p.IsAbstract)
             .Select(x=> Activator.CreateInstance(x)
             .Cast<ISymbols>().Symbols)
             .ToArray();

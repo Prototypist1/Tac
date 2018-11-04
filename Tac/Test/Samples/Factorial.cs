@@ -17,7 +17,6 @@ namespace Tac.Tests.Samples
             get
             {
                 return 
-                    
                     TokenHelp.File(
                         TokenHelp.Line(
                             TokenHelp.Ele(
@@ -31,7 +30,7 @@ namespace Tac.Tests.Samples
                                         TokenHelp.Ele(TokenHelp.Atom("input")),
                                         TokenHelp.Atom("<?"),
                                         TokenHelp.Ele(TokenHelp.Atom("2")),
-                                        TokenHelp.Atom("if"),
+                                        TokenHelp.Atom("then"),
                                         TokenHelp.Ele(
                                             TokenHelp.Curl(
                                                 TokenHelp.Line(
@@ -48,9 +47,7 @@ namespace Tac.Tests.Samples
                                                     TokenHelp.Ele(TokenHelp.Atom("fac")),
                                                     TokenHelp.Atom("*"),
                                                     TokenHelp.Ele(TokenHelp.Atom("input")),
-                                                    TokenHelp.Atom("return"))))))),
-                            TokenHelp.Atom("=:"),
-                            TokenHelp.Ele(TokenHelp.Atom("fac"))));
+                                                    TokenHelp.Atom("return")))))))));
             }
         }
     }

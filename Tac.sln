@@ -12,7 +12,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Backend", "Tac.Backend\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Model", "Tac.Model\Tac.Model.csproj", "{93328F92-D071-45DE-A94F-D1C4BF23FD72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tac.TestCases", "Tac.TestCases\Tac.TestCases.csproj", "{1FD78288-D514-4281-9AA0-33A617322A87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.TestCases", "Tac.TestCases\Tac.TestCases.csproj", "{1FD78288-D514-4281-9AA0-33A617322A87}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

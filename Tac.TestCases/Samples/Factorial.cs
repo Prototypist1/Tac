@@ -20,7 +20,7 @@ namespace Tac.Tests.Samples
                 return 
 @"
 method [ int ; int ; ] input {
-    input <? 2 if {
+    input <? 2 then {
         1 return ;
     } else {
         input - 1 > fac * input return ;      
