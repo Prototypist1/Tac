@@ -9,7 +9,10 @@ namespace Tac.Syntaz_Model_Interpeter
         public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             if (Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RunTimeBoolean>(interpetedContext).b) {
-                Right.Interpet(interpetedContext);
+                var rightRes = Right.Interpet(interpetedContext);
+                if (rightRes.IsReturn) {
+                    return rightRes;
+                }
                 return InterpetedResult.Create(new RunTimeBoolean(true));
             }
             return InterpetedResult.Create(new RunTimeBoolean(false));

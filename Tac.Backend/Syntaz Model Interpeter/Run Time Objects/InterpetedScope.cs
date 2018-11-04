@@ -113,12 +113,12 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
 
-            var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Empty());
-
             foreach (var memberKey in members)
             {
                 backing[memberKey.Item1] = memberKey.Item2;
             }
+
+            var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Empty());
 
             return scope;
         }

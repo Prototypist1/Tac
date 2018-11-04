@@ -23,7 +23,7 @@ namespace Tac.Backend.Test
             var res = line.Interpet(InterpetedContext.Root());
 
             Assert.True(res.HasValue);
-            Assert.Equal(63.0, res.Get<RunTimeNumber>().d);
+            Assert.Equal(63.0, res.Get<RuntimeNumber>().d);
         }
     }
 }

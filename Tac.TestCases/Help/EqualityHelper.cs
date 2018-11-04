@@ -60,6 +60,7 @@ namespace Tac.Tests.Help
                 error = null;
                 return true;
             }
+            
 
             if (target is IEnumerable<object> leftEnum && actual is IEnumerable<object> rightEnum)
             {
@@ -77,8 +78,7 @@ namespace Tac.Tests.Help
                     i++;
                 }
             }
-
-
+            
             foreach (var propertyInfo in GetPropertryInfo())
             {
                 if (propertyInfo.CanRead && propertyInfo.GetGetMethod().IsPublic && propertyInfo.GetIndexParameters().Count() == 0)

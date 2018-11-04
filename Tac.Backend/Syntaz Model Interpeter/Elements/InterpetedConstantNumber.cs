@@ -14,7 +14,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new RunTimeNumber(Value));
+            return InterpetedResult.Create(new RuntimeNumber(Value));
         }
     }
 }

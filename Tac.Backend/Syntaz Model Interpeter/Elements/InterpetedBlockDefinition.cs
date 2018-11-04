@@ -24,14 +24,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 var result = line.Interpet(scope);
                 if (result.IsReturn)
                 {
-                    if (result.HasValue)
-                    {
-                        return InterpetedResult.Create(result.Get());
-                    }
-                    else
-                    {
-                        return InterpetedResult.Create();
-                    }
+                    return result;
                 }
             }
 

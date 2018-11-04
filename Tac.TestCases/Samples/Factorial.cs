@@ -75,16 +75,13 @@ method [ int ; int ; ] input {
                                                         new TestSubtractOperation(
                                                             new TestMemberReferance(input),
                                                             new TestConstantNumber(1)),
-                                                        new TestMemberReferance(input)),
+                                                        new TestMemberReferance(fac)),
                                                     new TestMemberReferance(input)))},
                                         new ICodeElement[0]))},
                             new ICodeElement[0]);
                 
                 return new ICodeElement[] {
-                    new TestAssignOperation(
-                        method,
-                        new TestMemberReferance(
-                            fac)),
+                        method ,
                 };
             }
         }
