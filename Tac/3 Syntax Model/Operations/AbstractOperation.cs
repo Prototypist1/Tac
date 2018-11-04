@@ -1,30 +1,45 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
-    internal interface IOperation
-    {
-        ICodeElement[] Operands { get; }
+    public static class Symbols{
+        public static string[] GetSymbols()=> 
+            AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(s => s.GetTypes())
+            .Where(p => typeof(ISymbols).IsAssignableFrom(p))
+            .Select(x=> Activator.CreateInstance(x)
+            .Cast<ISymbols>().Symbols)
+            .ToArray();
     }
+
+    public interface ISymbols {
+        string Symbols { get; }
+    }
+
+
 
     public abstract class BinaryOperation
     {
         public delegate T Make<out T>(ICodeElement left, ICodeElement right);
     }
 
-    internal abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation
+    internal abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation, IBinaryOperation<TLeft, TRight>
         where TLeft : class, ICodeElement
         where TRight : class, ICodeElement
     {
         public TLeft Left { get; }
         public TRight Right { get; }
+
         public ICodeElement[] Operands
         {
             get
@@ -49,20 +64,20 @@ namespace Tac.Semantic_Model.CodeStuff
         where TCodeElement : class, ICodeElement
     {
 
-        public BinaryOperationMaker(string name, BinaryOperation.Make<TCodeElement> make
+        public BinaryOperationMaker(ISymbols name, BinaryOperation.Make<TCodeElement> make
             )
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public string Name { get; }
+        public ISymbols Name { get; }
         private BinaryOperation.Make<TCodeElement> Make { get; }
 
         public IResult<IPopulateScope<TCodeElement>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(Name), out var perface, out var token, out var rhs)
+            .Has(ElementMatcher.IsBinaryOperation(Name.Symbols), out var perface, out var token, out var rhs)
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);

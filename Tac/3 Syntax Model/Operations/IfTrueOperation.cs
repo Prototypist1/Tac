@@ -12,11 +12,13 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
+    internal class IfTrueSymbols : ISymbols
+    {
+        public string Symbols => "then";
+    }
 
     internal class WeakIfTrueOperation : BinaryOperation<ICodeElement, ICodeElement>, IIfOperation
     {
-        public const string Identifier = "if";
-
         // right should have more validation
         public WeakIfTrueOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
@@ -35,7 +37,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation>
     {
-        public IfTrueOperationMaker() : base(WeakIfTrueOperation.Identifier, (l,r)=>new WeakIfTrueOperation(l,r))
+        public IfTrueOperationMaker() : base(new IfTrueSymbols(), (l,r)=>new WeakIfTrueOperation(l,r))
         {
         }
     }

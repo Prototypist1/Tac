@@ -13,6 +13,8 @@ namespace Tac.Model.Operations
 
         public ICodeElement Left { get; set; }
         public ICodeElement Right { get; set; }
+        public ICodeElement[] Operands=> new[] { Left, Right };
+
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {

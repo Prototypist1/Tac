@@ -11,10 +11,13 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
+    internal class AssignSymbols : ISymbols
+    {
+        public string Symbols => "=:";
+    }
 
     internal class WeakAssignOperation : BinaryOperation<ICodeElement, ICodeElement>, IAssignOperation
     {
-        public const string Identifier = "=:";
         
         public WeakAssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
@@ -41,7 +44,7 @@ namespace Tac.Semantic_Model.Operations
         public IResult<IPopulateScope<WeakAssignOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(WeakAssignOperation.Identifier), out var perface, out var token, out var rhs)
+            .Has(ElementMatcher.IsBinaryOperation(new AssignSymbols().Symbols), out var perface, out var token, out var rhs)
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);

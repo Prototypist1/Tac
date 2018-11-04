@@ -11,11 +11,13 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
+    internal class PathSymbols : ISymbols
+    {
+        public string Symbols => ".";
+    }
 
     internal class WeakPathOperation : BinaryOperation<ICodeElement, ICodeElement>, IPathOperation
     {
-        public const string Identifier = ".";
-
         public WeakPathOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
@@ -38,7 +40,7 @@ namespace Tac.Semantic_Model.Operations
         public IResult<IPopulateScope<WeakPathOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(WeakPathOperation.Identifier), out var perface, out var token, out var rhs)
+            .Has(ElementMatcher.IsBinaryOperation(new PathSymbols().Symbols), out var perface, out var token, out var rhs)
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);

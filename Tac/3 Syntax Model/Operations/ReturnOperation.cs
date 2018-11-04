@@ -11,12 +11,13 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
-
+    internal class RetunrSymbols : ISymbols
+    {
+        public string Symbols => ".";
+    }
+    
     internal class WeakReturnOperation : TrailingOperation, ICodeElement, IReturnOperation
     {
-
-        public const string Identifier = "return";
-
         public WeakReturnOperation(ICodeElement result)
         {
             Result = result;
@@ -27,8 +28,7 @@ namespace Tac.Semantic_Model.Operations
         {
             return context.ReturnOperation(this);
         }
-
-
+        
         public ICodeElement Result { get; }
         
         public IVarifiableType Returns()
@@ -37,7 +37,11 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ITrailingOperion<T> {
+    internal abstract class TrailingOperion<T> : IOperation
+    {
+        public abstract ICodeElement[] Operands { get; }
+        public abstract T1 Convert<T1>(IOpenBoxesContext<T1> context);
+        public abstract IVarifiableType Returns();
     }
 
     internal class TrailingOperation {
@@ -47,19 +51,19 @@ namespace Tac.Semantic_Model.Operations
     internal class TrailingOperationMaker<T> : IOperationMaker<T>
         where T : class, ICodeElement
     {
-        public TrailingOperationMaker(string name, TrailingOperation.Make<T> make)
+        public TrailingOperationMaker(ISymbols name, TrailingOperation.Make<T> make)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public string Name { get; }
+        public ISymbols Name { get; }
         private TrailingOperation.Make<T> Make { get; }
 
         public IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
         {
             if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsTrailingOperation(Name), out var perface, out var _)
+            .Has(ElementMatcher.IsTrailingOperation(Name.Symbols), out var perface, out var _)
             .IsMatch)
             {
                 var left = matchingContext.ParseLine(perface);
@@ -122,7 +126,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ReturnOperationMaker : TrailingOperationMaker<WeakReturnOperation>
     {
-        public ReturnOperationMaker() : base(WeakReturnOperation.Identifier, x=>new WeakReturnOperation(x))
+        public ReturnOperationMaker() : base(new RetunrSymbols(), x=>new WeakReturnOperation(x))
         {
         }
     }

@@ -4,11 +4,16 @@ using System.Text;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
+using Tac.TestCases;
 using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
-    public class Arithmetic 
+    public interface IWrappedTestCase: ITestCase {
+        IToken Token { get; }
+    }
+
+    public class WrappedArithmetic : Arithmetic, IWrappedTestCase
     {
 
         public IToken Token

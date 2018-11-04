@@ -2,7 +2,7 @@
 
 namespace Tac.Model.Operations
 {
-    public interface IPathOperation : IBinaryOperation<ICodeElement, IMemberReferance>
+    public interface IPathOperation : IBinaryOperation<ICodeElement, ICodeElement>
     {
     }
 }

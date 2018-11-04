@@ -2,6 +2,5 @@
 {
     public interface ISubtractOperation: IBinaryOperation<ICodeElement, ICodeElement>
     {
-
     }
 }

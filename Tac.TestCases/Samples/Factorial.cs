@@ -17,14 +17,15 @@ namespace Tac.Tests.Samples
         {
             get
             {
-                return @"
-    method [ int ; int ; ] input {
-        input <? 2 if {
-            1 return ;
-        } else {
-            input - 1 > fac * input return ;      
-        } ;
+                return 
+@"
+method [ int ; int ; ] input {
+    input <? 2 if {
+        1 return ;
+    } else {
+        input - 1 > fac * input return ;      
     } ;
+} ;
 ";
             }
         }

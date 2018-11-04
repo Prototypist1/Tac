@@ -10,7 +10,11 @@ using Tac.Parser;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
-
+    internal class LessThenSymbols : ISymbols
+    {
+        public string Symbols => "<?";
+    }
+    
     internal class WeakLessThanOperation : BinaryOperation<ICodeElement, ICodeElement>, ILessThanOperation
     {
         public const string Identifier = "<?";
@@ -32,7 +36,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation>
     {
-        public LessThanOperationMaker() : base(WeakLessThanOperation.Identifier, (l,r)=>new WeakLessThanOperation(l,r))
+        public LessThanOperationMaker() : base(new LessThenSymbols(), (l,r)=>new WeakLessThanOperation(l,r))
         {
         }
     }

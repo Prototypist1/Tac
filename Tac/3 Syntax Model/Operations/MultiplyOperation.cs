@@ -9,6 +9,10 @@ using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Semantic_Model.Operations
 {
+    internal class MultiplySymbols : ISymbols
+    {
+        public string Symbols => "*";
+    }
 
     internal class WeakMultiplyOperation : BinaryOperation<ICodeElement, ICodeElement>, IMultiplyOperation
     {
@@ -31,7 +35,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation>
     {
-        public MultiplyOperationMaker() : base(WeakMultiplyOperation.Identifier, (l,r)=>new WeakMultiplyOperation(l,r))
+        public MultiplyOperationMaker() : base(new MultiplySymbols(), (l,r)=>new WeakMultiplyOperation(l,r))
         {
         }
     }

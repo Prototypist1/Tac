@@ -14,6 +14,7 @@ namespace Tac.Model.Operations
 
         public ICodeElement Left { get; set; }
         public ICodeElement Right { get; set; }
+        public ICodeElement[] Operands => new[] { Left, Right };
 
         // this two methods Convert and Returns are interesting
         // they could almost be implemented as extensions

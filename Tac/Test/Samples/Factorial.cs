@@ -10,10 +10,8 @@ using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
-    public class Factorial 
+    public class WrappedFactorial: Factorial, IWrappedTestCase
     {
-
-
         public IToken Token
         {
             get

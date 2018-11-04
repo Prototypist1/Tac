@@ -10,7 +10,7 @@ using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
-    public class PointObject 
+    public class WrappedPointObject: PointObject, IWrappedTestCase
     {
         public IToken Token
         {

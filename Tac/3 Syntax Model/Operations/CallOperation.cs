@@ -14,11 +14,14 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model.Operations
 {
 
+
+    internal class NextCallSymbols : ISymbols
+    {
+        public string Symbols => ">";
+    }
+
     internal class WeakNextCallOperation : BinaryOperation<ICodeElement, ICodeElement>, INextCallOperation
     {
-
-        public const string Identifier = ">";
-
         public WeakNextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
@@ -38,9 +41,15 @@ namespace Tac.Semantic_Model.Operations
 
     internal class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation>
     {
-        public NextCallOperationMaker() : base(WeakNextCallOperation.Identifier, (l,r)=> new WeakNextCallOperation(l,r))
+        public NextCallOperationMaker() : base(new NextCallSymbols(), (l,r)=> new WeakNextCallOperation(l,r))
         {
         }
+    }
+
+
+    internal class LastCallSymbols : ISymbols
+    {
+        public string Symbols => "<";
     }
 
     internal class WeakLastCallOperation : BinaryOperation<ICodeElement, ICodeElement>, ILastCallOperation
@@ -66,7 +75,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation>
     {
-        public LastCallOperationMaker() : base(WeakLastCallOperation.Identifier, (l,r)=>new WeakLastCallOperation(l,r))
+        public LastCallOperationMaker() : base(new LastCallSymbols(), (l,r)=>new WeakLastCallOperation(l,r))
         {
         }
     }

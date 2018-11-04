@@ -10,12 +10,15 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
+    internal class ElseSymbols : ISymbols
+    {
+        public string Symbols => "else";
+    }
+
+
     // really an if not
     internal class WeakElseOperation : BinaryOperation<ICodeElement, ICodeElement>, IElseOperation
     {
-
-        public const string Identifier = "else";
-
         // right should have more validation
         public WeakElseOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
@@ -35,7 +38,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation>
     {
-        public ElseOperationMaker() : base(WeakElseOperation.Identifier, (l,r)=>new WeakElseOperation(l,r))
+        public ElseOperationMaker() : base(new ElseSymbols(), (l,r)=>new WeakElseOperation(l,r))
         {
         }
     }

@@ -12,14 +12,17 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model.Operations
 {
 
+    internal class AddSymbols : ISymbols
+    {
+        public string Symbols=> "+";
+    }
+
     internal class WeakAddOperation : BinaryOperation<ICodeElement, ICodeElement>, IAddOperation
     {
-        public const string Identifier = "+";
-
         public WeakAddOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
-
+        
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.AddOperation(this);
@@ -32,7 +35,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
     {
-        public AddOperationMaker() : base(WeakAddOperation.Identifier, (l,r)=>new WeakAddOperation(l,r))
+        public AddOperationMaker() : base(new AddSymbols(),(l,r)=>new WeakAddOperation(l,r))
         {
         }
     }
