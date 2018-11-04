@@ -1,6 +1,8 @@
 ﻿using Prototypist.LeftToRight;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Tac.Model;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -25,9 +27,20 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return new InterpetedContext(new IInterpetedScope[0]);
         }
+
+        internal InterpetedMember GetMember(IKey key)
+        {
+            foreach (var item in Scopes.Reverse())
+            {
+                if (item.ContainsMember(key)) {
+                    return item.GetMember(key);
+                }
+            }
+            throw new Exception($"key not found: {key}");
+        }
     }
 
-    public class InterpetedResult
+    internal class InterpetedResult
     {
         private InterpetedResult(object value, bool isReturn, bool hasValue)
         {
@@ -42,29 +55,31 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public T Get<T>()
         {
-            if (HasValue)
+            if (!HasValue)
             {
                 throw new Exception($"{nameof(InterpetedResult)} does not have a value");
             }
             return Value.Cast<T>();
         }
-
-        public T GetAndUnwrapMemberWhenNeeded<T>()
+        
+        public T GetAndUnwrapMemberWhenNeeded<T>(InterpetedContext context)
         {
-            if (HasValue)
+            if (!HasValue)
             {
                 throw new Exception($"{nameof(InterpetedResult)} does not have a value");
             }
             if (Value is InterpetedMember member) {
                 return member.Value.Cast<T>();
             }
+            if (Value is InterpetedMemberDefinition memberDefinition) {
+                return context.GetMember(memberDefinition.Key).Value.Cast<T>();
+            }
             return Value.Cast<T>();
         }
-
-
-        public object GetAndUnwrapMemberWhenNeeded()
+        
+        public object GetAndUnwrapMemberWhenNeeded(InterpetedContext context)
         {
-            return GetAndUnwrapMemberWhenNeeded<object>();
+            return GetAndUnwrapMemberWhenNeeded<object>(context);
         }
 
         public object Get()
