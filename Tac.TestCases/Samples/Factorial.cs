@@ -13,48 +13,27 @@ namespace Tac.Tests.Samples
 {
     public class Factorial : ITestCase
     {
-        public string Text
-        {
-            get
-            {
-                return 
-@"
-method [ int ; int ; ] input {
-    input <? 2 then {
-        1 return ;
-    } else {
-        input - 1 > fac * input return ;      
-    } ;
-} ;
-";
-            }
-        }
-        
-        public ICodeElement[] CodeElements
-        {
-            get
-            {
-                
-                var ifBlockScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> {});
-                var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
+        public Factorial() {
+            var ifBlockScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
+            var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
 
-                var inputKey = new NameKey("input");
-                var input = new TestMemberDefinition(inputKey,new TestNumberType(),false);
+            var inputKey = new NameKey("input");
+            var input = new TestMemberDefinition(inputKey, new TestNumberType(), false);
 
-                var facKey = new NameKey("fac");
-                var fac = new TestMemberDefinition(facKey, new TestMethodType() , false);
+            var facKey = new NameKey("fac");
+            var fac = new TestMemberDefinition(facKey, new TestMethodType(), false);
 
 
-                var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } });
-                
-                var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } });
+            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } });
 
-                var method = new TestMethodDefinition(
-                            new TestNumberType(),
-                            new TestNumberType(),
-                            input,
-                            methodScope,
-                            new ICodeElement[]{
+            var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } });
+
+            var method = new TestMethodDefinition(
+                        new TestNumberType(),
+                        new TestNumberType(),
+                        input,
+                        methodScope,
+                        new ICodeElement[]{
                                 new TestElseOperation(
                                     new TestIfOperation(
                                         new TestLessThanOperation(
@@ -78,12 +57,34 @@ method [ int ; int ; ] input {
                                                         new TestMemberReferance(fac)),
                                                     new TestMemberReferance(input)))},
                                         new ICodeElement[0]))},
-                            new ICodeElement[0]);
-                
-                return new ICodeElement[] {
-                        method ,
-                };
+                        new ICodeElement[0]);
+
+            CodeElements= new ICodeElement[] {method ,};
+            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition>{{facKey,new TestMemberDefinition(facKey, method,false) }});
+        }
+
+        public string Text
+        {
+            get
+            {
+                return 
+@"
+method [ int ; int ; ] input {
+    input <? 2 then {
+        1 return ;
+    } else {
+        input - 1 > fac * input return ;      
+    } ;
+} ;
+";
             }
         }
+        
+        public ICodeElement[] CodeElements
+        {
+            get;
+        }
+
+        public IFinalizedScope Scope { get; }
     }
 }

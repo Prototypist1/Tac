@@ -5,6 +5,7 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 using Tac.TestCases;
+using Tac.TestCases.Help;
 
 namespace Tac.Tests.Samples
 {
@@ -22,5 +23,6 @@ namespace Tac.Tests.Samples
                         new TestConstantNumber(2),
                         new TestConstantNumber(7)))};
 
+        public IFinalizedScope Scope => new FinalizedScope(new Dictionary<IKey,IMemberDefinition>());
     }
 }

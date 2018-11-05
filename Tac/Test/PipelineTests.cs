@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
@@ -46,6 +47,22 @@ namespace Tac.Tests
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
             var stack = new NewScope();
+            foreach (var key in sample.Scope.MemberKeys)
+            {
+                if (sample.Scope.TryGetMember(key, false, out var meber)){
+                    stack.TryAddMember(
+                        DefintionLifetime.Instance, 
+                        key, 
+                        new Box<WeakMemberDefinition>(
+                            new WeakMemberDefinition(
+                                false, 
+                                key, 
+                                new Box<IVarifiableType>(meber.Type))));
+                }
+                else {
+                    throw new Exception();
+                }
+            } 
             var populateScopeContex = new PopulateScopeContext(stack);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
 

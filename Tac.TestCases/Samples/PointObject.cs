@@ -45,5 +45,7 @@ namespace Tac.Tests.Samples
                 };
             }
         }
+
+        public IFinalizedScope Scope => new FinalizedScope(new Dictionary<IKey, IMemberDefinition>());
     }
 }

@@ -9,5 +9,6 @@ namespace Tac.TestCases
     {
         string Text { get; }
         ICodeElement[] CodeElements { get; }
+        IFinalizedScope Scope { get; }
     }
 }
