@@ -81,7 +81,7 @@ namespace Tac.Semantic_Model
             {
                 if (Parent != null)
                 {
-                    return TryGetMember(name, staticOnly, out member);
+                    return Parent.TryGetMember(name, staticOnly, out member);
                 }
                 else
                 {
@@ -96,7 +96,7 @@ namespace Tac.Semantic_Model
             {
                 if (Parent != null)
                 {
-                    return TryGetMember(name, staticOnly, out member);
+                    return Parent.TryGetMember(name, staticOnly, out member);
                 }
                 else
                 {
@@ -115,7 +115,7 @@ namespace Tac.Semantic_Model
             {
                 if (Parent != null)
                 {
-                    return TryGetType(name, out type);
+                    return Parent.TryGetType(name, out type);
                 }
                 else
                 {
@@ -130,7 +130,7 @@ namespace Tac.Semantic_Model
             {
                 if (Parent != null)
                 {
-                    return TryGetType(name, out type);
+                    return Parent.TryGetType(name, out type);
                 }
                 else
                 {
