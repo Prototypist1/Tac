@@ -7,7 +7,7 @@ using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
-using static Tac.Semantic_Model.ScopeTree;
+
 
 namespace Tac.New
 {
@@ -75,9 +75,9 @@ namespace Tac.New
 
     internal class PopulateScopeContext : IPopulateScopeContext
     {
-        private readonly ScopeStack stack;
+        private readonly NewScope stack;
 
-        public PopulateScopeContext(ScopeStack stack)
+        public PopulateScopeContext(NewScope stack)
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
         }
@@ -90,7 +90,7 @@ namespace Tac.New
 
         public IPopulateScopeContext Child()
         {
-            return new PopulateScopeContext(stack.ChildScope());
+            return new PopulateScopeContext(new NewScope(stack));
         }
 
         public IResolvableScope GetResolvableScope()

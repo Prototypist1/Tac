@@ -14,7 +14,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakGenericTypeDefinition : ICodeElement, IVarifiableType, IGenericTypeDefinition
     {
-        public WeakGenericTypeDefinition(NameKey key, IWeakFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
+        public WeakGenericTypeDefinition(NameKey key, IFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model
 
         public IKey Key { get; }
 
-        public IWeakFinalizedScope Scope { get; }
+        public IFinalizedScope Scope { get; }
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 

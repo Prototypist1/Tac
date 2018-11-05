@@ -64,9 +64,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var scope = new InterpetedStaticScope(backing);
 
-            foreach (var member in scopeDefinition)
+            foreach (var memberKey in scopeDefinition.MemberKeys)
             {
-                backing[member.Key] = new InterpetedMember();
+                backing[memberKey] = new InterpetedMember();
             }
 
             return scope;
@@ -101,9 +101,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var scope = new InterpetedInstanceScope(backing, staticBacking);
             
-            foreach (var member in scopeDefinition)
+            foreach (var memberKey in scopeDefinition.MemberKeys)
             {
-                backing[member.Key] = new InterpetedMember();
+                backing[memberKey] = new InterpetedMember();
             }
 
             return scope;

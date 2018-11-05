@@ -15,14 +15,14 @@ namespace Tac.Semantic_Model
 
     internal class WeakModuleDefinition : IScoped, ICodeElement, IModuleType, IModuleDefinition
     {
-        public WeakModuleDefinition(IWeakFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
+        public WeakModuleDefinition(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, NameKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
             this.Key = Key ?? throw new ArgumentNullException(nameof(Key));
         }
         
-        public IWeakFinalizedScope Scope { get; }
+        public IFinalizedScope Scope { get; }
         public IEnumerable<ICodeElement> StaticInitialization { get; }
 
         public IKey Key

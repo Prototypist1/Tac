@@ -15,7 +15,7 @@ using Tac.Tests.Help;
 using Tac.Tests.Samples;
 using Tac.Tests.Tokenizer;
 using Xunit;
-using static Tac.Semantic_Model.ScopeTree;
+
 
 namespace Tac.Tests
 {
@@ -45,7 +45,7 @@ namespace Tac.Tests
 
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
-            var  stack = ScopeStack.Root();
+            var  stack = new NewScope();
             var populateScopeContex = new PopulateScopeContext(stack);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
 

@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model
             IBox<WeakMemberDefinition> parameterDefinition, 
             IBox<IVarifiableType> outputType, 
             IEnumerable<ICodeElement> metohdBody,
-            IWeakFinalizedScope scope, 
+            IFinalizedScope scope, 
             IEnumerable<ICodeElement> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
@@ -49,7 +49,7 @@ namespace Tac.Semantic_Model
         public IBox<IVarifiableType> OutputType { get; }
         public IBox<WeakMemberDefinition> ContextDefinition { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
-        public IWeakFinalizedScope Scope { get; }
+        public IFinalizedScope Scope { get; }
         public IEnumerable<ICodeElement> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
 
@@ -58,7 +58,7 @@ namespace Tac.Semantic_Model
         IVarifiableType IImplementationDefinition.OutputType => OutputType.GetValue();
         IMemberDefinition IImplementationDefinition.ContextDefinition => ContextDefinition.GetValue();
         IMemberDefinition IImplementationDefinition.ParameterDefinition => ParameterDefinition.GetValue();
-        IFinalizedScope IImplementationDefinition.Scope => Scope;
+
 
         #endregion
 

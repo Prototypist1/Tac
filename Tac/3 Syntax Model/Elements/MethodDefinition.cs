@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model
             IBox<IVarifiableType> outputType, 
             IBox<WeakMemberDefinition> parameterDefinition,
             ICodeElement[] body,
-            IWeakFinalizedScope scope,
+            IFinalizedScope scope,
             IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));

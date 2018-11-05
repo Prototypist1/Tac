@@ -9,63 +9,35 @@ namespace Tac.TestCases.Help
 {
     public class FinalizedScope: IFinalizedScope
     {
-        private readonly IReadOnlyDictionary<IKey, IMemberDefinition> backing;
+        private readonly IReadOnlyDictionary<IKey, IMemberDefinition> members = new Dictionary<IKey,IMemberDefinition>();
+        private readonly IReadOnlyDictionary<IKey, IVarifiableType> types = new Dictionary<IKey,IVarifiableType>();
 
-        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> backing)
+        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members)
         {
-            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            this.members = members ?? throw new ArgumentNullException(nameof(members));
         }
 
-        public IMemberDefinition this[IKey key]
+        public IEnumerable<IKey> MemberKeys => members.Keys;
+
+        public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box)
         {
-            get
-            {
-                return backing[key];
+            if (members.ContainsKey(name)){
+                box = members[name];
+                return true;
             }
+            box = default;
+            return false;
         }
 
-        public IEnumerable<IKey> Keys
+        public bool TryGetType(IKey name, out IVarifiableType type)
         {
-            get
+            if (types.ContainsKey(name))
             {
-                return backing.Keys;
+                type = types[name];
+                return true;
             }
-        }
-
-        public IEnumerable<IMemberDefinition> Values
-        {
-            get
-            {
-                return backing.Values;
-            }
-        }
-
-        public int Count
-        {
-            get
-            {
-                return backing.Count;
-            }
-        }
-
-        public bool ContainsKey(IKey key)
-        {
-            return backing.ContainsKey(key);
-        }
-
-        public IEnumerator<KeyValuePair<IKey, IMemberDefinition>> GetEnumerator()
-        {
-            return backing.GetEnumerator();
-        }
-
-        public bool TryGetValue(IKey key, out IMemberDefinition value)
-        {
-            return backing.TryGetValue(key, out value);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return backing.GetEnumerator();
+            type = default;
+            return false;
         }
     }
 }

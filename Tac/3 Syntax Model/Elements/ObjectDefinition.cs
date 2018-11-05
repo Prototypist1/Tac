@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakObjectDefinition: ICodeElement, IObjectType, IScoped, IObjectDefiniton
     {
-        public WeakObjectDefinition(IWeakFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) {
+        public WeakObjectDefinition(IFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model
             Assignments = assigns.ToArray();
         }
 
-        public IWeakFinalizedScope Scope { get; }
+        public IFinalizedScope Scope { get; }
         public WeakAssignOperation[] Assignments { get; }
 
         public IKey Key

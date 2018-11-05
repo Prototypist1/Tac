@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
     {
         public WeakBlockDefinition(
             ICodeElement[] body,
-            IWeakFinalizedScope scope,
+            IFinalizedScope scope,
             IEnumerable<ICodeElement> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
 

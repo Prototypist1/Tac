@@ -15,12 +15,12 @@ namespace Tac.Backend.Test
     public class FactorialTest
     {
         [Theory]
-        [InlineData(0,1)]
+        [InlineData(0, 1)]
         [InlineData(1, 1)]
         [InlineData(2, 2)]
         [InlineData(3, 6)]
         [InlineData(4, 24)]
-        public void Test(double input,double output)
+        public void Test(double input, double output)
         {
             Assert.Equal(output, Fac(input));
         }
@@ -28,9 +28,17 @@ namespace Tac.Backend.Test
         // TODO you are here
         // the issue now is with finialzed scope
         // it does not carry everything forward
-        // 
 
-        private double Fac(double d) {
+        // scopes are still strange
+        // I need to take a step back and look at them
+        // finialzed scope does not need to exist
+        // I am not sure scopestack or scope tree to either
+        // there is a much simpler implementation
+
+        // I am not sure why I did not go with it in the first place
+
+        private double Fac(double d)
+        {
             var testCase = new Factorial();
             var conversionContext = new Definitions();
             var lines = testCase.CodeElements.Select(x => x.Convert(conversionContext)).ToArray();

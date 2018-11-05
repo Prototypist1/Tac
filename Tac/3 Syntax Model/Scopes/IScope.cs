@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
 
     internal interface IResolvableScope: ISomeScope
     {
-        IWeakFinalizedScope GetFinalized();
+        IFinalizedScope GetFinalized();
         bool TryGetType(IKey name, out IBox<IVarifiableType> type);
     }
 
@@ -39,108 +39,109 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal interface IWeakFinalizedScope: IFinalizedScope
-    {
-        new IBox<WeakMemberDefinition> this[IKey key] { get; }
-        new IEnumerable<IKey> Keys { get; }
-        new IEnumerable<IBox<WeakMemberDefinition>> Values { get; }
-        new bool ContainsKey(IKey key);
-        bool TryGetValue(IKey key, out IBox<WeakMemberDefinition> value);
-    }
+    //internal interface IWeakFinalizedScope: IFinalizedScope
+    //{
+    //    new IBox<WeakMemberDefinition> this[IKey key] { get; }
+    //    new IEnumerable<IKey> MemberKeys { get; }
+    //    new IEnumerable<IBox<WeakMemberDefinition>> Values { get; }
+    //    new bool ContainsKey(IKey key);
+    //    bool TryGetValue(IKey key, out IBox<WeakMemberDefinition> value);
+    //}
 
-    internal class FinalizedScope : IWeakFinalizedScope
-    {
-        private readonly IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> Members;
+    //internal class FinalizedScope : IWeakFinalizedScope
+    //{
+        
+    //    private readonly IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> Members;
 
-        public FinalizedScope(IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> members)
-        {
-            Members = members ?? throw new ArgumentNullException(nameof(members));
-        }
+    //    public FinalizedScope(IReadOnlyDictionary<IKey, IBox<WeakMemberDefinition>> members)
+    //    {
+    //        Members = members ?? throw new ArgumentNullException(nameof(members));
+    //    }
 
-        public IBox<WeakMemberDefinition> this[IKey key]
-        {
-            get
-            {
-                return Members[key];
-            }
-        }
+    //    public IBox<WeakMemberDefinition> this[IKey key]
+    //    {
+    //        get
+    //        {
+    //            return Members[key];
+    //        }
+    //    }
 
-        IMemberDefinition IReadOnlyDictionary<IKey, IMemberDefinition>.this[IKey key]
-        {
-            get
-            {
-                return Members[key].GetValue();
-            }
-        }
+    //    IMemberDefinition IReadOnlyDictionary<IKey, IMemberDefinition>.this[IKey key]
+    //    {
+    //        get
+    //        {
+    //            return Members[key].GetValue();
+    //        }
+    //    }
 
-        public IEnumerable<IKey> Keys
-        {
-            get
-            {
-                return Members.Keys;
-            }
-        }
+    //    public IEnumerable<IKey> MemberKeys
+    //    {
+    //        get
+    //        {
+    //            return Members.Keys;
+    //        }
+    //    }
 
-        public IEnumerable<IBox<WeakMemberDefinition>> Values
-        {
-            get
-            {
-                return Members.Values;
-            }
-        }
+    //    public IEnumerable<IBox<WeakMemberDefinition>> Values
+    //    {
+    //        get
+    //        {
+    //            return Members.Values;
+    //        }
+    //    }
 
-        public int Count
-        {
-            get
-            {
-                return Members.Count;
-            }
-        }
+    //    public int Count
+    //    {
+    //        get
+    //        {
+    //            return Members.Count;
+    //        }
+    //    }
 
-        IEnumerable<IMemberDefinition> IReadOnlyDictionary<IKey, IMemberDefinition>.Values
-        {
-            get
-            {
-                return Members.Values.Select(x => x.GetValue());
-            }
-        }
+    //    IEnumerable<IMemberDefinition> IReadOnlyDictionary<IKey, IMemberDefinition>.Values
+    //    {
+    //        get
+    //        {
+    //            return Members.Values.Select(x => x.GetValue());
+    //        }
+    //    }
 
-        public bool ContainsKey(IKey key)
-        {
-            return Members.ContainsKey(key);
-        }
+    //    public bool ContainsKey(IKey key)
+    //    {
+    //        return Members.ContainsKey(key);
+    //    }
 
-        public IEnumerator<KeyValuePair<IKey, IBox<WeakMemberDefinition>>> GetEnumerator()
-        {
-            return Members.GetEnumerator();
-        }
+    //    public IEnumerator<KeyValuePair<IKey, IBox<WeakMemberDefinition>>> GetEnumerator()
+    //    {
+    //        return Members.GetEnumerator();
+    //    }
 
-        public bool TryGetValue(IKey key, out IBox<WeakMemberDefinition> value)
-        {
-            return Members.TryGetValue(key, out value);
-        }
+    //    public bool TryGetValue(IKey key, out IBox<WeakMemberDefinition> value)
+    //    {
+    //        return Members.TryGetValue(key, out value);
+    //    }
 
-        public bool TryGetValue(IKey key, out IMemberDefinition value)
-        {
-            if (!Members.TryGetValue(key, out var res))
-            {
-                value = default;
-                return false;
-            }
-            value = res.GetValue();
-            return true;
-        }
+    //    public bool TryGetValue(IKey key, out IMemberDefinition value)
+    //    {
+    //        if (!Members.TryGetValue(key, out var res))
+    //        {
+    //            value = default;
+    //            return false;
+    //        }
+    //        value = res.GetValue();
+    //        return true;
+    //    }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return Members.GetEnumerator();
-        }
+    //    IEnumerator IEnumerable.GetEnumerator()
+    //    {
+    //        return Members.GetEnumerator();
+    //    }
 
-        IEnumerator<KeyValuePair<IKey, IMemberDefinition>> IEnumerable<KeyValuePair<IKey, IMemberDefinition>>.GetEnumerator()
-        {
-            return Members.Select(x => new KeyValuePair<IKey, IMemberDefinition>(x.Key, x.Value.GetValue())).GetEnumerator();
-        }
-    }
+    //    IEnumerator<KeyValuePair<IKey, IMemberDefinition>> IEnumerable<KeyValuePair<IKey, IMemberDefinition>>.GetEnumerator()
+    //    {
+    //        return Members.Select(x => new KeyValuePair<IKey, IMemberDefinition>(x.Key, x.Value.GetValue())).GetEnumerator();
+    //    }
+    //}
 
     internal static class ResolvableScopeExtension
     {

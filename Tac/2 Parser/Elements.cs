@@ -11,7 +11,6 @@ using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
-using static Tac.Semantic_Model.ScopeTree;
 
 namespace Tac.Parser
 {

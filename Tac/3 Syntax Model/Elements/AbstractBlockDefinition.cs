@@ -13,14 +13,14 @@ namespace Tac.Semantic_Model
 
     internal abstract class WeakAbstractBlockDefinition : ICodeElement, IScoped, IBlockDefinition
     {
-        protected WeakAbstractBlockDefinition(IWeakFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers){
+        protected WeakAbstractBlockDefinition(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Body = body ?? throw new ArgumentNullException(nameof(body));
             StaticInitailizers = staticInitailizers ?? throw new ArgumentNullException(nameof(staticInitailizers));
         }
 
 
-        public IWeakFinalizedScope Scope { get; }
+        public IFinalizedScope Scope { get; }
         public ICodeElement[] Body { get; }
         public IEnumerable<ICodeElement> StaticInitailizers { get; }
 

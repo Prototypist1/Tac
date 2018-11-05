@@ -15,16 +15,15 @@ namespace Tac.Semantic_Model
 
     internal class WeakTypeDefinition : IInterfaceType, ICodeElement, IScoped
     {
-        public WeakTypeDefinition(IWeakFinalizedScope scope, IKey key)
+        public WeakTypeDefinition(IFinalizedScope scope, IKey key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public IKey Key { get; }
-        public IWeakFinalizedScope Scope { get; }
-
-        IFinalizedScope IInterfaceType.Scope => Scope;
+        public IFinalizedScope Scope { get; }
+        
         
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
