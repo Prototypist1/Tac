@@ -64,18 +64,31 @@ namespace Tac.Tests.Help
 
             if (target is IEnumerable<object> leftEnum && actual is IEnumerable<object> rightEnum)
             {
-                var leftEnumor = leftEnum.GetEnumerator();
-                var rightEnumor = rightEnum.GetEnumerator();
-                var i = 0;
-
-                while (leftEnumor.MoveNext() && rightEnumor.MoveNext())
+                if (target is IList<object> && actual is IList<object>)
                 {
-                    if (!PublicStateIsValueEqual(leftEnumor.Current, rightEnumor.Current, out var err))
+                    var leftEnumor = leftEnum.GetEnumerator();
+                    var rightEnumor = rightEnum.GetEnumerator();
+                    var i = 0;
+
+                    while (leftEnumor.MoveNext() && rightEnumor.MoveNext())
                     {
+                        if (!PublicStateIsValueEqual(leftEnumor.Current, rightEnumor.Current, out var err))
+                        {
+                            error = $"[{i}]{err}";
+                            return false;
+                        }
+                        i++;
+                    }
+                }
+                else {
+                    //TODO I hate set equality
+                    var leftUnmatched = leftEnum.Except(rightEnum, (x, y) => PublicStateIsValueEqual(x, y, out var _));
+                    var rightUnmatched = rightEnum.Except(leftEnum, (x, y) => PublicStateIsValueEqual(x, y, out var _));
+                    if (leftUnmatched.Count() != 0 && rightUnmatched.Count() != 0) {
+
                         error = $"[{i}]{err}";
                         return false;
                     }
-                    i++;
                 }
             }
             
