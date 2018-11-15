@@ -168,6 +168,12 @@ namespace Tac.Semantic_Model
             type = default;
             return false;
         }
+
+        public bool TryGetParent(out IFinalizedScope res)
+        {
+            res = Parent;
+            return Parent != null;
+        }
     }
 
     //internal class ScopeTree

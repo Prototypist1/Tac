@@ -17,7 +17,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var scope = interpetedContext.Child(Scope.Create(interpetedContext));
+            var scope = interpetedContext.Child(Scope.Create());
 
             foreach (var line in Body)
             {

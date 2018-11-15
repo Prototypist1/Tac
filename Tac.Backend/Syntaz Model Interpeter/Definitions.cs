@@ -15,7 +15,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
     internal class Definitions: IOpenBoxesContext<IInterpeted>
     {
         private readonly Dictionary<object, IInterpeted> backing = new Dictionary<object, IInterpeted>();
-        
+
         public InterpetedMemberDefinition Convert(IMemberDefinition member)
         {
             if (backing.TryGetValue(member, out var res))

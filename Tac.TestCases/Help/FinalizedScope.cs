@@ -9,12 +9,18 @@ namespace Tac.TestCases.Help
 {
     public class FinalizedScope: IFinalizedScope
     {
+        private readonly IFinalizedScope parent;
         private readonly IReadOnlyDictionary<IKey, IMemberDefinition> members = new Dictionary<IKey,IMemberDefinition>();
         private readonly IReadOnlyDictionary<IKey, IVarifiableType> types = new Dictionary<IKey,IVarifiableType>();
 
-        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members)
+        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members) {
+            this.members = members ?? throw new ArgumentNullException(nameof(members));
+        }
+
+        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members, IFinalizedScope parent)
         {
             this.members = members ?? throw new ArgumentNullException(nameof(members));
+            this.parent = parent ?? throw new ArgumentNullException(nameof(parent));
         }
 
         public IEnumerable<IKey> MemberKeys => members.Keys;
@@ -27,6 +33,12 @@ namespace Tac.TestCases.Help
             }
             box = default;
             return false;
+        }
+
+        public bool TryGetParent(out IFinalizedScope res)
+        {
+            res = parent;
+            return parent != null;
         }
 
         public bool TryGetType(IKey name, out IVarifiableType type)

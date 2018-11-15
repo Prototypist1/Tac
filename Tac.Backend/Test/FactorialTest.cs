@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Backend.Syntaz_Model_Interpeter;
+using Tac.Model;
 using Tac.Semantic_Model.Names;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
@@ -43,13 +44,30 @@ namespace Tac.Backend.Test
             var conversionContext = new Definitions();
             var lines = testCase.CodeElements.Select(x => x.Convert(conversionContext)).ToArray();
 
-            var rootScope = InterpetedContext.Root();
+            var currentScope = 
+                InterpetedContext.Root();
 
-            var method = Assert.Single(lines).Interpet(rootScope).Get<InterpetedMethod>();
+            foreach (var scopeLayer in finalizedScopes())
+            {
+                currentScope = currentScope.Child(InterpetedInstanceScope.Make(scopeLayer));
+            }
+            
+            var method = Assert.Single(lines).Interpet(currentScope).Get<InterpetedMethod>();
 
-            var scope = rootScope.Child(InterpetedInstanceScope.Make((new NameKey("fac"), new InterpetedMember(method))));
+            currentScope.GetMember(new NameKey("fac")).Value = method;
+            
+            return method.Invoke(new RuntimeNumber(d)).Get<RuntimeNumber>().d;
 
-            return method.Invoke(scope, new RuntimeNumber(d)).Get<RuntimeNumber>().d;
+            IEnumerable<IFinalizedScope> finalizedScopes() {
+                var items = new List<IFinalizedScope>();
+                var at = testCase.Scope;
+                do
+                {
+                    items.Add(at);
+                } while (testCase.Scope.TryGetParent(out at));
+                items.Reverse();
+                return items;
+            }
         }
 
     }

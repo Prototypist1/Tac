@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,18 +8,17 @@ using System.Text;
 namespace Tac.Tests.Help
 {
     // TODO this does not handle circular stuff very well
-
     public static class EqualityHelper
     {
         public static void ValueEqualOrThrow(this object target, object actual)
         {
-            if (!PublicStateIsValueEqual(target, actual, out var res))
+            if (!PublicStateIsValueEqual(target, actual,new List<(object,object)>(), out var res))
             {
                 throw new Exception(res);
             }
         }
 
-        private static bool PublicStateIsValueEqual(this object target, object actual, out string error)
+        private static bool PublicStateIsValueEqual(this object target, object actual,IEnumerable<(object,object)> assumed, out string error)
         {
             if (target == null && actual == null)
             {
@@ -38,7 +38,13 @@ namespace Tac.Tests.Help
                 return false;
             }
 
-
+            if (assumed.Any(x => (x.Item1.Equals(target) && x.Item2.Equals(actual)) ||
+                (x.Item2.Equals(target) && x.Item1.Equals(actual))))
+            {
+                error = null;
+                return true;
+            }
+            
             if (target.GetType().IsPrimitive)
             {
                 if (!target.Equals(actual))
@@ -60,7 +66,8 @@ namespace Tac.Tests.Help
                 error = null;
                 return true;
             }
-            
+
+            var innerAssummed = new Overlay(assumed, new List<(object, object)> { (target, actual) });
 
             if (target is IEnumerable<object> leftEnum && actual is IEnumerable<object> rightEnum)
             {
@@ -72,7 +79,7 @@ namespace Tac.Tests.Help
 
                     while (leftEnumor.MoveNext() && rightEnumor.MoveNext())
                     {
-                        if (!PublicStateIsValueEqual(leftEnumor.Current, rightEnumor.Current, out var err))
+                        if (!PublicStateIsValueEqual(leftEnumor.Current, rightEnumor.Current, innerAssummed, out var err))
                         {
                             error = $"[{i}]{err}";
                             return false;
@@ -81,13 +88,28 @@ namespace Tac.Tests.Help
                     }
                 }
                 else {
-                    //TODO I hate set equality
-                    var leftUnmatched = leftEnum.Except(rightEnum, (x, y) => PublicStateIsValueEqual(x, y, out var _));
-                    var rightUnmatched = rightEnum.Except(leftEnum, (x, y) => PublicStateIsValueEqual(x, y, out var _));
-                    if (leftUnmatched.Count() != 0 && rightUnmatched.Count() != 0) {
+                    var leftDict = leftEnum.ToDictionary(x => x, x => false);
+                    var rightDict = rightEnum.ToDictionary(x => x, x => false);
 
-                        error = $"[{i}]{err}";
+                    if (leftDict.Count != rightDict.Count) {
+                        error = $".Count: left {leftDict.Count}, right: {rightDict.Count}";
                         return false;
+                    }
+
+                    foreach (var leftKey in leftDict.Keys)
+                    {
+                        foreach (var rightKey in rightDict.Where(x=>x.Value).Select(x=>x.Key))
+                        {
+                            if (PublicStateIsValueEqual(leftKey, rightKey, innerAssummed, out var err))
+                            {
+                                leftDict[leftKey] = false;
+                                rightDict[rightKey] = false;
+                            }
+                            else {
+                                error = $"[{leftKey}]{err}";
+                                return false;
+                            }
+                        }
                     }
                 }
             }
@@ -98,7 +120,7 @@ namespace Tac.Tests.Help
                 {
                     var firstValue = propertyInfo.GetValue(target, null);
                     var secondValue = propertyInfo.GetValue(actual, null);
-                    if (!ReferenceEquals(firstValue, target) && !ReferenceEquals(secondValue, actual) && !PublicStateIsValueEqual(firstValue, secondValue, out var res))
+                    if (!ReferenceEquals(firstValue, target) && !ReferenceEquals(secondValue, actual) && !PublicStateIsValueEqual(firstValue, secondValue, innerAssummed, out var res))
                     {
                         error = $".{propertyInfo.Name}{res}";
                         return false;
@@ -112,7 +134,7 @@ namespace Tac.Tests.Help
                 {
                     var firstValue = fieldInfo.GetValue(target);
                     var secondValue = fieldInfo.GetValue(actual);
-                    if (!PublicStateIsValueEqual(firstValue, secondValue, out var res))
+                    if (!PublicStateIsValueEqual(firstValue, secondValue, innerAssummed, out var res))
                     {
                         error = $".{fieldInfo.Name}{res}";
                         return false;
@@ -145,6 +167,34 @@ namespace Tac.Tests.Help
                 {
                     return target.GetType().GetFields();
                 }
+            }
+        }
+
+        private class Overlay : IEnumerable<(object, object)> {
+            private readonly IEnumerable<(object, object)> backing;
+            private readonly IEnumerable<(object, object)> overlay;
+
+            public Overlay(IEnumerable<(object, object)> backing, IEnumerable<(object, object)> overlay)
+            {
+                this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+                this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
+            }
+
+            public IEnumerator<(object, object)> GetEnumerator()
+            {
+                foreach (var item in overlay)
+                {
+                    yield return item;
+                }
+                foreach (var item in backing)
+                {
+                    yield return item;
+                }
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
             }
         }
     }

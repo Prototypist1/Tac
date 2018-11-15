@@ -6,7 +6,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
     internal interface IInterpetedScopeTemplate
     {
-        IInterpetedScope Create(InterpetedContext interpetedContext);
+        IInterpetedScope Create();
     }
 
     internal interface IInterpetedScope: IRunTime
