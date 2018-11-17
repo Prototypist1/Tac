@@ -12,25 +12,33 @@ namespace Tac.TestCases.Samples
 {
     public class MirrorPointImplementation : ITestCase
     {
-        public string Text
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public string Text =>
+@"
+implementation [ type { x ; y ; } ; empty ; empty ] context input { 
+    context . x =: temp ;
+    context . y =: context . x ;
+    temp =: context . y ; 
+} 
+";
 
         public ICodeElement[] CodeElements
         {
             get
             {
-                var keyX = new NameKey("x"); var localX = new TestMemberDefinition(keyX, new TestAnyType(), false);
+                var keyX = new NameKey("x");
+                var localX = new TestMemberDefinition(keyX, new TestAnyType(), false);
 
-                var keyY = new NameKey("y"); var localY = new TestMemberDefinition(keyY, new TestAnyType(), false);
-
-
+                var keyY = new NameKey("y");
+                var localY = new TestMemberDefinition(keyY, new TestAnyType(), false);
+                
                 var contextKey = new NameKey("context");
-                var context = new TestMemberDefinition(contextKey, new TestInterfaceType(), false); ;
+                
+                var context = new TestMemberDefinition(contextKey, new TestInterfaceType(
+                    new FinalizedScope(new Dictionary<IKey, IMemberDefinition>() {
+                        { keyX, localX },
+                        { keyY, localY },
+                    })
+                    ), false); ;
 
                 var inputKey = new NameKey("input");
                 var input  = new TestMemberDefinition(inputKey, new TestEmptyType(), false);
@@ -64,15 +72,13 @@ namespace Tac.TestCases.Samples
                     new ICodeElement[0]
                     );
 
+                return new ICodeElement[] {
+                    implementation
+                };
+
             }
         }
 
-        public IFinalizedScope Scope
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public IFinalizedScope Scope => new FinalizedScope(new Dictionary<IKey, IMemberDefinition>());
     }
 }

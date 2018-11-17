@@ -40,6 +40,12 @@ namespace Tac.Tests
             Toke_CodeElements(new WrappedPointObject());
         }
 
+        [Fact]
+        public void Token_CodeElements_MirrorPointImplementation()
+        {
+            Toke_CodeElements(new WrappedMirrorPointImplementation());
+        }
+
         private static void Toke_CodeElements(IWrappedTestCase sample) { 
 
             var elementMatchingContest = new ElementMatchingContext();
