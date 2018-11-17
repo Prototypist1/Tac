@@ -27,8 +27,7 @@ namespace Tac.Semantic_Model
         IMemberDefinition IMemberReferance.MemberDefinition => MemberDefinition.GetValue();
 
         #endregion
-
-
+        
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.MemberReferance(this);

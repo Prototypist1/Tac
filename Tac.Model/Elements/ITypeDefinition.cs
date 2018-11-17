@@ -2,6 +2,7 @@
 
 namespace Tac.Model.Elements
 {
+
     public interface IInterfaceType : IVarifiableType
     {
         IFinalizedScope Scope { get; }

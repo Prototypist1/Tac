@@ -36,6 +36,7 @@ namespace Tac.Semantic_Model
         }
     }
 
+
     internal class TypeDefinitionMaker : IMaker<WeakTypeDefinition>
     {
         public TypeDefinitionMaker()

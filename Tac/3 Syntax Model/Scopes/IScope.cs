@@ -145,14 +145,14 @@ namespace Tac.Semantic_Model
 
     internal static class ResolvableScopeExtension
     {
-        internal static IBox<IVarifiableType> GetTypeOrThrow(this IResolvableScope scope, NameKey name) {
+        internal static IBox<IVarifiableType> GetTypeOrThrow(this IResolvableScope scope, IKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }
             throw new Exception($"{name} should exist in scope");
         }
 
-        internal static IBox<WeakMemberDefinition> GetMemberOrThrow(this IResolvableScope scope, NameKey name, bool staticOnly)
+        internal static IBox<WeakMemberDefinition> GetMemberOrThrow(this IResolvableScope scope, IKey name, bool staticOnly)
         {
             if (scope.TryGetMember(name, staticOnly, out var thing))
             {

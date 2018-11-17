@@ -161,13 +161,14 @@ namespace Tac.Parser
 
     }
 
-    public class TokenMatching
+    internal class TokenMatching
     {
 
-        private TokenMatching(IEnumerable<IToken> tokens, bool isNotMatch)
+        private TokenMatching(IEnumerable<IToken> tokens, bool isNotMatch, ElementMatchingContext Context)
         {
             IsNotMatch = isNotMatch;
-            Tokens = tokens;
+            this.Context = Context ?? throw new ArgumentNullException(nameof(Context));
+            Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
         }
 
         public bool IsMatch
@@ -179,25 +180,26 @@ namespace Tac.Parser
         }
         public bool IsNotMatch { get; }
         public IEnumerable<IToken> Tokens { get; }
+        public ElementMatchingContext Context { get;  }
 
-        public static TokenMatching Start(IEnumerable<IToken> tokens)
+        public static TokenMatching Start(IEnumerable<IToken> tokens, ElementMatchingContext context)
         {
-            return Match(tokens);
+            return Match(tokens, context);
         }
 
-        public static TokenMatching Match(IEnumerable<IToken> tokens)
+        public static TokenMatching Match(IEnumerable<IToken> tokens, ElementMatchingContext context)
         {
-            return new TokenMatching(tokens, false);
+            return new TokenMatching(tokens, false, context);
         }
 
-        public static TokenMatching NotMatch(IEnumerable<IToken> tokens)
+        public static TokenMatching NotMatch(IEnumerable<IToken> tokens, ElementMatchingContext context)
         {
-            return new TokenMatching(tokens, true);
+            return new TokenMatching(tokens, true, context);
         }
 
     }
 
-    public static class ElementMatcher
+    internal static class ElementMatcher
     {
         public static TokenMatching Has<T1, T2, T3>(this TokenMatching self, IsMatch<T1, T2, T3> pattern, out T1 t1, out T2 t2, out T3 t3)
         {
@@ -292,36 +294,35 @@ namespace Tac.Parser
                 !double.TryParse(first.Item, out var _))
             {
                 atomicToken = first;
-                return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
             }
 
             atomicToken = default;
-            return TokenMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens, self.Context);
         }
 
         public static TokenMatching IsType(TokenMatching self, out NameKey typeSource)
         {
-
             if (self.Tokens.Any() &&
                 self.Tokens.First() is AtomicToken first &&
                 !double.TryParse(first.Item, out var _))
             {
-                var at = TokenMatching.Match(self.Tokens.Skip(1));
+                var at = TokenMatching.Match(self.Tokens.Skip(1), self.Context);
                 if (GenericN(at, out var keys).IsMatch)
                 {
                     typeSource = new GenericNameKey(new NameKey(first.Item), keys);
                     
-                    return TokenMatching.Match(self.Tokens.Skip(2).ToArray());
+                    return TokenMatching.Match(self.Tokens.Skip(2).ToArray(), self.Context);
                 }
 
 
                 typeSource = new NameKey(first.Item);
                 
-                return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
             }
 
             typeSource = default;
-            return TokenMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens, self.Context);
 
         }
 
@@ -331,11 +332,11 @@ namespace Tac.Parser
                 self.Tokens.First() is AtomicToken first &&
                 double.TryParse(first.Item, out res))
             {
-                return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
             }
 
             res = default;
-            return TokenMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens, self.Context);
         }
 
         public static TokenMatching IsDone(TokenMatching self)
@@ -345,7 +346,7 @@ namespace Tac.Parser
                 return self;
             }
 
-            return TokenMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens, self.Context);
         }
 
         public static TokenMatching IsBody(TokenMatching self, out CurleyBracketToken body)
@@ -355,11 +356,11 @@ namespace Tac.Parser
                 self.Tokens.First() is CurleyBracketToken first)
             {
                 body = first;
-                return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
             }
 
             body = default;
-            return TokenMatching.NotMatch(self.Tokens);
+            return TokenMatching.NotMatch(self.Tokens, self.Context);
         }
 
         public static TokenMatching Generic3(TokenMatching elementMatching, out AtomicToken type1, out AtomicToken type2, out AtomicToken type3)
@@ -386,13 +387,13 @@ namespace Tac.Parser
                 type1 = firstType;
                 type2 = SecondType;
                 type3 = thirdType;
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context);
             }
 
             type1 = default;
             type2 = default;
             type3 = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens);
+            return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
         }
 
         public static TokenMatching DefineGenericN(TokenMatching elementMatching, out AtomicToken[] tokens)
@@ -404,11 +405,11 @@ namespace Tac.Parser
                         firstLine.Tokens.ElementAt(0) is AtomicToken))
             {
                 tokens = typeParameters.Tokens.Select(x => (x as LineToken).Tokens.First() as AtomicToken).ToArray();
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context);
             }
 
             tokens = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens);
+            return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
         }
 
         public static TokenMatching GenericN(TokenMatching elementMatching, out NameKey[] typeSources)
@@ -419,18 +420,18 @@ namespace Tac.Parser
                 TryToToken(out var res))
             {
                 typeSources = res;
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context);
             }
 
             typeSources = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens);
+            return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
 
             bool TryToToken(out NameKey[] typeSourcesInner)
             {
                 var typeSourcesBuilding = new List<NameKey>();
                 foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
                 {
-                    var matcher = TokenMatching.Start(elementToken.Tokens);
+                    var matcher = TokenMatching.Start(elementToken.Tokens, elementMatching.Context);
                     if (matcher.Has(ElementMatcher.IsType, out NameKey typeSource).Has(IsDone).IsMatch)
                     {
                         typeSourcesBuilding.Add(typeSource);
@@ -464,12 +465,12 @@ namespace Tac.Parser
             {
                 type1 = firstType;
                 type2 = SecondType;
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray());
+                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context);
             }
 
             type1 = default;
             type2 = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens);
+            return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
         }
 
         public static IsMatch<IEnumerable<IToken>, AtomicToken, IToken> IsBinaryOperation(string s)
@@ -484,7 +485,7 @@ namespace Tac.Parser
                 {
                     var right = elementMatching.Tokens.Last();
 
-                    var at = TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray());
+                    var at = TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray(), elementMatching.Context);
 
                     if (at.Tokens.Any() &&
                     at.Tokens.Last() is AtomicToken op &&
@@ -494,14 +495,14 @@ namespace Tac.Parser
                         rhs = right;
                         operation = op;
                         preface = at.Tokens.Take(at.Tokens.Count() - 1);
-                        return TokenMatching.Match(preface);
+                        return TokenMatching.Match(preface, elementMatching.Context);
                     }
                 }
 
                 rhs = default;
                 preface = default;
                 operation = default;
-                return TokenMatching.NotMatch(elementMatching.Tokens);
+                return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
 
             };
         }
@@ -517,12 +518,12 @@ namespace Tac.Parser
 
                     preface = elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1);
                     operation = op;
-                    return TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray());
+                    return TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray(), elementMatching.Context);
                 }
 
                 preface = default;
                 operation = default;
-                return TokenMatching.NotMatch(elementMatching.Tokens);
+                return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
             };
         }
 
@@ -536,11 +537,11 @@ namespace Tac.Parser
                     first.Item == word)
                 {
                     token = first;
-                    return TokenMatching.Match(self.Tokens.Skip(1).ToArray());
+                    return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
                 }
 
                 token = default;
-                return TokenMatching.NotMatch(self.Tokens);
+                return TokenMatching.NotMatch(self.Tokens, self.Context);
             };
         }
 
@@ -552,10 +553,10 @@ namespace Tac.Parser
                 var second = other(element);
 
                 var table = new Dictionary<(bool, bool), Func<TokenMatching>>() {
-                    { (true,true), ()=>TokenMatching.NotMatch(element.Tokens)},
+                    { (true,true), ()=>TokenMatching.NotMatch(element.Tokens, element.Context)},
                     { (true,false), ()=> second},
                     { (false,true), ()=> first},
-                    { (false,false), ()=> TokenMatching.NotMatch(element.Tokens)},
+                    { (false,false), ()=> TokenMatching.NotMatch(element.Tokens, element.Context)},
                 };
 
                 return table[(first.IsNotMatch, second.IsNotMatch)]();
@@ -576,7 +577,7 @@ namespace Tac.Parser
                     if (second.IsNotMatch)
                     {
                         t = default;
-                        return TokenMatching.NotMatch(element.Tokens);
+                        return TokenMatching.NotMatch(element.Tokens, element.Context);
                     }
                     else
                     {
@@ -594,7 +595,7 @@ namespace Tac.Parser
                     else
                     {
                         t = default;
-                        return TokenMatching.NotMatch(element.Tokens);
+                        return TokenMatching.NotMatch(element.Tokens, element.Context);
                     }
                 }
             };
