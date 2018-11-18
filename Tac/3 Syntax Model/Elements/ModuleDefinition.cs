@@ -62,10 +62,8 @@ namespace Tac.Semantic_Model
                 .Has(new KeyWordMaker("module"), out var frist)
                 .Has(new NameMaker(), out var name)
                 .Has(new BodyMaker(), out var third);
-            if (tokenMatching.IsMatch)
+            if (matching.IsMatch)
             {
-
-
                 var elements = matching.Context.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
 
