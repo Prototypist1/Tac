@@ -161,17 +161,29 @@ namespace Tac.Parser
 
     }
 
-    internal class TokenMatching
+    internal interface ITokenMatching
+    {
+        ElementMatchingContext Context { get; }
+        bool IsNotMatch { get; }
+        IEnumerable<IToken> Tokens { get; }
+    }
+
+    internal interface ITokenMatching<out T>: IResult<T>, ITokenMatching
+    {
+    }
+
+    internal class TokenMatching<T> :ITokenMatching<T>
     {
 
-        private TokenMatching(IEnumerable<IToken> tokens, bool isNotMatch, ElementMatchingContext Context)
+        private TokenMatching(IEnumerable<IToken> tokens, bool isNotMatch, ElementMatchingContext Context,T value)
         {
             IsNotMatch = isNotMatch;
             this.Context = Context ?? throw new ArgumentNullException(nameof(Context));
+            this.value = value;
             Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
         }
 
-        public bool IsMatch
+        public bool HasValue
         {
             get
             {
@@ -180,428 +192,100 @@ namespace Tac.Parser
         }
         public bool IsNotMatch { get; }
         public IEnumerable<IToken> Tokens { get; }
-        public ElementMatchingContext Context { get;  }
+        public ElementMatchingContext Context { get; }
+        private readonly T value;
 
-        public static TokenMatching Start(IEnumerable<IToken> tokens, ElementMatchingContext context)
+        public T Value => value;
+
+        public static TokenMatching<T> Start(IEnumerable<IToken> tokens, ElementMatchingContext context)
         {
-            return Match(tokens, context);
+            return Match(tokens, context, default);
         }
 
-        public static TokenMatching Match(IEnumerable<IToken> tokens, ElementMatchingContext context)
+        public static TokenMatching<T> Match(IEnumerable<IToken> tokens, ElementMatchingContext context, T value)
         {
-            return new TokenMatching(tokens, false, context);
+            return new TokenMatching<T>(tokens, false, context,value);
         }
 
-        public static TokenMatching NotMatch(IEnumerable<IToken> tokens, ElementMatchingContext context)
+        public static TokenMatching<T> NotMatch(IEnumerable<IToken> tokens, ElementMatchingContext context)
         {
-            return new TokenMatching(tokens, true, context);
+            return new TokenMatching<T>(tokens, true, context, default);
         }
 
     }
 
     internal static class ElementMatcher
     {
-        public static TokenMatching Has<T1, T2, T3>(this TokenMatching self, IsMatch<T1, T2, T3> pattern, out T1 t1, out T2 t2, out T3 t3)
+   
+
+        public static ITokenMatching Has<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
+            where T:class
+        {
+            t = default;
+
+            if (self.IsNotMatch)
+            {
+                return self;
+
+            }
+
+            var res = pattern.TryMake(self);
+            if (res.HasValue)
+            {
+                t = res.Value;
+            }
+            return res;
+
+        }
+
+
+        public static ITokenMatching Has(this ITokenMatching self, IMaker pattern)
         {
             if (self.IsNotMatch)
             {
-                t1 = default;
-                t2 = default;
-                t3 = default;
                 return self;
             }
 
-            return pattern(self, out t1, out t2, out t3);
+            return pattern.TryMake(self);
         }
 
-        public static TokenMatching Has<T1, T2>(this TokenMatching self, IsMatch<T1, T2> pattern, out T1 t1, out T2 t2)
-        {
-            if (self.IsNotMatch)
-            {
-                t1 = default;
-                t2 = default;
-                return self;
-            }
 
-            return pattern(self, out t1, out t2);
-        }
-
-        public static TokenMatching Has<T>(this TokenMatching self, IsMatch<T> pattern, out T t)
+        public static ITokenMatching OptionalHas<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
+            where T : class
         {
+
+
             if (self.IsNotMatch)
             {
                 t = default;
                 return self;
             }
 
-            return pattern(self, out t);
+            var res = pattern.TryMake(self);
+            if (res.HasValue)
+            {
+                t = res.Value;
+                return res;
+            }
+
+            t = default;
+            return self;
         }
 
-        public static TokenMatching Has(this TokenMatching self, IsMatch pattern)
+        public static ITokenMatching OptionalHas(this ITokenMatching self, IMaker pattern)
         {
             if (self.IsNotMatch)
             {
                 return self;
             }
 
-            return pattern(self);
-        }
-
-        public static TokenMatching OptionalHas<T>(this TokenMatching self, IsMatch<T> pattern, out T t)
-        {
-            if (self.IsNotMatch)
-            {
-                t = default;
-                return self;
-            }
-
-            var next = pattern(self, out t);
-            if (next.IsNotMatch)
-            {
-                t = default;
-                return self;
-            }
-
-            return next;
-
-        }
-
-        public static TokenMatching OptionalHas(this TokenMatching self, IsMatch pattern)
-        {
-            if (self.IsNotMatch)
-            {
-                return self;
-            }
-
-            var next = pattern(self);
+            var next = pattern.TryMake(self);
             if (next.IsNotMatch)
             {
                 return self;
             }
 
             return next;
-        }
-
-        public delegate TokenMatching IsMatch(TokenMatching self);
-        public delegate TokenMatching IsMatch<T>(TokenMatching self, out T matched);
-        public delegate TokenMatching IsMatch<T1, T2>(TokenMatching self, out T1 matched1, out T2 matched2);
-        public delegate TokenMatching IsMatch<T1, T2, T3>(TokenMatching self, out T1 matched1, out T2 matched2, out T3 matched3);
-
-        public static TokenMatching IsName(TokenMatching self, out AtomicToken atomicToken)
-        {
-            if (self.Tokens.Any() &&
-                self.Tokens.First() is AtomicToken first &&
-                !double.TryParse(first.Item, out var _))
-            {
-                atomicToken = first;
-                return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
-            }
-
-            atomicToken = default;
-            return TokenMatching.NotMatch(self.Tokens, self.Context);
-        }
-
-        public static TokenMatching IsType(TokenMatching self, out NameKey typeSource)
-        {
-            if (self.Tokens.Any() &&
-                self.Tokens.First() is AtomicToken first &&
-                !double.TryParse(first.Item, out var _))
-            {
-                var at = TokenMatching.Match(self.Tokens.Skip(1), self.Context);
-                if (GenericN(at, out var keys).IsMatch)
-                {
-                    typeSource = new GenericNameKey(new NameKey(first.Item), keys);
-                    
-                    return TokenMatching.Match(self.Tokens.Skip(2).ToArray(), self.Context);
-                }
-
-
-                typeSource = new NameKey(first.Item);
-                
-                return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
-            }
-
-            typeSource = default;
-            return TokenMatching.NotMatch(self.Tokens, self.Context);
-
-        }
-
-        public static TokenMatching IsNumber(TokenMatching self, out double res)
-        {
-            if (self.Tokens.Any() &&
-                self.Tokens.First() is AtomicToken first &&
-                double.TryParse(first.Item, out res))
-            {
-                return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
-            }
-
-            res = default;
-            return TokenMatching.NotMatch(self.Tokens, self.Context);
-        }
-
-        public static TokenMatching IsDone(TokenMatching self)
-        {
-            if (!self.Tokens.Any())
-            {
-                return self;
-            }
-
-            return TokenMatching.NotMatch(self.Tokens, self.Context);
-        }
-
-        public static TokenMatching IsBody(TokenMatching self, out CurleyBracketToken body)
-        {
-
-            if (self.Tokens.Any() &&
-                self.Tokens.First() is CurleyBracketToken first)
-            {
-                body = first;
-                return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
-            }
-
-            body = default;
-            return TokenMatching.NotMatch(self.Tokens, self.Context);
-        }
-
-        public static TokenMatching Generic3(TokenMatching elementMatching, out AtomicToken type1, out AtomicToken type2, out AtomicToken type3)
-        {
-            if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
-                    typeParameters.Tokens.Count() == 3 &&
-                    typeParameters.Tokens.ElementAt(0) is LineToken firstLine &&
-                        firstLine.Tokens.Count() == 1 &&
-                        firstLine.Tokens.ElementAt(0) is ElementToken firstElement &&
-                        firstElement.Tokens.Count() == 1 &&
-                        firstElement.Tokens.ElementAt(0) is AtomicToken firstType &&
-                    typeParameters.Tokens.ElementAt(1) is LineToken secondLine &&
-                        secondLine.Tokens.Count() == 1 &&
-                        secondLine.Tokens.ElementAt(0) is ElementToken SecondElement &&
-                        SecondElement.Tokens.Count() == 1 &&
-                        SecondElement.Tokens.ElementAt(0) is AtomicToken SecondType &&
-                    typeParameters.Tokens.ElementAt(2) is LineToken thridLine &&
-                        thridLine.Tokens.Count() == 1 &&
-                        thridLine.Tokens.ElementAt(0) is ElementToken thridElement &&
-                        thridElement.Tokens.Count() == 1 &&
-                        thridElement.Tokens.ElementAt(0) is AtomicToken thirdType)
-            {
-                type1 = firstType;
-                type2 = SecondType;
-                type3 = thirdType;
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context);
-            }
-
-            type1 = default;
-            type2 = default;
-            type3 = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
-        }
-
-        public static TokenMatching DefineGenericN(TokenMatching elementMatching, out AtomicToken[] tokens)
-        {
-            if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
-                    typeParameters.Tokens.All(x => x is LineToken firstLine &&
-                        firstLine.Tokens.Count() == 1 &&
-                        firstLine.Tokens.ElementAt(0) is AtomicToken))
-            {
-                tokens = typeParameters.Tokens.Select(x => (x as LineToken).Tokens.First() as AtomicToken).ToArray();
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context);
-            }
-
-            tokens = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
-        }
-
-        public static TokenMatching GenericN(TokenMatching elementMatching, out NameKey[] typeSources)
-        {
-            if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
-                typeParameters.Tokens.All(x => x is ElementToken) &&
-                TryToToken(out var res))
-            {
-                typeSources = res;
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context);
-            }
-
-            typeSources = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
-
-            bool TryToToken(out NameKey[] typeSourcesInner)
-            {
-                var typeSourcesBuilding = new List<NameKey>();
-                foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
-                {
-                    var matcher = TokenMatching.Start(elementToken.Tokens, elementMatching.Context);
-                    if (matcher.Has(ElementMatcher.IsType, out NameKey typeSource).Has(IsDone).IsMatch)
-                    {
-                        typeSourcesBuilding.Add(typeSource);
-                    }
-                    else
-                    {
-                        typeSourcesInner = default;
-                        return false;
-                    }
-                }
-                typeSourcesInner = typeSourcesBuilding.ToArray();
-                return true;
-            }
-        }
-
-        public static TokenMatching Generic2(TokenMatching elementMatching, out AtomicToken type1, out AtomicToken type2)
-        {
-            if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
-                    typeParameters.Tokens.Count() == 2 &&
-                    typeParameters.Tokens.ElementAt(0) is LineToken firstLine &&
-                        firstLine.Tokens.Count() == 1 &&
-                        firstLine.Tokens.ElementAt(0) is ElementToken firstElement &&
-                        firstElement.Tokens.Count() == 1 &&
-                        firstElement.Tokens.ElementAt(0) is AtomicToken firstType &&
-                    typeParameters.Tokens.ElementAt(1) is LineToken secondLine &&
-                        secondLine.Tokens.Count() == 1 &&
-                        secondLine.Tokens.ElementAt(0) is ElementToken SecondElement &&
-                        SecondElement.Tokens.Count() == 1 &&
-                        SecondElement.Tokens.ElementAt(0) is AtomicToken SecondType)
-            {
-                type1 = firstType;
-                type2 = SecondType;
-                return TokenMatching.Match(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context);
-            }
-
-            type1 = default;
-            type2 = default;
-            return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
-        }
-
-        public static IsMatch<IEnumerable<IToken>, AtomicToken, IToken> IsBinaryOperation(string s)
-        {
-            return (TokenMatching elementMatching, out IEnumerable<IToken> preface, out AtomicToken operation, out IToken rhs) =>
-
-            {
-                if (elementMatching.Tokens.Any() &&
-                (elementMatching.Tokens.Last() is ParenthesisToken ||
-                elementMatching.Tokens.Last() is ElementToken)
-                )
-                {
-                    var right = elementMatching.Tokens.Last();
-
-                    var at = TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray(), elementMatching.Context);
-
-                    if (at.Tokens.Any() &&
-                    at.Tokens.Last() is AtomicToken op &&
-                    op.Item == s)
-                    {
-
-                        rhs = right;
-                        operation = op;
-                        preface = at.Tokens.Take(at.Tokens.Count() - 1);
-                        return TokenMatching.Match(preface, elementMatching.Context);
-                    }
-                }
-
-                rhs = default;
-                preface = default;
-                operation = default;
-                return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
-
-            };
-        }
-
-        public static IsMatch<IEnumerable<IToken>, AtomicToken> IsTrailingOperation(string s)
-        {
-            return (TokenMatching elementMatching, out IEnumerable<IToken> preface, out AtomicToken operation) =>
-            {
-
-                if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.Last() is AtomicToken op)
-                {
-
-                    preface = elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1);
-                    operation = op;
-                    return TokenMatching.Match(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray(), elementMatching.Context);
-                }
-
-                preface = default;
-                operation = default;
-                return TokenMatching.NotMatch(elementMatching.Tokens, elementMatching.Context);
-            };
-        }
-
-        public static IsMatch<AtomicToken> KeyWord(string word)
-        {
-            return Inner;
-
-            TokenMatching Inner(TokenMatching self, out AtomicToken token)
-            {
-                if (self.Tokens.First() is AtomicToken first &&
-                    first.Item == word)
-                {
-                    token = first;
-                    return TokenMatching.Match(self.Tokens.Skip(1).ToArray(), self.Context);
-                }
-
-                token = default;
-                return TokenMatching.NotMatch(self.Tokens, self.Context);
-            };
-        }
-
-        public static IsMatch Xor(this IsMatch self, IsMatch other)
-        {
-            return (TokenMatching element) =>
-            {
-                var first = self(element);
-                var second = other(element);
-
-                var table = new Dictionary<(bool, bool), Func<TokenMatching>>() {
-                    { (true,true), ()=>TokenMatching.NotMatch(element.Tokens, element.Context)},
-                    { (true,false), ()=> second},
-                    { (false,true), ()=> first},
-                    { (false,false), ()=> TokenMatching.NotMatch(element.Tokens, element.Context)},
-                };
-
-                return table[(first.IsNotMatch, second.IsNotMatch)]();
-            };
-        }
-
-        public static IsMatch<T> Xor<T>(this IsMatch<T> self, IsMatch<T> other)
-        {
-            return Backing;
-
-            TokenMatching Backing(TokenMatching element, out T t)
-            {
-                var first = self(element, out var t1);
-                var second = other(element, out var t2);
-
-                if (first.IsNotMatch)
-                {
-                    if (second.IsNotMatch)
-                    {
-                        t = default;
-                        return TokenMatching.NotMatch(element.Tokens, element.Context);
-                    }
-                    else
-                    {
-                        t = t2;
-                        return second;
-                    }
-                }
-                else
-                {
-                    if (second.IsNotMatch)
-                    {
-                        t = t1;
-                        return first;
-                    }
-                    else
-                    {
-                        t = default;
-                        return TokenMatching.NotMatch(element.Tokens, element.Context);
-                    }
-                }
-            };
-        }
-
-
+        } 
     }
-
 }

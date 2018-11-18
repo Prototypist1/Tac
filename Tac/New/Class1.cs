@@ -52,9 +52,14 @@ namespace Tac.New
 
     }
 
+    internal interface IMaker
+    {
+        ITokenMatching TryMake(ITokenMatching elementToken);
+    }
+
     internal interface IMaker<out TCodeElement>
     {
-        IResult<IPopulateScope<TCodeElement>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext);
+        ITokenMatching<TCodeElement> TryMake(ITokenMatching elementToken);
     }
 
     internal interface IOperationMaker<out TCodeElement>
