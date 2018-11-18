@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -108,29 +109,34 @@ namespace Tac.Semantic_Model
         public GenericTypeParameterDefinition Definition { get; }
     }
 
-    internal class GenericTypeDefinitionMaker : IMaker<WeakGenericTypeDefinition>
+    internal class GenericTypeDefinitionMaker : IMaker<IPopulateScope<WeakGenericTypeDefinition>>
     {
 
         public GenericTypeDefinitionMaker()
         {
         }
 
-        public IResult<IPopulateScope<WeakGenericTypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakGenericTypeDefinition>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("type"), out var _)
-                .Has(ElementMatcher.DefineGenericN, out AtomicToken[] genericTypes)
-                .Has(ElementMatcher.IsName, out AtomicToken typeName)
-                .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
-                .IsMatch)
+            var matching = tokenMatching
+                .Has(new KeyWordMaker("type"), out var _)
+                .Has(new DefineGenericNMaker(), out AtomicToken[] genericTypes)
+                .Has(new NameMaker(), out AtomicToken typeName)
+                .Has(new BodyMaker(), out CurleyBracketToken body);
+            if (matching.IsMatch)
             {
-                return ResultExtension.Good(new GenericTypeDefinitionPopulateScope(
-                    new NameKey(typeName.Item),
-                    matchingContext.ParseBlock(body),
-                    genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray()));
+                return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.Match(
+                    matching.Tokens,
+                    matching.Context,
+                    new GenericTypeDefinitionPopulateScope(
+                        new NameKey(typeName.Item),
+                        tokenMatching.Context.ParseBlock(body),
+                        genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray()));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakGenericTypeDefinition>>();
+            return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
 
 

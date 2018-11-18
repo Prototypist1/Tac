@@ -1,6 +1,7 @@
 ﻿using Prototypist.LeftToRight;
 using System;
 using System.Linq;
+using Tac.Frontend._2_Parser;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
@@ -10,7 +11,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    internal class ImplicitMemberMaker : IMaker<WeakMemberReferance>
+    internal class ImplicitMemberMaker : IMaker<IPopulateScope<WeakMemberReferance>>
     {
         private readonly IBox<IVarifiableType> type;
 
@@ -20,19 +21,24 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IResult<IPopulateScope<WeakMemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("var"), out var _)
-                .Has(ElementMatcher.IsName, out AtomicToken first)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
+            var matching = tokenMatching
+                .Has(new KeyWordMaker("var"), out var _)
+                .Has(new NameMaker(), out var first);
+
+            if (matching.IsMatch)
             {
 
-                return ResultExtension.Good(new ImplicitMemberPopulateScope(first.Item, type));
+                return TokenMatching<IPopulateScope<WeakMemberReferance>>.Match(
+                matching.Tokens,
+                matching.Context,
+                new ImplicitMemberPopulateScope(first.Item, type));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakMemberReferance>>();
+            return TokenMatching<IPopulateScope<WeakMemberReferance>>.NotMatch(
+                matching.Tokens,
+                matching.Context);
         }
 
     }

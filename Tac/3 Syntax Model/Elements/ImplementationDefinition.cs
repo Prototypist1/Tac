@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -74,34 +75,35 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class ImplementationDefinitionMaker : IMaker<WeakImplementationDefinition>
+    internal class ImplementationDefinitionMaker : IMaker<IPopulateScope<WeakImplementationDefinition>>
     {
         public ImplementationDefinitionMaker()
         {
         }
 
 
-        public IResult<IPopulateScope<WeakImplementationDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        
+
+        public ITokenMatching<IPopulateScope<WeakImplementationDefinition>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("implementation"), out var _)
+            var match = tokenMatching
+                .Has(new KeyWordMaker("implementation"), out var _)
                 // WHY doe this return AtomicToken?? it should return IKey
-                .Has(ElementMatcher.Generic3, out AtomicToken contextType, out AtomicToken inputType, out AtomicToken outputType)
-                .OptionalHas(ElementMatcher.IsName, out AtomicToken contextName)
-                .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
-                .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
+                .Has(new Generic3Maker(), out (AtomicToken contextType, AtomicToken inputType, AtomicToken outputType) types)
+                .OptionalHas(new NameMaker(), out AtomicToken contextName)
+                .OptionalHas(new NameMaker(), out AtomicToken parameterName)
+                .Has(new BodyMaker(), out CurleyBracketToken body);
+            if (match.IsMatch)
             {
 
 
-                var elements = matchingContext.ParseBlock(body);
+                var elements = tokenMatching.Context.ParseBlock(body);
 
                 var contextNameString = contextName?.Item ?? "context";
                 var contextDefinition = new MemberDefinitionPopulateScope(
                         contextNameString,
                         false,
-                        new NameKey(contextType.Item)
+                        new NameKey(types.contextType.Item)
                         );
 
 
@@ -109,12 +111,14 @@ namespace Tac.Semantic_Model
                 var parameterDefinition = new MemberDefinitionPopulateScope(
                         parameterNameString,
                         false,
-                        new NameKey(inputType.Item)
+                        new NameKey(types.inputType.Item)
                         );
 
-                var outputTypeName= new NameKey(outputType.Item);
+                var outputTypeName= new NameKey(types.outputType.Item);
 
-                return ResultExtension.Good(
+                return TokenMatching<IPopulateScope<WeakImplementationDefinition>>.Match(
+                    match.Tokens,
+                    match.Context,
                     new PopulateScopeImplementationDefinition(
                         contextDefinition, 
                         parameterDefinition, 
@@ -123,7 +127,9 @@ namespace Tac.Semantic_Model
             }
 
 
-            return ResultExtension.Bad<IPopulateScope<WeakImplementationDefinition>>();
+            return TokenMatching<IPopulateScope<WeakImplementationDefinition>>.NotMatch(
+                    match.Tokens,
+                    match.Context);
         }
     }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -48,7 +49,7 @@ namespace Tac.Semantic_Model.Operations
         public delegate T Make<T>(ICodeElement codeElement);
     }
 
-    internal class TrailingOperationMaker<T> : IOperationMaker<T>
+    internal class TrailingOperationMaker<T> : IMaker<IPopulateScope<T>>
         where T : class, ICodeElement
     {
         public TrailingOperationMaker(ISymbols name, TrailingOperation.Make<T> make)
@@ -60,17 +61,24 @@ namespace Tac.Semantic_Model.Operations
         public ISymbols Name { get; }
         private TrailingOperation.Make<T> Make { get; }
 
-        public IResult<IPopulateScope<T>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<T>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsTrailingOperation(Name.Symbols), out var perface, out var _)
-            .IsMatch)
+            
+
+            var matching = tokenMatching
+                .Has(new TrailingOperationMatcher(Name.Symbols), out (IEnumerable<IToken> perface, AtomicToken _) res);
+            if (matching.IsMatch)
             {
-                var left = matchingContext.ParseLine(perface);
+                var left = matching.Context.ParseLine(res.perface);
                 
-                return ResultExtension.Good(new TrailingPopulateScope<T>(left,Make));
+                return TokenMatching<IPopulateScope<T>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new TrailingPopulateScope<T>(left,Make));
             }
-            return ResultExtension.Bad<IPopulateScope<T>>();
+            return TokenMatching<IPopulateScope<T>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
         
     }

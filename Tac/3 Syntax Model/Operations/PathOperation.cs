@@ -1,6 +1,7 @@
 ﻿using Prototypist.LeftToRight;
 using System;
 using System.Collections.Generic;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -33,23 +34,27 @@ namespace Tac.Semantic_Model.Operations
             return Right.Cast<WeakMemberReferance>();
         }
     }
-
-
-    internal class PathOperationMaker : IOperationMaker<WeakPathOperation>
+    
+    internal class PathOperationMaker : IMaker<IPopulateScope<WeakPathOperation>>
     {
-        public IResult<IPopulateScope<WeakPathOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakPathOperation>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(new PathSymbols().Symbols), out var perface, out var token, out var rhs)
-            .IsMatch)
+            var matching = tokenMatching
+                .Has(new BinaryOperationMatcher(new PathSymbols().Symbols), out (IEnumerable<IToken> perface, AtomicToken token, IToken rhs) res);
+            if (matching.IsMatch)
             {
-                var left = matchingContext.ParseLine(perface);
-                var right = matchingContext.ExpectPathPart(left.GetReturnType()).ParseParenthesisOrElement(rhs);
+                var left = matching.Context.ParseLine(res.perface);
+                var right = matching.Context.ExpectPathPart(left.GetReturnType()).ParseParenthesisOrElement(res.rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> new WeakPathOperation(l,r)));
+                return TokenMatching<IPopulateScope<WeakPathOperation>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> new WeakPathOperation(l,r)));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakPathOperation>>();
+            return TokenMatching<IPopulateScope<WeakPathOperation>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
     }
 }

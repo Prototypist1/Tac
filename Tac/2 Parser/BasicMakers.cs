@@ -203,11 +203,11 @@ namespace Tac.Frontend._2_Parser
         }
     }
 
-    internal class BinaryOperationMaker : IMaker<(IEnumerable<IToken>, AtomicToken, IToken)>
+    internal class BinaryOperationMatcher : IMaker<(IEnumerable<IToken>, AtomicToken, IToken)>
     {
         private readonly string s;
 
-        public BinaryOperationMaker(string s)
+        public BinaryOperationMatcher(string s)
         {
             this.s = s ?? throw new ArgumentNullException(nameof(s));
         }
@@ -236,11 +236,11 @@ namespace Tac.Frontend._2_Parser
         }
     }
     
-    internal class TrailingOperationMaker : IMaker<(IEnumerable<IToken>, AtomicToken)>
+    internal class TrailingOperationMatcher : IMaker<(IEnumerable<IToken>, AtomicToken)>
     {
         private readonly string s;
 
-        public TrailingOperationMaker(string s)
+        public TrailingOperationMatcher(string s)
         {
             this.s = s ?? throw new ArgumentNullException(nameof(s));
         }

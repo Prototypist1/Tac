@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -38,21 +40,19 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantNumberMaker : IMaker<WeakConstantNumber>
+    internal class ConstantNumberMaker : IMaker<IPopulateScope<WeakConstantNumber>>
     {
         public ConstantNumberMaker() {}
 
-        public IResult<IPopulateScope<WeakConstantNumber>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakConstantNumber>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.IsNumber, out double dub)
-                .Has(ElementMatcher.IsDone)
+            if (tokenMatching
+                .Has(new NumberMaker(), out var dub)
                 .IsMatch)
             {
-                return ResultExtension.Good(new ConstantNumberPopulateScope(dub));
+                return TokenMatching<IPopulateScope<WeakConstantNumber>>.Match(tokenMatching.Tokens.Skip(1), tokenMatching.Context, new ConstantNumberPopulateScope(dub));
             }
-            
-            return ResultExtension.Bad<IPopulateScope<WeakConstantNumber>>();
+            return TokenMatching<IPopulateScope<WeakConstantNumber>>.NotMatch(tokenMatching.Tokens, tokenMatching.Context);
         }
     }
 

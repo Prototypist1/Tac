@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -34,26 +35,33 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class AssignOperationMaker : IOperationMaker<WeakAssignOperation>
+    internal class AssignOperationMaker : IMaker<IPopulateScope<WeakAssignOperation>>
     {
         public AssignOperationMaker()
         {
         }
         
-
-        public IResult<IPopulateScope<WeakAssignOperation>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakAssignOperation>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(new AssignSymbols().Symbols), out var perface, out var token, out var rhs)
-            .IsMatch)
-            {
-                var left = matchingContext.ParseLine(perface);
-                var right = matchingContext.AcceptImplicit(left.GetReturnType()).ParseParenthesisOrElement(rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r)=>new WeakAssignOperation(l,r)));
+            var matching = tokenMatching
+            .Has(new BinaryOperationMatcher(new AssignSymbols().Symbols), out (IEnumerable<IToken> perface, AtomicToken token, IToken rhs) res);
+
+            if (matching
+                .IsMatch)
+            {
+                var left = matching.Context.ParseLine(res.perface);
+                var right = matching.Context.AcceptImplicit(left.GetReturnType()).ParseParenthesisOrElement(res.rhs);
+
+                return TokenMatching<IPopulateScope<WeakAssignOperation>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r)=>new WeakAssignOperation(l,r)));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakAssignOperation>>();
+            return TokenMatching<IPopulateScope<WeakAssignOperation>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
         
 

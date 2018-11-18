@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -31,30 +32,27 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class BlockDefinitionMaker : IMaker<WeakBlockDefinition>
+    internal class BlockDefinitionMaker : IMaker<IPopulateScope<WeakBlockDefinition>>
     {
         public BlockDefinitionMaker()
         {
         }
         
-
-        public IResult<IPopulateScope<WeakBlockDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakBlockDefinition>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-               .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
-               .Has(ElementMatcher.IsDone)
+            if (tokenMatching
+               .Has(new BodyMaker(), out var body)
                .IsMatch)
             {
-                var elements = matchingContext.ParseBlock(body);
+                var elements = tokenMatching.Context.ParseBlock(body);
 
-                return ResultExtension.Good(new BlockDefinitionPopulateScope( elements));
+                return TokenMatching<IPopulateScope<WeakBlockDefinition>>.Match(tokenMatching.Tokens.Skip(1), tokenMatching.Context, new BlockDefinitionPopulateScope(elements));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakBlockDefinition>>();
+            return TokenMatching<IPopulateScope<WeakBlockDefinition>>.NotMatch(tokenMatching.Tokens, tokenMatching.Context);
         }
     }
-
-
+    
     internal class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition>
     {
         // TODO object??

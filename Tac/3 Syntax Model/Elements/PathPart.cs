@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -39,7 +40,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class MemberReferanceMaker : IMaker<WeakMemberReferance>
+    internal class MemberReferanceMaker : IMaker<IPopulateScope<WeakMemberReferance>>
     {
         public MemberReferanceMaker(
             IBox<IVarifiableType> lhs)
@@ -49,17 +50,20 @@ namespace Tac.Semantic_Model
 
         private readonly IBox<IVarifiableType> lhs;
 
-        public IResult<IPopulateScope<WeakMemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.IsName, out AtomicToken first)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
+            var matching = tokenMatching
+                .Has(new NameMaker(), out AtomicToken first);
+            if (matching.IsMatch)
             {
-                return ResultExtension.Good(new MemberReferancePopulateScope(first.Item, lhs));
+                return TokenMatching<IPopulateScope<WeakMemberReferance>>.Match(
+                    matching.Tokens,
+                    matching.Context, new MemberReferancePopulateScope(first.Item, lhs));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakMemberReferance>>();
+            return TokenMatching<IPopulateScope<WeakMemberReferance>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
     }
 

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -47,25 +48,28 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class MemberDefinitionMaker : IMaker<WeakMemberReferance>
+    internal class MemberDefinitionMaker : IMaker<IPopulateScope<WeakMemberReferance>>
     {
         public MemberDefinitionMaker()
         {
         }
         
-
-        public IResult<IPopulateScope<WeakMemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .OptionalHas(ElementMatcher.KeyWord("readonly"), out var readonlyToken)
-                .Has(ElementMatcher.IsType, out NameKey typeToken)
-                .Has(ElementMatcher.IsName, out AtomicToken nameToken)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
+            var matching = tokenMatching
+                .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
+                .Has(new TypeMaker(), out NameKey typeToken)
+                .Has(new NameMaker(), out AtomicToken nameToken);
+            if (matching.IsMatch)
             {
-                return ResultExtension.Good(new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, typeToken));
+                return TokenMatching<IPopulateScope<WeakMemberReferance>>.Match(
+                    matching.Tokens,
+                    matching.Context,
+                    new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, typeToken));
             }
-            return ResultExtension.Bad<IPopulateScope<WeakMemberReferance>>();
+            return TokenMatching<IPopulateScope<WeakMemberReferance>>.NotMatch(
+                               matching.Tokens,
+                               matching.Context);
         }
     }
 

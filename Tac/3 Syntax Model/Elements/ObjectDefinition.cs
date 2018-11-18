@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -55,28 +56,31 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal class ObjectDefinitionMaker : IMaker<WeakObjectDefinition>
+    internal class ObjectDefinitionMaker : IMaker<IPopulateScope<WeakObjectDefinition>>
     {
         public ObjectDefinitionMaker()
         {
         }
 
-        public IResult<IPopulateScope<WeakObjectDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakObjectDefinition>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                           .Has(ElementMatcher.KeyWord("object"), out var keyword)
-                           .Has(ElementMatcher.IsBody, out CurleyBracketToken block)
-                           .Has(ElementMatcher.IsDone)
-                           .IsMatch)
+            var matching = tokenMatching
+                .Has(new KeyWordMaker("object"), out var keyword)
+                .Has(new BodyMaker(), out var block);
+            if (matching.IsMatch)
             {
 
-                var elements = matchingContext.ParseBlock(block);
+                var elements = tokenMatching.Context.ParseBlock(block);
                 
-                return ResultExtension.Good(new ObjectDefinitionPopulateScope(elements));
+                return TokenMatching<IPopulateScope<WeakObjectDefinition>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new ObjectDefinitionPopulateScope(elements));
             }
-            return ResultExtension.Bad<IPopulateScope<WeakObjectDefinition>>();
+            return TokenMatching<IPopulateScope<WeakObjectDefinition>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
-        
     }
 
     internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>

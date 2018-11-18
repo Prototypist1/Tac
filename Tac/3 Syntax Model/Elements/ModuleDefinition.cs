@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -48,31 +49,35 @@ namespace Tac.Semantic_Model
     }
 
 
-    internal class ModuleDefinitionMaker : IMaker<WeakModuleDefinition>
+    internal class ModuleDefinitionMaker : IMaker<IPopulateScope<WeakModuleDefinition>>
     {
         public ModuleDefinitionMaker()
         {
         }
         
 
-        public IResult<IPopulateScope<WeakModuleDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakModuleDefinition>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                            .Has(ElementMatcher.KeyWord("module"), out var frist)
-                            .Has(ElementMatcher.IsName, out AtomicToken name)
-                            .Has(ElementMatcher.IsBody, out CurleyBracketToken third)
-                            .Has(ElementMatcher.IsDone)
-                            .IsMatch)
+            var matching = tokenMatching
+                .Has(new KeyWordMaker("module"), out var frist)
+                .Has(new NameMaker(), out var name)
+                .Has(new BodyMaker(), out var third);
+            if (tokenMatching.IsMatch)
             {
 
 
-                var elements = matchingContext.ParseBlock(third);
+                var elements = matching.Context.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
-                
-                return ResultExtension.Good(new ModuleDefinitionPopulateScope(elements, nameKey));
+
+                return TokenMatching<IPopulateScope<WeakModuleDefinition>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new ModuleDefinitionPopulateScope(elements, nameKey));
 
             }
-            return ResultExtension.Bad<IPopulateScope<WeakModuleDefinition>>();
+            return TokenMatching<IPopulateScope<WeakModuleDefinition>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
     }
 

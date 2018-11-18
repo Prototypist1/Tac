@@ -1,5 +1,6 @@
 ﻿using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend._2_Parser;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
@@ -7,22 +8,26 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    internal class MemberMaker : IMaker<WeakMemberReferance>
+    internal class MemberMaker : IMaker<IPopulateScope<WeakMemberReferance>>
     {
         public MemberMaker()
         {
         }
         
-        public IResult<IPopulateScope<WeakMemberReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.IsName, out AtomicToken first)
-                .Has(ElementMatcher.IsDone)
-                .IsMatch)
+            var matching = tokenMatching
+                .Has(new NameMaker(), out var first);
+            if (matching.IsMatch)
             {
-                return ResultExtension.Good(new MemberPopulateScope(first.Item)); ;
+                return TokenMatching<IPopulateScope<WeakMemberReferance>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new MemberPopulateScope(first.Item)); ;
             }
-            return ResultExtension.Bad<IPopulateScope<WeakMemberReferance>>();
+            return TokenMatching<IPopulateScope<WeakMemberReferance>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
     }
 

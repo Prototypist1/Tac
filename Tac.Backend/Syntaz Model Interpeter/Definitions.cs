@@ -370,11 +370,25 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 return op;
             }
         }
+
+
+        public InterpetedTypeReferance TypeReferance(ITypeReferance codeElement)
+        {
+            if (backing.TryGetValue(codeElement, out var res))
+            {
+                return res.Cast<InterpetedTypeReferance>();
+            }
+            else
+            {
+                var op = new InterpetedTypeReferance();
+                backing.Add(codeElement, op);
+                op.Init(codeElement.TypeDefinition);
+                return op;
+            }
+        }
         
-
         #region IOpenBoxesContext<IInterpeted>
-
-
+        
         IInterpeted IOpenBoxesContext<IInterpeted>.BlockDefinition(IBlockDefinition codeElement) => BlockDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.AssignOperation(IAssignOperation codeElement) => AssignOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ConstantNumber(IConstantNumber codeElement) => ConstantNumber(codeElement);
@@ -396,8 +410,9 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         IInterpeted IOpenBoxesContext<IInterpeted>.MultiplyOperation(IMultiplyOperation codeElement) => MultiplyOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.SubtractOperation(ISubtractOperation codeElement) => SubtractOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ReturnOperation(IReturnOperation codeElement) => ReturnOperation(codeElement);
+        IInterpeted IOpenBoxesContext<IInterpeted>.TypeReferance(ITypeReferance codeElement) => TypeReferance(codeElement);
         
         #endregion
-        
+
     }
 }

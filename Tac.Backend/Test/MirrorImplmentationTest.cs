@@ -15,7 +15,7 @@ namespace Tac.Backend.Test
     public class MirrorImplmentationTest {
 
         [Fact]
-        public void Fac()
+        public void Test()
         {
             var testCase = new MirrorPointImplementation();
             var conversionContext = new Definitions();

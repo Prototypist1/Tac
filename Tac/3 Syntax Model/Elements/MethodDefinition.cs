@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -46,40 +47,44 @@ namespace Tac.Semantic_Model
     }
 
 
-    internal class MethodDefinitionMaker : IMaker<WeakMethodDefinition>
+    internal class MethodDefinitionMaker : IMaker<IPopulateScope<WeakMethodDefinition>>
     {
         public MethodDefinitionMaker()
         {
         }
         
 
-        public IResult<IPopulateScope<WeakMethodDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakMethodDefinition>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                .Has(ElementMatcher.KeyWord("method"), out var _)
-                .Has(ElementMatcher.Generic2, out AtomicToken inputType, out AtomicToken outputType)
-                .OptionalHas(ElementMatcher.IsName, out AtomicToken parameterName)
-                .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
-                .Has(ElementMatcher.IsDone)
+            var matching = tokenMatching
+                .Has(new KeyWordMaker("method"), out var _)
+                .Has(new Generic2Maker(), out (AtomicToken inputType, AtomicToken outputType) types)
+                .OptionalHas(new NameMaker(), out var parameterName)
+                .Has(new BodyMaker(), out var body);
+            if (matching
                 .IsMatch)
             {
-                var elements = matchingContext.ParseBlock(body);
+                var elements = matching.Context.ParseBlock(body);
                 
                 var parameterDefinition = new MemberDefinitionPopulateScope(
                         parameterName?.Item ?? "input",
                         false,
-                         new NameKey(inputType.Item)
+                         new NameKey(types.inputType.Item)
                         );
                 
-                var outputTypeName = new NameKey(outputType.Item);
+                var outputTypeName = new NameKey(types.outputType.Item);
                 
-                return ResultExtension.Good(new MethodDefinitionPopulateScope(
+                return TokenMatching<IPopulateScope<WeakMethodDefinition>>.Match(
+                    matching.Tokens,
+                    matching.Context, new MethodDefinitionPopulateScope(
                     parameterDefinition,
                     elements, 
                     outputTypeName));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakMethodDefinition>>();
+            return TokenMatching<IPopulateScope<WeakMethodDefinition>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
     }
 

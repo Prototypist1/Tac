@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -60,7 +61,7 @@ namespace Tac.Semantic_Model.CodeStuff
     }
 
 
-    internal class BinaryOperationMaker<TCodeElement> : IOperationMaker<TCodeElement>
+    internal class BinaryOperationMaker<TCodeElement> : IMaker<IPopulateScope<TCodeElement>>
         where TCodeElement : class, ICodeElement
     {
 
@@ -74,19 +75,24 @@ namespace Tac.Semantic_Model.CodeStuff
         public ISymbols Name { get; }
         private BinaryOperation.Make<TCodeElement> Make { get; }
 
-        public IResult<IPopulateScope<TCodeElement>> TryMake(IEnumerable<IToken> tokens, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<TCodeElement>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(tokens)
-            .Has(ElementMatcher.IsBinaryOperation(Name.Symbols), out var perface, out var token, out var rhs)
-            .IsMatch)
+            var matching = tokenMatching
+                .Has(new BinaryOperationMatcher(Name.Symbols), out (IEnumerable<IToken> perface, AtomicToken token, IToken rhs) match);
+            if (matching.IsMatch)
             {
-                var left = matchingContext.ParseLine(perface);
-                var right = matchingContext.ParseParenthesisOrElement(rhs);
+                var left = matching.Context.ParseLine(match.perface);
+                var right = matching.Context.ParseParenthesisOrElement(match.rhs);
 
-                return ResultExtension.Good(new BinaryPopulateScope<TCodeElement>(left, right, Make));
+                return TokenMatching<IPopulateScope<TCodeElement>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new BinaryPopulateScope<TCodeElement>(left, right, Make));
             }
 
-            return ResultExtension.Bad<IPopulateScope<TCodeElement>>();
+            return TokenMatching<IPopulateScope<TCodeElement>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
 
     }

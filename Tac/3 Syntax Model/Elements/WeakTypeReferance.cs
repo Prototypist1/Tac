@@ -1,4 +1,5 @@
 ﻿using System;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -34,22 +35,27 @@ namespace Tac.Semantic_Model
         }
     }
     
-    internal class TypeReferanceMaker : IMaker<WeakTypeReferance>
+    internal class TypeReferanceMaker : IMaker<IPopulateScope<WeakTypeReferance>>
     {
         public TypeReferanceMaker()
         {
         }
 
-        public IResult<IPopulateScope<WeakTypeReferance>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakTypeReferance>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                            .Has(ElementMatcher.IsName, out AtomicToken typeName)
-                            .IsMatch)
+            var matching = tokenMatching
+                .Has(new NameMaker(), out var typeName);
+            if (matching.IsMatch)
             {
-                return ResultExtension.Good(new TypeReferancePopulateScope(new NameKey(typeName.Item)));
+                return TokenMatching<IPopulateScope<WeakTypeReferance>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new TypeReferancePopulateScope(new NameKey(typeName.Item)));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakTypeReferance>>(); ;
+            return TokenMatching<IPopulateScope<WeakTypeReferance>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
     }
 

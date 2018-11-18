@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -37,31 +38,35 @@ namespace Tac.Semantic_Model
     }
 
 
-    internal class TypeDefinitionMaker : IMaker<WeakTypeDefinition>
+    internal class TypeDefinitionMaker : IMaker<IPopulateScope<WeakTypeDefinition>>
     {
         public TypeDefinitionMaker()
         {
         }
         
         
-        public IResult<IPopulateScope<WeakTypeDefinition>> TryMake(ElementToken elementToken, ElementMatchingContext matchingContext)
+        public ITokenMatching<IPopulateScope<WeakTypeDefinition>> TryMake(ITokenMatching tokenMatching)
         {
-            if (TokenMatching.Start(elementToken.Tokens)
-                            .Has(ElementMatcher.KeyWord("type"), out var _)
-                            .OptionalHas(ElementMatcher.IsName, out AtomicToken typeName)
-                            .Has(ElementMatcher.IsBody, out CurleyBracketToken body)
-                            .IsMatch)
+            var matching = tokenMatching
+                .Has(new KeyWordMaker("type"), out var _)
+                .OptionalHas(new NameMaker(), out var typeName)
+                .Has(new BodyMaker(), out var body);
+
+            if (matching.IsMatch)
             {
-
-                var elements = matchingContext.ParseBlock(body);
-
+               var elements = tokenMatching.Context.ParseBlock(body);
                 
-               return ResultExtension.Good(new TypeDefinitionPopulateScope(
-                   elements, 
-                   typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey()));
+               return TokenMatching<IPopulateScope<WeakTypeDefinition>>.Match(
+                    matching.Tokens,
+                    matching.Context, 
+                    new TypeDefinitionPopulateScope(
+                       elements, 
+                       typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey()));
             }
 
-            return ResultExtension.Bad<IPopulateScope<WeakTypeDefinition>>(); ;
+            return TokenMatching<IPopulateScope<WeakTypeDefinition>>.NotMatch(
+                    matching.Tokens,
+                    matching.Context);
         }
     }
 

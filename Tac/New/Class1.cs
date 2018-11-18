@@ -61,11 +61,7 @@ namespace Tac.New
     {
         ITokenMatching<TCodeElement> TryMake(ITokenMatching elementToken);
     }
-
-    internal interface IOperationMaker<out TCodeElement>
-    {
-        IResult<IPopulateScope<TCodeElement>> TryMake(IEnumerable<IToken> elementToken, ElementMatchingContext matchingContext);
-    }
+    
 
 
     // hmm the parsing is almost a step as well? 

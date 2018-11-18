@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -31,14 +32,14 @@ namespace Tac.Parser
     {
 
         internal ElementMatchingContext ExpectPathPart(IBox<IVarifiableType> box) {
-            return new ElementMatchingContext(operationMatchers, new IMaker<ICodeElement>[] {
+            return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<ICodeElement>>[] {
                 new MemberReferanceMaker(box)
             });
         }
         
         internal ElementMatchingContext AcceptImplicit(IBox<IVarifiableType> box)
         {
-            return new ElementMatchingContext(operationMatchers, new IMaker<ICodeElement>[] {
+            return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<ICodeElement>>[] {
                 new BlockDefinitionMaker(),
                 new ConstantNumberMaker(),
                 new GenericTypeDefinitionMaker(),
@@ -60,7 +61,7 @@ namespace Tac.Parser
         
         public ElementMatchingContext() : 
             this(
-                new IOperationMaker<ICodeElement>[] {
+                new IMaker<IPopulateScope<ICodeElement>>[] {
                     new AddOperationMaker(),
                     new SubtractOperationMaker(),
                     new MultiplyOperationMaker(),
@@ -72,7 +73,7 @@ namespace Tac.Parser
                     new PathOperationMaker(),
                     new ReturnOperationMaker()
                 },
-                new IMaker<ICodeElement>[] {
+                new IMaker<IPopulateScope<ICodeElement>>[] {
                     new BlockDefinitionMaker(),
                     new ConstantNumberMaker(),
                     new GenericTypeDefinitionMaker(),
@@ -85,14 +86,14 @@ namespace Tac.Parser
                     new MemberMaker(),
                 }){}
         
-        public ElementMatchingContext(IOperationMaker<ICodeElement>[] operationMatchers, IMaker<ICodeElement>[] elementMakers)
+        public ElementMatchingContext(IMaker<IPopulateScope<ICodeElement>>[] operationMatchers, IMaker<IPopulateScope<ICodeElement>>[] elementMakers)
         {
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
             this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
         }
 
-        private readonly IMaker<ICodeElement>[] elementMakers;
-        private readonly IOperationMaker<ICodeElement>[] operationMatchers;
+        private readonly IMaker<IPopulateScope<ICodeElement>>[] elementMakers;
+        private readonly IMaker<IPopulateScope<ICodeElement>>[] operationMatchers;
         
         #region Parse
 
@@ -108,9 +109,12 @@ namespace Tac.Parser
 
                 foreach (var tryMatch in elementMakers)
                 {
-                    if (tryMatch.TryMake(elementToken, this).TryGetValue(out var obj))
+                    if (TokenMatching<IPopulateScope<ICodeElement>>.Start(elementToken.Tokens,this)
+                        .Has(tryMatch, out var res)
+                        .Has(new DoneMaker())
+                        .IsMatch)
                     {
-                        return obj;
+                        return res;
                     }
                 }
             }
@@ -126,9 +130,11 @@ namespace Tac.Parser
         {
             foreach (var operationMatcher in operationMatchers)
             {
-                if (operationMatcher.TryMake(tokens, this).TryGetValue(out var obj))
+                if (TokenMatching<IPopulateScope<ICodeElement>>.Start(tokens, this)
+                        .Has(operationMatcher, out IPopulateScope<ICodeElement> res)
+                        .IsNotMatch.Not())
                 {
-                    return obj;
+                    return res;
                 }
             }
 
@@ -165,6 +171,7 @@ namespace Tac.Parser
     {
         ElementMatchingContext Context { get; }
         bool IsNotMatch { get; }
+        bool IsMatch { get; }
         IEnumerable<IToken> Tokens { get; }
     }
 
@@ -179,7 +186,7 @@ namespace Tac.Parser
         {
             IsNotMatch = isNotMatch;
             this.Context = Context ?? throw new ArgumentNullException(nameof(Context));
-            this.value = value;
+            this.Value = value;
             Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
         }
 
@@ -190,12 +197,13 @@ namespace Tac.Parser
                 return !IsNotMatch;
             }
         }
+
+        public bool IsMatch => !IsNotMatch;
         public bool IsNotMatch { get; }
         public IEnumerable<IToken> Tokens { get; }
         public ElementMatchingContext Context { get; }
-        private readonly T value;
+        public T Value { get; }
 
-        public T Value => value;
 
         public static TokenMatching<T> Start(IEnumerable<IToken> tokens, ElementMatchingContext context)
         {
@@ -219,7 +227,6 @@ namespace Tac.Parser
    
 
         public static ITokenMatching Has<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
-            where T:class
         {
             t = default;
 
