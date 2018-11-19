@@ -245,6 +245,16 @@ namespace Tac.Parser
 
         }
 
+        public static ITokenMatching HasSquare(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
+        {
+            if (self.Tokens.First() is SquareBacketToken squareBacketToken)
+            {
+                return inner(TokenMatching<object>.Start(squareBacketToken.Tokens, self.Context));
+            }
+
+            return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
+        }
+
 
         public static ITokenMatching Has(this ITokenMatching self, IMaker pattern)
         {

@@ -86,18 +86,26 @@ namespace Tac.Semantic_Model
 
         public ITokenMatching<IPopulateScope<WeakImplementationDefinition>> TryMake(ITokenMatching tokenMatching)
         {
+            IPopulateScope<WeakTypeReferance> context, input ,output;
+
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
                 // WHY doe this return AtomicToken?? it should return IKey
-                .Has(new Generic3Maker(), out (AtomicToken contextType, AtomicToken inputType, AtomicToken outputType) types)
+                .HasSquare(x => 
+                    x.Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(),new TypeDefinitionMaker()), out context)
+                    .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out input)
+                    .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out output)
+                )
                 .OptionalHas(new NameMaker(), out AtomicToken contextName)
                 .OptionalHas(new NameMaker(), out AtomicToken parameterName)
                 .Has(new BodyMaker(), out CurleyBracketToken body);
             if (match.IsMatch)
             {
-
-
                 var elements = tokenMatching.Context.ParseBlock(body);
+
+                // TODO TODO you are here 
+                // probably these need to take a IPopulateScope<WeakTypeReferance>
+                // that is going to bubble hard
 
                 var contextNameString = contextName?.Item ?? "context";
                 var contextDefinition = new MemberDefinitionPopulateScope(
