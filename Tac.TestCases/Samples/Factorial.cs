@@ -29,8 +29,8 @@ namespace Tac.Tests.Samples
             var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } });
 
             var method = new TestMethodDefinition(
-                        new TestNumberType(),
-                        new TestNumberType(),
+                        new TestTypeReferance(new TestNumberType()),
+                        new TestTypeReferance(new TestNumberType()),
                         input,
                         methodScope,
                         new ICodeElement[]{

@@ -101,7 +101,11 @@ namespace Tac.Parser
         {
             if (token is ElementToken elementToken)
             {
-                // smells 
+                // smells
+                // why did i write this agian?
+                // why would an element be wrapped in parenthesis ?
+                // maybe I can just remove??
+                // maybe we have a parentthesis matcher?
                 if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken)
                 {
                     return ParseLine(parenthesisToken.Tokens);
@@ -247,14 +251,58 @@ namespace Tac.Parser
 
         public static ITokenMatching HasSquare(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
         {
+            if (self.IsNotMatch) {
+                return self;
+            }
+
             if (self.Tokens.First() is SquareBacketToken squareBacketToken)
             {
-                return inner(TokenMatching<object>.Start(squareBacketToken.Tokens, self.Context));
+                if (inner(TokenMatching<object>.Start(squareBacketToken.Tokens, self.Context)).IsMatch) {
+                    return TokenMatching<object>.Start(self.Tokens.Skip(1), self.Context);
+                };
+                return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
+            }
+
+            return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
+        }
+        
+        public static ITokenMatching HasLine(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
+        {
+            if (self.IsNotMatch)
+            {
+                return self;
+            }
+
+            if (self.Tokens.First() is LineToken line)
+            {
+                if (inner(TokenMatching<object>.Start(line.Tokens, self.Context)).IsMatch)
+                {
+                    return TokenMatching<object>.Start(self.Tokens.Skip(1), self.Context);
+                };
+                return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
             }
 
             return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
         }
 
+        public static ITokenMatching HasElement(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
+        {
+            if (self.IsNotMatch)
+            {
+                return self;
+            }
+
+            if (self.Tokens.First() is ElementToken elementToken)
+            {
+                if (inner(TokenMatching<object>.Start(elementToken.Tokens, self.Context)).IsMatch)
+                {
+                    return TokenMatching<object>.Start(self.Tokens.Skip(1), self.Context);
+                };
+                return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
+            }
+
+            return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
+        }
 
         public static ITokenMatching Has(this ITokenMatching self, IMaker pattern)
         {

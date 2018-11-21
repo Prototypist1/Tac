@@ -15,7 +15,8 @@ namespace Tac.Tests.Samples
                                             TokenHelp.Atom("type"),
                                             TokenHelp.Curl(
                                                 TokenHelp.Line(
-                                                    TokenHelp.Ele(TokenHelp.Atom("x")),
+                                                    TokenHelp.Ele(TokenHelp.Atom("x"))),
+                                                TokenHelp.Line(
                                                     TokenHelp.Ele(TokenHelp.Atom("y")))))),
                                     TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("empty"))),
                                     TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("empty")))),
@@ -33,14 +34,15 @@ namespace Tac.Tests.Samples
                                         TokenHelp.Atom("."),
                                         TokenHelp.Ele(TokenHelp.Atom("y")),
                                         TokenHelp.Atom("=:"),
-                                        TokenHelp.Ele(TokenHelp.Atom("context")),
-                                        TokenHelp.Atom("."),
-                                        TokenHelp.Ele(TokenHelp.Atom("x"))),
+                                        TokenHelp.Ele(TokenHelp.Par(
+                                            TokenHelp.Ele(TokenHelp.Atom("context")),
+                                            TokenHelp.Atom("."),
+                                            TokenHelp.Ele(TokenHelp.Atom("x"))))),
                                     TokenHelp.Line(
                                         TokenHelp.Ele(TokenHelp.Atom("temp")),
                                         TokenHelp.Atom("=:"),
-                                        TokenHelp.Ele(TokenHelp.Atom("context"))),
+                                        TokenHelp.Ele(TokenHelp.Atom("context")),
                                         TokenHelp.Atom("."),
-                                        TokenHelp.Ele(TokenHelp.Atom("y"))))));
+                                        TokenHelp.Ele(TokenHelp.Atom("y")))))));
     }
 }

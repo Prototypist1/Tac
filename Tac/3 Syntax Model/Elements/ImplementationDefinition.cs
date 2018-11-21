@@ -86,31 +86,37 @@ namespace Tac.Semantic_Model
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
-                // WHY doe this return AtomicToken?? it should return IKey
-                .HasSquare(x => 
-                    x.Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(),new TypeDefinitionMaker()), out context)
-                    .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out input)
-                    .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out output)
-                )
+                .HasSquare(x => x
+                    .HasLine(y=>y
+                        .HasElement(z=>z
+                            .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(),new TypeDefinitionMaker()), out context)
+                            .Has(new DoneMaker()))
+                         .Has(new DoneMaker()))
+                    .HasLine(y => y
+                        .HasElement(z => z
+                            .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out input)
+                            .Has(new DoneMaker()))
+                        .Has(new DoneMaker()))
+                    .HasLine(y => y
+                        .HasElement(z => z
+                            .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out output)
+                            .Has(new DoneMaker()))
+                        .Has(new DoneMaker()))
+                    .Has(new DoneMaker()))
                 .OptionalHas(new NameMaker(), out AtomicToken contextName)
                 .OptionalHas(new NameMaker(), out AtomicToken parameterName)
                 .Has(new BodyMaker(), out CurleyBracketToken body);
             if (match.IsMatch)
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
-
-                // TODO TODO you are here 
-                // probably these need to take a IPopulateScope<WeakTypeReferance>
-                // that is going to bubble hard
-
+                
                 var contextNameString = contextName?.Item ?? "context";
                 var contextDefinition = new MemberDefinitionPopulateScope(
                         contextNameString,
                         false,
                         context
                         );
-
-
+                
                 var parameterNameString = parameterName?.Item ?? "input";
                 var parameterDefinition = new MemberDefinitionPopulateScope(
                         parameterNameString,

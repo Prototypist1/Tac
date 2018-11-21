@@ -102,6 +102,12 @@ namespace Tac.Tests
             Text_Token(new WrappedPointObject());
         }
 
+        [Fact]
+        public void Text_Token_MirrorPointImplementation()
+        {
+            Text_Token(new WrappedMirrorPointImplementation());
+        }
+
         private static void Text_Token(IWrappedTestCase sample)
         {
             var text = sample.Text;

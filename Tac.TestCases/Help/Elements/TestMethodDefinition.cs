@@ -7,8 +7,8 @@ namespace Tac.Model.Elements
     public class TestMethodDefinition : TestAbstractBlockDefinition, IMethodDefinition
     {
         public TestMethodDefinition(
-            IVarifiableType inputType, 
-            IVarifiableType outputType, 
+            ITypeReferance inputType,
+            ITypeReferance outputType, 
             IMemberDefinition parameterDefinition, 
             IFinalizedScope scope, 
             ICodeElement[] body, 
@@ -19,8 +19,8 @@ namespace Tac.Model.Elements
             ParameterDefinition = parameterDefinition;
         }
 
-        public IVarifiableType InputType { get; set; }
-        public IVarifiableType OutputType { get; set; }
+        public ITypeReferance InputType { get; set; }
+        public ITypeReferance OutputType { get; set; }
         public IMemberDefinition ParameterDefinition { get; set; }
 
         public override T Convert<T>(IOpenBoxesContext<T> context)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -60,9 +61,18 @@ namespace Tac.Semantic_Model
             var matching = tokenMatching
                 .Has(new KeyWordMaker("method"), out var _)
                 .HasSquare(x => x
-                    .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out input)
-                    .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out output)
-                ).OptionalHas(new NameMaker(), out var parameterName)
+                    .HasLine(y => y
+                        .HasElement(z=>z
+                            .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out input)
+                            .Has(new DoneMaker()))
+                         .Has(new DoneMaker()))
+                    .HasLine(y => y
+                        .HasElement(z => z
+                            .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out output)
+                            .Has(new DoneMaker()))
+                        .Has(new DoneMaker()))
+                    .Has(new DoneMaker()))
+                .OptionalHas(new NameMaker(), out var parameterName)
                 .Has(new BodyMaker(), out var body);
             if (matching
                 .IsMatch)

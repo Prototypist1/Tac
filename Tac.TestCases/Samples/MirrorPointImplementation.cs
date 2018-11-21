@@ -12,11 +12,13 @@ namespace Tac.TestCases.Samples
 {
     public class MirrorPointImplementation : ITestCase
     {
+        // TODO this needs to 'of' operations
+        // '( context . x )' is the same as:  'x of context'
         public string Text =>
 @"
 implementation [ type { x ; y ; } ; empty ; empty ] context input { 
     context . x =: temp ;
-    context . y =: context . x ;
+    context . y =: ( context . x ) ;
     temp =: context . y ; 
 } 
 ";
