@@ -8,18 +8,49 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Frontend._2_Parser
 {
+    // yep, it's a singleton
+    // relax tho, it is really readonly
+    public class Keywords {
+
+        public static Lazy<Keywords> Singleton = new Lazy<Keywords>(()=>new Keywords());
+
+        public readonly string Type;
+        public readonly IReadOnlyList<string> AllKeywords;
+
+        public Keywords()
+        {
+            var all = new List<string>();
+
+            Type = Add("Type");
+
+
+            AllKeywords = all;
+
+            string Add(string toAdd) {
+                all.Add(toAdd);
+                return toAdd;
+            }
+        }
+    }
+
     internal class NameMaker : IMaker<AtomicToken>
     {
         public ITokenMatching<AtomicToken> TryMake(ITokenMatching elementToken)
         {
             if (elementToken.Tokens.Any() &&
                 elementToken.Tokens.First() is AtomicToken first &&
-                !double.TryParse(first.Item, out var _))
+                !double.TryParse(first.Item, out var _) &&
+                IsNotKeyWord(first.Item))
             {
                 return TokenMatching<AtomicToken>.Match(elementToken.Tokens.Skip(1).ToArray(), elementToken.Context, first);
             }
             
             return TokenMatching<AtomicToken>.NotMatch(elementToken.Tokens, elementToken.Context);
+        }
+
+        private bool IsNotKeyWord(string item)
+        {
+            return !Keywords.Singleton.Value.AllKeywords.Contains(item);
         }
     }
 
@@ -279,69 +310,96 @@ namespace Tac.Frontend._2_Parser
         }
     }
 
-    internal class MatchOneMaker<T> : IMaker<T> {
-        private readonly IMaker<T> left, right;
+    internal class AndDoneMaker<T> : IMaker<T>
+    {
+        private readonly IMaker<T> backing;
 
-        public MatchOneMaker(IMaker<T> left, IMaker<T> right)
+        public AndDoneMaker(IMaker<T> backing)
         {
-            this.left = left ?? throw new ArgumentNullException(nameof(left));
-            this.right = right ?? throw new ArgumentNullException(nameof(right));
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
         public ITokenMatching<T> TryMake(ITokenMatching elementToken)
         {
-            var leftRes = left.TryMake(elementToken);
-            var rightRes = right.TryMake(elementToken);
+            var first = backing.TryMake(elementToken);
 
-            if (leftRes.HasValue && rightRes.HasValue) {
-                throw new Exception("both should not match");
+            if (first.IsNotMatch) {
+                return first;
             }
 
-            if (leftRes.HasValue) {
-                return leftRes;
+            var second = first.Has(new DoneMaker());
+
+            if (second.IsNotMatch) {
+                return TokenMatching<T>.NotMatch(second.Tokens,second.Context);
             }
 
-            if (rightRes.HasValue) {
-                return rightRes;
-            }
-
-            // the choice of left or right is meaningless 
-            return leftRes;
+            return TokenMatching<T>.Match(second.Tokens, second.Context, first.Value);
         }
     }
 
-    internal class MatchOneMaker : IMaker
-    {
-        private readonly IMaker left, right;
+    //internal class MatchOneMaker<T> : IMaker<T> {
+    //    private readonly IMaker<T> left, right;
 
-        public MatchOneMaker(IMaker left, IMaker right)
-        {
-            this.left = left ?? throw new ArgumentNullException(nameof(left));
-            this.right = right ?? throw new ArgumentNullException(nameof(right));
-        }
+    //    public MatchOneMaker(IMaker<T> left, IMaker<T> right)
+    //    {
+    //        this.left = left ?? throw new ArgumentNullException(nameof(left));
+    //        this.right = right ?? throw new ArgumentNullException(nameof(right));
+    //    }
 
-        public ITokenMatching TryMake(ITokenMatching elementToken)
-        {
-            var leftRes = left.TryMake(elementToken);
-            var rightRes = right.TryMake(elementToken);
+    //    public ITokenMatching<T> TryMake(ITokenMatching elementToken)
+    //    {
+    //        var leftRes = left.TryMake(elementToken);
+    //        var rightRes = right.TryMake(elementToken);
 
-            if (!leftRes.IsNotMatch && !rightRes.IsNotMatch)
-            {
-                throw new Exception("both should not match");
-            }
+    //        if (leftRes.HasValue && rightRes.HasValue) {
+    //            throw new Exception("both should not match");
+    //        }
 
-            if (!leftRes.IsNotMatch)
-            {
-                return leftRes;
-            }
+    //        if (leftRes.HasValue) {
+    //            return leftRes;
+    //        }
 
-            if (!rightRes.IsNotMatch)
-            {
-                return rightRes;
-            }
+    //        if (rightRes.HasValue) {
+    //            return rightRes;
+    //        }
 
-            // the choice of left or right is meaningless 
-            return leftRes;
-        }
-    }
+    //        // the choice of left or right is meaningless 
+    //        return leftRes;
+    //    }
+    //}
+
+    //internal class MatchOneMaker : IMaker
+    //{
+    //    private readonly IMaker left, right;
+
+    //    public MatchOneMaker(IMaker left, IMaker right)
+    //    {
+    //        this.left = left ?? throw new ArgumentNullException(nameof(left));
+    //        this.right = right ?? throw new ArgumentNullException(nameof(right));
+    //    }
+
+    //    public ITokenMatching TryMake(ITokenMatching elementToken)
+    //    {
+    //        var leftRes = left.TryMake(elementToken);
+    //        var rightRes = right.TryMake(elementToken);
+
+    //        if (!leftRes.IsNotMatch && !rightRes.IsNotMatch)
+    //        {
+    //            throw new Exception("both should not match");
+    //        }
+
+    //        if (!leftRes.IsNotMatch)
+    //        {
+    //            return leftRes;
+    //        }
+
+    //        if (!rightRes.IsNotMatch)
+    //        {
+    //            return rightRes;
+    //        }
+
+    //        // the choice of left or right is meaningless 
+    //        return leftRes;
+    //    }
+    //}
 }

@@ -166,7 +166,7 @@ namespace Tac.Parser
                 throw new Exception("unexpected token type");
             }).ToArray();
         }
-
+        
         #endregion
 
     }
@@ -219,6 +219,10 @@ namespace Tac.Parser
             return new TokenMatching<T>(tokens, false, context,value);
         }
 
+        // TODO this should not take tokens 
+        // and we should protect the tokens from being accessed on non-matched entries
+        // I want to encode tokens and matchedness in the type
+        // this is going to be a few types and interfaces with this static class that creates the real private inner classes
         public static TokenMatching<T> NotMatch(IEnumerable<IToken> tokens, ElementMatchingContext context)
         {
             return new TokenMatching<T>(tokens, true, context, default);
@@ -226,17 +230,29 @@ namespace Tac.Parser
 
     }
 
+    // this is a good api
+    // but it falls down a bit when you start working wiht hasSquare, hasLine, hasElement the out vars don't play nice with the method
+    // matchOne fails a bit too
+    // composing is hard because you are limited to a single return
+    
     internal static class ElementMatcher
     {
-   
+        public static ITokenMatching<T> GetValue<T>(this ITokenMatching<T> self, out T value) {
+            if (self.IsMatch) {
+                value = self.Value;
+                return self;
+            }
+            value = default;
+            return self;
+        }
 
-        public static ITokenMatching Has<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
+        public static ITokenMatching<T> Has<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
         {
             t = default;
 
             if (self.IsNotMatch)
             {
-                return self;
+                return TokenMatching<T>.NotMatch(self.Tokens,self.Context);
 
             }
 
@@ -246,8 +262,9 @@ namespace Tac.Parser
                 t = res.Value;
             }
             return res;
-
         }
+
+
 
         public static ITokenMatching HasSquare(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
         {
@@ -266,6 +283,41 @@ namespace Tac.Parser
             return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
         }
         
+        public static ITokenMatching<T> HasOne<T>(
+            this ITokenMatching self, 
+            Func<ITokenMatching, ITokenMatching<T>> first, 
+            Func<ITokenMatching, ITokenMatching<T>> second,
+            out T res)
+        {
+            if (self.IsNotMatch)
+            {
+                res = default;
+                return TokenMatching<T>.NotMatch(self.Tokens,self.Context);
+            }
+
+            var firstResult = first(self);
+            var secondResult = second(self);
+
+            if (firstResult.IsMatch && secondResult.IsMatch) {
+                throw new Exception("should not match both!");
+            }
+
+            if (firstResult.IsMatch) {
+                res = firstResult.Value;
+                return firstResult;
+            }
+
+            if (secondResult.IsMatch)
+            {
+                res = secondResult.Value;
+                return secondResult;
+            }
+
+            res = default;
+            return TokenMatching<T>.NotMatch(self.Tokens.Skip(1), self.Context);
+        }
+
+
         public static ITokenMatching HasLine(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
         {
             if (self.IsNotMatch)
@@ -302,6 +354,23 @@ namespace Tac.Parser
             }
 
             return TokenMatching<object>.NotMatch(self.Tokens.Skip(1), self.Context);
+        }
+
+
+        public static ITokenMatching<T> Has<T>(this ITokenMatching<T> self, IMaker pattern)
+        {
+            if (self.IsNotMatch)
+            {
+                return self;
+            }
+
+            var patternMatch = pattern.TryMake(self);
+
+            if (patternMatch.IsNotMatch) {
+                return TokenMatching<T>.NotMatch(patternMatch.Tokens, patternMatch.Context);
+            }
+
+            return TokenMatching<T>.Match(patternMatch.Tokens,patternMatch.Context, self.Value);
         }
 
         public static ITokenMatching Has(this ITokenMatching self, IMaker pattern)

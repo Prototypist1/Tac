@@ -58,8 +58,10 @@ namespace Tac.Semantic_Model
         {
             var matching = tokenMatching
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
-                .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out var type)
-                .Has(new NameMaker(), out AtomicToken nameToken);
+                .HasOne(w => w.Has(new TypeReferanceMaker(), out var _),
+                        w => w.Has(new TypeDefinitionMaker(), out var _),
+                        out var type)
+                .Has(new NameMaker(), out var nameToken);
             if (matching.IsMatch)
             {
                 return TokenMatching<IPopulateScope<WeakMemberReferance>>.Match(

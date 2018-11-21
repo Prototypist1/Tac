@@ -63,13 +63,21 @@ namespace Tac.Semantic_Model
                 .HasSquare(x => x
                     .HasLine(y => y
                         .HasElement(z=>z
-                            .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out input)
-                            .Has(new DoneMaker()))
+                            .HasOne( 
+                                w=>w.Has(new TypeReferanceMaker(),out var _)
+                                    .Has(new DoneMaker()),
+                                w=>w.Has(new TypeDefinitionMaker(), out var _)
+                                    .Has(new DoneMaker()),
+                                out input))
                          .Has(new DoneMaker()))
                     .HasLine(y => y
                         .HasElement(z => z
-                            .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out output)
-                            .Has(new DoneMaker()))
+                            .HasOne(
+                                w => w.Has(new TypeReferanceMaker(), out var _)
+                                    .Has(new DoneMaker()),
+                                w => w.Has(new TypeDefinitionMaker(), out var _)
+                                    .Has(new DoneMaker()),
+                                out output))
                         .Has(new DoneMaker()))
                     .Has(new DoneMaker()))
                 .OptionalHas(new NameMaker(), out var parameterName)
