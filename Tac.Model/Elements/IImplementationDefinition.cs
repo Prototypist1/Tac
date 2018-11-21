@@ -5,7 +5,7 @@ namespace Tac.Model.Elements
 {
     public interface IImplementationDefinition : ICodeElement, IVarifiableType
     {
-        IVarifiableType OutputType { get; }
+        ITypeReferance OutputType { get; }
         IMemberDefinition ContextDefinition { get; }
         IMemberDefinition ParameterDefinition { get; }
         IFinalizedScope Scope { get; }

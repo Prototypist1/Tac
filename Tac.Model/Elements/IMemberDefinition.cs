@@ -5,7 +5,7 @@ namespace Tac.Model.Elements
     public interface IMemberDefinition : ICodeElement, IVarifiableType
     {
         IKey Key { get; }
-        IVarifiableType Type { get; }
+        ITypeReferance Type { get; }
         bool ReadOnly { get; }
     }
 }

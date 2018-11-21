@@ -20,20 +20,20 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition: ICodeElement, IMemberDefinition, IVarifiableType
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, IBox<IVarifiableType> type)
+        public WeakMemberDefinition(bool readOnly, IKey key, WeakTypeReferance type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IBox<IVarifiableType> Type { get; }
+        public WeakTypeReferance Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
 
         #region IMemberDefinition
 
-        IVarifiableType IMemberDefinition.Type => Type.GetValue();
+        ITypeReferance IMemberDefinition.Type => Type;
 
         #endregion
         
@@ -58,14 +58,14 @@ namespace Tac.Semantic_Model
         {
             var matching = tokenMatching
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
-                .Has(new TypeMaker(), out NameKey typeToken)
+                .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out var type)
                 .Has(new NameMaker(), out AtomicToken nameToken);
             if (matching.IsMatch)
             {
                 return TokenMatching<IPopulateScope<WeakMemberReferance>>.Match(
                     matching.Tokens,
                     matching.Context,
-                    new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, typeToken));
+                    new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, type));
             }
             return TokenMatching<IPopulateScope<WeakMemberReferance>>.NotMatch(
                                matching.Tokens,
@@ -77,11 +77,11 @@ namespace Tac.Semantic_Model
     {
         private readonly string memberName;
         private readonly bool isReadonly;
-        private readonly NameKey typeName;
+        private readonly IPopulateScope<WeakTypeReferance> typeName;
         private readonly Box<WeakMemberReferance> box = new Box<WeakMemberReferance>();
         private readonly Box<WeakMemberDefinition> memberDefinitionBox = new Box<WeakMemberDefinition>();
 
-        public MemberDefinitionPopulateScope(string item, bool v, NameKey typeToken)
+        public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<WeakTypeReferance> typeToken)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             isReadonly = v;
@@ -95,7 +95,7 @@ namespace Tac.Semantic_Model
             {
                 throw new Exception("bad bad bad!");
             }
-            return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName, context.GetResolvableScope(), memberDefinitionBox);
+            return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName.Run(context), context.GetResolvableScope(), memberDefinitionBox);
         }
 
         public IBox<IVarifiableType> GetReturnType()
@@ -109,7 +109,7 @@ namespace Tac.Semantic_Model
         private readonly string memberName;
         private readonly Box<WeakMemberReferance> box;
         private readonly bool isReadonly;
-        public readonly NameKey typeName;
+        public readonly IPopulateBoxes<WeakTypeReferance> type;
         private readonly IResolvableScope scope;
         private readonly Box<WeakMemberDefinition> memberDefinitionBox;
 
@@ -117,14 +117,14 @@ namespace Tac.Semantic_Model
             string memberName,
             Box<WeakMemberReferance> box,
             bool isReadonly,
-            NameKey explicitTypeName,
+            IPopulateBoxes<WeakTypeReferance> type,
             IResolvableScope scope,
             Box<WeakMemberDefinition> memberDefinitionBox)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.isReadonly = isReadonly;
-            typeName = explicitTypeName ?? throw new ArgumentNullException(nameof(explicitTypeName));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
         }
@@ -135,10 +135,9 @@ namespace Tac.Semantic_Model
                 new WeakMemberDefinition(
                     isReadonly,
                     new NameKey(memberName),
-                    scope.GetTypeOrThrow(typeName)));
+                    type.Run(context)));
 
             return box.Fill(new WeakMemberReferance(memberDefinitionBox));
         }
     }
-    
 }
