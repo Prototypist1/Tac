@@ -113,7 +113,7 @@ namespace Tac.Semantic_Model
                 var lshtype = lhs.GetValue();
                 if (lshtype is WeakMemberDefinition memberDefinitions)
                 {
-                    lshtype = memberDefinitions.Type.GetValue();
+                    lshtype = memberDefinitions.Type.TypeDefinition.GetValue();
                 }
                 lshtype.Cast<IScoped>().Scope.TryGetMember(new NameKey(memberName),false, out var res);
                 return res.Cast<WeakMemberDefinition>();

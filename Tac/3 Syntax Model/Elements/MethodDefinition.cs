@@ -16,7 +16,7 @@ namespace Tac.Semantic_Model
     internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IMethodType, IMethodDefinition
     {
         public WeakMethodDefinition(
-            IBox<IVarifiableType> outputType, 
+            WeakTypeReferance outputType, 
             IBox<WeakMemberDefinition> parameterDefinition,
             ICodeElement[] body,
             IFinalizedScope scope,
@@ -26,14 +26,14 @@ namespace Tac.Semantic_Model
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
         
-        public IBox<IVarifiableType> InputType => ParameterDefinition.GetValue().Type;
-        public IBox<IVarifiableType> OutputType { get; }
+        public WeakTypeReferance InputType => ParameterDefinition.GetValue().Type;
+        public WeakTypeReferance OutputType { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
 
         #region IMethodDefinition
 
-        IVarifiableType IMethodDefinition.InputType => InputType.GetValue();
-        IVarifiableType IMethodDefinition.OutputType => OutputType.GetValue();
+        ITypeReferance IMethodDefinition.InputType => InputType;
+        ITypeReferance IMethodDefinition.OutputType => OutputType;
         IMemberDefinition IMethodDefinition.ParameterDefinition => ParameterDefinition.GetValue();
 
         #endregion
@@ -56,10 +56,13 @@ namespace Tac.Semantic_Model
 
         public ITokenMatching<IPopulateScope<WeakMethodDefinition>> TryMake(ITokenMatching tokenMatching)
         {
+            IPopulateScope<WeakTypeReferance> input = null, output = null;
             var matching = tokenMatching
                 .Has(new KeyWordMaker("method"), out var _)
-                .Has(new Generic2Maker(), out (AtomicToken inputType, AtomicToken outputType) types)
-                .OptionalHas(new NameMaker(), out var parameterName)
+                .HasSquare(x => x
+                    .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out input)
+                    .Has(new MatchOneMaker<IPopulateScope<WeakTypeReferance>>(new TypeReferanceMaker(), new TypeDefinitionMaker()), out output)
+                ).OptionalHas(new NameMaker(), out var parameterName)
                 .Has(new BodyMaker(), out var body);
             if (matching
                 .IsMatch)
@@ -69,17 +72,16 @@ namespace Tac.Semantic_Model
                 var parameterDefinition = new MemberDefinitionPopulateScope(
                         parameterName?.Item ?? "input",
                         false,
-                         new NameKey(types.inputType.Item)
+                        input
                         );
-                
-                var outputTypeName = new NameKey(types.outputType.Item);
                 
                 return TokenMatching<IPopulateScope<WeakMethodDefinition>>.Match(
                     matching.Tokens,
-                    matching.Context, new MethodDefinitionPopulateScope(
-                    parameterDefinition,
-                    elements, 
-                    outputTypeName));
+                    matching.Context, 
+                    new MethodDefinitionPopulateScope(
+                        parameterDefinition,
+                        elements, 
+                        output));
             }
 
             return TokenMatching<IPopulateScope<WeakMethodDefinition>>.NotMatch(
@@ -92,18 +94,18 @@ namespace Tac.Semantic_Model
     {
         private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly NameKey outputTypeName;
+        private readonly IPopulateScope<WeakTypeReferance> output;
         private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public MethodDefinitionPopulateScope(
             IPopulateScope<WeakMemberReferance> parameterDefinition,
-            IPopulateScope<ICodeElement>[] elements, 
-            NameKey outputTypeName
+            IPopulateScope<ICodeElement>[] elements,
+            IPopulateScope<WeakTypeReferance> output
             )
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-            this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+            this.output = output ?? throw new ArgumentNullException(nameof(output));
 
         }
 
@@ -120,7 +122,7 @@ namespace Tac.Semantic_Model
                 parameterDefinition.Run(nextContext),
                 nextContext.GetResolvableScope(), 
                 elements.Select(x => x.Run(nextContext)).ToArray(), 
-                outputTypeName, 
+                output.Run(context), 
                 box);
         }
     }
@@ -130,20 +132,20 @@ namespace Tac.Semantic_Model
         private readonly IPopulateBoxes<WeakMemberReferance> parameter;
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<ICodeElement>[] lines;
-        private readonly NameKey outputTypeName;
+        private readonly IPopulateBoxes<WeakTypeReferance> output;
         private readonly Box<IVarifiableType> box;
 
         public MethodDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReferance> parameter, 
             IResolvableScope methodScope, 
-            IPopulateBoxes<ICodeElement>[] resolveReferance2, 
-            NameKey outputTypeName,
+            IPopulateBoxes<ICodeElement>[] resolveReferance2,
+            IPopulateBoxes<WeakTypeReferance> output,
             Box<IVarifiableType> box)
         {
             this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
             lines = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-            this.outputTypeName = outputTypeName ?? throw new ArgumentNullException(nameof(outputTypeName));
+            this.output = output ?? throw new ArgumentNullException(nameof(output));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
@@ -151,7 +153,7 @@ namespace Tac.Semantic_Model
         {
             return box.Fill(
                 new WeakMethodDefinition(
-                    methodScope.GetTypeOrThrow(outputTypeName),
+                    output.Run(context),
                     parameter.Run(context).MemberDefinition, 
                     lines.Select(x => x.Run(context)).ToArray(),
                     methodScope.GetFinalized(),

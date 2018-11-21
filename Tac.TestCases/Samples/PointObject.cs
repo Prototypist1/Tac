@@ -23,9 +23,9 @@ namespace Tac.Tests.Samples
             get
             {
                 var keyX = new NameKey("x");
-                var localX = new TestMemberDefinition(keyX,new TestAnyType(), false);
+                var localX = new TestMemberDefinition(keyX, new TestTypeReferance(new TestAnyType()), false);
                 var keyY = new NameKey("y");
-                var localY = new TestMemberDefinition(keyY, new TestAnyType(), false);
+                var localY = new TestMemberDefinition(keyY, new TestTypeReferance(new TestAnyType()), false);
                                 
                 return new ICodeElement[] {
                     new TestObjectDefiniton(

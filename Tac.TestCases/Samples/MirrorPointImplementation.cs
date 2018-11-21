@@ -26,32 +26,32 @@ implementation [ type { x ; y ; } ; empty ; empty ] context input {
             get
             {
                 var keyX = new NameKey("x");
-                var localX = new TestMemberDefinition(keyX, new TestAnyType(), false);
+                var localX = new TestMemberDefinition(keyX, new TestTypeReferance(new TestAnyType()), false);
 
                 var keyY = new NameKey("y");
-                var localY = new TestMemberDefinition(keyY, new TestAnyType(), false);
+                var localY = new TestMemberDefinition(keyY, new TestTypeReferance(new TestAnyType()), false);
                 
                 var contextKey = new NameKey("context");
                 
-                var context = new TestMemberDefinition(contextKey, new TestInterfaceType(
+                var context = new TestMemberDefinition(contextKey, new TestTypeReferance(new TestInterfaceType(
                     new FinalizedScope(new Dictionary<IKey, IMemberDefinition>() {
                         { keyX, localX },
                         { keyY, localY },
                     })
-                    ), false); ;
+                    )), false); ;
 
                 var inputKey = new NameKey("input");
-                var input  = new TestMemberDefinition(inputKey, new TestEmptyType(), false);
+                var input  = new TestMemberDefinition(inputKey, new TestTypeReferance(new TestEmptyType()), false);
 
                 var tempKey= new NameKey("temp");
-                var temp = new TestMemberDefinition(tempKey, new TestNumberType(), false);
+                var temp = new TestMemberDefinition(tempKey, new TestTypeReferance(new TestNumberType()), false);
 
                 var implementationScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> {
                     { inputKey, input },{ contextKey, context },{ tempKey, temp } });
 
 
                 var implementation = new TestImplementationDefinition(
-                    new TestEmptyType(),
+                    new TestTypeReferance(new TestEmptyType()),
                     context,
                     input,
                     implementationScope,

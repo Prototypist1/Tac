@@ -50,7 +50,14 @@ namespace Tac.Semantic_Model
         {
             var nameKey = new NameKey(memberName);
             if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) && 
-                !context.Scope.TryAddMember(DefintionLifetime.Instance,nameKey, new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,nameKey,new Box<IVarifiableType>(new AnyType())))))
+                !context.Scope.TryAddMember(
+                    DefintionLifetime.Instance,
+                    nameKey, 
+                    new Box<WeakMemberDefinition>(
+                        new WeakMemberDefinition(
+                            false,
+                            nameKey,
+                            new WeakTypeReferance( new Box<IVarifiableType>(new AnyType()))))))
             {
                 throw new Exception("uhh that is not right");
             }

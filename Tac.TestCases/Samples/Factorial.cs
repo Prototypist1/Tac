@@ -18,10 +18,10 @@ namespace Tac.Tests.Samples
             var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
 
             var inputKey = new NameKey("input");
-            var input = new TestMemberDefinition(inputKey, new TestNumberType(), false);
+            var input = new TestMemberDefinition(inputKey, new TestTypeReferance(new TestNumberType()), false);
 
             var facKey = new NameKey("fac");
-            var fac = new TestMemberDefinition(facKey, new TestMethodType(), false);
+            var fac = new TestMemberDefinition(facKey, new TestTypeReferance(new TestMethodType()), false);
 
 
             var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } });
@@ -60,7 +60,7 @@ namespace Tac.Tests.Samples
                         new ICodeElement[0]);
 
             CodeElements= new ICodeElement[] {method ,};
-            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition>{{facKey,new TestMemberDefinition(facKey, method,false) }});
+            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition>{{facKey,new TestMemberDefinition(facKey, new TestTypeReferance(method),false) }});
         }
 
         public string Text

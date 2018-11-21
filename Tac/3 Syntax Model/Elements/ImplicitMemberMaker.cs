@@ -100,7 +100,7 @@ namespace Tac.Semantic_Model
            return box.Fill(
                 new WeakMemberReferance(
                     new Box<WeakMemberDefinition>(
-                        new WeakMemberDefinition(false, new NameKey(memberName), type))));
+                        new WeakMemberDefinition(false, new NameKey(memberName), new WeakTypeReferance(type)))));
         }
     }
 }

@@ -55,7 +55,7 @@ namespace Tac.Tests
             var stack = new NewScope();
             foreach (var key in sample.Scope.MemberKeys)
             {
-                if (sample.Scope.TryGetMember(key, false, out var meber)){
+                if (sample.Scope.TryGetMember(key, false, out var member)){
                     stack.TryAddMember(
                         DefintionLifetime.Instance, 
                         key, 
@@ -63,7 +63,7 @@ namespace Tac.Tests
                             new WeakMemberDefinition(
                                 false, 
                                 key, 
-                                new Box<IVarifiableType>(meber.Type))));
+                                new WeakTypeReferance(new Box<IVarifiableType>(member.Type)))));
                 }
                 else {
                     throw new Exception();
