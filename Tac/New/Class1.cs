@@ -59,7 +59,7 @@ namespace Tac.New
 
     internal interface IMaker<out TCodeElement>
     {
-        ITokenMatching<TCodeElement> TryMake(ITokenMatching elementToken);
+        ITokenMatching<TCodeElement> TryMake(IMatchedTokenMatching elementToken);
     }
     
 

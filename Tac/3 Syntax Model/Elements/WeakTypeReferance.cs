@@ -41,21 +41,19 @@ namespace Tac.Semantic_Model
         {
         }
 
-        public ITokenMatching<IPopulateScope<WeakTypeReferance>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakTypeReferance>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new NameMaker(), out var typeName);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakTypeReferance>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new TypeReferancePopulateScope(new NameKey(typeName.Item)));
             }
 
-            return TokenMatching<IPopulateScope<WeakTypeReferance>>.NotMatch(
-                    matching.Tokens,
-                    matching.Context);
+            return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeNotMatch(matching.Context);
         }
     }
 
