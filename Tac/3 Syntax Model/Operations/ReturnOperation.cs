@@ -61,23 +61,22 @@ namespace Tac.Semantic_Model.Operations
         public ISymbols Name { get; }
         private TrailingOperation.Make<T> Make { get; }
 
-        public ITokenMatching<IPopulateScope<T>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<T>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             
 
             var matching = tokenMatching
                 .Has(new TrailingOperationMatcher(Name.Symbols), out (IEnumerable<IToken> perface, AtomicToken _) res);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(res.perface);
                 
-                return TokenMatching<IPopulateScope<T>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<T>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new TrailingPopulateScope<T>(left,Make));
             }
-            return TokenMatching<IPopulateScope<T>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<T>>.MakeNotMatch(
                     matching.Context);
         }
         

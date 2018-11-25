@@ -65,9 +65,12 @@ namespace Tac.Frontend._2_Parser
             {
                 var at = TokenMatching<NameKey>.MakeStart(self.Tokens.Skip(1), self.Context);
                 var match = new GenericNMaker().TryMake(at);
-                if (match.HasValue)
+                if (match is IMatchedTokenMatching<NameKey> mathced)
                 {
-                    return TokenMatching<NameKey>.MakeMatch(self.Tokens.Skip(2).ToArray(), self.Context, new GenericNameKey(new NameKey(first.Item), match.Value));
+                    return TokenMatching<NameKey>.MakeMatch(
+                        self.Tokens.Skip(2).ToArray(), 
+                        self.Context, 
+                        new GenericNameKey(new NameKey(first.Item), mathced.Value));
                 }
                 
                 return TokenMatching<NameKey>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, new NameKey(first.Item));
@@ -94,13 +97,12 @@ namespace Tac.Frontend._2_Parser
 
     internal class DoneMaker : IMaker
     {
-        public ITokenMatching TryMake(IMatchedTokenMatching self)
+        public ITokenMatching TryMake(ITokenMatching self)
         {
-            if (!self.Tokens.Any())
-            {
+            if (self is IMatchedTokenMatching matched && !matched.Tokens.Any()) {
                 return self;
             }
-
+            
             // smells a little... <object>
             return TokenMatching<object>.MakeNotMatch(self.Context);
         }
@@ -118,7 +120,7 @@ namespace Tac.Frontend._2_Parser
                 return TokenMatching< CurleyBracketToken>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, first);
             }
             
-            return TokenMatching<CurleyBracketToken>.MakeNotMatch(self.Tokens, self.Context);
+            return TokenMatching<CurleyBracketToken>.MakeNotMatch(self.Context);
         }
     }
 
@@ -149,7 +151,7 @@ namespace Tac.Frontend._2_Parser
                 return TokenMatching<(AtomicToken, AtomicToken, AtomicToken)>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, (firstType,secondType,thirdType));
             }
             
-            return TokenMatching<(AtomicToken, AtomicToken, AtomicToken)>.MakeNotMatch(self.Tokens, self.Context);
+            return TokenMatching<(AtomicToken, AtomicToken, AtomicToken)>.MakeNotMatch(self.Context);
 
         }
     }
@@ -323,17 +325,17 @@ namespace Tac.Frontend._2_Parser
         {
             var first = backing.TryMake(elementToken);
 
-            if (first.IsNotMatch) {
+            if (!(first is IMatchedTokenMatching<T> firstMatching)) {
                 return first;
             }
 
             var second = first.Has(new DoneMaker());
 
-            if (second.IsNotMatch) {
-                return TokenMatching<T>.MakeNotMatch(second.Context);
+            if (second is IMatchedTokenMatching secondMatching) {
+                return TokenMatching<T>.MakeMatch(secondMatching.Tokens, second.Context, firstMatching.Value);
             }
 
-            return TokenMatching<T>.MakeMatch(second.Tokens, second.Context, first.Value);
+            return TokenMatching<T>.MakeNotMatch(second.Context);
         }
     }
 

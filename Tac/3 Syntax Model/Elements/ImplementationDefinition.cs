@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakImplementationDefinition>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakImplementationDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             IPopulateScope<WeakTypeReferance> context= null, input = null, output = null;
 
@@ -118,7 +118,7 @@ namespace Tac.Semantic_Model
                 .OptionalHas(new NameMaker(), out AtomicToken contextName)
                 .OptionalHas(new NameMaker(), out AtomicToken parameterName)
                 .Has(new BodyMaker(), out CurleyBracketToken body);
-            if (match.IsMatch)
+            if (match is IMatchedTokenMatching matched)
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
                 
@@ -136,9 +136,9 @@ namespace Tac.Semantic_Model
                         input
                         );
                 
-                return TokenMatching<IPopulateScope<WeakImplementationDefinition>>.Match(
-                    match.Tokens,
-                    match.Context,
+                return TokenMatching<IPopulateScope<WeakImplementationDefinition>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context,
                     new PopulateScopeImplementationDefinition(
                         contextDefinition, 
                         parameterDefinition, 
@@ -147,9 +147,7 @@ namespace Tac.Semantic_Model
             }
 
 
-            return TokenMatching<IPopulateScope<WeakImplementationDefinition>>.NotMatch(
-                    match.Tokens,
-                    match.Context);
+            return TokenMatching<IPopulateScope<WeakImplementationDefinition>>.MakeNotMatch(match.Context);
         }
     }
 

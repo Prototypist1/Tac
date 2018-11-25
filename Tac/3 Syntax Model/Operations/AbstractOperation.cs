@@ -75,23 +75,22 @@ namespace Tac.Semantic_Model.CodeStuff
         public ISymbols Name { get; }
         private BinaryOperation.Make<TCodeElement> Make { get; }
 
-        public ITokenMatching<IPopulateScope<TCodeElement>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<TCodeElement>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(Name.Symbols), out (IEnumerable<IToken> perface, AtomicToken token, IToken rhs) match);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElement(match.rhs);
 
-                return TokenMatching<IPopulateScope<TCodeElement>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<TCodeElement>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new BinaryPopulateScope<TCodeElement>(left, right, Make));
             }
 
-            return TokenMatching<IPopulateScope<TCodeElement>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<TCodeElement>>.MakeNotMatch(
                     matching.Context);
         }
 

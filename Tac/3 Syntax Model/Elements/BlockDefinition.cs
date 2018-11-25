@@ -38,18 +38,20 @@ namespace Tac.Semantic_Model
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakBlockDefinition>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakBlockDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            if (tokenMatching
-               .Has(new BodyMaker(), out var body)
-               .IsMatch)
+            var match = tokenMatching
+               .Has(new BodyMaker(), out var body);
+
+            if (match is IMatchedTokenMatching
+               matched)
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
 
-                return TokenMatching<IPopulateScope<WeakBlockDefinition>>.Match(tokenMatching.Tokens.Skip(1), tokenMatching.Context, new BlockDefinitionPopulateScope(elements));
+                return TokenMatching<IPopulateScope<WeakBlockDefinition>>.MakeMatch(matched.Tokens.Skip(1), matched.Context, new BlockDefinitionPopulateScope(elements));
             }
 
-            return TokenMatching<IPopulateScope<WeakBlockDefinition>>.NotMatch(tokenMatching.Tokens, tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakBlockDefinition>>.MakeNotMatch(tokenMatching.Context);
         }
     }
     

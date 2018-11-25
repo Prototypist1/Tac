@@ -54,7 +54,7 @@ namespace Tac.Semantic_Model
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
@@ -62,15 +62,14 @@ namespace Tac.Semantic_Model
                         w => w.Has(new TypeDefinitionMaker(), out var _),
                         out var type)
                 .Has(new NameMaker(), out var nameToken);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakMemberReferance>>.Match(
-                    matching.Tokens,
-                    matching.Context,
+                return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context,
                     new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, type));
             }
-            return TokenMatching<IPopulateScope<WeakMemberReferance>>.NotMatch(
-                               matching.Tokens,
+            return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeNotMatch(
                                matching.Context);
         }
     }

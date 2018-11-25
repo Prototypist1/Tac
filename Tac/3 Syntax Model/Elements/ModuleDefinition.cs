@@ -56,25 +56,24 @@ namespace Tac.Semantic_Model
         }
         
 
-        public ITokenMatching<IPopulateScope<WeakModuleDefinition>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakModuleDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("module"), out var frist)
                 .Has(new NameMaker(), out var name)
                 .Has(new BodyMaker(), out var third);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
                 var elements = matching.Context.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
 
-                return TokenMatching<IPopulateScope<WeakModuleDefinition>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<WeakModuleDefinition>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new ModuleDefinitionPopulateScope(elements, nameKey));
 
             }
-            return TokenMatching<IPopulateScope<WeakModuleDefinition>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<WeakModuleDefinition>>.MakeNotMatch(
                     matching.Context);
         }
     }

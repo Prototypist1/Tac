@@ -44,15 +44,17 @@ namespace Tac.Semantic_Model.Operations
     {
         public ConstantNumberMaker() {}
 
-        public ITokenMatching<IPopulateScope<WeakConstantNumber>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakConstantNumber>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            if (tokenMatching
-                .Has(new NumberMaker(), out var dub)
-                .IsMatch)
+            var match = tokenMatching
+                .Has(new NumberMaker(), out var dub);
+
+            if (match
+                 is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakConstantNumber>>.Match(tokenMatching.Tokens.Skip(1), tokenMatching.Context, new ConstantNumberPopulateScope(dub));
+                return TokenMatching<IPopulateScope<WeakConstantNumber>>.MakeMatch(matched.Tokens.Skip(1), matched.Context, new ConstantNumberPopulateScope(dub));
             }
-            return TokenMatching<IPopulateScope<WeakConstantNumber>>.NotMatch(tokenMatching.Tokens, tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakConstantNumber>>.MakeNotMatch(tokenMatching.Context);
         }
     }
 

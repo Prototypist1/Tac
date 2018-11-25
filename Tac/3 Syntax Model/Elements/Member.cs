@@ -14,19 +14,18 @@ namespace Tac.Semantic_Model
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new NameMaker(), out var first);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakMemberReferance>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new MemberPopulateScope(first.Item)); ;
             }
-            return TokenMatching<IPopulateScope<WeakMemberReferance>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeNotMatch(
                     matching.Context);
         }
     }

@@ -37,23 +37,22 @@ namespace Tac.Semantic_Model.Operations
     
     internal class PathOperationMaker : IMaker<IPopulateScope<WeakPathOperation>>
     {
-        public ITokenMatching<IPopulateScope<WeakPathOperation>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakPathOperation>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(new PathSymbols().Symbols), out (IEnumerable<IToken> perface, AtomicToken token, IToken rhs) res);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(res.perface);
                 var right = matching.Context.ExpectPathPart(left.GetReturnType()).ParseParenthesisOrElement(res.rhs);
 
-                return TokenMatching<IPopulateScope<WeakPathOperation>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> new WeakPathOperation(l,r)));
             }
 
-            return TokenMatching<IPopulateScope<WeakPathOperation>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeNotMatch(
                     matching.Context);
         }
     }

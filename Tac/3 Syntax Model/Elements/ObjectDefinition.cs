@@ -62,23 +62,22 @@ namespace Tac.Semantic_Model
         {
         }
 
-        public ITokenMatching<IPopulateScope<WeakObjectDefinition>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakObjectDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("object"), out var keyword)
                 .Has(new BodyMaker(), out var block);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
 
                 var elements = tokenMatching.Context.ParseBlock(block);
                 
-                return TokenMatching<IPopulateScope<WeakObjectDefinition>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<WeakObjectDefinition>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new ObjectDefinitionPopulateScope(elements));
             }
-            return TokenMatching<IPopulateScope<WeakObjectDefinition>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<WeakObjectDefinition>>.MakeNotMatch(
                     matching.Context);
         }
     }

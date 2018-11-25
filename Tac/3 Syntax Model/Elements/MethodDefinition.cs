@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model
         }
         
 
-        public ITokenMatching<IPopulateScope<WeakMethodDefinition>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMethodDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             IPopulateScope<WeakTypeReferance> input = null, output = null;
             var matching = tokenMatching
@@ -83,7 +83,7 @@ namespace Tac.Semantic_Model
                 .OptionalHas(new NameMaker(), out var parameterName)
                 .Has(new BodyMaker(), out var body);
             if (matching
-                .IsMatch)
+                 is IMatchedTokenMatching matched)
             {
                 var elements = matching.Context.ParseBlock(body);
                 
@@ -93,17 +93,16 @@ namespace Tac.Semantic_Model
                         input
                         );
                 
-                return TokenMatching<IPopulateScope<WeakMethodDefinition>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new MethodDefinitionPopulateScope(
                         parameterDefinition,
                         elements, 
                         output));
             }
 
-            return TokenMatching<IPopulateScope<WeakMethodDefinition>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeNotMatch(
                     matching.Context);
         }
     }

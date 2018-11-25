@@ -116,26 +116,25 @@ namespace Tac.Semantic_Model
         {
         }
 
-        public ITokenMatching<IPopulateScope<WeakGenericTypeDefinition>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakGenericTypeDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
                 .Has(new DefineGenericNMaker(), out AtomicToken[] genericTypes)
                 .Has(new NameMaker(), out AtomicToken typeName)
                 .Has(new BodyMaker(), out CurleyBracketToken body);
-            if (matching.IsMatch)
+            if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.Match(
-                    matching.Tokens,
-                    matching.Context,
+                return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context,
                     new GenericTypeDefinitionPopulateScope(
                         new NameKey(typeName.Item),
                         tokenMatching.Context.ParseBlock(body),
                         genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray()));
             }
 
-            return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeNotMatch(
                     matching.Context);
         }
 

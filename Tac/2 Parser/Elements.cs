@@ -274,12 +274,12 @@ namespace Tac.Parser
         {
             t = default;
 
-            if (! (self is IMatchedTokenMatching))
+            if (! (self is IMatchedTokenMatching firstMatched))
             {
                 return TokenMatching<T>.MakeNotMatch(self.Context);
             }
 
-            var res = pattern.TryMake(self);
+            var res = pattern.TryMake(firstMatched);
             if (res is IMatchedTokenMatching<T> matched)
             {
                 t = matched.Value;
@@ -419,7 +419,7 @@ namespace Tac.Parser
                 return self;
             }
 
-            var res = pattern.TryMake(self);
+            var res = pattern.TryMake(matchedTokenMatching);
             if (res is IMatchedTokenMatching<T> matched)
             {
                 t = matched.Value;

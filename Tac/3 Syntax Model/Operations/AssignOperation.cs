@@ -41,26 +41,25 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakAssignOperation>> TryMake(ITokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakAssignOperation>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
             var matching = tokenMatching
             .Has(new BinaryOperationMatcher(new AssignSymbols().Symbols), out (IEnumerable<IToken> perface, AtomicToken token, IToken rhs) res);
 
             if (matching
-                .IsMatch)
+                 is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(res.perface);
                 var right = matching.Context.AcceptImplicit(left.GetReturnType()).ParseParenthesisOrElement(res.rhs);
 
-                return TokenMatching<IPopulateScope<WeakAssignOperation>>.Match(
-                    matching.Tokens,
-                    matching.Context, 
+                return TokenMatching<IPopulateScope<WeakAssignOperation>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context, 
                     new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r)=>new WeakAssignOperation(l,r)));
             }
 
-            return TokenMatching<IPopulateScope<WeakAssignOperation>>.NotMatch(
-                    matching.Tokens,
+            return TokenMatching<IPopulateScope<WeakAssignOperation>>.MakeNotMatch(
                     matching.Context);
         }
         
