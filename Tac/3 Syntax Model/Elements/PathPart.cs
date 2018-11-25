@@ -110,17 +110,15 @@ namespace Tac.Semantic_Model
             box.Set(() =>
             {
                 var lshtype = lhs.GetValue();
-                if (lshtype is WeakMemberDefinition memberDefinitions)
-                {
-                    lshtype = memberDefinitions.Type.TypeDefinition.GetValue();
+                if (lshtype is WeakMemberReferance memberReferance && 
+                    memberReferance.MemberDefinition.GetValue().Type.TypeDefinition.GetValue() is IInterfaceType interfaceType &&
+                    interfaceType.Scope.TryGetMember(new NameKey(memberName), false, out var res)
+                ){
+                    return res.Cast<WeakMemberDefinition>();
                 }
-                lshtype.Cast<IScoped>().Scope.TryGetMember(new NameKey(memberName),false, out var res);
-                return res.Cast<WeakMemberDefinition>();
+                throw new Exception("something not right");
             });
-
             return new WeakMemberReferance(box);
-        }
-        
+        }   
     }
-    
 }

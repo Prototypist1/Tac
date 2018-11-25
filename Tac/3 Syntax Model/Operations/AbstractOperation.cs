@@ -78,7 +78,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public ITokenMatching<IPopulateScope<TCodeElement>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(Name.Symbols), out (IEnumerable<IToken> perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(Name.Symbols), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(match.perface);

@@ -63,7 +63,7 @@ namespace Tac.Frontend._2_Parser
                 self.Tokens.First() is AtomicToken first &&
                 !double.TryParse(first.Item, out var _))
             {
-                var at = TokenMatching<NameKey>.MakeStart(self.Tokens.Skip(1), self.Context);
+                var at = TokenMatching<NameKey>.MakeStart(self.Tokens.Skip(1).ToArray(), self.Context);
                 var match = new GenericNMaker().TryMake(at);
                 if (match is IMatchedTokenMatching<NameKey> mathced)
                 {
@@ -236,7 +236,7 @@ namespace Tac.Frontend._2_Parser
         }
     }
 
-    internal class BinaryOperationMatcher : IMaker<(IEnumerable<IToken>, AtomicToken, IToken)>
+    internal class BinaryOperationMatcher : IMaker<(IReadOnlyList<IToken>, AtomicToken, IToken)>
     {
         private readonly string s;
 
@@ -245,7 +245,7 @@ namespace Tac.Frontend._2_Parser
             this.s = s ?? throw new ArgumentNullException(nameof(s));
         }
 
-        public ITokenMatching<(IEnumerable<IToken>, AtomicToken, IToken)> TryMake(IMatchedTokenMatching elementMatching)
+        public ITokenMatching<(IReadOnlyList<IToken>, AtomicToken, IToken)> TryMake(IMatchedTokenMatching elementMatching)
         {
             if (elementMatching.Tokens.Any() &&
                             (elementMatching.Tokens.Last() is ParenthesisToken ||
@@ -260,12 +260,12 @@ namespace Tac.Frontend._2_Parser
                     at.Tokens.Last() is AtomicToken op &&
                     op.Item == s)
                 {
-                    var preface = at.Tokens.Take(at.Tokens.Count() - 1);
-                    return TokenMatching<(IEnumerable<IToken>, AtomicToken, IToken)>.MakeMatch(preface, elementMatching.Context, (at.Tokens.Take(at.Tokens.Count() - 1), op, right));
+                    var preface = at.Tokens.Take(at.Tokens.Count() - 1).ToArray();
+                    return TokenMatching<(IReadOnlyList<IToken>, AtomicToken, IToken)>.MakeMatch(preface, elementMatching.Context, (at.Tokens.Take(at.Tokens.Count() - 1).ToArray(), op, right));
                 }
             }
             
-            return TokenMatching<(IEnumerable<IToken>, AtomicToken, IToken)>.MakeNotMatch(elementMatching.Context);
+            return TokenMatching<(IReadOnlyList<IToken>, AtomicToken, IToken)>.MakeNotMatch(elementMatching.Context);
         }
     }
     

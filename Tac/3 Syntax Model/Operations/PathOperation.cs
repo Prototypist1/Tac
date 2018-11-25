@@ -40,7 +40,7 @@ namespace Tac.Semantic_Model.Operations
         public ITokenMatching<IPopulateScope<WeakPathOperation>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(new PathSymbols().Symbols), out (IEnumerable<IToken> perface, AtomicToken token, IToken rhs) res);
+                .Has(new BinaryOperationMatcher(new PathSymbols().Symbols), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) res);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(res.perface);

@@ -134,7 +134,7 @@ namespace Tac.Parser
         {
             foreach (var operationMatcher in operationMatchers)
             {
-                if (TokenMatching<IPopulateScope<ICodeElement>>.MakeStart(tokens, this)
+                if (TokenMatching<IPopulateScope<ICodeElement>>.MakeStart(tokens.ToArray(), this)
                         .Has(operationMatcher, out IPopulateScope<ICodeElement> res)
                          is IMatchedTokenMatching)
                 {
@@ -184,7 +184,7 @@ namespace Tac.Parser
 
     internal interface IMatchedTokenMatching: ITokenMatching
     {
-        IEnumerable<IToken> Tokens { get; }
+        IReadOnlyList<IToken> Tokens { get; }
     }
 
     internal interface IMatchedTokenMatching<out T> : ITokenMatching<T>, IMatchedTokenMatching
@@ -197,14 +197,14 @@ namespace Tac.Parser
 
         private class Matched : IMatchedTokenMatching<T>
         {
-            public Matched(IEnumerable<IToken> tokens, ElementMatchingContext context, T value)
+            public Matched(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T value)
             {
                 Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
                 Context = context ?? throw new ArgumentNullException(nameof(context));
                 Value = value;
             }
 
-            public IEnumerable<IToken> Tokens
+            public IReadOnlyList<IToken> Tokens
             {
                 get;
             }
@@ -233,12 +233,12 @@ namespace Tac.Parser
             }
         }
         
-        public static IMatchedTokenMatching<T> MakeStart(IEnumerable<IToken> tokens, ElementMatchingContext context)
+        public static IMatchedTokenMatching<T> MakeStart(IReadOnlyList<IToken> tokens, ElementMatchingContext context)
         {
             return new Matched(tokens, context, default);
         }
 
-        public static IMatchedTokenMatching<T> MakeMatch(IEnumerable<IToken> tokens, ElementMatchingContext context, T value)
+        public static IMatchedTokenMatching<T> MakeMatch(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T value)
         {
             return new Matched(tokens, context,value);
         }
@@ -299,7 +299,7 @@ namespace Tac.Parser
             if (matchedTokenMatching.Tokens.First() is SquareBacketToken squareBacketToken)
             {
                 if (inner(TokenMatching<object>.MakeStart(squareBacketToken.Tokens, self.Context)) is IMatchedTokenMatching) {
-                    return TokenMatching<object>.MakeStart(matchedTokenMatching.Tokens.Skip(1), self.Context);
+                    return TokenMatching<object>.MakeStart(matchedTokenMatching.Tokens.Skip(1).ToArray(), self.Context);
                 };
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
@@ -353,7 +353,7 @@ namespace Tac.Parser
             {
                 if (inner(TokenMatching<object>.MakeStart(line.Tokens, self.Context)) is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<object>.MakeStart(matched.Tokens.Skip(1), self.Context);
+                    return TokenMatching<object>.MakeStart(matchedTokenMatching.Tokens.Skip(1).ToArray(), self.Context);
                 };
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
@@ -372,7 +372,7 @@ namespace Tac.Parser
             {
                 if (inner(TokenMatching<object>.MakeStart(elementToken.Tokens, self.Context)) is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<object>.MakeStart(matched.Tokens.Skip(1), self.Context);
+                    return TokenMatching<object>.MakeStart(matched.Tokens.Skip(1).ToArray(), self.Context);
                 };
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
