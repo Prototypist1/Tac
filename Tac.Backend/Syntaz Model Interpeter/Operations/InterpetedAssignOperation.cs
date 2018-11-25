@@ -8,7 +8,21 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var res = interpetedContext.GetMember(Right.Interpet(interpetedContext).Get().Cast<InterpetedMemberDefinition>().Key);
+            InterpetedMember GetMember()
+            {
+                var rightRes = Right.Interpet(interpetedContext).Get();
+                if (rightRes is InterpetedMember innerMember)
+                {
+                    return innerMember;
+                }
+                if (rightRes is InterpetedMemberDefinition interpetedMemberDefinition)
+                {
+                    return interpetedContext.GetMember(interpetedMemberDefinition.Key);
+                }
+                throw new Exception("PoS");
+            }
+
+            var res = GetMember();  
 
             res.Value = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>(interpetedContext);
             return InterpetedResult.Create(res);

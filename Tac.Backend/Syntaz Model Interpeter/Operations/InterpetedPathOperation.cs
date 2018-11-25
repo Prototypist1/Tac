@@ -7,42 +7,27 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            var scope = Left.Interpet(interpetedContext).Cast<InterpetedMember>().Value.Cast<IInterpetedScope>();
 
-            // I think not call Interpet on Right is a smell
-            // that said, InterpetedMemberReferance does different things in different contexts
+            IInterpetedScope ToMember()
+            {
+                var leftResult = Left.Interpet(interpetedContext).Get();
+                if (Left is IInterpetedScope innerScope) {
+                    return innerScope;
+                }
+                if (leftResult is InterpetedMember member)
+                {
+                    return member.Value.Cast<IInterpetedScope>();
+                    }
+                if (leftResult is InterpetedMemberDefinition interpetedMemberDefinition)
+                {
+                    return interpetedContext.GetMember(interpetedMemberDefinition.Key).Value.Cast<IInterpetedScope>();
+                }
+                throw new Exception();
+            }
 
-            // x := 5       we want x to end up being a member so we can set it
-            // x + 3        we want x to be evaulated all the way down to a 5
-            // this . x     we just want the referance so we can look in this 
-
-            // maybe the above somehow asks for what it wants?
-
-            // maybe it is the callers job to manage
-            // x returns a member referance
-            // and the consumer resolves that to what it needs
-
-            // so member definition (int x) returns a member object
-            // and member referance (x) returns a member definition
-            // 
-            // these are both used by assign
-            //
-            // int x := 5
-            // x := 5
-            // 
-            // AssignOperation wants a member, and does not put it in the context at all
-            // this is fair, it would not know where to put it
-            //
-            // what a mess
-            //
-            //
-            // TODO you are here 
-            //
-            // so:
-            // 1 - caller should handle whatever type it gets
-            // 2 - member definiton and member refereance should both return member definition
+            var scope = ToMember();
             
-            return InterpetedResult.Create(scope.GetMember(Right.Interpet(interpetedContext).Cast<InterpetedMemberDefinition>().Key));
+            return InterpetedResult.Create(scope.GetMember(Right.Interpet(interpetedContext).Get<InterpetedMemberDefinition>().Key));
         }
     }
 }
