@@ -7,12 +7,7 @@ namespace Tac.Model.Elements
     {
         IFinalizedScope Scope { get; }
     }
-
-    //public interface IConvertableType
-    //{
-    //    T Convert<T>(ITypeConverter<T> context);
-    //}
-
+    
     public interface IVarifiableType {
     }
 

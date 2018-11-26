@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
-using Tac.Semantic_Model;
 using Tac.Semantic_Model.Names;
 using Tac.TestCases;
 using Tac.TestCases.Help;
 
 namespace Tac.Tests.Samples
 {
-    public class Factorial : ITestCase
+    public class Closoure : ITestCase
     {
-        public Factorial() {
+        public Closoure()
+        {
             var ifBlockScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
             var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
 
@@ -59,27 +57,26 @@ namespace Tac.Tests.Samples
                                         new ICodeElement[0]))},
                         new ICodeElement[0]);
 
-            CodeElements= new ICodeElement[] {method ,};
-            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition>{{facKey,new TestMemberDefinition(facKey, new TestTypeReferance(method),false) }});
+            CodeElements = new ICodeElement[] { method, };
+            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, new TestMemberDefinition(facKey, new TestTypeReferance(method), false) } });
         }
 
         public string Text
         {
             get
             {
-                return 
+                return
 @"
-method [ int ; int ; ] input {
-    input <? 2 then {
-        1 return ;
-    } else {
-        input - 1 > fac * input return ;      
-    } ;
+method [ int ; method [ empty ; int ; ] ; ] x {
+    method [ int ; int ; ] y {
+        x + y =: x ;
+        x return ;
+    } return ;
 } ;
 ";
             }
         }
-        
+
         public ICodeElement[] CodeElements
         {
             get;

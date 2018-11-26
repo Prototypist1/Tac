@@ -289,11 +289,16 @@ namespace Tac.Parser
 
 
 
-        public static ITokenMatching HasSquare(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
+        public static ITokenMatching HasSquare(this ITokenMatching self, Func<IMatchedTokenMatching, ITokenMatching> inner)
         {
             if (!(self is IMatchedTokenMatching matchedTokenMatching))
             {
                 return self;
+            }
+
+            if (matchedTokenMatching.Tokens.Any().Not())
+            {
+                return TokenMatching<object>.MakeNotMatch(self.Context);
             }
 
             if (matchedTokenMatching.Tokens.First() is SquareBacketToken squareBacketToken)
@@ -342,11 +347,15 @@ namespace Tac.Parser
         }
 
 
-        public static ITokenMatching HasLine(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
+        public static ITokenMatching HasLine(this ITokenMatching self, Func<IMatchedTokenMatching, ITokenMatching> inner)
         {
             if (!(self is IMatchedTokenMatching matchedTokenMatching))
             {
                 return self;
+            }
+
+            if (matchedTokenMatching.Tokens.Any().Not()) {
+                return TokenMatching<object>.MakeNotMatch(self.Context);
             }
 
             if (matchedTokenMatching.Tokens.First() is LineToken line)
@@ -361,11 +370,16 @@ namespace Tac.Parser
             return TokenMatching<object>.MakeNotMatch(self.Context);
         }
 
-        public static ITokenMatching HasElement(this ITokenMatching self, Func<ITokenMatching, ITokenMatching> inner)
+        public static ITokenMatching HasElement(this ITokenMatching self, Func<IMatchedTokenMatching, ITokenMatching> inner)
         {
             if (!(self is IMatchedTokenMatching matchedTokenMatching))
             {
                 return self;
+            }
+
+            if (matchedTokenMatching.Tokens.Any().Not())
+            {
+                return TokenMatching<object>.MakeNotMatch(self.Context);
             }
 
             if (matchedTokenMatching.Tokens.First() is ElementToken elementToken)
@@ -411,7 +425,6 @@ namespace Tac.Parser
         public static ITokenMatching OptionalHas<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
             where T : class
         {
-
 
             if (!(self is IMatchedTokenMatching matchedTokenMatching))
             {

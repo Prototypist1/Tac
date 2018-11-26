@@ -39,6 +39,11 @@ namespace Tac.Backend.Test
 
             Assert.Equal(7,context.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().d);
             Assert.Equal(5, context.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().d);
+            
+            implementation.Invoke(context).Get<InterpetedMethod>().Invoke(new RunTimeEmpty());
+
+            Assert.Equal(5, context.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().d);
+            Assert.Equal(7, context.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().d);
 
             IEnumerable<IFinalizedScope> finalizedScopes()
             {

@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -34,23 +37,67 @@ namespace Tac.Semantic_Model
             return TypeDefinition.GetValue();
         }
     }
-    
-    internal class TypeReferanceMaker : IMaker<IPopulateScope<WeakTypeReferance>>
-    {
-        public TypeReferanceMaker()
-        {
-        }
 
-        public ITokenMatching<IPopulateScope<WeakTypeReferance>> TryMake(IMatchedTokenMatching tokenMatching)
+    internal class KeyMatcher : IMaker<IKey>
+    {
+        public ITokenMatching<IKey> TryMake(IMatchedTokenMatching tokenMatching)
         {
+
             var matching = tokenMatching
                 .Has(new NameMaker(), out var typeName);
+            
+            var list = new List<IKey>();
+            var genericMatachig = matching
+                .HasSquare(x => {
+                    while (true)
+                    {
+                        // colin, why! w x y z
+                        // you are an adult arn'y you?
+                        var item = default(IKey);
+                        var y = x.HasLine(z => z.Has(new KeyMatcher(), out item));
+                        if (y is IMatchedTokenMatching w)
+                        {
+                            x = w;
+                            list.Add(item);
+                            if (w.Tokens.Any().Not()) {
+                                return w;
+                            }
+                        }
+                        else
+                        {
+                            return y;
+                        }
+                    }
+                });
+
+            if (genericMatachig is IMatchedTokenMatching genericMatched)
+            {
+                return TokenMatching<IKey>.MakeMatch(genericMatched.Tokens,genericMatched.Context, new GenericNameKey(new NameKey(typeName.Item),list.ToArray()));
+            }
+
+            if (matching is IMatchedTokenMatching matched) {
+                return TokenMatching<IKey>.MakeMatch(matched.Tokens, matched.Context, new NameKey(typeName.Item));
+            }
+
+            return TokenMatching<IKey>.MakeNotMatch(matching.Context);
+        }
+    }
+
+    internal class TypeReferanceMaker : IMaker<IPopulateScope<WeakTypeReferance>>
+    {
+        public ITokenMatching<IPopulateScope<WeakTypeReferance>> TryMake(IMatchedTokenMatching tokenMatching)
+        {
+
+            var list = new List<IPopulateScope<WeakTypeReferance>>();
+            var matching = tokenMatching
+                .Has(new KeyMatcher(), out var key);
+
             if (matching is IMatchedTokenMatching matched)
             {
                 return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeMatch(
                     matched.Tokens,
-                    matched.Context, 
-                    new TypeReferancePopulateScope(new NameKey(typeName.Item)));
+                    matched.Context,
+                    new TypeReferancePopulateScope(key));
             }
 
             return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeNotMatch(matching.Context);
