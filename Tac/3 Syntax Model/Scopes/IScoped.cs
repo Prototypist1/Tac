@@ -46,6 +46,17 @@ namespace Tac.Semantic_Model
             TryAddType(new NameKey("any"), new Box<IVarifiableType>(new AnyType()));
             TryAddType(new NameKey("empty"), new Box<IVarifiableType>(new EmptyType()));
             TryAddType(new NameKey("bool"), new Box<IVarifiableType>(new BooleanType()));
+            // TODO, I need to figure out how method types work
+            //
+            TryAddGeneric(new GenericNameKey(
+                new NameKey("method"),
+                new NameKey("input"),
+                new NameKey("output")), new Box<WeakGenericTypeDefinition>(new MethodType()));
+            TryAddGeneric(new GenericNameKey(
+                new NameKey("implementation"),
+                new NameKey("context"),
+                new NameKey("input"),
+                new NameKey("output")), new Box<WeakGenericTypeDefinition>(new ImplementationType()));
         }
         
         public IResolvableScope ToResolvable()
@@ -53,14 +64,13 @@ namespace Tac.Semantic_Model
             return this;
         }
         
-        protected bool TryAddGeneric(DefintionLifetime defintionLifetime, IKey key, IBox<WeakGenericTypeDefinition> definition)
+        protected bool TryAddGeneric(GenericNameKey key, IBox<WeakGenericTypeDefinition> definition)
         {
-            var list = genericTypes.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<WeakGenericTypeDefinition>>>());
-            var visiblity = new Visiblity<IBox<WeakGenericTypeDefinition>>(defintionLifetime, definition);
+            var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<Visiblity<IBox<WeakGenericTypeDefinition>>>());
+            var visiblity = new Visiblity<IBox<WeakGenericTypeDefinition>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
-
-
+        
         public bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<WeakMemberDefinition> definition)
         {
             var list = members.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>());
@@ -108,9 +118,14 @@ namespace Tac.Semantic_Model
             member = thing.Definition;
             return true;
         }
-
+        
         public bool TryGetType(IKey name, out IBox<IVarifiableType> type)
         {
+            if (name is GenericNameKey generic)
+            {
+                if (genericTypes.TryGetValue(new NameKey(generic.Name)))
+            }
+
             if (!types.TryGetValue(name, out var items))
             {
                 if (Parent != null)

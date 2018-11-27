@@ -21,4 +21,10 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     public class BooleanType : IBooleanType
     {
     }
+    public class MethodType : IMethodType
+    {
+    }
+    public class ImplementationType : IImplementationType
+    {
+    }
 }
