@@ -3,9 +3,8 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Elements
 {
-    public interface IImplementationDefinition : ICodeElement, IVarifiableType
+    public interface IImplementationDefinition : ICodeElement, IImplementationType
     {
-        ITypeReferance OutputType { get; }
         IMemberDefinition ContextDefinition { get; }
         IMemberDefinition ParameterDefinition { get; }
         IFinalizedScope Scope { get; }

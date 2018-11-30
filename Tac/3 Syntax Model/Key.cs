@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
 
@@ -13,12 +15,12 @@ namespace Tac.Semantic_Model.Names
 
     public class GenericNameKey : NameKey
     {
-        public GenericNameKey(NameKey name, params IKey[] types) : base(name.Name)
+        public GenericNameKey(NameKey name, IReadOnlyDictionary<IGenericTypeParameterDefinition, IKey> types) : base(name.Name)
         {
             Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
 
-        public IKey[] Types { get; }
+        public IReadOnlyDictionary<IGenericTypeParameterDefinition, IKey> Types { get; }
 
         public override bool Equals(object obj)
         {

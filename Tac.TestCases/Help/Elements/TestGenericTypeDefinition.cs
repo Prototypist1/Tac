@@ -2,7 +2,7 @@
 
 namespace Tac.Model.Elements
 {
-    public class TestGenericTypeDefinition : IGenericTypeDefinition
+    public class TestGenericTypeDefinition : IGenericType
     {
         public TestGenericTypeDefinition(IFinalizedScope scope, IGenericTypeParameterDefinition[] typeParameterDefinitions)
         {

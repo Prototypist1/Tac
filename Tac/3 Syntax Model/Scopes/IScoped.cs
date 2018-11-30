@@ -23,7 +23,13 @@ namespace Tac.Semantic_Model
     {
         public NewScope Parent { get; }
 
-        public IEnumerable<IKey> MemberKeys => members.Keys;
+        public IEnumerable<IKey> MemberKeys
+        {
+            get
+            {
+                return members.Keys;
+            }
+        }
 
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>> members
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>>();
@@ -31,8 +37,8 @@ namespace Tac.Semantic_Model
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IVarifiableType>>>> types
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IVarifiableType>>>>();
 
-        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakGenericTypeDefinition>>>> genericTypes
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakGenericTypeDefinition>>>>();
+        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IGenericType>>>> genericTypes
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IGenericType>>>>();
 
         public NewScope(NewScope parent)
         {
@@ -48,29 +54,25 @@ namespace Tac.Semantic_Model
             TryAddType(new NameKey("bool"), new Box<IVarifiableType>(new BooleanType()));
             // TODO, I need to figure out how method types work
             //
-            TryAddGeneric(new GenericNameKey(
+            TryAddGeneric(
                 new NameKey("method"),
-                new NameKey("input"),
-                new NameKey("output")), new Box<WeakGenericTypeDefinition>(new MethodType()));
-            TryAddGeneric(new GenericNameKey(
-                new NameKey("implementation"),
-                new NameKey("context"),
-                new NameKey("input"),
-                new NameKey("output")), new Box<WeakGenericTypeDefinition>(new ImplementationType()));
+                new Box<IGenericType>(new GenericMethodType()));
+            TryAddGeneric(
+                new NameKey("implementation"), new Box<IGenericType>(new GenericImplementationType()));
         }
-        
+
         public IResolvableScope ToResolvable()
         {
             return this;
         }
-        
-        protected bool TryAddGeneric(GenericNameKey key, IBox<WeakGenericTypeDefinition> definition)
+
+        protected bool TryAddGeneric(NameKey key, IBox<IGenericType> definition)
         {
-            var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<Visiblity<IBox<WeakGenericTypeDefinition>>>());
-            var visiblity = new Visiblity<IBox<WeakGenericTypeDefinition>>(DefintionLifetime.Static, definition);
+            var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<Visiblity<IBox<IGenericType>>>());
+            var visiblity = new Visiblity<IBox<IGenericType>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
-        
+
         public bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<WeakMemberDefinition> definition)
         {
             var list = members.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>());
@@ -118,45 +120,57 @@ namespace Tac.Semantic_Model
             member = thing.Definition;
             return true;
         }
-        
+
         public bool TryGetType(IKey name, out IBox<IVarifiableType> type)
         {
             if (name is GenericNameKey generic)
             {
-                if (genericTypes.TryGetValue(new NameKey(generic.Name)))
-            }
+                // TODO
+                // note this resolution could be a lot smarter
+                // I could match on the type parameters as well as the
+                // name 
 
-            if (!types.TryGetValue(name, out var items))
-            {
-                if (Parent != null)
+                if (!genericTypes.TryGetValue(new NameKey(generic.Name), out var set)){goto exit;}
+
+                var single = set.SingleOrDefault();
+
+                if (single == default){ goto exit;}
+                
+                var typesBoxes = generic.Types.ToDictionary(x =>x.Key,x=>
                 {
-                    return Parent.TryGetType(name, out type);
-                }
-                else
-                {
-                    type = default;
-                    return false;
-                }
+                    TryGetType(x.Value, out IBox<IVarifiableType> innerTypeBox);
+                    if (innerTypeBox == default) {
+                        throw new Exception("I guess that is exceptional");
+                    }
+                    return innerTypeBox;
+                });
+                
+                type = new DelegateBox<IVarifiableType>(() =>single.Definition.GetValue().GetConcreteType(typesBoxes.Select(x=>new GenericTypeParameter(x.Value.GetValue(),x.Key)).ToArray())); 
+                return true;
             }
+            
+            if (!types.TryGetValue(name, out var items)) {goto exit;}
 
             var thing = items.SingleOrDefault();
 
-            if (thing == default)
-            {
-                if (Parent != null)
-                {
-                    return Parent.TryGetType(name, out type);
-                }
-                else
-                {
-                    type = default;
-                    return false;
-                }
-            }
+            if (thing == default){ goto exit; }
 
             type = thing.Definition;
             return true;
+
+            // goto 🤘
+            exit:
+            if (Parent != null)
+            {
+                return Parent.TryGetType(name, out type);
+            }
+            else
+            {
+                type = default;
+                return false;
+            }
         }
+        
 
         public IFinalizedScope GetFinalized()
         {
@@ -165,7 +179,8 @@ namespace Tac.Semantic_Model
 
         public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition res)
         {
-            if (TryGetMember(name, staticOnly, out IBox<WeakMemberDefinition> box)) {
+            if (TryGetMember(name, staticOnly, out IBox<WeakMemberDefinition> box))
+            {
                 res = box.GetValue();
                 return true;
             }
@@ -175,7 +190,7 @@ namespace Tac.Semantic_Model
 
         public bool TryGetType(IKey name, out IVarifiableType type)
         {
-            if (TryGetType(name,  out IBox<IVarifiableType> box))
+            if (TryGetType(name, out IBox<IVarifiableType> box))
             {
                 type = box.GetValue();
                 return true;
@@ -190,6 +205,6 @@ namespace Tac.Semantic_Model
             return Parent != null;
         }
     }
-    
+
 }
 

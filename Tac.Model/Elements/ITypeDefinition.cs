@@ -20,6 +20,15 @@ namespace Tac.Model.Elements
     public interface IObjectType : IVarifiableType { }
     public interface IModuleType : IVarifiableType { }
 
-    public interface IMethodType : IVarifiableType { }
-    public interface IImplementationType : IVarifiableType { }
+    public interface IMethodType : IVarifiableType {
+        IVarifiableType InputType { get; }
+        IVarifiableType OutputType { get; }
+    }
+
+    public interface IImplementationType : IVarifiableType {
+        IVarifiableType InputType { get; }
+        IVarifiableType OutputType { get; }
+        IVarifiableType ContextType { get; }
+    }
+    
 }

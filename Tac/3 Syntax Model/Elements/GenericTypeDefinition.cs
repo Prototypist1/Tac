@@ -13,7 +13,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakGenericTypeDefinition : ICodeElement, IVarifiableType, IGenericTypeDefinition
+    internal class WeakGenericTypeDefinition : ICodeElement, IVarifiableType, IGenericType
     {
         public WeakGenericTypeDefinition(NameKey key, IFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
@@ -30,7 +30,7 @@ namespace Tac.Semantic_Model
 
         #region IGenericTypeDefinition
 
-        IFinalizedScope IGenericTypeDefinition.Scope => Scope;
+        IFinalizedScope IGenericType.Scope => Scope;
 
         #endregion
 
@@ -96,19 +96,7 @@ namespace Tac.Semantic_Model
             return true;
         }
     }
-
-    internal class GenericTypeParameter
-    {
-        public GenericTypeParameter(IBox<IVarifiableType> typeDefinition, GenericTypeParameterDefinition definition)
-        {
-            TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
-            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        }
-
-        public IBox<IVarifiableType> TypeDefinition { get; }
-        public GenericTypeParameterDefinition Definition { get; }
-    }
-
+    
     internal class GenericTypeDefinitionMaker : IMaker<IPopulateScope<WeakGenericTypeDefinition>>
     {
 

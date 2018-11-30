@@ -14,7 +14,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IMethodType, IMethodDefinition
+    internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IGenericMethodType, IMethodDefinition
     {
         public WeakMethodDefinition(
             WeakTypeReferance outputType, 

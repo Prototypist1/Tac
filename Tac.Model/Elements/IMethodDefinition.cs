@@ -2,10 +2,8 @@
 
 namespace Tac.Model.Elements
 {
-    public interface IMethodDefinition: IBlockDefinition {
-
-        ITypeReferance InputType { get; }
-        ITypeReferance OutputType { get; }
+    public interface IMethodDefinition: IBlockDefinition, IMethodType
+    {
         IMemberDefinition ParameterDefinition { get; }
     }
 }

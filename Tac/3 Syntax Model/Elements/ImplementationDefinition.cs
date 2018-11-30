@@ -13,7 +13,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakImplementationDefinition: IImplementationType, ICodeElement, IImplementationDefinition
+    internal class WeakImplementationDefinition: IGenericImplementationType, ICodeElement, IImplementationDefinition
     {
 
         public WeakImplementationDefinition(
