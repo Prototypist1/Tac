@@ -19,6 +19,15 @@ namespace Tac.Model.Elements
     public class TestStringType : IStringType { }
     public class TestObjectType : IObjectType { }
     public class TestModuleType : IModuleType { }
-    public class TestMethodType : IGenericMethodType { }
-    public class TestImplementationType : IGenericImplementationType { }
+    public class TestMethodType : IMethodType
+    {
+        public IVarifiableType InputType { get; set; }
+        public IVarifiableType OutputType{ get; set; }
+    }
+    public class TestImplementationType : IImplementationType
+    {
+        public IVarifiableType InputType { get; set; }
+        public IVarifiableType OutputType { get; set; }
+        public IVarifiableType ContextType { get; set; }
+    }
 }

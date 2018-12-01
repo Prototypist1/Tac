@@ -23,6 +23,13 @@ namespace Tac.Model.Elements
         public ITypeReferance OutputType { get; set; }
         public IMemberDefinition ParameterDefinition { get; set; }
 
+        #region IMethodDefinition
+
+        IVarifiableType IMethodType.InputType => InputType;
+        IVarifiableType IMethodType.OutputType => OutputType;
+
+        #endregion
+
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.MethodDefinition(this);

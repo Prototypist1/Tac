@@ -13,7 +13,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakImplementationDefinition: IGenericImplementationType, ICodeElement, IImplementationDefinition
+    internal class WeakImplementationDefinition: ICodeElement, IImplementationDefinition
     {
 
         public WeakImplementationDefinition(
@@ -56,13 +56,16 @@ namespace Tac.Semantic_Model
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
 
         #region IImplementationDefinition
-
-        ITypeReferance IImplementationDefinition.OutputType => OutputType;
+        
+        public IVarifiableType InputType => ParameterDefinition.GetValue().Type;
+        public IVarifiableType ContextType => ContextDefinition.GetValue().Type;
+        
         IMemberDefinition IImplementationDefinition.ContextDefinition => ContextDefinition.GetValue();
         IMemberDefinition IImplementationDefinition.ParameterDefinition => ParameterDefinition.GetValue();
-        
+        IVarifiableType IImplementationType.OutputType => OutputType;
+
         #endregion
-        
+
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ImplementationDefinition(this);

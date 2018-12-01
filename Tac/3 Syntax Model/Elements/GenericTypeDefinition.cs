@@ -13,48 +13,82 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
+    internal interface IFinalizedScopeTemplate
+    {
+        IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        IFinalizedScope CreateScope(GenericTypeParameter[] parameters);
+    }
+
+    internal static class FinalizedScopeTemplateExtensions {
+        public static bool Accepts(this IFinalizedScopeTemplate self, GenericTypeParameter[] parameters) {
+            return parameters.Select(x => x.Parameter).SetEqual(self.TypeParameterDefinitions);
+        }
+    }
+
     internal class WeakGenericTypeDefinition : ICodeElement, IVarifiableType, IGenericType
     {
-        public WeakGenericTypeDefinition(NameKey key, IFinalizedScope scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
+        public WeakGenericTypeDefinition(NameKey key, IFinalizedScopeTemplate scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
-        }
+                  }
 
         public IKey Key { get; }
 
-        public IFinalizedScope Scope { get; }
+        // still not really conviced this is a scope!
+        // it does not really have members
+        // I mean it has member definitions
+        // but they don't have values
+        // scope does not have any values tho
+        // so maybe it is ok
+        public IFinalizedScopeTemplate Scope { get; }
 
-        public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
-        #region IGenericTypeDefinition
+        // IFinalizedScopeTemplate is nothing fancy
+        // it is just a FinalizedScope
+        // that can copy it self
+        // and update the types a few names represent
+        // while the template is being built it "lies" to it's sub scopes about the existance of the generic type parameters
 
-        IFinalizedScope IGenericType.Scope => Scope;
+        public IGenericTypeParameterDefinition[] TypeParameterDefinitions => Scope.TypeParameterDefinitions;
 
-        #endregion
 
-        // huh? this seems to have no uses
-        // and that means GenericScope has no uses
-        // I have not build that part out yet so it is ok.
-        //public bool TryCreateConcrete(IEnumerable<GenericTypeParameter> genericTypeParameters, out IReturnable result)
-        //{
-        //    if (genericTypeParameters.Select(x => x.Definition).SetEqual(TypeParameterDefinitions).Not())
-        //    {
-        //        result = default;
-        //        return false;
-        //    }
+        public IVarifiableType GetConcreteType(GenericTypeParameter[] parameters)
+        {
 
-        //    result = new TypeDefinition(new GenericScope(Scope, genericTypeParameters),Key);
-        //    return true;
-        //}
+            // TOOD populate?
+            // overlay?
+            // fill boxes? -- you can't fill the boxes unless you copy everything
+            
+            // the scope already holds all the members
+            // just the types are not populated
+            // 
 
+            // man generics are killer 
+            
+            // clearly a scope intention,
+            // not a scope
+            // that is a problem for existing code
+            
+            // is it?
+            // method are a scope intention too
+            // do method work in parallel? or do they trip all over each other?
+            
+            // no they take a scope template 
+            // this clearly should feature a scope template too
+
+            // now the problem is members
+            // they add them selve to the current scope
+            // there is no reason they should not just add them selves to the template 
+
+            return new WeakTypeDefinition(Scope.CreateScope(parameters), Key); ;
+        }
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.GenericTypeDefinition(this);
         }
-        
+
         public IVarifiableType Returns()
         {
             return this;

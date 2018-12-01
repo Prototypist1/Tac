@@ -14,7 +14,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IGenericMethodType, IMethodDefinition
+    internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IMethodDefinition
     {
         public WeakMethodDefinition(
             WeakTypeReferance outputType, 
@@ -33,14 +33,12 @@ namespace Tac.Semantic_Model
 
         #region IMethodDefinition
 
-        ITypeReferance IMethodDefinition.InputType => InputType;
-        ITypeReferance IMethodDefinition.OutputType => OutputType;
+        IVarifiableType IMethodType.InputType => InputType;
+        IVarifiableType IMethodType.OutputType => OutputType;
         IMemberDefinition IMethodDefinition.ParameterDefinition => ParameterDefinition.GetValue();
 
         #endregion
-
-
-
+        
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.MethodDefinition(this);
