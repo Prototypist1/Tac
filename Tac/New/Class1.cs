@@ -70,7 +70,7 @@ namespace Tac.New
 
         IPopulatableScope Scope { get; }
         IPopulateScopeContext Child();
-        (IPopulateScopeContext, IFinalizedScopeTemplate) TemplateChild(GenericTypeParameter[] parameters);
+        (IPopulateScopeContext, IFinalizedScopeTemplate) TemplateChild(IGenericTypeParameterDefinition[] parameters);
         IResolvableScope GetResolvableScope();
 
     }

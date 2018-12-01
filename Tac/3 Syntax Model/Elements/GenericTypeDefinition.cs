@@ -153,7 +153,8 @@ namespace Tac.Semantic_Model
                     new GenericTypeDefinitionPopulateScope(
                         new NameKey(typeName.Item),
                         tokenMatching.Context.ParseBlock(body),
-                        genericTypes.Select(x => new GenericTypeParameterDefinition(x.Item)).ToArray()));
+                        genericTypes.Select(x => 
+                        new GenericTypeParameterDefinition(x.Item)).ToArray()));
             }
 
             return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeNotMatch(
@@ -168,13 +169,13 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
-        private readonly GenericTypeParameter[] genericParameters;
+        private readonly IGenericTypeParameterDefinition[] genericParameters;
         private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
             IEnumerable<IPopulateScope<ICodeElement>> lines,
-            GenericTypeParameter[] genericParameters)
+            IGenericTypeParameterDefinition[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
