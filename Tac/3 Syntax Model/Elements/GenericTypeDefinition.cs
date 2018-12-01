@@ -27,11 +27,11 @@ namespace Tac.Semantic_Model
 
     internal class WeakGenericTypeDefinition : ICodeElement, IVarifiableType, IGenericType
     {
-        public WeakGenericTypeDefinition(NameKey key, IFinalizedScopeTemplate scope, GenericTypeParameterDefinition[] typeParameterDefinitions)
+        public WeakGenericTypeDefinition(NameKey key, IFinalizedScopeTemplate scope)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                  }
+        }
 
         public IKey Key { get; }
 
@@ -168,13 +168,13 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
-        private readonly GenericTypeParameterDefinition[] genericParameters;
+        private readonly GenericTypeParameter[] genericParameters;
         private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
             IEnumerable<IPopulateScope<ICodeElement>> lines,
-            GenericTypeParameterDefinition[] genericParameters)
+            GenericTypeParameter[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
@@ -185,40 +185,42 @@ namespace Tac.Semantic_Model
         {
             var encolsing = context.Scope.TryAddType(nameKey, box);
             
-            var nextContext = context.Child();
+            var (nextContext,template) = context.TemplateChild(genericParameters);
             lines.Select(x => x.Run(nextContext)).ToArray();
-            return new GenericTypeDefinitionResolveReferance(nameKey, genericParameters, nextContext.GetResolvableScope(), box);
+            return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, template);
         }
 
         public IBox<IVarifiableType> GetReturnType()
         {
             return box;
         }
-
     }
 
     internal class GenericTypeDefinitionResolveReferance : IPopulateBoxes<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
-        private readonly GenericTypeParameterDefinition[] genericParameters;
         private readonly IResolvableScope scope;
         private readonly Box<IVarifiableType> box;
+        private readonly IFinalizedScopeTemplate template;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
-            GenericTypeParameterDefinition[] genericParameters, 
             IResolvableScope scope, 
-            Box<IVarifiableType> box)
+            Box<IVarifiableType> box,
+            IFinalizedScopeTemplate template)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
+            this.template = template ?? throw new ArgumentNullException(nameof(template));
         }
         
         public WeakGenericTypeDefinition Run(IResolveReferanceContext context)
         {
-            return box.Fill(new WeakGenericTypeDefinition(nameKey, scope.GetFinalized(), genericParameters));
+            // hmm getting the template down here is hard
+            // scope mostly comes from context
+            // why is that?
+            return box.Fill(new WeakGenericTypeDefinition(nameKey, template));
         }
     }
 }
