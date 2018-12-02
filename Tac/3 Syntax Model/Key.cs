@@ -15,12 +15,12 @@ namespace Tac.Semantic_Model.Names
 
     public class GenericNameKey : NameKey
     {
-        public GenericNameKey(NameKey name, IReadOnlyDictionary<IGenericTypeParameterDefinition, IKey> types) : base(name.Name)
+        public GenericNameKey(NameKey name, IKey[] types) : base(name.Name)
         {
             Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
 
-        public IReadOnlyDictionary<IGenericTypeParameterDefinition, IKey> Types { get; }
+        public IKey[] Types { get; }
 
         public override bool Equals(object obj)
         {

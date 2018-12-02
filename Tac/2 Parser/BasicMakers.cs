@@ -65,7 +65,7 @@ namespace Tac.Frontend._2_Parser
             {
                 var at = TokenMatching<NameKey>.MakeStart(self.Tokens.Skip(1).ToArray(), self.Context);
                 var match = new GenericNMaker().TryMake(at);
-                if (match is IMatchedTokenMatching<NameKey> mathced)
+                if (match is IMatchedTokenMatching<NameKey[]> mathced)
                 {
                     return TokenMatching<NameKey>.MakeMatch(
                         self.Tokens.Skip(2).ToArray(), 

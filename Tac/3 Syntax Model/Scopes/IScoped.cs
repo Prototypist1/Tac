@@ -125,27 +125,23 @@ namespace Tac.Semantic_Model
         {
             if (name is GenericNameKey generic)
             {
-                // TODO
-                // note this resolution could be a lot smarter
-                // I could match on the type parameters as well as the
-                // name 
-
                 if (!genericTypes.TryGetValue(new NameKey(generic.Name), out var set)){goto exit;}
-
-                var single = set.SingleOrDefault();
-
-                if (single == default){ goto exit;}
                 
-                var typesBoxes = generic.Types.ToDictionary(x =>x.Key,x=>
+                var typesBoxes = generic.Types.Select(x=>
                 {
-                    TryGetType(x.Value, out IBox<IVarifiableType> innerTypeBox);
+                    TryGetType(x, out IBox<IVarifiableType> innerTypeBox);
                     if (innerTypeBox == default) {
                         throw new Exception("I guess that is exceptional");
                     }
                     return innerTypeBox;
-                });
+                }).ToList();
+
+                type =  new DelegateBox<IVarifiableType>(() =>  set.Select(single => single.Definition.GetValue())
+                    .Where(single => single.TypeParameterDefinitions.Length == typesBoxes.Count())
+                    .Select(single => single.GetConcreteType(typesBoxes.Zip(single.TypeParameterDefinitions, (x, y) => new GenericTypeParameter(x.GetValue(), y)).ToArray()))
+                    .Single()
+                );
                 
-                type = new DelegateBox<IVarifiableType>(() =>single.Definition.GetValue().GetConcreteType(typesBoxes.Select(x=>new GenericTypeParameter(x.Value.GetValue(),x.Key)).ToArray())); 
                 return true;
             }
             

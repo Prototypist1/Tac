@@ -9,6 +9,7 @@ namespace Tac.Semantic_Model
         T GetValue();
     }
     
+    // todo - should this cache?
     public class DelegateBox<T> : IBox<T> where T : class
     {
         private Func<T> func;
