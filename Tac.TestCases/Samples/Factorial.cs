@@ -21,7 +21,7 @@ namespace Tac.Tests.Samples
             var input = new TestMemberDefinition(inputKey, new TestTypeReferance(new TestNumberType()), false);
 
             var facKey = new NameKey("fac");
-            var fac = new TestMemberDefinition(facKey, new TestTypeReferance(new TestMethodType()), false);
+            var fac = new TestMemberDefinition(facKey, new TestTypeReferance(new TestMethodType(new TestNumberType(), new TestNumberType())), false);
 
 
             var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } });

@@ -12,53 +12,45 @@ namespace Tac.Tests.Samples
     {
         public Closoure()
         {
-            var ifBlockScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
-            var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
+            var xKey = new NameKey("x");
+            var x = new TestMemberDefinition(xKey, new TestTypeReferance(new TestNumberType()), false);
 
-            var inputKey = new NameKey("input");
-            var input = new TestMemberDefinition(inputKey, new TestTypeReferance(new TestNumberType()), false);
-
-            var facKey = new NameKey("fac");
-            var fac = new TestMemberDefinition(facKey, new TestTypeReferance(new TestMethodType()), false);
-
-
-            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } });
-
-            var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } });
-
+            var yKey = new NameKey("y");
+            var y = new TestMemberDefinition(yKey, new TestTypeReferance(new TestNumberType()), false);
+            
+            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { xKey, x } });
+            var innerMethodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { yKey, y } }, methodScope);
+            
             var method = new TestMethodDefinition(
                         new TestTypeReferance(new TestNumberType()),
-                        new TestTypeReferance(new TestNumberType()),
-                        input,
+                        new TestTypeReferance(new TestMethodType(
+                            new TestEmptyType(),
+                            new TestNumberType())),
+                        x,
                         methodScope,
                         new ICodeElement[]{
-                                new TestElseOperation(
-                                    new TestIfOperation(
-                                        new TestLessThanOperation(
-                                            new TestMemberReferance(input),
-                                            new TestConstantNumber(2)),
-                                        new TestBlockDefinition(
-                                            ifBlockScope,
-                                            new ICodeElement[]{
-                                                new TestReturnOperation(
-                                                    new TestConstantNumber(1))},
-                                            new ICodeElement[0])),
-                                    new TestBlockDefinition(
-                                        elseBlock,
-                                        new ICodeElement[]{
-                                            new TestReturnOperation(
-                                                new TestMultiplyOperation(
-                                                    new TestNextCallOperation(
-                                                        new TestSubtractOperation(
-                                                            new TestMemberReferance(input),
-                                                            new TestConstantNumber(1)),
-                                                        new TestMemberReferance(fac)),
-                                                    new TestMemberReferance(input)))},
-                                        new ICodeElement[0]))},
+                            new TestReturnOperation(
+                                new TestMethodDefinition(
+                                    new TestTypeReferance(new TestEmptyType()),
+                                    new TestTypeReferance(new TestNumberType()),
+                                    y,
+                                    innerMethodScope,
+                                    new ICodeElement[]{
+                                        new TestAssignOperation(
+                                            new TestAddOperation(
+                                                new TestMemberReferance(x),
+                                                new TestMemberReferance(y)),
+                                            new TestMemberReferance(x)),
+                                        new TestReturnOperation(
+                                            new TestMemberReferance(x))
+                                    },
+                                    new ICodeElement[0]
+                                    )
+                                )},
                         new ICodeElement[0]);
 
             CodeElements = new ICodeElement[] { method, };
-            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, new TestMemberDefinition(facKey, new TestTypeReferance(method), false) } });
+            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> {});
         }
 
         public string Text

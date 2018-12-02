@@ -83,6 +83,7 @@ namespace Tac.Parser
                     new ModuleDefinitionMaker(),
                     new ObjectDefinitionMaker(),
                     new TypeDefinitionMaker(),
+                    new GenericTypeDefinitionMaker(),
                     new MemberMaker(),
                 }){}
         

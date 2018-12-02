@@ -180,10 +180,13 @@ namespace Tac.Frontend._2_Parser
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
-                typeParameters.Tokens.All(x => x is ElementToken) &&
+                typeParameters.Tokens.All(x => x is LineToken lt && lt.Tokens.All(y=> y is ElementToken)) &&
                 TryToToken(out var res))
             {
-                return TokenMatching<NameKey[]>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context,res);
+                return TokenMatching<NameKey[]>.MakeMatch(
+                    elementMatching.Tokens.Skip(1).ToArray(), 
+                    elementMatching.Context,
+                    res);
             }
             
             return TokenMatching<NameKey[]>.MakeNotMatch(elementMatching.Context);
@@ -191,10 +194,15 @@ namespace Tac.Frontend._2_Parser
             bool TryToToken(out NameKey[] typeSourcesInner)
             {
                 var typeSourcesBuilding = new List<NameKey>();
-                foreach (var elementToken in typeParameters.Tokens.OfType<ElementToken>())
+                foreach (var elementToken in typeParameters.Tokens.OfType<LineToken>())
                 {
                     var matcher = TokenMatching<object>.MakeStart(elementToken.Tokens, elementMatching.Context);
-                    if (matcher.Has(new TypeMaker(), out NameKey typeSource).Has(new DoneMaker()) is IMatchedTokenMatching)
+                    NameKey typeSource = null;
+                    if (matcher
+                        .HasElement(x=>x
+                        .Has(new TypeMaker(), out typeSource)
+                        .Has(new DoneMaker()))
+                        .Has(new DoneMaker()) is IMatchedTokenMatching)
                     {
                         typeSourcesBuilding.Add(typeSource);
                     }

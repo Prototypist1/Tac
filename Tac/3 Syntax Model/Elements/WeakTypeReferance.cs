@@ -90,14 +90,14 @@ namespace Tac.Semantic_Model
 
             var list = new List<IPopulateScope<WeakTypeReferance>>();
             var matching = tokenMatching
-                .Has(new KeyMatcher(), out var key);
-
+                .Has(new TypeMaker(), out var type);
+            
             if (matching is IMatchedTokenMatching matched)
             {
                 return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
-                    new TypeReferancePopulateScope(key));
+                    new TypeReferancePopulateScope(type));
             }
 
             return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeNotMatch(matching.Context);

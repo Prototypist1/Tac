@@ -215,7 +215,8 @@ namespace Tac.Semantic_Model
                     return innerTypeBox;
                 }).ToList();
 
-                type =  new DelegateBox<IVarifiableType>(() =>  set.Select(single => single.Definition.GetValue())
+                type =  new DelegateBox<IVarifiableType>(() => set
+                    .Select(single => single.Definition.GetValue())
                     .Where(x => x.TypeParameterDefinitions.Length == typesBoxes.Count())
                     .Single()
                 );

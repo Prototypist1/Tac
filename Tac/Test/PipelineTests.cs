@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend.Test.Samples;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
@@ -46,6 +47,12 @@ namespace Tac.Tests
             Toke_CodeElements(new WrappedMirrorPointImplementation());
         }
 
+        [Fact]
+        public void Token_CodeElements_Closoure()
+        {
+            Toke_CodeElements(new WrappedClosoure());
+        }
+        
         private static void Toke_CodeElements(IWrappedTestCase sample) { 
 
             var elementMatchingContest = new ElementMatchingContext();
@@ -106,6 +113,12 @@ namespace Tac.Tests
         public void Text_Token_MirrorPointImplementation()
         {
             Text_Token(new WrappedMirrorPointImplementation());
+        }
+        
+        [Fact]
+        public void Text_Token_Closoure()
+        {
+            Text_Token(new WrappedClosoure());
         }
 
         private static void Text_Token(IWrappedTestCase sample)

@@ -124,8 +124,8 @@ namespace Tac.Semantic_Model
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
                 .Has(new DefineGenericNMaker(), out AtomicToken[] genericTypes)
-                .Has(new NameMaker(), out AtomicToken typeName)
-                .Has(new BodyMaker(), out CurleyBracketToken body);
+                .Has(new NameMaker(), out var typeName)
+                .Has(new BodyMaker(), out var body);
             if (matching is IMatchedTokenMatching matched)
             {
                 return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeMatch(
