@@ -99,6 +99,12 @@ namespace Tac.New
         {
             return stack.ToResolvable();
         }
+
+        public (IPopulateScopeContext, IFinalizedScopeTemplate) TemplateChild(IGenericTypeParameterDefinition[] parameters)
+        {
+            var template = new ScopeTemplate(parameters,stack);
+            return (new PopulateScopeContext(template), template);
+        }
     }
 
     public interface IResolveReferanceContext  {

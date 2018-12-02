@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -16,6 +17,27 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     }
     public class NumberType : INumberType
     {
+    }
+    public class GemericTypeParameterPlacholder : IVarifiableType
+    {
+        public GemericTypeParameterPlacholder(IKey key)
+        {
+            this.Key = key ?? throw new ArgumentNullException(nameof(key));
+        }
+
+        public IKey Key { get; }
+
+        public override bool Equals(object obj)
+        {
+            var placholder = obj as GemericTypeParameterPlacholder;
+            return placholder != null &&
+                   EqualityComparer<IKey>.Default.Equals(Key, placholder.Key);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Key);
+        }
     }
     public class AnyType : IAnyType
     {

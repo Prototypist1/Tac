@@ -19,6 +19,85 @@ namespace Tac.Semantic_Model
         IFinalizedScope Scope { get; }
     }
 
+    internal class ScopeTemplate : NewScope, IFinalizedScopeTemplate
+    {
+        public ScopeTemplate(IGenericTypeParameterDefinition[] typeParameterDefinitions, NewScope parent):base(parent)
+        {
+            TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
+            foreach (var item in typeParameterDefinitions)
+            {
+                // for the sake of validation type parameters are types 
+
+                if (!TryAddType(item.Key, new Box<IVarifiableType>(new GemericTypeParameterPlacholder(item.Key)))) {
+                    throw new Exception("that is not right!");
+                }
+            }
+        }
+
+        public IGenericTypeParameterDefinition[] TypeParameterDefinitions {get;}
+
+        public IFinalizedScope CreateScope(GenericTypeParameter[] parameters)
+        {
+            // ok so maybe types are not so final as I thought and depend on the evaulation context 
+            // I have IVarifiableType maybe that still does a look up, in case the type is generic
+            // I don't want to have to do any of this copying
+            // it is a big fat mess 
+
+            int i = "Todo";
+            // add so validation
+
+            var res = new NewScope(Parent);
+
+            // we need to add everything back
+            // but we need to replace the place holder types
+
+            foreach (var entry in members)
+            {
+                foreach (var member in entry.Value)
+                {
+                    int i = "Todo";
+                    // members probably have types that need to be updated 
+                    if (!res.TryAddMember(member.DefintionLifeTime, entry.Key, member.Definition)) {
+                        throw new Exception("bad bad");
+                    }
+                }
+            }
+
+            foreach (var entry in types)
+            {
+                var type = entry.Value.Single();
+
+                var haveKey = parameters.Where(x => x.Parameter.Key.Equals(entry.Key));
+                if (haveKey.Count()==1)
+                {
+                    if (!res.TryAddType(entry.Key, new Box<IVarifiableType>(haveKey.Single().Type)))
+                    {
+                        throw new Exception("bad bad");
+                    }
+                }
+                else {
+                    if (!res.TryAddType(entry.Key, type.Definition))
+                    {
+                        throw new Exception("bad bad");
+                    }
+                }
+            }
+
+            foreach (var entry in genericTypes)
+            {
+                foreach (var genericType in entry.Value)
+                {
+                    if (!res.TryAddType( entry.Key, genericType.Definition))
+                    {
+                        throw new Exception("bad bad");
+                    }
+                }
+            }
+
+            return res;
+        }
+    }
+
     internal class NewScope : IPopulatableScope, IResolvableScope, IFinalizedScope
     {
         public NewScope Parent { get; }
@@ -167,7 +246,6 @@ namespace Tac.Semantic_Model
             }
         }
         
-
         public IFinalizedScope GetFinalized()
         {
             return this;
