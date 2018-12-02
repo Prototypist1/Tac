@@ -26,19 +26,7 @@ namespace Tac.Backend.Test
         {
             Assert.Equal(output, Fac(input));
         }
-
-        // TODO you are here
-        // the issue now is with finialzed scope
-        // it does not carry everything forward
-
-        // scopes are still strange
-        // I need to take a step back and look at them
-        // finialzed scope does not need to exist
-        // I am not sure scopestack or scope tree to either
-        // there is a much simpler implementation
-
-        // I am not sure why I did not go with it in the first place
-
+        
         private double Fac(double d)
         {
             var testCase = new Factorial();
