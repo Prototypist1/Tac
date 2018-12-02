@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model
         IFinalizedScope Scope { get; }
     }
 
-    internal class ScopeTemplate : NewScope, IFinalizedScopeTemplate
+    internal class ScopeTemplate : NewScope //, IFinalizedScopeTemplate
     {
         public ScopeTemplate(IGenericTypeParameterDefinition[] typeParameterDefinitions, NewScope parent):base(parent)
         {
@@ -36,66 +36,66 @@ namespace Tac.Semantic_Model
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions {get;}
 
-        public IFinalizedScope CreateScope(GenericTypeParameter[] parameters)
-        {
-            // ok so maybe types are not so final as I thought and depend on the evaulation context 
-            // I have IVarifiableType maybe that still does a look up, in case the type is generic
-            // I don't want to have to do any of this copying
-            // it is a big fat mess 
+        //public IFinalizedScope CreateScope(GenericTypeParameter[] parameters)
+        //{
+        //    // ok so maybe types are not so final as I thought and depend on the evaulation context 
+        //    // I have IVarifiableType maybe that still does a look up, in case the type is generic
+        //    // I don't want to have to do any of this copying
+        //    // it is a big fat mess 
 
-            int i = "Todo";
-            // add so validation
+        //    int i = "Todo";
+        //    // add so validation
 
-            var res = new NewScope(Parent);
+        //    var res = new NewScope(Parent);
 
-            // we need to add everything back
-            // but we need to replace the place holder types
+        //    // we need to add everything back
+        //    // but we need to replace the place holder types
 
-            foreach (var entry in members)
-            {
-                foreach (var member in entry.Value)
-                {
-                    int i = "Todo";
-                    // members probably have types that need to be updated 
-                    if (!res.TryAddMember(member.DefintionLifeTime, entry.Key, member.Definition)) {
-                        throw new Exception("bad bad");
-                    }
-                }
-            }
+        //    foreach (var entry in members)
+        //    {
+        //        foreach (var member in entry.Value)
+        //        {
+        //            int i = "Todo";
+        //            // members probably have types that need to be updated 
+        //            if (!res.TryAddMember(member.DefintionLifeTime, entry.Key, member.Definition)) {
+        //                throw new Exception("bad bad");
+        //            }
+        //        }
+        //    }
 
-            foreach (var entry in types)
-            {
-                var type = entry.Value.Single();
+        //    foreach (var entry in types)
+        //    {
+        //        var type = entry.Value.Single();
 
-                var haveKey = parameters.Where(x => x.Parameter.Key.Equals(entry.Key));
-                if (haveKey.Count()==1)
-                {
-                    if (!res.TryAddType(entry.Key, new Box<IVarifiableType>(haveKey.Single().Type)))
-                    {
-                        throw new Exception("bad bad");
-                    }
-                }
-                else {
-                    if (!res.TryAddType(entry.Key, type.Definition))
-                    {
-                        throw new Exception("bad bad");
-                    }
-                }
-            }
+        //        var haveKey = parameters.Where(x => x.Parameter.Key.Equals(entry.Key));
+        //        if (haveKey.Count()==1)
+        //        {
+        //            if (!res.TryAddType(entry.Key, new Box<IVarifiableType>(haveKey.Single().Type)))
+        //            {
+        //                throw new Exception("bad bad");
+        //            }
+        //        }
+        //        else {
+        //            if (!res.TryAddType(entry.Key, type.Definition))
+        //            {
+        //                throw new Exception("bad bad");
+        //            }
+        //        }
+        //    }
 
-            foreach (var entry in genericTypes)
-            {
-                foreach (var genericType in entry.Value)
-                {
-                    if (!res.TryAddType( entry.Key, genericType.Definition))
-                    {
-                        throw new Exception("bad bad");
-                    }
-                }
-            }
+        //    foreach (var entry in genericTypes)
+        //    {
+        //        foreach (var genericType in entry.Value)
+        //        {
+        //            if (!res.TryAddType( entry.Key, genericType.Definition))
+        //            {
+        //                throw new Exception("bad bad");
+        //            }
+        //        }
+        //    }
 
-            return res;
-        }
+        //    return res;
+        //}
     }
 
     internal class NewScope : IPopulatableScope, IResolvableScope, IFinalizedScope
@@ -216,8 +216,7 @@ namespace Tac.Semantic_Model
                 }).ToList();
 
                 type =  new DelegateBox<IVarifiableType>(() =>  set.Select(single => single.Definition.GetValue())
-                    .Where(single => single.TypeParameterDefinitions.Length == typesBoxes.Count())
-                    .Select(single => single.GetConcreteType(typesBoxes.Zip(single.TypeParameterDefinitions, (x, y) => new GenericTypeParameter(x.GetValue(), y)).ToArray()))
+                    .Where(x => x.TypeParameterDefinitions.Length == typesBoxes.Count())
                     .Single()
                 );
                 

@@ -26,12 +26,12 @@ namespace Tac.Semantic_Model
         public IFinalizedScope Scope { get; }
         
         
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public virtual T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.TypeDefinition(this);
         }
-        
-        public IVarifiableType Returns()
+
+        public virtual IVarifiableType Returns()
         {
             return this;
         }

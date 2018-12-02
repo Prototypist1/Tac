@@ -70,7 +70,7 @@ namespace Tac.New
 
         IPopulatableScope Scope { get; }
         IPopulateScopeContext Child();
-        (IPopulateScopeContext, IFinalizedScopeTemplate) TemplateChild(IGenericTypeParameterDefinition[] parameters);
+        IPopulateScopeContext TemplateChild(IGenericTypeParameterDefinition[] parameters);
         IResolvableScope GetResolvableScope();
 
     }
@@ -100,10 +100,10 @@ namespace Tac.New
             return stack.ToResolvable();
         }
 
-        public (IPopulateScopeContext, IFinalizedScopeTemplate) TemplateChild(IGenericTypeParameterDefinition[] parameters)
+        public IPopulateScopeContext TemplateChild(IGenericTypeParameterDefinition[] parameters)
         {
             var template = new ScopeTemplate(parameters,stack);
-            return (new PopulateScopeContext(template), template);
+            return new PopulateScopeContext(template);
         }
     }
 

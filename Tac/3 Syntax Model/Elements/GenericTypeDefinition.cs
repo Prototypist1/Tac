@@ -13,83 +13,64 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal interface IFinalizedScopeTemplate
+    //internal interface IFinalizedScopeTemplate
+    //{
+    //    IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+    //    IFinalizedScope CreateScope(GenericTypeParameter[] parameters);
+    //}
+
+    //internal static class FinalizedScopeTemplateExtensions {
+    //    public static bool Accepts(this IFinalizedScopeTemplate self, GenericTypeParameter[] parameters) {
+    //        return parameters.Select(x => x.Parameter).SetEqual(self.TypeParameterDefinitions);
+    //    }
+    //}
+
+    internal class WeakGenericTypeDefinition : WeakTypeDefinition, IGenericType
     {
-        IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
-        IFinalizedScope CreateScope(GenericTypeParameter[] parameters);
-    }
-
-    internal static class FinalizedScopeTemplateExtensions {
-        public static bool Accepts(this IFinalizedScopeTemplate self, GenericTypeParameter[] parameters) {
-            return parameters.Select(x => x.Parameter).SetEqual(self.TypeParameterDefinitions);
-        }
-    }
-
-    internal class WeakGenericTypeDefinition : ICodeElement, IVarifiableType, IGenericType
-    {
-        public WeakGenericTypeDefinition(NameKey key, IFinalizedScopeTemplate scope)
+        public WeakGenericTypeDefinition(NameKey key, IFinalizedScope scope, IGenericTypeParameterDefinition[] TypeParameterDefinitions):base(scope,key)
         {
-            Key = key ?? throw new ArgumentNullException(nameof(key));
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
         }
 
-        public IKey Key { get; }
+        public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        
+        //public IVarifiableType GetConcreteType(GenericTypeParameter[] parameters)
+        //{
 
-        // still not really conviced this is a scope!
-        // it does not really have members
-        // I mean it has member definitions
-        // but they don't have values
-        // scope does not have any values tho
-        // so maybe it is ok
-        public IFinalizedScopeTemplate Scope { get; }
-
-
-        // IFinalizedScopeTemplate is nothing fancy
-        // it is just a FinalizedScope
-        // that can copy it self
-        // and update the types a few names represent
-        // while the template is being built it "lies" to it's sub scopes about the existance of the generic type parameters
-
-        public IGenericTypeParameterDefinition[] TypeParameterDefinitions => Scope.TypeParameterDefinitions;
-
-
-        public IVarifiableType GetConcreteType(GenericTypeParameter[] parameters)
-        {
-
-            // TOOD populate?
-            // overlay?
-            // fill boxes? -- you can't fill the boxes unless you copy everything
+        //    // TOOD populate?
+        //    // overlay?
+        //    // fill boxes? -- you can't fill the boxes unless you copy everything
             
-            // the scope already holds all the members
-            // just the types are not populated
-            // 
+        //    // the scope already holds all the members
+        //    // just the types are not populated
+        //    // 
 
-            // man generics are killer 
+        //    // man generics are killer 
             
-            // clearly a scope intention,
-            // not a scope
-            // that is a problem for existing code
+        //    // clearly a scope intention,
+        //    // not a scope
+        //    // that is a problem for existing code
             
-            // is it?
-            // method are a scope intention too
-            // do method work in parallel? or do they trip all over each other?
+        //    // is it?
+        //    // method are a scope intention too
+        //    // do method work in parallel? or do they trip all over each other?
             
-            // no they take a scope template 
-            // this clearly should feature a scope template too
+        //    // no they take a scope template 
+        //    // this clearly should feature a scope template too
 
-            // now the problem is members
-            // they add them selve to the current scope
-            // there is no reason they should not just add them selves to the template 
+        //    // now the problem is members
+        //    // they add them selve to the current scope
+        //    // there is no reason they should not just add them selves to the template 
 
-            return new WeakTypeDefinition(Scope.CreateScope(parameters), Key); ;
-        }
+        //    return new WeakTypeDefinition(Scope.CreateScope(parameters), Key); ;
+        //}
 
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public override T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.GenericTypeDefinition(this);
         }
 
-        public IVarifiableType Returns()
+        public override IVarifiableType Returns()
         {
             return this;
         }
@@ -186,9 +167,9 @@ namespace Tac.Semantic_Model
         {
             var encolsing = context.Scope.TryAddType(nameKey, box);
             
-            var (nextContext,template) = context.TemplateChild(genericParameters);
+            var nextContext = context.TemplateChild(genericParameters);
             lines.Select(x => x.Run(nextContext)).ToArray();
-            return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, template);
+            return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters);
         }
 
         public IBox<IVarifiableType> GetReturnType()
@@ -202,18 +183,18 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly IResolvableScope scope;
         private readonly Box<IVarifiableType> box;
-        private readonly IFinalizedScopeTemplate template;
+        private readonly IGenericTypeParameterDefinition[] genericParameters;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             IResolvableScope scope, 
             Box<IVarifiableType> box,
-            IFinalizedScopeTemplate template)
+            IGenericTypeParameterDefinition[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
-            this.template = template ?? throw new ArgumentNullException(nameof(template));
+            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
         }
         
         public WeakGenericTypeDefinition Run(IResolveReferanceContext context)
@@ -221,7 +202,7 @@ namespace Tac.Semantic_Model
             // hmm getting the template down here is hard
             // scope mostly comes from context
             // why is that?
-            return box.Fill(new WeakGenericTypeDefinition(nameKey, template));
+            return box.Fill(new WeakGenericTypeDefinition(nameKey, scope.GetFinalized(), genericParameters));
         }
     }
 }
