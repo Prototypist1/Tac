@@ -3,7 +3,7 @@ using Tac.Model.Operations;
 
 namespace Tac.Model
 {
-    // this is a very interesting patter
+    // this is a very interesting pattern
     // it is a manipulation of the type system
     // so that it enforces a contraint
     // the backend need to convert the model objects to it's own very of the model objects
@@ -24,7 +24,7 @@ namespace Tac.Model
         T TypeReferance(ITypeReferance weakTypeReferance);
         T ConstantNumber(IConstantNumber codeElement);
         T PathOperation(IPathOperation co);
-        T GenericTypeDefinition(IGenericType codeElement);
+        T GenericTypeDefinition(IGenericInterfaceDefinition codeElement);
         T ImplementationDefinition(IImplementationDefinition codeElement);
         T MemberDefinition(IMemberDefinition codeElement);
         T MemberReferance(IMemberReferance codeElement);
@@ -42,17 +42,4 @@ namespace Tac.Model
         T SubtractOperation(ISubtractOperation co);
         T ReturnOperation(IReturnOperation co);
     }
-
-    //public interface ITypeConverter<out TType> {
-    //    TType BooleanType(IBooleanType booleanType);
-    //    TType AnyType(IAnyType anyType);
-    //    TType StringType(IStringType stringType);
-    //    TType EmptyType(IEmptyType emptyType);
-    //    TType NumberType(INumberType numberType);
-    //    TType ObjectType(IObjectType weakObjectDefinition);
-    //    TType ModuleType(IModuleType weakModuleDefinition);
-    //    TType ImplementationType(IImplementationType weakImplementationDefinition);
-    //    TType MethodType(IMethodType weakMethodDefinition);
-    //    TType InterfaceType(IInterfaceType interfaceType);
-    //}
 }

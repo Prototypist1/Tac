@@ -17,7 +17,6 @@ namespace Tac.Model.Elements
 
     public interface IGenericType : IVarifiableType
     {
-        //IVarifiableType GetConcreteType(GenericTypeParameter[] parameters);
         IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
     }
 

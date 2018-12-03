@@ -12,20 +12,8 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-
-    //internal interface IFinalizedScopeTemplate
-    //{
-    //    IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
-    //    IFinalizedScope CreateScope(GenericTypeParameter[] parameters);
-    //}
-
-    //internal static class FinalizedScopeTemplateExtensions {
-    //    public static bool Accepts(this IFinalizedScopeTemplate self, GenericTypeParameter[] parameters) {
-    //        return parameters.Select(x => x.Parameter).SetEqual(self.TypeParameterDefinitions);
-    //    }
-    //}
-
-    internal class WeakGenericTypeDefinition : WeakTypeDefinition, IGenericType
+    
+    internal class WeakGenericTypeDefinition : WeakTypeDefinition, IGenericInterfaceDefinition
     {
         public WeakGenericTypeDefinition(NameKey key, IFinalizedScope scope, IGenericTypeParameterDefinition[] TypeParameterDefinitions):base(scope,key)
         {
@@ -34,37 +22,6 @@ namespace Tac.Semantic_Model
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
         
-        //public IVarifiableType GetConcreteType(GenericTypeParameter[] parameters)
-        //{
-
-        //    // TOOD populate?
-        //    // overlay?
-        //    // fill boxes? -- you can't fill the boxes unless you copy everything
-            
-        //    // the scope already holds all the members
-        //    // just the types are not populated
-        //    // 
-
-        //    // man generics are killer 
-            
-        //    // clearly a scope intention,
-        //    // not a scope
-        //    // that is a problem for existing code
-            
-        //    // is it?
-        //    // method are a scope intention too
-        //    // do method work in parallel? or do they trip all over each other?
-            
-        //    // no they take a scope template 
-        //    // this clearly should feature a scope template too
-
-        //    // now the problem is members
-        //    // they add them selve to the current scope
-        //    // there is no reason they should not just add them selves to the template 
-
-        //    return new WeakTypeDefinition(Scope.CreateScope(parameters), Key); ;
-        //}
-
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.GenericTypeDefinition(this);
@@ -123,7 +80,7 @@ namespace Tac.Semantic_Model
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
-                .Has(new DefineGenericNMaker(), out AtomicToken[] genericTypes)
+                .Has(new DefineGenericNMaker(), out var genericTypes)
                 .Has(new NameMaker(), out var typeName)
                 .Has(new BodyMaker(), out var body);
             if (matching is IMatchedTokenMatching matched)
@@ -135,7 +92,7 @@ namespace Tac.Semantic_Model
                         new NameKey(typeName.Item),
                         tokenMatching.Context.ParseBlock(body),
                         genericTypes.Select(x => 
-                        new GenericTypeParameterDefinition(x.Item)).ToArray()));
+                        new GenericTypeParameterDefinition(x)).ToArray()));
             }
 
             return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeNotMatch(

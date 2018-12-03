@@ -112,7 +112,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedGenericTypeDefinition GenericTypeDefinition(IGenericType codeElement)
+        public InterpetedGenericTypeDefinition GenericTypeDefinition(IGenericInterfaceDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -393,7 +393,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         IInterpeted IOpenBoxesContext<IInterpeted>.AssignOperation(IAssignOperation codeElement) => AssignOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ConstantNumber(IConstantNumber codeElement) => ConstantNumber(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.PathOperation(IPathOperation codeElement) => PathOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.GenericTypeDefinition(IGenericType codeElement) => GenericTypeDefinition(codeElement);
+        IInterpeted IOpenBoxesContext<IInterpeted>.GenericTypeDefinition(IGenericInterfaceDefinition codeElement) => GenericTypeDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ImplementationDefinition(IImplementationDefinition codeElement) => ImplementationDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.MemberDefinition(IMemberDefinition codeElement) => MemberDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.MemberReferance(IMemberReferance codeElement) => MemberReferance(codeElement);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Tac.Model;
 
 namespace Tac.Model.Elements
@@ -12,6 +13,29 @@ namespace Tac.Model.Elements
 
         public IFinalizedScope Scope { get; set; }
     }
+
+
+    public class TestGemericTypeParameterPlacholder : IVarifiableType
+    {
+        public TestGemericTypeParameterPlacholder(IKey key)
+        {
+            this.Key = key ?? throw new ArgumentNullException(nameof(key));
+        }
+
+        public IKey Key { get; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is TestGemericTypeParameterPlacholder placholder &&
+                   EqualityComparer<IKey>.Default.Equals(Key, placholder.Key);
+        }
+
+        public override int GetHashCode()
+        {
+            return Key.GetHashCode();
+        }
+    }
+
     public class TestNumberType : INumberType { }
     public class TestAnyType : IAnyType { }
     public class TestEmptyType : IEmptyType { }

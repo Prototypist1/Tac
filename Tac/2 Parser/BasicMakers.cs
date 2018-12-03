@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -156,21 +157,23 @@ namespace Tac.Frontend._2_Parser
         }
     }
 
-    internal class DefineGenericNMaker : IMaker<AtomicToken[]>
+    internal class DefineGenericNMaker : IMaker<string[]>
     {
-        public ITokenMatching<AtomicToken[]> TryMake(IMatchedTokenMatching elementMatching)
+        public ITokenMatching<string[]> TryMake(IMatchedTokenMatching elementMatching)
         {
+            
             if (elementMatching.Tokens.Any() &&
                            elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
-                               typeParameters.Tokens.All(x => x is LineToken firstLine &&
-                                   firstLine.Tokens.Count() == 1 &&
-                                   firstLine.Tokens.ElementAt(0) is AtomicToken))
+                               typeParameters.Tokens.All(x => x is LineToken line &&
+                                   line.Tokens.Count() == 1 &&
+                                   line.Tokens.ElementAt(0) is ElementToken element &&
+                                   element.Tokens.Count() == 1 &&
+                                   element.Tokens.ElementAt(0) is AtomicToken))
             {
-                return TokenMatching<AtomicToken[]>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, typeParameters.Tokens.Select(x => (x as LineToken).Tokens.First() as AtomicToken).ToArray());
+                return TokenMatching<string[]>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, typeParameters.Tokens.Select(x => x.Cast<LineToken>().Tokens.Single().Cast<ElementToken>().Tokens.Single().Cast<AtomicToken>().Item).ToArray());
             }
             
-            return TokenMatching<AtomicToken[]>.MakeNotMatch(elementMatching.Context);
-
+            return TokenMatching<string[]>.MakeNotMatch(elementMatching.Context);
         }
     }
 

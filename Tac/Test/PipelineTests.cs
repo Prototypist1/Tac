@@ -52,7 +52,13 @@ namespace Tac.Tests
         {
             Toke_CodeElements(new WrappedClosoure());
         }
-        
+
+        [Fact]
+        public void Token_CodeElements_PairType()
+        {
+            Toke_CodeElements(new WrappedPairType());
+        }
+
         private static void Toke_CodeElements(IWrappedTestCase sample) { 
 
             var elementMatchingContest = new ElementMatchingContext();
@@ -107,6 +113,12 @@ namespace Tac.Tests
         public void Text_Token_PointObject()
         {
             Text_Token(new WrappedPointObject());
+        }
+
+        [Fact]
+        public void Text_Token_PairType()
+        {
+            Text_Token(new WrappedPairType());
         }
 
         [Fact]
