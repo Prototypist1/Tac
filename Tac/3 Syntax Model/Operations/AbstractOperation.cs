@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -31,7 +32,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     public abstract class BinaryOperation
     {
-        public delegate T Make<out T>(ICodeElement left, ICodeElement right);
+        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right);
     }
 
     internal abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IOperation, IBinaryOperation<TLeft, TRight>
@@ -168,7 +169,7 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
 
-        public TCodeElement Run(IResolveReferanceContext context)
+        public IIsPossibly<TCodeElement> Run(IResolveReferanceContext context)
         {
             var res = make(
                 left.Run(context),

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Frontend;
 using Tac.Model.Elements;
 using Tac.Parser;
 using Tac.Semantic_Model;
@@ -136,7 +137,7 @@ namespace Tac.New
 
     public interface IPopulateBoxes<out TCodeElement> : IResolveReferance
     {
-        TCodeElement Run(IResolveReferanceContext context);
+        IIsPossibly<TCodeElement> Run(IResolveReferanceContext context);
     }
     
 }

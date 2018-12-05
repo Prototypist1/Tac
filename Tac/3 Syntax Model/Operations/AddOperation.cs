@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -19,7 +21,15 @@ namespace Tac.Semantic_Model.Operations
 
     internal class WeakAddOperation : BinaryOperation<ICodeElement, ICodeElement>, IAddOperation
     {
-        public WeakAddOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public static IIsPossibly<WeakAddOperation> Make(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) {
+            if (left is IIsDefinately<ICodeElement> definitiveLeft && right is IIsDefinately<ICodeElement> definitiveRight) {
+                return Possibly.Is<WeakAddOperation>(new WeakAddOperation(definitiveLeft.Value, definitiveRight.Value));
+            }
+
+            return Possibly.IsNot<WeakAddOperation>(new[] { left, right }.OfType<IIsDefinatelyNot>().ToArray());
+        }
+
+        private WeakAddOperation(ICodeElement left, ICodeElement right) : base(left, right)
         {
         }
         
@@ -35,7 +45,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
     {
-        public AddOperationMaker() : base(new AddSymbols(),(l,r)=>new WeakAddOperation(l,r))
+        public AddOperationMaker() : base(new AddSymbols(),(l,r)=>WeakAddOperation.Make(l,r))
         {
         }
     }
