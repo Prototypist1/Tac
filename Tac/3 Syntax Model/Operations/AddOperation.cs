@@ -21,15 +21,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class WeakAddOperation : BinaryOperation<ICodeElement, ICodeElement>, IAddOperation
     {
-        public static IIsPossibly<WeakAddOperation> Make(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) {
-            if (left is IIsDefinately<ICodeElement> definitiveLeft && right is IIsDefinately<ICodeElement> definitiveRight) {
-                return Possibly.Is<WeakAddOperation>(new WeakAddOperation(definitiveLeft.Value, definitiveRight.Value));
-            }
-
-            return Possibly.IsNot<WeakAddOperation>(new[] { left, right }.OfType<IIsDefinatelyNot>().ToArray());
-        }
-
-        private WeakAddOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakAddOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
         {
         }
         

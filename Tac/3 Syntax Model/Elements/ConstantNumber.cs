@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -21,12 +22,12 @@ namespace Tac.Semantic_Model.Operations
     // IDK!
     internal class WeakConstantNumber : ICodeElement, IVarifiableType, IConstantNumber
     {
-        public WeakConstantNumber(double value) 
+        public WeakConstantNumber(IIsPossibly<double> value) 
         {
             Value = value;
         }
 
-        public double Value { get; }
+        public IIsPossibly<double> Value { get; }
 
 
         public T Convert<T>(IOpenBoxesContext<T> context)
@@ -61,7 +62,7 @@ namespace Tac.Semantic_Model.Operations
     internal class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
+        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
         public ConstantNumberPopulateScope(double dub)
         {
@@ -73,7 +74,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantNumberResolveReferance(dub, box);
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -82,19 +83,19 @@ namespace Tac.Semantic_Model.Operations
     internal class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IVarifiableType> box;
+        private readonly Box<IIsPossibly<IVarifiableType>> box;
 
         public ConstantNumberResolveReferance(
             double dub,
-            Box<IVarifiableType> box)
+            Box<IIsPossibly<IVarifiableType>> box)
         {
             this.dub = dub;
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public WeakConstantNumber Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakConstantNumber> Run(IResolveReferanceContext context)
         {
-            return box.Fill(new WeakConstantNumber(dub));
+            return box.Fill(Possibly.Is(new WeakConstantNumber(Possibly.Is(dub))));
         }
     }
     

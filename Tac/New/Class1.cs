@@ -119,7 +119,7 @@ namespace Tac.New
     // you are only allowed to put things in scope during this step
 
     public interface IPopulateScope {
-        IBox<IVarifiableType> GetReturnType();
+        IBox<IIsPossibly<IVarifiableType>> GetReturnType();
     }
 
     internal interface IPopulateScope<out TCodeElement> : IPopulateScope

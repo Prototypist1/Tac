@@ -39,18 +39,18 @@ namespace Tac.Semantic_Model.CodeStuff
         where TLeft : class, ICodeElement
         where TRight : class, ICodeElement
     {
-        public TLeft Left { get; }
-        public TRight Right { get; }
+        public IIsPossibly<TLeft> Left { get; }
+        public IIsPossibly<TRight> Right { get; }
 
-        public ICodeElement[] Operands
+        public IIsPossibly<ICodeElement>[] Operands
         {
             get
             {
-                return new ICodeElement[] { Left, Right };
+                return new IIsPossibly<ICodeElement>[] { Left, Right };
             }
         }
 
-        public BinaryOperation(TLeft left, TRight right)
+        public BinaryOperation(IIsPossibly<TLeft> left, IIsPossibly<TRight> right)
         {
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -104,7 +104,7 @@ namespace Tac.Semantic_Model.CodeStuff
         private readonly IPopulateScope<ICodeElement> left;
         private readonly IPopulateScope<ICodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
-        private readonly DelegateBox<IVarifiableType> box = new DelegateBox<IVarifiableType>();
+        private readonly DelegateBox<IIsPossibly<IVarifiableType>> box = new DelegateBox<IIsPossibly<IVarifiableType>>();
 
         public BinaryPopulateScope(IPopulateScope<ICodeElement> left,
             IPopulateScope<ICodeElement> right,
@@ -115,7 +115,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -154,13 +154,13 @@ namespace Tac.Semantic_Model.CodeStuff
         public readonly IPopulateBoxes<ICodeElement> left;
         public readonly IPopulateBoxes<ICodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
-        private readonly DelegateBox<IVarifiableType> box;
+        private readonly DelegateBox<IIsPossibly<IVarifiableType>> box;
 
         public BinaryResolveReferance(
             IPopulateBoxes<ICodeElement> resolveReferance1,
             IPopulateBoxes<ICodeElement> resolveReferance2,
             BinaryOperation.Make<TCodeElement> make,
-            DelegateBox<IVarifiableType> box)
+            DelegateBox<IIsPossibly<IVarifiableType>> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
@@ -174,7 +174,16 @@ namespace Tac.Semantic_Model.CodeStuff
             var res = make(
                 left.Run(context),
                 right.Run(context));
-            box.Set(() => res.Returns());
+            box.Set(() => {
+                if (res.Is(out var yes, out var no))
+                {
+                    return Possibly.Is<IVarifiableType>(yes.Value.Returns());
+                }
+                else {
+
+                    return Possibly.IsNot<IVarifiableType>(no);
+                }
+            });
             return res;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Prototypist.LeftToRight;
 using System;
 using System.Collections.Generic;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -19,7 +20,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class WeakPathOperation : BinaryOperation<ICodeElement, ICodeElement>, IPathOperation
     {
-        public WeakPathOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakPathOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
         {
         }
         
@@ -49,7 +50,7 @@ namespace Tac.Semantic_Model.Operations
                 return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
-                    new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> new WeakPathOperation(l,r)));
+                    new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> Possibly.Is(new WeakPathOperation(l,r))));
             }
 
             return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeNotMatch(

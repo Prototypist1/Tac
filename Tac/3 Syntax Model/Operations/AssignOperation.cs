@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -20,7 +21,7 @@ namespace Tac.Semantic_Model.Operations
     internal class WeakAssignOperation : BinaryOperation<ICodeElement, ICodeElement>, IAssignOperation
     {
         
-        public WeakAssignOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakAssignOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
         {
         }
         
@@ -56,7 +57,9 @@ namespace Tac.Semantic_Model.Operations
                 return TokenMatching<IPopulateScope<WeakAssignOperation>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
-                    new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r)=>new WeakAssignOperation(l,r)));
+                    new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r) => 
+                        Possibly.Is(
+                            new WeakAssignOperation(l,r))));
             }
 
             return TokenMatching<IPopulateScope<WeakAssignOperation>>.MakeNotMatch(

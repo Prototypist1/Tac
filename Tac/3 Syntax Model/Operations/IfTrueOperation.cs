@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -20,7 +21,7 @@ namespace Tac.Semantic_Model.Operations
     internal class WeakIfTrueOperation : BinaryOperation<ICodeElement, ICodeElement>, IIfOperation
     {
         // right should have more validation
-        public WeakIfTrueOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakIfTrueOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
         {
         }
         
@@ -37,7 +38,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation>
     {
-        public IfTrueOperationMaker() : base(new IfTrueSymbols(), (l,r)=>new WeakIfTrueOperation(l,r))
+        public IfTrueOperationMaker() : base(new IfTrueSymbols(), (l,r)=> Possibly.Is(new WeakIfTrueOperation(l,r)))
         {
         }
     }

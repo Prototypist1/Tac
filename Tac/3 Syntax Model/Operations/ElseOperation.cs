@@ -1,5 +1,6 @@
 ﻿using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -20,7 +21,7 @@ namespace Tac.Semantic_Model.Operations
     internal class WeakElseOperation : BinaryOperation<ICodeElement, ICodeElement>, IElseOperation
     {
         // right should have more validation
-        public WeakElseOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakElseOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
         {
         }
         
@@ -38,7 +39,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation>
     {
-        public ElseOperationMaker() : base(new ElseSymbols(), (l,r)=>new WeakElseOperation(l,r))
+        public ElseOperationMaker() : base(new ElseSymbols(), (l,r)=>Possibly.Is(new WeakElseOperation(l,r)))
         {
         }
     }

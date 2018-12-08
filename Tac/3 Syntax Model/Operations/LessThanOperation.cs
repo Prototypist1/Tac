@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -19,7 +20,7 @@ namespace Tac.Semantic_Model.CodeStuff
     {
         public const string Identifier = "<?";
 
-        public WeakLessThanOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakLessThanOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
         {
         }
         
@@ -36,7 +37,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation>
     {
-        public LessThanOperationMaker() : base(new LessThenSymbols(), (l,r)=>new WeakLessThanOperation(l,r))
+        public LessThanOperationMaker() : base(new LessThenSymbols(), (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)))
         {
         }
     }

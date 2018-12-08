@@ -1,5 +1,6 @@
 ﻿using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model.Elements;
 using Tac.New;
@@ -33,14 +34,14 @@ namespace Tac.Semantic_Model
     internal class MemberPopulateScope : IPopulateScope<WeakMemberReferance>
     {
         private readonly string memberName;
-        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
+        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
         public MemberPopulateScope(string item)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -52,11 +53,16 @@ namespace Tac.Semantic_Model
                 !context.Scope.TryAddMember(
                     DefintionLifetime.Instance,
                     nameKey, 
-                    new Box<WeakMemberDefinition>(
-                        new WeakMemberDefinition(
-                            false,
-                            nameKey,
-                            new WeakTypeReferance( new Box<IVarifiableType>(new AnyType()))))))
+                    new Box<IIsPossibly< WeakMemberDefinition>>(
+                        Possibly.Is(
+                            new WeakMemberDefinition(
+                                false,
+                                nameKey,
+                                new WeakTypeReferance( 
+                                    Possibly.Is( 
+                                        new Box<IIsPossibly< IVarifiableType>>(
+                                            Possibly.Is(
+                                                new AnyType())))))))))
             {
                 throw new Exception("uhh that is not right");
             }
@@ -70,21 +76,21 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope resolvableScope;
         private readonly NameKey key;
-        private readonly Box<IVarifiableType> box;
+        private readonly Box<IIsPossibly<IVarifiableType>> box;
 
         public MemberResolveReferance(
             IResolvableScope resolvableScope,
             NameKey key, 
-            Box<IVarifiableType> box)
+            Box<IIsPossibly<IVarifiableType>> box)
         {
             this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
             this.key = key ?? throw new ArgumentNullException(nameof(key));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public WeakMemberReferance Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakMemberReferance> Run(IResolveReferanceContext context)
         {
-            return box.Fill(new WeakMemberReferance(resolvableScope.GetMemberOrThrow(key, false)));
+            return box.Fill( Possibly.Is(new WeakMemberReferance(resolvableScope.PossiblyGetType(key,false))));
         }
     }
     

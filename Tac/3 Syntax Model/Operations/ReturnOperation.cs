@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -19,7 +20,7 @@ namespace Tac.Semantic_Model.Operations
     
     internal class WeakReturnOperation : TrailingOperation, ICodeElement, IReturnOperation
     {
-        public WeakReturnOperation(ICodeElement result)
+        public WeakReturnOperation(IIsPossibly<ICodeElement> result)
         {
             Result = result;
         }
@@ -30,7 +31,7 @@ namespace Tac.Semantic_Model.Operations
             return context.ReturnOperation(this);
         }
         
-        public ICodeElement Result { get; }
+        public IIsPossibly<ICodeElement> Result { get; }
         
         public IVarifiableType Returns()
         {
@@ -46,7 +47,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal class TrailingOperation {
-        public delegate T Make<T>(ICodeElement codeElement);
+        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<ICodeElement> codeElement);
     }
 
     internal class TrailingOperationMaker<T> : IMaker<IPopulateScope<T>>
@@ -87,7 +88,7 @@ namespace Tac.Semantic_Model.Operations
     {
         private readonly IPopulateScope<ICodeElement> left;
         private readonly TrailingOperation.Make<T> make;
-        private readonly DelegateBox<IVarifiableType> box = new DelegateBox<IVarifiableType>();
+        private readonly DelegateBox<IIsPossibly<IVarifiableType>> box = new DelegateBox<IIsPossibly<IVarifiableType>>();
 
         public TrailingPopulateScope(IPopulateScope<ICodeElement> left, TrailingOperation.Make<T> make)
         {
@@ -95,7 +96,7 @@ namespace Tac.Semantic_Model.Operations
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -113,19 +114,27 @@ namespace Tac.Semantic_Model.Operations
     {
         public readonly IPopulateBoxes<ICodeElement> left;
         private readonly TrailingOperation.Make<T> make;
-        private readonly DelegateBox<IVarifiableType> box;
+        private readonly DelegateBox<IIsPossibly<IVarifiableType>> box;
 
-        public TrailingResolveReferance(IPopulateBoxes<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IVarifiableType> box)
+        public TrailingResolveReferance(IPopulateBoxes<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IIsPossibly<IVarifiableType>> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
-        public T Run(IResolveReferanceContext context)
+        public IIsPossibly<T> Run(IResolveReferanceContext context)
         {
             var res = make(left.Run(context));
-            box.Set(()=>res.Returns());
+            box.Set(()=> {
+                    if (res.Is(out var yes, out var no))
+                    {
+                        return Possibly.Is(yes.Value.Returns());
+                    }
+                    else {
+                        return Possibly.IsNot<IVarifiableType>(no);
+                    }
+                });
             return res;
         }
     }
@@ -133,7 +142,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ReturnOperationMaker : TrailingOperationMaker<WeakReturnOperation>
     {
-        public ReturnOperationMaker() : base(new RetunrSymbols(), x=>new WeakReturnOperation(x))
+        public ReturnOperationMaker() : base(new RetunrSymbols(), x=>Possibly.Is(new WeakReturnOperation(x)))
         {
         }
     }

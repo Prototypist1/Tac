@@ -42,6 +42,36 @@ namespace Tac.Frontend
     {
     }
 
+    public static class IsPossiblyExtenstions {
+        public static bool Is<T>(this IIsPossibly<T> self, out IIsDefinately<T> yes, out IIsDefinatelyNot<T> no) {
+            if (self is IIsDefinately<T> isYes) {
+                yes = isYes;
+                no = default;
+                return true;
+            }
+            if (self is IIsDefinatelyNot<T> isNo)
+            {
+                no = isNo;
+                yes = default;
+                return false;
+            }
+            throw new Exception("bug! this should be a dichotomy!");
+        }
+
+        public static IIsPossibly<TT> IfIs<T, TT>(this IIsPossibly<T> self, Func<T, IIsPossibly<TT>> func) {
+            if (self is IIsDefinately<T> isYes)
+            {
+                return func(isYes.Value);
+            }
+            if (self is IIsDefinatelyNot<T> isNo)
+            {
+                return Possibly.IsNot<TT>(isNo);
+            }
+            throw new Exception("bug! this should be a dichotomy!");
+        }
+
+    }
+    
     public interface IIsDefinately<out T> : IIsPossibly<T>
     {
         T Value { get; }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -17,10 +18,10 @@ namespace Tac.Semantic_Model
     {
 
         public WeakImplementationDefinition(
-            IBox<WeakMemberDefinition> contextDefinition, 
-            IBox<WeakMemberDefinition> parameterDefinition, 
-            WeakTypeReferance outputType, 
-            IEnumerable<ICodeElement> metohdBody,
+            IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> contextDefinition,
+            IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> parameterDefinition,
+            IIsPossibly<WeakTypeReferance> outputType, 
+            IEnumerable<IIsPossibly<ICodeElement>> metohdBody,
             IFinalizedScope scope, 
             IEnumerable<ICodeElement> staticInitializers)
         {
@@ -47,12 +48,12 @@ namespace Tac.Semantic_Model
                 return ParameterDefinition.GetValue().Type;
             }
         }
-        public WeakTypeReferance OutputType { get; }
+        public IIsPossibly<WeakTypeReferance> OutputType { get; }
         // are these really boxes
-        public IBox<WeakMemberDefinition> ContextDefinition { get; }
-        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ContextDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
         public IFinalizedScope Scope { get; }
-        public IEnumerable<ICodeElement> MethodBody { get; }
+        public IEnumerable<IIsPossibly<ICodeElement>> MethodBody { get; }
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
 
         #region IImplementationDefinition
@@ -160,7 +161,7 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IPopulateScope<WeakTypeReferance> output;
-        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
+        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
         public PopulateScopeImplementationDefinition(
             IPopulateScope<WeakMemberReferance> contextDefinition,
@@ -187,7 +188,7 @@ namespace Tac.Semantic_Model
                 box);
         }
         
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -201,7 +202,7 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<ICodeElement>[] elements;
         private readonly IPopulateBoxes<WeakTypeReferance> output;
-        private readonly Box<IVarifiableType> box;
+        private readonly Box<IIsPossibly<IVarifiableType>> box;
 
         public ImplementationDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReferance> contextDefinition,
@@ -209,7 +210,7 @@ namespace Tac.Semantic_Model
             IResolvableScope methodScope,
             IPopulateBoxes<ICodeElement>[] elements,
             IPopulateBoxes<WeakTypeReferance> output,
-            Box<IVarifiableType> box)
+            Box<IIsPossibly<IVarifiableType>> box)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -219,15 +220,17 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
-        public WeakImplementationDefinition Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakImplementationDefinition> Run(IResolveReferanceContext context)
         {
-            return box.Fill(new WeakImplementationDefinition(
-                contextDefinition.Run(context).MemberDefinition,
-                parameterDefinition.Run(context).MemberDefinition,
-                output.Run(context), 
-                elements.Select(x => x.Run(context)).ToArray(), 
-                methodScope.GetFinalized(), 
-                new ICodeElement[0]));
+            return box.Fill(
+                Possibly.Is(
+                    new WeakImplementationDefinition(
+                    contextDefinition.Run(context).IfIs(x=>x.MemberDefinition),
+                    parameterDefinition.Run(context).IfIs(x => x.MemberDefinition),
+                    output.Run(context), 
+                    elements.Select(x => x.Run(context)).ToArray(), 
+                    methodScope.GetFinalized(), 
+                    new ICodeElement[0])));
         }
     }
 

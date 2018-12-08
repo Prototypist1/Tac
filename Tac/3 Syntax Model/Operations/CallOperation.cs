@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -22,7 +23,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class WeakNextCallOperation : BinaryOperation<ICodeElement, ICodeElement>, INextCallOperation
     {
-        public WeakNextCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakNextCallOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
         {
         }
 
@@ -41,7 +42,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation>
     {
-        public NextCallOperationMaker() : base(new NextCallSymbols(), (l,r)=> new WeakNextCallOperation(l,r))
+        public NextCallOperationMaker() : base(new NextCallSymbols(), (l,r)=> Possibly.Is( new WeakNextCallOperation(l,r)))
         {
         }
     }
@@ -56,7 +57,7 @@ namespace Tac.Semantic_Model.Operations
     {
         public const string Identifier = "<";
 
-        public WeakLastCallOperation(ICodeElement left, ICodeElement right) : base(left, right)
+        public WeakLastCallOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
         {
         }
 
@@ -75,7 +76,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation>
     {
-        public LastCallOperationMaker() : base(new LastCallSymbols(), (l,r)=>new WeakLastCallOperation(l,r))
+        public LastCallOperationMaker() : base(new LastCallSymbols(), (l,r)=>Possibly.Is( new WeakLastCallOperation(l,r)))
         {
         }
     }

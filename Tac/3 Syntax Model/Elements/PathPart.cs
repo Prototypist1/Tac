@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -16,12 +17,12 @@ namespace Tac.Semantic_Model
 
     internal class WeakMemberReferance : ICodeElement, IMemberReferance
     {
-        public WeakMemberReferance(IBox<WeakMemberDefinition> memberDefinition)
+        public WeakMemberReferance(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
-        public IBox<WeakMemberDefinition> MemberDefinition { get; }
+        public  IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
 
         #region IMemberReferance
 

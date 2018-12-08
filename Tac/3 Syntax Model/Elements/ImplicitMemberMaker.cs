@@ -1,6 +1,7 @@
 ﻿using Prototypist.LeftToRight;
 using System;
 using System.Linq;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model.Elements;
 using Tac.New;
@@ -13,9 +14,9 @@ namespace Tac.Semantic_Model
 {
     internal class ImplicitMemberMaker : IMaker<IPopulateScope<WeakMemberReferance>>
     {
-        private readonly IBox<IVarifiableType> type;
+        private readonly IBox<IIsPossibly<IVarifiableType>> type;
 
-        public ImplicitMemberMaker( IBox<IVarifiableType> type)
+        public ImplicitMemberMaker( IBox<IIsPossibly<IVarifiableType>> type)
         {
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
@@ -46,10 +47,10 @@ namespace Tac.Semantic_Model
     internal class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReferance>
     {
         private readonly string memberName;
-        private readonly IBox<IVarifiableType> type;
-        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
+        private readonly IBox<IIsPossibly<IVarifiableType>> type;
+        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
-        public ImplicitMemberPopulateScope(string item, IBox<IVarifiableType> type)
+        public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IVarifiableType>> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -58,7 +59,7 @@ namespace Tac.Semantic_Model
         public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
         {
             
-            IBox<WeakMemberDefinition> memberDef = new Box<WeakMemberDefinition>();
+            IBox< IIsPossibly < WeakMemberDefinition >> memberDef = new Box<IIsPossibly<WeakMemberDefinition>>();
 
             if (!context.Scope.TryAddMember(DefintionLifetime.Instance,new NameKey(memberName), memberDef))
             {
@@ -70,7 +71,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -80,26 +81,32 @@ namespace Tac.Semantic_Model
 
     internal class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReferance>
     {
-        private readonly Box<IVarifiableType> box;
+        private readonly Box<IIsPossibly<IVarifiableType>> box;
         private readonly string memberName;
-        private readonly IBox<IVarifiableType> type;
+        private readonly IBox<IIsPossibly<IVarifiableType>> type;
 
         public ImplicitMemberResolveReferance(
             string memberName,
-            Box<IVarifiableType> box,
-            IBox<IVarifiableType> type)
+            Box<IIsPossibly<IVarifiableType>> box,
+            IBox<IIsPossibly<IVarifiableType>> type)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
         
-        public WeakMemberReferance Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakMemberReferance> Run(IResolveReferanceContext context)
         {
            return box.Fill(
+               Possibly.Is(
                 new WeakMemberReferance(
-                    new Box<WeakMemberDefinition>(
-                        new WeakMemberDefinition(false, new NameKey(memberName), new WeakTypeReferance(type)))));
+                    Possibly.Is(
+                        new Box<IIsPossibly<WeakMemberDefinition>>(
+                            Possibly.Is(
+                                new WeakMemberDefinition(
+                                    false, 
+                                    new NameKey(memberName), 
+                                    new WeakTypeReferance(Possibly.Is(type)))))))));
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -15,12 +16,15 @@ namespace Tac.Semantic_Model
     
     internal class WeakGenericTypeDefinition : WeakTypeDefinition, IGenericInterfaceDefinition
     {
-        public WeakGenericTypeDefinition(NameKey key, IFinalizedScope scope, IGenericTypeParameterDefinition[] TypeParameterDefinitions):base(scope,key)
+        public WeakGenericTypeDefinition(
+            IIsPossibly<NameKey> key, 
+            IFinalizedScope scope,
+            IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions):base(scope,key)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
         }
 
-        public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        public IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions { get; }
         
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -108,7 +112,7 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly IGenericTypeParameterDefinition[] genericParameters;
-        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
+        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
@@ -129,7 +133,7 @@ namespace Tac.Semantic_Model
             return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters);
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -139,13 +143,13 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly IResolvableScope scope;
-        private readonly Box<IVarifiableType> box;
+        private readonly Box<IIsPossibly<IVarifiableType>> box;
         private readonly IGenericTypeParameterDefinition[] genericParameters;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             IResolvableScope scope, 
-            Box<IVarifiableType> box,
+            Box<IIsPossibly<IVarifiableType>> box,
             IGenericTypeParameterDefinition[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -154,12 +158,15 @@ namespace Tac.Semantic_Model
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
         }
         
-        public WeakGenericTypeDefinition Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakGenericTypeDefinition> Run(IResolveReferanceContext context)
         {
             // hmm getting the template down here is hard
             // scope mostly comes from context
             // why is that?
-            return box.Fill(new WeakGenericTypeDefinition(nameKey, scope.GetFinalized(), genericParameters));
+            return box.Fill(Possibly.Is(new WeakGenericTypeDefinition(
+                Possibly.Is(nameKey),
+                scope.GetFinalized(),
+                genericParameters.Select(x=>Possibly.Is(x)).ToArray())));
         }
     }
 }
