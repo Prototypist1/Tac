@@ -43,7 +43,7 @@ namespace Tac.Frontend
     }
 
     public static class IsPossiblyExtenstions {
-        public static bool Is<T>(this IIsPossibly<T> self, out IIsDefinately<T> yes, out IIsDefinatelyNot<T> no) {
+        public static bool IsDefinately<T>(this IIsPossibly<T> self, out IIsDefinately<T> yes, out IIsDefinatelyNot<T> no) {
             if (self is IIsDefinately<T> isYes) {
                 yes = isYes;
                 no = default;

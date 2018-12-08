@@ -142,7 +142,7 @@ namespace Tac.Semantic_Model
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IIsPossibly<WeakTypeReferance> Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakTypeReferance> Run(IResolveReferenceContext context)
         {
                 return box.Fill(Possibly.Is(new WeakTypeReferance(scope.PossiblyGetType(key))));
         }

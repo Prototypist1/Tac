@@ -108,10 +108,10 @@ namespace Tac.New
         }
     }
 
-    public interface IResolveReferanceContext  {
+    public interface IResolveReferenceContext  {
     }
 
-    public class ResolveReferanceContext : IResolveReferanceContext
+    public class ResolveReferanceContext : IResolveReferenceContext
     {
     }
 
@@ -137,7 +137,7 @@ namespace Tac.New
 
     public interface IPopulateBoxes<out TCodeElement> : IResolveReferance
     {
-        IIsPossibly<TCodeElement> Run(IResolveReferanceContext context);
+        IIsPossibly<TCodeElement> Run(IResolveReferenceContext context);
     }
     
 }

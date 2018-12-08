@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
-    internal class ImplicitMemberMaker : IMaker<IPopulateScope<WeakMemberReferance>>
+    internal class ImplicitMemberMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
         private readonly IBox<IIsPossibly<IVarifiableType>> type;
 
@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("var"), out var _)
@@ -31,20 +31,20 @@ namespace Tac.Semantic_Model
             if (matching is IMatchedTokenMatching matched)
             {
 
-                return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeMatch(
                 matched.Tokens,
                 matched.Context,
                 new ImplicitMemberPopulateScope(first.Item, type));
             }
 
-            return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeNotMatch(
                 matching.Context);
         }
 
     }
 
 
-    internal class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReferance>
+    internal class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReference>
     {
         private readonly string memberName;
         private readonly IBox<IIsPossibly<IVarifiableType>> type;
@@ -56,7 +56,7 @@ namespace Tac.Semantic_Model
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
         {
             
             IBox< IIsPossibly < WeakMemberDefinition >> memberDef = new Box<IIsPossibly<WeakMemberDefinition>>();
@@ -79,7 +79,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReferance>
+    internal class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReference>
     {
         private readonly Box<IIsPossibly<IVarifiableType>> box;
         private readonly string memberName;
@@ -95,11 +95,11 @@ namespace Tac.Semantic_Model
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
         
-        public IIsPossibly<WeakMemberReferance> Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
         {
            return box.Fill(
                Possibly.Is(
-                new WeakMemberReferance(
+                new WeakMemberReference(
                     Possibly.Is(
                         new Box<IIsPossibly<WeakMemberDefinition>>(
                             Possibly.Is(

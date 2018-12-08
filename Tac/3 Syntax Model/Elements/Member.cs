@@ -9,29 +9,29 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    internal class MemberMaker : IMaker<IPopulateScope<WeakMemberReferance>>
+    internal class MemberMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
         public MemberMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new NameMaker(), out var first);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new MemberPopulateScope(first.Item)); ;
             }
-            return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeNotMatch(
                     matching.Context);
         }
     }
 
-    internal class MemberPopulateScope : IPopulateScope<WeakMemberReferance>
+    internal class MemberPopulateScope : IPopulateScope<WeakMemberReference>
     {
         private readonly string memberName;
         private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
@@ -46,7 +46,7 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
         {
             var nameKey = new NameKey(memberName);
             if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) && 
@@ -72,7 +72,7 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal class MemberResolveReferance : IPopulateBoxes<WeakMemberReferance>
+    internal class MemberResolveReferance : IPopulateBoxes<WeakMemberReference>
     {
         private readonly IResolvableScope resolvableScope;
         private readonly NameKey key;
@@ -88,9 +88,9 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IIsPossibly<WeakMemberReferance> Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
         {
-            return box.Fill( Possibly.Is(new WeakMemberReferance(resolvableScope.PossiblyGetType(key,false))));
+            return box.Fill( Possibly.Is(new WeakMemberReference(resolvableScope.PossiblyGetMember(false,key))));
         }
     }
     

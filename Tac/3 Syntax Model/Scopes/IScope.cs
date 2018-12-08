@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        internal static IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> PossiblyGetMember(this IResolvableScope scope, bool staticOnly, IKey name)
+        internal static IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> PossiblyGetMember(this ISomeScope scope, bool staticOnly, IKey name)
         {
             if (scope.TryGetMember(name, staticOnly, out var thing))
             {

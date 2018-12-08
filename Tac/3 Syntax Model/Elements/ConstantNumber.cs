@@ -93,7 +93,7 @@ namespace Tac.Semantic_Model.Operations
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IIsPossibly<WeakConstantNumber> Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakConstantNumber> Run(IResolveReferenceContext context)
         {
             return box.Fill(Possibly.Is(new WeakConstantNumber(Possibly.Is(dub))));
         }

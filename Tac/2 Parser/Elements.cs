@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -37,7 +38,7 @@ namespace Tac.Parser
             });
         }
         
-        internal ElementMatchingContext AcceptImplicit(IBox<IVarifiableType> box)
+        internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IVarifiableType>> box)
         {
             return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<ICodeElement>>[] {
                 new BlockDefinitionMaker(),

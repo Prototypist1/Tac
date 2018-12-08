@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -19,7 +20,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakObjectDefinition: ICodeElement, IObjectType, IScoped, IObjectDefiniton
     {
-        public WeakObjectDefinition(IFinalizedScope scope, IEnumerable<WeakAssignOperation> assigns, ImplicitKey key) {
+        public WeakObjectDefinition(IFinalizedScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -31,7 +32,7 @@ namespace Tac.Semantic_Model
         }
 
         public IFinalizedScope Scope { get; }
-        public WeakAssignOperation[] Assignments { get; }
+        public IIsPossibly<WeakAssignOperation>[] Assignments { get; }
 
         public IKey Key
         {
@@ -85,14 +86,14 @@ namespace Tac.Semantic_Model
     internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
         private readonly IPopulateScope<ICodeElement>[] elements;
-        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
+        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
         public ObjectDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -114,13 +115,13 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<ICodeElement>[] elements;
-        private readonly Box<IVarifiableType> box;
+        private readonly Box<IIsPossibly<IVarifiableType>> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
             IPopulateBoxes<ICodeElement>[] elements, 
-            Box<IVarifiableType> box, 
+            Box<IIsPossibly<IVarifiableType>> box, 
             ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -129,9 +130,14 @@ namespace Tac.Semantic_Model
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public WeakObjectDefinition Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakObjectDefinition> Run(IResolveReferenceContext context)
         {
-            return box.Fill(new WeakObjectDefinition(scope.GetFinalized(), elements.Select(x => x.Run(context).Cast<WeakAssignOperation>()).ToArray(), key));
+            return box.Fill(
+                Possibly.Is(
+                    new WeakObjectDefinition(
+                        scope.GetFinalized(), 
+                        elements.Select(x => x.Run(context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray(), 
+                        key)));
         }
     }
 }

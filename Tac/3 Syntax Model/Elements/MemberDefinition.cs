@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -20,14 +21,14 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition: ICodeElement, IMemberDefinition, IVarifiableType
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, WeakTypeReferance type)
+        public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReferance> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public WeakTypeReferance Type { get; }
+        public IIsPossibly<WeakTypeReferance> Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
 
@@ -48,13 +49,13 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class MemberDefinitionMaker : IMaker<IPopulateScope<WeakMemberReferance>>
+    internal class MemberDefinitionMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
         public MemberDefinitionMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
@@ -64,23 +65,23 @@ namespace Tac.Semantic_Model
                 .Has(new NameMaker(), out var nameToken);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, type));
             }
-            return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeNotMatch(
                                matching.Context);
         }
     }
 
-    internal class MemberDefinitionPopulateScope : IPopulateScope< WeakMemberReferance>
+    internal class MemberDefinitionPopulateScope : IPopulateScope<WeakMemberReference>
     {
         private readonly string memberName;
         private readonly bool isReadonly;
         private readonly IPopulateScope<WeakTypeReferance> typeName;
-        private readonly Box<WeakMemberReferance> box = new Box<WeakMemberReferance>();
-        private readonly Box<WeakMemberDefinition> memberDefinitionBox = new Box<WeakMemberDefinition>();
+        private readonly Box<IIsPossibly<WeakMemberReference>> box = new Box<IIsPossibly<WeakMemberReference>>();
+        private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox = new Box<IIsPossibly<WeakMemberDefinition>>();
 
         public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<WeakTypeReferance> typeToken)
         {
@@ -89,7 +90,7 @@ namespace Tac.Semantic_Model
             typeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
         }
 
-        public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
         {
             var key = new NameKey(memberName);
             if (!context.Scope.TryAddMember(DefintionLifetime.Instance,key, memberDefinitionBox))
@@ -99,28 +100,28 @@ namespace Tac.Semantic_Model
             return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName.Run(context), context.GetResolvableScope(), memberDefinitionBox);
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
     }
 
-    internal class MemberDefinitionResolveReferance : IPopulateBoxes< WeakMemberReferance>
+    internal class MemberDefinitionResolveReferance : IPopulateBoxes< WeakMemberReference>
     {
         private readonly string memberName;
-        private readonly Box<WeakMemberReferance> box;
+        private readonly Box<IIsPossibly<WeakMemberReference>> box;
         private readonly bool isReadonly;
         public readonly IPopulateBoxes<WeakTypeReferance> type;
         private readonly IResolvableScope scope;
-        private readonly Box<WeakMemberDefinition> memberDefinitionBox;
+        private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox;
 
         public MemberDefinitionResolveReferance(
             string memberName,
-            Box<WeakMemberReferance> box,
+            Box<IIsPossibly<WeakMemberReference>> box,
             bool isReadonly,
             IPopulateBoxes<WeakTypeReferance> type,
             IResolvableScope scope,
-            Box<WeakMemberDefinition> memberDefinitionBox)
+            Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
@@ -130,15 +131,16 @@ namespace Tac.Semantic_Model
             this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
         }
 
-        public WeakMemberReferance Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
         {
             memberDefinitionBox.Fill(
+                Possibly.Is(
                 new WeakMemberDefinition(
                     isReadonly,
                     new NameKey(memberName),
-                    type.Run(context)));
+                    type.Run(context))));
 
-            return box.Fill(new WeakMemberReferance(memberDefinitionBox));
+            return box.Fill(Possibly.Is(new WeakMemberReference(Possibly.Is(memberDefinitionBox))));
         }
     }
 }

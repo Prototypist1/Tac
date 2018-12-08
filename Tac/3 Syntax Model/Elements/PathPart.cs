@@ -15,9 +15,9 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMemberReferance : ICodeElement, IMemberReferance
+    internal class WeakMemberReference : ICodeElement, IMemberReferance
     {
-        public WeakMemberReferance(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
+        public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class MemberReferanceMaker : IMaker<IPopulateScope<WeakMemberReferance>>
+    internal class MemberReferanceMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
         public MemberReferanceMaker(
             IBox<IVarifiableType> lhs)
@@ -51,28 +51,28 @@ namespace Tac.Semantic_Model
 
         private readonly IBox<IVarifiableType> lhs;
 
-        public ITokenMatching<IPopulateScope<WeakMemberReferance>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new NameMaker(), out var first);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, new MemberReferancePopulateScope(first.Item, lhs));
             }
 
-            return TokenMatching<IPopulateScope<WeakMemberReferance>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeNotMatch(
                     matching.Context);
         }
     }
 
-    internal class MemberReferancePopulateScope : IPopulateScope< WeakMemberReferance>
+    internal class MemberReferancePopulateScope : IPopulateScope< WeakMemberReference>
     {
 
         private readonly IBox<IVarifiableType> lhs;
         private readonly string memberName;
-        private readonly DelegateBox<WeakMemberDefinition> box = new DelegateBox<WeakMemberDefinition>();
+        private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box = new DelegateBox<IIsPossibly<WeakMemberDefinition>>();
 
         public MemberReferancePopulateScope( string item, IBox<IVarifiableType> lhs)
         {
@@ -80,46 +80,82 @@ namespace Tac.Semantic_Model
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
 
-        public IPopulateBoxes<WeakMemberReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
         {
 
             return new MemberReferanceResolveReferance(memberName, box,lhs);
         }
     }
 
-    internal class MemberReferanceResolveReferance : IPopulateBoxes<WeakMemberReferance>
+    internal class MemberReferanceResolveReferance : IPopulateBoxes<WeakMemberReference>
     {
 
         private readonly string memberName;
         private readonly IBox<IVarifiableType> lhs;
-        private readonly DelegateBox<WeakMemberDefinition> box;
+        private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box;
 
-        public MemberReferanceResolveReferance(string memberName, DelegateBox<WeakMemberDefinition> box, IBox<IVarifiableType> lhs)
+        public MemberReferanceResolveReferance(string memberName, DelegateBox<IIsPossibly<WeakMemberDefinition>> box, IBox<IVarifiableType> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public WeakMemberReferance Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
         {
             box.Set(() =>
             {
+                // TODO a lot of this could be replaced by IfIs
+
                 var lshtype = lhs.GetValue();
-                if (lshtype is WeakMemberReferance memberReferance && 
-                    memberReferance.MemberDefinition.GetValue().Type.TypeDefinition.GetValue() is IInterfaceType interfaceType &&
-                    interfaceType.Scope.TryGetMember(new NameKey(memberName), false, out var res)
-                ){
-                    return res.Cast<WeakMemberDefinition>();
+
+                if (!(lshtype is WeakMemberReference memberReference)) {
+                    return Possibly.IsNot<WeakMemberDefinition>(); // TODO
                 }
-                throw new Exception("something not right");
+
+                if (!memberReference.MemberDefinition.IsDefinately(out var hasMemberDef, out var noMemberDef))
+                {
+                    return Possibly.IsNot<WeakMemberDefinition>(noMemberDef);
+                }
+
+                if (!hasMemberDef.Value.GetValue().IsDefinately(out var has, out var hasNot)) {
+                    return Possibly.IsNot<WeakMemberDefinition>(hasNot);
+                }
+
+                if (!has.Value.Type.IsDefinately(out var has2, out var hasNot2))
+                {
+                    return Possibly.IsNot<WeakMemberDefinition>(hasNot2);
+                }
+
+                if (!has2.Value.TypeDefinition.IsDefinately(out var has3, out var hasNot3))
+                {
+                    return Possibly.IsNot<WeakMemberDefinition>(hasNot3);
+                }
+
+                if (!has3.Value.GetValue().IsDefinately(out var has4, out var hasNot4))
+                {
+                    return Possibly.IsNot<WeakMemberDefinition>(hasNot4);
+                }
+
+                if (!(has4 is IInterfaceType interfaceType))
+                {
+                    return Possibly.IsNot<WeakMemberDefinition>(); // TODO
+                }
+
+                if (interfaceType.Scope.TryGetMember(new NameKey(memberName), false, out var res)) {
+                    return Possibly.Is(res.Cast<WeakMemberDefinition>());
+                }
+                else
+                {
+                    return Possibly.IsNot<WeakMemberDefinition>(); // TODO
+                }
             });
-            return new WeakMemberReferance(box);
+            return Possibly.Is(new WeakMemberReference(Possibly.Is(box)));
         }   
     }
 }

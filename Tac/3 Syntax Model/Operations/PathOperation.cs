@@ -32,7 +32,7 @@ namespace Tac.Semantic_Model.Operations
         public override IVarifiableType Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
-            return Right.Cast<WeakMemberReferance>();
+            return Right.Cast<WeakMemberReference>();
         }
     }
     

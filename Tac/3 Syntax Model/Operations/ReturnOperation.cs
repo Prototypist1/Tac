@@ -123,11 +123,11 @@ namespace Tac.Semantic_Model.Operations
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
-        public IIsPossibly<T> Run(IResolveReferanceContext context)
+        public IIsPossibly<T> Run(IResolveReferenceContext context)
         {
             var res = make(left.Run(context));
             box.Set(()=> {
-                    if (res.Is(out var yes, out var no))
+                    if (res.IsDefinately(out var yes, out var no))
                     {
                         return Possibly.Is(yes.Value.Returns());
                     }

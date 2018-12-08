@@ -158,7 +158,7 @@ namespace Tac.Semantic_Model
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
         }
         
-        public IIsPossibly<WeakGenericTypeDefinition> Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakGenericTypeDefinition> Run(IResolveReferenceContext context)
         {
             // hmm getting the template down here is hard
             // scope mostly comes from context

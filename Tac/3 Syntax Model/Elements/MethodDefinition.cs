@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -17,19 +18,19 @@ namespace Tac.Semantic_Model
     internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IMethodDefinition
     {
         public WeakMethodDefinition(
-            WeakTypeReferance outputType, 
-            IBox<WeakMemberDefinition> parameterDefinition,
-            ICodeElement[] body,
+            IIsPossibly<WeakTypeReferance> outputType, 
+            IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> parameterDefinition,
+            IIsPossibly<ICodeElement>[] body,
             IFinalizedScope scope,
-            IEnumerable<ICodeElement> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+            IEnumerable<IIsPossibly<ICodeElement>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
         
-        public WeakTypeReferance InputType => ParameterDefinition.GetValue().Type;
-        public WeakTypeReferance OutputType { get; }
-        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
+        public IIsPossibly<WeakTypeReferance> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
+        public IIsPossibly<WeakTypeReferance> OutputType { get; }
+        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
 
         #region IMethodDefinition
 
@@ -107,13 +108,13 @@ namespace Tac.Semantic_Model
 
     internal class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
     {
-        private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
+        private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IPopulateScope<WeakTypeReferance> output;
-        private readonly Box<IVarifiableType> box = new Box<IVarifiableType>();
+        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
         public MethodDefinitionPopulateScope(
-            IPopulateScope<WeakMemberReferance> parameterDefinition,
+            IPopulateScope<WeakMemberReference> parameterDefinition,
             IPopulateScope<ICodeElement>[] elements,
             IPopulateScope<WeakTypeReferance> output
             )
@@ -124,7 +125,7 @@ namespace Tac.Semantic_Model
 
         }
 
-        public IBox<IVarifiableType> GetReturnType()
+        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
         {
             return box;
         }
@@ -144,18 +145,18 @@ namespace Tac.Semantic_Model
 
     internal class MethodDefinitionResolveReferance : IPopulateBoxes<WeakMethodDefinition>
     {
-        private readonly IPopulateBoxes<WeakMemberReferance> parameter;
+        private readonly IPopulateBoxes<WeakMemberReference> parameter;
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<ICodeElement>[] lines;
         private readonly IPopulateBoxes<WeakTypeReferance> output;
-        private readonly Box<IVarifiableType> box;
+        private readonly Box<IIsPossibly<IVarifiableType>> box;
 
         public MethodDefinitionResolveReferance(
-            IPopulateBoxes<WeakMemberReferance> parameter, 
+            IPopulateBoxes<WeakMemberReference> parameter, 
             IResolvableScope methodScope, 
             IPopulateBoxes<ICodeElement>[] resolveReferance2,
             IPopulateBoxes<WeakTypeReferance> output,
-            Box<IVarifiableType> box)
+            Box<IIsPossibly<IVarifiableType>> box)
         {
             this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
@@ -164,15 +165,16 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public WeakMethodDefinition Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakMethodDefinition> Run(IResolveReferenceContext context)
         {
             return box.Fill(
-                new WeakMethodDefinition(
-                    output.Run(context),
-                    parameter.Run(context).MemberDefinition, 
-                    lines.Select(x => x.Run(context)).ToArray(),
-                    methodScope.GetFinalized(),
-                    new ICodeElement[0]));
+                Possibly.Is(
+                    new WeakMethodDefinition(
+                        output.Run(context),
+                        parameter.Run(context).IfIs(x=> x.MemberDefinition), 
+                        lines.Select(x => x.Run(context)).ToArray(),
+                        methodScope.GetFinalized(),
+                        new IIsPossibly<ICodeElement>[0])));
         }
     }
     

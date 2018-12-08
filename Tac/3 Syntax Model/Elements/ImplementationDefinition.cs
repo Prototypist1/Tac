@@ -34,18 +34,18 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public WeakTypeReferance ContextTypeBox
+        public IIsPossibly<WeakTypeReferance> ContextTypeBox
         {
             get
             {
-                return ContextDefinition.GetValue().Type;
+                return ContextDefinition.IfIs(x=>x.GetValue()).IfIs(x=> Possibly.Is(x.Type));
             }
         }
-        public WeakTypeReferance InputTypeBox
+        public IIsPossibly<WeakTypeReferance> InputTypeBox
         {
             get
             {
-                return ParameterDefinition.GetValue().Type;
+                return ParameterDefinition.IfIs(x => x.GetValue()).IfIs(x => Possibly.Is(x.Type));
             }
         }
         public IIsPossibly<WeakTypeReferance> OutputType { get; }
@@ -157,15 +157,15 @@ namespace Tac.Semantic_Model
 
     internal class PopulateScopeImplementationDefinition : IPopulateScope<WeakImplementationDefinition>
     {
-        private readonly IPopulateScope<WeakMemberReferance> contextDefinition;
-        private readonly IPopulateScope<WeakMemberReferance> parameterDefinition;
+        private readonly IPopulateScope<WeakMemberReference> contextDefinition;
+        private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
         private readonly IPopulateScope<ICodeElement>[] elements;
         private readonly IPopulateScope<WeakTypeReferance> output;
         private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
         public PopulateScopeImplementationDefinition(
-            IPopulateScope<WeakMemberReferance> contextDefinition,
-            IPopulateScope<WeakMemberReferance> parameterDefinition,
+            IPopulateScope<WeakMemberReference> contextDefinition,
+            IPopulateScope<WeakMemberReference> parameterDefinition,
             IPopulateScope<ICodeElement>[] elements,
             IPopulateScope<WeakTypeReferance> output)
         {
@@ -197,16 +197,16 @@ namespace Tac.Semantic_Model
 
     internal class ImplementationDefinitionResolveReferance : IPopulateBoxes<WeakImplementationDefinition>
     {
-        private readonly IPopulateBoxes<WeakMemberReferance> contextDefinition;
-        private readonly IPopulateBoxes<WeakMemberReferance> parameterDefinition;
+        private readonly IPopulateBoxes<WeakMemberReference> contextDefinition;
+        private readonly IPopulateBoxes<WeakMemberReference> parameterDefinition;
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<ICodeElement>[] elements;
         private readonly IPopulateBoxes<WeakTypeReferance> output;
         private readonly Box<IIsPossibly<IVarifiableType>> box;
 
         public ImplementationDefinitionResolveReferance(
-            IPopulateBoxes<WeakMemberReferance> contextDefinition,
-            IPopulateBoxes<WeakMemberReferance> parameterDefinition,
+            IPopulateBoxes<WeakMemberReference> contextDefinition,
+            IPopulateBoxes<WeakMemberReference> parameterDefinition,
             IResolvableScope methodScope,
             IPopulateBoxes<ICodeElement>[] elements,
             IPopulateBoxes<WeakTypeReferance> output,
@@ -220,7 +220,7 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
         
-        public IIsPossibly<WeakImplementationDefinition> Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakImplementationDefinition> Run(IResolveReferenceContext context)
         {
             return box.Fill(
                 Possibly.Is(

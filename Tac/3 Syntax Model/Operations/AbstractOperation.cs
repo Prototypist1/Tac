@@ -169,13 +169,13 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
 
-        public IIsPossibly<TCodeElement> Run(IResolveReferanceContext context)
+        public IIsPossibly<TCodeElement> Run(IResolveReferenceContext context)
         {
             var res = make(
                 left.Run(context),
                 right.Run(context));
             box.Set(() => {
-                if (res.Is(out var yes, out var no))
+                if (res.IsDefinately(out var yes, out var no))
                 {
                     return Possibly.Is<IVarifiableType>(yes.Value.Returns());
                 }

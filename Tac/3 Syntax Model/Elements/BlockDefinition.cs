@@ -100,7 +100,7 @@ namespace Tac.Semantic_Model
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IIsPossibly<WeakBlockDefinition> Run(IResolveReferanceContext context)
+        public IIsPossibly<WeakBlockDefinition> Run(IResolveReferenceContext context)
         {
             return 
                 box.Fill(
