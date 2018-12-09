@@ -21,9 +21,9 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => ">";
     }
 
-    internal class WeakNextCallOperation : BinaryOperation<ICodeElement, ICodeElement>, INextCallOperation
+    internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, INextCallOperation
     {
-        public WeakNextCallOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
+        public WeakNextCallOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
 
@@ -34,7 +34,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public override IVarifiableType Returns()
+        public override IIsPossibly<IVarifiableType> Returns()
         {
             return Right.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType.IfIs(x => x.TypeDefinition).IfIs(x => x.GetValue());
         }
@@ -53,11 +53,11 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "<";
     }
 
-    internal class WeakLastCallOperation : BinaryOperation<ICodeElement, ICodeElement>, ILastCallOperation
+    internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, ILastCallOperation
     {
         public const string Identifier = "<";
 
-        public WeakLastCallOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
+        public WeakLastCallOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
 
@@ -68,7 +68,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public override IVarifiableType Returns()
+        public override IIsPossibly<IVarifiableType> Returns()
         {
             return Left.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType.IfIs(x=>x.TypeDefinition).IfIs(x=>x.GetValue());
         }

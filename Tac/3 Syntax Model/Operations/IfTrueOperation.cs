@@ -18,10 +18,10 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "then";
     }
 
-    internal class WeakIfTrueOperation : BinaryOperation<ICodeElement, ICodeElement>, IIfOperation
+    internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IIfOperation
     {
         // right should have more validation
-        public WeakIfTrueOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
+        public WeakIfTrueOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -30,9 +30,9 @@ namespace Tac.Semantic_Model.Operations
             return context.IfTrueOperation(this);
         }
 
-        public override IVarifiableType Returns()
+        public override IIsPossibly<IVarifiableType> Returns()
         {
-            return new BooleanType();
+            return Possibly.Is(new BooleanType());
         }
     }
 

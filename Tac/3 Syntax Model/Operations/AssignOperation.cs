@@ -18,10 +18,10 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "=:";
     }
 
-    internal class WeakAssignOperation : BinaryOperation<ICodeElement, ICodeElement>, IAssignOperation
+    internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IAssignOperation
     {
         
-        public WeakAssignOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
+        public WeakAssignOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -30,9 +30,9 @@ namespace Tac.Semantic_Model.Operations
             return context.AssignOperation(this);
         }
 
-        public override IVarifiableType Returns()
+        public override IIsPossibly<IVarifiableType> Returns()
         {
-            return Left.Returns();
+            return Left.IfIs(x=>x.Returns());
         }
     }
 

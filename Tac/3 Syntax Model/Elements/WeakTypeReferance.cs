@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    internal class WeakTypeReferance : ICodeElement, ITypeReferance
+    internal class WeakTypeReferance : IFrontendCodeElement, ITypeReferance
     {
         public WeakTypeReferance(IIsPossibly<IBox<IIsPossibly<IVarifiableType>>> typeDefinition)
         {
@@ -33,9 +33,14 @@ namespace Tac.Semantic_Model
             return context.TypeReferance(this);
         }
 
-        public IVarifiableType Returns()
+        public IIsPossibly<IVarifiableType> Returns()
         {
-            return TypeDefinition.GetValue();
+            return TypeDefinition.IfIs(x => x.GetValue());
+        }
+
+        IVarifiableType ICodeElement.Returns()
+        {
+            return Returns().GetOrThrow();
         }
     }
 

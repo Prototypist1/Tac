@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    internal class WeakMemberDefinition: ICodeElement, IMemberDefinition, IVarifiableType
+    internal class WeakMemberDefinition: IFrontendCodeElement, IMemberDefinition, IVarifiableType
     {
         public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReferance> type)
         {
@@ -46,6 +46,11 @@ namespace Tac.Semantic_Model
         public IVarifiableType Returns()
         {
             return this;
+        }
+
+        IIsPossibly<IVarifiableType> IFrontendCodeElement.Returns()
+        {
+            return Possibly.Is(this);
         }
     }
 

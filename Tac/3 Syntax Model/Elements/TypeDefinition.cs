@@ -15,7 +15,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakTypeDefinition : IInterfaceType, ICodeElement, IScoped
+    internal class WeakTypeDefinition : IInterfaceType, IFrontendCodeElement, IScoped
     {
         public WeakTypeDefinition(IFinalizedScope scope, IIsPossibly<IKey> key)
         {
@@ -35,6 +35,11 @@ namespace Tac.Semantic_Model
         public virtual IVarifiableType Returns()
         {
             return this;
+        }
+
+        IIsPossibly<IVarifiableType> IFrontendCodeElement.Returns()
+        {
+            return Possibly.Is(this);
         }
     }
 

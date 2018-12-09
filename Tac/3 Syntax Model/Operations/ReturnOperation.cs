@@ -18,9 +18,9 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "return";
     }
     
-    internal class WeakReturnOperation : TrailingOperation, ICodeElement, IReturnOperation
+    internal class WeakReturnOperation : TrailingOperation, IFrontendCodeElement, IReturnOperation
     {
-        public WeakReturnOperation(IIsPossibly<ICodeElement> result)
+        public WeakReturnOperation(IIsPossibly<IFrontendCodeElement> result)
         {
             Result = result;
         }
@@ -39,25 +39,30 @@ namespace Tac.Semantic_Model.Operations
 
         #endregion
         
-        public IVarifiableType Returns()
+        IVarifiableType ICodeElement.Returns()
         {
             return new EmptyType();
+        }
+
+        public IIsPossibly<IVarifiableType> Returns()
+        {
+            return Possibly.Is(new EmptyType());
         }
     }
 
     internal abstract class TrailingOperion<T> : IOperation
     {
-        public abstract ICodeElement[] Operands { get; }
+        public abstract IFrontendCodeElement[] Operands { get; }
         public abstract T1 Convert<T1>(IOpenBoxesContext<T1> context);
         public abstract IVarifiableType Returns();
     }
 
     internal class TrailingOperation {
-        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<ICodeElement> codeElement);
+        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> codeElement);
     }
 
     internal class TrailingOperationMaker<T> : IMaker<IPopulateScope<T>>
-        where T : class, ICodeElement
+        where T : class, IFrontendCodeElement
     {
         public TrailingOperationMaker(ISymbols name, TrailingOperation.Make<T> make)
         {
@@ -90,13 +95,13 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal class TrailingPopulateScope<T> : IPopulateScope<T>
-        where T : class, ICodeElement
+        where T : class, IFrontendCodeElement
     {
-        private readonly IPopulateScope<ICodeElement> left;
+        private readonly IPopulateScope<IFrontendCodeElement> left;
         private readonly TrailingOperation.Make<T> make;
         private readonly DelegateBox<IIsPossibly<IVarifiableType>> box = new DelegateBox<IIsPossibly<IVarifiableType>>();
 
-        public TrailingPopulateScope(IPopulateScope<ICodeElement> left, TrailingOperation.Make<T> make)
+        public TrailingPopulateScope(IPopulateScope<IFrontendCodeElement> left, TrailingOperation.Make<T> make)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -116,13 +121,13 @@ namespace Tac.Semantic_Model.Operations
 
 
     internal class TrailingResolveReferance<T> : IPopulateBoxes<T>
-        where T : class, ICodeElement
+        where T : class, IFrontendCodeElement
     {
-        public readonly IPopulateBoxes<ICodeElement> left;
+        public readonly IPopulateBoxes<IFrontendCodeElement> left;
         private readonly TrailingOperation.Make<T> make;
         private readonly DelegateBox<IIsPossibly<IVarifiableType>> box;
 
-        public TrailingResolveReferance(IPopulateBoxes<ICodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IIsPossibly<IVarifiableType>> box)
+        public TrailingResolveReferance(IPopulateBoxes<IFrontendCodeElement> resolveReferance1, TrailingOperation.Make<T> make, DelegateBox<IIsPossibly<IVarifiableType>> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -135,7 +140,7 @@ namespace Tac.Semantic_Model.Operations
             box.Set(()=> {
                     if (res.IsDefinately(out var yes, out var no))
                     {
-                        return Possibly.Is(yes.Value.Returns());
+                        return yes.Value.Returns();
                     }
                     else {
                         return Possibly.IsNot<IVarifiableType>(no);

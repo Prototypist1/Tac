@@ -18,9 +18,9 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => ".";
     }
 
-    internal class WeakPathOperation : BinaryOperation<ICodeElement, ICodeElement>, IPathOperation
+    internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IPathOperation
     {
-        public WeakPathOperation(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right) : base(left, right)
+        public WeakPathOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -29,10 +29,10 @@ namespace Tac.Semantic_Model.Operations
             return context.PathOperation(this);
         }
         
-        public override IVarifiableType Returns()
+        public override IIsPossibly<IVarifiableType> Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
-            return Right.Cast<WeakMemberReference>();
+            return Right.IfIs(x =>  Possibly.Is(x.Cast<WeakMemberReference>()));
         }
     }
     

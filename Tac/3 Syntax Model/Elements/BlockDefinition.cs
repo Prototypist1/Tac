@@ -16,9 +16,9 @@ namespace Tac.Semantic_Model
     internal class WeakBlockDefinition : WeakAbstractBlockDefinition, IBlockDefinition
     {
         public WeakBlockDefinition(
-            IIsPossibly<ICodeElement>[] body,
+            IIsPossibly<IFrontendCodeElement>[] body,
             IFinalizedScope scope,
-            IEnumerable<IIsPossibly<ICodeElement>> staticInitailizers) : 
+            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
 
         #region IBlockDefinition
@@ -61,10 +61,10 @@ namespace Tac.Semantic_Model
         // TODO object??
         // is it worth adding another T?
         // this is the type the backend owns
-        private IPopulateScope<ICodeElement>[] Elements { get; }
+        private IPopulateScope<IFrontendCodeElement>[] Elements { get; }
         private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
 
-        public BlockDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements)
+        public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements)
         {
             Elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
@@ -87,12 +87,12 @@ namespace Tac.Semantic_Model
     internal class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
     {
         private IResolvableScope Scope { get; }
-        private IPopulateBoxes<ICodeElement>[] ResolveReferance { get; }
+        private IPopulateBoxes<IFrontendCodeElement>[] ResolveReferance { get; }
         private readonly Box<IIsPossibly<IVarifiableType>> box;
 
         public ResolveReferanceBlockDefinition(
             IResolvableScope scope, 
-            IPopulateBoxes<ICodeElement>[] resolveReferance,
+            IPopulateBoxes<IFrontendCodeElement>[] resolveReferance,
             Box<IIsPossibly<IVarifiableType>> box)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -108,7 +108,7 @@ namespace Tac.Semantic_Model
                         new WeakBlockDefinition(
                             ResolveReferance.Select(x => x.Run(context)).ToArray(), 
                             Scope.GetFinalized(), 
-                            new IIsPossibly<ICodeElement>[0])));
+                            new IIsPossibly<IFrontendCodeElement>[0])));
         }
         
     }

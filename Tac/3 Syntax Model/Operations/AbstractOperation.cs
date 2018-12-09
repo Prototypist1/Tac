@@ -27,17 +27,15 @@ namespace Tac.Semantic_Model.CodeStuff
     public interface ISymbols {
         string Symbols { get; }
     }
-
-
-
-    public abstract class BinaryOperation
+    
+    internal abstract class BinaryOperation
     {
-        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<ICodeElement> left, IIsPossibly<ICodeElement> right);
+        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right);
     }
 
-    internal abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, ICodeElement, IBinaryOperation<TLeft, TRight>
-        where TLeft : class, ICodeElement
-        where TRight : class, ICodeElement
+    internal abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, IFrontendCodeElement, IBinaryOperation<TLeft, TRight>
+        where TLeft : class, IFrontendCodeElement
+        where TRight : class, IFrontendCodeElement
     {
         public IIsPossibly<TLeft> Left { get; }
         public IIsPossibly<TRight> Right { get; }
@@ -53,11 +51,15 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
         TLeft IBinaryOperation<TLeft, TRight>.Left => Left.GetOrThrow();
-
         TRight IBinaryOperation<TLeft, TRight>.Right => Right.GetOrThrow();
-
         ICodeElement[] IOperation.Operands => Operands.Select(x => x.GetOrThrow()).ToArray();
 
+        #endregion
+
+        #region ICodeElement
+
+        IVarifiableType ICodeElement.Returns() => Returns().GetOrThrow();
+        
         #endregion
         
         public BinaryOperation(IIsPossibly<TLeft> left, IIsPossibly<TRight> right)
@@ -65,15 +67,17 @@ namespace Tac.Semantic_Model.CodeStuff
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
-
-        public abstract IVarifiableType Returns();
+        
 
         public abstract T Convert<T>(IOpenBoxesContext<T> context);
+
+        public abstract IIsPossibly<IVarifiableType> Returns();
+
     }
 
 
     internal class BinaryOperationMaker<TCodeElement> : IMaker<IPopulateScope<TCodeElement>>
-        where TCodeElement : class, ICodeElement
+        where TCodeElement : class, IFrontendCodeElement, ICodeElement
     {
 
         public BinaryOperationMaker(ISymbols name, BinaryOperation.Make<TCodeElement> make
@@ -111,13 +115,13 @@ namespace Tac.Semantic_Model.CodeStuff
     internal class BinaryPopulateScope<TCodeElement> : IPopulateScope<TCodeElement>
                 where TCodeElement : class, ICodeElement
     {
-        private readonly IPopulateScope<ICodeElement> left;
-        private readonly IPopulateScope<ICodeElement> right;
+        private readonly IPopulateScope<IFrontendCodeElement> left;
+        private readonly IPopulateScope<IFrontendCodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
         private readonly DelegateBox<IIsPossibly<IVarifiableType>> box = new DelegateBox<IIsPossibly<IVarifiableType>>();
 
-        public BinaryPopulateScope(IPopulateScope<ICodeElement> left,
-            IPopulateScope<ICodeElement> right,
+        public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement> left,
+            IPopulateScope<IFrontendCodeElement> right,
             BinaryOperation.Make<TCodeElement> make)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -161,14 +165,14 @@ namespace Tac.Semantic_Model.CodeStuff
     internal class BinaryResolveReferance<TCodeElement> : IPopulateBoxes<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
-        public readonly IPopulateBoxes<ICodeElement> left;
-        public readonly IPopulateBoxes<ICodeElement> right;
+        public readonly IPopulateBoxes<IFrontendCodeElement> left;
+        public readonly IPopulateBoxes<IFrontendCodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
         private readonly DelegateBox<IIsPossibly<IVarifiableType>> box;
 
         public BinaryResolveReferance(
-            IPopulateBoxes<ICodeElement> resolveReferance1,
-            IPopulateBoxes<ICodeElement> resolveReferance2,
+            IPopulateBoxes<IFrontendCodeElement> resolveReferance1,
+            IPopulateBoxes<IFrontendCodeElement> resolveReferance2,
             BinaryOperation.Make<TCodeElement> make,
             DelegateBox<IIsPossibly<IVarifiableType>> box)
         {

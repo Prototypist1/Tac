@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
 {
 
 
-    internal class WeakModuleDefinition : IScoped, ICodeElement, IModuleType, IModuleDefinition
+    internal class WeakModuleDefinition : IScoped, IFrontendCodeElement, IModuleType, IModuleDefinition
     {
         public WeakModuleDefinition(IFinalizedScope scope, IEnumerable<IIsPossibly<ICodeElement>> staticInitialization, NameKey Key)
         {
@@ -48,9 +48,13 @@ namespace Tac.Semantic_Model
         {
             return this;
         }
+
+        IIsPossibly<IVarifiableType> IFrontendCodeElement.Returns()
+        {
+            return Possibly.Is(this);
+        }
     }
-
-
+    
     internal class ModuleDefinitionMaker : IMaker<IPopulateScope<WeakModuleDefinition>>
     {
         public ModuleDefinitionMaker()

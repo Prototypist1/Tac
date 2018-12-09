@@ -15,7 +15,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMemberReference : ICodeElement, IMemberReferance
+    internal class WeakMemberReference : IFrontendCodeElement, IMemberReferance
     {
         public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
         {
@@ -35,9 +35,14 @@ namespace Tac.Semantic_Model
             return context.MemberReferance(this);
         }
         
-        public IVarifiableType Returns()
+        IVarifiableType ICodeElement.Returns()
         {
-            return MemberDefinition.GetValue();
+            return Returns().GetOrThrow();
+        }
+
+        public IIsPossibly<IVarifiableType> Returns()
+        {
+            return MemberDefinition.IfIs(x => x.GetValue());
         }
     }
 

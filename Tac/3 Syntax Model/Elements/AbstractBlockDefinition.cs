@@ -12,12 +12,12 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    internal abstract class WeakAbstractBlockDefinition : ICodeElement, IScoped, IBlockDefinition
+    internal abstract class WeakAbstractBlockDefinition : IFrontendCodeElement, IScoped, IBlockDefinition
     {
         protected WeakAbstractBlockDefinition(
             IFinalizedScope scope,
-            IIsPossibly<ICodeElement>[] body, 
-            IEnumerable<IIsPossibly<ICodeElement>> staticInitailizers){
+            IIsPossibly<IFrontendCodeElement>[] body, 
+            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Body = body ?? throw new ArgumentNullException(nameof(body));
             StaticInitailizers = staticInitailizers ?? throw new ArgumentNullException(nameof(staticInitailizers));
@@ -25,8 +25,8 @@ namespace Tac.Semantic_Model
 
 
         public IFinalizedScope Scope { get; }
-        public IIsPossibly<ICodeElement>[] Body { get; }
-        public IEnumerable<IIsPossibly<ICodeElement>> StaticInitailizers { get; }
+        public IIsPossibly<IFrontendCodeElement>[] Body { get; }
+        public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitailizers { get; }
 
         IFinalizedScope IAbstractBlockDefinition.Scope
         {
@@ -46,5 +46,10 @@ namespace Tac.Semantic_Model
         public abstract T Convert<T>(IOpenBoxesContext<T> context);
         
         public IVarifiableType Returns() { return this; }
+
+        IIsPossibly<IVarifiableType> IFrontendCodeElement.Returns()
+        {
+            return Possibly.Is(this);
+        }
     }
 }

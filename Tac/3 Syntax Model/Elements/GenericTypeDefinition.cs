@@ -36,11 +36,6 @@ namespace Tac.Semantic_Model
         {
             return context.GenericTypeDefinition(this);
         }
-
-        public override IVarifiableType Returns()
-        {
-            return this;
-        }
     }
 
 
