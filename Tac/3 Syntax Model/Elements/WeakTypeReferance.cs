@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model
 
         #region ITypeReferance
 
-        IVarifiableType ITypeReferance.TypeDefinition => TypeDefinition.GetValue();
+        IVarifiableType ITypeReferance.TypeDefinition => TypeDefinition.IfIs(x=>x.GetValue()).GetOrThrow();
 
         #endregion
 

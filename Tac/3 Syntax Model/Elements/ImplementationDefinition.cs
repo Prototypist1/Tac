@@ -38,14 +38,14 @@ namespace Tac.Semantic_Model
         {
             get
             {
-                return ContextDefinition.IfIs(x=>x.GetValue()).IfIs(x=> Possibly.Is(x.Type));
+                return ContextDefinition.IfIs(x=>x.GetValue()).IfIs(x=> x.Type);
             }
         }
         public IIsPossibly<WeakTypeReferance> InputTypeBox
         {
             get
             {
-                return ParameterDefinition.IfIs(x => x.GetValue()).IfIs(x => Possibly.Is(x.Type));
+                return ParameterDefinition.IfIs(x => x.GetValue()).IfIs(x => x.Type);
             }
         }
         public IIsPossibly<WeakTypeReferance> OutputType { get; }
@@ -57,13 +57,27 @@ namespace Tac.Semantic_Model
         public IEnumerable<ICodeElement> StaticInitialzers { get; }
 
         #region IImplementationDefinition
-        
-        public IVarifiableType InputType => ParameterDefinition.GetValue().Type;
-        public IVarifiableType ContextType => ContextDefinition.GetValue().Type;
-        
-        IMemberDefinition IImplementationDefinition.ContextDefinition => ContextDefinition.GetValue();
-        IMemberDefinition IImplementationDefinition.ParameterDefinition => ParameterDefinition.GetValue();
-        IVarifiableType IImplementationType.OutputType => OutputType;
+
+        public IVarifiableType InputType => ParameterDefinition
+            .IfIs(x => x.GetValue())
+            .IfIs(x => x.Type)
+            .IfIs(x => x.TypeDefinition)
+            .IfIs(x => x.GetValue())
+            .GetOrThrow();
+        public IVarifiableType ContextType => ContextDefinition
+            .IfIs(x => x.GetValue())
+            .IfIs(x => x.Type)
+            .IfIs(x => x.TypeDefinition)
+            .IfIs(x => x.GetValue())
+            .GetOrThrow();
+        IMemberDefinition IImplementationDefinition.ContextDefinition => ContextDefinition
+            .IfIs(x => x.GetValue())
+            .GetOrThrow();
+        IMemberDefinition IImplementationDefinition.ParameterDefinition => ParameterDefinition
+            .IfIs(x => x.GetValue())
+            .GetOrThrow();
+        IVarifiableType IImplementationType.OutputType => OutputType.GetOrThrow();
+        IEnumerable<ICodeElement> IImplementationDefinition.MethodBody => MethodBody.Select(x => x.GetOrThrow()).ToArray();
 
         #endregion
 

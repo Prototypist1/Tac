@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model.Operations
 
         public override IVarifiableType Returns()
         {
-            return Right.Unwrap<WeakMethodDefinition>().OutputType.TypeDefinition.GetValue();
+            return Right.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType.IfIs(x => x.TypeDefinition).IfIs(x => x.GetValue());
         }
     }
 
@@ -70,7 +70,7 @@ namespace Tac.Semantic_Model.Operations
 
         public override IVarifiableType Returns()
         {
-            return Left.Unwrap<WeakMethodDefinition>().OutputType.TypeDefinition.GetValue();
+            return Left.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType.IfIs(x=>x.TypeDefinition).IfIs(x=>x.GetValue());
         }
     }
 
@@ -83,7 +83,11 @@ namespace Tac.Semantic_Model.Operations
 
     internal static class MemberUnwrapper{
         public static T Unwrap<T>(this ICodeElement codeElement) where T:IVarifiableType {
-            if (codeElement.Returns() is WeakMemberDefinition member && member.Type.TypeDefinition.GetValue() is T t) {
+            if (codeElement.Returns().Is< WeakMemberDefinition>(out var member) && 
+                member.Type.IsDefinately(out var yes, out var _) &&  
+                yes.Value.TypeDefinition.IsDefinately(out var yes2, out var _) &&
+                yes2.Value.GetValue().IsDefinately(out var yes3, out var _) &&
+                yes3.Is<T>(out var t)) {
                 return t;
             }
             return codeElement.Returns().Cast<T>();

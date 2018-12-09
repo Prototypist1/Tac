@@ -36,6 +36,13 @@ namespace Tac.Semantic_Model
             }
         }
 
+        #region IBlockDefinition
+
+        ICodeElement[] IAbstractBlockDefinition.Body => Body.Select(x => x.GetOrThrow()).ToArray();
+        IEnumerable<ICodeElement> IAbstractBlockDefinition.StaticInitailizers => StaticInitailizers.Select(x => x.GetOrThrow()).ToArray();
+
+        #endregion
+
         public abstract T Convert<T>(IOpenBoxesContext<T> context);
         
         public IVarifiableType Returns() { return this; }

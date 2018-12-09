@@ -32,7 +32,7 @@ namespace Tac.Parser
     internal class ElementMatchingContext
     {
 
-        internal ElementMatchingContext ExpectPathPart(IBox<IVarifiableType> box) {
+        internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IVarifiableType>> box) {
             return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<ICodeElement>>[] {
                 new MemberReferanceMaker(box)
             });

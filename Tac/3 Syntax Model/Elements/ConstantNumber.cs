@@ -29,6 +29,12 @@ namespace Tac.Semantic_Model.Operations
 
         public IIsPossibly<double> Value { get; }
 
+        #region IConstantNumber
+        
+        double IConstantNumber.Value => Value.GetOrThrow();
+
+        #endregion
+
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {

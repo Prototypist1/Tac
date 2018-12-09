@@ -32,6 +32,12 @@ namespace Tac.Semantic_Model.Operations
         }
         
         public IIsPossibly<ICodeElement> Result { get; }
+
+        #region IReturnOperation
+
+        ICodeElement IReturnOperation.Result => Result.GetOrThrow();
+
+        #endregion
         
         public IVarifiableType Returns()
         {

@@ -34,7 +34,7 @@ namespace Tac.Semantic_Model
 
         #region IMemberDefinition
 
-        ITypeReferance IMemberDefinition.Type => Type;
+        ITypeReferance IMemberDefinition.Type => Type.GetOrThrow();
 
         #endregion
         

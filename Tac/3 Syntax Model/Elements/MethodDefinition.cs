@@ -34,9 +34,11 @@ namespace Tac.Semantic_Model
 
         #region IMethodDefinition
 
-        IVarifiableType IMethodType.InputType => InputType;
-        IVarifiableType IMethodType.OutputType => OutputType;
-        IMemberDefinition IMethodDefinition.ParameterDefinition => ParameterDefinition.GetValue();
+        IVarifiableType IMethodType.InputType => InputType.GetOrThrow();
+        IVarifiableType IMethodType.OutputType => OutputType.GetOrThrow();
+        IMemberDefinition IMethodDefinition.ParameterDefinition => ParameterDefinition
+            .IfIs(x => x.GetValue())
+            .GetOrThrow();
 
         #endregion
         

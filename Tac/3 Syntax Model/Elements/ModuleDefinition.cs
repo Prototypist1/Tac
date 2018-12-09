@@ -35,6 +35,7 @@ namespace Tac.Semantic_Model
         #region IModuleDefinition
         
         IFinalizedScope IModuleDefinition.Scope => Scope;
+        IEnumerable<ICodeElement> IModuleDefinition.StaticInitialization => StaticInitialization.Select(x => x.GetOrThrow());
 
         #endregion
 

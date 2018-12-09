@@ -105,8 +105,10 @@ namespace Tac.Semantic_Model
                             Possibly.Is(
                                 new WeakMemberDefinition(
                                     false, 
-                                    new NameKey(memberName), 
-                                    new WeakTypeReferance(Possibly.Is(type)))))))));
+                                    new NameKey(memberName),
+                                    Possibly.Is(
+                                        new WeakTypeReferance(
+                                            Possibly.Is(type))))))))));
         }
     }
 }

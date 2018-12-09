@@ -42,7 +42,7 @@ namespace Tac.Semantic_Model
         #region IObjectDefiniton
 
         IFinalizedScope IObjectDefiniton.Scope => Scope;
-        IEnumerable<IAssignOperation> IObjectDefiniton.Assignments => Assignments;
+        IEnumerable<IAssignOperation> IObjectDefiniton.Assignments => Assignments.Select(x=>x.GetOrThrow()).ToArray();
 
         #endregion
         

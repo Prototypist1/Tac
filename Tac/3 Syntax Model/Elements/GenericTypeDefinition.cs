@@ -25,7 +25,13 @@ namespace Tac.Semantic_Model
         }
 
         public IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions { get; }
-        
+
+        #region IGenericInterfaceDefinition
+
+        IGenericTypeParameterDefinition[] IGenericType.TypeParameterDefinitions => TypeParameterDefinitions.Select(x => x.GetOrThrow()).ToArray();
+
+        #endregion
+
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.GenericTypeDefinition(this);

@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation>
     {
-        public AddOperationMaker() : base(new AddSymbols(),(l,r)=>WeakAddOperation.Make(l,r))
+        public AddOperationMaker() : base(new AddSymbols(),(l,r)=>Possibly.Is(new WeakAddOperation(l,r)))
         {
         }
     }

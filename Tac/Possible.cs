@@ -70,6 +70,15 @@ namespace Tac.Frontend
             throw new Exception("bug! this should be a dichotomy!");
         }
 
+        public static T GetOrThrow<T>(this IIsPossibly<T> self)
+        {
+            if (self is IIsDefinately<T> isYes)
+            {
+                return isYes.Value;
+            }
+            throw new Exception();
+        }
+
     }
     
     public interface IIsDefinately<out T> : IIsPossibly<T>

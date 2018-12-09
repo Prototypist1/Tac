@@ -58,11 +58,12 @@ namespace Tac.Semantic_Model
                             new WeakMemberDefinition(
                                 false,
                                 nameKey,
-                                new WeakTypeReferance( 
-                                    Possibly.Is( 
-                                        new Box<IIsPossibly< IVarifiableType>>(
-                                            Possibly.Is(
-                                                new AnyType())))))))))
+                                Possibly.Is(
+                                    new WeakTypeReferance( 
+                                        Possibly.Is( 
+                                            new Box<IIsPossibly< IVarifiableType>>(
+                                                Possibly.Is(
+                                                    new AnyType()))))))))))
             {
                 throw new Exception("uhh that is not right");
             }

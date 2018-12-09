@@ -26,7 +26,7 @@ namespace Tac.Semantic_Model
 
         #region IMemberReferance
 
-        IMemberDefinition IMemberReferance.MemberDefinition => MemberDefinition.GetValue();
+        IMemberDefinition IMemberReferance.MemberDefinition => MemberDefinition.IfIs(x=>x.GetValue()).GetOrThrow();
 
         #endregion
         
@@ -44,12 +44,12 @@ namespace Tac.Semantic_Model
     internal class MemberReferanceMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
         public MemberReferanceMaker(
-            IBox<IVarifiableType> lhs)
+            IBox<IIsPossibly<IVarifiableType>> lhs)
         {
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        private readonly IBox<IVarifiableType> lhs;
+        private readonly IBox<IIsPossibly<IVarifiableType>> lhs;
 
         public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
@@ -70,11 +70,11 @@ namespace Tac.Semantic_Model
     internal class MemberReferancePopulateScope : IPopulateScope< WeakMemberReference>
     {
 
-        private readonly IBox<IVarifiableType> lhs;
+        private readonly IBox<IIsPossibly<IVarifiableType>> lhs;
         private readonly string memberName;
         private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box = new DelegateBox<IIsPossibly<WeakMemberDefinition>>();
 
-        public MemberReferancePopulateScope( string item, IBox<IVarifiableType> lhs)
+        public MemberReferancePopulateScope( string item, IBox<IIsPossibly<IVarifiableType>> lhs)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
@@ -96,10 +96,13 @@ namespace Tac.Semantic_Model
     {
 
         private readonly string memberName;
-        private readonly IBox<IVarifiableType> lhs;
+        private readonly IBox<IIsPossibly<IVarifiableType>> lhs;
         private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box;
 
-        public MemberReferanceResolveReferance(string memberName, DelegateBox<IIsPossibly<WeakMemberDefinition>> box, IBox<IVarifiableType> lhs)
+        public MemberReferanceResolveReferance(
+            string memberName, 
+            DelegateBox<IIsPossibly<WeakMemberDefinition>> box, 
+            IBox<IIsPossibly<IVarifiableType>> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
@@ -112,9 +115,13 @@ namespace Tac.Semantic_Model
             {
                 // TODO a lot of this could be replaced by IfIs
 
-                var lshtype = lhs.GetValue();
+                var lshpossible = lhs.GetValue();
 
-                if (!(lshtype is WeakMemberReference memberReference)) {
+                if (lshpossible.IsDefinately(out var lshtype, out var nope)){
+                    return Possibly.IsNot<WeakMemberDefinition>(nope);
+                }
+
+                if (!lshtype.Is<WeakMemberReference>(out var memberReference)) {
                     return Possibly.IsNot<WeakMemberDefinition>(); // TODO
                 }
 
