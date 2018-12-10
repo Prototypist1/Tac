@@ -15,7 +15,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMemberReference : IFrontendCodeElement, IMemberReferance
+    internal class WeakMemberReference : IFrontendCodeElement
     {
         public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
         {
@@ -23,12 +23,6 @@ namespace Tac.Semantic_Model
         }
 
         public  IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
-
-        #region IMemberReferance
-
-        IMemberDefinition IMemberReferance.MemberDefinition => MemberDefinition.IfIs(x=>x.GetValue()).GetOrThrow();
-
-        #endregion
         
         public T Convert<T>(IOpenBoxesContext<T> context)
         {

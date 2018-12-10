@@ -33,7 +33,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right);
     }
 
-    internal abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, IFrontendCodeElement, IBinaryOperation<TLeft, TRight>
+    internal abstract class BinaryOperation<TLeft, TRight> : BinaryOperation, IFrontendCodeElement
         where TLeft : class, IFrontendCodeElement
         where TRight : class, IFrontendCodeElement
     {
@@ -46,16 +46,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 return new IIsPossibly<ICodeElement>[] { Left, Right };
             }
         }
-
-        #region IBinaryOperation<TLeft, TRight>
-
-
-        TLeft IBinaryOperation<TLeft, TRight>.Left => Left.GetOrThrow();
-        TRight IBinaryOperation<TLeft, TRight>.Right => Right.GetOrThrow();
-        ICodeElement[] IOperation.Operands => Operands.Select(x => x.GetOrThrow()).ToArray();
-
-        #endregion
-
+        
         #region ICodeElement
 
         IVarifiableType ICodeElement.Returns() => Returns().GetOrThrow();

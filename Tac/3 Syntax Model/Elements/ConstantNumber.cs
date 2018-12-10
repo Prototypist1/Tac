@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    internal class WeakConstantNumber : IFrontendCodeElement, IVarifiableType, IConstantNumber
+    internal class WeakConstantNumber : IFrontendCodeElement, IVarifiableType
     {
         public WeakConstantNumber(IIsPossibly<double> value) 
         {
@@ -28,12 +28,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public IIsPossibly<double> Value { get; }
-
-        #region IConstantNumber
         
-        double IConstantNumber.Value => Value.GetOrThrow();
-
-        #endregion
 
 
         public T Convert<T>(IOpenBoxesContext<T> context)

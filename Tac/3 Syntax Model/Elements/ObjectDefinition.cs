@@ -18,7 +18,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakObjectDefinition: IFrontendCodeElement, IObjectType, IScoped, IObjectDefiniton
+    internal class WeakObjectDefinition: IFrontendCodeElement, IObjectType, IScoped
     {
         public WeakObjectDefinition(IFinalizedScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -38,13 +38,6 @@ namespace Tac.Semantic_Model
         {
             get;
         }
-
-        #region IObjectDefiniton
-
-        IFinalizedScope IObjectDefiniton.Scope => Scope;
-        IEnumerable<IAssignOperation> IObjectDefiniton.Assignments => Assignments.Select(x=>x.GetOrThrow()).ToArray();
-
-        #endregion
         
         public IVarifiableType Returns() {
             return this;

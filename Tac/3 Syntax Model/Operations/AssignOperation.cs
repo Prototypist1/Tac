@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "=:";
     }
 
-    internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IAssignOperation
+    internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         
         public WeakAssignOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)

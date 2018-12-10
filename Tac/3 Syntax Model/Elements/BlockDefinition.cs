@@ -13,19 +13,14 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakBlockDefinition : WeakAbstractBlockDefinition, IBlockDefinition
+    internal class WeakBlockDefinition : WeakAbstractBlockDefinition
     {
         public WeakBlockDefinition(
             IIsPossibly<IFrontendCodeElement>[] body,
             IFinalizedScope scope,
             IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
-
-        #region IBlockDefinition
-
-        IFinalizedScope IAbstractBlockDefinition.Scope => Scope;
-
-        #endregion
+        
         
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {

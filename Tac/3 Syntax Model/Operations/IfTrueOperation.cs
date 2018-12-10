@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "then";
     }
 
-    internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IIfOperation
+    internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         // right should have more validation
         public WeakIfTrueOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)

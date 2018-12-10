@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "*";
     }
 
-    internal class WeakMultiplyOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IMultiplyOperation
+    internal class WeakMultiplyOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         public const string Identifier = "*";
 

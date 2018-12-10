@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => ">";
     }
 
-    internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, INextCallOperation
+    internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         public WeakNextCallOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
@@ -53,7 +53,7 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "<";
     }
 
-    internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, ILastCallOperation
+    internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         public const string Identifier = "<";
 

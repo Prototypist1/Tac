@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols=> "+";
     }
 
-    internal class WeakAddOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IAddOperation
+    internal class WeakAddOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         public WeakAddOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {

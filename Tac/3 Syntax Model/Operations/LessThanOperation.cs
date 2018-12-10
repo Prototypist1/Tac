@@ -16,7 +16,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public string Symbols => "<?";
     }
     
-    internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, ILessThanOperation
+    internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         public const string Identifier = "<?";
 

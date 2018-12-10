@@ -15,7 +15,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMethodDefinition : WeakAbstractBlockDefinition, IMethodDefinition, IFrontendCodeElement
+    internal class WeakMethodDefinition : WeakAbstractBlockDefinition,  IFrontendCodeElement
     {
         public WeakMethodDefinition(
             IIsPossibly<WeakTypeReferance> outputType, 
@@ -31,16 +31,6 @@ namespace Tac.Semantic_Model
         public IIsPossibly<WeakTypeReferance> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
         public IIsPossibly<WeakTypeReferance> OutputType { get; }
         public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
-
-        #region IMethodDefinition
-
-        IVarifiableType IMethodType.InputType => InputType.GetOrThrow();
-        IVarifiableType IMethodType.OutputType => OutputType.GetOrThrow();
-        IMemberDefinition IMethodDefinition.ParameterDefinition => ParameterDefinition
-            .IfIs(x => x.GetValue())
-            .GetOrThrow();
-
-        #endregion
         
         public override T Convert<T>(IOpenBoxesContext<T> context)
         {

@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => ".";
     }
 
-    internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IPathOperation
+    internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         public WeakPathOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {

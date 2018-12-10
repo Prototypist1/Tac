@@ -14,7 +14,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
     
-    internal class WeakGenericTypeDefinition : WeakTypeDefinition, IGenericInterfaceDefinition
+    internal class WeakGenericTypeDefinition : WeakTypeDefinition
     {
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key, 

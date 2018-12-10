@@ -50,7 +50,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal abstract class TrailingOperion<T> : IOperation
+    internal abstract class TrailingOperion<T> 
     {
         public abstract IFrontendCodeElement[] Operands { get; }
         public abstract T1 Convert<T1>(IOpenBoxesContext<T1> context);

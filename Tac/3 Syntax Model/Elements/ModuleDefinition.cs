@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
 {
 
 
-    internal class WeakModuleDefinition : IScoped, IFrontendCodeElement, IModuleType, IModuleDefinition
+    internal class WeakModuleDefinition : IScoped, IFrontendCodeElement, IModuleType
     {
         public WeakModuleDefinition(IFinalizedScope scope, IEnumerable<IIsPossibly<ICodeElement>> staticInitialization, NameKey Key)
         {
@@ -31,14 +31,7 @@ namespace Tac.Semantic_Model
         {
             get;
         }
-
-        #region IModuleDefinition
         
-        IFinalizedScope IModuleDefinition.Scope => Scope;
-        IEnumerable<ICodeElement> IModuleDefinition.StaticInitialization => StaticInitialization.Select(x => x.GetOrThrow());
-
-        #endregion
-
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ModuleDefinition(this);

@@ -14,7 +14,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakImplementationDefinition: IFrontendCodeElement, IImplementationDefinition
+    internal class WeakImplementationDefinition: IFrontendCodeElement
     {
 
         public WeakImplementationDefinition(

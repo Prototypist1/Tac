@@ -29,5 +29,4 @@ namespace Tac.Semantic_Model
         public DefintionLifetime DefintionLifeTime { get; }
         public TReferanced Definition { get; }
     }
-
 }

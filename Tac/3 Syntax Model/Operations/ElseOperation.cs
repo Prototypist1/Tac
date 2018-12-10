@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model.Operations
 
 
     // really an if not
-    internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>, IElseOperation
+    internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
     {
         // right should have more validation
         public WeakElseOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
