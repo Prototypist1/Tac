@@ -23,12 +23,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.MultiplyOperation(this);
-        }
-        
-        public override IIsPossibly<IVarifiableType> Returns()
+        public override IIsPossibly<IFrontendType> Returns()
         {
             return Possibly.Is(new NumberType());
         }

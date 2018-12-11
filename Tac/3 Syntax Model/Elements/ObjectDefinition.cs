@@ -18,7 +18,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakObjectDefinition: IFrontendCodeElement, IObjectType, IScoped
+    internal class WeakObjectDefinition: IFrontendCodeElement,  IScoped, IFrontendType
     {
         public WeakObjectDefinition(IFinalizedScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -39,16 +39,7 @@ namespace Tac.Semantic_Model
             get;
         }
         
-        public IVarifiableType Returns() {
-            return this;
-        }
-        
-        public T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.ObjectDefinition(this);
-        }
-
-        IIsPossibly<IVarifiableType> IFrontendCodeElement.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
         {
             return Possibly.Is(this);
         }
@@ -83,14 +74,14 @@ namespace Tac.Semantic_Model
     internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
         private readonly IPopulateScope<IFrontendCodeElement>[] elements;
-        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
+        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -112,13 +103,13 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
-        private readonly Box<IIsPossibly<IVarifiableType>> box;
+        private readonly Box<IIsPossibly<IFrontendType>> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
             IPopulateBoxes<IFrontendCodeElement>[] elements, 
-            Box<IIsPossibly<IVarifiableType>> box, 
+            Box<IIsPossibly<IFrontendType>> box, 
             ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));

@@ -25,12 +25,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.AssignOperation(this);
-        }
-
-        public override IIsPossibly<IVarifiableType> Returns()
+        public override IIsPossibly<IFrontendType> Returns()
         {
             return Left.IfIs(x=>x.Returns());
         }

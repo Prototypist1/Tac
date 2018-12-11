@@ -12,28 +12,18 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    internal class WeakTypeReferance : IFrontendCodeElement
+    internal class WeakTypeReferance : IFrontendCodeElement, IFrontendType
     {
-        public WeakTypeReferance(IIsPossibly<IBox<IIsPossibly<IVarifiableType>>> typeDefinition)
+        public WeakTypeReferance(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
 
-        public IIsPossibly<IBox<IIsPossibly<IVarifiableType>>> TypeDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
         
-        public T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.TypeReferance(this);
-        }
-
-        public IIsPossibly<IVarifiableType> Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
             return TypeDefinition.IfIs(x => x.GetValue());
-        }
-
-        IVarifiableType ICodeElement.Returns()
-        {
-            return Returns().GetOrThrow();
         }
     }
 
@@ -113,7 +103,7 @@ namespace Tac.Semantic_Model
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }

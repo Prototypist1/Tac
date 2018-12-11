@@ -6,8 +6,11 @@ using Tac.Model.Elements;
 
 namespace Tac.Frontend
 {
-    internal interface IFrontendCodeElement: ICodeElement
+    internal interface IFrontendCodeElement
     {
-        new IIsPossibly<IVarifiableType> Returns();
+        IIsPossibly<IFrontendType> Returns();
+    }
+
+    internal interface IFrontendType {
     }
 }

@@ -18,13 +18,13 @@ namespace Tac.Semantic_Model
     internal interface IPopulatableScope: ISomeScope
     {
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
-        bool TryAddType(IKey name, IBox<IIsPossibly<IVarifiableType>> type);
+        bool TryAddType(IKey name, IBox<IIsPossibly<IFrontendType>> type);
     }
 
     internal interface IResolvableScope: ISomeScope
     {
         IFinalizedScope GetFinalized();
-        bool TryGetType(IKey name, out IBox<IIsPossibly<IVarifiableType>> type);
+        bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType>> type);
 
     }
 
@@ -43,14 +43,14 @@ namespace Tac.Semantic_Model
     
     internal static class ResolvableScopeExtension
     {
-        internal static IBox<IIsPossibly<IVarifiableType>> GetTypeOrThrow(this IResolvableScope scope, IKey name) {
+        internal static IBox<IIsPossibly<IFrontendType>> GetTypeOrThrow(this IResolvableScope scope, IKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }
             throw new Exception($"{name} should exist in scope");
         }
 
-        internal static IBox<WeakMemberDefinition> GetMemberOrThrow(this IResolvableScope scope, IKey name, bool staticOnly)
+        internal static IBox<IIsPossibly<WeakMemberDefinition>> GetMemberOrThrow(this IResolvableScope scope, IKey name, bool staticOnly)
         {
             if (scope.TryGetMember(name, staticOnly, out var thing))
             {
@@ -60,7 +60,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        internal static IIsPossibly<IBox<IIsPossibly<IVarifiableType>>> PossiblyGetType(this IResolvableScope scope, IKey name) {
+        internal static IIsPossibly<IBox<IIsPossibly<IFrontendType>>> PossiblyGetType(this IResolvableScope scope, IKey name) {
             if (scope.TryGetType(name, out var thing))
             {
                 return Possibly.Is(thing);

@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    internal class WeakConstantNumber : IFrontendCodeElement, IVarifiableType
+    internal class WeakConstantNumber : IFrontendCodeElement, IFrontendType
     {
         public WeakConstantNumber(IIsPossibly<double> value) 
         {
@@ -29,19 +29,12 @@ namespace Tac.Semantic_Model.Operations
 
         public IIsPossibly<double> Value { get; }
         
-
-
-        public T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.ConstantNumber(this);
-        }
-        
         public IVarifiableType Returns()
         {
             return new NumberType();
         }
 
-        IIsPossibly<IVarifiableType> IFrontendCodeElement.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
         {
             return Possibly.Is(this);
         }
@@ -68,7 +61,7 @@ namespace Tac.Semantic_Model.Operations
     internal class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
+        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public ConstantNumberPopulateScope(double dub)
         {
@@ -80,7 +73,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantNumberResolveReferance(dub, box);
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -89,11 +82,11 @@ namespace Tac.Semantic_Model.Operations
     internal class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IIsPossibly<IVarifiableType>> box;
+        private readonly Box<IIsPossibly<IFrontendType>> box;
 
         public ConstantNumberResolveReferance(
             double dub,
-            Box<IIsPossibly<IVarifiableType>> box)
+            Box<IIsPossibly<IFrontendType>> box)
         {
             this.dub = dub;
             this.box = box ?? throw new ArgumentNullException(nameof(box));

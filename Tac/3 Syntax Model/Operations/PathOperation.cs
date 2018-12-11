@@ -24,12 +24,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.PathOperation(this);
-        }
-        
-        public override IIsPossibly<IVarifiableType> Returns()
+        public override IIsPossibly<IFrontendType> Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
             return Right.IfIs(x =>  Possibly.Is(x.Cast<WeakMemberReference>()));

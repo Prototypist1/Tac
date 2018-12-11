@@ -12,7 +12,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    internal abstract class WeakAbstractBlockDefinition : IFrontendCodeElement, IScoped, IVarifiableType
+    internal abstract class WeakAbstractBlockDefinition : IFrontendCodeElement, IScoped, IVarifiableType, IFrontendType
     {
         protected WeakAbstractBlockDefinition(
             IFinalizedScope scope,
@@ -28,11 +28,9 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IFrontendCodeElement>[] Body { get; }
         public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitailizers { get; }
         
-        public abstract T Convert<T>(IOpenBoxesContext<T> context);
-        
         public IVarifiableType Returns() { return this; }
 
-        IIsPossibly<IVarifiableType> IFrontendCodeElement.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
         {
             return Possibly.Is(this);
         }

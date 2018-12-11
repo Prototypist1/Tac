@@ -20,12 +20,6 @@ namespace Tac.Semantic_Model
             IFinalizedScope scope,
             IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
-        
-        
-        public override T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.BlockDefinition(this);
-        }
     }
 
     internal class BlockDefinitionMaker : IMaker<IPopulateScope<WeakBlockDefinition>>
@@ -57,7 +51,7 @@ namespace Tac.Semantic_Model
         // is it worth adding another T?
         // this is the type the backend owns
         private IPopulateScope<IFrontendCodeElement>[] Elements { get; }
-        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
+        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements)
         {
@@ -73,7 +67,7 @@ namespace Tac.Semantic_Model
                 box);
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -83,12 +77,12 @@ namespace Tac.Semantic_Model
     {
         private IResolvableScope Scope { get; }
         private IPopulateBoxes<IFrontendCodeElement>[] ResolveReferance { get; }
-        private readonly Box<IIsPossibly<IVarifiableType>> box;
+        private readonly Box<IIsPossibly<IFrontendType>> box;
 
         public ResolveReferanceBlockDefinition(
             IResolvableScope scope, 
             IPopulateBoxes<IFrontendCodeElement>[] resolveReferance,
-            Box<IIsPossibly<IVarifiableType>> box)
+            Box<IIsPossibly<IFrontendType>> box)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             ResolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));

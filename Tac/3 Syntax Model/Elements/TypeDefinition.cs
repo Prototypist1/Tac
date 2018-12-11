@@ -15,7 +15,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakTypeDefinition : IFrontendCodeElement, IScoped
+    internal class WeakTypeDefinition : IFrontendCodeElement, IScoped, IFrontendType
     {
         public WeakTypeDefinition(IFinalizedScope scope, IIsPossibly<IKey> key)
         {
@@ -26,18 +26,8 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IKey> Key { get; }
         public IFinalizedScope Scope { get; }
         
-        
-        public virtual T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.TypeDefinition(this);
-        }
 
-        public virtual IVarifiableType Returns()
-        {
-            return this;
-        }
-
-        IIsPossibly<IVarifiableType> IFrontendCodeElement.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
         {
             return Possibly.Is(this);
         }
@@ -76,13 +66,13 @@ namespace Tac.Semantic_Model
 
     internal class TypeDefinitionPopulateScope : IPopulateScope<WeakTypeReferance>
     {
-        private readonly IPopulateScope<ICodeElement>[] elements;
+        private readonly IPopulateScope<IFrontendCodeElement>[] elements;
         private readonly IKey key;
-        private readonly Box<IIsPossibly<IInterfaceType>> definitionBox = new Box<IIsPossibly<IInterfaceType>>();
+        private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
         private readonly WeakTypeReferance typeReferance;
         private readonly Box<IIsPossibly<WeakTypeReferance>> box;
 
-        public TypeDefinitionPopulateScope(IPopulateScope<ICodeElement>[] elements, IKey typeName)
+        public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements, IKey typeName)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
@@ -90,7 +80,7 @@ namespace Tac.Semantic_Model
             box = new Box<IIsPossibly<WeakTypeReferance>>(Possibly.Is(typeReferance));
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -111,11 +101,15 @@ namespace Tac.Semantic_Model
     internal class TypeDefinitionResolveReference : IPopulateBoxes<WeakTypeReferance>
     {
         private readonly IResolvableScope scope;
-        private readonly Box<IIsPossibly<IInterfaceType>> definitionBox;
+        private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox;
         private readonly WeakTypeReferance typeReferance;
         private readonly IKey key;
 
-        public TypeDefinitionResolveReference(IResolvableScope scope, Box<IIsPossibly<IInterfaceType>> definitionBox, WeakTypeReferance typeReferance, IKey key)
+        public TypeDefinitionResolveReference(
+            IResolvableScope scope, 
+            Box<IIsPossibly<WeakTypeDefinition>> definitionBox, 
+            WeakTypeReferance typeReferance, 
+            IKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.definitionBox = definitionBox ?? throw new ArgumentNullException(nameof(definitionBox));

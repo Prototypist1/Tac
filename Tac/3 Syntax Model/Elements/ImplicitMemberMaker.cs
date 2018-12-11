@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model
 {
     internal class ImplicitMemberMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
-        private readonly IBox<IIsPossibly<IVarifiableType>> type;
+        private readonly IBox<IIsPossibly<IFrontendType>> type;
 
-        public ImplicitMemberMaker( IBox<IIsPossibly<IVarifiableType>> type)
+        public ImplicitMemberMaker( IBox<IIsPossibly<IFrontendType>> type)
         {
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
@@ -47,10 +47,10 @@ namespace Tac.Semantic_Model
     internal class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReference>
     {
         private readonly string memberName;
-        private readonly IBox<IIsPossibly<IVarifiableType>> type;
-        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
+        private readonly IBox<IIsPossibly<IFrontendType>> type;
+        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
-        public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IVarifiableType>> type)
+        public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IFrontendType>> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -71,7 +71,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -81,14 +81,14 @@ namespace Tac.Semantic_Model
 
     internal class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReference>
     {
-        private readonly Box<IIsPossibly<IVarifiableType>> box;
+        private readonly Box<IIsPossibly<IFrontendType>> box;
         private readonly string memberName;
-        private readonly IBox<IIsPossibly<IVarifiableType>> type;
+        private readonly IBox<IIsPossibly<IFrontendType>> type;
 
         public ImplicitMemberResolveReferance(
             string memberName,
-            Box<IIsPossibly<IVarifiableType>> box,
-            IBox<IIsPossibly<IVarifiableType>> type)
+            Box<IIsPossibly<IFrontendType>> box,
+            IBox<IIsPossibly<IFrontendType>> type)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));

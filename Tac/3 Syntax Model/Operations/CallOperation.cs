@@ -26,15 +26,8 @@ namespace Tac.Semantic_Model.Operations
         public WeakNextCallOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
-
-
-        public override T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.NextCallOperation(this);
-        }
-
-
-        public override IIsPossibly<IVarifiableType> Returns()
+        
+        public override IIsPossibly<IFrontendType> Returns()
         {
             return Right.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType.IfIs(x => x.TypeDefinition).IfIs(x => x.GetValue());
         }
@@ -60,17 +53,12 @@ namespace Tac.Semantic_Model.Operations
         public WeakLastCallOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
-
-
-        public override T Convert<T>(IOpenBoxesContext<T> context)
+        
+        public override IIsPossibly<IFrontendType> Returns()
         {
-            return context.LastCallOperation(this);
-        }
-
-
-        public override IIsPossibly<IVarifiableType> Returns()
-        {
-            return Left.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType.IfIs(x=>x.TypeDefinition).IfIs(x=>x.GetValue());
+            return Left.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType
+                .IfIs(x=>x.TypeDefinition)
+                .IfIs(x=>x.GetValue());
         }
     }
 
@@ -82,7 +70,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal static class MemberUnwrapper{
-        public static T Unwrap<T>(this ICodeElement codeElement) where T:IVarifiableType {
+        public static T Unwrap<T>(this IFrontendCodeElement codeElement) where T:IVarifiableType {
             if (codeElement.Returns().Is< WeakMemberDefinition>(out var member) && 
                 member.Type.IsDefinately(out var yes, out var _) &&  
                 yes.Value.TypeDefinition.IsDefinately(out var yes2, out var _) &&

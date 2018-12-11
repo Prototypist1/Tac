@@ -34,14 +34,14 @@ namespace Tac.Semantic_Model
     internal class MemberPopulateScope : IPopulateScope<WeakMemberReference>
     {
         private readonly string memberName;
-        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
+        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public MemberPopulateScope(string item)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model
                                 Possibly.Is(
                                     new WeakTypeReferance( 
                                         Possibly.Is( 
-                                            new Box<IIsPossibly< IVarifiableType>>(
+                                            new Box<IIsPossibly<IFrontendType>>(
                                                 Possibly.Is(
                                                     new AnyType()))))))))))
             {
@@ -77,12 +77,12 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope resolvableScope;
         private readonly NameKey key;
-        private readonly Box<IIsPossibly<IVarifiableType>> box;
+        private readonly Box<IIsPossibly<IFrontendType>> box;
 
         public MemberResolveReferance(
             IResolvableScope resolvableScope,
             NameKey key, 
-            Box<IIsPossibly<IVarifiableType>> box)
+            Box<IIsPossibly<IFrontendType>> box)
         {
             this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
             this.key = key ?? throw new ArgumentNullException(nameof(key));

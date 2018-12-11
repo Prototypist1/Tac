@@ -24,12 +24,7 @@ namespace Tac.Semantic_Model.CodeStuff
         {
         }
         
-        public override T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.LessThanOperation(this);
-        }
-        
-        public override IIsPossibly<IVarifiableType> Returns()
+        public override IIsPossibly<IFrontendType> Returns()
         {
             return Possibly.Is(new BooleanType());
         }

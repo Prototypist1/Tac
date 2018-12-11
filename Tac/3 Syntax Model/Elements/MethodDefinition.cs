@@ -32,10 +32,6 @@ namespace Tac.Semantic_Model
         public IIsPossibly<WeakTypeReferance> OutputType { get; }
         public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
         
-        public override T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.MethodDefinition(this);
-        }
     }
 
 
@@ -103,7 +99,7 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
         private readonly IPopulateScope<IFrontendCodeElement>[] elements;
         private readonly IPopulateScope<WeakTypeReferance> output;
-        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
+        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public MethodDefinitionPopulateScope(
             IPopulateScope<WeakMemberReference> parameterDefinition,
@@ -117,7 +113,7 @@ namespace Tac.Semantic_Model
 
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -141,14 +137,14 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<IFrontendCodeElement>[] lines;
         private readonly IPopulateBoxes<WeakTypeReferance> output;
-        private readonly Box<IIsPossibly<IVarifiableType>> box;
+        private readonly Box<IIsPossibly<IFrontendType>> box;
 
         public MethodDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReference> parameter, 
             IResolvableScope methodScope, 
             IPopulateBoxes<IFrontendCodeElement>[] resolveReferance2,
             IPopulateBoxes<WeakTypeReferance> output,
-            Box<IIsPossibly<IVarifiableType>> box)
+            Box<IIsPossibly<IFrontendType>> box)
         {
             this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Semantic_Model;
@@ -9,16 +10,16 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 {
 
 
-    public class StringType :  IStringType
+    internal class StringType : IFrontendType
     {
     }
-    public class EmptyType : IEmptyType
+    internal class EmptyType : IFrontendType
     {
     }
-    public class NumberType : INumberType
+    internal class NumberType : IFrontendType
     {
     }
-    public class GemericTypeParameterPlacholder : IVarifiableType
+    internal class GemericTypeParameterPlacholder : IFrontendType
     {
         public GemericTypeParameterPlacholder(IKey key)
         {
@@ -39,13 +40,13 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return HashCode.Combine(Key);
         }
     }
-    public class AnyType : IAnyType
+    internal class AnyType : IFrontendType
     {
     }
-    public class BooleanType : IBooleanType
+    internal class BooleanType : IFrontendType
     {
     }
-    public class ImplementationType : IImplementationType
+    internal class ImplementationType : IFrontendType
     {
         public ImplementationType(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType)
         {
@@ -58,7 +59,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         public IVarifiableType OutputType {get;}
         public IVarifiableType ContextType{get;}
     }
-    public class MethodType : IMethodType
+    internal class MethodType : IFrontendType
     {
         public MethodType(IVarifiableType inputType, IVarifiableType outputType)
         {
@@ -70,7 +71,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         public IVarifiableType OutputType{get;}
     }
 
-    public class GenericMethodType : IGenericType
+    internal class GenericMethodType : IFrontendType
     {
 
         private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");
@@ -83,7 +84,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
-        public IVarifiableType GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
+        public IFrontendType GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
         {
             if (parameters.Length == 2) {
                 return new MethodType(
@@ -94,7 +95,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
     }
 
-    public class GenericImplementationType : IGenericType
+    internal class GenericImplementationType : IFrontendType
     {
 
         private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");
@@ -108,7 +109,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
-        public IVarifiableType GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
+        public IFrontendType GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
         {
             if (parameters.Length == 3)
             {

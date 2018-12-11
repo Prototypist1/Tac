@@ -39,19 +39,13 @@ namespace Tac.Semantic_Model.CodeStuff
     {
         public IIsPossibly<TLeft> Left { get; }
         public IIsPossibly<TRight> Right { get; }
-        public IIsPossibly<ICodeElement>[] Operands
+        public IIsPossibly<IFrontendCodeElement>[] Operands
         {
             get
             {
-                return new IIsPossibly<ICodeElement>[] { Left, Right };
+                return new IIsPossibly<IFrontendCodeElement>[] { Left, Right };
             }
         }
-        
-        #region ICodeElement
-
-        IVarifiableType ICodeElement.Returns() => Returns().GetOrThrow();
-        
-        #endregion
         
         public BinaryOperation(IIsPossibly<TLeft> left, IIsPossibly<TRight> right)
         {
@@ -59,16 +53,13 @@ namespace Tac.Semantic_Model.CodeStuff
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
         
-
-        public abstract T Convert<T>(IOpenBoxesContext<T> context);
-
-        public abstract IIsPossibly<IVarifiableType> Returns();
+        public abstract IIsPossibly<IFrontendType> Returns();
 
     }
 
 
     internal class BinaryOperationMaker<TCodeElement> : IMaker<IPopulateScope<TCodeElement>>
-        where TCodeElement : class, IFrontendCodeElement, ICodeElement
+        where TCodeElement : class, IFrontendCodeElement
     {
 
         public BinaryOperationMaker(ISymbols name, BinaryOperation.Make<TCodeElement> make
@@ -104,12 +95,12 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
     internal class BinaryPopulateScope<TCodeElement> : IPopulateScope<TCodeElement>
-                where TCodeElement : class, ICodeElement
+                where TCodeElement : class, IFrontendCodeElement
     {
         private readonly IPopulateScope<IFrontendCodeElement> left;
         private readonly IPopulateScope<IFrontendCodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
-        private readonly DelegateBox<IIsPossibly<IVarifiableType>> box = new DelegateBox<IIsPossibly<IVarifiableType>>();
+        private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
         public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement> left,
             IPopulateScope<IFrontendCodeElement> right,
@@ -120,7 +111,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -154,18 +145,18 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
     internal class BinaryResolveReferance<TCodeElement> : IPopulateBoxes<TCodeElement>
-        where TCodeElement : class, ICodeElement
+        where TCodeElement : class, IFrontendCodeElement
     {
         public readonly IPopulateBoxes<IFrontendCodeElement> left;
         public readonly IPopulateBoxes<IFrontendCodeElement> right;
         private readonly BinaryOperation.Make<TCodeElement> make;
-        private readonly DelegateBox<IIsPossibly<IVarifiableType>> box;
+        private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
         public BinaryResolveReferance(
             IPopulateBoxes<IFrontendCodeElement> resolveReferance1,
             IPopulateBoxes<IFrontendCodeElement> resolveReferance2,
             BinaryOperation.Make<TCodeElement> make,
-            DelegateBox<IIsPossibly<IVarifiableType>> box)
+            DelegateBox<IIsPossibly<IFrontendType>> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
@@ -182,11 +173,11 @@ namespace Tac.Semantic_Model.CodeStuff
             box.Set(() => {
                 if (res.IsDefinately(out var yes, out var no))
                 {
-                    return Possibly.Is<IVarifiableType>(yes.Value.Returns());
+                    return yes.Value.Returns();
                 }
                 else {
 
-                    return Possibly.IsNot<IVarifiableType>(no);
+                    return Possibly.IsNot<IFrontendType>(no);
                 }
             });
             return res;

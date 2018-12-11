@@ -25,17 +25,7 @@ namespace Tac.Semantic_Model
         }
 
         public IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions { get; }
-
-        #region IGenericInterfaceDefinition
-
-        IGenericTypeParameterDefinition[] IGenericType.TypeParameterDefinitions => TypeParameterDefinitions.Select(x => x.GetOrThrow()).ToArray();
-
-        #endregion
-
-        public override T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.GenericTypeDefinition(this);
-        }
+        
     }
 
 
@@ -113,7 +103,7 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
         private readonly IGenericTypeParameterDefinition[] genericParameters;
-        private readonly Box<IIsPossibly<IVarifiableType>> box = new Box<IIsPossibly<IVarifiableType>>();
+        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
@@ -134,7 +124,7 @@ namespace Tac.Semantic_Model
             return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters);
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }

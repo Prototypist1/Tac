@@ -15,7 +15,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMemberReference : IFrontendCodeElement
+    internal class WeakMemberReference : IFrontendCodeElement, IFrontendType
     {
         public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
         {
@@ -24,17 +24,7 @@ namespace Tac.Semantic_Model
 
         public  IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
         
-        public T Convert<T>(IOpenBoxesContext<T> context)
-        {
-            return context.MemberReferance(this);
-        }
-        
-        IVarifiableType ICodeElement.Returns()
-        {
-            return Returns().GetOrThrow();
-        }
-
-        public IIsPossibly<IVarifiableType> Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
             return MemberDefinition.IfIs(x => x.GetValue());
         }
@@ -43,12 +33,12 @@ namespace Tac.Semantic_Model
     internal class MemberReferanceMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
         public MemberReferanceMaker(
-            IBox<IIsPossibly<IVarifiableType>> lhs)
+            IBox<IIsPossibly<IFrontendType>> lhs)
         {
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        private readonly IBox<IIsPossibly<IVarifiableType>> lhs;
+        private readonly IBox<IIsPossibly<IFrontendType>> lhs;
 
         public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
@@ -69,17 +59,17 @@ namespace Tac.Semantic_Model
     internal class MemberReferancePopulateScope : IPopulateScope< WeakMemberReference>
     {
 
-        private readonly IBox<IIsPossibly<IVarifiableType>> lhs;
+        private readonly IBox<IIsPossibly<IFrontendType>> lhs;
         private readonly string memberName;
         private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box = new DelegateBox<IIsPossibly<WeakMemberDefinition>>();
 
-        public MemberReferancePopulateScope( string item, IBox<IIsPossibly<IVarifiableType>> lhs)
+        public MemberReferancePopulateScope( string item, IBox<IIsPossibly<IFrontendType>> lhs)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public IBox<IIsPossibly<IVarifiableType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
             return box;
         }
@@ -95,13 +85,13 @@ namespace Tac.Semantic_Model
     {
 
         private readonly string memberName;
-        private readonly IBox<IIsPossibly<IVarifiableType>> lhs;
+        private readonly IBox<IIsPossibly<IFrontendType>> lhs;
         private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box;
 
         public MemberReferanceResolveReferance(
             string memberName, 
             DelegateBox<IIsPossibly<WeakMemberDefinition>> box, 
-            IBox<IIsPossibly<IVarifiableType>> lhs)
+            IBox<IIsPossibly<IFrontendType>> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
