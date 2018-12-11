@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Parser;
@@ -28,7 +29,7 @@ namespace Tac.Semantic_Model
             {
                 // for the sake of validation type parameters are types 
 
-                if (!TryAddType(item.Key, new Box<IVarifiableType>(new GemericTypeParameterPlacholder(item.Key)))) {
+                if (!TryAddType(item.Key, new Box<IFrontendType>(new GemericTypeParameterPlacholder(item.Key)))) {
                     throw new Exception("that is not right!");
                 }
             }
@@ -39,7 +40,7 @@ namespace Tac.Semantic_Model
         //public IFinalizedScope CreateScope(GenericTypeParameter[] parameters)
         //{
         //    // ok so maybe types are not so final as I thought and depend on the evaulation context 
-        //    // I have IVarifiableType maybe that still does a look up, in case the type is generic
+        //    // I have IFrontendType maybe that still does a look up, in case the type is generic
         //    // I don't want to have to do any of this copying
         //    // it is a big fat mess 
 
@@ -70,7 +71,7 @@ namespace Tac.Semantic_Model
         //        var haveKey = parameters.Where(x => x.Parameter.Key.Equals(entry.Key));
         //        if (haveKey.Count()==1)
         //        {
-        //            if (!res.TryAddType(entry.Key, new Box<IVarifiableType>(haveKey.Single().Type)))
+        //            if (!res.TryAddType(entry.Key, new Box<IFrontendType>(haveKey.Single().Type)))
         //            {
         //                throw new Exception("bad bad");
         //            }
@@ -113,8 +114,8 @@ namespace Tac.Semantic_Model
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>> members
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<WeakMemberDefinition>>>>();
 
-        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IVarifiableType>>>> types
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IVarifiableType>>>>();
+        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IFrontendType>>>> types
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IFrontendType>>>>();
 
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IGenericType>>>> genericTypes
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IGenericType>>>>();
@@ -126,11 +127,11 @@ namespace Tac.Semantic_Model
 
         public NewScope()
         {
-            TryAddType(new NameKey("int"), new Box<IVarifiableType>(new NumberType()));
-            TryAddType(new NameKey("string"), new Box<IVarifiableType>(new StringType()));
-            TryAddType(new NameKey("any"), new Box<IVarifiableType>(new AnyType()));
-            TryAddType(new NameKey("empty"), new Box<IVarifiableType>(new EmptyType()));
-            TryAddType(new NameKey("bool"), new Box<IVarifiableType>(new BooleanType()));
+            TryAddType(new NameKey("int"), new Box<IFrontendType>(new NumberType()));
+            TryAddType(new NameKey("string"), new Box<IFrontendType>(new StringType()));
+            TryAddType(new NameKey("any"), new Box<IFrontendType>(new AnyType()));
+            TryAddType(new NameKey("empty"), new Box<IFrontendType>(new EmptyType()));
+            TryAddType(new NameKey("bool"), new Box<IFrontendType>(new BooleanType()));
             // TODO, I need to figure out how method types work
             //
             TryAddGeneric(
@@ -159,10 +160,10 @@ namespace Tac.Semantic_Model
             return list.TryAdd(visiblity);
         }
 
-        public bool TryAddType(IKey key, IBox<IVarifiableType> definition)
+        public bool TryAddType(IKey key, IBox<IFrontendType> definition)
         {
-            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IVarifiableType>>>());
-            var visiblity = new Visiblity<IBox<IVarifiableType>>(DefintionLifetime.Static, definition);
+            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IFrontendType>>>());
+            var visiblity = new Visiblity<IBox<IFrontendType>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
 
@@ -200,7 +201,7 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetType(IKey name, out IBox<IVarifiableType> type)
+        public bool TryGetType(IKey name, out IBox<IFrontendType> type)
         {
             if (name is GenericNameKey generic)
             {
@@ -208,14 +209,14 @@ namespace Tac.Semantic_Model
                 
                 var typesBoxes = generic.Types.Select(x=>
                 {
-                    TryGetType(x, out IBox<IVarifiableType> innerTypeBox);
+                    TryGetType(x, out IBox<IFrontendType> innerTypeBox);
                     if (innerTypeBox == default) {
                         throw new Exception("I guess that is exceptional");
                     }
                     return innerTypeBox;
                 }).ToList();
 
-                type =  new DelegateBox<IVarifiableType>(() => set
+                type =  new DelegateBox<IFrontendType>(() => set
                     .Select(single => single.Definition.GetValue())
                     .Where(x => x.TypeParameterDefinitions.Length == typesBoxes.Count())
                     .Single()
@@ -262,9 +263,9 @@ namespace Tac.Semantic_Model
             return false;
         }
 
-        public bool TryGetType(IKey name, out IVarifiableType type)
+        public bool TryGetType(IKey name, out IFrontendType type)
         {
-            if (TryGetType(name, out IBox<IVarifiableType> box))
+            if (TryGetType(name, out IBox<IFrontendType> box))
             {
                 type = box.GetValue();
                 return true;
