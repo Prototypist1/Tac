@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,7 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tac.Model.instantiated\Tac.Model.instantiated.csproj" />
     <ProjectReference Include="..\Tac.Model\Tac.Model.csproj" />
   </ItemGroup>
 

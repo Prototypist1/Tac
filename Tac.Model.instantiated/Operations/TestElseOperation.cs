@@ -1,11 +1,12 @@
 ﻿using System;
 using Tac.Model.Elements;
+using Tac.Model.Operations;
 
-namespace Tac.Model.Operations
+namespace Tac.Model.instantiated
 {
-    public class TestAssignOperation : IAssignOperation
+    public class TestElseOperation : IElseOperation
     {
-        public TestAssignOperation(ICodeElement left, ICodeElement right)
+        public TestElseOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;
@@ -17,13 +18,12 @@ namespace Tac.Model.Operations
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
-            return context.AssignOperation(this);
+            return context.ElseOperation(this);
         }
 
         public IVarifiableType Returns()
         {
-            return Left.Returns();
+            return new TestBooleanType();
         }
     }
-
 }

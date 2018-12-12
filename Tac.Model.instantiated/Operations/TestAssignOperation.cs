@@ -1,11 +1,12 @@
 ﻿using System;
 using Tac.Model.Elements;
+using Tac.Model.Operations;
 
-namespace Tac.Model.Operations
+namespace Tac.Model.instantiated
 {
-    public class TestSubtractOperation : ISubtractOperation
+    public class TestAssignOperation : IAssignOperation
     {
-        public TestSubtractOperation(ICodeElement left, ICodeElement right)
+        public TestAssignOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;
@@ -17,12 +18,13 @@ namespace Tac.Model.Operations
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
-            return context.SubtractOperation(this);
+            return context.AssignOperation(this);
         }
 
         public IVarifiableType Returns()
         {
-            return new TestNumberType();
+            return Left.Returns();
         }
     }
+
 }

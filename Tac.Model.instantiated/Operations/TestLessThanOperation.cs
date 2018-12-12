@@ -1,11 +1,12 @@
 ﻿using System;
 using Tac.Model.Elements;
+using Tac.Model.Operations;
 
-namespace Tac.Model.Operations
+namespace Tac.Model.instantiated
 {
-    public class TestElseOperation : IElseOperation
+    public class TestLessThanOperation : ILessThanOperation
     {
-        public TestElseOperation(ICodeElement left, ICodeElement right)
+        public TestLessThanOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;
@@ -17,7 +18,7 @@ namespace Tac.Model.Operations
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
-            return context.ElseOperation(this);
+            return context.LessThanOperation(this);
         }
 
         public IVarifiableType Returns()

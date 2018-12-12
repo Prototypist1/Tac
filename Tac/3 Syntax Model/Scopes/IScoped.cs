@@ -252,7 +252,7 @@ namespace Tac.Semantic_Model
             return this;
         }
 
-        public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition res)
+        public bool TryGetMember(IKey name, bool staticOnly, out WeakMemberDefinition res)
         {
             if (TryGetMember(name, staticOnly, out IBox<WeakMemberDefinition> box))
             {

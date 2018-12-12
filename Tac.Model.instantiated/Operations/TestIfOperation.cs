@@ -1,7 +1,8 @@
 ﻿using System;
 using Tac.Model.Elements;
+using Tac.Model.Operations;
 
-namespace Tac.Model.Operations
+namespace Tac.Model.instantiated
 {
     public class TestIfOperation : IIfOperation
     {

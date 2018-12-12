@@ -1,8 +1,9 @@
 ﻿using System;
 using Prototypist.LeftToRight;
 using Tac.Model.Elements;
+using Tac.Model.Operations;
 
-namespace Tac.Model.Operations
+namespace Tac.Model.instantiated
 {
     public class TestPathOperation : IPathOperation
     {

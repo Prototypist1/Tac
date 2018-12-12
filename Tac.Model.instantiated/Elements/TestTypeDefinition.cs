@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Tac.Model;
+using Tac.Model.Elements;
 
-namespace Tac.Model.Elements
+namespace Tac.Model.instantiated
 {
     public class TestInterfaceType : IInterfaceType
     {

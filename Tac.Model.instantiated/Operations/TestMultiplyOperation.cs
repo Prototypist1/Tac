@@ -1,23 +1,24 @@
 ﻿using System;
 using Tac.Model.Elements;
+using Tac.Model.Operations;
 
-namespace Tac.Model.Operations
+namespace Tac.Model.instantiated
 {
-    public class TestAddOperation : IAddOperation
+    public class TestMultiplyOperation : IMultiplyOperation
     {
-        public TestAddOperation(ICodeElement left, ICodeElement right)
+        public TestMultiplyOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;
         }
 
-        public ICodeElement Left{get; set;}
+        public ICodeElement Left { get; set; }
         public ICodeElement Right { get; set; }
         public ICodeElement[] Operands => new[] { Left, Right };
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
-            return context.AddOperation(this);
+            return context.MultiplyOperation(this);
         }
 
         public IVarifiableType Returns()

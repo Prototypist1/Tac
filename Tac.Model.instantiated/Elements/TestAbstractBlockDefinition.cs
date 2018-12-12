@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.Elements
+namespace Tac.Model.instantiated
 {
     public abstract class TestAbstractBlockDefinition: IAbstractBlockDefinition
     {

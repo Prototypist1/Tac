@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.instantiated;
 using Tac.Model.Operations;
 using Tac.Semantic_Model.Names;
 using Tac.TestCases;

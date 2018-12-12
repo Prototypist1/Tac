@@ -1,4 +1,6 @@
-﻿namespace Tac.Model.Elements
+﻿using Tac.Model.Elements;
+
+namespace Tac.Model.instantiated
 {
     public class TestConstantNumber : IConstantNumber
     {

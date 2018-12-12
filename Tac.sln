@@ -14,6 +14,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Model", "Tac.Model\Tac.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.TestCases", "Tac.TestCases\Tac.TestCases.csproj", "{1FD78288-D514-4281-9AA0-33A617322A87}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tac.Model.instantiated", "Tac.Model.instantiated\Tac.Model.instantiated.csproj", "{B43EA855-3843-426A-9F72-97A8ED96B6D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,10 @@ Global
 		{1FD78288-D514-4281-9AA0-33A617322A87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FD78288-D514-4281-9AA0-33A617322A87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FD78288-D514-4281-9AA0-33A617322A87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B43EA855-3843-426A-9F72-97A8ED96B6D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B43EA855-3843-426A-9F72-97A8ED96B6D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B43EA855-3843-426A-9F72-97A8ED96B6D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B43EA855-3843-426A-9F72-97A8ED96B6D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
