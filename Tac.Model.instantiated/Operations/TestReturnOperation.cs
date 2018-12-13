@@ -2,11 +2,11 @@
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestReturnOperation : IReturnOperation
+    public class ReturnOperation : IReturnOperation
     {
-        public TestReturnOperation(ICodeElement result)
+        public ReturnOperation(ICodeElement result)
         {
             Result = result;
         }
@@ -20,7 +20,7 @@ namespace Tac.Model.instantiated
 
         public IVarifiableType Returns()
         {
-            return new TestEmptyType();
+            return new EmptyType();
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
-using Tac.Model.instantiated;
+using Tac.Model.Instantiated;
 using Tac.Semantic_Model.Names;
 using Tac.TestCases;
 using Tac.TestCases.Help;
@@ -20,15 +20,15 @@ namespace Tac.Tests.Samples
             get
             {
                 var key = new NameKey("T");
-                var type = new TestGemericTypeParameterPlacholder(key);
+                var type = new GemericTypeParameterPlacholder(key);
 
                 var keyX = new NameKey("x");
-                var localX = new TestMemberDefinition(keyX, new TestTypeReferance(type), false);
+                var localX = new MemberDefinition(keyX, new TypeReferance(type), false);
                 var keyY = new NameKey("y");
-                var localY = new TestMemberDefinition(keyY, new TestTypeReferance(type), false);
+                var localY = new MemberDefinition(keyY, new TypeReferance(type), false);
 
                 return new ICodeElement[] {
-                    new TestGenericInterfaceDefinition(
+                    new GenericInterfaceDefinition(
                         new FinalizedScope(
                             new Dictionary<IKey, IMemberDefinition> {
                                 { keyX, localX },

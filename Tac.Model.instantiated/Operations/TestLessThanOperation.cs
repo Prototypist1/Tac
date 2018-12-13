@@ -2,11 +2,11 @@
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestLessThanOperation : ILessThanOperation
+    public class LessThanOperation : ILessThanOperation
     {
-        public TestLessThanOperation(ICodeElement left, ICodeElement right)
+        public LessThanOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;
@@ -23,7 +23,7 @@ namespace Tac.Model.instantiated
 
         public IVarifiableType Returns()
         {
-            return new TestBooleanType();
+            return new BooleanType();
         }
     }
 }

@@ -2,11 +2,11 @@
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestAssignOperation : IAssignOperation
+    public class AssignOperation : IAssignOperation
     {
-        public TestAssignOperation(ICodeElement left, ICodeElement right)
+        public AssignOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;

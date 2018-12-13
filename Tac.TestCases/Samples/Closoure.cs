@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
-using Tac.Model.instantiated;
+using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.Semantic_Model.Names;
 using Tac.TestCases;
@@ -14,36 +14,36 @@ namespace Tac.Tests.Samples
         public Closoure()
         {
             var xKey = new NameKey("x");
-            var x = new TestMemberDefinition(xKey, new TestTypeReferance(new TestNumberType()), false);
+            var x = new MemberDefinition(xKey, new TypeReferance(new NumberType()), false);
 
             var yKey = new NameKey("y");
-            var y = new TestMemberDefinition(yKey, new TestTypeReferance(new TestNumberType()), false);
+            var y = new MemberDefinition(yKey, new TypeReferance(new NumberType()), false);
             
             var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { xKey, x } });
             var innerMethodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { yKey, y } }, methodScope);
             
-            var method = new TestMethodDefinition(
-                        new TestTypeReferance(new TestNumberType()),
-                        new TestTypeReferance(new TestMethodType(
-                            new TestEmptyType(),
-                            new TestNumberType())),
+            var method = new MethodDefinition(
+                        new TypeReferance(new NumberType()),
+                        new TypeReferance(new MethodType(
+                            new EmptyType(),
+                            new NumberType())),
                         x,
                         methodScope,
                         new ICodeElement[]{
-                            new TestReturnOperation(
-                                new TestMethodDefinition(
-                                    new TestTypeReferance(new TestEmptyType()),
-                                    new TestTypeReferance(new TestNumberType()),
+                            new ReturnOperation(
+                                new MethodDefinition(
+                                    new TypeReferance(new EmptyType()),
+                                    new TypeReferance(new NumberType()),
                                     y,
                                     innerMethodScope,
                                     new ICodeElement[]{
-                                        new TestAssignOperation(
-                                            new TestAddOperation(
-                                                new TestMemberReferance(x),
-                                                new TestMemberReferance(y)),
-                                            new TestMemberReferance(x)),
-                                        new TestReturnOperation(
-                                            new TestMemberReferance(x))
+                                        new AssignOperation(
+                                            new AddOperation(
+                                                new MemberReferance(x),
+                                                new MemberReferance(y)),
+                                            new MemberReferance(x)),
+                                        new ReturnOperation(
+                                            new MemberReferance(x))
                                     },
                                     new ICodeElement[0]
                                     )

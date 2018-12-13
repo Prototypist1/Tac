@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestMethodDefinition : TestAbstractBlockDefinition, IMethodDefinition
+    public class MethodDefinition : AbstractBlockDefinition, IMethodDefinition
     {
-        public TestMethodDefinition(
+        public MethodDefinition(
             ITypeReferance inputType,
             ITypeReferance outputType, 
             IMemberDefinition parameterDefinition, 

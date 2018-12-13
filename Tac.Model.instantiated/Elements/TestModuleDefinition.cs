@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using Tac.Model.Elements;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestModuleDefinition : IModuleDefinition
+    public class ModuleDefinition : IModuleDefinition
     {
-        public TestModuleDefinition(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization)
+        public ModuleDefinition(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization)
         {
             Scope = scope;
             StaticInitialization = staticInitialization;

@@ -1,10 +1,10 @@
 ﻿using Tac.Model.Elements;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestTypeReferance : ITypeReferance
+    public class TypeReferance : ITypeReferance
     {
-        public TestTypeReferance(IVarifiableType typeDefinition)
+        public TypeReferance(IVarifiableType typeDefinition)
         {
             TypeDefinition = typeDefinition;
         }

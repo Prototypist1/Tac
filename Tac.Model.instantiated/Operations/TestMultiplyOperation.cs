@@ -2,11 +2,11 @@
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestMultiplyOperation : IMultiplyOperation
+    public class MultiplyOperation : IMultiplyOperation
     {
-        public TestMultiplyOperation(ICodeElement left, ICodeElement right)
+        public MultiplyOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;
@@ -23,7 +23,7 @@ namespace Tac.Model.instantiated
 
         public IVarifiableType Returns()
         {
-            return new TestNumberType();
+            return new NumberType();
         }
     }
 }

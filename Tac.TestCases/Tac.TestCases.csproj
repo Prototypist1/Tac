@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tac.Model.instantiated\Tac.Model.instantiated.csproj" />
+    <ProjectReference Include="..\Tac.Model.instantiated\Tac.Model.Instantiated.csproj" />
     <ProjectReference Include="..\Tac.Model\Tac.Model.csproj" />
   </ItemGroup>
 

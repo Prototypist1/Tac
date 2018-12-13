@@ -1,11 +1,11 @@
 ﻿using System;
 using Tac.Model.Elements;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestMemberDefinition : IMemberDefinition
+    public class MemberDefinition : IMemberDefinition
     {
-        public TestMemberDefinition(IKey key, ITypeReferance type, bool readOnly)
+        public MemberDefinition(IKey key, ITypeReferance type, bool readOnly)
         {
             Key = key ;
             Type = type;

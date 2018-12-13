@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using Tac.Model.Elements;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestBlockDefinition : TestAbstractBlockDefinition, IBlockDefinition
+    public class BlockDefinition : AbstractBlockDefinition, IBlockDefinition
     {
-        public TestBlockDefinition(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers) : base(scope, body, staticInitailizers)
+        public BlockDefinition(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers) : base(scope, body, staticInitailizers)
         {
         }
 

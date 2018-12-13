@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
-using Tac.Model.instantiated;
+using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Names;
@@ -19,49 +19,49 @@ namespace Tac.Tests.Samples
             var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
 
             var inputKey = new NameKey("input");
-            var input = new TestMemberDefinition(inputKey, new TestTypeReferance(new TestNumberType()), false);
+            var input = new MemberDefinition(inputKey, new TypeReferance(new NumberType()), false);
 
             var facKey = new NameKey("fac");
-            var fac = new TestMemberDefinition(facKey, new TestTypeReferance(new TestMethodType(new TestNumberType(), new TestNumberType())), false);
+            var fac = new MemberDefinition(facKey, new TypeReferance(new MethodType(new NumberType(), new NumberType())), false);
 
 
             var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } });
 
             var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } });
 
-            var method = new TestMethodDefinition(
-                        new TestTypeReferance(new TestNumberType()),
-                        new TestTypeReferance(new TestNumberType()),
+            var method = new MethodDefinition(
+                        new TypeReferance(new NumberType()),
+                        new TypeReferance(new NumberType()),
                         input,
                         methodScope,
                         new ICodeElement[]{
-                                new TestElseOperation(
-                                    new TestIfOperation(
-                                        new TestLessThanOperation(
-                                            new TestMemberReferance(input),
-                                            new TestConstantNumber(2)),
-                                        new TestBlockDefinition(
+                                new ElseOperation(
+                                    new IfOperation(
+                                        new LessThanOperation(
+                                            new MemberReferance(input),
+                                            new ConstantNumber(2)),
+                                        new BlockDefinition(
                                             ifBlockScope,
                                             new ICodeElement[]{
-                                                new TestReturnOperation(
-                                                    new TestConstantNumber(1))},
+                                                new ReturnOperation(
+                                                    new ConstantNumber(1))},
                                             new ICodeElement[0])),
-                                    new TestBlockDefinition(
+                                    new BlockDefinition(
                                         elseBlock,
                                         new ICodeElement[]{
-                                            new TestReturnOperation(
-                                                new TestMultiplyOperation(
-                                                    new TestNextCallOperation(
-                                                        new TestSubtractOperation(
-                                                            new TestMemberReferance(input),
-                                                            new TestConstantNumber(1)),
-                                                        new TestMemberReferance(fac)),
-                                                    new TestMemberReferance(input)))},
+                                            new ReturnOperation(
+                                                new MultiplyOperation(
+                                                    new NextCallOperation(
+                                                        new SubtractOperation(
+                                                            new MemberReferance(input),
+                                                            new ConstantNumber(1)),
+                                                        new MemberReferance(fac)),
+                                                    new MemberReferance(input)))},
                                         new ICodeElement[0]))},
                         new ICodeElement[0]);
 
             CodeElements= new ICodeElement[] {method ,};
-            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition>{{facKey,new TestMemberDefinition(facKey, new TestTypeReferance(method),false) }});
+            Scope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition>{{facKey,new MemberDefinition(facKey, new TypeReferance(method),false) }});
         }
 
         public string Text

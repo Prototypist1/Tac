@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestInterfaceType : IInterfaceType
+    public class InterfaceType : IInterfaceType
     {
-        public TestInterfaceType(IFinalizedScope scope)
+        public InterfaceType(IFinalizedScope scope)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
@@ -16,9 +16,9 @@ namespace Tac.Model.instantiated
     }
 
 
-    public class TestGemericTypeParameterPlacholder : IVarifiableType
+    public class GemericTypeParameterPlacholder : IVarifiableType
     {
-        public TestGemericTypeParameterPlacholder(IKey key)
+        public GemericTypeParameterPlacholder(IKey key)
         {
             this.Key = key ?? throw new ArgumentNullException(nameof(key));
         }
@@ -27,7 +27,7 @@ namespace Tac.Model.instantiated
 
         public override bool Equals(object obj)
         {
-            return obj is TestGemericTypeParameterPlacholder placholder &&
+            return obj is GemericTypeParameterPlacholder placholder &&
                    EqualityComparer<IKey>.Default.Equals(Key, placholder.Key);
         }
 
@@ -37,16 +37,16 @@ namespace Tac.Model.instantiated
         }
     }
 
-    public class TestNumberType : INumberType { }
-    public class TestAnyType : IAnyType { }
-    public class TestEmptyType : IEmptyType { }
-    public class TestBooleanType : IBooleanType { }
-    public class TestStringType : IStringType { }
-    public class TestObjectType : IObjectType { }
-    public class TestModuleType : IModuleType { }
-    public class TestMethodType : IMethodType
+    public class NumberType : INumberType { }
+    public class AnyType : IAnyType { }
+    public class EmptyType : IEmptyType { }
+    public class BooleanType : IBooleanType { }
+    public class StringType : IStringType { }
+    public class ObjectType : IObjectType { }
+    public class ModuleType : IModuleType { }
+    public class MethodType : IMethodType
     {
-        public TestMethodType(IVarifiableType inputType, IVarifiableType outputType)
+        public MethodType(IVarifiableType inputType, IVarifiableType outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -55,9 +55,9 @@ namespace Tac.Model.instantiated
         public IVarifiableType InputType { get; set; }
         public IVarifiableType OutputType{ get; set; }
     }
-    public class TestImplementationType : IImplementationType
+    public class ImplementationType : IImplementationType
     {
-        public TestImplementationType(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType)
+        public ImplementationType(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));

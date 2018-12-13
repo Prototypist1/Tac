@@ -3,11 +3,11 @@ using Prototypist.LeftToRight;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestPathOperation : IPathOperation
+    public class PathOperation : IPathOperation
     {
-        public TestPathOperation(ICodeElement left, ICodeElement right)
+        public PathOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;

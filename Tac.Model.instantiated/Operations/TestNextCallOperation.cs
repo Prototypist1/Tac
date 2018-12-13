@@ -2,11 +2,11 @@
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestNextCallOperation : INextCallOperation
+    public class NextCallOperation : INextCallOperation
     {
-        public TestNextCallOperation(ICodeElement left, ICodeElement right)
+        public NextCallOperation(ICodeElement left, ICodeElement right)
         {
             Left = left;
             Right = right;

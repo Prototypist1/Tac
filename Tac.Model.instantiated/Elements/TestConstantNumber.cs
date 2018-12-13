@@ -1,10 +1,10 @@
 ﻿using Tac.Model.Elements;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestConstantNumber : IConstantNumber
+    public class ConstantNumber : IConstantNumber
     {
-        public TestConstantNumber(double value)
+        public ConstantNumber(double value)
         {
             Value = value;
         }
@@ -18,7 +18,7 @@ namespace Tac.Model.instantiated
 
         public IVarifiableType Returns()
         {
-            return new TestNumberType();
+            return new NumberType();
         }
     }
 }

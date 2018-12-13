@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestObjectDefiniton : IObjectDefiniton
+    public class ObjectDefiniton : IObjectDefiniton
     {
-        public TestObjectDefiniton(IFinalizedScope scope, IEnumerable<IAssignOperation> assignments)
+        public ObjectDefiniton(IFinalizedScope scope, IEnumerable<IAssignOperation> assignments)
         {
             Scope = scope;
             Assignments = assignments;

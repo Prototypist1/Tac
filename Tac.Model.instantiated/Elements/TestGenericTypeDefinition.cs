@@ -1,11 +1,11 @@
 ﻿using System;
 using Tac.Model.Elements;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestGenericInterfaceDefinition : IGenericInterfaceDefinition
+    public class GenericInterfaceDefinition : IGenericInterfaceDefinition
     {
-        public TestGenericInterfaceDefinition(IFinalizedScope scope, IGenericTypeParameterDefinition[] typeParameterDefinitions)
+        public GenericInterfaceDefinition(IFinalizedScope scope, IGenericTypeParameterDefinition[] typeParameterDefinitions)
         {
             Scope = scope;
             TypeParameterDefinitions = typeParameterDefinitions;

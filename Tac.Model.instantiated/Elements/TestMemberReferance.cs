@@ -1,11 +1,11 @@
 ﻿using System;
 using Tac.Model.Elements;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestMemberReferance : IMemberReferance
+    public class MemberReferance : IMemberReferance
     {
-        public TestMemberReferance(IMemberDefinition memberDefinition)
+        public MemberReferance(IMemberDefinition memberDefinition)
         {
             MemberDefinition = memberDefinition;
         }

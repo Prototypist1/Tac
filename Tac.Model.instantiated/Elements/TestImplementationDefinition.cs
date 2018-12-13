@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public class TestImplementationDefinition : IImplementationDefinition
+    public class ImplementationDefinition : IImplementationDefinition
     {
-        public TestImplementationDefinition(ITypeReferance outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers)
+        public ImplementationDefinition(ITypeReferance outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers)
         {
             OutputType = outputType;
             ContextDefinition = contextDefinition;

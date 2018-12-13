@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
-namespace Tac.Model.instantiated
+namespace Tac.Model.Instantiated
 {
-    public abstract class TestAbstractBlockDefinition: IAbstractBlockDefinition
+    public abstract class AbstractBlockDefinition: IAbstractBlockDefinition
     {
-        protected TestAbstractBlockDefinition(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers)
+        protected AbstractBlockDefinition(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers)
         {
             Scope = scope;
             Body = body;
@@ -22,7 +22,7 @@ namespace Tac.Model.instantiated
 
         public IVarifiableType Returns()
         {
-            return new TestEmptyType();
+            return new EmptyType();
         }
     }
 }
