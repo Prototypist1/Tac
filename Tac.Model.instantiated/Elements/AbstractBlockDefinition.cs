@@ -5,24 +5,35 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
-    public abstract class AbstractBlockDefinition: IAbstractBlockDefinition
+
+    // I don't think I get to use base classes :/
+    //public abstract class AbstractBlockDefinition: IAbstractBlockDefinition, IAbstractBlockDefinitionBuilder
+    //{
+    //    protected (AbstractBlockDefinition, IAbstractBlockDefinitionBuilder) Build(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers)
+    //    {
+    //        Scope = scope;
+    //        Body = body;
+    //        StaticInitailizers = staticInitailizers;
+    //    }
+
+    //    public abstract T Convert<T>(IOpenBoxesContext<T> context);
+
+
+    //}
+
+    internal class Buildable<T>
+        where T :class
     {
-        protected AbstractBlockDefinition(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers)
+        private T t;
+        public T Get()  =>t ;
+        public void Set(T t)
         {
-            Scope = scope;
-            Body = body;
-            StaticInitailizers = staticInitailizers;
-        }
-
-        public IFinalizedScope Scope { get; set; }
-        public ICodeElement[] Body { get; set; }
-        public IEnumerable<ICodeElement> StaticInitailizers { get; set; }
-
-        public abstract T Convert<T>(IOpenBoxesContext<T> context);
-
-        public IVarifiableType Returns()
-        {
-            return new EmptyType();
+            if (t != null)
+            {
+                throw new ApplicationException();
+            }
+            this.t = t ?? throw new ArgumentNullException();
         }
     }
+
 }
