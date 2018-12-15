@@ -16,11 +16,11 @@ namespace Tac.Semantic_Model.CodeStuff
         public string Symbols => "<?";
     }
     
-    internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
+    internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, ILessThanOperation>
     {
         public const string Identifier = "<?";
 
-        public WeakLessThanOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakLessThanOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
@@ -30,7 +30,7 @@ namespace Tac.Semantic_Model.CodeStuff
         }
     }
 
-    internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation>
+    internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation, ILessThanOperation>
     {
         public LessThanOperationMaker() : base(new LessThenSymbols(), (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)))
         {

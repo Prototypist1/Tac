@@ -5,9 +5,11 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
+using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model.Operations
 {
@@ -20,7 +22,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    internal class WeakConstantNumber : IFrontendCodeElement, IFrontendType
+    internal class WeakConstantNumber : IFrontendCodeElement<IConstantNumber>, IFrontendType
     {
         public WeakConstantNumber(IIsPossibly<double> value) 
         {
@@ -28,13 +30,18 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public IIsPossibly<double> Value { get; }
-        
-        public IVarifiableType Returns()
+
+        public IBuildIntention<IConstantNumber> GetBuildIntention(ConversionContext context)
         {
-            return new NumberType();
+            var (toBuild, maker) = ConstantNumber.Create();
+            return new BuildIntention<IConstantNumber>(toBuild, () =>
+            {
+                maker.Build(
+                    Value.GetOrThrow());
+            });
         }
 
-        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement<IConstantNumber>.Returns()
         {
             return Possibly.Is(this);
         }

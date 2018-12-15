@@ -15,11 +15,11 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "*";
     }
 
-    internal class WeakMultiplyOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
+    internal class WeakMultiplyOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, IMultiplyOperation>
     {
         public const string Identifier = "*";
 
-        public WeakMultiplyOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakMultiplyOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation>
+    internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation, ILessThanOperation>
     {
         public MultiplyOperationMaker() : base(new MultiplySymbols(), (l,r)=>Possibly.Is(new WeakMultiplyOperation(l,r)))
         {

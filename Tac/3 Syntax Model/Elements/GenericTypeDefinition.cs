@@ -6,10 +6,12 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
+using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model
 {
@@ -25,7 +27,17 @@ namespace Tac.Semantic_Model
         }
 
         public IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions { get; }
-        
+
+        public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context)
+        {
+            var (toBuild, maker) = GenericInterfaceDefinition.Create();
+            return new BuildIntention<IGenericInterfaceDefinition>(toBuild, () =>
+            {
+                maker.Build(Scope,
+                    TypeParameterDefinitions.Select(x=>x.GetOrThrow()).ToArray());
+            });
+        }
+
     }
 
 
@@ -101,13 +113,13 @@ namespace Tac.Semantic_Model
     internal class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
     {
         private readonly NameKey nameKey;
-        private readonly IEnumerable<IPopulateScope<ICodeElement>> lines;
+        private readonly IEnumerable<IPopulateScope<IFrontendCodeElement< ICodeElement>>> lines;
         private readonly IGenericTypeParameterDefinition[] genericParameters;
         private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
-            IEnumerable<IPopulateScope<ICodeElement>> lines,
+            IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
             IGenericTypeParameterDefinition[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -134,13 +146,13 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly IResolvableScope scope;
-        private readonly Box<IIsPossibly<IVarifiableType>> box;
+        private readonly Box<IIsPossibly<IFrontendType>> box;
         private readonly IGenericTypeParameterDefinition[] genericParameters;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             IResolvableScope scope, 
-            Box<IIsPossibly<IVarifiableType>> box,
+            Box<IIsPossibly<IFrontendType>> box,
             IGenericTypeParameterDefinition[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));

@@ -5,21 +5,35 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
+using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakBlockDefinition : WeakAbstractBlockDefinition
+    internal class WeakBlockDefinition : WeakAbstractBlockDefinition<IBlockDefinition>
     {
         public WeakBlockDefinition(
-            IIsPossibly<IFrontendCodeElement>[] body,
+            IIsPossibly<IFrontendCodeElement<ICodeElement>>[] body,
             IFinalizedScope scope,
-            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) : 
+            IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
+
+        public override IBuildIntention<IBlockDefinition> GetBuildIntention(ConversionContext context)
+        {
+            var (toBuild, maker) = BlockDefinition.Create();
+            return new BuildIntention<IBlockDefinition>(toBuild, () =>
+            {
+                maker.Build(
+                    Scope,
+                    Body.Select(x => x.GetOrThrow().Convert(context)).ToArray(),
+                    StaticInitailizers.Select(x => x.GetOrThrow().Convert(context)).ToArray());
+            });
+        }
     }
 
     internal class BlockDefinitionMaker : IMaker<IPopulateScope<WeakBlockDefinition>>
@@ -50,10 +64,10 @@ namespace Tac.Semantic_Model
         // TODO object??
         // is it worth adding another T?
         // this is the type the backend owns
-        private IPopulateScope<IFrontendCodeElement>[] Elements { get; }
+        private IPopulateScope<IFrontendCodeElement<ICodeElement>>[] Elements { get; }
         private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
-        public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements)
+        public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
         {
             Elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
@@ -76,12 +90,12 @@ namespace Tac.Semantic_Model
     internal class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
     {
         private IResolvableScope Scope { get; }
-        private IPopulateBoxes<IFrontendCodeElement>[] ResolveReferance { get; }
+        private IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] ResolveReferance { get; }
         private readonly Box<IIsPossibly<IFrontendType>> box;
 
         public ResolveReferanceBlockDefinition(
             IResolvableScope scope, 
-            IPopulateBoxes<IFrontendCodeElement>[] resolveReferance,
+            IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance,
             Box<IIsPossibly<IFrontendType>> box)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -97,7 +111,7 @@ namespace Tac.Semantic_Model
                         new WeakBlockDefinition(
                             ResolveReferance.Select(x => x.Run(context)).ToArray(), 
                             Scope.GetFinalized(), 
-                            new IIsPossibly<IFrontendCodeElement>[0])));
+                            new IIsPossibly<IFrontendCodeElement<ICodeElement>>[0])));
         }
         
     }

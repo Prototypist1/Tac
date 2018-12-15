@@ -18,9 +18,9 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => ".";
     }
 
-    internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
+    internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, IPathOperation>
     {
-        public WeakPathOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakPathOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
@@ -45,7 +45,7 @@ namespace Tac.Semantic_Model.Operations
                 return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
-                    new BinaryPopulateScope<WeakPathOperation>(left, right, (l,r)=> Possibly.Is(new WeakPathOperation(l,r))));
+                    new BinaryPopulateScope<WeakPathOperation,IPathOperation>(left, right, (l,r)=> Possibly.Is(new WeakPathOperation(l,r))));
             }
 
             return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeNotMatch(

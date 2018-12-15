@@ -18,10 +18,10 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "=:";
     }
 
-    internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
+    internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, IAssignOperation>
     {
         
-        public WeakAssignOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakAssignOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
@@ -52,7 +52,7 @@ namespace Tac.Semantic_Model.Operations
                 return TokenMatching<IPopulateScope<WeakAssignOperation>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
-                    new BinaryPopulateScope<WeakAssignOperation>(left, right, (l,r) => 
+                    new BinaryPopulateScope<WeakAssignOperation,IAssignOperation>(left, right, (l,r) => 
                         Possibly.Is(
                             new WeakAssignOperation(l,r))));
             }

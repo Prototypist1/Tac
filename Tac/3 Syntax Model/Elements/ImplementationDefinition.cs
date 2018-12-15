@@ -6,24 +6,26 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Names;
+using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakImplementationDefinition: IFrontendCodeElement, IFrontendType
+    internal class WeakImplementationDefinition: IFrontendCodeElement<IImplementationDefinition>, IFrontendType
     {
 
         public WeakImplementationDefinition(
             IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> contextDefinition,
             IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> parameterDefinition,
             IIsPossibly<WeakTypeReferance> outputType, 
-            IEnumerable<IIsPossibly<IFrontendCodeElement>> metohdBody,
+            IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> metohdBody,
             IFinalizedScope scope, 
-            IEnumerable<IFrontendCodeElement> staticInitializers)
+            IEnumerable<IFrontendCodeElement<ICodeElement>> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -53,12 +55,27 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ContextDefinition { get; }
         public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
         public IFinalizedScope Scope { get; }
-        public IEnumerable<IIsPossibly<IFrontendCodeElement>> MethodBody { get; }
-        public IEnumerable<IFrontendCodeElement> StaticInitialzers { get; }
+        public IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> MethodBody { get; }
+        public IEnumerable<IFrontendCodeElement<ICodeElement>> StaticInitialzers { get; }
 
-        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement<IImplementationDefinition>.Returns()
         {
             return Possibly.Is(this);
+        }
+
+        public override BuildIntention GetBuildIntention(ConversionContext context)
+        {
+            var (toBuild, maker) = ImplementationDefinition.Create();
+            return new BuildIntention(toBuild, () =>
+            {
+                maker.Build(
+                    OutputType.GetOrThrow().Convert(context),
+                    ContextDefinition.IfIs(x=>x.GetValue()).GetOrThrow().Convert(context),
+                    ParameterDefinition.IfIs(x => x.GetValue()).GetOrThrow().Convert(context),
+                    Scope,
+                    MethodBody.Select(x => x.GetOrThrow().Convert(context)).ToArray(),
+                    StaticInitialzers.Select(x => x.Convert(context)).ToArray());
+            });
         }
     }
 
@@ -143,14 +160,14 @@ namespace Tac.Semantic_Model
     {
         private readonly IPopulateScope<WeakMemberReference> contextDefinition;
         private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
-        private readonly IPopulateScope<IFrontendCodeElement>[] elements;
+        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly IPopulateScope<WeakTypeReferance> output;
         private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public PopulateScopeImplementationDefinition(
             IPopulateScope<WeakMemberReference> contextDefinition,
             IPopulateScope<WeakMemberReference> parameterDefinition,
-            IPopulateScope<IFrontendCodeElement>[] elements,
+            IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements,
             IPopulateScope<WeakTypeReferance> output)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
@@ -184,7 +201,7 @@ namespace Tac.Semantic_Model
         private readonly IPopulateBoxes<WeakMemberReference> contextDefinition;
         private readonly IPopulateBoxes<WeakMemberReference> parameterDefinition;
         private readonly IResolvableScope methodScope;
-        private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
+        private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly IPopulateBoxes<WeakTypeReferance> output;
         private readonly Box<IIsPossibly<IFrontendType>> box;
 
@@ -192,7 +209,7 @@ namespace Tac.Semantic_Model
             IPopulateBoxes<WeakMemberReference> contextDefinition,
             IPopulateBoxes<WeakMemberReference> parameterDefinition,
             IResolvableScope methodScope,
-            IPopulateBoxes<IFrontendCodeElement>[] elements,
+            IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements,
             IPopulateBoxes<WeakTypeReferance> output,
             Box<IIsPossibly<IFrontendType>> box)
         {
@@ -214,7 +231,7 @@ namespace Tac.Semantic_Model
                     output.Run(context), 
                     elements.Select(x => x.Run(context)).ToArray(), 
                     methodScope.GetFinalized(), 
-                    new IFrontendCodeElement[0])));
+                    new IFrontendCodeElement<ICodeElement>[0])));
         }
     }
 

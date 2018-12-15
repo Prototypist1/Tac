@@ -21,9 +21,9 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => ">";
     }
 
-    internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
+    internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, INextCallOperation>
     {
-        public WeakNextCallOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakNextCallOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
@@ -33,7 +33,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation>
+    internal class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation,INextCallOperation>
     {
         public NextCallOperationMaker() : base(new NextCallSymbols(), (l,r)=> Possibly.Is( new WeakNextCallOperation(l,r)))
         {
@@ -46,11 +46,11 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "<";
     }
 
-    internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
+    internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, ILastCallOperation>
     {
         public const string Identifier = "<";
 
-        public WeakLastCallOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakLastCallOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
@@ -62,7 +62,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation>
+    internal class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation, ILastCallOperation>
     {
         public LastCallOperationMaker() : base(new LastCallSymbols(), (l,r)=>Possibly.Is( new WeakLastCallOperation(l,r)))
         {
@@ -70,7 +70,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal static class MemberUnwrapper{
-        public static T Unwrap<T>(this IFrontendCodeElement codeElement) where T:IVarifiableType {
+        public static T Unwrap<T>(this IFrontendCodeElement<ICodeElement> codeElement) where T:IVarifiableType {
             if (codeElement.Returns().Is< WeakMemberDefinition>(out var member) && 
                 member.Type.IsDefinately(out var yes, out var _) &&  
                 yes.Value.TypeDefinition.IsDefinately(out var yes2, out var _) &&

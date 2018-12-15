@@ -12,7 +12,7 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    internal class WeakTypeReferance : IFrontendCodeElement, IFrontendType
+    internal class WeakTypeReferance : IFrontendCodeElement<ITypeReferance>, IFrontendType
     {
         public WeakTypeReferance(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> typeDefinition)
         {

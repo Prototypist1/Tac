@@ -18,7 +18,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakObjectDefinition: IFrontendCodeElement,  IScoped, IFrontendType
+    internal class WeakObjectDefinition: IFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType
     {
         public WeakObjectDefinition(IFinalizedScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model
             get;
         }
         
-        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement<IObjectDefiniton>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -73,10 +73,10 @@ namespace Tac.Semantic_Model
 
     internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
-        private readonly IPopulateScope<IFrontendCodeElement>[] elements;
+        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
-        public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements)
+        public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
@@ -102,13 +102,13 @@ namespace Tac.Semantic_Model
     internal class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
     {
         private readonly IResolvableScope scope;
-        private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
+        private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly Box<IIsPossibly<IFrontendType>> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
-            IPopulateBoxes<IFrontendCodeElement>[] elements, 
+            IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements, 
             Box<IIsPossibly<IFrontendType>> box, 
             ImplicitKey key)
         {

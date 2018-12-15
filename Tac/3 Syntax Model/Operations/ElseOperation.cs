@@ -18,10 +18,10 @@ namespace Tac.Semantic_Model.Operations
 
 
     // really an if not
-    internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
+    internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, IElseOperation>
     {
         // right should have more validation
-        public WeakElseOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakElseOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
@@ -33,7 +33,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
 
-    internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation>
+    internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation,IElseOperation>
     {
         public ElseOperationMaker() : base(new ElseSymbols(), (l,r)=>Possibly.Is(new WeakElseOperation(l,r)))
         {

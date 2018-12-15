@@ -16,7 +16,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
     {
         private readonly Dictionary<object, IInterpeted> backing = new Dictionary<object, IInterpeted>();
 
-        public InterpetedMemberDefinition Convert(IMemberDefinition member)
+        public InterpetedMemberDefinition MemberDefinition(IMemberDefinition member)
         {
             if (backing.TryGetValue(member, out var res))
             {
@@ -155,8 +155,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedImplementationDefinition();
                 backing.Add(codeElement, op);
                 op.Init(
-                    Convert(codeElement.ParameterDefinition),
-                    Convert(codeElement.ContextDefinition),
+                    MemberDefinition(codeElement.ParameterDefinition),
+                    MemberDefinition(codeElement.ContextDefinition),
                     codeElement.MethodBody.Select(x=>x.Convert(this)).ToArray(),
                     new InterpetedScopeTemplate(codeElement.Scope));
                 return op;
@@ -196,12 +196,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 return op;
             }
         }
-
-        public InterpetedMemberDefinition MemberDefinition(IMemberDefinition codeElement)
-        {
-            return Convert(codeElement);
-        }
-
+        
         public InterpetedMemberReferance MemberReferance(IMemberReferance codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
@@ -213,7 +208,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedMemberReferance();
                 backing.Add(codeElement, op);
                 op.Init(
-                    Convert(codeElement.MemberDefinition));
+                    MemberDefinition(codeElement.MemberDefinition));
                 return op;
             }
         }
@@ -229,7 +224,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedMethodDefinition();
                 backing.Add(codeElement, op);
                 op.Init(
-                    Convert(codeElement.ParameterDefinition),
+                    MemberDefinition(codeElement.ParameterDefinition),
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
                     new InterpetedScopeTemplate(codeElement.Scope));
                 return op;

@@ -66,13 +66,13 @@ namespace Tac.Semantic_Model
 
     internal class TypeDefinitionPopulateScope : IPopulateScope<WeakTypeReferance>
     {
-        private readonly IPopulateScope<IFrontendCodeElement>[] elements;
+        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly IKey key;
         private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
         private readonly WeakTypeReferance typeReferance;
         private readonly Box<IIsPossibly<WeakTypeReferance>> box;
 
-        public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements, IKey typeName)
+        public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements, IKey typeName)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));

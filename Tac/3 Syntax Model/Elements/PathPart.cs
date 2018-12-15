@@ -15,7 +15,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMemberReference : IFrontendCodeElement, IFrontendType
+    internal class WeakMemberReference : IFrontendCodeElement<IMemberReferance>, IFrontendType
     {
         public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
         {

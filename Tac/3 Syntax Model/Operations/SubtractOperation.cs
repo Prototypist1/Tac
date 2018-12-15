@@ -15,9 +15,9 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "-";
     }
 
-    internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement>
+    internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, ISubtractOperation>
     {
-        public WeakSubtractOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakSubtractOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation>
+    internal class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation,ISubtractOperation>
     {
         public SubtractOperationMaker() : base(new SubtractSymbols(), (l,r)=>
             Possibly.Is(
