@@ -6,6 +6,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -23,7 +24,16 @@ namespace Tac.Semantic_Model
         }
 
         public  IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
-        
+
+        public IBuildIntention<IMemberReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = MemberReferance.Create();
+            return new BuildIntention<IMemberReferance>(toBuild, () =>
+            {
+                maker.Build(MemberDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context));
+            });
+        }
+
         public IIsPossibly<IFrontendType> Returns()
         {
             return MemberDefinition.IfIs(x => x.GetValue());

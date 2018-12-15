@@ -7,6 +7,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -31,7 +32,22 @@ namespace Tac.Semantic_Model
         public IIsPossibly<WeakTypeReferance> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
         public IIsPossibly<WeakTypeReferance> OutputType { get; }
         public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
-        
+
+
+        public override IBuildIntention<IMethodDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = MethodDefinition.Create();
+            return new BuildIntention<IMethodDefinition>(toBuild, () =>
+            {
+                maker.Build(InputType.GetOrThrow().Convert(context),
+                    OutputType.GetOrThrow().Convert(context),
+                    ParameterDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context),
+                    Scope,
+                    Body.Select(x=>x.GetOrThrow().Convert(context)).ToArray(),
+                    StaticInitailizers.Select(x=>x.GetOrThrow().Convert(context)).ToArray());
+            });
+        }
+
     }
 
 

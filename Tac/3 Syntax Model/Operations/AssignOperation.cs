@@ -5,6 +5,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
@@ -28,6 +29,15 @@ namespace Tac.Semantic_Model.Operations
         public override IIsPossibly<IFrontendType> Returns()
         {
             return Left.IfIs(x=>x.Returns());
+        }
+
+        public override IBuildIntention<IAssignOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = AssignOperation.Create();
+            return new BuildIntention<IAssignOperation>(toBuild, () =>
+            {
+                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
+            });
         }
     }
 

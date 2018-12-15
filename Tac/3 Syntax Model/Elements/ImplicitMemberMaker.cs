@@ -30,7 +30,6 @@ namespace Tac.Semantic_Model
 
             if (matching is IMatchedTokenMatching matched)
             {
-
                 return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeMatch(
                 matched.Tokens,
                 matched.Context,

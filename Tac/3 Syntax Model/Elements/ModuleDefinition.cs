@@ -6,6 +6,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -31,7 +32,16 @@ namespace Tac.Semantic_Model
         {
             get;
         }
-        
+
+        public IBuildIntention<IModuleDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = ModuleDefinition.Create();
+            return new BuildIntention<IModuleDefinition>(toBuild, () =>
+            {
+                maker.Build(Scope,StaticInitialization.Select(x=>x.GetOrThrow().Convert(context));
+            });
+        }
+
         IIsPossibly<IFrontendType> IFrontendCodeElement<IModuleDefinition>.Returns()
         {
             return Possibly.Is(this);

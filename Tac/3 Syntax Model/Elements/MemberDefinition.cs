@@ -6,6 +6,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -19,7 +20,7 @@ namespace Tac.Semantic_Model
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    internal class WeakMemberDefinition: IFrontendCodeElement, IFrontendType
+    internal class WeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType
     {
         public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReferance> type)
         {
@@ -31,9 +32,20 @@ namespace Tac.Semantic_Model
         public IIsPossibly<WeakTypeReferance> Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
-        
 
-        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = MemberDefinition.Create();
+            return new BuildIntention<IMemberDefinition>(toBuild, () =>
+            {
+                maker.Build(
+                    Key,
+                    Type.GetOrThrow().Convert(context),
+                    ReadOnly);
+            });
+        }
+
+        IIsPossibly<IFrontendType> IFrontendCodeElement<IMemberDefinition>.Returns()
         {
             return Possibly.Is(this);
         }

@@ -5,6 +5,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
@@ -28,6 +29,15 @@ namespace Tac.Semantic_Model.Operations
         {
             // should this check to see if the left contains the member defined on the rhs?
             return Right.IfIs(x =>  Possibly.Is(x.Cast<WeakMemberReference>()));
+        }
+        
+        public override IBuildIntention<IPathOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = PathOperation.Create();
+            return new BuildIntention<IPathOperation>(toBuild, () =>
+            {
+                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
+            });
         }
     }
     

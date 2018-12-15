@@ -63,10 +63,10 @@ namespace Tac.Semantic_Model
             return Possibly.Is(this);
         }
 
-        public override BuildIntention GetBuildIntention(ConversionContext context)
+        public IBuildIntention<IImplementationDefinition> GetBuildIntention(ConversionContext context)
         {
             var (toBuild, maker) = ImplementationDefinition.Create();
-            return new BuildIntention(toBuild, () =>
+            return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
                 maker.Build(
                     OutputType.GetOrThrow().Convert(context),

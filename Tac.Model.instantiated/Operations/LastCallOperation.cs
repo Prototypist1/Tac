@@ -19,6 +19,14 @@ namespace Tac.Model.Instantiated
         public ICodeElement Right => buildableRight.Get();
         public ICodeElement[] Operands => new[] { Left, Right };
 
+        private LastCallOperation() { }
+
+        public static (ILastCallOperation, IBinaryOperationBuilder) Create()
+        {
+            var res = new LastCallOperation();
+            return (res, res);
+        }
+
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.LastCallOperation(this);

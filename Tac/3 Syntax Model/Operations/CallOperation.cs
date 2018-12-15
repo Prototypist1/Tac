@@ -6,6 +6,7 @@ using System.Text;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
@@ -30,6 +31,15 @@ namespace Tac.Semantic_Model.Operations
         public override IIsPossibly<IFrontendType> Returns()
         {
             return Right.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType.IfIs(x => x.TypeDefinition).IfIs(x => x.GetValue());
+        }
+
+        public override IBuildIntention<INextCallOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = NextCallOperation.Create();
+            return new BuildIntention<INextCallOperation>(toBuild, () =>
+            {
+                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
+            });
         }
     }
 
@@ -59,6 +69,15 @@ namespace Tac.Semantic_Model.Operations
             return Left.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType
                 .IfIs(x=>x.TypeDefinition)
                 .IfIs(x=>x.GetValue());
+        }
+
+        public override IBuildIntention<ILastCallOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = LastCallOperation.Create();
+            return new BuildIntention<ILastCallOperation>(toBuild, () =>
+            {
+                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
+            });
         }
     }
 

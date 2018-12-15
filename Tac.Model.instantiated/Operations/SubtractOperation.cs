@@ -28,5 +28,14 @@ namespace Tac.Model.Instantiated
         {
             return new NumberType();
         }
+
+        private SubtractOperation() { }
+
+        public static (ISubtractOperation, IBinaryOperationBuilder) Create()
+        {
+            var res = new SubtractOperation();
+            return (res, res);
+        }
+
     }
 }

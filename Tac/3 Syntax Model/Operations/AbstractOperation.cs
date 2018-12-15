@@ -56,6 +56,7 @@ namespace Tac.Semantic_Model.CodeStuff
         
         public abstract IIsPossibly<IFrontendType> Returns();
 
+        public abstract IBuildIntention<TCodeElement> GetBuildIntention(TransformerExtensions.ConversionContext context);
     }
 
 
