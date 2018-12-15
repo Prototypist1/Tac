@@ -4,17 +4,28 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
-    public class ElseOperation : IElseOperation
+    public class ElseOperation : IElseOperation, IBinaryOperationBuilder
     {
-        public ElseOperation(ICodeElement left, ICodeElement right)
+        private readonly Buildable<ICodeElement> buildableLeft = new Buildable<ICodeElement>();
+        private readonly Buildable<ICodeElement> buildableRight = new Buildable<ICodeElement>();
+
+        public void Build(ICodeElement left, ICodeElement right)
         {
-            Left = left;
-            Right = right;
+            buildableLeft.Set(left);
+            buildableRight.Set(right);
         }
 
-        public ICodeElement Left { get; set; }
-        public ICodeElement Right { get; set; }
+        public ICodeElement Left => buildableLeft.Get();
+        public ICodeElement Right => buildableRight.Get();
         public ICodeElement[] Operands => new[] { Left, Right };
+
+        private ElseOperation() { }
+
+        public static (IElseOperation, IBinaryOperationBuilder) Create()
+        {
+            var res = new ElseOperation();
+            return (res, res);
+        }
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {

@@ -4,14 +4,16 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
-    public class ReturnOperation : IReturnOperation
+    public class ReturnOperation : IReturnOperation, ITrailingOperationBuilder
     {
-        public ReturnOperation(ICodeElement result)
+        private readonly Buildable<ICodeElement> buildableResult = new Buildable<ICodeElement>();
+
+        public void Build(ICodeElement result)
         {
-            Result = result;
+            buildableResult.Set(result);
         }
 
-        public ICodeElement Result { get; set; }
+        public ICodeElement Result => buildableResult.Get();
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -22,5 +24,18 @@ namespace Tac.Model.Instantiated
         {
             return new EmptyType();
         }
+
+        private ReturnOperation() { }
+
+        public static (IReturnOperation, ITrailingOperationBuilder) Create()
+        {
+            var res = new ReturnOperation();
+            return (res, res);
+        }
+    }
+
+    public interface ITrailingOperationBuilder
+    {
+        void Build(ICodeElement result);
     }
 }

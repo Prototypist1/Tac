@@ -3,18 +3,15 @@ using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
-    public class MemberDefinition : IMemberDefinition
+    public class MemberDefinition : IMemberDefinition, IMemberDefinitionBuilder
     {
-        public MemberDefinition(IKey key, ITypeReferance type, bool readOnly)
-        {
-            Key = key ;
-            Type = type;
-            ReadOnly = readOnly;
-        }
-
-        public IKey Key { get; set; }
-        public ITypeReferance Type { get; set; }
-        public bool ReadOnly { get; set; }
+        private readonly Buildable<IKey> buildableKey = new Buildable<IKey>();
+        private readonly Buildable<ITypeReferance> buildableType = new Buildable<ITypeReferance>();
+        private readonly BuildableValue<bool> buildableReadOnly = new BuildableValue<bool>();
+        
+        public IKey Key { get => buildableKey.Get(); }
+        public ITypeReferance Type { get => buildableType.Get(); }
+        public bool ReadOnly { get => buildableReadOnly.Get(); }
         
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -25,5 +22,24 @@ namespace Tac.Model.Instantiated
         {
             return this;
         }
+
+        public void Build(IKey key, ITypeReferance type, bool readOnly)
+        {
+            buildableKey.Set(key);
+            buildableType.Set(type);
+            buildableReadOnly.Set(readOnly);
+        }
+
+        public static (IMemberDefinition, IMemberDefinitionBuilder) Create()
+        {
+            var res = new MemberDefinition();
+            return (res, res);
+        }
+
+    }
+
+    public interface IMemberDefinitionBuilder
+    {
+        void Build(IKey key, ITypeReferance type, bool readOnly);
     }
 }

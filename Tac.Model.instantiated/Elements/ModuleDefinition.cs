@@ -4,16 +4,15 @@ using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
-    public class ModuleDefinition : IModuleDefinition
+    public class ModuleDefinition : IModuleDefinition, IModuleDefinitionBuilder
     {
-        public ModuleDefinition(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization)
-        {
-            Scope = scope;
-            StaticInitialization = staticInitialization;
-        }
+        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
+        private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitialization = new Buildable<IEnumerable<ICodeElement>>();
 
-        public IFinalizedScope Scope { get; set; }
-        public IEnumerable<ICodeElement> StaticInitialization { get; set; }
+        private ModuleDefinition() { }
+
+        public IFinalizedScope Scope => buildableScope.Get();
+        public IEnumerable<ICodeElement> StaticInitialization => buildableStaticInitialization.Get();
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -24,5 +23,22 @@ namespace Tac.Model.Instantiated
         {
             return this;
         }
+
+        public void Build(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization)
+        {
+            buildableScope.Set(scope);
+            buildableStaticInitialization.Set(staticInitialization);
+        }
+        
+        public static (IModuleDefinition, IModuleDefinitionBuilder) Create()
+        {
+            var res = new ModuleDefinition();
+            return (res, res);
+        }
+    }
+
+    public interface IModuleDefinitionBuilder
+    {
+        void Build(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization);
     }
 }

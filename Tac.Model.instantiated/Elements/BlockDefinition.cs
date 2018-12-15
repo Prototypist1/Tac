@@ -18,8 +18,7 @@ namespace Tac.Model.Instantiated
         public IFinalizedScope Scope { get => buildableScope.Get(); }
         public ICodeElement[] Body { get => buildableBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
-
-
+        
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.BlockDefinition(this);
@@ -28,8 +27,7 @@ namespace Tac.Model.Instantiated
         {
             return new EmptyType();
         }
-
-
+        
         #endregion
 
         #region IBlockDefinitionBuilder

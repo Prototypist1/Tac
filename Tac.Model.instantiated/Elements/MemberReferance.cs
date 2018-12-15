@@ -3,14 +3,15 @@ using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
-    public class MemberReferance : IMemberReferance
+    public class MemberReferance : IMemberReferance, IMemberReferanceBuilder
     {
-        public MemberReferance(IMemberDefinition memberDefinition)
+        private readonly Buildable<IMemberDefinition> buildableMemberDefinition = new Buildable<IMemberDefinition>();
+
+        private MemberReferance()
         {
-            MemberDefinition = memberDefinition;
         }
 
-        public IMemberDefinition MemberDefinition { get; set; }
+        public IMemberDefinition MemberDefinition => buildableMemberDefinition.Get(); 
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -21,5 +22,21 @@ namespace Tac.Model.Instantiated
         {
             return this;
         }
+
+        public void Build(IMemberDefinition memberDefinition)
+        {
+            buildableMemberDefinition.Set(memberDefinition);
+        }
+        
+        public static (IMemberReferance, IMemberReferanceBuilder) Create()
+        {
+            var res = new MemberReferance();
+            return (res, res);
+        }
+    }
+
+    public interface IMemberReferanceBuilder
+    {
+        void Build(IMemberDefinition memberDefinition);
     }
 }

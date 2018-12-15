@@ -5,16 +5,15 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
-    public class ObjectDefiniton : IObjectDefiniton
+    public class ObjectDefiniton : IObjectDefiniton, IObjectDefinitonBuilder
     {
-        public ObjectDefiniton(IFinalizedScope scope, IEnumerable<IAssignOperation> assignments)
-        {
-            Scope = scope;
-            Assignments = assignments;
-        }
+        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
+        private readonly Buildable<IEnumerable<IAssignOperation>> buildableAssignments = new Buildable<IEnumerable<IAssignOperation>>();
 
-        public IFinalizedScope Scope { get; set; }
-        public IEnumerable<IAssignOperation> Assignments { get; set; }
+        private ObjectDefiniton() { }
+
+        public IFinalizedScope Scope => buildableScope.Get();
+        public IEnumerable<IAssignOperation> Assignments => buildableAssignments.Get();
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -25,5 +24,23 @@ namespace Tac.Model.Instantiated
         {
             return this;
         }
+
+        public void Build(IFinalizedScope scope, IEnumerable<IAssignOperation> assignments)
+        {
+            buildableScope.Set(scope);
+            buildableAssignments.Set(assignments);
+        }
+
+
+        public static (IObjectDefiniton, IObjectDefinitonBuilder) Create()
+        {
+            var res = new ObjectDefiniton();
+            return (res, res);
+        }
+    }
+
+    public interface IObjectDefinitonBuilder
+    {
+        void Build(IFinalizedScope scope, IEnumerable<IAssignOperation> assignments);
     }
 }

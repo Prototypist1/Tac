@@ -5,16 +5,30 @@ using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
-    public class InterfaceType : IInterfaceType
+    public class InterfaceType : IInterfaceType, IInterfaceTypeBuilder
     {
-        public InterfaceType(IFinalizedScope scope)
+        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
+
+        private InterfaceType() { }
+
+        public void Build(IFinalizedScope scope)
         {
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            buildableScope.Set(scope);
         }
 
-        public IFinalizedScope Scope { get; set; }
+        public IFinalizedScope Scope => buildableScope.Get();
+        
+        public static (IInterfaceType, IInterfaceTypeBuilder) Create()
+        {
+            var res = new InterfaceType();
+            return (res, res);
+        }
     }
 
+    public interface IInterfaceTypeBuilder
+    {
+        void Build(IFinalizedScope scope);
+    }
 
     public class GemericTypeParameterPlacholder : IVarifiableType
     {

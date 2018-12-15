@@ -2,13 +2,30 @@
 
 namespace Tac.Model.Instantiated
 {
-    public class TypeReferance : ITypeReferance
+    public class TypeReferance : ITypeReferance, ITypeReferanceBuilder
     {
-        public TypeReferance(IVarifiableType typeDefinition)
+        private readonly Buildable<IVarifiableType> buildableTypeDefinition = new Buildable<IVarifiableType>();
+
+        private TypeReferance() { }
+
+        public void Build(IVarifiableType typeDefinition)
         {
-            TypeDefinition = typeDefinition;
+            buildableTypeDefinition.Set(typeDefinition);
         }
 
-        public IVarifiableType TypeDefinition { get; set; }
+        public IVarifiableType TypeDefinition => buildableTypeDefinition.Get();
+
+
+        public static (ITypeReferance, ITypeReferanceBuilder) Create()
+        {
+            var res = new TypeReferance();
+            return (res, res);
+        }
+
+    }
+
+    public interface ITypeReferanceBuilder
+    {
+        void Build(IVarifiableType typeDefinition);
     }
 }

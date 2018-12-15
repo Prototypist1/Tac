@@ -21,11 +21,19 @@ namespace Tac.Model.Instantiated
 
     //}
 
+
     internal class Buildable<T>
-        where T :class
+        where T : class
     {
         private T t;
-        public T Get()  =>t ;
+        public T Get()
+        {
+            if (t == null)
+            {
+                throw new ApplicationException();
+            }
+            return t;
+        }
         public void Set(T t)
         {
             if (t != null)
@@ -33,6 +41,30 @@ namespace Tac.Model.Instantiated
                 throw new ApplicationException();
             }
             this.t = t ?? throw new ArgumentNullException();
+        }
+    }
+
+    internal class BuildableValue<T>
+        where T : struct
+    {
+        private bool set = false;
+        private T t;
+        public T Get()
+        {
+            if (!set)
+            {
+                throw new ApplicationException();
+            }
+            return t;
+        }
+        public void Set(T t)
+        {
+            if (set)
+            {
+                throw new ApplicationException();
+            }
+            this.t = t;
+            set = true;
         }
     }
 

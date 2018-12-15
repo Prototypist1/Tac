@@ -5,32 +5,31 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
-    public class ImplementationDefinition : IImplementationDefinition
+    public class ImplementationDefinition : IImplementationDefinition, IImplementationDefinitionBuilder
     {
-        public ImplementationDefinition(ITypeReferance outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers)
+        private readonly Buildable<ITypeReferance> buildableOutputType = new Buildable<ITypeReferance>();
+        private readonly Buildable<IMemberDefinition> buildableContextDefinition = new Buildable<IMemberDefinition>();
+        private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new Buildable<IMemberDefinition>();
+        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
+        private readonly Buildable<IEnumerable<ICodeElement>> buildableMethodBody = new Buildable<IEnumerable<ICodeElement>>();
+        private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitialzers = new Buildable<IEnumerable<ICodeElement>>();
+
+        private ImplementationDefinition()
         {
-            OutputType = outputType;
-            ContextDefinition = contextDefinition;
-            ParameterDefinition = parameterDefinition;
-            Scope = scope;
-            MethodBody = methodBody;
-            StaticInitialzers = staticInitialzers;
         }
 
-        public ITypeReferance OutputType { get; set; }
-        public IMemberDefinition ContextDefinition { get; set; }
-        public IMemberDefinition ParameterDefinition { get; set; }
-        public IFinalizedScope Scope { get; set; }
-        public IEnumerable<ICodeElement> MethodBody { get; set; }
-        public IEnumerable<ICodeElement> StaticInitialzers { get; set; }
-
         #region IImplementationDefinition
+        
+        public ITypeReferance OutputType { get => buildableOutputType.Get(); }
+        public IMemberDefinition ContextDefinition { get => buildableContextDefinition.Get(); }
+        public IMemberDefinition ParameterDefinition { get => buildableParameterDefinition.Get(); }
+        public IFinalizedScope Scope { get => buildableScope.Get(); }
+        public IEnumerable<ICodeElement> MethodBody { get => buildableMethodBody.Get(); }
+        public IEnumerable<ICodeElement> StaticInitialzers { get => buildableStaticInitialzers.Get(); }
 
         public IVarifiableType InputType => ParameterDefinition.Type;
         public IVarifiableType ContextType => ContextDefinition;
         IVarifiableType IImplementationType.OutputType => OutputType;
-
-        #endregion
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -41,5 +40,26 @@ namespace Tac.Model.Instantiated
         {
             return this;
         }
+
+        #endregion
+        
+        public void Build(ITypeReferance outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers) {
+            buildableOutputType.Set(outputType);
+            buildableContextDefinition.Set(contextDefinition);
+            buildableParameterDefinition.Set(parameterDefinition);
+            buildableMethodBody.Set(methodBody);
+            buildableStaticInitialzers.Set(staticInitialzers);
+        }
+        
+        public static (IImplementationDefinition, IImplementationDefinitionBuilder) Create()
+        {
+            var res = new ImplementationDefinition();
+            return (res, res);
+        }
+    }
+
+    public interface IImplementationDefinitionBuilder
+    {
+        void Build(ITypeReferance outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers);
     }
 }
