@@ -23,6 +23,16 @@ namespace Tac.Model.Instantiated
             var res = new InterfaceType();
             return (res, res);
         }
+
+        public IVarifiableType Returns()
+        {
+            return this;
+        }
+
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.TypeDefinition(this);
+        }
     }
 
     public interface IInterfaceTypeBuilder

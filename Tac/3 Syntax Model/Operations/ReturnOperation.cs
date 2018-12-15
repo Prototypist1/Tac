@@ -30,7 +30,7 @@ namespace Tac.Semantic_Model.Operations
         
         public IIsPossibly<IFrontendType> Returns()
         {
-            return Possibly.Is(new EmptyType());
+            return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.EmptyType());
         }
 
 

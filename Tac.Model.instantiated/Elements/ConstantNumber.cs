@@ -10,7 +10,7 @@ namespace Tac.Model.Instantiated
 
         #region IConstantNumber
 
-        public double Value { get => valueBuilder.Get() }
+        public double Value { get => valueBuilder.Get(); }
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {

@@ -7,6 +7,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
@@ -15,7 +16,7 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakTypeDefinition : IFrontendCodeElement, IScoped, IFrontendType
+    internal class WeakTypeDefinition : IFrontendCodeElement<IInterfaceType>, IScoped, IFrontendType
     {
         public WeakTypeDefinition(IFinalizedScope scope, IIsPossibly<IKey> key)
         {
@@ -26,11 +27,22 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IKey> Key { get; }
         public IFinalizedScope Scope { get; }
         
-
-        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement<IInterfaceType>.Returns()
         {
             return Possibly.Is(this);
         }
+
+        public IBuildIntention<IInterfaceType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = InterfaceType.Create();
+            return new BuildIntention<IInterfaceType>(toBuild, () =>
+            {
+                maker.Build(Scope);
+            });
+        }
+
+        IBuildIntention<IVarifiableType> IClonver<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        => GetBuildIntention(context);
     }
 
 

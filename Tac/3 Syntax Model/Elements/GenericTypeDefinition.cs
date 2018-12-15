@@ -16,17 +16,21 @@ using static Tac.Frontend.TransformerExtensions;
 namespace Tac.Semantic_Model
 {
     
-    internal class WeakGenericTypeDefinition : WeakTypeDefinition
+    internal class WeakGenericTypeDefinition : IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType
     {
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key, 
             IFinalizedScope scope,
-            IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions):base(scope,key)
+            IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions { get; }
+        public IIsPossibly<IKey> Key { get; }
+        public IFinalizedScope Scope { get; }
 
         public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context)
         {
@@ -38,6 +42,10 @@ namespace Tac.Semantic_Model
             });
         }
 
+        IIsPossibly<IFrontendType> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns()
+        {
+            return Possibly.Is(this);
+        }
     }
 
 

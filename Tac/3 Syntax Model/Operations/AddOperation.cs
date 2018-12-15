@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
         public override IIsPossibly<IFrontendType> Returns() {
-            return Possibly.Is(new NumberType());
+            return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType());
         }
     }
 

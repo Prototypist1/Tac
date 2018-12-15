@@ -12,6 +12,7 @@ namespace Tac.Frontend
         IIsPossibly<IFrontendType> Returns();
     }
 
-    internal interface IFrontendType {
+    internal interface IFrontendType: IClonver<IVarifiableType>
+    {
     }
 }
