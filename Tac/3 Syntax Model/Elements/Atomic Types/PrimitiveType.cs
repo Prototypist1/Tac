@@ -10,6 +10,9 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 {
 
 
+    internal class BlockType : IFrontendType
+    {
+    }
     internal class StringType : IFrontendType
     {
     }
@@ -30,8 +33,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public override bool Equals(object obj)
         {
-            var placholder = obj as GemericTypeParameterPlacholder;
-            return placholder != null &&
+            return obj is GemericTypeParameterPlacholder placholder &&
                    EqualityComparer<IKey>.Default.Equals(Key, placholder.Key);
         }
 

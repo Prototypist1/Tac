@@ -13,7 +13,7 @@ using static Tac.Frontend.TransformerExtensions;
 namespace Tac.Semantic_Model
 {
 
-    internal abstract class WeakAbstractBlockDefinition<T> : IFrontendCodeElement<T>, IScoped, IVarifiableType, IFrontendType
+    internal abstract class WeakAbstractBlockDefinition<T> : IFrontendCodeElement<T>, IScoped
         where T: class, ICodeElement
     {
         protected WeakAbstractBlockDefinition(
@@ -31,12 +31,6 @@ namespace Tac.Semantic_Model
         public IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> StaticInitailizers { get; }
 
         public abstract IBuildIntention<T> GetBuildIntention(ConversionContext context);
-
-        public IVarifiableType Returns() { return this; }
-
-        IIsPossibly<IFrontendType> IFrontendCodeElement<T>.Returns()
-        {
-            return Possibly.Is(this);
-        }
+        public abstract IIsPossibly<IFrontendType> Returns();
     }
 }

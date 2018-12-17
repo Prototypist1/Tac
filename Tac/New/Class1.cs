@@ -118,7 +118,7 @@ namespace Tac.New
     // TODO I think I should protect these!
     // you are only allowed to put things in scope during this step
 
-    public interface IPopulateScope {
+    internal interface IPopulateScope {
         IBox<IIsPossibly<IFrontendType>> GetReturnType();
     }
 

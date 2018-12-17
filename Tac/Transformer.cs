@@ -31,7 +31,7 @@ namespace Tac.Frontend
         T Tobuild { get; }
     }
 
-    internal interface IClonver<out T> where T:class
+    internal interface IConvertable<out T> where T:class
     {
         IBuildIntention<T> GetBuildIntention(ConversionContext context);
     }
@@ -42,7 +42,7 @@ namespace Tac.Frontend
             internal readonly Dictionary<object, object> backing = new Dictionary<object, object>();
         }
 
-        internal static T Convert<T>(this IClonver<T> self, ConversionContext context)
+        internal static T Convert<T>(this IConvertable<T> self, ConversionContext context)
             where T:class
         {
             if (context.backing.TryGetValue(self, out var res))

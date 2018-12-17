@@ -22,6 +22,9 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
+        public IVarifiableType Returns() => this;
+        public T Convert<T>(IOpenBoxesContext<T> context) => context.TypeReferance(this);
+        
     }
 
     public interface ITypeReferanceBuilder

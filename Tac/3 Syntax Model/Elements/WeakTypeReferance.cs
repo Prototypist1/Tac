@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model
             });
         }
         
-        IBuildIntention<IVarifiableType> IClonver<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         => GetBuildIntention(context);
 
         public IIsPossibly<IFrontendType> Returns()

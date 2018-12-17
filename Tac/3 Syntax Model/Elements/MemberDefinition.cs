@@ -40,10 +40,17 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     Key,
-                    Type.GetOrThrow().Convert(context),
+                    TransformerExtensions.Convert<ITypeReferance>(Type.GetOrThrow(),context),
                     ReadOnly);
             });
         }
+
+        internal IMemberDefinition Convert(TransformerExtensions.ConversionContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
         IIsPossibly<IFrontendType> IFrontendCodeElement<IMemberDefinition>.Returns()
         {

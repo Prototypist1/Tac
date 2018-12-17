@@ -42,6 +42,8 @@ namespace Tac.Semantic_Model
             });
         }
 
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
+
         IIsPossibly<IFrontendType> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns()
         {
             return Possibly.Is(this);

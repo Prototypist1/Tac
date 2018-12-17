@@ -7,12 +7,13 @@ using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Frontend
 {
-    internal interface IFrontendCodeElement<out T>: IClonver<T> where T: class, ICodeElement
+    internal interface IFrontendCodeElement<out T>: IConvertable<T> 
+        where T: class, ICodeElement
     {
         IIsPossibly<IFrontendType> Returns();
     }
 
-    internal interface IFrontendType: IClonver<IVarifiableType>
+    internal interface IFrontendType: IConvertable<IVarifiableType>
     {
     }
 }

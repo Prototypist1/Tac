@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    internal class WeakConstantNumber : IFrontendCodeElement<IConstantNumber>, IFrontendType
+    internal class WeakConstantNumber : IFrontendCodeElement<IConstantNumber>
     {
         public WeakConstantNumber(IIsPossibly<double> value) 
         {
@@ -40,10 +40,10 @@ namespace Tac.Semantic_Model.Operations
                     Value.GetOrThrow());
             });
         }
-
-        IIsPossibly<IFrontendType> IFrontendCodeElement<IConstantNumber>.Returns()
+        
+        IIsPossibly <IFrontendType> IFrontendCodeElement<IConstantNumber>.Returns()
         {
-            return Possibly.Is(this);
+            return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType());
         }
     }
 
@@ -68,7 +68,6 @@ namespace Tac.Semantic_Model.Operations
     internal class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
         public ConstantNumberPopulateScope(double dub)
         {
@@ -77,31 +76,28 @@ namespace Tac.Semantic_Model.Operations
 
         public IPopulateBoxes<WeakConstantNumber> Run(IPopulateScopeContext context)
         {
-            return new ConstantNumberResolveReferance(dub, box);
+            return new ConstantNumberResolveReferance(dub);
         }
 
         public IBox<IIsPossibly<IFrontendType>> GetReturnType()
         {
-            return box;
+            return new Box<IIsPossibly<IFrontendType>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType()));
         }
     }
 
     internal class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
     {
         private readonly double dub;
-        private readonly Box<IIsPossibly<IFrontendType>> box;
 
         public ConstantNumberResolveReferance(
-            double dub,
-            Box<IIsPossibly<IFrontendType>> box)
+            double dub)
         {
             this.dub = dub;
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public IIsPossibly<WeakConstantNumber> Run(IResolveReferenceContext context)
         {
-            return box.Fill(Possibly.Is(new WeakConstantNumber(Possibly.Is(dub))));
+            return Possibly.Is(new WeakConstantNumber(Possibly.Is(dub)));
         }
     }
     

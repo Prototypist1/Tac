@@ -38,6 +38,8 @@ namespace Tac.Semantic_Model
         {
             return MemberDefinition.IfIs(x => x.GetValue());
         }
+
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     }
 
     internal class MemberReferanceMaker : IMaker<IPopulateScope<WeakMemberReference>>

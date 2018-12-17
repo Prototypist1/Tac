@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    OutputType.GetOrThrow().Convert(context),
+                    TransformerExtensions.Convert<ITypeReferance>(OutputType.GetOrThrow(),context),
                     ContextDefinition.IfIs(x=>x.GetValue()).GetOrThrow().Convert(context),
                     ParameterDefinition.IfIs(x => x.GetValue()).GetOrThrow().Convert(context),
                     Scope,
@@ -77,6 +77,8 @@ namespace Tac.Semantic_Model
                     StaticInitialzers.Select(x => x.Convert(context)).ToArray());
             });
         }
+
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
     }
 
     internal class ImplementationDefinitionMaker : IMaker<IPopulateScope<WeakImplementationDefinition>>

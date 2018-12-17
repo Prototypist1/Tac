@@ -39,8 +39,9 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = MethodDefinition.Create();
             return new BuildIntention<IMethodDefinition>(toBuild, () =>
             {
-                maker.Build(InputType.GetOrThrow().Convert(context),
-                    OutputType.GetOrThrow().Convert(context),
+                maker.Build(
+                    TransformerExtensions.Convert<ITypeReferance>(InputType.GetOrThrow(),context),
+                    TransformerExtensions.Convert<ITypeReferance>(OutputType.GetOrThrow(),context),
                     ParameterDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context),
                     Scope,
                     Body.Select(x=>x.GetOrThrow().Convert(context)).ToArray(),
@@ -48,6 +49,9 @@ namespace Tac.Semantic_Model
             });
         }
 
+        public override IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
+
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     }
 
 
