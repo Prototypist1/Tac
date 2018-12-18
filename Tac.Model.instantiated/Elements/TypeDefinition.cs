@@ -40,14 +40,30 @@ namespace Tac.Model.Instantiated
         void Build(IFinalizedScope scope);
     }
 
-    public class GemericTypeParameterPlacholder : IVarifiableType
+    public class NumberType : INumberType { }
+    public class AnyType : IAnyType { }
+    public class EmptyType : IEmptyType { }
+    public class BooleanType : IBooleanType { }
+    public class StringType : IStringType { }
+    public class ObjectType : IObjectType { }
+    public class ModuleType : IModuleType { }
+    
+    public class GemericTypeParameterPlacholder : IVarifiableType, IGemericTypeParameterPlacholderBuilder
     {
-        public GemericTypeParameterPlacholder(IKey key)
+        private GemericTypeParameterPlacholder() { }
+
+        public static (IVarifiableType, IGemericTypeParameterPlacholderBuilder) Create()
+        {
+            var res = new GemericTypeParameterPlacholder();
+            return (res, res);
+        }
+        
+        public void Build(IKey key)
         {
             this.Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IKey Key { get; }
+        public IKey Key { get; private set; }
 
         public override bool Equals(object obj)
         {
@@ -60,36 +76,61 @@ namespace Tac.Model.Instantiated
             return Key.GetHashCode();
         }
     }
-
-    public class NumberType : INumberType { }
-    public class AnyType : IAnyType { }
-    public class EmptyType : IEmptyType { }
-    public class BooleanType : IBooleanType { }
-    public class StringType : IStringType { }
-    public class ObjectType : IObjectType { }
-    public class ModuleType : IModuleType { }
-    public class MethodType : IMethodType
+    
+    public interface IGemericTypeParameterPlacholderBuilder
     {
-        public MethodType(IVarifiableType inputType, IVarifiableType outputType)
+        void Build(IKey key);
+    }
+    
+    public class MethodType : IMethodType, IMethodTypeBuilder
+    {
+        private MethodType() { }
+
+        public void Build(IVarifiableType inputType, IVarifiableType outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         }
-
-        public IVarifiableType InputType { get; set; }
-        public IVarifiableType OutputType{ get; set; }
+        
+        public static (IMethodType, IMethodTypeBuilder) Create()
+        {
+            var res = new MethodType();
+            return (res, res);
+        }
+        
+        public IVarifiableType InputType { get; private set; }
+        public IVarifiableType OutputType{ get; private set; }
     }
-    public class ImplementationType : IImplementationType
+    
+    public interface IMethodTypeBuilder
     {
-        public ImplementationType(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType)
+        void Build(IVarifiableType inputType, IVarifiableType outputType);
+    }
+
+    public class ImplementationType : IImplementationType, IImplementationTypeBuilder
+    {
+        private ImplementationType() { }
+
+        public void Build(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
         }
+        
+        public static (IImplementationType, IImplementationTypeBuilder) Create()
+        {
+            var res = new ImplementationType();
+            return (res, res);
+        }
+        
+        public IVarifiableType InputType { get; private set; }
+        public IVarifiableType OutputType { get; private set; }
+        public IVarifiableType ContextType { get; private set; }
+    }
 
-        public IVarifiableType InputType { get; set; }
-        public IVarifiableType OutputType { get; set; }
-        public IVarifiableType ContextType { get; set; }
+    public interface IImplementationTypeBuilder
+    {
+        void Build(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType);
     }
 }
