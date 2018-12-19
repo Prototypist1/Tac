@@ -12,30 +12,30 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
     internal class BlockType : IFrontendType<IBlockType>
     {
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IBlockType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.BlockType(), () => { });
+            return new BuildIntention<IBlockType>(new Tac.Model.Instantiated.BlockType(), () => { });
         }
     }
-    internal class StringType : IFrontendType
+    internal class StringType : IFrontendType<IStringType>
     {
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IStringType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.StringType(),()=> { });
+            return new BuildIntention<IStringType>(new Tac.Model.Instantiated.StringType(),()=> { });
         }
     }
-    internal class EmptyType : IFrontendType
+    internal class EmptyType : IFrontendType<IEmptyType>
     {
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IEmptyType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.EmptyType(), () => { });
+            return new BuildIntention<IEmptyType>(new Tac.Model.Instantiated.EmptyType(), () => { });
         }
     }
-    internal class NumberType : IFrontendType
+    internal class NumberType : IFrontendType<INumberType>
     {
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<INumberType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.NumberType(), () => { });
+            return new BuildIntention<INumberType>(new Tac.Model.Instantiated.NumberType(), () => { });
         }
     }
     internal class GemericTypeParameterPlacholder : IFrontendType
@@ -63,38 +63,38 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.GemericTypeParameterPlacholder(), () => { });
         }
     }
-    internal class AnyType : IFrontendType
+    internal class AnyType : IFrontendType<IAnyType>
     {
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IAnyType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.AnyType(), () => { });
+            return new BuildIntention<IAnyType>(new Tac.Model.Instantiated.AnyType(), () => { });
         }
     }
-    internal class BooleanType : IFrontendType
+    internal class BooleanType : IFrontendType<IBooleanType>
     {
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IBooleanType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.BooleanType(), () => { });
+            return new BuildIntention<IBooleanType>(new Tac.Model.Instantiated.BooleanType(), () => { });
         }
     }
-    internal class ImplementationType : IFrontendType
+    internal class ImplementationType : IFrontendType<IImplementationType>
     {
-        public ImplementationType(IFrontendType inputType, IFrontendType outputType, IFrontendType contextType)
+        public ImplementationType(IFrontendType<IVarifiableType> inputType, IFrontendType<IVarifiableType> outputType, IFrontendType<IVarifiableType> contextType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
         }
 
-        public IFrontendType InputType { get; }
-        public IFrontendType OutputType {get;}
-        public IFrontendType ContextType {get;}
+        public IFrontendType<IVarifiableType> InputType { get; }
+        public IFrontendType<IVarifiableType> OutputType {get;}
+        public IFrontendType<IVarifiableType> ContextType {get;}
 
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IImplementationType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (res,builder) = Tac.Model.Instantiated.ImplementationType.Create();
 
-            return new BuildIntention<IVarifiableType>(res
+            return new BuildIntention<IImplementationType>(res
                 , () => {
                     builder.Build(
                         InputType.Convert(context),
@@ -102,18 +102,18 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                         ContextType.Convert(context)); });
         }
     }
-    internal class MethodType : IFrontendType
+    internal class MethodType : IFrontendType<IMethodType>
     {
-        public MethodType(IFrontendType inputType, IFrontendType outputType)
+        public MethodType(IFrontendType<IVarifiableType> inputType, IFrontendType<IVarifiableType> outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         }
 
-        public IFrontendType InputType {get;}
-        public IFrontendType OutputType {get;}
+        public IFrontendType<IVarifiableType> InputType {get;}
+        public IFrontendType<IVarifiableType> OutputType {get;}
 
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IMethodType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (res, builder) = Tac.Model.Instantiated.MethodType.Create();
 
@@ -126,7 +126,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
     }
 
-    internal class GenericMethodType : IFrontendType
+    internal class GenericMethodType : IFrontendType<IMethodType>
     {
 
         private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");
@@ -139,7 +139,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
-        public IFrontendType GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
+        public IFrontendType<IMethodType> GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
         {
             if (parameters.Length == 2) {
                 return new MethodType(
@@ -170,7 +170,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         {
             if (parameters.Length == 3)
             {
-                return new ImplementationType()
+                return new ImplementationType(
                     parameters.Single(x => x.Parameter.Key.Equals(input)).Type,
                     parameters.Single(x => x.Parameter.Key.Equals(output)).Type,
                     parameters.Single(x => x.Parameter.Key.Equals(context)).Type);
