@@ -10,8 +10,12 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 {
 
 
-    internal class BlockType : IFrontendType
+    internal class BlockType : IFrontendType<IBlockType>
     {
+        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.BlockType(), () => { });
+        }
     }
     internal class StringType : IFrontendType
     {
@@ -88,10 +92,14 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.ImplementationType(
-                InputType.Convert(context),
-                OutputType.Convert(context),
-                ContextType.Convert(context)), () => { });
+            var (res,builder) = Tac.Model.Instantiated.ImplementationType.Create();
+
+            return new BuildIntention<IVarifiableType>(res
+                , () => {
+                    builder.Build(
+                        InputType.Convert(context),
+                        OutputType.Convert(context),
+                        ContextType.Convert(context)); });
         }
     }
     internal class MethodType : IFrontendType
@@ -107,9 +115,14 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.MethodType(
-                InputType.Convert(context),
-                OutputType.Convert(context)), () => { });
+            var (res, builder) = Tac.Model.Instantiated.MethodType.Create();
+
+            return new BuildIntention<IVarifiableType>(res
+                , () => {
+                    builder.Build(
+                        InputType.Convert(context),
+                        OutputType.Convert(context));
+                });
         }
     }
 
@@ -136,12 +149,6 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             throw new Exception("Exceptions important, why do you always half ass them?");
         }
         
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
-        {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.GenericMethodType(
-                input.Convert(context),
-                output.Convert(context)), () => { });
-        }
     }
 
     internal class GenericImplementationType : IFrontendType
@@ -153,16 +160,17 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public GenericImplementationType()
         {
-            TypeParameterDefinitions = new[] { input, output, };
+            TypeParameterDefinitions = new[] { input, output, context };
         }
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        
 
         public IFrontendType GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
         {
             if (parameters.Length == 3)
             {
-                return new ImplementationType(
+                return new ImplementationType()
                     parameters.Single(x => x.Parameter.Key.Equals(input)).Type,
                     parameters.Single(x => x.Parameter.Key.Equals(output)).Type,
                     parameters.Single(x => x.Parameter.Key.Equals(context)).Type);

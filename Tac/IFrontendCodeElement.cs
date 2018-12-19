@@ -8,12 +8,16 @@ using static Tac.Frontend.TransformerExtensions;
 namespace Tac.Frontend
 {
     internal interface IFrontendCodeElement<out T>: IConvertable<T> 
-        where T: class, ICodeElement
+        where T: ICodeElement
     {
-        IIsPossibly<IFrontendType> Returns();
+        // we can do better, but what does it get us?
+        // let's wait and see
+        IIsPossibly<IFrontendType<IVarifiableType>> Returns();
     }
-
-    internal interface IFrontendType: IConvertable<IVarifiableType>
+    
+    // TODO, some of these transform to specific types!
+    internal interface IFrontendType<out T>: IConvertable<T>
+        where T: IVarifiableType
     {
     }
 }

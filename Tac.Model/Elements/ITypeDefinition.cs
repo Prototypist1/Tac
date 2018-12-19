@@ -11,6 +11,9 @@ namespace Tac.Model.Elements
     public interface IVarifiableType {
     }
 
+
+    public interface IBlockType : IVarifiableType { }
+
     public interface INumberType: IVarifiableType { }
     public interface IBooleanType: IVarifiableType { }
     public interface IStringType: IVarifiableType { }

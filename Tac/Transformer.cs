@@ -25,13 +25,13 @@ namespace Tac.Frontend
         }
     }
 
-    public interface IBuildIntention<out T> where T : class
+    public interface IBuildIntention<out T>
     {
         Action Build { get; }
         T Tobuild { get; }
     }
 
-    internal interface IConvertable<out T> where T:class
+    internal interface IConvertable<out T>
     {
         IBuildIntention<T> GetBuildIntention(ConversionContext context);
     }

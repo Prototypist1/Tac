@@ -44,6 +44,7 @@ namespace Tac.Model.Instantiated
     public class AnyType : IAnyType { }
     public class EmptyType : IEmptyType { }
     public class BooleanType : IBooleanType { }
+    public class BlockType : IBlockType { }
     public class StringType : IStringType { }
     public class ObjectType : IObjectType { }
     public class ModuleType : IModuleType { }
