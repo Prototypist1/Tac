@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    internal class WeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType
+    internal class WeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVarifiableType>
     {
         public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReferance> type)
         {
@@ -52,7 +52,7 @@ namespace Tac.Semantic_Model
 
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType> IFrontendCodeElement<IMemberDefinition>.Returns()
+        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IMemberDefinition>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -109,7 +109,7 @@ namespace Tac.Semantic_Model
             return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName.Run(context), context.GetResolvableScope(), memberDefinitionBox);
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }

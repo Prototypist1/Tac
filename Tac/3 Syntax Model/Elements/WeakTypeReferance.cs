@@ -13,14 +13,14 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    internal class WeakTypeReferance : IFrontendCodeElement<ITypeReferance>, IFrontendType
+    internal class WeakTypeReferance : IFrontendCodeElement<ITypeReferance>, IFrontendType<IVarifiableType>
     {
-        public WeakTypeReferance(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> typeDefinition)
+        public WeakTypeReferance(IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
 
-        public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> TypeDefinition { get; }
 
         public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
@@ -34,7 +34,7 @@ namespace Tac.Semantic_Model
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         => GetBuildIntention(context);
 
-        public IIsPossibly<IFrontendType> Returns()
+        public IIsPossibly<IFrontendType<IVarifiableType>> Returns()
         {
             return TypeDefinition.IfIs(x => x.GetValue());
         }
@@ -116,7 +116,7 @@ namespace Tac.Semantic_Model
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }

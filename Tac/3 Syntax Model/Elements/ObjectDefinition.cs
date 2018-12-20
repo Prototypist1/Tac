@@ -19,9 +19,9 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakObjectDefinition: IFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType
+    internal class WeakObjectDefinition: IFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType<IVarifiableType>
     {
-        public WeakObjectDefinition(IFinalizedScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
+        public WeakObjectDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -32,7 +32,7 @@ namespace Tac.Semantic_Model
             Assignments = assigns.ToArray();
         }
 
-        public IFinalizedScope Scope { get; }
+        public IResolvableScope Scope { get; }
         public IIsPossibly<WeakAssignOperation>[] Assignments { get; }
 
         public IKey Key
@@ -45,13 +45,14 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = ObjectDefiniton.Create();
             return new BuildIntention<IObjectDefiniton>(toBuild, () =>
             {
-                maker.Build(Scope, Assignments.Select(x => x.GetOrThrow().Convert(context)).ToArray());
+                maker.Build(Scope.Convert(context), 
+                    Assignments.Select(x => x.GetOrThrow().Convert(context)).ToArray());
             });
         }
 
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType> IFrontendCodeElement<IObjectDefiniton>.Returns()
+        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IObjectDefiniton>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -86,14 +87,14 @@ namespace Tac.Semantic_Model
     internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
 
         public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -115,13 +116,13 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly Box<IIsPossibly<IFrontendType>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements, 
-            Box<IIsPossibly<IFrontendType>> box, 
+            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box, 
             ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -135,7 +136,7 @@ namespace Tac.Semantic_Model
             return box.Fill(
                 Possibly.Is(
                     new WeakObjectDefinition(
-                        scope.GetFinalized(), 
+                        scope, 
                         elements.Select(x => x.Run(context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray(), 
                         key)));
         }

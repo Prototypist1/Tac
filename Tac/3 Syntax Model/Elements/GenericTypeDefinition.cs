@@ -16,11 +16,11 @@ using static Tac.Frontend.TransformerExtensions;
 namespace Tac.Semantic_Model
 {
     
-    internal class WeakGenericTypeDefinition : IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType
+    internal class WeakGenericTypeDefinition : IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IVarifiableType>
     {
         public WeakGenericTypeDefinition(
-            IIsPossibly<NameKey> key, 
-            IFinalizedScope scope,
+            IIsPossibly<NameKey> key,
+            IResolvableScope scope,
             IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
@@ -30,21 +30,22 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IKey> Key { get; }
-        public IFinalizedScope Scope { get; }
+        public IResolvableScope Scope { get; }
 
         public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context)
         {
             var (toBuild, maker) = GenericInterfaceDefinition.Create();
             return new BuildIntention<IGenericInterfaceDefinition>(toBuild, () =>
             {
-                maker.Build(Scope,
+                maker.Build(
+                    Scope.Convert(context),
                     TypeParameterDefinitions.Select(x=>x.GetOrThrow()).ToArray());
             });
         }
 
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns()
+        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -125,7 +126,7 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<IFrontendCodeElement< ICodeElement>>> lines;
         private readonly IGenericTypeParameterDefinition[] genericParameters;
-        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
@@ -146,7 +147,7 @@ namespace Tac.Semantic_Model
             return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters);
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -156,13 +157,13 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly IResolvableScope scope;
-        private readonly Box<IIsPossibly<IFrontendType>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
         private readonly IGenericTypeParameterDefinition[] genericParameters;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             IResolvableScope scope, 
-            Box<IIsPossibly<IFrontendType>> box,
+            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box,
             IGenericTypeParameterDefinition[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -178,7 +179,7 @@ namespace Tac.Semantic_Model
             // why is that?
             return box.Fill(Possibly.Is(new WeakGenericTypeDefinition(
                 Possibly.Is(nameKey),
-                scope.GetFinalized(),
+                scope,
                 genericParameters.Select(x=>Possibly.Is(x)).ToArray())));
         }
     }

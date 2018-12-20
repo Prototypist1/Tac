@@ -13,8 +13,7 @@ namespace Tac.Model.Elements
         public IVarifiableType Type {get; }
         public IGenericTypeParameterDefinition Parameter { get;  }
     }
-
-
+    
     public interface IGenericType : IVarifiableType
     {
         IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }

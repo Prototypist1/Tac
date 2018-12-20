@@ -16,16 +16,16 @@ namespace Tac.Semantic_Model
 {
 
 
-    internal class WeakModuleDefinition : IScoped, IFrontendCodeElement<IModuleDefinition>, IFrontendType
+    internal class WeakModuleDefinition : IScoped, IFrontendCodeElement<IModuleDefinition>, IFrontendType<IVarifiableType>
     {
-        public WeakModuleDefinition(IFinalizedScope scope, IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitialization, NameKey Key)
+        public WeakModuleDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitialization, NameKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
             this.Key = Key ?? throw new ArgumentNullException(nameof(Key));
         }
         
-        public IFinalizedScope Scope { get; }
+        public IResolvableScope Scope { get; }
         public IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> StaticInitialization { get; }
 
         public IKey Key
@@ -38,13 +38,13 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = ModuleDefinition.Create();
             return new BuildIntention<IModuleDefinition>(toBuild, () =>
             {
-                maker.Build(Scope,StaticInitialization.Select(x=>x.GetOrThrow().Convert(context)));
+                maker.Build(Scope.Convert(context), StaticInitialization.Select(x=>x.GetOrThrow().Convert(context)));
             });
         }
 
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType> IFrontendCodeElement<IModuleDefinition>.Returns()
+        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IModuleDefinition>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -83,7 +83,7 @@ namespace Tac.Semantic_Model
     {
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly NameKey nameKey;
-        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
 
         public ModuleDefinitionPopulateScope(
             IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements,
@@ -93,7 +93,7 @@ namespace Tac.Semantic_Model
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -115,13 +115,13 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance;
         private readonly NameKey nameKey;
-        private readonly Box<IIsPossibly<IFrontendType>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
 
         public ModuleDefinitionResolveReferance(
             IResolvableScope scope, 
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance,
             NameKey nameKey,
-            Box<IIsPossibly<IFrontendType>> box)
+            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
@@ -134,7 +134,7 @@ namespace Tac.Semantic_Model
             return box.Fill(
                 Possibly.Is(
                     new WeakModuleDefinition(
-                    scope.GetFinalized(), 
+                    scope, 
                     resolveReferance.Select(x => x.Run(context)).ToArray(),
                     nameKey)));
         }

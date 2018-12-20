@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model
     {
         public WeakBlockDefinition(
             IIsPossibly<IFrontendCodeElement<ICodeElement>>[] body,
-            IFinalizedScope scope,
+            IResolvableScope scope,
             IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
 
@@ -30,13 +30,13 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IBlockDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    Scope,
+                    Scope.Convert(context),
                     Body.Select(x => x.GetOrThrow().Convert(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().Convert(context)).ToArray());
             });
         }
 
-        public override IIsPossibly<IFrontendType> Returns()
+        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns()
         {
             return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType());
         }
@@ -85,9 +85,9 @@ namespace Tac.Semantic_Model
                 Elements.Select(x => x.Run(nextContext)).ToArray());
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
-            return new Box<IIsPossibly<IFrontendType>>(Possibly.Is(new BlockType()));
+            return new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType()));
         }
     }
 
@@ -110,7 +110,7 @@ namespace Tac.Semantic_Model
                     Possibly.Is(
                         new WeakBlockDefinition(
                             ResolveReferance.Select(x => x.Run(context)).ToArray(), 
-                            Scope.GetFinalized(), 
+                            Scope, 
                             new IIsPossibly<IFrontendCodeElement<ICodeElement>>[0]));
         }
         

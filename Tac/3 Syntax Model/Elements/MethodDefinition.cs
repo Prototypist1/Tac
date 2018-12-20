@@ -16,13 +16,13 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMethodDefinition : WeakAbstractBlockDefinition<IMethodDefinition>, IFrontendType
+    internal class WeakMethodDefinition : WeakAbstractBlockDefinition<IMethodDefinition>, IFrontendType<IVarifiableType>
     {
         public WeakMethodDefinition(
             IIsPossibly<WeakTypeReferance> outputType, 
             IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> parameterDefinition,
             IIsPossibly<IFrontendCodeElement<ICodeElement>>[] body,
-            IFinalizedScope scope,
+            IResolvableScope scope,
             IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -43,13 +43,13 @@ namespace Tac.Semantic_Model
                     TransformerExtensions.Convert<ITypeReferance>(InputType.GetOrThrow(),context),
                     TransformerExtensions.Convert<ITypeReferance>(OutputType.GetOrThrow(),context),
                     ParameterDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context),
-                    Scope,
+                    Scope.Convert(context),
                     Body.Select(x=>x.GetOrThrow().Convert(context)).ToArray(),
                     StaticInitailizers.Select(x=>x.GetOrThrow().Convert(context)).ToArray());
             });
         }
 
-        public override IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
+        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns() => Possibly.Is(this);
 
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     }
@@ -119,7 +119,7 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly IPopulateScope<WeakTypeReferance> output;
-        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
 
         public MethodDefinitionPopulateScope(
             IPopulateScope<WeakMemberReference> parameterDefinition,
@@ -133,7 +133,7 @@ namespace Tac.Semantic_Model
 
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -157,14 +157,14 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
         private readonly IPopulateBoxes<WeakTypeReferance> output;
-        private readonly Box<IIsPossibly<IFrontendType>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
 
         public MethodDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReference> parameter, 
             IResolvableScope methodScope, 
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance2,
             IPopulateBoxes<WeakTypeReferance> output,
-            Box<IIsPossibly<IFrontendType>> box)
+            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box)
         {
             this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
@@ -181,7 +181,7 @@ namespace Tac.Semantic_Model
                         output.Run(context),
                         parameter.Run(context).IfIs(x=> x.MemberDefinition), 
                         lines.Select(x => x.Run(context)).ToArray(),
-                        methodScope.GetFinalized(),
+                        methodScope,
                         new IIsPossibly<IFrontendCodeElement<ICodeElement>>[0])));
         }
     }

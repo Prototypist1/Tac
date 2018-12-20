@@ -18,14 +18,14 @@ namespace Tac.Semantic_Model
 
     internal class WeakTypeDefinition : IFrontendCodeElement<IInterfaceType>, IScoped, IFrontendType<IInterfaceType>
     {
-        public WeakTypeDefinition(IFinalizedScope scope, IIsPossibly<IKey> key)
+        public WeakTypeDefinition(IResolvableScope scope, IIsPossibly<IKey> key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public IIsPossibly<IKey> Key { get; }
-        public IFinalizedScope Scope { get; }
+        public IResolvableScope Scope { get; }
         
         IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IInterfaceType>.Returns()
         {
@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
             {
-                maker.Build(Scope);
+                maker.Build(Scope.Convert(context));
             });
         }
     }
@@ -89,7 +89,7 @@ namespace Tac.Semantic_Model
             box = new Box<IIsPossibly<WeakTypeReferance>>(Possibly.Is(typeReferance));
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -128,7 +128,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<WeakTypeReferance> Run(IResolveReferenceContext context)
         {
-            definitionBox.Fill(Possibly.Is(new WeakTypeDefinition(scope.GetFinalized(), Possibly.Is(key))));
+            definitionBox.Fill(Possibly.Is(new WeakTypeDefinition(scope, Possibly.Is(key))));
             return Possibly.Is(typeReferance);
         }
     }

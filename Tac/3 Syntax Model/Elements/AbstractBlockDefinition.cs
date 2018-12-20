@@ -17,7 +17,7 @@ namespace Tac.Semantic_Model
         where T: class, ICodeElement
     {
         protected WeakAbstractBlockDefinition(
-            IFinalizedScope scope,
+            IResolvableScope scope,
             IIsPossibly<IFrontendCodeElement<ICodeElement>>[] body, 
             IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -26,11 +26,11 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IFinalizedScope Scope { get; }
+        public IResolvableScope Scope { get; }
         public IIsPossibly<IFrontendCodeElement<ICodeElement>>[] Body { get; }
         public IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> StaticInitailizers { get; }
 
         public abstract IBuildIntention<T> GetBuildIntention(ConversionContext context);
-        public abstract IIsPossibly<IFrontendType> Returns();
+        public abstract IIsPossibly<IFrontendType<IVarifiableType>> Returns();
     }
 }

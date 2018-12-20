@@ -16,7 +16,7 @@ using static Tac.Frontend.TransformerExtensions;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakImplementationDefinition: IFrontendCodeElement<IImplementationDefinition>, IFrontendType
+    internal class WeakImplementationDefinition: IFrontendCodeElement<IImplementationDefinition>, IFrontendType<IVarifiableType>
     {
 
         public WeakImplementationDefinition(
@@ -24,7 +24,7 @@ namespace Tac.Semantic_Model
             IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> parameterDefinition,
             IIsPossibly<WeakTypeReferance> outputType, 
             IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> metohdBody,
-            IFinalizedScope scope, 
+            IResolvableScope scope, 
             IEnumerable<IFrontendCodeElement<ICodeElement>> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
@@ -54,11 +54,11 @@ namespace Tac.Semantic_Model
         // are these really boxes
         public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ContextDefinition { get; }
         public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
-        public IFinalizedScope Scope { get; }
+        public IResolvableScope Scope { get; }
         public IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> MethodBody { get; }
         public IEnumerable<IFrontendCodeElement<ICodeElement>> StaticInitialzers { get; }
 
-        IIsPossibly<IFrontendType> IFrontendCodeElement<IImplementationDefinition>.Returns()
+        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IImplementationDefinition>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -72,7 +72,7 @@ namespace Tac.Semantic_Model
                     TransformerExtensions.Convert<ITypeReferance>(OutputType.GetOrThrow(),context),
                     ContextDefinition.IfIs(x=>x.GetValue()).GetOrThrow().Convert(context),
                     ParameterDefinition.IfIs(x => x.GetValue()).GetOrThrow().Convert(context),
-                    Scope,
+                    Scope.Convert(context),
                     MethodBody.Select(x => x.GetOrThrow().Convert(context)).ToArray(),
                     StaticInitialzers.Select(x => x.Convert(context)).ToArray());
             });
@@ -164,7 +164,7 @@ namespace Tac.Semantic_Model
         private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly IPopulateScope<WeakTypeReferance> output;
-        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
 
         public PopulateScopeImplementationDefinition(
             IPopulateScope<WeakMemberReference> contextDefinition,
@@ -191,7 +191,7 @@ namespace Tac.Semantic_Model
                 box);
         }
         
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -205,7 +205,7 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly IPopulateBoxes<WeakTypeReferance> output;
-        private readonly Box<IIsPossibly<IFrontendType>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
 
         public ImplementationDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReference> contextDefinition,
@@ -213,7 +213,7 @@ namespace Tac.Semantic_Model
             IResolvableScope methodScope,
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements,
             IPopulateBoxes<WeakTypeReferance> output,
-            Box<IIsPossibly<IFrontendType>> box)
+            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box)
         {
             this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -232,7 +232,7 @@ namespace Tac.Semantic_Model
                     parameterDefinition.Run(context).IfIs(x => x.MemberDefinition),
                     output.Run(context), 
                     elements.Select(x => x.Run(context)).ToArray(), 
-                    methodScope.GetFinalized(), 
+                    methodScope, 
                     new IFrontendCodeElement<ICodeElement>[0])));
         }
     }

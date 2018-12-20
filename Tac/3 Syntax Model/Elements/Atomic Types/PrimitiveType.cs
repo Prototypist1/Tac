@@ -38,7 +38,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new BuildIntention<INumberType>(new Tac.Model.Instantiated.NumberType(), () => { });
         }
     }
-    internal class GemericTypeParameterPlacholder : IFrontendType
+    internal class GemericTypeParameterPlacholder : IFrontendType<IVarifiableType>
     {
         public GemericTypeParameterPlacholder(IKey key)
         {
@@ -60,7 +60,9 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return new BuildIntention<IVarifiableType>(new Tac.Model.Instantiated.GemericTypeParameterPlacholder(), () => { });
+            var (res,maker)= Tac.Model.Instantiated.GemericTypeParameterPlacholder.Create();
+
+            return new BuildIntention<IVarifiableType>(res, () => { maker.Build(Key); });
         }
     }
     internal class AnyType : IFrontendType<IAnyType>
@@ -117,7 +119,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         {
             var (res, builder) = Tac.Model.Instantiated.MethodType.Create();
 
-            return new BuildIntention<IVarifiableType>(res
+            return new BuildIntention<IMethodType>(res
                 , () => {
                     builder.Build(
                         InputType.Convert(context),
@@ -166,7 +168,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
         
 
-        public IFrontendType GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
+        public IFrontendType<IVarifiableType> GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
         {
             if (parameters.Length == 3)
             {
