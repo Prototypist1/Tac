@@ -15,12 +15,34 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
 {
+    internal class OverlayMemberDefinition: IWeakMemberDefinition
+    {
+        private readonly IWeakMemberDefinition backing;
 
+        public OverlayMemberDefinition(IWeakMemberDefinition backing)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            //TODO overlay
+            int error = true;
+        }
+
+        public IIsPossibly<WeakTypeReferance> Type => backing.Type;
+        public bool ReadOnly =>backing.ReadOnly;
+        public IKey Key=>backing.Key;
+    }
+
+    internal interface IWeakMemberDefinition {
+
+        IIsPossibly<WeakTypeReferance> Type { get; }
+        bool ReadOnly { get; }
+        IKey Key { get; }
+    }
+    
     // it is possible members are single instances with look up
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    internal class WeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVarifiableType>
+    internal class WeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVarifiableType>, IWeakMemberDefinition
     {
         public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReferance> type)
         {

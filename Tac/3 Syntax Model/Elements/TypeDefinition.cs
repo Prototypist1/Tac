@@ -16,7 +16,27 @@ using Tac.Semantic_Model.Names;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakTypeDefinition : IFrontendCodeElement<IInterfaceType>, IScoped, IFrontendType<IInterfaceType>
+    internal class OverlayTypeDefinition : IWeakTypeDefinition
+    {
+        private readonly IWeakTypeDefinition backing;
+
+        public OverlayTypeDefinition(IWeakTypeDefinition backing)
+        {
+            int error = true;
+            this.backing = backing;
+            // overlay...
+        }
+        public IIsPossibly<IKey> Key => backing.Key;
+        public IResolvableScope Scope => backing.Scope;
+
+    }
+
+    internal interface IWeakTypeDefinition: IFrontendCodeElement<IInterfaceType>, IScoped, IFrontendType<IInterfaceType> {
+        IIsPossibly<IKey> Key { get; }
+        IResolvableScope Scope { get; }
+    }
+
+    internal class WeakTypeDefinition : IWeakTypeDefinition
     {
         public WeakTypeDefinition(IResolvableScope scope, IIsPossibly<IKey> key)
         {

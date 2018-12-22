@@ -16,14 +16,30 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMemberReference : IFrontendCodeElement<IMemberReferance>, IFrontendType<IVarifiableType>
+    internal class OverlayMemberReference: IWeakMemberReference
+    {
+     
+        public OverlayMemberReference(WeakMemberReference bakcing)
+        {
+            int i = "test";
+            // TODO overlay
+        }
+
+        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
+    }
+
+    internal interface IWeakMemberReference {
+        IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
+    }
+
+    internal class WeakMemberReference : IFrontendCodeElement<IMemberReferance>, IFrontendType<IVarifiableType>, IWeakMemberReference
     {
         public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
-        public  IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
 
         public IBuildIntention<IMemberReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
@@ -150,7 +166,9 @@ namespace Tac.Semantic_Model
                     return Possibly.IsNot<WeakMemberDefinition>(hasNot4);
                 }
 
-                if (!(has4 is IInterfaceType interfaceType))
+                // TODO this is not going to work 
+                // I don't use IInterfaceType in the frotend
+                if (!(has4.Value is IInterfaceType interfaceType))
                 {
                     return Possibly.IsNot<WeakMemberDefinition>(); // TODO
                 }
