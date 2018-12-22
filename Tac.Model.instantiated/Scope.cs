@@ -44,7 +44,7 @@ namespace Tac.Model.Instantiated
             if (!isStatic.Static && staticOnly) { return false; }
             box = isStatic.Value;
             return true;
-         }
+        }
         
         public bool TryGetParent(out IFinalizedScope res)
         {

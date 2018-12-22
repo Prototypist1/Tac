@@ -28,10 +28,17 @@ namespace Tac.Model.Elements
         IVarifiableType OutputType { get; }
     }
 
+    public interface IGenericMethodType : IVarifiableType
+    {
+    }
+
     public interface IImplementationType : IVarifiableType {
         IVarifiableType InputType { get; }
         IVarifiableType OutputType { get; }
         IVarifiableType ContextType { get; }
     }
-    
+
+    public interface IGenericImplementationType : IVarifiableType
+    {
+    }
 }

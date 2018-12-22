@@ -128,7 +128,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
     }
 
-    internal class GenericMethodType : IFrontendType<IMethodType>
+    internal class GenericMethodType : IFrontendType<IGenericMethodType>, IGenericType
     {
 
         private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");
@@ -141,7 +141,12 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
 
-        public IFrontendType<IMethodType> GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
+        public IBuildIntention<IGenericMethodType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+
+        }
+
+        public IFrontendType<IMethodType> GetConcreteType(GenericTypeParameter[] parameters)
         {
             if (parameters.Length == 2) {
                 return new MethodType(
@@ -153,7 +158,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         
     }
 
-    internal class GenericImplementationType : IFrontendType
+    internal class GenericImplementationType : IFrontendType<IGenericImplementationType>, IGenericType
     {
 
         private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");
@@ -166,9 +171,13 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
 
         public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
-        
 
-        public IFrontendType<IVarifiableType> GetConcreteType(Model.Elements.GenericTypeParameter[] parameters)
+        public IBuildIntention<IGenericImplementationType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFrontendType<IVarifiableType> GetConcreteType(GenericTypeParameter[] parameters)
         {
             if (parameters.Length == 3)
             {
@@ -180,5 +189,16 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
             throw new Exception("Exceptions important, why do you always half ass them?");
         }
+    }
+
+    internal class GenericTypeParameter {
+        public GenericTypeParameter(IGenericTypeParameterDefinition parameter, IFrontendType<IVarifiableType> type)
+        {
+            Parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+        }
+
+        public IGenericTypeParameterDefinition Parameter { get; }
+        public IFrontendType<IVarifiableType> Type { get; }
     }
 }
