@@ -21,25 +21,32 @@ namespace Tac.Semantic_Model
      
         public OverlayMemberReference(WeakMemberReference bakcing)
         {
-            int i = "test";
-            // TODO overlay
+            MemberDefinition = bakcing.MemberDefinition.IfIs(x => 
+                Possibly.Is(
+                    new DelegateBox<IIsPossibly<IWeakMemberDefinition>>(() =>
+                        x.GetValue()
+                        .IfIs(z => 
+                            Possibly.Is(
+                                new OverlayMemberDefinition(z))))));
+
+           
         }
 
-        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
     }
 
-    internal interface IWeakMemberReference {
-        IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
+    internal interface IWeakMemberReference: IFrontendCodeElement<IMemberReferance>, IFrontendType<IVarifiableType>, {
+        IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
     }
 
-    internal class WeakMemberReference : IFrontendCodeElement<IMemberReferance>, IFrontendType<IVarifiableType>, IWeakMemberReference
+    internal class WeakMemberReference :  IWeakMemberReference
     {
-        public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> memberDefinition)
+        public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
-        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> MemberDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
 
         public IBuildIntention<IMemberReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {

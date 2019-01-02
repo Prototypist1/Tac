@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType> Returns()
+        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
             return Right.IfIs(x =>  Possibly.Is(x.Cast<WeakMemberReference>()));

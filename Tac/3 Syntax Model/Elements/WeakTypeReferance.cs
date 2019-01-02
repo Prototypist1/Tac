@@ -13,7 +13,54 @@ using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
-    internal class WeakTypeReferance : IFrontendCodeElement<ITypeReferance>, IFrontendType<IVarifiableType>
+    internal class OverlayTypeReferance : IWeakTypeReferance
+    {
+        public OverlayTypeReferance(IWeakTypeReferance weakTypeReferance)
+        {
+            if (weakTypeReferance == null)
+            {
+                throw new ArgumentNullException(nameof(weakTypeReferance));
+            }
+
+            TypeDefinition = weakTypeReferance.TypeDefinition.IfIs(x =>
+                Possibly.Is(
+                    new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>> (() => 
+                        x.GetValue().IfIs(y => {
+                            if (y.Is<IWeakTypeDefinition>(out var typeDef)) {
+                                return Possibly.Is(new OverlayTypeDefinition(typeDef));
+                            }
+                            return Possibly.Is(y);
+                        }))));
+        }
+
+        public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> TypeDefinition { get;}
+
+        // TODO this code is dup
+        // should it be shared?
+
+        public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = TypeReferance.Create();
+            return new BuildIntention<ITypeReferance>(toBuild, () =>
+            {
+                maker.Build(TypeDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context));
+            });
+        }
+
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        => GetBuildIntention(context);
+
+        public IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        {
+            return TypeDefinition.IfIs(x => x.GetValue());
+        }
+    }
+
+    internal interface IWeakTypeReferance : IFrontendCodeElement<ITypeReferance>, IFrontendType<IVarifiableType> {
+        IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> TypeDefinition { get; }
+    }
+
+    internal class WeakTypeReferance : IWeakTypeReferance
     {
         public WeakTypeReferance(IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> typeDefinition)
         {

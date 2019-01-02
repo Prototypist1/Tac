@@ -48,7 +48,7 @@ namespace Tac.Semantic_Model
             throw new Exception($"{name} should exist in scope");
         }
 
-        internal static IBox<IIsPossibly<WeakMemberDefinition>> GetMemberOrThrow(this IResolvableScope scope, IKey name, bool staticOnly)
+        internal static IBox<IIsPossibly<IWeakMemberDefinition>> GetMemberOrThrow(this IResolvableScope scope, IKey name, bool staticOnly)
         {
             if (scope.TryGetMember(name, staticOnly, out var thing))
             {
@@ -67,7 +67,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        internal static IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> PossiblyGetMember(this ISomeScope scope, bool staticOnly, IKey name)
+        internal static IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> PossiblyGetMember(this ISomeScope scope, bool staticOnly, IKey name)
         {
             if (scope.TryGetMember(name, staticOnly, out var thing))
             {

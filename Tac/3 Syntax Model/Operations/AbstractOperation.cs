@@ -54,7 +54,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
         
-        public abstract IIsPossibly<IFrontendType> Returns();
+        public abstract IIsPossibly<IFrontendType<IVarifiableType>> Returns();
 
         public abstract IBuildIntention<TCodeElement> GetBuildIntention(TransformerExtensions.ConversionContext context);
     }

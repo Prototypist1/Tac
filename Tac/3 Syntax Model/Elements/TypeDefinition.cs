@@ -22,18 +22,29 @@ namespace Tac.Semantic_Model
 
         public OverlayTypeDefinition(IWeakTypeDefinition backing)
         {
-            int error = true;
-            this.backing = backing;
-            // overlay...
+            Scope = new OverlayedScope(backing.Scope);
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
         public IIsPossibly<IKey> Key => backing.Key;
-        public IResolvableScope Scope => backing.Scope;
+        public IResolvableScope Scope { get; }
 
+        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IInterfaceType>.Returns()
+        {
+            return Possibly.Is(this);
+        }
+
+        public IBuildIntention<IInterfaceType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = InterfaceType.Create();
+            return new BuildIntention<IInterfaceType>(toBuild, () =>
+            {
+                maker.Build(Scope.Convert(context));
+            });
+        }
     }
 
     internal interface IWeakTypeDefinition: IFrontendCodeElement<IInterfaceType>, IScoped, IFrontendType<IInterfaceType> {
         IIsPossibly<IKey> Key { get; }
-        IResolvableScope Scope { get; }
     }
 
     internal class WeakTypeDefinition : IWeakTypeDefinition
