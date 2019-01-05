@@ -9,14 +9,35 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model
 {
-    
-    internal class WeakGenericTypeDefinition : IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IVarifiableType>
+
+    internal class OverlayGenericTypeDefinition: IWeakGenericTypeDefinition
+    {
+        private readonly IWeakGenericTypeDefinition backing;
+
+        public OverlayGenericTypeDefinition(IWeakGenericTypeDefinition backing, Overlay overlay)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            Scope = new OverlayedScope(backing.Scope, overlay);
+        }
+        
+        public IResolvableScope Scope { get; }
+
+        public IIsPossibly<IKey> Key => backing.Key;
+        public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendCodeElement<IGenericInterfaceDefinition>>().GetBuildIntention(context);
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IVarifiableType>>().GetBuildIntention(context); 
+        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns() => Possibly.Is(this);
+    }
+
+    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IVarifiableType>
+    {
+        IIsPossibly<IKey> Key { get; }
+    }
+
+    internal class WeakGenericTypeDefinition : IWeakGenericTypeDefinition
     {
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key,

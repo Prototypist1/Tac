@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Model.Elements;
 
@@ -10,7 +11,8 @@ namespace Tac.Model.Instantiated
     {
         private readonly IFinalizedScope parent;
 
-        private class IsStatic {
+        private class IsStatic
+        {
             public IsStatic(IMemberDefinition value, bool @static)
             {
                 Value = value ?? throw new ArgumentNullException(nameof(value));
@@ -18,10 +20,22 @@ namespace Tac.Model.Instantiated
             }
 
             public IMemberDefinition Value { get; }
-            public bool Static { get; } 
+            public bool Static { get; }
         }
 
+        private interface ITypeHolder { }
+
+        private class TypeHolder : ITypeHolder {
+            public readonly IVarifiableType type;
+
+            public TypeHolder(IVarifiableType type) {
+                this.type = type ?? throw new ArgumentNullException(nameof(type));
+            }
+        }
+        private class GenericTypeHolder : ITypeHolder { }
+
         private readonly IReadOnlyDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
+        private readonly IReadOnlyDictionary<IKey, IEnumerable<ITypeHolder>> types = new ConcurrentDictionary<IKey, IEnumerable<ITypeHolder>>();
 
         public Scope()
         {
@@ -34,18 +48,27 @@ namespace Tac.Model.Instantiated
 
         public IEnumerable<IKey> MemberKeys
         {
-            get => members.Keys;
-            
+            get
+            {
+                return members.Keys;
+            }
         }
 
-        public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box) {
-            box = default;
-            if (!members.TryGetValue(name, out var isStatic)) { return false; }
-            if (!isStatic.Static && staticOnly) { return false; }
-            box = isStatic.Value;
-            return true;
+        public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition member)
+        {
+            if (members.TryGetValue(name, out var isStatic) && (!staticOnly || isStatic.Static)) { 
+                member = isStatic.Value;
+                return true;
+            }
+            
+            if (parent == null)
+            {
+                member = default;
+                return false;
+            }
+            return parent.TryGetMember(name, staticOnly, out member);
         }
-        
+
         public bool TryGetParent(out IFinalizedScope res)
         {
             res = parent;
@@ -54,7 +77,29 @@ namespace Tac.Model.Instantiated
 
         public bool TryGetType(IKey name, out IVarifiableType type)
         {
-            // ugh generic types 
+            if (name is GenericNameKey genericNameKey)
+            {
+                if (!types.TryGetValue(new NameKey(genericNameKey.Name), out var list))
+                {
+                    foreach (var item in list.OfType<GenericTypeHolder>())
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }else{
+                if (!types.TryGetValue(name, out var list))
+                {
+                    type = list.OfType<TypeHolder>().Single().type;
+                    return true;
+                }
+            }
+
+            if (parent == null)
+            {
+                type = default;
+                return false;
+            }
+            return parent.TryGetType(name, out type);
         }
     }
 }

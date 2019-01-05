@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
@@ -11,7 +9,6 @@ using Tac.Model.Elements;
 using Tac.New;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
@@ -32,13 +29,13 @@ namespace Tac.Parser
     internal class ElementMatchingContext
     {
 
-        internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IFrontendType>> box) {
+        internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IFrontendType<IVarifiableType>>> box) {
             return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<IFrontendCodeElement<ICodeElement>>>[] {
                 new MemberReferanceMaker(box)
             });
         }
         
-        internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IFrontendType>> box)
+        internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IFrontendType<IVarifiableType>>> box)
         {
             return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<IFrontendCodeElement<ICodeElement>>>[] {
                 new BlockDefinitionMaker(),

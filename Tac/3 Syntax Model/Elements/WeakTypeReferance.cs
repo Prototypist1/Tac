@@ -9,30 +9,49 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
+    internal class Overlay {
+
+        private readonly Dictionary<IFrontendType<IVarifiableType>,IFrontendType<IVarifiableType>> map;
+
+        public Overlay(Dictionary<IFrontendType<IVarifiableType>, IFrontendType<IVarifiableType>> map)
+        {
+            this.map = map ?? throw new ArgumentNullException(nameof(map));
+        }
+
+        public IFrontendType<IVarifiableType> Convert(IFrontendType<IVarifiableType> type) {
+            if (type.Is<IWeakTypeDefinition>(out var typeDef))
+            {
+                return new OverlayTypeDefinition(typeDef,this);
+            }
+            if (map.TryGetValue(type, out var value)){
+                return value;
+            }
+            return type;
+        }
+    }
+
+
+
     internal class OverlayTypeReferance : IWeakTypeReferance
     {
-        public OverlayTypeReferance(IWeakTypeReferance weakTypeReferance)
+        public OverlayTypeReferance(IWeakTypeReferance weakTypeReferance, Overlay overlay)
         {
             if (weakTypeReferance == null)
             {
                 throw new ArgumentNullException(nameof(weakTypeReferance));
             }
+            this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
 
             TypeDefinition = weakTypeReferance.TypeDefinition.IfIs(x =>
                 Possibly.Is(
-                    new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>> (() => 
-                        x.GetValue().IfIs(y => {
-                            if (y.Is<IWeakTypeDefinition>(out var typeDef)) {
-                                return Possibly.Is(new OverlayTypeDefinition(typeDef));
-                            }
-                            return Possibly.Is(y);
-                        }))));
+                    new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>> (() => x.GetValue().IfIs(y => Possibly.Is(overlay.Convert(y))))));
+
         }
 
+        private readonly Overlay overlay;
         public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> TypeDefinition { get;}
 
         // TODO this code is dup

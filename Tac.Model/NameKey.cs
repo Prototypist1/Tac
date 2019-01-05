@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Tac.Model;
 
-namespace Tac.Semantic_Model.Names
+namespace Tac.Model
 {
     public class NameKey : IKey
     {

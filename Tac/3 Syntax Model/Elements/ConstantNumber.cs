@@ -1,14 +1,10 @@
-﻿using System;
-using System.Linq;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
+﻿using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
-using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
 using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model.Operations

@@ -9,7 +9,6 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Parser;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
@@ -18,6 +17,32 @@ namespace Tac.Semantic_Model
     internal interface IScoped
     {
         IResolvableScope Scope { get; }
+    }
+
+    // ok.. you are here
+    // you are here
+    // you are here
+    // IFrontendGenericType can be overlayed
+    // when you overlay it, it returns an 
+    // OverlayWeakTypeDefinition or a OverlayGenericTypeDefinition
+    // ...
+    // but how does that work with methods?
+    // they are IFrontendGenericType but they return ...?
+    // 
+    // ...
+    //
+    // maybe we just have a generic type called Generic<T>
+    // it has a method called overlay
+    // overlay returns T or Generic<T>
+    // well... you have to overlay all the types
+    // so before you call the method you should know if the result will be generic
+    // maybe there are two method on generic
+    // Overlay and GenericOverlay
+    //
+
+    public interface IFrontendGenericType : IVarifiableType
+    {
+        IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
     }
 
     internal class ScopeTemplate : NewScope //, IFinalizedScopeTemplate
@@ -29,7 +54,7 @@ namespace Tac.Semantic_Model
             {
                 // for the sake of validation type parameters are types 
 
-                if (!TryAddType(item.Key, new Box<IIsPossibly< IFrontendType<IVarifiableType>>>(new GemericTypeParameterPlacholder(item.Key)))) {
+                if (!TryAddType(item.Key, new Box<IIsPossibly< IFrontendType<IVarifiableType>>>(Possibly.Is(new GemericTypeParameterPlacholder(item.Key))))) {
                     throw new Exception("that is not right!");
                 }
             }
@@ -99,6 +124,13 @@ namespace Tac.Semantic_Model
         //}
     }
 
+    // I have NewScope in this project
+    // and Scope in Tac.Model.Instantiated
+    // they are very much the same
+    // they are not the same thing, but very close
+    // they are split out because this allows for 
+    // cases where the scope is badly defined
+
     internal class NewScope : IPopulatableScope, IResolvableScope
     {
         public NewScope Parent { get; }
@@ -117,8 +149,8 @@ namespace Tac.Semantic_Model
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>>>> types
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>>>>();
 
-        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IGenericType>>>> genericTypes
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IGenericType>>>>();
+        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>> genericTypes
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>>();
 
         public NewScope(NewScope parent)
         {
@@ -136,9 +168,9 @@ namespace Tac.Semantic_Model
             //
             TryAddGeneric(
                 new NameKey("method"),
-                new Box<IGenericType>(new GenericMethodType()));
+                new Box<IFrontendGenericType>(new GenericMethodType()));
             TryAddGeneric(
-                new NameKey("implementation"), new Box<IGenericType>(new GenericImplementationType()));
+                new NameKey("implementation"), new Box<IFrontendGenericType>(new GenericImplementationType()));
         }
 
         public IResolvableScope ToResolvable()
@@ -146,10 +178,10 @@ namespace Tac.Semantic_Model
             return this;
         }
 
-        protected bool TryAddGeneric(NameKey key, IBox<IGenericType> definition)
+        protected bool TryAddGeneric(NameKey key, IBox<IFrontendGenericType> definition)
         {
-            var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<Visiblity<IBox<IGenericType>>>());
-            var visiblity = new Visiblity<IBox<IGenericType>>(DefintionLifetime.Static, definition);
+            var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>());
+            var visiblity = new Visiblity<IBox<IFrontendGenericType>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
         
@@ -171,34 +203,29 @@ namespace Tac.Semantic_Model
         {
             if (!members.TryGetValue(name, out var items))
             {
-                if (Parent != null)
-                {
-                    return Parent.TryGetMember(name, staticOnly, out member);
-                }
-                else
-                {
-                    member = default;
-                    return false;
-                }
+                goto seeParent;
             }
 
             var thing = items.SingleOrDefault();
 
             if (thing == default)
             {
-                if (Parent != null)
-                {
-                    return Parent.TryGetMember(name, staticOnly, out member);
-                }
-                else
-                {
-                    member = default;
-                    return false;
-                }
+                goto seeParent;
             }
 
             member = thing.Definition;
             return true;
+
+            seeParent:
+            if (Parent != null)
+            {
+                return Parent.TryGetMember(name, staticOnly, out member);
+            }
+            else
+            {
+                member = default;
+                return false;
+            }
         }
 
         public bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType<IVarifiableType>>> type)
@@ -209,7 +236,7 @@ namespace Tac.Semantic_Model
                 
                 var typesBoxes = generic.Types.Select(x=>
                 {
-                    TryGetType(x, out IBox<IIsPossibly<IFrontendType<IVarifiableType>>> innerTypeBox);
+                    TryGetType(x, out var innerTypeBox);
                     if (innerTypeBox == default) {
                         throw new Exception("I guess that is exceptional");
                     }
@@ -220,6 +247,7 @@ namespace Tac.Semantic_Model
                     .Select(single => single.Definition.GetValue())
                     .Where(x => x.TypeParameterDefinitions.Length == typesBoxes.Count())
                     .Single()
+                    
                 );
                 
                 return true;

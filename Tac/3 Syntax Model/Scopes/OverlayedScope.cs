@@ -9,10 +9,12 @@ namespace Tac.Semantic_Model
     internal class OverlayedScope : IResolvableScope
     {
         private readonly IResolvableScope inner;
+        private readonly Overlay overlay;
 
-        public OverlayedScope(IResolvableScope inner)
+        public OverlayedScope(IResolvableScope inner, Overlay overlay)
         {
             this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
         }
 
         public IBuildIntention<IFinalizedScope> GetBuildIntention(TransformerExtensions.ConversionContext context)
@@ -28,7 +30,7 @@ namespace Tac.Semantic_Model
             }
             box = new DelegateBox<IIsPossibly<IWeakMemberDefinition>>(() =>
             {
-                return member.GetValue().IfIs(x =>  Possibly.Is(new OverlayMemberDefinition(x)));
+                return member.GetValue().IfIs(x =>  Possibly.Is(new OverlayMemberDefinition(x,overlay)));
             });
             return true;
         }
@@ -46,7 +48,7 @@ namespace Tac.Semantic_Model
                 {
                     if (x.Is<IWeakTypeDefinition>(out var typeDef))
                     {
-                        return Possibly.Is(new OverlayTypeDefinition(typeDef));
+                        return Possibly.Is(new OverlayTypeDefinition(typeDef, overlay));
                     }
                     return Possibly.Is(x);
                 });});

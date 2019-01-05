@@ -6,7 +6,6 @@ using Tac.Model.Elements;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 
 

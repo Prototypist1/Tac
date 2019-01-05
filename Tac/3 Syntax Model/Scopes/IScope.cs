@@ -7,7 +7,6 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {

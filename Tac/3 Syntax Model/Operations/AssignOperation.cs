@@ -10,7 +10,6 @@ using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model.Operations
 {
@@ -26,7 +25,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType> Returns()
+        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns()
         {
             return Left.IfIs(x=>x.Returns());
         }

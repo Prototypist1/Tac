@@ -104,7 +104,7 @@ namespace Tac.Semantic_Model.CodeStuff
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>> left;
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>> right;
         private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-        private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
+        private readonly DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>> box = new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>>();
 
         public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>> left,
             IPopulateScope<IFrontendCodeElement<ICodeElement>> right,
@@ -115,7 +115,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -155,13 +155,13 @@ namespace Tac.Semantic_Model.CodeStuff
         public readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>> left;
         public readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>> right;
         private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-        private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
+        private readonly DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>> box;
 
         public BinaryResolveReferance(
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance1,
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance2,
             BinaryOperation.Make<TFrontendCodeElement> make,
-            DelegateBox<IIsPossibly<IFrontendType>> box)
+            DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>> box)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
@@ -182,7 +182,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 }
                 else {
 
-                    return Possibly.IsNot<IFrontendType>(no);
+                    return Possibly.IsNot<IFrontendType<IVarifiableType>>(no);
                 }
             });
             return res;

@@ -2,10 +2,10 @@
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
@@ -34,14 +34,14 @@ namespace Tac.Semantic_Model
     internal class MemberPopulateScope : IPopulateScope<WeakMemberReference>
     {
         private readonly string memberName;
-        private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
 
         public MemberPopulateScope(string item)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
         }
 
-        public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model
                                 Possibly.Is(
                                     new WeakTypeReferance( 
                                         Possibly.Is( 
-                                            new Box<IIsPossibly<IFrontendType>>(
+                                            new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(
                                                 Possibly.Is(
                                                     new AnyType()))))))))))
             {
@@ -77,12 +77,12 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope resolvableScope;
         private readonly NameKey key;
-        private readonly Box<IIsPossibly<IFrontendType>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
 
         public MemberResolveReferance(
             IResolvableScope resolvableScope,
             NameKey key, 
-            Box<IIsPossibly<IFrontendType>> box)
+            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box)
         {
             this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
             this.key = key ?? throw new ArgumentNullException(nameof(key));

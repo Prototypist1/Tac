@@ -4,7 +4,6 @@ using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
-using Tac.Semantic_Model.Names;
 using Tac.TestCases.Help;
 using Tac.Tests.Samples;
 

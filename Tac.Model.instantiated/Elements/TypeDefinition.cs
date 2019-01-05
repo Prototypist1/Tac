@@ -82,7 +82,28 @@ namespace Tac.Model.Instantiated
     {
         void Build(IKey key);
     }
-    
+
+    public interface IGenericMethodTypeBuilder {
+        void Build();
+    }
+
+    // TODO!
+    // how does this work?!
+    public class GenericMethodType : IGenericMethodType, IGenericMethodTypeBuilder
+    {
+        private GenericMethodType() { }
+
+        public void Build()
+        {
+        }
+
+        public static (IGenericMethodType, IGenericMethodTypeBuilder) Create()
+        {
+            var res = new GenericMethodType();
+            return (res, res);
+        }
+    }
+
     public class MethodType : IMethodType, IMethodTypeBuilder
     {
         private MethodType() { }
@@ -100,7 +121,7 @@ namespace Tac.Model.Instantiated
         }
         
         public IVarifiableType InputType { get; private set; }
-        public IVarifiableType OutputType{ get; private set; }
+        public IVarifiableType OutputType { get; private set; }
     }
     
     public interface IMethodTypeBuilder

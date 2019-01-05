@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
-using Tac.Model.Operations;
-using Tac.New;
-using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
 using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model

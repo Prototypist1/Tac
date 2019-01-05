@@ -10,7 +10,6 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
@@ -18,24 +17,39 @@ namespace Tac.Semantic_Model
 
     internal class OverlayMemberReference: IWeakMemberReference
     {
-     
-        public OverlayMemberReference(WeakMemberReference bakcing)
+        private readonly IWeakMemberReference backing;
+        
+        public OverlayMemberReference(IWeakMemberReference backing, Overlay overlay)
         {
-            MemberDefinition = bakcing.MemberDefinition.IfIs(x => 
+            MemberDefinition = backing.MemberDefinition.IfIs(x => 
                 Possibly.Is(
                     new DelegateBox<IIsPossibly<IWeakMemberDefinition>>(() =>
                         x.GetValue()
                         .IfIs(z => 
                             Possibly.Is(
-                                new OverlayMemberDefinition(z))))));
-
-           
+                                new OverlayMemberDefinition(z, overlay))))));
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
+
+        public IBuildIntention<IMemberReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            return backing.Cast<IFrontendCodeElement<IMemberReferance>>().GetBuildIntention(context);
+        }
+
+        public IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        {
+            return backing.Returns();
+        }
+
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            return backing.Cast<IConvertable<IVarifiableType>>().GetBuildIntention(context);
+        }
     }
 
-    internal interface IWeakMemberReference: IFrontendCodeElement<IMemberReferance>, IFrontendType<IVarifiableType>, {
+    internal interface IWeakMemberReference: IFrontendCodeElement<IMemberReferance>, IFrontendType<IVarifiableType> {
         IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
     }
 

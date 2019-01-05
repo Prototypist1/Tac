@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
@@ -9,8 +8,6 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {

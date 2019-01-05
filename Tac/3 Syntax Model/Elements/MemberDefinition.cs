@@ -10,7 +10,6 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model
@@ -18,31 +17,39 @@ namespace Tac.Semantic_Model
     internal class OverlayMemberDefinition: IWeakMemberDefinition
     {
         private readonly IWeakMemberDefinition backing;
+        private readonly Overlay overlay;
 
-        public OverlayMemberDefinition(IWeakMemberDefinition backing)
+        public OverlayMemberDefinition(IWeakMemberDefinition backing, Overlay overlay)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-            //TODO overlay
-            int error = true;
+            this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
+            this.Type = backing.Type.IfIs(x => Possibly.Is(new OverlayTypeReferance(x,overlay)));
         }
 
-        public IIsPossibly<WeakTypeReferance> Type => backing.Type;
-        public bool ReadOnly =>backing.ReadOnly;
-        public IKey Key=>backing.Key;
+        public IIsPossibly<IWeakTypeReferance> Type { get; }
+        public bool ReadOnly => backing.ReadOnly;
+        public IKey Key=> backing.Key;
+
+        public IMemberDefinition Convert(TransformerExtensions.ConversionContext context) => backing.Convert(context);
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IFrontendCodeElement<IMemberDefinition>).GetBuildIntention(context);
+        public IIsPossibly<IFrontendType<IVarifiableType>> Returns() => backing.Returns();
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IConvertable<IVarifiableType>).GetBuildIntention(context);
+        
     }
 
-    internal interface IWeakMemberDefinition {
-
-        IIsPossibly<WeakTypeReferance> Type { get; }
+    internal interface IWeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVarifiableType>
+    {
+        IIsPossibly<IWeakTypeReferance> Type { get; }
         bool ReadOnly { get; }
         IKey Key { get; }
+        IMemberDefinition Convert(TransformerExtensions.ConversionContext context);
     }
     
     // it is possible members are single instances with look up
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    internal class WeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVarifiableType>, IWeakMemberDefinition
+    internal class WeakMemberDefinition:  IWeakMemberDefinition
     {
         public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReferance> type)
         {
@@ -51,7 +58,7 @@ namespace Tac.Semantic_Model
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IIsPossibly<WeakTypeReferance> Type { get; }
+        public IIsPossibly<IWeakTypeReferance> Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
 
@@ -67,9 +74,14 @@ namespace Tac.Semantic_Model
             });
         }
 
-        internal IMemberDefinition Convert(TransformerExtensions.ConversionContext context)
+        public IMemberDefinition Convert(TransformerExtensions.ConversionContext context)
         {
-            throw new NotImplementedException();
+            var (def,builder) = MemberDefinition.Create();
+
+            var buildIntention = Type.GetOrThrow().Cast<IConvertable<ITypeReferance>>().GetBuildIntention(context);
+            buildIntention.Build();
+            builder.Build(Key, buildIntention.Tobuild, ReadOnly);
+            return def; 
         }
 
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);

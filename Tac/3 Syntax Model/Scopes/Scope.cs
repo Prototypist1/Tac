@@ -1,10 +1,4 @@
-﻿using Prototypist.LeftToRight;
-using Prototypist.TaskChain.DataTypes;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using Tac.Semantic_Model.Names;
+﻿using System;
 
 namespace Tac.Semantic_Model
 {

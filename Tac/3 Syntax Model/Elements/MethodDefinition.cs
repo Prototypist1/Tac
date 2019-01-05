@@ -11,7 +11,6 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
@@ -20,7 +19,7 @@ namespace Tac.Semantic_Model
     {
         public WeakMethodDefinition(
             IIsPossibly<WeakTypeReferance> outputType, 
-            IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> parameterDefinition,
+            IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
             IIsPossibly<IFrontendCodeElement<ICodeElement>>[] body,
             IResolvableScope scope,
             IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
@@ -31,7 +30,7 @@ namespace Tac.Semantic_Model
         
         public IIsPossibly<WeakTypeReferance> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
         public IIsPossibly<WeakTypeReferance> OutputType { get; }
-        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
 
 
         public override IBuildIntention<IMethodDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)

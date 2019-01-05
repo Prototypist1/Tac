@@ -11,7 +11,6 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Semantic_Model
 {
@@ -19,11 +18,13 @@ namespace Tac.Semantic_Model
     internal class OverlayTypeDefinition : IWeakTypeDefinition
     {
         private readonly IWeakTypeDefinition backing;
+        private readonly Overlay overlay;
 
-        public OverlayTypeDefinition(IWeakTypeDefinition backing)
+        public OverlayTypeDefinition(IWeakTypeDefinition backing, Overlay overlay)
         {
-            Scope = new OverlayedScope(backing.Scope);
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
+            Scope = new OverlayedScope(backing.Scope,overlay);
         }
         public IIsPossibly<IKey> Key => backing.Key;
         public IResolvableScope Scope { get; }

@@ -128,7 +128,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
     }
 
-    internal class GenericMethodType : IFrontendType<IGenericMethodType>, IGenericType
+    internal class GenericMethodType : IFrontendType<IGenericMethodType>, IFrontendGenericType
     {
 
         private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");
@@ -143,7 +143,9 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IBuildIntention<IGenericMethodType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
+            var (res, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
 
+            return new BuildIntention<IGenericMethodType>(res, () => builder.Build());
         }
 
         public IFrontendType<IMethodType> GetConcreteType(GenericTypeParameter[] parameters)
@@ -158,7 +160,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         
     }
 
-    internal class GenericImplementationType : IFrontendType<IGenericImplementationType>, IGenericType
+    internal class GenericImplementationType : IFrontendType<IGenericImplementationType>, IFrontendGenericType
     {
 
         private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");

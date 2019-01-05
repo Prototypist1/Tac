@@ -2,10 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Tac.Model;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Frontend._2_Parser
 {
@@ -108,8 +107,7 @@ namespace Tac.Frontend._2_Parser
             return TokenMatching<object>.MakeNotMatch(self.Context);
         }
     }
-
-
+    
     internal class BodyMaker : IMaker<CurleyBracketToken>
     {
         public ITokenMatching<CurleyBracketToken> TryMake(IMatchedTokenMatching self)

@@ -3,10 +3,8 @@ using System.Linq;
 using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
 
-namespace Tac.Semantic_Model.Names
+namespace Tac.Model
 {
 
     public class ImplicitKey : IKey {

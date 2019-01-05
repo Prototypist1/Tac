@@ -10,7 +10,6 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
 using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model
@@ -20,8 +19,8 @@ namespace Tac.Semantic_Model
     {
 
         public WeakImplementationDefinition(
-            IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> contextDefinition,
-            IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> parameterDefinition,
+            IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> contextDefinition,
+            IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
             IIsPossibly<WeakTypeReferance> outputType, 
             IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> metohdBody,
             IResolvableScope scope, 
@@ -36,14 +35,14 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public IIsPossibly<WeakTypeReferance> ContextTypeBox
+        public IIsPossibly<IWeakTypeReferance> ContextTypeBox
         {
             get
             {
                 return ContextDefinition.IfIs(x=>x.GetValue()).IfIs(x=> x.Type);
             }
         }
-        public IIsPossibly<WeakTypeReferance> InputTypeBox
+        public IIsPossibly<IWeakTypeReferance> InputTypeBox
         {
             get
             {
@@ -52,8 +51,8 @@ namespace Tac.Semantic_Model
         }
         public IIsPossibly<WeakTypeReferance> OutputType { get; }
         // are these really boxes
-        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ContextDefinition { get; }
-        public IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ContextDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
         public IResolvableScope Scope { get; }
         public IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> MethodBody { get; }
         public IEnumerable<IFrontendCodeElement<ICodeElement>> StaticInitialzers { get; }
