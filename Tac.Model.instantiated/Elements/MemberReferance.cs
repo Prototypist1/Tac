@@ -3,11 +3,11 @@ using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
-    public class MemberReferance : IMemberReferance, IMemberReferanceBuilder
+    public class MemberReference : IMemberReferance, IMemberReferanceBuilder
     {
         private readonly Buildable<IMemberDefinition> buildableMemberDefinition = new Buildable<IMemberDefinition>();
 
-        private MemberReferance()
+        private MemberReference()
         {
         }
 
@@ -18,7 +18,7 @@ namespace Tac.Model.Instantiated
             return context.MemberReferance(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return this;
         }
@@ -30,8 +30,14 @@ namespace Tac.Model.Instantiated
         
         public static (IMemberReferance, IMemberReferanceBuilder) Create()
         {
-            var res = new MemberReferance();
+            var res = new MemberReference();
             return (res, res);
+        }
+
+        public static IMemberReferance CreateAndBuild(IMemberDefinition memberDefinition) {
+            var (x, y) = Create();
+            y.Build(memberDefinition);
+            return x;
         }
     }
 

@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model
 {
     internal class ImplicitMemberMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
-        private readonly IBox<IIsPossibly<IFrontendType<IVarifiableType>>> type;
+        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
 
-        public ImplicitMemberMaker( IBox<IIsPossibly<IFrontendType<IVarifiableType>>> type)
+        public ImplicitMemberMaker( IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
         {
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
@@ -46,10 +46,10 @@ namespace Tac.Semantic_Model
     internal class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReference>
     {
         private readonly string memberName;
-        private readonly IBox<IIsPossibly<IFrontendType<IVarifiableType>>> type;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
+        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
 
-        public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IFrontendType<IVarifiableType>>> type)
+        public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -70,7 +70,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -80,14 +80,14 @@ namespace Tac.Semantic_Model
 
     internal class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReference>
     {
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
         private readonly string memberName;
-        private readonly IBox<IIsPossibly<IFrontendType<IVarifiableType>>> type;
+        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
 
         public ImplicitMemberResolveReferance(
             string memberName,
-            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box,
-            IBox<IIsPossibly<IFrontendType<IVarifiableType>>> type)
+            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+            IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
@@ -106,7 +106,7 @@ namespace Tac.Semantic_Model
                                     false, 
                                     new NameKey(memberName),
                                     Possibly.Is(
-                                        new WeakTypeReferance(
+                                        new WeakTypeReference(
                                             Possibly.Is(type))))))))));
         }
     }

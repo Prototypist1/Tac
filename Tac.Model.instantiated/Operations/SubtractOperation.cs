@@ -24,7 +24,7 @@ namespace Tac.Model.Instantiated
             return context.SubtractOperation(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return new NumberType();
         }
@@ -35,6 +35,13 @@ namespace Tac.Model.Instantiated
         {
             var res = new SubtractOperation();
             return (res, res);
+        }
+        
+        public static ISubtractOperation CreateAndBuild(ICodeElement left, ICodeElement right)
+        {
+            var (x, y) = Create();
+            y.Build(left, right);
+            return x;
         }
 
     }

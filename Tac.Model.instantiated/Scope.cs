@@ -26,9 +26,9 @@ namespace Tac.Model.Instantiated
         private interface ITypeHolder { }
 
         private class TypeHolder : ITypeHolder {
-            public readonly IVarifiableType type;
+            public readonly IVerifiableType type;
 
-            public TypeHolder(IVarifiableType type) {
+            public TypeHolder(IVerifiableType type) {
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
             }
         }
@@ -75,7 +75,7 @@ namespace Tac.Model.Instantiated
             return parent == null;
         }
 
-        public bool TryGetType(IKey name, out IVarifiableType type)
+        public bool TryGetType(IKey name, out IVerifiableType type)
         {
             if (name is GenericNameKey genericNameKey)
             {

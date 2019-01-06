@@ -23,7 +23,7 @@ namespace Tac.Model.Instantiated
         {
             return context.BlockDefinition(this);
         }
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return new EmptyType();
         }
@@ -47,6 +47,12 @@ namespace Tac.Model.Instantiated
         {
             var res = new BlockDefinition();
             return (res, res);
+        }
+
+        public static IBlockDefinition CreateAndBuild(IFinalizedScope scope, ICodeElement[] body, IEnumerable<ICodeElement> staticInitailizers) {
+            var (x, y) = Create();
+            y.Build(scope, body, staticInitailizers);
+            return x;
         }
 
         #endregion

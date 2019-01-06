@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IKey> Key => backing.Key;
         public IResolvableScope Scope { get; }
 
-        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IInterfaceType>.Returns()
+        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IInterfaceType>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -59,7 +59,7 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IKey> Key { get; }
         public IResolvableScope Scope { get; }
         
-        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IInterfaceType>.Returns()
+        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IInterfaceType>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -75,13 +75,13 @@ namespace Tac.Semantic_Model
     }
 
 
-    internal class TypeDefinitionMaker : IMaker<IPopulateScope<WeakTypeReferance>>
+    internal class TypeDefinitionMaker : IMaker<IPopulateScope<WeakTypeReference>>
     {
         public TypeDefinitionMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakTypeReferance>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -92,7 +92,7 @@ namespace Tac.Semantic_Model
             {
                var elements = tokenMatching.Context.ParseBlock(body);
                 
-               return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeMatch(
+               return TokenMatching<IPopulateScope<WeakTypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new TypeDefinitionPopulateScope(
@@ -100,33 +100,33 @@ namespace Tac.Semantic_Model
                        typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey()));
             }
 
-            return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakTypeReference>>.MakeNotMatch(
                     matching.Context);
         }
     }
 
-    internal class TypeDefinitionPopulateScope : IPopulateScope<WeakTypeReferance>
+    internal class TypeDefinitionPopulateScope : IPopulateScope<WeakTypeReference>
     {
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
         private readonly IKey key;
         private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
-        private readonly WeakTypeReferance typeReferance;
-        private readonly Box<IIsPossibly<WeakTypeReferance>> box;
+        private readonly WeakTypeReference typeReferance;
+        private readonly Box<IIsPossibly<WeakTypeReference>> box;
 
         public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements, IKey typeName)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
-            typeReferance = new WeakTypeReferance(Possibly.Is(definitionBox));
-            box = new Box<IIsPossibly<WeakTypeReferance>>(Possibly.Is(typeReferance));
+            typeReferance = new WeakTypeReference(Possibly.Is(definitionBox));
+            box = new Box<IIsPossibly<WeakTypeReference>>(Possibly.Is(typeReferance));
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
 
-        public IPopulateBoxes<WeakTypeReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakTypeReference> Run(IPopulateScopeContext context)
         {
             var encolsing = context.Scope.TryAddType(key, box);
             var nextContext = context.Child();
@@ -139,17 +139,17 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeDefinitionResolveReference : IPopulateBoxes<WeakTypeReferance>
+    internal class TypeDefinitionResolveReference : IPopulateBoxes<WeakTypeReference>
     {
         private readonly IResolvableScope scope;
         private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox;
-        private readonly WeakTypeReferance typeReferance;
+        private readonly WeakTypeReference typeReferance;
         private readonly IKey key;
 
         public TypeDefinitionResolveReference(
             IResolvableScope scope, 
             Box<IIsPossibly<WeakTypeDefinition>> definitionBox, 
-            WeakTypeReferance typeReferance, 
+            WeakTypeReference typeReferance, 
             IKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -158,7 +158,7 @@ namespace Tac.Semantic_Model
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IIsPossibly<WeakTypeReferance> Run(IResolveReferenceContext context)
+        public IIsPossibly<WeakTypeReference> Run(IResolveReferenceContext context)
         {
             definitionBox.Fill(Possibly.Is(new WeakTypeDefinition(scope, Possibly.Is(key))));
             return Possibly.Is(typeReferance);

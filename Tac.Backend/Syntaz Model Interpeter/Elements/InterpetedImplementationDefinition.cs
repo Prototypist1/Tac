@@ -1,10 +1,6 @@
-﻿using Prototypist.LeftToRight;
-using System.Collections.Generic;
-using System.Linq;
-using System;
+﻿using System;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Model;
-using Tac.Semantic_Model.Names;
 
 namespace Tac.Syntaz_Model_Interpeter
 {

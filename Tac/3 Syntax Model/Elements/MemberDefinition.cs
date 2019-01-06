@@ -32,12 +32,12 @@ namespace Tac.Semantic_Model
 
         public IMemberDefinition Convert(TransformerExtensions.ConversionContext context) => backing.Convert(context);
         public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IFrontendCodeElement<IMemberDefinition>).GetBuildIntention(context);
-        public IIsPossibly<IFrontendType<IVarifiableType>> Returns() => backing.Returns();
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IConvertable<IVarifiableType>).GetBuildIntention(context);
+        public IIsPossibly<IFrontendType<IVerifiableType>> Returns() => backing.Returns();
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IConvertable<IVerifiableType>).GetBuildIntention(context);
         
     }
 
-    internal interface IWeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVarifiableType>
+    internal interface IWeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVerifiableType>
     {
         IIsPossibly<IWeakTypeReferance> Type { get; }
         bool ReadOnly { get; }
@@ -51,7 +51,7 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition:  IWeakMemberDefinition
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReferance> type)
+        public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReference> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
@@ -84,9 +84,9 @@ namespace Tac.Semantic_Model
             return def; 
         }
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IMemberDefinition>.Returns()
+        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IMemberDefinition>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -122,11 +122,11 @@ namespace Tac.Semantic_Model
     {
         private readonly string memberName;
         private readonly bool isReadonly;
-        private readonly IPopulateScope<WeakTypeReferance> typeName;
+        private readonly IPopulateScope<WeakTypeReference> typeName;
         private readonly Box<IIsPossibly<WeakMemberReference>> box = new Box<IIsPossibly<WeakMemberReference>>();
         private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox = new Box<IIsPossibly<WeakMemberDefinition>>();
 
-        public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<WeakTypeReferance> typeToken)
+        public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<WeakTypeReference> typeToken)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             isReadonly = v;
@@ -143,7 +143,7 @@ namespace Tac.Semantic_Model
             return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName.Run(context), context.GetResolvableScope(), memberDefinitionBox);
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -154,7 +154,7 @@ namespace Tac.Semantic_Model
         private readonly string memberName;
         private readonly Box<IIsPossibly<WeakMemberReference>> box;
         private readonly bool isReadonly;
-        public readonly IPopulateBoxes<WeakTypeReferance> type;
+        public readonly IPopulateBoxes<WeakTypeReference> type;
         private readonly IResolvableScope scope;
         private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox;
 
@@ -162,7 +162,7 @@ namespace Tac.Semantic_Model
             string memberName,
             Box<IIsPossibly<WeakMemberReference>> box,
             bool isReadonly,
-            IPopulateBoxes<WeakTypeReferance> type,
+            IPopulateBoxes<WeakTypeReference> type,
             IResolvableScope scope,
             Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
         {

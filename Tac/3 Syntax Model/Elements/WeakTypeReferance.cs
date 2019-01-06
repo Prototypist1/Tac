@@ -14,14 +14,14 @@ namespace Tac.Semantic_Model
 {
     internal class Overlay {
 
-        private readonly Dictionary<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder, IFrontendType<IVarifiableType>> map;
+        private readonly Dictionary<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder, IFrontendType<IVerifiableType>> map;
 
-        public Overlay(Dictionary<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder, IFrontendType<IVarifiableType>> map)
+        public Overlay(Dictionary<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder, IFrontendType<IVerifiableType>> map)
         {
             this.map = map ?? throw new ArgumentNullException(nameof(map));
         }
 
-        public IFrontendType<IVarifiableType> Convert(IFrontendType<IVarifiableType> type) {
+        public IFrontendType<IVerifiableType> Convert(IFrontendType<IVerifiableType> type) {
             if (type.Is<IWeakTypeDefinition>(out var typeDef))
             {
                 return new OverlayTypeDefinition(typeDef,this);
@@ -47,62 +47,62 @@ namespace Tac.Semantic_Model
 
             TypeDefinition = weakTypeReferance.TypeDefinition.IfIs(x =>
                 Possibly.Is(
-                    new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>>(() => x
+                    new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>(() => x
                         .GetValue()
                         .IfIs(y => Possibly.Is(overlay.Convert(y))))));
 
         }
 
         private readonly Overlay overlay;
-        public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> TypeDefinition { get;}
+        public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get;}
 
         // TODO this code is dup
         // should it be shared?
 
         public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            var (toBuild, maker) = TypeReferance.Create();
+            var (toBuild, maker) = TypeReference.Create();
             return new BuildIntention<ITypeReferance>(toBuild, () =>
             {
                 maker.Build(TypeDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context));
             });
         }
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         => GetBuildIntention(context);
 
-        public IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return TypeDefinition.IfIs(x => x.GetValue());
         }
     }
 
-    internal interface IWeakTypeReferance : IFrontendCodeElement<ITypeReferance>, IFrontendType<IVarifiableType> {
-        IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> TypeDefinition { get; }
+    internal interface IWeakTypeReferance : IFrontendCodeElement<ITypeReferance>, IFrontendType<IVerifiableType> {
+        IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
     }
 
-    internal class WeakTypeReferance : IWeakTypeReferance
+    internal class WeakTypeReference : IWeakTypeReferance
     {
-        public WeakTypeReferance(IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> typeDefinition)
+        public WeakTypeReference(IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
 
-        public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>> TypeDefinition { get; }
+        public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
 
         public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            var (toBuild, maker) = TypeReferance.Create();
+            var (toBuild, maker) = TypeReference.Create();
             return new BuildIntention<ITypeReferance>(toBuild, () =>
             {
                 maker.Build(TypeDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context));
             });
         }
         
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         => GetBuildIntention(context);
 
-        public IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return TypeDefinition.IfIs(x => x.GetValue());
         }
@@ -153,43 +153,43 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<IPopulateScope<WeakTypeReferance>>
+    internal class TypeReferanceMaker : IMaker<IPopulateScope<WeakTypeReference>>
     {
-        public ITokenMatching<IPopulateScope<WeakTypeReferance>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
-            var list = new List<IPopulateScope<WeakTypeReferance>>();
+            var list = new List<IPopulateScope<WeakTypeReference>>();
             var matching = tokenMatching
                 .Has(new TypeMaker(), out var type);
             
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakTypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new TypeReferancePopulateScope(type));
             }
 
-            return TokenMatching<IPopulateScope<WeakTypeReferance>>.MakeNotMatch(matching.Context);
+            return TokenMatching<IPopulateScope<WeakTypeReference>>.MakeNotMatch(matching.Context);
         }
     }
 
-    internal class TypeReferancePopulateScope : IPopulateScope<WeakTypeReferance>
+    internal class TypeReferancePopulateScope : IPopulateScope<WeakTypeReference>
     {
         private readonly IKey key;
-        private readonly Box<IIsPossibly<WeakTypeReferance>> box = new Box<IIsPossibly<WeakTypeReferance>>();
+        private readonly Box<IIsPossibly<WeakTypeReference>> box = new Box<IIsPossibly<WeakTypeReference>>();
 
         public TypeReferancePopulateScope(IKey typeName)
         {
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
 
-        public IPopulateBoxes<WeakTypeReferance> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<WeakTypeReference> Run(IPopulateScopeContext context)
         {
             return new TypeReferanceResolveReference(
                 context.GetResolvableScope(),
@@ -198,22 +198,22 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceResolveReference : IPopulateBoxes<WeakTypeReferance>
+    internal class TypeReferanceResolveReference : IPopulateBoxes<WeakTypeReference>
     {
         private readonly IResolvableScope scope;
-        private readonly Box<IIsPossibly<WeakTypeReferance>> box;
+        private readonly Box<IIsPossibly<WeakTypeReference>> box;
         private readonly IKey key;
 
-        public TypeReferanceResolveReference(IResolvableScope scope, Box<IIsPossibly<WeakTypeReferance>> box, IKey key)
+        public TypeReferanceResolveReference(IResolvableScope scope, Box<IIsPossibly<WeakTypeReference>> box, IKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IIsPossibly<WeakTypeReferance> Run(IResolveReferenceContext context)
+        public IIsPossibly<WeakTypeReference> Run(IResolveReferenceContext context)
         {
-                return box.Fill(Possibly.Is(new WeakTypeReferance(scope.PossiblyGetType(key))));
+                return box.Fill(Possibly.Is(new WeakTypeReference(scope.PossiblyGetType(key))));
         }
     }
 

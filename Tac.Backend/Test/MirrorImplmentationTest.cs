@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Tac.Backend.Syntaz_Model_Interpeter;
 using Tac.Model;
-using Tac.Semantic_Model.Names;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.TestCases.Samples;
-using Tac.Tests.Samples;
 using Xunit;
 
 namespace Tac.Backend.Test

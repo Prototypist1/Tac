@@ -15,10 +15,10 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMethodDefinition : WeakAbstractBlockDefinition<IMethodDefinition>, IFrontendType<IVarifiableType>
+    internal class WeakMethodDefinition : WeakAbstractBlockDefinition<IMethodDefinition>, IFrontendType<IVerifiableType>
     {
         public WeakMethodDefinition(
-            IIsPossibly<WeakTypeReferance> outputType, 
+            IIsPossibly<IWeakTypeReferance> outputType, 
             IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
             IIsPossibly<IFrontendCodeElement<ICodeElement>>[] body,
             IResolvableScope scope,
@@ -28,8 +28,8 @@ namespace Tac.Semantic_Model
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
         
-        public IIsPossibly<WeakTypeReferance> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
-        public IIsPossibly<WeakTypeReferance> OutputType { get; }
+        public IIsPossibly<IWeakTypeReferance> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
+        public IIsPossibly<IWeakTypeReferance> OutputType { get; }
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
 
 
@@ -48,9 +48,9 @@ namespace Tac.Semantic_Model
             });
         }
 
-        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns() => Possibly.Is(this);
+        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns() => Possibly.Is(this);
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     }
 
 
@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model
 
         public ITokenMatching<IPopulateScope<WeakMethodDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            IPopulateScope<WeakTypeReferance> input = null, output = null;
+            IPopulateScope<WeakTypeReference> input = null, output = null;
             var matching = tokenMatching
                 .Has(new KeyWordMaker("method"), out var _)
                 .HasSquare(x => x
@@ -117,13 +117,13 @@ namespace Tac.Semantic_Model
     {
         private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly IPopulateScope<WeakTypeReferance> output;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
+        private readonly IPopulateScope<WeakTypeReference> output;
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
 
         public MethodDefinitionPopulateScope(
             IPopulateScope<WeakMemberReference> parameterDefinition,
             IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements,
-            IPopulateScope<WeakTypeReferance> output
+            IPopulateScope<WeakTypeReference> output
             )
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -132,7 +132,7 @@ namespace Tac.Semantic_Model
 
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -155,15 +155,15 @@ namespace Tac.Semantic_Model
         private readonly IPopulateBoxes<WeakMemberReference> parameter;
         private readonly IResolvableScope methodScope;
         private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
-        private readonly IPopulateBoxes<WeakTypeReferance> output;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
+        private readonly IPopulateBoxes<WeakTypeReference> output;
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
 
         public MethodDefinitionResolveReferance(
             IPopulateBoxes<WeakMemberReference> parameter, 
             IResolvableScope methodScope, 
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance2,
-            IPopulateBoxes<WeakTypeReferance> output,
-            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box)
+            IPopulateBoxes<WeakTypeReference> output,
+            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
         {
             this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));

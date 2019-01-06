@@ -32,9 +32,16 @@ namespace Tac.Model.Instantiated
             return context.IfTrueOperation(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return new BooleanType();
+        }
+        
+        public static IIfOperation CreateAndBuild(ICodeElement left, ICodeElement right)
+        {
+            var (x, y) = Create();
+            y.Build(left, right);
+            return x;
         }
     }
 

@@ -55,17 +55,17 @@ namespace Tac.Semantic_Model
     // ah! a IFrontendGenericType is a IFrontendType<IVarifiableType>
     // two methods
 
-    internal interface IFrontendGenericType : IFrontendType<IVarifiableType>
+    internal interface IFrontendGenericType : IFrontendType<IVerifiableType>
     {
         IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
-        OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters);
+        OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);
     }
 
     internal class TypeParameter {
         public readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder parameterDefinition;
-        public readonly IFrontendType<IVarifiableType> frontendType;
+        public readonly IFrontendType<IVerifiableType> frontendType;
 
-        public TypeParameter(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder parameterDefinition, IFrontendType<IVarifiableType> frontendType)
+        public TypeParameter(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder parameterDefinition, IFrontendType<IVerifiableType> frontendType)
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
@@ -81,7 +81,7 @@ namespace Tac.Semantic_Model
             {
                 // for the sake of validation type parameters are types 
 
-                if (!TryAddType(item.Key, new Box<IIsPossibly< IFrontendType<IVarifiableType>>>(Possibly.Is(new GemericTypeParameterPlacholder(item.Key))))) {
+                if (!TryAddType(item.Key, new Box<IIsPossibly< IFrontendType<IVerifiableType>>>(Possibly.Is(new GemericTypeParameterPlacholder(item.Key))))) {
                     throw new Exception("that is not right!");
                 }
             }
@@ -173,8 +173,8 @@ namespace Tac.Semantic_Model
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
 
-        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>>>> types
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>>>>();
+        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>> types
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>>();
 
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>> genericTypes
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>>();
@@ -186,11 +186,11 @@ namespace Tac.Semantic_Model
 
         public NewScope()
         {
-            TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(Possibly.Is(new NumberType())));
-            TryAddType(new NameKey("string"), new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(Possibly.Is(new StringType())));
-            TryAddType(new NameKey("any"), new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(Possibly.Is(new AnyType())));
-            TryAddType(new NameKey("empty"), new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(Possibly.Is(new EmptyType())));
-            TryAddType(new NameKey("bool"), new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(Possibly.Is(new BooleanType())));
+            TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new NumberType())));
+            TryAddType(new NameKey("string"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new StringType())));
+            TryAddType(new NameKey("any"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new AnyType())));
+            TryAddType(new NameKey("empty"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new EmptyType())));
+            TryAddType(new NameKey("bool"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new BooleanType())));
             // TODO, I need to figure out how method types work
             //
             TryAddGeneric(
@@ -219,10 +219,10 @@ namespace Tac.Semantic_Model
             return list.TryAdd(visiblity);
         }
 
-        public bool TryAddType(IKey key, IBox<IIsPossibly<IFrontendType<IVarifiableType>>> definition)
+        public bool TryAddType(IKey key, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> definition)
         {
-            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>>>());
-            var visiblity = new Visiblity<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>>(DefintionLifetime.Static, definition);
+            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>());
+            var visiblity = new Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
         
@@ -255,7 +255,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType<IVarifiableType>>> type)
+        public bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
         {
             if (name is GenericNameKey generic)
             {
@@ -270,14 +270,14 @@ namespace Tac.Semantic_Model
                     return innerTypeBox;
                 }).ToList();
 
-                type = new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>>(() =>
+                type = new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>(() =>
                 {
                     var overlayed = set.Select(x => x.Definition.GetValue())
                         .Where(x => x.TypeParameterDefinitions.Length == typesBoxes.Count())
                         .Single()
                         .Assign(out var single)
                         .Overlay(single.TypeParameterDefinitions.Zip(typesBoxes, (x, y) => new TypeParameter(x.GetOrThrow(), y.GetValue().GetOrThrow())).ToArray());
-                    if (overlayed.Is(out IFrontendType<IVarifiableType> frontendType)) {
+                    if (overlayed.Is(out IFrontendType<IVerifiableType> frontendType)) {
                         return Possibly.Is(frontendType);
                     }
                     if (overlayed.Is(out IFrontendGenericType frontendGeneric))

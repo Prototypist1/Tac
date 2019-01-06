@@ -20,7 +20,7 @@ namespace Tac.Model.Instantiated
             return context.GenericTypeDefinition(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return this;
         }
@@ -37,6 +37,11 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
+        public static IGenericInterfaceDefinition CreateAndBuild(IFinalizedScope scope, IGenericTypeParameterDefinition[] typeParameterDefinitions) {
+            var (x, y) = Create();
+            y.Build(scope, typeParameterDefinitions);
+            return x;
+        }
     }
 
     public class TestGenericTypeParameterDefinition : IGenericTypeParameterDefinition

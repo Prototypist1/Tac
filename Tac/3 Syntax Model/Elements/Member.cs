@@ -34,14 +34,14 @@ namespace Tac.Semantic_Model
     internal class MemberPopulateScope : IPopulateScope<WeakMemberReference>
     {
         private readonly string memberName;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
 
         public MemberPopulateScope(string item)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -59,9 +59,9 @@ namespace Tac.Semantic_Model
                                 false,
                                 nameKey,
                                 Possibly.Is(
-                                    new WeakTypeReferance( 
+                                    new WeakTypeReference( 
                                         Possibly.Is( 
-                                            new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(
+                                            new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
                                                 Possibly.Is(
                                                     new AnyType()))))))))))
             {
@@ -77,12 +77,12 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope resolvableScope;
         private readonly NameKey key;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
 
         public MemberResolveReferance(
             IResolvableScope resolvableScope,
             NameKey key, 
-            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box)
+            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
         {
             this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
             this.key = key ?? throw new ArgumentNullException(nameof(key));

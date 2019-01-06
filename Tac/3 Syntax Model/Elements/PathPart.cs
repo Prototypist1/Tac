@@ -38,18 +38,18 @@ namespace Tac.Semantic_Model
             return backing.Cast<IFrontendCodeElement<IMemberReferance>>().GetBuildIntention(context);
         }
 
-        public IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return backing.Returns();
         }
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return backing.Cast<IConvertable<IVarifiableType>>().GetBuildIntention(context);
+            return backing.Cast<IConvertable<IVerifiableType>>().GetBuildIntention(context);
         }
     }
 
-    internal interface IWeakMemberReference: IFrontendCodeElement<IMemberReferance>, IFrontendType<IVarifiableType> {
+    internal interface IWeakMemberReference: IFrontendCodeElement<IMemberReferance>, IFrontendType<IVerifiableType> {
         IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
     }
 
@@ -64,30 +64,30 @@ namespace Tac.Semantic_Model
 
         public IBuildIntention<IMemberReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            var (toBuild, maker) = MemberReferance.Create();
+            var (toBuild, maker) = MemberReference.Create();
             return new BuildIntention<IMemberReferance>(toBuild, () =>
             {
                 maker.Build(MemberDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context));
             });
         }
 
-        public IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return MemberDefinition.IfIs(x => x.GetValue());
         }
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     }
 
     internal class MemberReferanceMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
         public MemberReferanceMaker(
-            IBox<IIsPossibly<IFrontendType<IVarifiableType>>> lhs)
+            IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs)
         {
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        private readonly IBox<IIsPossibly<IFrontendType<IVarifiableType>>> lhs;
+        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs;
 
         public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
@@ -108,17 +108,17 @@ namespace Tac.Semantic_Model
     internal class MemberReferancePopulateScope : IPopulateScope< WeakMemberReference>
     {
 
-        private readonly IBox<IIsPossibly<IFrontendType<IVarifiableType>>> lhs;
+        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs;
         private readonly string memberName;
         private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box = new DelegateBox<IIsPossibly<WeakMemberDefinition>>();
 
-        public MemberReferancePopulateScope( string item, IBox<IIsPossibly<IFrontendType<IVarifiableType>>> lhs)
+        public MemberReferancePopulateScope( string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -134,13 +134,13 @@ namespace Tac.Semantic_Model
     {
 
         private readonly string memberName;
-        private readonly IBox<IIsPossibly<IFrontendType<IVarifiableType>>> lhs;
+        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs;
         private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box;
 
         public MemberReferanceResolveReferance(
             string memberName, 
             DelegateBox<IIsPossibly<WeakMemberDefinition>> box, 
-            IBox<IIsPossibly<IFrontendType<IVarifiableType>>> lhs)
+            IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
             this.box = box ?? throw new ArgumentNullException(nameof(box));

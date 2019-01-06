@@ -32,9 +32,16 @@ namespace Tac.Model.Instantiated
             return context.MultiplyOperation(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return new NumberType();
+        }
+        
+        public static IMultiplyOperation CreateAndBuild(ICodeElement left, ICodeElement right)
+        {
+            var (x, y) = Create();
+            y.Build(left, right);
+            return x;
         }
     }
 }

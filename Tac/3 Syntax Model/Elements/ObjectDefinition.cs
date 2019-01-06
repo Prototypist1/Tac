@@ -18,7 +18,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakObjectDefinition: IFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType<IVarifiableType>
+    internal class WeakObjectDefinition: IFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType<IVerifiableType>
     {
         public WeakObjectDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -49,9 +49,9 @@ namespace Tac.Semantic_Model
             });
         }
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IObjectDefiniton>.Returns()
+        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IObjectDefiniton>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -86,14 +86,14 @@ namespace Tac.Semantic_Model
     internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
     {
         private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
 
         public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -115,13 +115,13 @@ namespace Tac.Semantic_Model
     {
         private readonly IResolvableScope scope;
         private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
         private readonly ImplicitKey key;
 
         public ResolveReferanceObjectDefinition(
             IResolvableScope scope, 
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements, 
-            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box, 
+            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box, 
             ImplicitKey key)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));

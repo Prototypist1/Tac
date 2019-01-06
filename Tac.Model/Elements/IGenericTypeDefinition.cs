@@ -3,7 +3,7 @@
 namespace Tac.Model.Elements
 {
 
-    public interface IGenericType : IVarifiableType
+    public interface IGenericType : IVerifiableType
     {
         IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
     }

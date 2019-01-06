@@ -8,7 +8,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 {
     internal class InterpetedTypeReferance : IInterpeted, ITypeReferance
     {
-        public IVarifiableType TypeDefinition
+        public IVerifiableType TypeDefinition
         {
             get; private set;
         }
@@ -23,12 +23,12 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             return InterpetedResult.Create(new RunTimeType());
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return this;
         }
 
-        internal void Init(IVarifiableType typeDefinition)
+        internal void Init(IVerifiableType typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }

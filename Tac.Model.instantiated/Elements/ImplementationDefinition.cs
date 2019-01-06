@@ -27,16 +27,16 @@ namespace Tac.Model.Instantiated
         public IEnumerable<ICodeElement> MethodBody { get => buildableMethodBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitialzers { get => buildableStaticInitialzers.Get(); }
 
-        public IVarifiableType InputType => ParameterDefinition.Type;
-        public IVarifiableType ContextType => ContextDefinition;
-        IVarifiableType IImplementationType.OutputType => OutputType;
+        public IVerifiableType InputType => ParameterDefinition.Type;
+        public IVerifiableType ContextType => ContextDefinition;
+        IVerifiableType IImplementationType.OutputType => OutputType;
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ImplementationDefinition(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return this;
         }
@@ -55,6 +55,12 @@ namespace Tac.Model.Instantiated
         {
             var res = new ImplementationDefinition();
             return (res, res);
+        }
+
+        public static IImplementationDefinition CreateAndBuild(ITypeReferance outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers) {
+            var (x, y) = Create();
+            y.Build(outputType, contextDefinition, parameterDefinition, scope, methodBody, staticInitialzers);
+            return x;
         }
     }
 

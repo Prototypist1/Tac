@@ -1,6 +1,6 @@
 ﻿namespace Tac.Model.Elements
 {
-    public interface IBlockDefinition: IAbstractBlockDefinition, IVarifiableType
+    public interface IBlockDefinition: IAbstractBlockDefinition, IVerifiableType
     {
     }
 }

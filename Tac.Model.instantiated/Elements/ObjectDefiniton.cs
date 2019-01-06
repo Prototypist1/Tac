@@ -20,7 +20,7 @@ namespace Tac.Model.Instantiated
             return context.ObjectDefinition(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return this;
         }
@@ -30,12 +30,17 @@ namespace Tac.Model.Instantiated
             buildableScope.Set(scope);
             buildableAssignments.Set(assignments);
         }
-
-
+        
         public static (IObjectDefiniton, IObjectDefinitonBuilder) Create()
         {
             var res = new ObjectDefiniton();
             return (res, res);
+        }
+
+        public static IObjectDefiniton CreateAndBuild(IFinalizedScope scope, IEnumerable<IAssignOperation> assignments) {
+            var (x, y) = Create();
+            y.Build(scope, assignments);
+            return x;
         }
     }
 

@@ -24,7 +24,13 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public IVarifiableType Returns()
+        public static IInterfaceType CreateAndBuild(IFinalizedScope scope) {
+            var (x, y) = Create();
+            y.Build(scope);
+            return x;
+        }
+
+        public IVerifiableType Returns()
         {
             return this;
         }
@@ -49,16 +55,22 @@ namespace Tac.Model.Instantiated
     public class ObjectType : IObjectType { }
     public class ModuleType : IModuleType { }
     
-    public class GemericTypeParameterPlacholder : IVarifiableType, IGemericTypeParameterPlacholderBuilder
+    public class GemericTypeParameterPlacholder : IVerifiableType, IGemericTypeParameterPlacholderBuilder
     {
         private GemericTypeParameterPlacholder() { }
 
-        public static (IVarifiableType, IGemericTypeParameterPlacholderBuilder) Create()
+        public static (IVerifiableType, IGemericTypeParameterPlacholderBuilder) Create()
         {
             var res = new GemericTypeParameterPlacholder();
             return (res, res);
         }
-        
+
+        public static IVerifiableType CreateAndBuild(IKey key) {
+            var (x, y) = Create();
+            y.Build(key);
+            return x;
+        }
+
         public void Build(IKey key)
         {
             this.Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -108,7 +120,7 @@ namespace Tac.Model.Instantiated
     {
         private MethodType() { }
 
-        public void Build(IVarifiableType inputType, IVarifiableType outputType)
+        public void Build(IVerifiableType inputType, IVerifiableType outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -119,21 +131,27 @@ namespace Tac.Model.Instantiated
             var res = new MethodType();
             return (res, res);
         }
-        
-        public IVarifiableType InputType { get; private set; }
-        public IVarifiableType OutputType { get; private set; }
+
+        public static IMethodType CreateAndBuild(IVerifiableType inputType, IVerifiableType outputType) {
+            var (x, y) = Create();
+            y.Build(inputType, outputType);
+            return x;
+        }
+
+        public IVerifiableType InputType { get; private set; }
+        public IVerifiableType OutputType { get; private set; }
     }
     
     public interface IMethodTypeBuilder
     {
-        void Build(IVarifiableType inputType, IVarifiableType outputType);
+        void Build(IVerifiableType inputType, IVerifiableType outputType);
     }
 
     public class ImplementationType : IImplementationType, IImplementationTypeBuilder
     {
         private ImplementationType() { }
 
-        public void Build(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType)
+        public void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -146,9 +164,9 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
         
-        public IVarifiableType InputType { get; private set; }
-        public IVarifiableType OutputType { get; private set; }
-        public IVarifiableType ContextType { get; private set; }
+        public IVerifiableType InputType { get; private set; }
+        public IVerifiableType OutputType { get; private set; }
+        public IVerifiableType ContextType { get; private set; }
     }
 
     // TODO!
@@ -174,6 +192,6 @@ namespace Tac.Model.Instantiated
 
     public interface IImplementationTypeBuilder
     {
-        void Build(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType);
+        void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType);
     }
 }

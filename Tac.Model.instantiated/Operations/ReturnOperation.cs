@@ -20,7 +20,7 @@ namespace Tac.Model.Instantiated
             return context.ReturnOperation(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return new EmptyType();
         }
@@ -31,6 +31,12 @@ namespace Tac.Model.Instantiated
         {
             var res = new ReturnOperation();
             return (res, res);
+        }
+
+        public static IReturnOperation CreateAndBuild(ICodeElement result) {
+            var (x, y) = Create();
+            y.Build(result);
+            return x;
         }
     }
 

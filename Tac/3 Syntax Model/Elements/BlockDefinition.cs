@@ -33,7 +33,7 @@ namespace Tac.Semantic_Model
             });
         }
 
-        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType());
         }
@@ -82,9 +82,9 @@ namespace Tac.Semantic_Model
                 Elements.Select(x => x.Run(nextContext)).ToArray());
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
-            return new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType()));
+            return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType()));
         }
     }
 

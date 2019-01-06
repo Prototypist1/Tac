@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model.Operations
             });
         }
         
-        public IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType());
         }
@@ -75,9 +75,9 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantNumberResolveReferance(dub);
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
-            return new Box<IIsPossibly<IFrontendType<IVarifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType()));
+            return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType()));
         }
     }
 

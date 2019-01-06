@@ -26,15 +26,15 @@ namespace Tac.Model.Instantiated
         public ICodeElement[] Body { get => buildableBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
 
-        IVarifiableType IMethodType.InputType => InputType;
-        IVarifiableType IMethodType.OutputType => OutputType;
+        IVerifiableType IMethodType.InputType => InputType;
+        IVerifiableType IMethodType.OutputType => OutputType;
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.MethodDefinition(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return this;
         }
@@ -63,6 +63,17 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
+        public static IMethodDefinition CreateAndBuild(
+            ITypeReferance inputType,
+            ITypeReferance outputType,
+            IMemberDefinition parameterDefinition,
+            IFinalizedScope scope,
+            ICodeElement[] body,
+            IEnumerable<ICodeElement> staticInitailizers) {
+            var (x, y) = Create();
+            y.Build(inputType, outputType, parameterDefinition, scope, body, staticInitailizers);
+            return x;
+        }
     }
 
     public interface IMethodDefinitionBuilder

@@ -14,7 +14,7 @@ namespace Tac.Model
     {
         IEnumerable<IKey> MemberKeys { get; }
         bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box);
-        bool TryGetType(IKey name, out IVarifiableType type);
+        bool TryGetType(IKey name, out IVerifiableType type);
         bool TryGetParent(out IFinalizedScope res); 
     }
     

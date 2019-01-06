@@ -2,7 +2,6 @@
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
-using Tac.Semantic_Model.Names;
 using Tac.TestCases;
 using Tac.TestCases.Help;
 
@@ -10,37 +9,38 @@ namespace Tac.Tests.Samples
 {
     public class PairType : ITestCase
     {
-        public string Text => @"type [ T ; ] pair {
+        public string Text => @"Module { type [ T ; ] pair {
                             T x ;
                             T y ;
-                        }";
+                        } ; }";
 
-        public ICodeElement[] CodeElements
+        public IModuleDefinition Module { get; }
+
+        public PairType()
         {
-            get
-            {
                 var key = new NameKey("T");
-                var type = new GemericTypeParameterPlacholder(key);
+                var type = GemericTypeParameterPlacholder.CreateAndBuild(key);
 
                 var keyX = new NameKey("x");
-                var localX = new MemberDefinition(keyX, new TypeReferance(type), false);
+                var localX = MemberDefinition.CreateAndBuild(keyX, TypeReference.CreateAndBuild(type), false);
                 var keyY = new NameKey("y");
-                var localY = new MemberDefinition(keyY, new TypeReferance(type), false);
+                var localY = MemberDefinition.CreateAndBuild(keyY, TypeReference.CreateAndBuild(type), false);
 
-                return new ICodeElement[] {
-                    new GenericInterfaceDefinition(
-                        new FinalizedScope(
-                            new Dictionary<IKey, IMemberDefinition> {
-                                { keyX, localX },
-                                { keyY, localY }
-                            }),
-                        new TestGenericTypeParameterDefinition[]{
-                            new TestGenericTypeParameterDefinition(key)
-                        })
-                };
-            }
+            Module = ModuleDefinition.CreateAndBuild(
+                // huh, FinalizedScope does not hold types??
+                new FinalizedScope(new Dictionary<IKey, IMemberDefinition>()),
+                new[] {
+                        GenericInterfaceDefinition.CreateAndBuild(
+                                                new FinalizedScope(
+                                                    new Dictionary<IKey, IMemberDefinition> {
+                                                        { keyX, localX },
+                                                        { keyY, localY }
+                                                    }),
+                                                new TestGenericTypeParameterDefinition[]{
+                                                    new TestGenericTypeParameterDefinition(key)
+                                                })
+                }
+                );
         }
-
-        public IFinalizedScope Scope => new FinalizedScope(new Dictionary<IKey, IMemberDefinition>());
     }
 }

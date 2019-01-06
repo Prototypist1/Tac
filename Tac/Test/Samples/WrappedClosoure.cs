@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Tac.Parser;
+﻿using Tac.Parser;
 using Tac.Tests.Samples;
 using Tac.Tests.Tokenizer;
 

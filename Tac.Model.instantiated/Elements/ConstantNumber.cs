@@ -17,7 +17,7 @@ namespace Tac.Model.Instantiated
             return context.ConstantNumber(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return new NumberType();
         }
@@ -34,6 +34,12 @@ namespace Tac.Model.Instantiated
         {
             var res = new ConstantNumber();
             return (res, res);
+        }
+
+        public static IConstantNumber CreateAndBuild(double value) {
+            var (x, y) = Create();
+            y.Build(value);
+            return x;
         }
     }
 

@@ -3,41 +3,41 @@
 namespace Tac.Model.Elements
 {
 
-    public interface IInterfaceType : IVarifiableType, ICodeElement
+    public interface IInterfaceType : IVerifiableType, ICodeElement
     {
         IFinalizedScope Scope { get; }
     }
     
-    public interface IVarifiableType {
+    public interface IVerifiableType {
     }
 
 
-    public interface IBlockType : IVarifiableType { }
+    public interface IBlockType : IVerifiableType { }
 
-    public interface INumberType: IVarifiableType { }
-    public interface IBooleanType: IVarifiableType { }
-    public interface IStringType: IVarifiableType { }
+    public interface INumberType: IVerifiableType { }
+    public interface IBooleanType: IVerifiableType { }
+    public interface IStringType: IVerifiableType { }
 
-    public interface IAnyType : IVarifiableType { }
-    public interface IEmptyType : IVarifiableType { }
-    public interface IObjectType : IVarifiableType { }
-    public interface IModuleType : IVarifiableType { }
+    public interface IAnyType : IVerifiableType { }
+    public interface IEmptyType : IVerifiableType { }
+    public interface IObjectType : IVerifiableType { }
+    public interface IModuleType : IVerifiableType { }
 
-    public interface IMethodType : IVarifiableType {
-        IVarifiableType InputType { get; }
-        IVarifiableType OutputType { get; }
+    public interface IMethodType : IVerifiableType {
+        IVerifiableType InputType { get; }
+        IVerifiableType OutputType { get; }
     }
 
-    public interface IGenericMethodType : IVarifiableType
+    public interface IGenericMethodType : IVerifiableType
     {
     }
-    public interface IImplementationType : IVarifiableType {
-        IVarifiableType InputType { get; }
-        IVarifiableType OutputType { get; }
-        IVarifiableType ContextType { get; }
+    public interface IImplementationType : IVerifiableType {
+        IVerifiableType InputType { get; }
+        IVerifiableType OutputType { get; }
+        IVerifiableType ContextType { get; }
     }
 
-    public interface IGenericImplementationType : IVarifiableType
+    public interface IGenericImplementationType : IVerifiableType
     {
     }
 }

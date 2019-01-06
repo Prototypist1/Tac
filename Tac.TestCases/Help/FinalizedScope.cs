@@ -11,7 +11,7 @@ namespace Tac.TestCases.Help
     {
         private readonly IFinalizedScope parent;
         private readonly IReadOnlyDictionary<IKey, IMemberDefinition> members = new Dictionary<IKey,IMemberDefinition>();
-        private readonly IReadOnlyDictionary<IKey, IVarifiableType> types = new Dictionary<IKey,IVarifiableType>();
+        private readonly IReadOnlyDictionary<IKey, IVerifiableType> types = new Dictionary<IKey,IVerifiableType>();
 
         public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members) {
             this.members = members ?? throw new ArgumentNullException(nameof(members));
@@ -41,7 +41,7 @@ namespace Tac.TestCases.Help
             return parent != null;
         }
 
-        public bool TryGetType(IKey name, out IVarifiableType type)
+        public bool TryGetType(IKey name, out IVerifiableType type)
         {
             if (types.ContainsKey(name))
             {

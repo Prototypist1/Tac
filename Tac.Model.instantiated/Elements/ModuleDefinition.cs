@@ -19,7 +19,7 @@ namespace Tac.Model.Instantiated
             return context.ModuleDefinition(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return this;
         }
@@ -34,6 +34,12 @@ namespace Tac.Model.Instantiated
         {
             var res = new ModuleDefinition();
             return (res, res);
+        }
+
+        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization) {
+            var (x, y) = Create();
+            y.Build(scope, staticInitialization);
+            return x;
         }
     }
 

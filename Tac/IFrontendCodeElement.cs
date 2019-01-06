@@ -12,12 +12,12 @@ namespace Tac.Frontend
     {
         // we can do better, but what does it get us?
         // let's wait and see
-        IIsPossibly<IFrontendType<IVarifiableType>> Returns();
+        IIsPossibly<IFrontendType<IVerifiableType>> Returns();
     }
     
     // TODO, some of these transform to specific types!
     internal interface IFrontendType<out T>: IConvertable<T>
-        where T: IVarifiableType
+        where T: IVerifiableType
     {
     }
 }

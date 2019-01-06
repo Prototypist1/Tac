@@ -18,7 +18,7 @@ namespace Tac.Model.Instantiated
             return context.MemberDefinition(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return this;
         }
@@ -34,6 +34,13 @@ namespace Tac.Model.Instantiated
         {
             var res = new MemberDefinition();
             return (res, res);
+        }
+
+        public static IMemberDefinition CreateAndBuild(IKey key, ITypeReferance type, bool readOnly)
+        {
+            var (x, y) = Create();
+            y.Build(key, type, readOnly);
+            return x;
         }
 
     }

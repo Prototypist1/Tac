@@ -29,12 +29,12 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IKey> Key => backing.Key;
         public IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions=> backing.TypeParameterDefinitions;
         public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendCodeElement<IGenericInterfaceDefinition>>().GetBuildIntention(context);
-        public OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IVarifiableType>>().GetBuildIntention(context); 
-        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns() => Possibly.Is(this);
+        public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IVerifiableType>>().GetBuildIntention(context); 
+        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns() => Possibly.Is(this);
     }
 
-    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IVarifiableType>, IFrontendGenericType
+    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IVerifiableType>, IFrontendGenericType
     {
         IIsPossibly<IKey> Key { get; }
     }
@@ -66,23 +66,23 @@ namespace Tac.Semantic_Model
             });
         }
 
-        public OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters)
+        public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             var overlay =  new Overlay(typeParameters.ToDictionary(x=>x.parameterDefinition,x=>x.frontendType));
             if (typeParameters.All(x => !(x is IFrontendGenericType)))
             {
-                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new OverlayTypeDefinition(
+                return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
                     new WeakTypeDefinition(Scope,Key),overlay));
             }
             else {
-                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new OverlayGenericTypeDefinition(
+                return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayGenericTypeDefinition(
                     this, overlay).Cast<IFrontendGenericType>());
             }
         }
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns()
+        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -162,7 +162,7 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<IFrontendCodeElement< ICodeElement>>> lines;
         private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
@@ -183,7 +183,7 @@ namespace Tac.Semantic_Model
             return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters);
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVarifiableType>>> GetReturnType()
+        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
         {
             return box;
         }
@@ -193,13 +193,13 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly IResolvableScope scope;
-        private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
+        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
         private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             IResolvableScope scope, 
-            Box<IIsPossibly<IFrontendType<IVarifiableType>>> box,
+            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
             Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));

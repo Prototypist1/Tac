@@ -5,8 +5,6 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Model.Operations;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.Names;
 using Tac.TestCases;
 using Tac.TestCases.Help;
 
@@ -14,39 +12,38 @@ namespace Tac.Tests.Samples
 {
     public class PointObject : ITestCase
     {
-        public string Text => @"object {
+        public string Text => @"module { object {
                             5 =: x ;
                             2 =: y ;
-                        }";
+                        } =: point ; }";
 
-        public ICodeElement[] CodeElements
+        public IModuleDefinition Module { get; }
+
+        public PointObject()
         {
-            get
-            {
                 var keyX = new NameKey("x");
-                var localX = new MemberDefinition(keyX, new TypeReferance(new AnyType()), false);
+                var localX = MemberDefinition.CreateAndBuild(keyX, TypeReference.CreateAndBuild(new AnyType()), false);
                 var keyY = new NameKey("y");
-                var localY = new MemberDefinition(keyY, new TypeReferance(new AnyType()), false);
+                var localY = MemberDefinition.CreateAndBuild(keyY, TypeReference.CreateAndBuild(new AnyType()), false);
                                 
-                return new ICodeElement[] {
-                    new ObjectDefiniton(
-                        new FinalizedScope(
-                        new Dictionary<IKey, IMemberDefinition> {
-                            { keyX, localX },
-                            { keyY, localY }
-                        }),
-                        new AssignOperation[]{
-                            new AssignOperation(
-                                new ConstantNumber(5),
-                                new MemberReferance(localX)),
-                            new AssignOperation(
-                                new ConstantNumber(2),
-                                new MemberReferance(localY))
-                        })
-                };
-            }
+                 Module = ModuleDefinition.CreateAndBuild(
+                    new FinalizedScope(new Dictionary<IKey, IMemberDefinition>() { { new NameKey("point"), MemberDefinition.CreateAndBuild(new NameKey("point"), TypeReference.CreateAndBuild(new AnyType()), false) } }),
+                    new[] {
+                        ObjectDefiniton.CreateAndBuild(
+                            new FinalizedScope(
+                            new Dictionary<IKey, IMemberDefinition> {
+                                { keyX, localX },
+                                { keyY, localY }
+                            }),
+                            new IAssignOperation[]{
+                                AssignOperation.CreateAndBuild(
+                                    ConstantNumber.CreateAndBuild(5),
+                                    MemberReference.CreateAndBuild(localX)),
+                                AssignOperation.CreateAndBuild(
+                                    ConstantNumber.CreateAndBuild(2),
+                                    MemberReference.CreateAndBuild(localY))
+                            })
+                    });
         }
-
-        public IFinalizedScope Scope => new FinalizedScope(new Dictionary<IKey, IMemberDefinition>());
     }
 }

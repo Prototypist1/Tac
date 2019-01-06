@@ -39,7 +39,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new BuildIntention<INumberType>(new Tac.Model.Instantiated.NumberType(), () => { });
         }
     }
-    internal class GemericTypeParameterPlacholder : IFrontendType<IVarifiableType>
+    internal class GemericTypeParameterPlacholder : IFrontendType<IVerifiableType>
     {
         public GemericTypeParameterPlacholder(IKey key)
         {
@@ -59,11 +59,11 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return HashCode.Combine(Key);
         }
 
-        public IBuildIntention<IVarifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (res,maker)= Tac.Model.Instantiated.GemericTypeParameterPlacholder.Create();
 
-            return new BuildIntention<IVarifiableType>(res, () => { maker.Build(Key); });
+            return new BuildIntention<IVerifiableType>(res, () => { maker.Build(Key); });
         }
     }
     internal class AnyType : IFrontendType<IAnyType>
@@ -82,16 +82,16 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     }
     internal class ImplementationType : IFrontendType<IImplementationType>
     {
-        public ImplementationType(IFrontendType<IVarifiableType> inputType, IFrontendType<IVarifiableType> outputType, IFrontendType<IVarifiableType> contextType)
+        public ImplementationType(IFrontendType<IVerifiableType> inputType, IFrontendType<IVerifiableType> outputType, IFrontendType<IVerifiableType> contextType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
         }
 
-        public IFrontendType<IVarifiableType> InputType { get; }
-        public IFrontendType<IVarifiableType> OutputType {get;}
-        public IFrontendType<IVarifiableType> ContextType {get;}
+        public IFrontendType<IVerifiableType> InputType { get; }
+        public IFrontendType<IVerifiableType> OutputType {get;}
+        public IFrontendType<IVerifiableType> ContextType {get;}
 
         public IBuildIntention<IImplementationType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
@@ -107,14 +107,14 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     }
     internal class MethodType : IFrontendType<IMethodType>
     {
-        public MethodType(IFrontendType<IVarifiableType> inputType, IFrontendType<IVarifiableType> outputType)
+        public MethodType(IFrontendType<IVerifiableType> inputType, IFrontendType<IVerifiableType> outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         }
 
-        public IFrontendType<IVarifiableType> InputType {get;}
-        public IFrontendType<IVarifiableType> OutputType {get;}
+        public IFrontendType<IVerifiableType> InputType {get;}
+        public IFrontendType<IVerifiableType> OutputType {get;}
 
         public IBuildIntention<IMethodType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
@@ -137,14 +137,14 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     internal class GenericMethodType : IFrontendType<IGenericMethodType>, IFrontendGenericType
     {
 
-        private readonly IFrontendType<IVarifiableType> input;
-        private readonly IFrontendType<IVarifiableType> output;
+        private readonly IFrontendType<IVerifiableType> input;
+        private readonly IFrontendType<IVerifiableType> output;
 
         public GenericMethodType() : this(new GemericTypeParameterPlacholder(new NameKey("input")), new GemericTypeParameterPlacholder(new NameKey("output")))
         {
         }
 
-        public GenericMethodType(IFrontendType<IVarifiableType> input, IFrontendType<IVarifiableType> output)
+        public GenericMethodType(IFrontendType<IVerifiableType> input, IFrontendType<IVerifiableType> output)
         {
             this.input = input ?? throw new ArgumentNullException(nameof(input));
             this.output = output ?? throw new ArgumentNullException(nameof(output));
@@ -170,23 +170,23 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             throw new Exception("Exceptions important, why do you always half ass them?");
         }
 
-        public OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters)
+        public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
             if (typeParameters.All(x => !(x is IFrontendGenericType)))
             {
-                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new GenericMethodType(overlay.Convert(input), overlay.Convert(output)));
+                return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new GenericMethodType(overlay.Convert(input), overlay.Convert(output)));
             }
             else
             {
-                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new MethodType(overlay.Convert(input), overlay.Convert(output)));
+                return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new MethodType(overlay.Convert(input), overlay.Convert(output)));
             }
         }
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (toBuild, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
-            return new BuildIntention<IVarifiableType>(toBuild, () =>
+            return new BuildIntention<IVerifiableType>(toBuild, () =>
             {
                 builder.Build();
             });
@@ -196,15 +196,15 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     internal class GenericImplementationType : IFrontendType<IGenericImplementationType>, IFrontendGenericType
     {
 
-        private readonly IFrontendType<IVarifiableType> input;
-        private readonly IFrontendType<IVarifiableType> output;
-        private readonly IFrontendType<IVarifiableType> context;
+        private readonly IFrontendType<IVerifiableType> input;
+        private readonly IFrontendType<IVerifiableType> output;
+        private readonly IFrontendType<IVerifiableType> context;
 
         public GenericImplementationType() : this(new GemericTypeParameterPlacholder(new NameKey("input")), new GemericTypeParameterPlacholder(new NameKey("output")), new GemericTypeParameterPlacholder(new NameKey("context")))
         {
         }
 
-        public GenericImplementationType(IFrontendType<IVarifiableType> input, IFrontendType<IVarifiableType> output, IFrontendType<IVarifiableType> context)
+        public GenericImplementationType(IFrontendType<IVerifiableType> input, IFrontendType<IVerifiableType> output, IFrontendType<IVerifiableType> context)
         {
             this.input = input ?? throw new ArgumentNullException(nameof(input));
             this.output = output ?? throw new ArgumentNullException(nameof(output));
@@ -219,7 +219,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             throw new NotImplementedException();
         }
 
-        public IFrontendType<IVarifiableType> GetConcreteType(GenericTypeParameter[] parameters)
+        public IFrontendType<IVerifiableType> GetConcreteType(GenericTypeParameter[] parameters)
         {
             if (parameters.Length == 3)
             {
@@ -232,23 +232,23 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             throw new Exception("Exceptions important, why do you always half ass them?");
         }
 
-        public OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters)
+        public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
             if (typeParameters.All(x => !(x is IFrontendGenericType)))
             {
-                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new GenericImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
+                return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new GenericImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
             }
             else
             {
-                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new ImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
+                return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new ImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
             }
         }
 
-        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (toBuild, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
-            return new BuildIntention<IVarifiableType>(toBuild, () =>
+            return new BuildIntention<IVerifiableType>(toBuild, () =>
             {
                 builder.Build();
             });
@@ -256,13 +256,13 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     }
 
     internal class GenericTypeParameter {
-        public GenericTypeParameter(IGenericTypeParameterDefinition parameter, IFrontendType<IVarifiableType> type)
+        public GenericTypeParameter(IGenericTypeParameterDefinition parameter, IFrontendType<IVerifiableType> type)
         {
             Parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public IGenericTypeParameterDefinition Parameter { get; }
-        public IFrontendType<IVarifiableType> Type { get; }
+        public IFrontendType<IVerifiableType> Type { get; }
     }
 }

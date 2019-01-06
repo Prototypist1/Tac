@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using Tac.Backend.Syntaz_Model_Interpeter;
-using Tac.Semantic_Model.Names;
+using Tac.Model;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Tests.Samples;
 using Xunit;

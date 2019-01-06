@@ -27,7 +27,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return Right.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType
                 .IfIs(x => x.TypeDefinition)
@@ -65,7 +65,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return Left.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType
                 .IfIs(x=>x.TypeDefinition)
@@ -90,7 +90,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal static class MemberUnwrapper{
-        public static T Unwrap<T>(this IFrontendCodeElement<ICodeElement> codeElement) where T: IFrontendType<IVarifiableType>
+        public static T Unwrap<T>(this IFrontendCodeElement<ICodeElement> codeElement) where T: IFrontendType<IVerifiableType>
         {
             if (codeElement.Returns().Is< WeakMemberDefinition>(out var member) && 
                 member.Type.IsDefinately(out var yes, out var _) &&  

@@ -35,14 +35,14 @@ namespace Tac.Semantic_Model
             return true;
         }
 
-        public bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType<IVarifiableType>>> box)
+        public bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType<IVerifiableType>>> box)
         {
             box = default;
             if (!inner.TryGetType(name, out var type))
             {
                 return false;
             }
-            box = new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>>(() =>
+            box = new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>(() =>
             {
                 return type.GetValue().IfIs( x =>
                 {

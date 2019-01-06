@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
-using Tac.Parser;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Names;
+﻿using Tac.Parser;
 using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples

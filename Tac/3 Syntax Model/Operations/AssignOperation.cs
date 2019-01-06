@@ -25,7 +25,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return Left.IfIs(x=>x.Returns());
         }

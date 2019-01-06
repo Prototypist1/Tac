@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVarifiableType>> Returns()
+        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
             return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType());
         }

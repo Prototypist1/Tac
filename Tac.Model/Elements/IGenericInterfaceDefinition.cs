@@ -1,6 +1,6 @@
 ﻿namespace Tac.Model.Elements
 {
-    public interface IGenericInterfaceDefinition : IVarifiableType, IGenericType, ICodeElement
+    public interface IGenericInterfaceDefinition : IVerifiableType, IGenericType, ICodeElement
     {
 
     }

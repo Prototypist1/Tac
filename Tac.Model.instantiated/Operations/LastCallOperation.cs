@@ -32,9 +32,16 @@ namespace Tac.Model.Instantiated
             return context.LastCallOperation(this);
         }
 
-        public IVarifiableType Returns()
+        public IVerifiableType Returns()
         {
             return Left.Returns();
+        }
+        
+        public static ILastCallOperation CreateAndBuild(ICodeElement left, ICodeElement right)
+        {
+            var (x, y) = Create();
+            y.Build(left, right);
+            return x;
         }
     }
 }
