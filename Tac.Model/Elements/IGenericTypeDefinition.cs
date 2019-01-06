@@ -7,7 +7,7 @@ namespace Tac.Model.Elements
     {
         IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
     }
-
+    // I don't think this is a useful interface...
     public interface IGenericTypeParameterDefinition {
         IKey Key { get; }
     }

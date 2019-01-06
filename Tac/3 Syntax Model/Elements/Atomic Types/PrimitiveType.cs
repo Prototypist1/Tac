@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Prototypist.LeftToRight;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -128,18 +129,29 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
     }
 
+    // TODO 
+    // this is not good either
+    // get a not tired brain and think about it
+    // 
+
     internal class GenericMethodType : IFrontendType<IGenericMethodType>, IFrontendGenericType
     {
 
-        private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");
-        private readonly IGenericTypeParameterDefinition output = new GenericTypeParameterDefinition("output");
+        private readonly IFrontendType<IVarifiableType> input;
+        private readonly IFrontendType<IVarifiableType> output;
 
-        public GenericMethodType()
+        public GenericMethodType() : this(new GemericTypeParameterPlacholder(new NameKey("input")), new GemericTypeParameterPlacholder(new NameKey("output")))
         {
-            TypeParameterDefinitions = new[] {input,output,};
         }
 
-        public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        public GenericMethodType(IFrontendType<IVarifiableType> input, IFrontendType<IVarifiableType> output)
+        {
+            this.input = input ?? throw new ArgumentNullException(nameof(input));
+            this.output = output ?? throw new ArgumentNullException(nameof(output));
+            TypeParameterDefinitions = new[] { input, output}.OfType<GemericTypeParameterPlacholder>().Select(x=>Possibly.Is(x)).ToArray();
+        }
+
+        public IIsPossibly<GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
         public IBuildIntention<IGenericMethodType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
@@ -157,22 +169,50 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
             throw new Exception("Exceptions important, why do you always half ass them?");
         }
-        
+
+        public OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters)
+        {
+            var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
+            if (typeParameters.All(x => !(x is IFrontendGenericType)))
+            {
+                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new GenericMethodType(overlay.Convert(input), overlay.Convert(output)));
+            }
+            else
+            {
+                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new MethodType(overlay.Convert(input), overlay.Convert(output)));
+            }
+        }
+
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
+            return new BuildIntention<IVarifiableType>(toBuild, () =>
+            {
+                builder.Build();
+            });
+        }
     }
 
     internal class GenericImplementationType : IFrontendType<IGenericImplementationType>, IFrontendGenericType
     {
 
-        private readonly IGenericTypeParameterDefinition input = new GenericTypeParameterDefinition("input");
-        private readonly IGenericTypeParameterDefinition output = new GenericTypeParameterDefinition("output");
-        private readonly IGenericTypeParameterDefinition context = new GenericTypeParameterDefinition("context");
+        private readonly IFrontendType<IVarifiableType> input;
+        private readonly IFrontendType<IVarifiableType> output;
+        private readonly IFrontendType<IVarifiableType> context;
 
-        public GenericImplementationType()
+        public GenericImplementationType() : this(new GemericTypeParameterPlacholder(new NameKey("input")), new GemericTypeParameterPlacholder(new NameKey("output")), new GemericTypeParameterPlacholder(new NameKey("context")))
         {
-            TypeParameterDefinitions = new[] { input, output, context };
         }
 
-        public IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        public GenericImplementationType(IFrontendType<IVarifiableType> input, IFrontendType<IVarifiableType> output, IFrontendType<IVarifiableType> context)
+        {
+            this.input = input ?? throw new ArgumentNullException(nameof(input));
+            this.output = output ?? throw new ArgumentNullException(nameof(output));
+            this.context = context ?? throw new ArgumentNullException(nameof(context));
+            TypeParameterDefinitions = new[] { input, output, context }.OfType<GemericTypeParameterPlacholder>().Select(x => Possibly.Is(x)).ToArray();
+        }
+        
+        public IIsPossibly<GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
         public IBuildIntention<IGenericImplementationType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
@@ -190,6 +230,28 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
 
             throw new Exception("Exceptions important, why do you always half ass them?");
+        }
+
+        public OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters)
+        {
+            var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
+            if (typeParameters.All(x => !(x is IFrontendGenericType)))
+            {
+                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new GenericImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
+            }
+            else
+            {
+                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new ImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
+            }
+        }
+
+        IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
+            return new BuildIntention<IVarifiableType>(toBuild, () =>
+            {
+                builder.Build();
+            });
         }
     }
 

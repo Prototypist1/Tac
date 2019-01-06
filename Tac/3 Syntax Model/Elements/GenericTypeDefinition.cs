@@ -87,43 +87,42 @@ namespace Tac.Semantic_Model
             return Possibly.Is(this);
         }
     }
-
-
-    internal class GenericTypeParameterDefinition: IGenericTypeParameterDefinition
-    {
-        public GenericTypeParameterDefinition(string name)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
-
-        public IKey Key
-        {
-            get
-            {
-                return new NameKey(Name);
-            }
-        }
-
-        public string Name { get; }
-
-        public override bool Equals(object obj)
-        {
-            return obj is GenericTypeParameterDefinition definition &&
-                   Name == definition.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-        }
-
-        internal bool Accepts(IVarifiableType b)
-        {
-            // TODO generic constraints
-            return true;
-        }
-    }
     
+    //internal class GenericTypeParameterDefinition : IGenericTypeParameterDefinition
+    //{
+    //    public GenericTypeParameterDefinition(string name)
+    //    {
+    //        Name = name ?? throw new ArgumentNullException(nameof(name));
+    //    }
+
+    //    public IKey Key
+    //    {
+    //        get
+    //        {
+    //            return new NameKey(Name);
+    //        }
+    //    }
+
+    //    public string Name { get; }
+
+    //    public override bool Equals(object obj)
+    //    {
+    //        return obj is GenericTypeParameterDefinition definition &&
+    //               Name == definition.Name;
+    //    }
+
+    //    public override int GetHashCode()
+    //    {
+    //        return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+    //    }
+
+    //    internal bool Accepts(IVarifiableType b)
+    //    {
+    //        // TODO generic constraints
+    //        return true;
+    //    }
+    //}
+
     internal class GenericTypeDefinitionMaker : IMaker<IPopulateScope<WeakGenericTypeDefinition>>
     {
 

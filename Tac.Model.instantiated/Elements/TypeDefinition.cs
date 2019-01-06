@@ -151,6 +151,27 @@ namespace Tac.Model.Instantiated
         public IVarifiableType ContextType { get; private set; }
     }
 
+    // TODO!
+    // how does this work?!
+    public class GenericImplementationType : IGenericImplementationType, IGenericImplementationBuilder
+    {
+        private GenericImplementationType() { }
+
+        public void Build()
+        {
+        }
+
+        public static (IGenericImplementationType, IGenericImplementationBuilder) Create()
+        {
+            var res = new GenericImplementationType();
+            return (res, res);
+        }
+    }
+    public interface IGenericImplementationBuilder
+    {
+        void Build();
+    }
+
     public interface IImplementationTypeBuilder
     {
         void Build(IVarifiableType inputType, IVarifiableType outputType, IVarifiableType contextType);
