@@ -27,12 +27,14 @@ namespace Tac.Semantic_Model
         public IResolvableScope Scope { get; }
 
         public IIsPossibly<IKey> Key => backing.Key;
+        public IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions=> backing.TypeParameterDefinitions;
         public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendCodeElement<IGenericInterfaceDefinition>>().GetBuildIntention(context);
+        public OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IVarifiableType>>().GetBuildIntention(context); 
         IIsPossibly<IFrontendType<IVarifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns() => Possibly.Is(this);
     }
 
-    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IVarifiableType>
+    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IVarifiableType>, IFrontendGenericType
     {
         IIsPossibly<IKey> Key { get; }
     }
@@ -42,14 +44,14 @@ namespace Tac.Semantic_Model
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key,
             IResolvableScope scope,
-            IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions)
+            IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public IIsPossibly<IGenericTypeParameterDefinition>[] TypeParameterDefinitions { get; }
+        public IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IKey> Key { get; }
         public IResolvableScope Scope { get; }
 
@@ -60,8 +62,22 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     Scope.Convert(context),
-                    TypeParameterDefinitions.Select(x=>x.GetOrThrow()).ToArray());
+                    TypeParameterDefinitions.Select(x=>new Tac.Model.Elements.GenericTypeParameterDefinition(x.GetOrThrow().Key).Cast<IGenericTypeParameterDefinition>()).ToArray());
             });
+        }
+
+        public OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters)
+        {
+            var overlay =  new Overlay(typeParameters.ToDictionary(x=>x.parameterDefinition,x=>x.frontendType));
+            if (typeParameters.All(x => !(x is IFrontendGenericType)))
+            {
+                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new OverlayTypeDefinition(
+                    new WeakTypeDefinition(Scope,Key),overlay));
+            }
+            else {
+                return new OrType<IFrontendGenericType, IFrontendType<IVarifiableType>>(new OverlayGenericTypeDefinition(
+                    this, overlay).Cast<IFrontendGenericType>());
+            }
         }
 
         IBuildIntention<IVarifiableType> IConvertable<IVarifiableType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
@@ -131,7 +147,7 @@ namespace Tac.Semantic_Model
                         new NameKey(typeName.Item),
                         tokenMatching.Context.ParseBlock(body),
                         genericTypes.Select(x => 
-                        new GenericTypeParameterDefinition(x)).ToArray()));
+                        new Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder(new NameKey(x))).ToArray()));
             }
 
             return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeNotMatch(
@@ -146,13 +162,13 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<IFrontendCodeElement< ICodeElement>>> lines;
-        private readonly IGenericTypeParameterDefinition[] genericParameters;
+        private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
         private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVarifiableType>>>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
             IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
-            IGenericTypeParameterDefinition[] genericParameters)
+            Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
@@ -179,13 +195,13 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly IResolvableScope scope;
         private readonly Box<IIsPossibly<IFrontendType<IVarifiableType>>> box;
-        private readonly IGenericTypeParameterDefinition[] genericParameters;
+        private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             IResolvableScope scope, 
             Box<IIsPossibly<IFrontendType<IVarifiableType>>> box,
-            IGenericTypeParameterDefinition[] genericParameters)
+            Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));

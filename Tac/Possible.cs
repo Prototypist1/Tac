@@ -37,7 +37,7 @@ namespace Tac.Frontend
         }
 
     }
-
+    
     public interface IIsPossibly<out T>
     {
     }

@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model
 {
     internal class Overlay {
 
-        private readonly Dictionary<IFrontendType<IVarifiableType>,IFrontendType<IVarifiableType>> map;
+        private readonly Dictionary<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder, IFrontendType<IVarifiableType>> map;
 
-        public Overlay(Dictionary<IFrontendType<IVarifiableType>, IFrontendType<IVarifiableType>> map)
+        public Overlay(Dictionary<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder, IFrontendType<IVarifiableType>> map)
         {
             this.map = map ?? throw new ArgumentNullException(nameof(map));
         }
@@ -26,7 +26,7 @@ namespace Tac.Semantic_Model
             {
                 return new OverlayTypeDefinition(typeDef,this);
             }
-            if (map.TryGetValue(type, out var value)){
+            if (type is _3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder generic && map.TryGetValue(generic, out var value)){
                 return value;
             }
             return type;
@@ -47,7 +47,9 @@ namespace Tac.Semantic_Model
 
             TypeDefinition = weakTypeReferance.TypeDefinition.IfIs(x =>
                 Possibly.Is(
-                    new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>> (() => x.GetValue().IfIs(y => Possibly.Is(overlay.Convert(y))))));
+                    new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>>(() => x
+                        .GetValue()
+                        .IfIs(y => Possibly.Is(overlay.Convert(y))))));
 
         }
 

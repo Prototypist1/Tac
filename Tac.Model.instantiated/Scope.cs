@@ -7,7 +7,7 @@ using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
-    public class Scope : IFinalizedScope
+    public class Scope : IFinalizedScope, IFinalizedScopeBuilder
     {
         private readonly IFinalizedScope parent;
 
@@ -101,5 +101,20 @@ namespace Tac.Model.Instantiated
             }
             return parent.TryGetType(name, out type);
         }
+        
+        public static (IFinalizedScope, IFinalizedScopeBuilder) Create()
+        {
+            var res = new Scope();
+            return (res, res);
+        }
+
+        public void Build()
+        {
+
+        }
+    }
+
+    public interface IFinalizedScopeBuilder {
+        void Build();
     }
 }

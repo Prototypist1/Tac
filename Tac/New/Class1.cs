@@ -70,7 +70,7 @@ namespace Tac.New
 
         IPopulatableScope Scope { get; }
         IPopulateScopeContext Child();
-        IPopulateScopeContext TemplateChild(IGenericTypeParameterDefinition[] parameters);
+        IPopulateScopeContext TemplateChild(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] parameters);
         IResolvableScope GetResolvableScope();
 
     }
@@ -100,8 +100,13 @@ namespace Tac.New
             return stack.ToResolvable();
         }
 
-        public IPopulateScopeContext TemplateChild(IGenericTypeParameterDefinition[] parameters)
+        public IPopulateScopeContext TemplateChild(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] parameters)
         {
+            // TODO.. 
+            // what is this... why is this...
+            // this project is too big for my brain!
+            // I think this is a old way to do generics
+            // and I should probably remove it 
             var template = new ScopeTemplate(parameters,stack);
             return new PopulateScopeContext(template);
         }

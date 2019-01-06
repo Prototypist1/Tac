@@ -39,15 +39,42 @@ namespace Tac.Semantic_Model
     // maybe there are two method on generic
     // Overlay and GenericOverlay
     //
+    // no no no, that does not work
+    // how do you use it anywhere
+    // inside a generic method
+    // a generic type looks just like a type
+    //
+    // maybe things that can be generic, just have a flag
+    // so no more GenericTypeDefiniiton
+    // instead typeDefinition can be generic
+    // typeDefinition has an overlay function that returns a typeDefinition
+    //
+    // I should start by making the generic type interfact
+    // I think it returns an or<IGeneric,IFrontendType<IVarifiableType>>
+    // 
+    // ah! a IFrontendGenericType is a IFrontendType<IVarifiableType>
+    // two methods
 
-    public interface IFrontendGenericType : IVarifiableType
+    internal interface IFrontendGenericType : IFrontendType<IVarifiableType>
     {
-        IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+        IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
+        OrType<IFrontendGenericType, IFrontendType<IVarifiableType>> Overlay(TypeParameter[] typeParameters);
+    }
+
+    internal class TypeParameter {
+        public readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder parameterDefinition;
+        public readonly IFrontendType<IVarifiableType> frontendType;
+
+        public TypeParameter(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder parameterDefinition, IFrontendType<IVarifiableType> frontendType)
+        {
+            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
+        }
     }
 
     internal class ScopeTemplate : NewScope //, IFinalizedScopeTemplate
     {
-        public ScopeTemplate(IGenericTypeParameterDefinition[] typeParameterDefinitions, NewScope parent):base(parent)
+        public ScopeTemplate(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] typeParameterDefinitions, NewScope parent):base(parent)
         {
             TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
             foreach (var item in typeParameterDefinitions)
@@ -60,7 +87,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public IGenericTypeParameterDefinition[] TypeParameterDefinitions {get;}
+        public Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] TypeParameterDefinitions {get;}
 
         //public IFinalizedScope CreateScope(GenericTypeParameter[] parameters)
         //{
@@ -198,8 +225,8 @@ namespace Tac.Semantic_Model
             var visiblity = new Visiblity<IBox<IIsPossibly<IFrontendType<IVarifiableType>>>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
-
-        public bool TryGetMember(IKey name, bool staticOnly, out IBox<IIsPossibly<WeakMemberDefinition>> member)
+        
+        public bool TryGetMember(IKey name, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> member)
         {
             if (!members.TryGetValue(name, out var items))
             {
@@ -243,12 +270,22 @@ namespace Tac.Semantic_Model
                     return innerTypeBox;
                 }).ToList();
 
-                type =  new DelegateBox<IFrontendType<IVarifiableType>>(() => set
-                    .Select(single => single.Definition.GetValue())
-                    .Where(x => x.TypeParameterDefinitions.Length == typesBoxes.Count())
-                    .Single()
-                    
-                );
+                type = new DelegateBox<IIsPossibly<IFrontendType<IVarifiableType>>>(() =>
+                {
+                    var overlayed = set.Select(x => x.Definition.GetValue())
+                        .Where(x => x.TypeParameterDefinitions.Length == typesBoxes.Count())
+                        .Single()
+                        .Assign(out var single)
+                        .Overlay(single.TypeParameterDefinitions.Zip(typesBoxes, (x, y) => new TypeParameter(x.GetOrThrow(), y.GetValue().GetOrThrow())).ToArray());
+                    if (overlayed.Is(out IFrontendType<IVarifiableType> frontendType)) {
+                        return Possibly.Is(frontendType);
+                    }
+                    if (overlayed.Is(out IFrontendGenericType frontendGeneric))
+                    {
+                        return Possibly.Is(frontendGeneric);
+                    }
+                    throw new Exception("the or type should have been IFrontendType<IVarifiableType> or IFrontendGenericType");
+                });
                 
                 return true;
             }
@@ -273,6 +310,15 @@ namespace Tac.Semantic_Model
                 type = default;
                 return false;
             }
+        }
+        
+        public IBuildIntention<IFinalizedScope> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            var (toBuild, maker) = Model.Instantiated.Scope.Create();
+            return new BuildIntention<IFinalizedScope>(toBuild, () =>
+            {
+                maker.Build();
+            });
         }
     }
 
