@@ -13,8 +13,10 @@ namespace Tac.Frontend.Test.Samples
                 return
                     TokenHelp.File(
                         TokenHelp.Line(
-                            
-
+                            TokenHelp.Ele(
+                                TokenHelp.Atom("module"),
+                                    TokenHelp.Curl(
+                                        TokenHelp.Line(
                                             TokenHelp.Ele(
                                                 TokenHelp.Atom("method"),
                                                 TokenHelp.Square(
