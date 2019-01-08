@@ -16,18 +16,24 @@ namespace Tac.Tests.Samples
             get
             {
                 return TokenHelp.File(
-                           TokenHelp.Line(
-                               TokenHelp.Ele(
-                                   TokenHelp.Par(
-                                           TokenHelp.Ele(TokenHelp.Atom("2")),
-                                           TokenHelp.Atom("+"),
-                                           TokenHelp.Ele(TokenHelp.Atom("5")))),
-                               TokenHelp.Atom("*"),
-                               TokenHelp.Ele(
-                                   TokenHelp.Par(
-                                           TokenHelp.Ele(TokenHelp.Atom("2")),
-                                           TokenHelp.Atom("+"),
-                                           TokenHelp.Ele(TokenHelp.Atom("7"))))));
+                    TokenHelp.Line(
+                        TokenHelp.Ele(
+                            TokenHelp.Atom("module"),
+                                TokenHelp.Curl(
+                                    TokenHelp.Line(
+                                        TokenHelp.Ele(
+                                            TokenHelp.Par(
+                                                TokenHelp.Ele(TokenHelp.Atom("2")),
+                                                TokenHelp.Atom("+"),
+                                                TokenHelp.Ele(TokenHelp.Atom("5")))),
+                                        TokenHelp.Atom("*"),
+                                        TokenHelp.Ele(
+                                            TokenHelp.Par(
+                                                TokenHelp.Ele(TokenHelp.Atom("2")),
+                                                TokenHelp.Atom("+"),
+                                                TokenHelp.Ele(TokenHelp.Atom("7")))),
+                                        TokenHelp.Atom("=:"),
+                                        TokenHelp.Ele(TokenHelp.Atom("x")))))));
             }
         }
     }

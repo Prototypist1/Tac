@@ -10,18 +10,24 @@ namespace Tac.Tests.Samples
             get
             {
                 return TokenHelp.File(
-                           TokenHelp.Line(
-                               TokenHelp.Ele(
-                                   TokenHelp.Atom("object"),
-                                   TokenHelp.Curl(
-                                       TokenHelp.Line(
-                                            TokenHelp.Ele(TokenHelp.Atom("5")),
-                                            TokenHelp.Atom("=:"),
-                                            TokenHelp.Ele(TokenHelp.Atom("x"))),
-                                       TokenHelp.Line(
-                                            TokenHelp.Ele(TokenHelp.Atom("2")),
-                                            TokenHelp.Atom("=:"),
-                                            TokenHelp.Ele(TokenHelp.Atom("y")))))));
+                    TokenHelp.Line(
+                        TokenHelp.Ele(
+                            TokenHelp.Atom("module"),
+                                TokenHelp.Curl(
+                                    TokenHelp.Line(
+                                        TokenHelp.Ele(
+                                           TokenHelp.Atom("object"),
+                                           TokenHelp.Curl(
+                                               TokenHelp.Line(
+                                                    TokenHelp.Ele(TokenHelp.Atom("5")),
+                                                    TokenHelp.Atom("=:"),
+                                                    TokenHelp.Ele(TokenHelp.Atom("x"))),
+                                               TokenHelp.Line(
+                                                    TokenHelp.Ele(TokenHelp.Atom("2")),
+                                                    TokenHelp.Atom("=:"),
+                                                    TokenHelp.Ele(TokenHelp.Atom("y"))))),
+                                        TokenHelp.Atom("=:"),
+                                        TokenHelp.Ele(TokenHelp.Atom("point")))))));
             }
         }
     }
