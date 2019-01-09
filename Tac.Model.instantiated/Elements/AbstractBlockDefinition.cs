@@ -36,7 +36,7 @@ namespace Tac.Model.Instantiated
         }
         public void Set(T t)
         {
-            if (t != null)
+            if (this.t != null)
             {
                 throw new ApplicationException();
             }

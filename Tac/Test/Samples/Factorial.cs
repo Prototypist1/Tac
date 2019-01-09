@@ -44,9 +44,9 @@ namespace Tac.Tests.Samples
                                                                     TokenHelp.Ele(TokenHelp.Atom("fac")),
                                                                     TokenHelp.Atom("*"),
                                                                     TokenHelp.Ele(TokenHelp.Atom("input")),
-                                                                    TokenHelp.Atom("return")))))))),
-                                            TokenHelp.Atom("=:"),
-                                            TokenHelp.Ele(TokenHelp.Atom("fac"))))));
+                                                                    TokenHelp.Atom("return"))))))),
+                                                TokenHelp.Atom("=:"),
+                                                TokenHelp.Ele(TokenHelp.Atom("fac")))))));
             }
         }
     }

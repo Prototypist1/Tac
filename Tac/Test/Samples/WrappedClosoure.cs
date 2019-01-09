@@ -46,9 +46,9 @@ namespace Tac.Frontend.Test.Samples
                                                                 TokenHelp.Line(
                                                                     TokenHelp.Ele(TokenHelp.Atom("x")),
                                                                     TokenHelp.Atom("return")))),
-                                                         TokenHelp.Atom("return"))))),
+                                                         TokenHelp.Atom("return")))),
                                             TokenHelp.Atom("=:"),
-                                            TokenHelp.Ele(TokenHelp.Atom("create-accululator"))))));
+                                            TokenHelp.Ele(TokenHelp.Atom("create-accululator")))))));
             }
         }
     }
