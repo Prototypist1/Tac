@@ -12,7 +12,7 @@ using Tac.Semantic_Model.CodeStuff;
 using Tac.Tests.Help;
 using Tac.Tests.Samples;
 using Xunit;
-
+using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Tests
 {
@@ -69,9 +69,12 @@ namespace Tac.Tests
             var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray().Single().GetOrThrow().Cast<WeakModuleDefinition>();
             
             var target = sample.Module;
+
+            var context = new ConversionContext();
+
+            var converted = result.Convert<IModuleDefinition>(context);
             
-            result.ValueEqualOrThrow(target);
-            
+            converted.ValueEqualOrThrow(target);
         }
 
         [Fact]

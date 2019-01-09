@@ -38,6 +38,11 @@ namespace Tac.Tests.Help
                 return false;
             }
 
+            if (target.GetType() != actual.GetType() && !target.GetType().FindInterfaces((x, y) => true, new object()).Intersect(actual.GetType().FindInterfaces((x, y) => true, new object())).SelectMany(x => x.GetProperties()).Any()) {
+                error = $" {nameof(target)} and {target} are different types";
+                return false;
+            }
+
             if (assumed.Any(x => (x.Item1.Equals(target) && x.Item2.Equals(actual)) ||
                 (x.Item2.Equals(target) && x.Item1.Equals(actual))))
             {
@@ -144,7 +149,7 @@ namespace Tac.Tests.Help
 
             error = null;
             return true;
-
+            
             PropertyInfo[] GetPropertryInfo()
             {
                 if (target.GetType() != actual.GetType())
