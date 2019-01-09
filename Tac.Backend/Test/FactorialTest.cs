@@ -28,32 +28,14 @@ namespace Tac.Backend.Test
         {
             var testCase = new Factorial();
             var conversionContext = new Definitions();
-            var lines = testCase.CodeElements.Select(x => x.Convert(conversionContext)).ToArray();
+            var module = testCase.Module.Convert(conversionContext);
 
-            var currentScope = 
-                InterpetedContext.Root();
+            var res = module.Interpet(InterpetedContext.Root());
 
-            foreach (var scopeLayer in finalizedScopes())
-            {
-                currentScope = currentScope.Child(InterpetedInstanceScope.Make(scopeLayer));
-            }
-            
-            var method = Assert.Single(lines).Interpet(currentScope).Get<InterpetedMethod>();
-
-            currentScope.GetMember(new NameKey("fac")).Value = method;
-            
+            var scope = res.Get<IInterpetedScope>();
+            var method = scope.GetMember(new NameKey("fac")).Value.Cast<InterpetedMethod>();
+ 
             return method.Invoke(new RuntimeNumber(d)).Get<RuntimeNumber>().d;
-
-            IEnumerable<IFinalizedScope> finalizedScopes() {
-                var items = new List<IFinalizedScope>();
-                var at = testCase.Scope;
-                do
-                {
-                    items.Add(at);
-                } while (testCase.Scope.TryGetParent(out at));
-                items.Reverse();
-                return items;
-            }
         }
 
     }

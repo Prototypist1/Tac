@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Backend.Syntaz_Model_Interpeter;
+using Tac.Model;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Tests.Samples;
@@ -16,14 +18,15 @@ namespace Tac.Backend.Test
         public void Test() {
             var testCase = new Arithmetic();
             var conversionContext = new Definitions();
-            var lines = testCase.CodeElements.Select(x => x.Convert(conversionContext)).ToArray();
+            var module = testCase.Module.Convert(conversionContext);
 
-            var line = Assert.Single(lines);
+            var res = module.Interpet(InterpetedContext.Root());
 
-            var res = line.Interpet(InterpetedContext.Root());
+            var scope = res.Get<IInterpetedScope>();
+            var x = scope.GetMember(new NameKey("x"));
 
             Assert.True(res.HasValue);
-            Assert.Equal(63.0, res.Get<RuntimeNumber>().d);
+            Assert.Equal(63.0, x.Value.Cast<RuntimeNumber>().d);
         }
     }
 }
