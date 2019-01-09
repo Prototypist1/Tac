@@ -15,6 +15,7 @@ namespace Tac.Frontend.Test.Samples
                         TokenHelp.Line(
                             TokenHelp.Ele(
                                 TokenHelp.Atom("module"),
+                                TokenHelp.Atom("closoure"),
                                     TokenHelp.Curl(
                                         TokenHelp.Line(
                                             TokenHelp.Ele(

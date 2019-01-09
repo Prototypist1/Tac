@@ -14,6 +14,7 @@ namespace Tac.Tests.Samples
                         TokenHelp.Line(
                             TokenHelp.Ele(
                                 TokenHelp.Atom("module"),
+                                TokenHelp.Atom("factorial"),
                                     TokenHelp.Curl(
                                         TokenHelp.Line(
                                             TokenHelp.Ele(

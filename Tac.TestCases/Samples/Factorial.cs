@@ -63,7 +63,9 @@ namespace Tac.Tests.Samples
                                                     new ICodeElement[0]))},
                                     new ICodeElement[0]),
                                 MemberReference.CreateAndBuild(fac)
-                        ) });
+                        ) },
+                    new NameKey("factorial")
+                    );
         }
 
         public string Text
@@ -72,7 +74,7 @@ namespace Tac.Tests.Samples
             {
                 return
 @"
-module {
+module factorial {
     method [ int ; int ; ] input {
         input <? 2 then {
             1 return ;

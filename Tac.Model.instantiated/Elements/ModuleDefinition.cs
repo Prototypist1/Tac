@@ -8,11 +8,13 @@ namespace Tac.Model.Instantiated
     {
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
         private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitialization = new Buildable<IEnumerable<ICodeElement>>();
+        private readonly Buildable<IKey> buildableKey = new Buildable<IKey>();
 
         private ModuleDefinition() { }
 
         public IFinalizedScope Scope => buildableScope.Get();
         public IEnumerable<ICodeElement> StaticInitialization => buildableStaticInitialization.Get();
+        public IKey Key => buildableKey.Get();
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -24,10 +26,11 @@ namespace Tac.Model.Instantiated
             return this;
         }
 
-        public void Build(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization)
+        public void Build(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, IKey key)
         {
             buildableScope.Set(scope);
             buildableStaticInitialization.Set(staticInitialization);
+            buildableKey.Set(key);
         }
         
         public static (IModuleDefinition, IModuleDefinitionBuilder) Create()
@@ -36,15 +39,15 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization) {
+        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, IKey key) {
             var (x, y) = Create();
-            y.Build(scope, staticInitialization);
+            y.Build(scope, staticInitialization, key);
             return x;
         }
     }
 
     public interface IModuleDefinitionBuilder
     {
-        void Build(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization);
+        void Build(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, IKey key);
     }
 }

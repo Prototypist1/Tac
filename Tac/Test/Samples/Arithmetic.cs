@@ -19,6 +19,7 @@ namespace Tac.Tests.Samples
                     TokenHelp.Line(
                         TokenHelp.Ele(
                             TokenHelp.Atom("module"),
+                            TokenHelp.Atom("math-module"),
                                 TokenHelp.Curl(
                                     TokenHelp.Line(
                                         TokenHelp.Ele(

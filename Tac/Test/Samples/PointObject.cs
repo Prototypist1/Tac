@@ -13,6 +13,7 @@ namespace Tac.Tests.Samples
                     TokenHelp.Line(
                         TokenHelp.Ele(
                             TokenHelp.Atom("module"),
+                            TokenHelp.Atom("point-module"),
                                 TokenHelp.Curl(
                                     TokenHelp.Line(
                                         TokenHelp.Ele(

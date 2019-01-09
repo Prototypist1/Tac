@@ -66,7 +66,7 @@ namespace Tac.Tests
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
 
             var resolveReferanceContext = new ResolveReferanceContext();
-            var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray().Single().Cast<WeakModuleDefinition>();
+            var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray().Single().GetOrThrow().Cast<WeakModuleDefinition>();
             
             var target = sample.Module;
             

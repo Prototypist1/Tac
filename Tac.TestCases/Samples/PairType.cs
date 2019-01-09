@@ -9,7 +9,7 @@ namespace Tac.Tests.Samples
 {
     public class PairType : ITestCase
     {
-        public string Text => @"Module { type [ T ; ] pair {
+        public string Text => @"module pair-type { type [ T ; ] pair {
                             T x ;
                             T y ;
                         } ; }";
@@ -39,8 +39,8 @@ namespace Tac.Tests.Samples
                                                 new TestGenericTypeParameterDefinition[]{
                                                     new TestGenericTypeParameterDefinition(key)
                                                 })
-                }
-                );
+                },
+                new NameKey("pair-type"));
         }
     }
 }

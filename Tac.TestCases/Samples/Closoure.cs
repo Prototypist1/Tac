@@ -52,7 +52,8 @@ namespace Tac.Tests.Samples
                                     )},
                             new ICodeElement[0]),
                         MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"),TypeReference.CreateAndBuild( new AnyType()),false)))
-                 });
+                 },
+                 new NameKey("closoure"));
         }
 
         public string Text
@@ -61,7 +62,7 @@ namespace Tac.Tests.Samples
             {
                 return
 @"
-module {
+module closoure {
     method [ int ; method [ empty ; int ; ] ; ] x {
         method [ int ; int ; ] y {
             x + y =: x ;

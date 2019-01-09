@@ -12,7 +12,7 @@ namespace Tac.Tests.Samples
 {
     public class PointObject : ITestCase
     {
-        public string Text => @"module { object {
+        public string Text => @"module point-module { object {
                             5 =: x ;
                             2 =: y ;
                         } =: point ; }";
@@ -43,7 +43,8 @@ namespace Tac.Tests.Samples
                                     ConstantNumber.CreateAndBuild(2),
                                     MemberReference.CreateAndBuild(localY))
                             })
-                    });
+                    },
+                    new NameKey("point-module"));
         }
     }
 }

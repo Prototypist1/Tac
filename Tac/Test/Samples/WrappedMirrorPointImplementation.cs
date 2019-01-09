@@ -9,6 +9,7 @@ namespace Tac.Tests.Samples
                         TokenHelp.Line(
                             TokenHelp.Ele(
                                 TokenHelp.Atom("module"),
+                                TokenHelp.Atom("mirror-module"),
                                     TokenHelp.Curl(
                                         TokenHelp.Line(
                                             TokenHelp.Ele(

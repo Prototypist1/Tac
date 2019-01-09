@@ -19,7 +19,7 @@ namespace Tac.TestCases.Samples
             get
             {
                 return @"
-module {
+module mirror-module {
     implementation [ type { x ; y ; } ; empty ; empty ] context input { 
         context . x =: temp ;
         context . y =: ( context . x ) ;
@@ -81,7 +81,8 @@ module {
                         },
                         new ICodeElement[0]),
                     MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false)))
-                });
+                },
+                new NameKey("mirror-module"));
             
         }
 
