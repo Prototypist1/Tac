@@ -11,7 +11,7 @@ namespace Tac.Model.Instantiated
     {
         private readonly IFinalizedScope parent;
 
-        private class IsStatic
+        public class IsStatic
         {
             public IsStatic(IMemberDefinition value, bool @static)
             {
@@ -34,8 +34,8 @@ namespace Tac.Model.Instantiated
         }
         private class GenericTypeHolder : ITypeHolder { }
 
-        private readonly IReadOnlyDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
-        private readonly IReadOnlyDictionary<IKey, IEnumerable<ITypeHolder>> types = new ConcurrentDictionary<IKey, IEnumerable<ITypeHolder>>();
+        private readonly IDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
+        private readonly IDictionary<IKey, IEnumerable<ITypeHolder>> types = new ConcurrentDictionary<IKey, IEnumerable<ITypeHolder>>();
 
         public Scope()
         {
@@ -108,13 +108,16 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public void Build()
+        public void Build(IEnumerable<IsStatic> toAdd)
         {
-
+            foreach (var member in toAdd)
+            {
+                members[member.Value.Key] = member;
+            }
         }
     }
 
     public interface IFinalizedScopeBuilder {
-        void Build();
+        void Build(IEnumerable<Scope.IsStatic> members);
     }
 }

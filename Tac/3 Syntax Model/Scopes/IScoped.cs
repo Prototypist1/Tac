@@ -317,7 +317,7 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = Model.Instantiated.Scope.Create();
             return new BuildIntention<IFinalizedScope>(toBuild, () =>
             {
-                maker.Build();
+                maker.Build(members.Select(x=>new Tac.Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)));
             });
         }
     }
