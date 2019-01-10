@@ -37,11 +37,7 @@ namespace Tac.Tests.Help
                 error = $" {nameof(target)} is {target}, {nameof(actual)} is null";
                 return false;
             }
-
-            if (!types.Any()) {
-                types = GetTypes();
-            }
-
+            
             if (!types.Any()) {
                 error = $" {nameof(target)} and {target} are different types";
                 return false;
@@ -181,14 +177,6 @@ namespace Tac.Tests.Help
             error = null;
             return true;
             
-            IEnumerable<Type> GetTypes() {
-                if (target.GetType() == actual.GetType())
-                {
-                    return new List<Type> { target.GetType() };
-                }
-                return target.GetType().FindInterfaces((x, y) => true, new object()).Intersect(actual.GetType().FindInterfaces((x, y) => true, new object()));
-            }
-
             PropertyInfo[] GetPropertryInfo()
             {
                 return types.SelectMany(x => x.GetProperties()).ToArray();
