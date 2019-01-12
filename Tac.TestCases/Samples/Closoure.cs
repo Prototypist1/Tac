@@ -3,7 +3,6 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.TestCases;
-using Tac.TestCases.Help;
 
 namespace Tac.Tests.Samples
 {
@@ -17,17 +16,17 @@ namespace Tac.Tests.Samples
             var yKey = new NameKey("y");
             var y = MemberDefinition.CreateAndBuild(yKey, TypeReference.CreateAndBuild(new NumberType()), false);
 
-            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { xKey, x } },
-                new Dictionary<IKey, IVerifiableType>());
-            var innerMethodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { yKey, y } },
-                new Dictionary<IKey, IVerifiableType>(),
+            var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(x ,false) },
+                new List<Scope.TypeData>());
+            var innerMethodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(y ,false) },
+                new List<Scope.TypeData>(),
                 methodScope);
 
             Module = ModuleDefinition.CreateAndBuild(
-                 new FinalizedScope(
-                     new Dictionary<IKey, IMemberDefinition>() { { new NameKey("create-accululator"), MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) } },
-                new Dictionary<IKey, IVerifiableType>()),
-                 new[]{
+                Scope.CreateAndBuild(
+                    new List<Scope.IsStatic>() { new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) },
+                    new List<Scope.TypeData>()),
+                new[]{
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(
                             TypeReference.CreateAndBuild(new NumberType()),
@@ -58,7 +57,7 @@ namespace Tac.Tests.Samples
                             new ICodeElement[0]),
                         MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"),TypeReference.CreateAndBuild( new AnyType()),false)))
                  },
-                 new NameKey("closoure"));
+                new NameKey("closoure"));
         }
 
         public string Text

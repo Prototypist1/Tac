@@ -6,7 +6,6 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.TestCases;
-using Tac.TestCases.Help;
 
 namespace Tac.Tests.Samples
 {
@@ -27,18 +26,18 @@ namespace Tac.Tests.Samples
                 var localY = MemberDefinition.CreateAndBuild(keyY, TypeReference.CreateAndBuild(new AnyType()), false);
                                 
                 Module = ModuleDefinition.CreateAndBuild(
-                    new FinalizedScope(
-                        new Dictionary<IKey, IMemberDefinition>() { { new NameKey("point"), MemberDefinition.CreateAndBuild(new NameKey("point"), TypeReference.CreateAndBuild(new AnyType()), false) } },
-                        new Dictionary<IKey, IVerifiableType>()),
+                     Scope.CreateAndBuild(
+                        new List<Scope.IsStatic>(){new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("point"), TypeReference.CreateAndBuild(new AnyType()), false),false) } ,
+                        new List<Scope.TypeData>()),
                     new[] {
                         AssignOperation.CreateAndBuild(
                         ObjectDefiniton.CreateAndBuild(
-                            new FinalizedScope(
-                                new Dictionary<IKey, IMemberDefinition> {
-                                    { keyX, localX },
-                                    { keyY, localY }
+                             Scope.CreateAndBuild(
+                                new List<Scope.IsStatic> {
+                                    new Scope.IsStatic( localX ,false),
+                                    new Scope.IsStatic( localY ,false)
                                 },
-                                new Dictionary<IKey, IVerifiableType>()),
+                                new List<Scope.TypeData>()),
                             new IAssignOperation[]{
                                 AssignOperation.CreateAndBuild(
                                     ConstantNumber.CreateAndBuild(5),

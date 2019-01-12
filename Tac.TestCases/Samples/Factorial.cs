@@ -6,17 +6,16 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.TestCases;
-using Tac.TestCases.Help;
 
 namespace Tac.Tests.Samples
 {
     public class Factorial : ITestCase
     {
         public Factorial() {
-            var ifBlockScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { },
-                new Dictionary<IKey, IVerifiableType>());
-            var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { },
-                new Dictionary<IKey, IVerifiableType>());
+            var ifBlockScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { },
+                new List<Scope.TypeData>());
+            var elseBlock = Scope.CreateAndBuild(new List<Scope.IsStatic> { },
+                new List<Scope.TypeData>());
 
             var inputKey = new NameKey("input");
             var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new NumberType()), false);
@@ -25,16 +24,16 @@ namespace Tac.Tests.Samples
             var fac = MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false);
 
 
-            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } },
-                new Dictionary<IKey, IVerifiableType>());
+            var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(input ,false) },
+                new List<Scope.TypeData>());
 
-            var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } },
-                new Dictionary<IKey, IVerifiableType>());
+            var rootScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(fac, false) },
+                new List<Scope.TypeData>());
 
             Module =
                 ModuleDefinition.CreateAndBuild(
-                    new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false) } },
-                new Dictionary<IKey, IVerifiableType>()),
+                     Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false), false) },
+                new List<Scope.TypeData>()),
                     new ICodeElement[]{
                         AssignOperation.CreateAndBuild(
                                 MethodDefinition.CreateAndBuild(

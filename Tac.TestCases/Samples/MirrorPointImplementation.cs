@@ -5,7 +5,6 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Model.Operations;
-using Tac.TestCases.Help;
 using Tac.Tests.Samples;
 
 namespace Tac.TestCases.Samples
@@ -40,12 +39,12 @@ module mirror-module {
             var contextKey = new NameKey("context");
 
             var context = MemberDefinition.CreateAndBuild(contextKey, TypeReference.CreateAndBuild(InterfaceType.CreateAndBuild(
-                new FinalizedScope(
-                    new Dictionary<IKey, IMemberDefinition>() {
-                        { keyX, localX },
-                        { keyY, localY },
+                Scope.CreateAndBuild(
+                    new List<Scope.IsStatic>() {
+                        new Scope.IsStatic(localX ,false),
+                        new Scope.IsStatic(localY ,false),
                     },
-                    new Dictionary<IKey, IVerifiableType>()))),
+                    new List<Scope.TypeData>()))),
                 false); ;
 
             var inputKey = new NameKey("input");
@@ -54,19 +53,19 @@ module mirror-module {
             var tempKey = new NameKey("temp");
             var temp = MemberDefinition.CreateAndBuild(tempKey, TypeReference.CreateAndBuild(new NumberType()), false);
 
-            var implementationScope = new FinalizedScope(
-                new Dictionary<IKey, IMemberDefinition> {
-                    { inputKey, input },
-                    { contextKey, context },
-                    { tempKey, temp } },
-                new Dictionary<IKey, IVerifiableType>());
+            var implementationScope = Scope.CreateAndBuild(
+                new List<Scope.IsStatic> {
+                    new Scope.IsStatic( input ,false),
+                    new Scope.IsStatic(context ,false),
+                    new Scope.IsStatic(temp ,false) },
+                new List<Scope.TypeData>());
 
 
             Module = ModuleDefinition.CreateAndBuild(
-                new FinalizedScope(
-                    new Dictionary<IKey, IMemberDefinition>() {
-                        { new NameKey("mirror"), MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false) } },
-                    new Dictionary<IKey, IVerifiableType>()),
+                 Scope.CreateAndBuild(
+                    new List<Scope.IsStatic>() {
+                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) },
+                    new List<Scope.TypeData>()),
                 new[] {
                     AssignOperation.CreateAndBuild(
                     ImplementationDefinition.CreateAndBuild(

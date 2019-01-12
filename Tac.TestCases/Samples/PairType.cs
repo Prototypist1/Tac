@@ -3,7 +3,6 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.TestCases;
-using Tac.TestCases.Help;
 
 namespace Tac.Tests.Samples
 {
@@ -27,20 +26,20 @@ namespace Tac.Tests.Samples
                 var localY = MemberDefinition.CreateAndBuild(keyY, TypeReference.CreateAndBuild(type), false);
 
             Module = ModuleDefinition.CreateAndBuild(
-                // huh, FinalizedScope does not hold types??
-                new FinalizedScope(
-                    new Dictionary<IKey, IMemberDefinition>(),
-                    new Dictionary<IKey, IVerifiableType>() {
+                 // huh, FinalizedScope does not hold types??
+                 Scope.CreateAndBuild(
+                    new List<Scope.IsStatic>(),
+                    new List<Scope.TypeData>() {
 
                     }),
                 new[] {
                         GenericInterfaceDefinition.CreateAndBuild(
-                                                new FinalizedScope(
-                                                    new Dictionary<IKey, IMemberDefinition> {
-                                                        { keyX, localX },
-                                                        { keyY, localY }
+                                                 Scope.CreateAndBuild(
+                                                    new List<Scope.IsStatic>{
+                                                        new Scope.IsStatic(localX ,false),
+                                                        new Scope.IsStatic( localY,false)
                                                     },
-                                                    new Dictionary<IKey, IVerifiableType>()),
+                                                    new List<Scope.TypeData>()),
                                                 new TestGenericTypeParameterDefinition[]{
                                                     new TestGenericTypeParameterDefinition(key)
                                                 })

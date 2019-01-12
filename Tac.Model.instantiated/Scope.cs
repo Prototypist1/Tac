@@ -62,7 +62,7 @@ namespace Tac.Model.Instantiated
 
         public IEnumerable<IMemberDefinition> Members => members.Select(x => x.Value.Value);
 
-        public IEnumerable<IVerifiableType> Types => types.SelectMany(x=>x.Value.Select(y=>y);
+        public IEnumerable<IVerifiableType> Types => types.SelectMany(x=>x.Value.OfType<TypeHolder>().Select(y=>y.type));
 
         public IEnumerable<IKey> TypeKeys => types.Keys;
 
@@ -113,7 +113,13 @@ namespace Tac.Model.Instantiated
             }
             return parent.TryGetType(name, out type);
         }
-        
+
+        public static (IFinalizedScope, IFinalizedScopeBuilder) Create(IFinalizedScope parent)
+        {
+            var res = new Scope(parent);
+            return (res, res);
+        }
+
         public static (IFinalizedScope, IFinalizedScopeBuilder) Create()
         {
             var res = new Scope();
@@ -137,6 +143,21 @@ namespace Tac.Model.Instantiated
                     types[type.Key] = new List<ITypeHolder>() { new TypeHolder(type.Type) };
                 }
             }
+        }
+        
+
+        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd) {
+            var (x, y) = Create();
+            y.Build(toAdd, typesToAdd);
+            return x;
+        }
+
+
+        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IFinalizedScope parent)
+        {
+            var (x, y) = Create(parent);
+            y.Build(toAdd, typesToAdd);
+            return x;
         }
     }
 
