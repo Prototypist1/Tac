@@ -7,13 +7,13 @@ namespace Tac.Model.Instantiated
     public class ModuleDefinition : IModuleDefinition, IModuleDefinitionBuilder
     {
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
-        private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitialization = new Buildable<IEnumerable<ICodeElement>>();
+        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitialization = new Buildable<IReadOnlyList<ICodeElement>>();
         private readonly Buildable<IKey> buildableKey = new Buildable<IKey>();
 
         private ModuleDefinition() { }
 
         public IFinalizedScope Scope => buildableScope.Get();
-        public IEnumerable<ICodeElement> StaticInitialization => buildableStaticInitialization.Get();
+        public IReadOnlyList<ICodeElement> StaticInitialization => buildableStaticInitialization.Get();
         public IKey Key => buildableKey.Get();
 
         public T Convert<T>(IOpenBoxesContext<T> context)
@@ -26,7 +26,7 @@ namespace Tac.Model.Instantiated
             return this;
         }
 
-        public void Build(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, IKey key)
+        public void Build(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key)
         {
             buildableScope.Set(scope);
             buildableStaticInitialization.Set(staticInitialization);
@@ -39,7 +39,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, IKey key) {
+        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key) {
             var (x, y) = Create();
             y.Build(scope, staticInitialization, key);
             return x;
@@ -48,6 +48,6 @@ namespace Tac.Model.Instantiated
 
     public interface IModuleDefinitionBuilder
     {
-        void Build(IFinalizedScope scope, IEnumerable<ICodeElement> staticInitialization, IKey key);
+        void Build(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key);
     }
 }

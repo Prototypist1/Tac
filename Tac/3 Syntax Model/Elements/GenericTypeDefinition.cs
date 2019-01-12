@@ -179,8 +179,8 @@ namespace Tac.Semantic_Model
             var encolsing = context.Scope.TryAddType(nameKey, box);
             
             var nextContext = context.TemplateChild(genericParameters);
-            lines.Select(x => x.Run(nextContext)).ToArray();
-            return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters);
+            var nextLines = lines.Select(x => x.Run(nextContext)).ToArray();
+            return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters,nextLines);
         }
 
         public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
@@ -195,17 +195,20 @@ namespace Tac.Semantic_Model
         private readonly IResolvableScope scope;
         private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
         private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
+        private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             IResolvableScope scope, 
             Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
-            Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
+            Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters,
+            IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.box = box ?? throw new ArgumentNullException(nameof(box));
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+            this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
         }
         
         public IIsPossibly<WeakGenericTypeDefinition> Run(IResolveReferenceContext context)
@@ -213,6 +216,8 @@ namespace Tac.Semantic_Model
             // hmm getting the template down here is hard
             // scope mostly comes from context
             // why is that?
+
+            var nextLines = lines.Select(x => x.Run(context)).ToArray();
             return box.Fill(Possibly.Is(new WeakGenericTypeDefinition(
                 Possibly.Is(nameKey),
                 scope,

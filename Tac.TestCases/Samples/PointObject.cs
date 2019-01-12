@@ -27,15 +27,18 @@ namespace Tac.Tests.Samples
                 var localY = MemberDefinition.CreateAndBuild(keyY, TypeReference.CreateAndBuild(new AnyType()), false);
                                 
                 Module = ModuleDefinition.CreateAndBuild(
-                    new FinalizedScope(new Dictionary<IKey, IMemberDefinition>() { { new NameKey("point"), MemberDefinition.CreateAndBuild(new NameKey("point"), TypeReference.CreateAndBuild(new AnyType()), false) } }),
+                    new FinalizedScope(
+                        new Dictionary<IKey, IMemberDefinition>() { { new NameKey("point"), MemberDefinition.CreateAndBuild(new NameKey("point"), TypeReference.CreateAndBuild(new AnyType()), false) } },
+                        new Dictionary<IKey, IVerifiableType>()),
                     new[] {
                         AssignOperation.CreateAndBuild(
                         ObjectDefiniton.CreateAndBuild(
                             new FinalizedScope(
-                            new Dictionary<IKey, IMemberDefinition> {
-                                { keyX, localX },
-                                { keyY, localY }
-                            }),
+                                new Dictionary<IKey, IMemberDefinition> {
+                                    { keyX, localX },
+                                    { keyY, localY }
+                                },
+                                new Dictionary<IKey, IVerifiableType>()),
                             new IAssignOperation[]{
                                 AssignOperation.CreateAndBuild(
                                     ConstantNumber.CreateAndBuild(5),

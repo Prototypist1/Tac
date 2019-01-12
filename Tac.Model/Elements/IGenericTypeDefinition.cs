@@ -11,7 +11,7 @@ namespace Tac.Model.Elements
     public interface IGenericTypeParameterDefinition {
         IKey Key { get; }
     }
-    public class GenericTypeParameterDefinition
+    public class GenericTypeParameterDefinition: IGenericTypeParameterDefinition
     {
         public GenericTypeParameterDefinition(IKey key)
         {

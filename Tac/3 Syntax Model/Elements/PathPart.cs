@@ -15,17 +15,17 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class OverlayMemberReference: IWeakMemberReference
+    internal class OverlayMemberReference : IWeakMemberReference
     {
         private readonly IWeakMemberReference backing;
-        
+
         public OverlayMemberReference(IWeakMemberReference backing, Overlay overlay)
         {
-            MemberDefinition = backing.MemberDefinition.IfIs(x => 
+            MemberDefinition = backing.MemberDefinition.IfIs(x =>
                 Possibly.Is(
                     new DelegateBox<IIsPossibly<IWeakMemberDefinition>>(() =>
                         x.GetValue()
-                        .IfIs(z => 
+                        .IfIs(z =>
                             Possibly.Is(
                                 new OverlayMemberDefinition(z, overlay))))));
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
@@ -49,11 +49,12 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal interface IWeakMemberReference: IFrontendCodeElement<IMemberReferance>, IFrontendType<IVerifiableType> {
+    internal interface IWeakMemberReference : IFrontendCodeElement<IMemberReferance>, IFrontendType<IVerifiableType>
+    {
         IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
     }
 
-    internal class WeakMemberReference :  IWeakMemberReference
+    internal class WeakMemberReference : IWeakMemberReference
     {
         public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> memberDefinition)
         {
@@ -76,10 +77,13 @@ namespace Tac.Semantic_Model
             return MemberDefinition.IfIs(x => x.GetValue());
         }
 
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            return GetBuildIntention(context);
+        }
     }
 
-    internal class MemberReferanceMaker : IMaker<IPopulateScope<WeakMemberReference>>
+    internal class MemberReferanceMaker : IMaker<IPopulateScope<IWeakMemberReference>>
     {
         public MemberReferanceMaker(
             IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs)
@@ -89,13 +93,13 @@ namespace Tac.Semantic_Model
 
         private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs;
 
-        public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<IWeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new NameMaker(), out var first);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeMatch(
+                return TokenMatching<IPopulateScope<IWeakMemberReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, new MemberReferancePopulateScope(first.Item, lhs));
             }
@@ -105,14 +109,14 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class MemberReferancePopulateScope : IPopulateScope< WeakMemberReference>
+    internal class MemberReferancePopulateScope : IPopulateScope<IWeakMemberReference>
     {
 
         private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs;
         private readonly string memberName;
-        private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box = new DelegateBox<IIsPossibly<WeakMemberDefinition>>();
+        private readonly DelegateBox<IIsPossibly<IWeakMemberDefinition>> box = new DelegateBox<IIsPossibly<IWeakMemberDefinition>>();
 
-        public MemberReferancePopulateScope( string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs)
+        public MemberReferancePopulateScope(string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
@@ -123,23 +127,23 @@ namespace Tac.Semantic_Model
             return box;
         }
 
-        public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
+        public IPopulateBoxes<IWeakMemberReference> Run(IPopulateScopeContext context)
         {
 
-            return new MemberReferanceResolveReferance(memberName, box,lhs);
+            return new MemberReferanceResolveReferance(memberName, box, lhs);
         }
     }
 
-    internal class MemberReferanceResolveReferance : IPopulateBoxes<WeakMemberReference>
+    internal class MemberReferanceResolveReferance : IPopulateBoxes<IWeakMemberReference>
     {
 
         private readonly string memberName;
         private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs;
-        private readonly DelegateBox<IIsPossibly<WeakMemberDefinition>> box;
+        private readonly DelegateBox<IIsPossibly<IWeakMemberDefinition>> box;
 
         public MemberReferanceResolveReferance(
-            string memberName, 
-            DelegateBox<IIsPossibly<WeakMemberDefinition>> box, 
+            string memberName,
+            DelegateBox<IIsPossibly<IWeakMemberDefinition>> box,
             IBox<IIsPossibly<IFrontendType<IVerifiableType>>> lhs)
         {
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
@@ -147,7 +151,7 @@ namespace Tac.Semantic_Model
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
+        public IIsPossibly<IWeakMemberReference> Run(IResolveReferenceContext context)
         {
             box.Set(() =>
             {
@@ -155,20 +159,22 @@ namespace Tac.Semantic_Model
 
                 var lshpossible = lhs.GetValue();
 
-                if (lshpossible.IsDefinately(out var lshtype, out var nope)){
+                if (!lshpossible.IsDefinately(out var lshtype, out var nope))
+                {
                     return Possibly.IsNot<WeakMemberDefinition>(nope);
                 }
-
-                if (!lshtype.Is<WeakMemberReference>(out var memberReference)) {
+                
+                if (!lshtype.Value.Is<WeakMemberReference>(out var memberReference))
+                {
                     return Possibly.IsNot<WeakMemberDefinition>(); // TODO
                 }
-
                 if (!memberReference.MemberDefinition.IsDefinately(out var hasMemberDef, out var noMemberDef))
                 {
                     return Possibly.IsNot<WeakMemberDefinition>(noMemberDef);
                 }
-
-                if (!hasMemberDef.Value.GetValue().IsDefinately(out var has, out var hasNot)) {
+                
+                if (!hasMemberDef.Value.GetValue().IsDefinately(out var has, out var hasNot))
+                {
                     return Possibly.IsNot<WeakMemberDefinition>(hasNot);
                 }
 
@@ -186,16 +192,15 @@ namespace Tac.Semantic_Model
                 {
                     return Possibly.IsNot<WeakMemberDefinition>(hasNot4);
                 }
-
-                // TODO this is not going to work 
-                // I don't use IInterfaceType in the frotend
-                if (!(has4.Value is IInterfaceType interfaceType))
+                
+                if (!(has4.Value is IScoped interfaceType))
                 {
                     return Possibly.IsNot<WeakMemberDefinition>(); // TODO
                 }
 
-                if (interfaceType.Scope.TryGetMember(new NameKey(memberName), false, out var res)) {
-                    return Possibly.Is(res.Cast<WeakMemberDefinition>());
+                if (interfaceType.Scope.TryGetMember(new NameKey(memberName), false, out var res))
+                {
+                    return res.GetValue();
                 }
                 else
                 {
@@ -203,6 +208,6 @@ namespace Tac.Semantic_Model
                 }
             });
             return Possibly.Is(new WeakMemberReference(Possibly.Is(box)));
-        }   
+        }
     }
 }

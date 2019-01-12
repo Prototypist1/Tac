@@ -10,8 +10,11 @@ namespace Tac.Model
 
     // TODO some scope has a lot of the same members
     // figure scope interface our
-    public interface IFinalizedScope 
+    public interface IFinalizedScope
     {
+        IEnumerable<IMemberDefinition> Members { get; }
+        IEnumerable<IVerifiableType> Types { get; }
+        IEnumerable<IKey> TypeKeys { get; }
         IEnumerable<IKey> MemberKeys { get; }
         bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box);
         bool TryGetType(IKey name, out IVerifiableType type);

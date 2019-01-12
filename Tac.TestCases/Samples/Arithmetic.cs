@@ -12,7 +12,9 @@ namespace Tac.Tests.Samples
         public string Text => "module math-module { ( 2 + 5 ) * ( 2 + 7 ) =: x ; } ;";
 
         public IModuleDefinition Module => ModuleDefinition.CreateAndBuild(
-            new FinalizedScope(new Dictionary<IKey, IMemberDefinition>() { { new NameKey("x"), MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(new AnyType()), false) } }),
+            new FinalizedScope(
+                new Dictionary<IKey, IMemberDefinition>() { { new NameKey("x"), MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(new AnyType()), false) } },
+                new Dictionary<IKey, IVerifiableType>()),
             new[] {
                 AssignOperation.CreateAndBuild(
                     MultiplyOperation.CreateAndBuild(

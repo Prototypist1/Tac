@@ -17,11 +17,16 @@ namespace Tac.Tests.Samples
             var yKey = new NameKey("y");
             var y = MemberDefinition.CreateAndBuild(yKey, TypeReference.CreateAndBuild(new NumberType()), false);
 
-            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { xKey, x } });
-            var innerMethodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { yKey, y } }, methodScope);
+            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { xKey, x } },
+                new Dictionary<IKey, IVerifiableType>());
+            var innerMethodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { yKey, y } },
+                new Dictionary<IKey, IVerifiableType>(),
+                methodScope);
 
             Module = ModuleDefinition.CreateAndBuild(
-                 new FinalizedScope(new Dictionary<IKey, IMemberDefinition>() { { new NameKey("create-accululator"), MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) } }),
+                 new FinalizedScope(
+                     new Dictionary<IKey, IMemberDefinition>() { { new NameKey("create-accululator"), MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) } },
+                new Dictionary<IKey, IVerifiableType>()),
                  new[]{
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(

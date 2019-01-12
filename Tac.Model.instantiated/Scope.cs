@@ -11,6 +11,17 @@ namespace Tac.Model.Instantiated
     {
         private readonly IFinalizedScope parent;
 
+        public class TypeData {
+            public TypeData(IKey key, IVerifiableType type)
+            {
+                Key = key ?? throw new ArgumentNullException(nameof(key));
+                Type = type ?? throw new ArgumentNullException(nameof(type));
+            }
+
+            public IKey Key { get; } 
+            public IVerifiableType Type { get; }
+        }
+
         public class IsStatic
         {
             public IsStatic(IMemberDefinition value, bool @static)
@@ -23,7 +34,8 @@ namespace Tac.Model.Instantiated
             public bool Static { get; }
         }
 
-        private interface ITypeHolder { }
+        private interface ITypeHolder {
+        }
 
         private class TypeHolder : ITypeHolder {
             public readonly IVerifiableType type;
@@ -35,7 +47,7 @@ namespace Tac.Model.Instantiated
         private class GenericTypeHolder : ITypeHolder { }
 
         private readonly IDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
-        private readonly IDictionary<IKey, IEnumerable<ITypeHolder>> types = new ConcurrentDictionary<IKey, IEnumerable<ITypeHolder>>();
+        private readonly IDictionary<IKey, List<ITypeHolder>> types = new ConcurrentDictionary<IKey, List<ITypeHolder>>();
 
         public Scope()
         {
@@ -46,13 +58,13 @@ namespace Tac.Model.Instantiated
             this.parent = parent ?? throw new ArgumentNullException(nameof(parent));
         }
 
-        public IEnumerable<IKey> MemberKeys
-        {
-            get
-            {
-                return members.Keys;
-            }
-        }
+        public IEnumerable<IKey> MemberKeys => members.Keys;
+
+        public IEnumerable<IMemberDefinition> Members => members.Select(x => x.Value.Value);
+
+        public IEnumerable<IVerifiableType> Types => types.SelectMany(x=>x.Value.Select(y=>y);
+
+        public IEnumerable<IKey> TypeKeys => types.Keys;
 
         public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition member)
         {
@@ -108,16 +120,27 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public void Build(IEnumerable<IsStatic> toAdd)
+        public void Build(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd)
         {
             foreach (var member in toAdd)
             {
                 members[member.Value.Key] = member;
             }
+
+            foreach (var type in typesToAdd)
+            {
+                if (types.ContainsKey(type.Key))
+                {
+                    types[type.Key].Add(new TypeHolder(type.Type));
+                }
+                else {
+                    types[type.Key] = new List<ITypeHolder>() { new TypeHolder(type.Type) };
+                }
+            }
         }
     }
 
     public interface IFinalizedScopeBuilder {
-        void Build(IEnumerable<Scope.IsStatic> members);
+        void Build(IReadOnlyList<Scope.IsStatic> members, IReadOnlyList<Scope.TypeData> types);
     }
 }

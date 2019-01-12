@@ -28,14 +28,19 @@ namespace Tac.Tests.Samples
 
             Module = ModuleDefinition.CreateAndBuild(
                 // huh, FinalizedScope does not hold types??
-                new FinalizedScope(new Dictionary<IKey, IMemberDefinition>()),
+                new FinalizedScope(
+                    new Dictionary<IKey, IMemberDefinition>(),
+                    new Dictionary<IKey, IVerifiableType>() {
+
+                    }),
                 new[] {
                         GenericInterfaceDefinition.CreateAndBuild(
                                                 new FinalizedScope(
                                                     new Dictionary<IKey, IMemberDefinition> {
                                                         { keyX, localX },
                                                         { keyY, localY }
-                                                    }),
+                                                    },
+                                                    new Dictionary<IKey, IVerifiableType>()),
                                                 new TestGenericTypeParameterDefinition[]{
                                                     new TestGenericTypeParameterDefinition(key)
                                                 })

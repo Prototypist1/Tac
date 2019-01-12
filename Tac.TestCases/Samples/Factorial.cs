@@ -13,8 +13,10 @@ namespace Tac.Tests.Samples
     public class Factorial : ITestCase
     {
         public Factorial() {
-            var ifBlockScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
-            var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { });
+            var ifBlockScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { },
+                new Dictionary<IKey, IVerifiableType>());
+            var elseBlock = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { },
+                new Dictionary<IKey, IVerifiableType>());
 
             var inputKey = new NameKey("input");
             var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new NumberType()), false);
@@ -23,13 +25,16 @@ namespace Tac.Tests.Samples
             var fac = MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false);
 
 
-            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } });
+            var methodScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { inputKey, input } },
+                new Dictionary<IKey, IVerifiableType>());
 
-            var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } });
+            var rootScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, fac } },
+                new Dictionary<IKey, IVerifiableType>());
 
             Module =
                 ModuleDefinition.CreateAndBuild(
-                    new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false) } }),
+                    new FinalizedScope(new Dictionary<IKey, IMemberDefinition> { { facKey, MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false) } },
+                new Dictionary<IKey, IVerifiableType>()),
                     new ICodeElement[]{
                         AssignOperation.CreateAndBuild(
                                 MethodDefinition.CreateAndBuild(

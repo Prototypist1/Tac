@@ -23,7 +23,7 @@ module mirror-module {
     implementation [ type { x ; y ; } ; empty ; empty ] context input { 
         context . x =: temp ;
         context . y =: ( context . x ) ;
-        temp =: context . y ; 
+        temp =: ( context . y ) ; 
     } =: mirror ;
 } ; ";
             }
@@ -40,11 +40,13 @@ module mirror-module {
             var contextKey = new NameKey("context");
 
             var context = MemberDefinition.CreateAndBuild(contextKey, TypeReference.CreateAndBuild(InterfaceType.CreateAndBuild(
-                new FinalizedScope(new Dictionary<IKey, IMemberDefinition>() {
+                new FinalizedScope(
+                    new Dictionary<IKey, IMemberDefinition>() {
                         { keyX, localX },
                         { keyY, localY },
-                })
-                )), false); ;
+                    },
+                    new Dictionary<IKey, IVerifiableType>()))),
+                false); ;
 
             var inputKey = new NameKey("input");
             var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new EmptyType()), false);
@@ -52,12 +54,19 @@ module mirror-module {
             var tempKey = new NameKey("temp");
             var temp = MemberDefinition.CreateAndBuild(tempKey, TypeReference.CreateAndBuild(new NumberType()), false);
 
-            var implementationScope = new FinalizedScope(new Dictionary<IKey, IMemberDefinition> {
-                    { inputKey, input },{ contextKey, context },{ tempKey, temp } });
+            var implementationScope = new FinalizedScope(
+                new Dictionary<IKey, IMemberDefinition> {
+                    { inputKey, input },
+                    { contextKey, context },
+                    { tempKey, temp } },
+                new Dictionary<IKey, IVerifiableType>());
 
 
             Module = ModuleDefinition.CreateAndBuild(
-                new FinalizedScope(new Dictionary<IKey, IMemberDefinition>() { { new NameKey("mirror"), MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false) } }),
+                new FinalizedScope(
+                    new Dictionary<IKey, IMemberDefinition>() {
+                        { new NameKey("mirror"), MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false) } },
+                    new Dictionary<IKey, IVerifiableType>()),
                 new[] {
                     AssignOperation.CreateAndBuild(
                     ImplementationDefinition.CreateAndBuild(

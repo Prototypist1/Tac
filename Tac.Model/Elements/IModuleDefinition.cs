@@ -6,6 +6,6 @@ namespace Tac.Model.Elements
     {
         IKey Key { get; }
         IFinalizedScope Scope { get; }
-        IEnumerable<ICodeElement> StaticInitialization { get; }
+        IReadOnlyList<ICodeElement> StaticInitialization { get; }
     }
 }

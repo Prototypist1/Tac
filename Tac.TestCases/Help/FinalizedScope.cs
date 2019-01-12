@@ -13,17 +13,23 @@ namespace Tac.TestCases.Help
         private readonly IReadOnlyDictionary<IKey, IMemberDefinition> members = new Dictionary<IKey,IMemberDefinition>();
         private readonly IReadOnlyDictionary<IKey, IVerifiableType> types = new Dictionary<IKey,IVerifiableType>();
 
-        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members) {
+        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members, IReadOnlyDictionary<IKey,IVerifiableType> types) {
             this.members = members ?? throw new ArgumentNullException(nameof(members));
+            this.types = types ?? throw new ArgumentNullException(nameof(types));
         }
 
-        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members, IFinalizedScope parent)
+        public FinalizedScope(IReadOnlyDictionary<IKey, IMemberDefinition> members, IReadOnlyDictionary<IKey, IVerifiableType> types, IFinalizedScope parent): this(members,types)
         {
-            this.members = members ?? throw new ArgumentNullException(nameof(members));
             this.parent = parent ?? throw new ArgumentNullException(nameof(parent));
         }
 
         public IEnumerable<IKey> MemberKeys => members.Keys;
+
+        public IEnumerable<IMemberDefinition> Members => members.Values;
+
+        public IEnumerable<IVerifiableType> Types => types.Values;
+
+        public IEnumerable<IKey> TypeKeys => types.Keys;
 
         public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box)
         {
