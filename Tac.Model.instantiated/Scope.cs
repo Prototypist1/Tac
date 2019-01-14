@@ -22,6 +22,18 @@ namespace Tac.Model.Instantiated
             public IVerifiableType Type { get; }
         }
 
+        public class GenericTypeData
+        {
+            public GenericTypeData(NameKey key, GenericInterfaceDefinition type)
+            {
+                Key = key ?? throw new ArgumentNullException(nameof(key));
+                Type = type ?? throw new ArgumentNullException(nameof(type));
+            }
+
+            public NameKey Key { get; }
+            public GenericInterfaceDefinition Type { get; }
+        }
+
         public class IsStatic
         {
             public IsStatic(IMemberDefinition value, bool @static)
@@ -34,20 +46,9 @@ namespace Tac.Model.Instantiated
             public bool Static { get; }
         }
 
-        private interface ITypeHolder {
-        }
-
-        private class TypeHolder : ITypeHolder {
-            public readonly IVerifiableType type;
-
-            public TypeHolder(IVerifiableType type) {
-                this.type = type ?? throw new ArgumentNullException(nameof(type));
-            }
-        }
-        private class GenericTypeHolder : ITypeHolder { }
-
         private readonly IDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
-        private readonly IDictionary<IKey, List<ITypeHolder>> types = new ConcurrentDictionary<IKey, List<ITypeHolder>>();
+        private readonly IDictionary<IKey, IVerifiableType> types = new ConcurrentDictionary<IKey, IVerifiableType>();
+        private readonly IDictionary<NameKey, List<GenericInterfaceDefinition>> genericTypes = new ConcurrentDictionary<NameKey, List<GenericInterfaceDefinition>>();
 
         public Scope()
         {
@@ -62,9 +63,13 @@ namespace Tac.Model.Instantiated
 
         public IEnumerable<IMemberDefinition> Members => members.Select(x => x.Value.Value);
 
-        public IEnumerable<IVerifiableType> Types => types.SelectMany(x=>x.Value.OfType<TypeHolder>().Select(y=>y.type));
+        public IEnumerable<IVerifiableType> Types => types.Select(x=>x.Value);
 
         public IEnumerable<IKey> TypeKeys => types.Keys;
+
+        public IEnumerable<IGenericInterfaceDefinition> GenericTypes => genericTypes.SelectMany(x=>x.Value);
+
+        public IEnumerable<GenericKeyDefinition> GenericTypeKeys => genericTypes.SelectMany(x=> x.Value.Select(y=>new GenericKeyDefinition(x.Key,y.TypeParameterDefinitions)));
 
         public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition member)
         {
@@ -91,17 +96,14 @@ namespace Tac.Model.Instantiated
         {
             if (name is GenericNameKey genericNameKey)
             {
-                if (!types.TryGetValue(new NameKey(genericNameKey.Name), out var list))
+                if (!genericTypes.TryGetValue(new NameKey(genericNameKey.Name), out var item))
                 {
-                    foreach (var item in list.OfType<GenericTypeHolder>())
-                    {
-                        throw new NotImplementedException();
-                    }
+                    throw new NotImplementedException();
                 }
             }else{
-                if (!types.TryGetValue(name, out var list))
+                if (!types.TryGetValue(name, out var item))
                 {
-                    type = list.OfType<TypeHolder>().Single().type;
+                    type = item;
                     return true;
                 }
             }
@@ -135,13 +137,7 @@ namespace Tac.Model.Instantiated
 
             foreach (var type in typesToAdd)
             {
-                if (types.ContainsKey(type.Key))
-                {
-                    types[type.Key].Add(new TypeHolder(type.Type));
-                }
-                else {
-                    types[type.Key] = new List<ITypeHolder>() { new TypeHolder(type.Type) };
-                }
+                types[type.Key] =  type.Type;
             }
         }
         
@@ -162,6 +158,6 @@ namespace Tac.Model.Instantiated
     }
 
     public interface IFinalizedScopeBuilder {
-        void Build(IReadOnlyList<Scope.IsStatic> members, IReadOnlyList<Scope.TypeData> types);
+        void Build(IReadOnlyList<Scope.IsStatic> members, IReadOnlyList<Scope.TypeData> types, IReadOnlyList<Scope.GenericTypeData> genericTypes);
     }
 }
