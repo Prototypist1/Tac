@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Tac.Model.Elements;
-using Prototypist.LeftToRight;
 using System.Linq;
 
 namespace Tac.Model
@@ -39,8 +38,7 @@ namespace Tac.Model
 
         public override bool Equals(object obj)
         {
-            var definition = obj as GenericKeyDefinition;
-            return definition != null &&
+            return obj is GenericKeyDefinition definition &&
                    EqualityComparer<NameKey>.Default.Equals(Name, definition.Name) &&
                    Parameters.SequenceEqual(definition.Parameters);
         }

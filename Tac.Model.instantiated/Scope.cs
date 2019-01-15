@@ -24,14 +24,14 @@ namespace Tac.Model.Instantiated
 
         public class GenericTypeData
         {
-            public GenericTypeData(NameKey key, GenericInterfaceDefinition type)
+            public GenericTypeData(NameKey key, IGenericInterfaceDefinition type)
             {
                 Key = key ?? throw new ArgumentNullException(nameof(key));
                 Type = type ?? throw new ArgumentNullException(nameof(type));
             }
 
             public NameKey Key { get; }
-            public GenericInterfaceDefinition Type { get; }
+            public IGenericInterfaceDefinition Type { get; }
         }
 
         public class IsStatic
@@ -48,7 +48,7 @@ namespace Tac.Model.Instantiated
 
         private readonly IDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
         private readonly IDictionary<IKey, IVerifiableType> types = new ConcurrentDictionary<IKey, IVerifiableType>();
-        private readonly IDictionary<NameKey, List<GenericInterfaceDefinition>> genericTypes = new ConcurrentDictionary<NameKey, List<GenericInterfaceDefinition>>();
+        private readonly IDictionary<NameKey, List<IGenericInterfaceDefinition>> genericTypes = new ConcurrentDictionary<NameKey, List<IGenericInterfaceDefinition>>();
 
         public Scope()
         {
@@ -128,7 +128,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public void Build(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd)
+        public void Build(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IReadOnlyList<Scope.GenericTypeData> genericTypesToAdd)
         {
             foreach (var member in toAdd)
             {
@@ -139,20 +139,31 @@ namespace Tac.Model.Instantiated
             {
                 types[type.Key] =  type.Type;
             }
+
+            foreach (var genericType in genericTypesToAdd)
+            {
+                if (genericTypes.ContainsKey(genericType.Key)) {
+                    genericTypes[genericType.Key].Add(genericType.Type);
+                }
+                else
+                {
+                    genericTypes[genericType.Key] = new List<IGenericInterfaceDefinition>() { genericType.Type };
+                }
+            }
         }
         
 
-        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd) {
+        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IReadOnlyList<Scope.GenericTypeData> genericTypes) {
             var (x, y) = Create();
-            y.Build(toAdd, typesToAdd);
+            y.Build(toAdd, typesToAdd, genericTypes);
             return x;
         }
 
 
-        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IFinalizedScope parent)
+        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IReadOnlyList<Scope.GenericTypeData> genericTypes, IFinalizedScope parent)
         {
             var (x, y) = Create(parent);
-            y.Build(toAdd, typesToAdd);
+            y.Build(toAdd, typesToAdd, genericTypes);
             return x;
         }
     }

@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model
     // ah! a IFrontendGenericType is a IFrontendType<IVarifiableType>
     // two methods
 
-    internal interface IFrontendGenericType : IFrontendType<IVerifiableType>
+    internal interface IFrontendGenericType : IFrontendType<IGenericInterfaceDefinition>
     {
         IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);
@@ -176,8 +176,8 @@ namespace Tac.Semantic_Model
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>> types
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>>();
 
-        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>> genericTypes
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>>();
+        protected readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>> genericTypes
+            = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>>();
 
         public NewScope(NewScope parent)
         {
@@ -319,7 +319,9 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     members.Select(x=>new Tac.Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)).ToArray(),
-                    types.SelectMany(x=> x.Value.Select(y=> new Tac.Model.Instantiated.Scope.TypeData(x.Key,y.Definition.GetValue().GetOrThrow().Convert(context)))).ToList());
+                    types.SelectMany(x=> x.Value.Select(y=> new Tac.Model.Instantiated.Scope.TypeData(x.Key,y.Definition.GetValue().GetOrThrow().Convert(context)))).ToList(),
+                    genericTypes.SelectMany(x => x.Value.Select(y => new Tac.Model.Instantiated.Scope.GenericTypeData(x.Key, y.Definition.GetValue().Convert(context)))).ToList()
+                    );
             });
         }
     }

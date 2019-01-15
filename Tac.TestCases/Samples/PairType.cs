@@ -31,7 +31,8 @@ namespace Tac.Tests.Samples
                     new List<Scope.IsStatic>(),
                     new List<Scope.TypeData>() {
 
-                    }),
+                    },
+                    new List<Scope.GenericTypeData>()),
                 new[] {
                         GenericInterfaceDefinition.CreateAndBuild(
                                                  Scope.CreateAndBuild(
@@ -39,7 +40,8 @@ namespace Tac.Tests.Samples
                                                         new Scope.IsStatic(localX ,false),
                                                         new Scope.IsStatic( localY,false)
                                                     },
-                                                    new List<Scope.TypeData>()),
+                                                    new List<Scope.TypeData>(),
+                                                    new List<Scope.GenericTypeData>()),
                                                 new TestGenericTypeParameterDefinition[]{
                                                     new TestGenericTypeParameterDefinition(key)
                                                 })

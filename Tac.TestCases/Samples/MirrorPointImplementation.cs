@@ -44,7 +44,8 @@ module mirror-module {
                         new Scope.IsStatic(localX ,false),
                         new Scope.IsStatic(localY ,false),
                     },
-                    new List<Scope.TypeData>()))),
+                    new List<Scope.TypeData>(),
+                    new List<Scope.GenericTypeData>()))),
                 false); ;
 
             var inputKey = new NameKey("input");
@@ -58,14 +59,16 @@ module mirror-module {
                     new Scope.IsStatic( input ,false),
                     new Scope.IsStatic(context ,false),
                     new Scope.IsStatic(temp ,false) },
-                new List<Scope.TypeData>());
+                    new List<Scope.TypeData>(),
+                    new List<Scope.GenericTypeData>());
 
 
             Module = ModuleDefinition.CreateAndBuild(
                  Scope.CreateAndBuild(
                     new List<Scope.IsStatic>() {
                         new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) },
-                    new List<Scope.TypeData>()),
+                    new List<Scope.TypeData>(),
+                    new List<Scope.GenericTypeData>()),
                 new[] {
                     AssignOperation.CreateAndBuild(
                     ImplementationDefinition.CreateAndBuild(

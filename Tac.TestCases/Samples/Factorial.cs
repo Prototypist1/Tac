@@ -13,9 +13,11 @@ namespace Tac.Tests.Samples
     {
         public Factorial() {
             var ifBlockScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { },
-                new List<Scope.TypeData>());
+                new List<Scope.TypeData>(),
+                    new List<Scope.GenericTypeData>());
             var elseBlock = Scope.CreateAndBuild(new List<Scope.IsStatic> { },
-                new List<Scope.TypeData>());
+                new List<Scope.TypeData>(),
+                    new List<Scope.GenericTypeData>());
 
             var inputKey = new NameKey("input");
             var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new NumberType()), false);
@@ -25,15 +27,19 @@ namespace Tac.Tests.Samples
 
 
             var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(input ,false) },
-                new List<Scope.TypeData>());
+                new List<Scope.TypeData>(),
+                    new List<Scope.GenericTypeData>());
 
             var rootScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(fac, false) },
-                new List<Scope.TypeData>());
+                new List<Scope.TypeData>(),
+                    new List<Scope.GenericTypeData>());
 
             Module =
                 ModuleDefinition.CreateAndBuild(
-                     Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false), false) },
-                new List<Scope.TypeData>()),
+                     Scope.CreateAndBuild(
+                        new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false), false) },
+                        new List<Scope.TypeData>(),
+                        new List<Scope.GenericTypeData>()),
                     new ICodeElement[]{
                         AssignOperation.CreateAndBuild(
                                 MethodDefinition.CreateAndBuild(

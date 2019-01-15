@@ -183,11 +183,10 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
         }
 
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        IBuildIntention<IGenericInterfaceDefinition> IConvertable<IGenericInterfaceDefinition>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (toBuild, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
-            return new BuildIntention<IVerifiableType>(toBuild, () =>
-            {
+            return new BuildIntention<IVerifiableType>(toBuild, () => {
                 builder.Build();
             });
         }
@@ -245,11 +244,10 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
         }
 
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
+        IBuildIntention<IGenericInterfaceDefinition> IConvertable<IGenericInterfaceDefinition>.GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (toBuild, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
-            return new BuildIntention<IVerifiableType>(toBuild, () =>
-            {
+            return new BuildIntention<IVerifiableType>(toBuild, () => {
                 builder.Build();
             });
         }
