@@ -18,7 +18,7 @@ namespace Tac.Model
         IEnumerable<IVerifiableType> Types { get; }
         IEnumerable<IKey> TypeKeys { get; }
         IEnumerable<IKey> MemberKeys { get; }
-        IEnumerable<IGenericInterfaceDefinition> GenericTypes { get; }
+        IEnumerable<IGenericType> GenericTypes { get; }
         IEnumerable<GenericKeyDefinition> GenericTypeKeys { get; }
         bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box);
         bool TryGetType(IKey name, out IVerifiableType type);
@@ -27,14 +27,14 @@ namespace Tac.Model
 
     public class GenericKeyDefinition : IKey
     {
-        public GenericKeyDefinition(NameKey name, IReadOnlyList<IGenericTypeParameterDefinition> parameters)
+        public GenericKeyDefinition(NameKey name, IReadOnlyList<IKey> parameters)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
         public NameKey Name { get; }
-        public IReadOnlyList<IGenericTypeParameterDefinition> Parameters { get; }
+        public IReadOnlyList<IKey> Parameters { get; }
 
         public override bool Equals(object obj)
         {

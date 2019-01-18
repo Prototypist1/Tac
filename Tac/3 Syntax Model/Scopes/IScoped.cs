@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model
     // ah! a IFrontendGenericType is a IFrontendType<IVarifiableType>
     // two methods
 
-    internal interface IFrontendGenericType : IFrontendType<IGenericInterfaceDefinition>
+    internal interface IFrontendGenericType : IFrontendType<IGenericType>
     {
         IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);

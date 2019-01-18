@@ -30,11 +30,11 @@ namespace Tac.Semantic_Model
         public IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions=> backing.TypeParameterDefinitions;
         public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendCodeElement<IGenericInterfaceDefinition>>().GetBuildIntention(context);
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IVerifiableType>>().GetBuildIntention(context); 
+        IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IGenericType>>().GetBuildIntention(context); 
         IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns() => Possibly.Is(this);
     }
 
-    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IVerifiableType>, IFrontendGenericType
+    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IGenericType>, IFrontendGenericType
     {
         IIsPossibly<IKey> Key { get; }
     }
@@ -62,7 +62,7 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     Scope.Convert(context),
-                    TypeParameterDefinitions.Select(x=>new Tac.Model.Elements.GenericTypeParameterDefinition(x.GetOrThrow().Key).Cast<IGenericTypeParameterDefinition>()).ToArray());
+                    TypeParameterDefinitions.Select(x=>x.GetOrThrow().Convert(context)).ToArray());
             });
         }
 
@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
+        IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
 
         IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns()
         {

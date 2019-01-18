@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Tac.Model;
 using Tac.Model.Elements;
 
@@ -93,20 +94,28 @@ namespace Tac.Model.Instantiated
     public interface IGemericTypeParameterPlacholderBuilder
     {
         void Build(IKey key);
+
+        IKey Key { get; }
     }
 
     public interface IGenericMethodTypeBuilder {
-        void Build();
+        void Build(IVerifiableType inputType, IVerifiableType ouputType);
     }
 
-    // TODO!
-    // how does this work?!
+
     public class GenericMethodType : IGenericMethodType, IGenericMethodTypeBuilder
     {
+        // TODO should be broken apart, buildable
+        private readonly Buildable<IVerifiableType[]> buildTypeParameterDefinitions = new Buildable<IVerifiableType[]>();
+
+        public IReadOnlyList<IKey> TypeParameterKeys => buildTypeParameterDefinitions.Get().OfType<GemericTypeParameterPlacholder>().Select(x => x.Key).ToArray();
+
+
         private GenericMethodType() { }
 
-        public void Build()
+        public void Build(IVerifiableType inputType, IVerifiableType ouputType)
         {
+            buildTypeParameterDefinitions.Set(new[] { inputType, ouputType });
         }
 
         public static (IGenericMethodType, IGenericMethodTypeBuilder) Create()
@@ -169,14 +178,19 @@ namespace Tac.Model.Instantiated
         public IVerifiableType ContextType { get; private set; }
     }
 
-    // TODO!
-    // how does this work?!
     public class GenericImplementationType : IGenericImplementationType, IGenericImplementationBuilder
     {
+        // TODO should be broken apart, buildable
+        private readonly Buildable<IVerifiableType[]> buildTypeParameterDefinitions = new Buildable<IVerifiableType[]>();
+
+        public IReadOnlyList<IKey> TypeParameterKeys  => buildTypeParameterDefinitions.Get().OfType<GemericTypeParameterPlacholder>().Select(x => x.Key).ToArray();
+        
         private GenericImplementationType() { }
 
-        public void Build()
+        public void Build(IVerifiableType inputType, IVerifiableType ouputType, IVerifiableType contextType)
         {
+
+            buildTypeParameterDefinitions.Set(new[] { inputType, ouputType, contextType });
         }
 
         public static (IGenericImplementationType, IGenericImplementationBuilder) Create()
@@ -187,7 +201,7 @@ namespace Tac.Model.Instantiated
     }
     public interface IGenericImplementationBuilder
     {
-        void Build();
+        void Build(IVerifiableType inputType, IVerifiableType ouputType, IVerifiableType contextType);
     }
 
     public interface IImplementationTypeBuilder

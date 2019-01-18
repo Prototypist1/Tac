@@ -105,6 +105,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                         ContextType.Convert(context)); });
         }
     }
+
     internal class MethodType : IFrontendType<IMethodType>
     {
         public MethodType(IFrontendType<IVerifiableType> inputType, IFrontendType<IVerifiableType> outputType)
@@ -132,7 +133,9 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     // TODO 
     // this is not good either
     // get a not tired brain and think about it
-    // 
+
+    //TODO
+    // these should be overlays too!
 
     internal class GenericMethodType : IFrontendType<IGenericMethodType>, IFrontendGenericType
     {
@@ -157,19 +160,12 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         {
             var (res, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
 
-            return new BuildIntention<IGenericMethodType>(res, () => builder.Build());
+            return new BuildIntention<IGenericMethodType>(res, () => builder.Build(
+                input.Convert(context),
+                output.Convert(context)
+                ));
         }
-
-        public IFrontendType<IMethodType> GetConcreteType(GenericTypeParameter[] parameters)
-        {
-            if (parameters.Length == 2) {
-                return new MethodType(
-                    parameters.Single(x => x.Parameter.Key.Equals(input)).Type, 
-                    parameters.Single(x => x.Parameter.Key.Equals(output)).Type);
-            }
-            throw new Exception("Exceptions important, why do you always half ass them?");
-        }
-
+        
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
@@ -183,13 +179,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
         }
 
-        IBuildIntention<IGenericInterfaceDefinition> IConvertable<IGenericInterfaceDefinition>.GetBuildIntention(TransformerExtensions.ConversionContext context)
-        {
-            var (toBuild, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
-            return new BuildIntention<IVerifiableType>(toBuild, () => {
-                builder.Build();
-            });
-        }
+        IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     }
 
     internal class GenericImplementationType : IFrontendType<IGenericImplementationType>, IFrontendGenericType
@@ -215,20 +205,10 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public IBuildIntention<IGenericImplementationType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            throw new NotImplementedException();
-        }
-
-        public IFrontendType<IVerifiableType> GetConcreteType(GenericTypeParameter[] parameters)
-        {
-            if (parameters.Length == 3)
-            {
-                return new ImplementationType(
-                    parameters.Single(x => x.Parameter.Key.Equals(input)).Type,
-                    parameters.Single(x => x.Parameter.Key.Equals(output)).Type,
-                    parameters.Single(x => x.Parameter.Key.Equals(context)).Type);
-            }
-
-            throw new Exception("Exceptions important, why do you always half ass them?");
+            var (toBuild, builder) = Tac.Model.Instantiated.GenericImplementationType.Create();
+            return new BuildIntention<IGenericImplementationType>(toBuild, () => {
+                builder.Build(input.Convert(context), output.Convert(context), this.context.Convert(context));
+            });
         }
 
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
@@ -244,23 +224,17 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
         }
 
-        IBuildIntention<IGenericInterfaceDefinition> IConvertable<IGenericInterfaceDefinition>.GetBuildIntention(TransformerExtensions.ConversionContext context)
-        {
-            var (toBuild, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
-            return new BuildIntention<IVerifiableType>(toBuild, () => {
-                builder.Build();
-            });
-        }
+        IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     }
 
-    internal class GenericTypeParameter {
-        public GenericTypeParameter(IGenericTypeParameterDefinition parameter, IFrontendType<IVerifiableType> type)
-        {
-            Parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
-            Type = type ?? throw new ArgumentNullException(nameof(type));
-        }
+    //internal class GenericTypeParameter {
+    //    public GenericTypeParameter(IGenericTypeParameterDefinition parameter, IFrontendType<IVerifiableType> type)
+    //    {
+    //        Parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
+    //        Type = type ?? throw new ArgumentNullException(nameof(type));
+    //    }
 
-        public IGenericTypeParameterDefinition Parameter { get; }
-        public IFrontendType<IVerifiableType> Type { get; }
-    }
+    //    public IGenericTypeParameterDefinition Parameter { get; }
+    //    public IFrontendType<IVerifiableType> Type { get; }
+    //}
 }

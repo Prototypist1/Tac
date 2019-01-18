@@ -42,8 +42,8 @@ namespace Tac.Tests.Samples
                                                     },
                                                     new List<Scope.TypeData>(),
                                                     new List<Scope.GenericTypeData>()),
-                                                new TestGenericTypeParameterDefinition[]{
-                                                    new TestGenericTypeParameterDefinition(key)
+                                                new []{
+                                                    GemericTypeParameterPlacholder.CreateAndBuild(key)
                                                 })
                 },
                 new NameKey("pair-type"));

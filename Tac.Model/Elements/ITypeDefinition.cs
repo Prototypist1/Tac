@@ -28,7 +28,7 @@ namespace Tac.Model.Elements
         IVerifiableType OutputType { get; }
     }
 
-    public interface IGenericMethodType : IVerifiableType
+    public interface IGenericMethodType : IGenericType
     {
     }
     public interface IImplementationType : IVerifiableType {
@@ -37,7 +37,7 @@ namespace Tac.Model.Elements
         IVerifiableType ContextType { get; }
     }
 
-    public interface IGenericImplementationType : IVerifiableType
+    public interface IGenericImplementationType : IGenericType
     {
     }
 }

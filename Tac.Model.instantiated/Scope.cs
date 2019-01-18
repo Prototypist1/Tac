@@ -24,14 +24,14 @@ namespace Tac.Model.Instantiated
 
         public class GenericTypeData
         {
-            public GenericTypeData(NameKey key, IGenericInterfaceDefinition type)
+            public GenericTypeData(NameKey key, IGenericType type)
             {
                 Key = key ?? throw new ArgumentNullException(nameof(key));
                 Type = type ?? throw new ArgumentNullException(nameof(type));
             }
 
             public NameKey Key { get; }
-            public IGenericInterfaceDefinition Type { get; }
+            public IGenericType Type { get; }
         }
 
         public class IsStatic
@@ -48,7 +48,7 @@ namespace Tac.Model.Instantiated
 
         private readonly IDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
         private readonly IDictionary<IKey, IVerifiableType> types = new ConcurrentDictionary<IKey, IVerifiableType>();
-        private readonly IDictionary<NameKey, List<IGenericInterfaceDefinition>> genericTypes = new ConcurrentDictionary<NameKey, List<IGenericInterfaceDefinition>>();
+        private readonly IDictionary<NameKey, List<IGenericType>> genericTypes = new ConcurrentDictionary<NameKey, List<IGenericType>>();
 
         public Scope()
         {
@@ -67,9 +67,9 @@ namespace Tac.Model.Instantiated
 
         public IEnumerable<IKey> TypeKeys => types.Keys;
 
-        public IEnumerable<IGenericInterfaceDefinition> GenericTypes => genericTypes.SelectMany(x=>x.Value);
+        public IEnumerable<IGenericType> GenericTypes => genericTypes.SelectMany(x=>x.Value);
 
-        public IEnumerable<GenericKeyDefinition> GenericTypeKeys => genericTypes.SelectMany(x=> x.Value.Select(y=>new GenericKeyDefinition(x.Key,y.TypeParameterDefinitions)));
+        public IEnumerable<GenericKeyDefinition> GenericTypeKeys => genericTypes.SelectMany(x=> x.Value.Select(y=>new GenericKeyDefinition(x.Key,y.TypeParameterKeys)));
 
         public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition member)
         {
@@ -96,9 +96,12 @@ namespace Tac.Model.Instantiated
         {
             if (name is GenericNameKey genericNameKey)
             {
-                if (!genericTypes.TryGetValue(new NameKey(genericNameKey.Name), out var item))
+                if (!genericTypes.TryGetValue(new NameKey(genericNameKey.Name), out var list))
                 {
-                    throw new NotImplementedException();
+                    //TODO
+
+
+
                 }
             }else{
                 if (!types.TryGetValue(name, out var item))
@@ -147,7 +150,7 @@ namespace Tac.Model.Instantiated
                 }
                 else
                 {
-                    genericTypes[genericType.Key] = new List<IGenericInterfaceDefinition>() { genericType.Type };
+                    genericTypes[genericType.Key] = new List<IGenericType>() { genericType.Type };
                 }
             }
         }

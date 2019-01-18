@@ -49,6 +49,7 @@ namespace Tac.Model.Instantiated
             buildableParameterDefinition.Set(parameterDefinition);
             buildableMethodBody.Set(methodBody);
             buildableStaticInitialzers.Set(staticInitialzers);
+            buildableScope.Set(scope);
         }
         
         public static (IImplementationDefinition, IImplementationDefinitionBuilder) Create()
