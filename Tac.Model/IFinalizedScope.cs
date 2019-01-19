@@ -20,9 +20,9 @@ namespace Tac.Model
         IEnumerable<IKey> MemberKeys { get; }
         IEnumerable<IGenericType> GenericTypes { get; }
         IEnumerable<GenericKeyDefinition> GenericTypeKeys { get; }
-        bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box);
-        bool TryGetType(IKey name, out IVerifiableType type);
-        bool TryGetParent(out IFinalizedScope res); 
+        //bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box);
+        //bool TryGetType(IKey name, out IVerifiableType type);
+        //bool TryGetParent(out IFinalizedScope res); 
     }
 
     public class GenericKeyDefinition : IKey
