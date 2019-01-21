@@ -102,11 +102,6 @@ namespace Tac.New
 
         public IPopulateScopeContext TemplateChild(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] parameters)
         {
-            // TODO.. 
-            // what is this... why is this...
-            // this project is too big for my brain!
-            // I think this is a old way to do generics
-            // and I should probably remove it 
             var template = new ScopeTemplate(parameters,stack);
             return new PopulateScopeContext(template);
         }

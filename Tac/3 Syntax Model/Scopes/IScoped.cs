@@ -87,76 +87,9 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] TypeParameterDefinitions {get;}
+        public GemericTypeParameterPlacholder[] TypeParameterDefinitions {get;}
 
-        //public IFinalizedScope CreateScope(GenericTypeParameter[] parameters)
-        //{
-        //    // ok so maybe types are not so final as I thought and depend on the evaulation context 
-        //    // I have IFrontendType maybe that still does a look up, in case the type is generic
-        //    // I don't want to have to do any of this copying
-        //    // it is a big fat mess 
-
-        //    int i = "Todo";
-        //    // add so validation
-
-        //    var res = new NewScope(Parent);
-
-        //    // we need to add everything back
-        //    // but we need to replace the place holder types
-
-        //    foreach (var entry in members)
-        //    {
-        //        foreach (var member in entry.Value)
-        //        {
-        //            int i = "Todo";
-        //            // members probably have types that need to be updated 
-        //            if (!res.TryAddMember(member.DefintionLifeTime, entry.Key, member.Definition)) {
-        //                throw new Exception("bad bad");
-        //            }
-        //        }
-        //    }
-
-        //    foreach (var entry in types)
-        //    {
-        //        var type = entry.Value.Single();
-
-        //        var haveKey = parameters.Where(x => x.Parameter.Key.Equals(entry.Key));
-        //        if (haveKey.Count()==1)
-        //        {
-        //            if (!res.TryAddType(entry.Key, new Box<IFrontendType>(haveKey.Single().Type)))
-        //            {
-        //                throw new Exception("bad bad");
-        //            }
-        //        }
-        //        else {
-        //            if (!res.TryAddType(entry.Key, type.Definition))
-        //            {
-        //                throw new Exception("bad bad");
-        //            }
-        //        }
-        //    }
-
-        //    foreach (var entry in genericTypes)
-        //    {
-        //        foreach (var genericType in entry.Value)
-        //        {
-        //            if (!res.TryAddType( entry.Key, genericType.Definition))
-        //            {
-        //                throw new Exception("bad bad");
-        //            }
-        //        }
-        //    }
-
-        //    return res;
-        //}
     }
-
-    // I have NewScope in this project
-    // and Scope in Tac.Model.Instantiated
-    // they are very much the same
-    // they are not the same thing, but very close
-    // they are split out because this allows for 
-    // cases where the scope is badly defined
 
     internal class NewScope : IPopulatableScope, IResolvableScope
     {
