@@ -13,7 +13,7 @@ namespace Tac.Tests.Samples
             @"
 module pair-type { 
     type [ T ; ] pair { T x ; T y ; } ; 
-    method [ int ; pair [ int ; int ] ] input {
+    method [ int ; pair [ int ; ] ] input {
         object {
             input =: x ;
             input =: y ;
@@ -30,27 +30,28 @@ module pair-type {
 
             var pairTypeT = GenericInterfaceDefinition.CreateAndBuild(
                                 Scope.CreateAndBuild(
-                                new List<Scope.IsStatic>{
-                                    new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(type), false) ,false),
-                                    new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("y"), TypeReference.CreateAndBuild(type), false),false)
-                                },
-                                new List<Scope.TypeData>(),
-                                new List<Scope.GenericTypeData>()),
-                            new[]{
-                                GemericTypeParameterPlacholder.CreateAndBuild(key)
-                            });
+                                    new List<Scope.IsStatic>{
+                                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(type), false) ,false),
+                                        new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("y"), TypeReference.CreateAndBuild(type), false),false)
+                                    },
+                                    new List<Scope.TypeData>(),
+                                    new List<Scope.GenericTypeData>()),
+                                new[]{
+                                    GemericTypeParameterPlacholder.CreateAndBuild(key)});
 
-            var pairTypeNumber = GenericInterfaceDefinition.CreateAndBuild(
+            var pairTypeNumber = 
+                GenericInterfaceDefinition.CreateAndBuild(
                     Scope.CreateAndBuild(
-                    new List<Scope.IsStatic>{
-                                    new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(new NumberType()), false) ,false),
-                                    new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("y"), TypeReference.CreateAndBuild(new NumberType()), false),false)
-                    },
-                    new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>()),
-                new[]{
-                                GemericTypeParameterPlacholder.CreateAndBuild(key)
-                });
+                        new List<Scope.IsStatic>{
+                            new Scope.IsStatic(
+                                MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(new NumberType()), false) ,false),
+                            new Scope.IsStatic(
+                                MemberDefinition.CreateAndBuild(new NameKey("y"), TypeReference.CreateAndBuild(new NumberType()), false),false)
+                        },
+                        new List<Scope.TypeData>(),
+                        new List<Scope.GenericTypeData>()),
+                    new[]{
+                        GemericTypeParameterPlacholder.CreateAndBuild(key)});
 
             var inputKey = new NameKey("input");
             var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new NumberType()), false);
@@ -62,14 +63,14 @@ module pair-type {
             var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(new NumberType()), false);
             var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), TypeReference.CreateAndBuild(new NumberType()), false);
 
-            var pairifyKey = new NameKey("fac");
+            var pairifyKey = new NameKey("pairify");
             var pairify = MemberDefinition.CreateAndBuild(pairifyKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), pairTypeNumber)), false);
             
             Module = ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
-                    new List<Scope.IsStatic>(),
+                    new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), pairTypeNumber)), false), false) },
                     new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>()),
+                    new List<Scope.GenericTypeData> { new Scope.GenericTypeData(new NameKey("pair"), pairTypeT) }),
                 new ICodeElement[] {
                     pairTypeT,
                     AssignOperation.CreateAndBuild(

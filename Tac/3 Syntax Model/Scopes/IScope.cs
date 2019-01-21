@@ -16,6 +16,7 @@ namespace Tac.Semantic_Model
 
     internal interface IPopulatableScope: ISomeScope
     {
+        bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition);
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
         bool TryAddType(IKey name, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type);
     }

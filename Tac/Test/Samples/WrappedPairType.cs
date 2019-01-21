@@ -40,7 +40,6 @@ namespace Tac.Tests.Samples
                                             TokenHelp.Line(
                                                 TokenHelp.Ele(TokenHelp.Atom("pair"),
                                                 TokenHelp.Square(
-                                                    TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int"))),
                                                     TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int"))))))),
                                         TokenHelp.Atom("input"),
                                         TokenHelp.Curl(

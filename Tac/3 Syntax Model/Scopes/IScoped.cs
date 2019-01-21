@@ -176,8 +176,8 @@ namespace Tac.Semantic_Model
         protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>> types
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>>();
 
-        protected readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>> genericTypes
-            = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>>();
+        protected readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>> genericTypes
+            = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>>();
 
         public NewScope(NewScope parent)
         {
@@ -195,9 +195,9 @@ namespace Tac.Semantic_Model
             //
             TryAddGeneric(
                 new NameKey("method"),
-                new Box<IFrontendGenericType>(new GenericMethodType()));
+                new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericMethodType())));
             TryAddGeneric(
-                new NameKey("implementation"), new Box<IFrontendGenericType>(new GenericImplementationType()));
+                new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericImplementationType())));
         }
 
         public IResolvableScope ToResolvable()
@@ -205,10 +205,10 @@ namespace Tac.Semantic_Model
             return this;
         }
 
-        protected bool TryAddGeneric(NameKey key, IBox<IFrontendGenericType> definition)
+        public bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition)
         {
-            var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<Visiblity<IBox<IFrontendGenericType>>>());
-            var visiblity = new Visiblity<IBox<IFrontendGenericType>>(DefintionLifetime.Static, definition);
+            var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>());
+            var visiblity = new Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
         
@@ -273,10 +273,11 @@ namespace Tac.Semantic_Model
                 type = new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>(() =>
                 {
                     var overlayed = set.Select(x => x.Definition.GetValue())
-                        .Where(x => x.TypeParameterDefinitions.Length == typesBoxes.Count())
+                        .Where(x => x.IsDefinately(out var _, out var _))
+                        .Where(x => x.GetOrThrow().TypeParameterDefinitions.Length == typesBoxes.Count())
                         .Single()
-                        .Assign(out var single)
-                        .Overlay(single.TypeParameterDefinitions.Zip(typesBoxes, (x, y) => new TypeParameter(x.GetOrThrow(), y.GetValue().GetOrThrow())).ToArray());
+                        .Assign(out var single).GetOrThrow()
+                        .Overlay(single.GetOrThrow().TypeParameterDefinitions.Zip(typesBoxes, (x, y) => new TypeParameter(x.GetOrThrow(), y.GetValue().GetOrThrow())).ToArray());
                     if (overlayed.Is(out IFrontendType<IVerifiableType> frontendType)) {
                         return Possibly.Is(frontendType);
                     }
@@ -320,7 +321,7 @@ namespace Tac.Semantic_Model
                 maker.Build(
                     members.Select(x=>new Tac.Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)).ToArray(),
                     types.SelectMany(x=> x.Value.Select(y=> new Tac.Model.Instantiated.Scope.TypeData(x.Key,y.Definition.GetValue().GetOrThrow().Convert(context)))).ToList(),
-                    genericTypes.SelectMany(x => x.Value.Select(y => new Tac.Model.Instantiated.Scope.GenericTypeData(x.Key, y.Definition.GetValue().Convert(context)))).ToList()
+                    genericTypes.SelectMany(x => x.Value.Select(y => new Tac.Model.Instantiated.Scope.GenericTypeData(x.Key, y.Definition.GetValue().GetOrThrow().Convert(context)))).ToList()
                     );
             });
         }

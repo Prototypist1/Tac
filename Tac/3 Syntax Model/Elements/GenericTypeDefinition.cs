@@ -162,7 +162,7 @@ namespace Tac.Semantic_Model
         private readonly NameKey nameKey;
         private readonly IEnumerable<IPopulateScope<IFrontendCodeElement< ICodeElement>>> lines;
         private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
+        private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey, 
@@ -176,7 +176,7 @@ namespace Tac.Semantic_Model
 
         public IPopulateBoxes<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
         {
-            var encolsing = context.Scope.TryAddType(nameKey, box);
+            var encolsing = context.Scope.TryAddGeneric(nameKey, box);
             
             var nextContext = context.TemplateChild(genericParameters);
             var nextLines = lines.Select(x => x.Run(nextContext)).ToArray();
@@ -193,14 +193,14 @@ namespace Tac.Semantic_Model
     {
         private readonly NameKey nameKey;
         private readonly IResolvableScope scope;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+        private readonly Box<IIsPossibly<IFrontendGenericType>> box;
         private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
         private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
 
         public GenericTypeDefinitionResolveReferance(
             NameKey nameKey, 
             IResolvableScope scope, 
-            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+            Box<IIsPossibly<IFrontendGenericType>> box,
             Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters,
             IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
         {
