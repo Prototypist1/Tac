@@ -2,7 +2,7 @@
 
 namespace Tac.Tests.Tokenizer
 {
-    public static class TokenHelp{
+    internal static class TokenHelp{
 
         public static ElementToken Ele(params IToken[] tokens)
         {

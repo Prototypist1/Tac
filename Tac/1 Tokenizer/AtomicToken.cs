@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Tac.Parser
 {
-    public class AtomicToken : IToken
+    internal class AtomicToken : IToken
     {
         public string Item { get; }
 

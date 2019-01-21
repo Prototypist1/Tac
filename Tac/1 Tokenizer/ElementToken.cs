@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Tac.Parser
 {
-    public class ElementToken : CompositToken
+    internal class ElementToken : CompositToken
     {
         public ElementToken(IToken[] tokens) : base(tokens)
         {

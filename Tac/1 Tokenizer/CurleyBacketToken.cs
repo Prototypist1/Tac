@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Tac.Parser
 {
-    public class CurleyBracketToken : CompositToken
+    internal class CurleyBracketToken : CompositToken
     {
         public CurleyBracketToken(IToken[] tokens) : base(tokens)
         {

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Tac.Parser
 {
-    public class SquareBacketToken : CompositToken
+    internal class SquareBacketToken : CompositToken
     {
         public SquareBacketToken(IToken[] tokens) : base(tokens)
         {

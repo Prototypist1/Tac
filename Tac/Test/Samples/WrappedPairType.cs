@@ -3,7 +3,7 @@ using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
-    public class WrappedPairType : PairType, IWrappedTestCase
+    internal class WrappedPairType : PairType, IWrappedTestCase
     {
         public IToken Token
         {

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Tac.Parser
 {
-    public class ParenthesisToken : CompositToken
+    internal class ParenthesisToken : CompositToken
     {
         public ParenthesisToken(IToken[] tokens) : base(tokens)
         {

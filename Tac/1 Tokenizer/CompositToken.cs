@@ -6,7 +6,7 @@ using System.Linq;
 namespace Tac.Parser
 {
 
-    public abstract class CompositToken : IToken
+    internal abstract class CompositToken : IToken
     {
         public IReadOnlyList<IToken> Tokens { get; }
 

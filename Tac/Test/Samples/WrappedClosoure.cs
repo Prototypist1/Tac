@@ -4,7 +4,7 @@ using Tac.Tests.Tokenizer;
 
 namespace Tac.Frontend.Test.Samples
 {
-    public class WrappedClosoure : Closoure, IWrappedTestCase
+    internal class WrappedClosoure : Closoure, IWrappedTestCase
     {
         public IToken Token
         {

@@ -4,11 +4,11 @@ using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
-    public interface IWrappedTestCase: ITestCase {
+    internal interface IWrappedTestCase: ITestCase {
         IToken Token { get; }
     }
 
-    public class WrappedArithmetic : Arithmetic, IWrappedTestCase
+    internal class WrappedArithmetic : Arithmetic, IWrappedTestCase
     {
 
         public IToken Token

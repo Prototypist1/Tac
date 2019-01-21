@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Tac.Parser
 {
-    public class Tokenizer
+    internal class Tokenizer
     {
         private readonly IReadOnlyList<string> operations;
 

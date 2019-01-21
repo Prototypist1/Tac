@@ -4,7 +4,7 @@ using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
-    public class WrappedMirrorPointImplementation : MirrorPointImplementation, IWrappedTestCase {
+    internal class WrappedMirrorPointImplementation : MirrorPointImplementation, IWrappedTestCase {
         public IToken Token => TokenHelp.File(
                         TokenHelp.Line(
                             TokenHelp.Ele(

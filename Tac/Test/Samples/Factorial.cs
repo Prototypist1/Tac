@@ -3,7 +3,7 @@ using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
-    public class WrappedFactorial: Factorial, IWrappedTestCase
+    internal class WrappedFactorial: Factorial, IWrappedTestCase
     {
         public IToken Token
         {
