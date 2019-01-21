@@ -91,10 +91,10 @@ module pair-type {
                                             new List<Scope.GenericTypeData>()),
                                         new IAssignOperation[]{
                                             AssignOperation.CreateAndBuild(
-                                                ConstantNumber.CreateAndBuild(5),
+                                                MemberReference.CreateAndBuild(input),
                                                 MemberReference.CreateAndBuild(localX)),
                                             AssignOperation.CreateAndBuild(
-                                                ConstantNumber.CreateAndBuild(2),
+                                                MemberReference.CreateAndBuild(input),
                                                 MemberReference.CreateAndBuild(localY))
                                         }))},
                             new ICodeElement[0]),

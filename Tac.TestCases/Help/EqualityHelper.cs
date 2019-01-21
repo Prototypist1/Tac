@@ -12,10 +12,30 @@ namespace Tac.Tests.Help
     {
         public static void ValueEqualOrThrow<T>(this T target, T actual)
         {
-            if (!PublicStateIsValueEqual(target, actual,new List<(object,object)>(), new List<Type>() { typeof(T) }, out var res))
+            var sharedTypes = target.GetSharedTypes(actual);
+
+            if (!sharedTypes.Any()) {
+                sharedTypes = new List<Type>() { typeof(T) };
+            }
+
+            if (!PublicStateIsValueEqual(target, actual,new List<(object,object)>(), sharedTypes, out var res))
             {
                 throw new Exception(res);
             }
+        }
+
+
+        private static IEnumerable<Type> GetSharedTypes(this object target, object actual)
+        {
+            if (target == null || actual == null) {
+                return new List<Type> { };
+            }
+
+            if (target.GetType() == actual.GetType())
+            {
+                return new List<Type> { target.GetType() };
+            }
+            return target.GetType().FindInterfaces((x, y) => true, new object()).Intersect(actual.GetType().FindInterfaces((x, y) => true, new object()));
         }
 
         private static bool PublicStateIsValueEqual(this object target, object actual,IEnumerable<(object,object)> assumed, IEnumerable<Type> types,  out string error)
