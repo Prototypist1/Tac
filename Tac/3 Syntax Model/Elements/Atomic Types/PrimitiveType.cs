@@ -169,7 +169,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
-            if (typeParameters.All(x => !(x is IFrontendGenericType)))
+            if (typeParameters.All(x => !(x.frontendType is GemericTypeParameterPlacholder)))
             {
                 return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new GenericMethodType(overlay.Convert(input), overlay.Convert(output)));
             }
@@ -214,7 +214,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
-            if (typeParameters.All(x => !(x is IFrontendGenericType)))
+            if (typeParameters.All(x => !(x.frontendType is GemericTypeParameterPlacholder)))
             {
                 return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new GenericImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
             }

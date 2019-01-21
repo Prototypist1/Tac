@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             var overlay =  new Overlay(typeParameters.ToDictionary(x=>x.parameterDefinition,x=>x.frontendType));
-            if (typeParameters.All(x => !(x is IFrontendGenericType)))
+            if (typeParameters.All(x => !(x.frontendType is GemericTypeParameterPlacholder)))
             {
                 return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
                     new WeakTypeDefinition(Scope,Key),overlay));
@@ -88,41 +88,6 @@ namespace Tac.Semantic_Model
         }
     }
     
-    //internal class GenericTypeParameterDefinition : IGenericTypeParameterDefinition
-    //{
-    //    public GenericTypeParameterDefinition(string name)
-    //    {
-    //        Name = name ?? throw new ArgumentNullException(nameof(name));
-    //    }
-
-    //    public IKey Key
-    //    {
-    //        get
-    //        {
-    //            return new NameKey(Name);
-    //        }
-    //    }
-
-    //    public string Name { get; }
-
-    //    public override bool Equals(object obj)
-    //    {
-    //        return obj is GenericTypeParameterDefinition definition &&
-    //               Name == definition.Name;
-    //    }
-
-    //    public override int GetHashCode()
-    //    {
-    //        return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
-    //    }
-
-    //    internal bool Accepts(IVarifiableType b)
-    //    {
-    //        // TODO generic constraints
-    //        return true;
-    //    }
-    //}
-
     internal class GenericTypeDefinitionMaker : IMaker<IPopulateScope<WeakGenericTypeDefinition>>
     {
 
