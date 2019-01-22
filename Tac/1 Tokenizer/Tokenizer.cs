@@ -13,9 +13,20 @@ namespace Tac.Parser
             this.operations = operations ?? throw new ArgumentNullException(nameof(operations));
         }
 
-        private class ResultAndExitString
+        //private class ResultAndExitString { }
+
+        private interface IResultAndExitString<out T>
         {
-            public ResultAndExitString(string exitString, IToken result)
+            T GetTokenOrThrow();
+            bool HasToken();
+            bool TryGetExitString(out string exitString);
+        }
+        
+
+        private class ResultAndExitString<T>: IResultAndExitString<T>//: ResultAndExitString
+            where T :class, IToken
+        {
+            public ResultAndExitString(string exitString, T result)
             {
                 ExitString = exitString ?? throw new ArgumentNullException(nameof(exitString));
                 Result = result ?? throw new ArgumentNullException(nameof(result));
@@ -26,7 +37,7 @@ namespace Tac.Parser
                 ExitString = exitString ?? throw new ArgumentNullException(nameof(exitString));
             }
 
-            public ResultAndExitString(IToken result)
+            public ResultAndExitString(T result)
             {
                 Result = result ?? throw new ArgumentNullException(nameof(result));
             }
@@ -36,7 +47,7 @@ namespace Tac.Parser
             }
 
             private string ExitString { get; }
-            private IToken Result { get; }
+            private T Result { get; }
             public bool TryGetExitString(out string exitString)
             {
                 if (ExitString != null)
@@ -47,7 +58,7 @@ namespace Tac.Parser
                 exitString = default;
                 return false;
             }
-            public bool TryGetToken(out IToken token)
+            public bool TryGetToken(out T token)
             {
                 if (Result != null)
                 {
@@ -57,7 +68,7 @@ namespace Tac.Parser
                 token = default;
                 return false;
             }
-            public IToken GetTokenOrThrow()
+            public T GetTokenOrThrow()
             {
                 if (Result == null)
                 {
@@ -65,23 +76,29 @@ namespace Tac.Parser
                 }
                 return Result;
             }
+
+            public bool HasToken()
+            {
+                return Result != null;
+            }
         }
 
-        private ResultAndExitString OuterTokenzie(
+        private ResultAndExitString<T> OuterTokenzie<T>(
             CharEnumerator enumerator, 
-            Func<CharEnumerator, ResultAndExitString> inner, 
+            Func<CharEnumerator, IResultAndExitString<IToken>> inner, 
             Func<string, bool> isExit, 
-            Func<IToken[], IToken> makeToken, 
+            Func<IToken[], T> makeToken, 
             bool alwaysMake,
             bool addExitString)
+            where T: class,IToken
         {
             var elements = new List<IToken>();
             while (true)
             {
                 var res = inner(enumerator);
-                if (res.TryGetToken(out var token))
+                if (res.HasToken())
                 {
-                    elements.Add(token);
+                    elements.Add(res.GetTokenOrThrow());
                 }
                 if (res.TryGetExitString(out var exitString))
                 {
@@ -89,11 +106,11 @@ namespace Tac.Parser
                     {
                         if (alwaysMake || elements.Any())
                         {
-                            return new ResultAndExitString(exitString, makeToken(elements.ToArray()));
+                            return new ResultAndExitString<T>(exitString, makeToken(elements.ToArray()));
                         }
                         else
                         {
-                            return new ResultAndExitString(exitString);
+                            return new ResultAndExitString<T>(exitString);
                         }
                     }
                     else
@@ -108,17 +125,17 @@ namespace Tac.Parser
                 {
                     if (alwaysMake || elements.Any())
                     {
-                        return new ResultAndExitString(makeToken(elements.ToArray()));
+                        return new ResultAndExitString<T>(makeToken(elements.ToArray()));
                     }
                     else
                     {
-                        return new ResultAndExitString();
+                        return new ResultAndExitString<T>();
                     }
                 }
             }
         }
 
-        private ResultAndExitString TokenizeElement(CharEnumerator enumerator)
+        private IResultAndExitString<ElementToken> TokenizeElement(CharEnumerator enumerator)
         {
             var elementsParts = new List<IToken>();
             while (true)
@@ -129,11 +146,11 @@ namespace Tac.Parser
                     {
                         if (elementsParts.Any())
                         {
-                            return new ResultAndExitString(part, new ElementToken(elementsParts.ToArray()));
+                            return new ResultAndExitString<ElementToken>(part, new ElementToken(elementsParts.ToArray()));
                         }
                         else
                         {
-                            return new ResultAndExitString(part);
+                            return new ResultAndExitString<ElementToken>(part);
                         }
                     }
                     if (TryEnter(part, enumerator, out var token))
@@ -149,11 +166,11 @@ namespace Tac.Parser
                 {
                     if (elementsParts.Any())
                     {
-                        return new ResultAndExitString(new ElementToken(elementsParts.ToArray()));
+                        return new ResultAndExitString<ElementToken>(new ElementToken(elementsParts.ToArray()));
                     }
                     else
                     {
-                        return new ResultAndExitString();
+                        return new ResultAndExitString<ElementToken>();
                     }
                 }
             }
@@ -169,10 +186,10 @@ namespace Tac.Parser
             }
         }
 
-        private ResultAndExitString TokenzieLine(CharEnumerator enumerator)
+        private IResultAndExitString<LineToken> TokenzieLine(CharEnumerator enumerator)
         {
 
-            return OuterTokenzie(enumerator, TokenizeElement, IsExit, x => new LineToken(x), false, true);
+            return OuterTokenzie<LineToken>(enumerator, TokenizeElement, IsExit, x => new LineToken(x), false, true);
 
             bool IsExit(string str)
             {
@@ -184,7 +201,7 @@ namespace Tac.Parser
             }
         }
         
-        private ResultAndExitString TokenzieParenthesis(CharEnumerator enumerator)
+        private IResultAndExitString<ParenthesisToken> TokenzieParenthesis(CharEnumerator enumerator)
         {
             return OuterTokenzie(enumerator, TokenizeElement, IsExit, x => new ParenthesisToken(x), false, true);
 
@@ -195,7 +212,7 @@ namespace Tac.Parser
             }
         }
         
-        private ResultAndExitString TokenzieCurleyBrackets(CharEnumerator enumerator)
+        private IResultAndExitString<CurleyBracketToken> TokenzieCurleyBrackets(CharEnumerator enumerator)
         {
             return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new CurleyBracketToken(x), true, false);
 
@@ -206,7 +223,7 @@ namespace Tac.Parser
             }
         }
 
-        private ResultAndExitString TokenzieSquareBrackets(CharEnumerator enumerator)
+        private IResultAndExitString<SquareBacketToken> TokenzieSquareBrackets(CharEnumerator enumerator)
         {
             return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new SquareBacketToken(x), true, false);
 
@@ -228,7 +245,7 @@ namespace Tac.Parser
         //    }
         //}
 
-        private ResultAndExitString TokenzieFile(CharEnumerator enumerator)
+        private IResultAndExitString<FileToken> TokenzieFile(CharEnumerator enumerator)
         {
             return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new FileToken(x), true, false);
 
@@ -289,7 +306,7 @@ namespace Tac.Parser
             }
         }
 
-        public IToken Tokenize(string s) {
+        public FileToken Tokenize(string s) {
             return TokenzieFile(s.GetEnumerator()).GetTokenOrThrow();
         }
     }
