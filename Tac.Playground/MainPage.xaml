@@ -9,6 +9,21 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBox
+            Grid.Row="0"  
+            AcceptsReturn="True"
+            TextWrapping="Wrap"
+            Padding="0 ,0 ,0 ,0"
+            ScrollViewer.HorizontalScrollBarVisibility="Auto"
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
+            Text="{Binding Path=Text, Mode=TwoWay}"/>
+        <StackPanel Grid.Row="1">
+            <Button>run</Button>
+        </StackPanel>
     </Grid>
 </Page>
