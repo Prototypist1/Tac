@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Backend;
+using Tac.Frontend;
 using Tac.Semantic_Model.CodeStuff;
 
 namespace Tac.Runner
 {
-    class Run
+    public static class Runner
     {
 
-        public void Whatever(string toRun) {
+        public static void Run(string toRun) {
 
-          
+            var module = TokenParser.Parse(toRun);
 
+            Interpeter.Run(module);
         }
     }
 }

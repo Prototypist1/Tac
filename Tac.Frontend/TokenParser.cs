@@ -12,10 +12,10 @@ using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Frontend
 {
-    public class TokenParser
+    public static class TokenParser
     {
         
-        public IModuleDefinition Parse(string text) {
+        public static IModuleDefinition Parse(string text) {
 
             var tokenizer = new Parser.Tokenizer(Symbols.GetSymbols());
             var tokens = tokenizer.Tokenize(text);

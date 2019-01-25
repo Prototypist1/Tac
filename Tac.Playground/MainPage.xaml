@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Height="454" Width="644">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -23,7 +23,7 @@
             ScrollViewer.VerticalScrollBarVisibility="Auto"
             Text="{Binding Path=Text, Mode=TwoWay}"/>
         <StackPanel Grid.Row="1">
-            <Button>run</Button>
+            <Button HorizontalAlignment="Center" VerticalAlignment="Center" Click="Run" >run</Button>
         </StackPanel>
     </Grid>
 </Page>

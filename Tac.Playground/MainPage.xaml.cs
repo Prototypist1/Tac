@@ -17,14 +17,25 @@ using Windows.UI.Xaml.Navigation;
 
 namespace Tac.Playground
 {
+    public class ViewModel {
+        public string Text { get; set; }
+    }
+
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        public ViewModel ViewModel { get; set; } = new ViewModel();
+
         public MainPage()
         {
             this.InitializeComponent();
+        }
+
+        private void Run(object sender, RoutedEventArgs e)
+        {
+            Runner.Run(ViewModel.Text);
         }
     }
 }

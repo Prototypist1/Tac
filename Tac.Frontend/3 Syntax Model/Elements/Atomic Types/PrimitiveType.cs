@@ -56,7 +56,8 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Key);
+            throw new NotImplementedException();
+            //return HashCode.Combine(Key);
         }
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
