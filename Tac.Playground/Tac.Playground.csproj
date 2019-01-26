@@ -164,14 +164,18 @@
       <Project>{93328f92-d071-45de-a94f-d1c4bf23fd72}</Project>
       <Name>Tac.Model</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Tac.Frontend\Tac.Frontend.csproj">
+    <ProjectReference Include="..\Tac.Runner\Tac.Runner.csproj">
+      <Project>{23F77A16-AD24-4719-A14E-BC5F96B44DFA}</Project>
+      <Name>Tac.Runner</Name>
+    </ProjectReference>
+    <!--<ProjectReference Include="..\Tac.Frontend\Tac.Frontend.csproj">
       <Project>{93DA6A53-0417-4337-B006-E7B51ABADD30}</Project>
       <Name>Tac.Frontend</Name>
     </ProjectReference>
     <ProjectReference Include="..\Tac.Backend\Tac.Backend.csproj">
       <Project>{70FDAB79-4D56-4E86-BA46-64AC13C45616}</Project>
       <Name>Tac.Backend</Name>
-    </ProjectReference>
+    </ProjectReference>-->
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
