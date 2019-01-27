@@ -5,5 +5,6 @@ namespace Tac.Model.Elements
     public interface IMethodDefinition: IBlockDefinition, IMethodType
     {
         IMemberDefinition ParameterDefinition { get; }
+        bool IsEntryPoint { get; }
     }
 }

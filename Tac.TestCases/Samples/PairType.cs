@@ -97,7 +97,8 @@ module pair-type {
                                                 MemberReference.CreateAndBuild(input),
                                                 MemberReference.CreateAndBuild(localY))
                                         }))},
-                            new ICodeElement[0]),
+                            new ICodeElement[0],
+                            false),
                     MemberReference.CreateAndBuild(pairify))},
                 new NameKey("pair-type"));
         }

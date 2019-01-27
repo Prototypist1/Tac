@@ -71,7 +71,8 @@ namespace Tac.Tests.Samples
                                                                     MemberReference.CreateAndBuild(fac)),
                                                                 MemberReference.CreateAndBuild(input)))},
                                                     new ICodeElement[0]))},
-                                    new ICodeElement[0]),
+                                    new ICodeElement[0],
+                                    false),
                                 MemberReference.CreateAndBuild(fac)
                         ) },
                     new NameKey("factorial")

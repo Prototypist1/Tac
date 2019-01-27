@@ -14,6 +14,7 @@ namespace Tac.Model.Instantiated
         private readonly Buildable<ITypeReferance> buildableInputType = new Buildable<ITypeReferance>();
         private readonly Buildable<ITypeReferance> buildableOutputType = new Buildable<ITypeReferance>();
         private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new Buildable<IMemberDefinition>();
+        private readonly BuildableValue<bool> buildableIsEntryPoint = new BuildableValue<bool>();
 
         private MethodDefinition() { }
 
@@ -25,6 +26,7 @@ namespace Tac.Model.Instantiated
         public IFinalizedScope Scope { get => buildableScope.Get(); }
         public ICodeElement[] Body { get => buildableBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
+        public bool IsEntryPoint { get => buildableIsEntryPoint.Get(); }
 
         IVerifiableType IMethodType.InputType => InputType;
         IVerifiableType IMethodType.OutputType => OutputType;
@@ -42,12 +44,13 @@ namespace Tac.Model.Instantiated
         #endregion
         
         public void Build(
-    ITypeReferance inputType,
-    ITypeReferance outputType,
-    IMemberDefinition parameterDefinition,
-    IFinalizedScope scope,
-    ICodeElement[] body,
-    IEnumerable<ICodeElement> staticInitailizers)
+            ITypeReferance inputType,
+            ITypeReferance outputType,
+            IMemberDefinition parameterDefinition,
+            IFinalizedScope scope,
+            ICodeElement[] body,
+            IEnumerable<ICodeElement> staticInitailizers,
+            bool isEntryPoint)
         {
             buildableInputType.Set(inputType);
             buildableOutputType.Set(outputType);
@@ -55,6 +58,7 @@ namespace Tac.Model.Instantiated
             buildableScope.Set(scope);
             buildableBody.Set(body);
             buildableStaticInitailizers.Set(staticInitailizers);
+            buildableIsEntryPoint.Set(isEntryPoint);
         }
 
         public static (IMethodDefinition, IMethodDefinitionBuilder) Create()
@@ -69,9 +73,10 @@ namespace Tac.Model.Instantiated
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             ICodeElement[] body,
-            IEnumerable<ICodeElement> staticInitailizers) {
+            IEnumerable<ICodeElement> staticInitailizers,
+            bool isEntryPoint) {
             var (x, y) = Create();
-            y.Build(inputType, outputType, parameterDefinition, scope, body, staticInitailizers);
+            y.Build(inputType, outputType, parameterDefinition, scope, body, staticInitailizers, isEntryPoint);
             return x;
         }
     }
@@ -84,6 +89,7 @@ namespace Tac.Model.Instantiated
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             ICodeElement[] body,
-            IEnumerable<ICodeElement> staticInitailizers);
+            IEnumerable<ICodeElement> staticInitailizers,
+            bool isEntryPoint );
     }
 }
