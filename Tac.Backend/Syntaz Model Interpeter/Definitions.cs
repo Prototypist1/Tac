@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Backend.Syntaz_Model_Interpeter.Elements;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -14,7 +15,13 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
     internal class Definitions: IOpenBoxesContext<IInterpeted>
     {
+        private readonly IExternalMethodSource MethodSource;
         private readonly Dictionary<object, IInterpeted> backing = new Dictionary<object, IInterpeted>();
+
+        public Definitions(IExternalMethodSource methodSource)
+        {
+            MethodSource = methodSource ?? throw new ArgumentNullException(nameof(methodSource));
+        }
 
         public InterpetedMemberDefinition MemberDefinition(IMemberDefinition member)
         {
@@ -213,7 +220,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedMethodDefinition MethodDefinition(IMethodDefinition codeElement)
+        public InterpetedMethodDefinition MethodDefinition(IInternalMethodDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -381,9 +388,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 return op;
             }
         }
-        
+
+
+        public InterpetedExternalMethodDefinition ExternalMethodDefinition(IExternalMethodDefinition codeElement)
+        {
+            return MethodSource.GetExternalMethod(codeElement);
+        }
+
         #region IOpenBoxesContext<IInterpeted>
-        
+
         IInterpeted IOpenBoxesContext<IInterpeted>.BlockDefinition(IBlockDefinition codeElement) => BlockDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.AssignOperation(IAssignOperation codeElement) => AssignOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ConstantNumber(IConstantNumber codeElement) => ConstantNumber(codeElement);
@@ -392,7 +405,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         IInterpeted IOpenBoxesContext<IInterpeted>.ImplementationDefinition(IImplementationDefinition codeElement) => ImplementationDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.MemberDefinition(IMemberDefinition codeElement) => MemberDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.MemberReferance(IMemberReferance codeElement) => MemberReferance(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.MethodDefinition(IMethodDefinition codeElement) => MethodDefinition(codeElement);
+        IInterpeted IOpenBoxesContext<IInterpeted>.InternalMethodDefinition(IInternalMethodDefinition codeElement) => MethodDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ModuleDefinition(IModuleDefinition codeElement) => ModuleDefinition(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.LastCallOperation(ILastCallOperation codeElement) => LastCallOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ObjectDefinition(IObjectDefiniton codeElement) => ObjectDefinition(codeElement);
@@ -406,6 +419,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         IInterpeted IOpenBoxesContext<IInterpeted>.SubtractOperation(ISubtractOperation codeElement) => SubtractOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ReturnOperation(IReturnOperation codeElement) => ReturnOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.TypeReferance(ITypeReferance codeElement) => TypeReferance(codeElement);
+        IInterpeted IOpenBoxesContext<IInterpeted>.ExternalMethodDefinition(IExternalMethodDefinition codeElement) => ExternalMethodDefinition(codeElement);
         
         #endregion
 

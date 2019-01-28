@@ -10,9 +10,10 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var toCall = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded(interpetedContext);
             var parameter = Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>(interpetedContext);
-
-
+            
+            // TODO
             // maybe there is a "callable" interface here?
+            // yeah def
 
             if (toCall is InterpetedMethod method)
             {

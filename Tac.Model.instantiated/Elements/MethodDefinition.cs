@@ -5,7 +5,7 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
-    public class MethodDefinition : IMethodDefinition,
+    public class MethodDefinition : IInternalMethodDefinition,
         IMethodDefinitionBuilder
     {
         private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitailizers = new Buildable<IEnumerable<ICodeElement>>();
@@ -33,7 +33,7 @@ namespace Tac.Model.Instantiated
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
-            return context.MethodDefinition(this);
+            return context.InternalMethodDefinition(this);
         }
 
         public IVerifiableType Returns()
@@ -61,13 +61,13 @@ namespace Tac.Model.Instantiated
             buildableIsEntryPoint.Set(isEntryPoint);
         }
 
-        public static (IMethodDefinition, IMethodDefinitionBuilder) Create()
+        public static (IInternalMethodDefinition, IMethodDefinitionBuilder) Create()
         {
             var res = new MethodDefinition();
             return (res, res);
         }
 
-        public static IMethodDefinition CreateAndBuild(
+        public static IInternalMethodDefinition CreateAndBuild(
             ITypeReferance inputType,
             ITypeReferance outputType,
             IMemberDefinition parameterDefinition,

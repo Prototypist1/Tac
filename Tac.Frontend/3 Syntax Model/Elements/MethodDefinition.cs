@@ -15,7 +15,7 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMethodDefinition : WeakAbstractBlockDefinition<IMethodDefinition>, IFrontendType<IVerifiableType>
+    internal class WeakMethodDefinition : WeakAbstractBlockDefinition<IInternalMethodDefinition>, IFrontendType<IVerifiableType>
     {
         public WeakMethodDefinition(
             IIsPossibly<IWeakTypeReferance> outputType, 
@@ -35,10 +35,10 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
         public bool IsEntryPoint { get; }
 
-        public override IBuildIntention<IMethodDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (toBuild, maker) = MethodDefinition.Create();
-            return new BuildIntention<IMethodDefinition>(toBuild, () =>
+            return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
                     TransformerExtensions.Convert<ITypeReferance>(InputType.GetOrThrow(),context),
