@@ -1,7 +1,9 @@
 ﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Backend.Syntaz_Model_Interpeter;
+using Tac.Backend.Syntaz_Model_Interpeter.Elements;
 using Tac.Model;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
@@ -27,7 +29,7 @@ namespace Tac.Backend.Test
         private double Fac(double d)
         {
             var testCase = new Factorial();
-            var conversionContext = new Definitions();
+            var conversionContext = new Definitions(new ExternalMethodSource(new Dictionary<Guid, InterpetedExternalMethodDefinition>()));
             var module = testCase.Module.Convert(conversionContext);
 
             var res = module.Interpet(InterpetedContext.Root());

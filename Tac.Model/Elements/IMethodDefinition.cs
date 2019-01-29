@@ -1,8 +1,9 @@
-﻿using Tac.Model.Operations;
+﻿using System;
+using Tac.Model.Operations;
 
 namespace Tac.Model.Elements
 {
-    public interface IMethodDefinition: IMethodType
+    public interface IMethodDefinition: IMethodType, ICodeElement
     {
         IMemberDefinition ParameterDefinition { get; }
 
@@ -15,5 +16,6 @@ namespace Tac.Model.Elements
 
     public interface IExternalMethodDefinition : IMethodDefinition
     {
+        Guid Id { get; }
     }
 }

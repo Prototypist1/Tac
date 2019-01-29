@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Backend.Syntaz_Model_Interpeter;
+using Tac.Backend.Syntaz_Model_Interpeter.Elements;
 using Tac.Model;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
@@ -18,7 +19,7 @@ namespace Tac.Backend.Test
         public void Test()
         {
             var testCase = new Closoure();
-            var conversionContext = new Definitions();
+            var conversionContext = new Definitions(new ExternalMethodSource(new Dictionary<Guid, InterpetedExternalMethodDefinition>()));
             var module = testCase.Module.Convert(conversionContext);
 
             var res = module.Interpet(InterpetedContext.Root());

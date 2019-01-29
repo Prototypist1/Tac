@@ -5,6 +5,7 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
+
     public class MethodDefinition : IInternalMethodDefinition,
         IMethodDefinitionBuilder
     {
