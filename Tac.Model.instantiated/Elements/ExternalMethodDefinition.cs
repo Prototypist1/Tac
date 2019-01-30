@@ -44,6 +44,15 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
+        public IVerifiableType Returns()
+        {
+            return this;
+        }
+
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.ExternalMethodDefinition(this);
+        }
     }
 
     public interface IExternalMethodDefinitionBuilder

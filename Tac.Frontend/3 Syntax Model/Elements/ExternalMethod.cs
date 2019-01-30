@@ -8,10 +8,19 @@ using Tac.Semantic_Model;
 namespace Tac.Frontend._3_Syntax_Model.Elements
 {
 
+    internal interface IMethodDefinition: IFrontendType<IVerifiableType>
+    {
+        IIsPossibly<IWeakTypeReferance> InputType { get; }
+        IIsPossibly<IWeakTypeReferance> OutputType { get; }
+        IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
+    }
+
     // TODO WeakMethodDefinition and this probably need to share an abstraction
     // a good one too, where the classes pretty well hidden
     // and you only know if you ask
-    internal class ExternalMethod : IFrontendCodeElement<IExternalMethodDefinition>, IFrontendType<IVerifiableType>
+    internal class ExternalMethod : 
+        IMethodDefinition,
+        IFrontendCodeElement<IExternalMethodDefinition>, IFrontendType<IVerifiableType>
     {
         private readonly Guid Id;
 

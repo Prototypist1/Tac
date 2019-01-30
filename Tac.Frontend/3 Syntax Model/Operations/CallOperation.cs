@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model.Operations
         
         public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
-            return Right.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType
+            return Right.GetOrThrow().Unwrap<Frontend._3_Syntax_Model.Elements.IMethodDefinition>().OutputType
                 .IfIs(x => x.TypeDefinition)
                 .IfIs(x => x.GetValue());
         }
@@ -67,7 +67,7 @@ namespace Tac.Semantic_Model.Operations
         
         public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
-            return Left.GetOrThrow().Unwrap<WeakMethodDefinition>().OutputType
+            return Left.GetOrThrow().Unwrap<Frontend._3_Syntax_Model.Elements.IMethodDefinition>().OutputType
                 .IfIs(x=>x.TypeDefinition)
                 .IfIs(x=>x.GetValue());
         }

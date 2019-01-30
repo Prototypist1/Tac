@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -15,7 +16,10 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakMethodDefinition : WeakAbstractBlockDefinition<IInternalMethodDefinition>, IFrontendType<IVerifiableType>
+    internal class WeakMethodDefinition :
+        WeakAbstractBlockDefinition<IInternalMethodDefinition>,
+        Frontend._3_Syntax_Model.Elements.IMethodDefinition,
+        IFrontendType<IVerifiableType>
     {
         public WeakMethodDefinition(
             IIsPossibly<IWeakTypeReferance> outputType, 
@@ -55,8 +59,7 @@ namespace Tac.Semantic_Model
 
         IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     }
-
-
+    
     internal class MethodDefinitionMaker : IMaker<IPopulateScope<WeakMethodDefinition>>
     {
         public MethodDefinitionMaker()
@@ -118,84 +121,85 @@ namespace Tac.Semantic_Model
             return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeNotMatch(
                     matching.Context);
         }
+        
+        private class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
+        {
+            private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
+            private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly IPopulateScope<WeakTypeReference> output;
+            private readonly bool isEntryPoint;
+            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
+
+            public MethodDefinitionPopulateScope(
+                IPopulateScope<WeakMemberReference> parameterDefinition,
+                IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements,
+                IPopulateScope<WeakTypeReference> output,
+                bool isEntryPoint
+                )
+            {
+                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.output = output ?? throw new ArgumentNullException(nameof(output));
+                this.isEntryPoint = isEntryPoint;
+            }
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return box;
+            }
+
+            public IPopulateBoxes<WeakMethodDefinition> Run(IPopulateScopeContext context)
+            {
+
+                var nextContext = context.Child();
+                return new MethodDefinitionResolveReferance(
+                    parameterDefinition.Run(nextContext),
+                    nextContext.GetResolvableScope(),
+                    elements.Select(x => x.Run(nextContext)).ToArray(),
+                    output.Run(context),
+                    box,
+                    isEntryPoint);
+            }
+        }
+
+        private class MethodDefinitionResolveReferance : IPopulateBoxes<WeakMethodDefinition>
+        {
+            private readonly IPopulateBoxes<WeakMemberReference> parameter;
+            private readonly IResolvableScope methodScope;
+            private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
+            private readonly IPopulateBoxes<WeakTypeReference> output;
+            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+            private readonly bool isEntryPoint;
+
+            public MethodDefinitionResolveReferance(
+                IPopulateBoxes<WeakMemberReference> parameter,
+                IResolvableScope methodScope,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance2,
+                IPopulateBoxes<WeakTypeReference> output,
+                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+                bool isEntryPoint)
+            {
+                this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
+                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+                lines = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+                this.output = output ?? throw new ArgumentNullException(nameof(output));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.isEntryPoint = isEntryPoint;
+            }
+
+            public IIsPossibly<WeakMethodDefinition> Run(IResolveReferenceContext context)
+            {
+                return box.Fill(
+                    Possibly.Is(
+                        new WeakMethodDefinition(
+                            output.Run(context),
+                            parameter.Run(context).IfIs(x => x.MemberDefinition),
+                            lines.Select(x => x.Run(context)).ToArray(),
+                            methodScope,
+                            new IIsPossibly<IFrontendCodeElement<ICodeElement>>[0], isEntryPoint)));
+            }
+        }
     }
 
-    internal class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
-    {
-        private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
-        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly IPopulateScope<WeakTypeReference> output;
-        private readonly bool isEntryPoint;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
-
-        public MethodDefinitionPopulateScope(
-            IPopulateScope<WeakMemberReference> parameterDefinition,
-            IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements,
-            IPopulateScope<WeakTypeReference> output,
-            bool isEntryPoint
-            )
-        {
-            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-            this.output = output ?? throw new ArgumentNullException(nameof(output));
-            this.isEntryPoint = isEntryPoint;
-        }
-
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
-        {
-            return box;
-        }
-
-        public IPopulateBoxes<WeakMethodDefinition> Run(IPopulateScopeContext context)
-        {
-
-            var nextContext = context.Child();
-            return new MethodDefinitionResolveReferance(
-                parameterDefinition.Run(nextContext),
-                nextContext.GetResolvableScope(), 
-                elements.Select(x => x.Run(nextContext)).ToArray(), 
-                output.Run(context), 
-                box,
-                isEntryPoint);
-        }
-    }
-
-    internal class MethodDefinitionResolveReferance : IPopulateBoxes<WeakMethodDefinition>
-    {
-        private readonly IPopulateBoxes<WeakMemberReference> parameter;
-        private readonly IResolvableScope methodScope;
-        private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
-        private readonly IPopulateBoxes<WeakTypeReference> output;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
-        private readonly bool isEntryPoint;
-
-        public MethodDefinitionResolveReferance(
-            IPopulateBoxes<WeakMemberReference> parameter, 
-            IResolvableScope methodScope, 
-            IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance2,
-            IPopulateBoxes<WeakTypeReference> output,
-            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
-            bool isEntryPoint)
-        {
-            this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
-            this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
-            lines = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-            this.output = output ?? throw new ArgumentNullException(nameof(output));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
-            this.isEntryPoint = isEntryPoint;
-        }
-
-        public IIsPossibly<WeakMethodDefinition> Run(IResolveReferenceContext context)
-        {
-            return box.Fill(
-                Possibly.Is(
-                    new WeakMethodDefinition(
-                        output.Run(context),
-                        parameter.Run(context).IfIs(x=> x.MemberDefinition), 
-                        lines.Select(x => x.Run(context)).ToArray(),
-                        methodScope,
-                        new IIsPossibly<IFrontendCodeElement<ICodeElement>>[0], isEntryPoint)));
-        }
-    }
     
 }
