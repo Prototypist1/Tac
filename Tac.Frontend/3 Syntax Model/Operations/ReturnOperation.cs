@@ -81,70 +81,83 @@ namespace Tac.Semantic_Model.Operations
                 return TokenMatching<IPopulateScope<TFrontendCodeElement>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
-                    new TrailingPopulateScope<TFrontendCodeElement, TCodeElement>(left,Make));
+                    new TrailingPopulateScope(left,Make));
             }
             return TokenMatching<IPopulateScope<TFrontendCodeElement>>.MakeNotMatch(
                     matching.Context);
         }
         
-    }
-
-    internal class TrailingPopulateScope<TFrontendCodeElement, TCodeElement> : IPopulateScope<TFrontendCodeElement>
-        where TFrontendCodeElement : class, IFrontendCodeElement<TCodeElement>
-        where TCodeElement: class, ICodeElement
-    {
-        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>> left;
-        private readonly TrailingOperation.Make<TFrontendCodeElement> make;
-        private readonly DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box = new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>();
-
-        public TrailingPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>> left, TrailingOperation.Make<TFrontendCodeElement> make)
+        public static IPopulateScope<TFrontendCodeElement> PopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>> left,
+                TrailingOperation.Make<TFrontendCodeElement> make)
         {
-            this.left = left ?? throw new ArgumentNullException(nameof(left));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            return new TrailingPopulateScope(left, make);
+        }
+        public static IPopulateBoxes<TFrontendCodeElement> PopulateBoxes(IPopulateBoxes<IFrontendCodeElement<ICodeElement>> left,
+                TrailingOperation.Make<TFrontendCodeElement> make,
+                DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+        {
+            return new TrailingResolveReferance(left,
+                make,
+                box);
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+
+        private class TrailingPopulateScope : IPopulateScope<TFrontendCodeElement>
         {
-            return box;
+            private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>> left;
+            private readonly TrailingOperation.Make<TFrontendCodeElement> make;
+            private readonly DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box = new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>();
+
+            public TrailingPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>> left, TrailingOperation.Make<TFrontendCodeElement> make)
+            {
+                this.left = left ?? throw new ArgumentNullException(nameof(left));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return box;
+            }
+
+            public IPopulateBoxes<TFrontendCodeElement> Run(IPopulateScopeContext context)
+            {
+                return new TrailingResolveReferance(left.Run(context), make, box);
+            }
         }
 
-        public IPopulateBoxes<TFrontendCodeElement> Run(IPopulateScopeContext context)
+
+
+        private class TrailingResolveReferance: IPopulateBoxes<TFrontendCodeElement>
         {
-            return new TrailingResolveReferance<TFrontendCodeElement, TCodeElement>(left.Run(context),  make, box);
-        }
-    }
+            public readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>> left;
+            private readonly TrailingOperation.Make<TFrontendCodeElement> make;
+            private readonly DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box;
 
+            public TrailingResolveReferance(IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+            {
+                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
 
-
-    internal class TrailingResolveReferance<TFrontendCodeElement, TCodeElement> : IPopulateBoxes<TFrontendCodeElement>
-        where TFrontendCodeElement : class, IFrontendCodeElement<TCodeElement>
-        where TCodeElement : class, ICodeElement
-    {
-        public readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>> left;
-        private readonly TrailingOperation.Make<TFrontendCodeElement> make;
-        private readonly DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box;
-
-        public TrailingResolveReferance(IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box)
-        {
-            left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
-        }
-        
-        public IIsPossibly<TFrontendCodeElement> Run(IResolveReferenceContext context)
-        {
-            var res = make(left.Run(context));
-            box.Set(()=> {
+            public IIsPossibly<TFrontendCodeElement> Run(IResolveReferenceContext context)
+            {
+                var res = make(left.Run(context));
+                box.Set(() => {
                     if (res.IsDefinately(out var yes, out var no))
                     {
                         return yes.Value.Returns();
                     }
-                    else {
+                    else
+                    {
                         return Possibly.IsNot<IFrontendType<IVerifiableType>>(no);
                     }
                 });
-            return res;
+                return res;
+            }
         }
+
+
     }
 
 

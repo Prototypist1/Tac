@@ -60,8 +60,8 @@ namespace Tac.Semantic_Model.Operations
 
                 return TokenMatching<IPopulateScope<WeakAssignOperation>>.MakeMatch(
                     matched.Tokens,
-                    matched.Context, 
-                    new BinaryPopulateScope<WeakAssignOperation,IAssignOperation>(left, right, (l,r) => 
+                    matched.Context,
+                    BinaryOperationMaker<WeakAssignOperation, IAssignOperation>.PopulateScope(left, right, (l,r) => 
                         Possibly.Is(
                             new WeakAssignOperation(l,r))));
             }

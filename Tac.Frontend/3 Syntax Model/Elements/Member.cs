@@ -29,70 +29,86 @@ namespace Tac.Semantic_Model
             return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeNotMatch(
                     matching.Context);
         }
-    }
 
-    internal class MemberPopulateScope : IPopulateScope<WeakMemberReference>
-    {
-        private readonly string memberName;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
-
-        public MemberPopulateScope(string item)
+        public static IPopulateScope<WeakMemberReference> PopulateScope(string item)
         {
-            memberName = item ?? throw new ArgumentNullException(nameof(item));
+            return new MemberPopulateScope(item);
+        }
+        public static IPopulateBoxes<WeakMemberReference> PopulateBoxes(
+                IResolvableScope resolvableScope,
+                NameKey key,
+                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+        {
+            return new MemberResolveReferance(
+                resolvableScope,
+                key,
+                box);
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+        private class MemberPopulateScope : IPopulateScope<WeakMemberReference>
         {
-            return box;
-        }
+            private readonly string memberName;
+            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
 
-        public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
-        {
-            var nameKey = new NameKey(memberName);
-            if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) && 
-                !context.Scope.TryAddMember(
-                    DefintionLifetime.Instance,
-                    nameKey, 
-                    new Box<IIsPossibly< WeakMemberDefinition>>(
-                        Possibly.Is(
-                            new WeakMemberDefinition(
-                                false,
-                                nameKey,
-                                Possibly.Is(
-                                    new WeakTypeReference( 
-                                        Possibly.Is( 
-                                            new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
-                                                Possibly.Is(
-                                                    new AnyType()))))))))))
+            public MemberPopulateScope(string item)
             {
-                throw new Exception("uhh that is not right");
+                memberName = item ?? throw new ArgumentNullException(nameof(item));
             }
-            
-            return new MemberResolveReferance(context.GetResolvableScope(), nameKey, box);
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return box;
+            }
+
+            public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
+            {
+                var nameKey = new NameKey(memberName);
+                if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) &&
+                    !context.Scope.TryAddMember(
+                        DefintionLifetime.Instance,
+                        nameKey,
+                        new Box<IIsPossibly<WeakMemberDefinition>>(
+                            Possibly.Is(
+                                new WeakMemberDefinition(
+                                    false,
+                                    nameKey,
+                                    Possibly.Is(
+                                        new WeakTypeReference(
+                                            Possibly.Is(
+                                                new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
+                                                    Possibly.Is(
+                                                        new AnyType()))))))))))
+                {
+                    throw new Exception("uhh that is not right");
+                }
+
+                return new MemberResolveReferance(context.GetResolvableScope(), nameKey, box);
+            }
+
         }
 
+        private class MemberResolveReferance : IPopulateBoxes<WeakMemberReference>
+        {
+            private readonly IResolvableScope resolvableScope;
+            private readonly NameKey key;
+            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+
+            public MemberResolveReferance(
+                IResolvableScope resolvableScope,
+                NameKey key,
+                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+            {
+                this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
+                this.key = key ?? throw new ArgumentNullException(nameof(key));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
+            {
+                return box.Fill(Possibly.Is(new WeakMemberReference(resolvableScope.PossiblyGetMember(false, key))));
+            }
+        }
     }
 
-    internal class MemberResolveReferance : IPopulateBoxes<WeakMemberReference>
-    {
-        private readonly IResolvableScope resolvableScope;
-        private readonly NameKey key;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
-
-        public MemberResolveReferance(
-            IResolvableScope resolvableScope,
-            NameKey key, 
-            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
-        {
-            this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
-            this.key = key ?? throw new ArgumentNullException(nameof(key));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
-        }
-
-        public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
-        {
-            return box.Fill( Possibly.Is(new WeakMemberReference(resolvableScope.PossiblyGetMember(false,key))));
-        }
-    }
     
 }

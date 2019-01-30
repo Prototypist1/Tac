@@ -59,42 +59,53 @@ namespace Tac.Semantic_Model.Operations
             }
             return TokenMatching<IPopulateScope<WeakConstantNumber>>.MakeNotMatch(tokenMatching.Context);
         }
-    }
 
-    internal class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
-    {
-        private readonly double dub;
-
-        public ConstantNumberPopulateScope(double dub)
+        public static IPopulateScope<WeakConstantNumber> PopulateScope(double dub)
         {
-            this.dub = dub;
+            return new ConstantNumberPopulateScope(dub);
         }
-
-        public IPopulateBoxes<WeakConstantNumber> Run(IPopulateScopeContext context)
+        public static IPopulateBoxes<WeakConstantNumber> PopulateBoxes(double dub)
         {
             return new ConstantNumberResolveReferance(dub);
         }
 
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+        private class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber>
         {
-            return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType()));
+            private readonly double dub;
+
+            public ConstantNumberPopulateScope(double dub)
+            {
+                this.dub = dub;
+            }
+
+            public IPopulateBoxes<WeakConstantNumber> Run(IPopulateScopeContext context)
+            {
+                return new ConstantNumberResolveReferance(dub);
+            }
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType()));
+            }
+        }
+
+        private class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
+        {
+            private readonly double dub;
+
+            public ConstantNumberResolveReferance(
+                double dub)
+            {
+                this.dub = dub;
+            }
+
+            public IIsPossibly<WeakConstantNumber> Run(IResolveReferenceContext context)
+            {
+                return Possibly.Is(new WeakConstantNumber(Possibly.Is(dub)));
+            }
         }
     }
 
-    internal class ConstantNumberResolveReferance : IPopulateBoxes<WeakConstantNumber>
-    {
-        private readonly double dub;
 
-        public ConstantNumberResolveReferance(
-            double dub)
-        {
-            this.dub = dub;
-        }
-
-        public IIsPossibly<WeakConstantNumber> Run(IResolveReferenceContext context)
-        {
-            return Possibly.Is(new WeakConstantNumber(Possibly.Is(dub)));
-        }
-    }
     
 }

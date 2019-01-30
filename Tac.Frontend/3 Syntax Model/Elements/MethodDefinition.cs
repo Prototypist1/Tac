@@ -101,7 +101,7 @@ namespace Tac.Semantic_Model
 
                 var elements = matching.Context.ParseBlock(body);
                 
-                var parameterDefinition = new MemberDefinitionPopulateScope(
+                var parameterDefinition = MemberDefinitionMaker.PopulateScope(
                         parameterName?.Item ?? "input",
                         false,
                         input
@@ -121,7 +121,35 @@ namespace Tac.Semantic_Model
             return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeNotMatch(
                     matching.Context);
         }
-        
+
+        public static IPopulateScope<WeakMethodDefinition> PopulateScope(IPopulateScope<WeakMemberReference> parameterDefinition,
+                IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements,
+                IPopulateScope<WeakTypeReference> output,
+                bool isEntryPoint)
+        {
+            return new MethodDefinitionPopulateScope( parameterDefinition,
+                 elements,
+                 output,
+                 isEntryPoint);
+        }
+        public static IPopulateBoxes<WeakMethodDefinition> PopulateBoxes(
+                IPopulateBoxes<WeakMemberReference> parameter,
+                IResolvableScope methodScope,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance2,
+                IPopulateBoxes<WeakTypeReference> output,
+                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+                bool isEntryPoint)
+        {
+            return new MethodDefinitionResolveReferance(
+                parameter,
+                methodScope,
+                resolveReferance2,
+                output,
+                box,
+                isEntryPoint);
+        }
+
+
         private class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
         {
             private readonly IPopulateScope<WeakMemberReference> parameterDefinition;

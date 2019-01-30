@@ -103,65 +103,81 @@ namespace Tac.Semantic_Model
             return TokenMatching<IPopulateScope<WeakTypeReference>>.MakeNotMatch(
                     matching.Context);
         }
-    }
-
-    internal class TypeDefinitionPopulateScope : IPopulateScope<WeakTypeReference>
-    {
-        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly IKey key;
-        private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
-        private readonly WeakTypeReference typeReferance;
-        private readonly Box<IIsPossibly<WeakTypeReference>> box;
-
-        public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements, IKey typeName)
+        
+        public static IPopulateScope<WeakTypeReference> PopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements, IKey typeName)
         {
-            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-            key = typeName ?? throw new ArgumentNullException(nameof(typeName));
-            typeReferance = new WeakTypeReference(Possibly.Is(definitionBox));
-            box = new Box<IIsPossibly<WeakTypeReference>>(Possibly.Is(typeReferance));
+            return new TypeDefinitionPopulateScope(elements, typeName);
         }
-
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+        public static IPopulateBoxes<WeakTypeReference> PopulateBoxes(IResolvableScope scope,
+                Box<IIsPossibly<WeakTypeDefinition>> definitionBox,
+                WeakTypeReference typeReferance,
+                IKey key)
         {
-            return box;
-        }
-
-        public IPopulateBoxes<WeakTypeReference> Run(IPopulateScopeContext context)
-        {
-            var encolsing = context.Scope.TryAddType(key, box);
-            var nextContext = context.Child();
-            elements.Select(x => x.Run(nextContext)).ToArray();
-            return new TypeDefinitionResolveReference(
-                nextContext.GetResolvableScope(),
+            return new TypeDefinitionResolveReference(scope,
                 definitionBox,
                 typeReferance,
                 key);
         }
-    }
-
-    internal class TypeDefinitionResolveReference : IPopulateBoxes<WeakTypeReference>
-    {
-        private readonly IResolvableScope scope;
-        private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox;
-        private readonly WeakTypeReference typeReferance;
-        private readonly IKey key;
-
-        public TypeDefinitionResolveReference(
-            IResolvableScope scope, 
-            Box<IIsPossibly<WeakTypeDefinition>> definitionBox, 
-            WeakTypeReference typeReferance, 
-            IKey key)
+        
+        private class TypeDefinitionPopulateScope : IPopulateScope<WeakTypeReference>
         {
-            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            this.definitionBox = definitionBox ?? throw new ArgumentNullException(nameof(definitionBox));
-            this.typeReferance = typeReferance ?? throw new ArgumentNullException(nameof(typeReferance));
-            this.key = key ?? throw new ArgumentNullException(nameof(key));
+            private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly IKey key;
+            private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
+            private readonly WeakTypeReference typeReferance;
+            private readonly Box<IIsPossibly<WeakTypeReference>> box;
+
+            public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements, IKey typeName)
+            {
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                key = typeName ?? throw new ArgumentNullException(nameof(typeName));
+                typeReferance = new WeakTypeReference(Possibly.Is(definitionBox));
+                box = new Box<IIsPossibly<WeakTypeReference>>(Possibly.Is(typeReferance));
+            }
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return box;
+            }
+
+            public IPopulateBoxes<WeakTypeReference> Run(IPopulateScopeContext context)
+            {
+                var encolsing = context.Scope.TryAddType(key, box);
+                var nextContext = context.Child();
+                elements.Select(x => x.Run(nextContext)).ToArray();
+                return new TypeDefinitionResolveReference(
+                    nextContext.GetResolvableScope(),
+                    definitionBox,
+                    typeReferance,
+                    key);
+            }
         }
 
-        public IIsPossibly<WeakTypeReference> Run(IResolveReferenceContext context)
+        private class TypeDefinitionResolveReference : IPopulateBoxes<WeakTypeReference>
         {
-            definitionBox.Fill(Possibly.Is(new WeakTypeDefinition(scope, Possibly.Is(key))));
-            return Possibly.Is(typeReferance);
+            private readonly IResolvableScope scope;
+            private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox;
+            private readonly WeakTypeReference typeReferance;
+            private readonly IKey key;
+
+            public TypeDefinitionResolveReference(
+                IResolvableScope scope,
+                Box<IIsPossibly<WeakTypeDefinition>> definitionBox,
+                WeakTypeReference typeReferance,
+                IKey key)
+            {
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.definitionBox = definitionBox ?? throw new ArgumentNullException(nameof(definitionBox));
+                this.typeReferance = typeReferance ?? throw new ArgumentNullException(nameof(typeReferance));
+                this.key = key ?? throw new ArgumentNullException(nameof(key));
+            }
+
+            public IIsPossibly<WeakTypeReference> Run(IResolveReferenceContext context)
+            {
+                definitionBox.Fill(Possibly.Is(new WeakTypeDefinition(scope, Possibly.Is(key))));
+                return Possibly.Is(typeReferance);
+            }
         }
     }
+
 }

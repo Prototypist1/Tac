@@ -87,105 +87,121 @@ namespace Tac.Semantic_Model.CodeStuff
                 return TokenMatching<IPopulateScope<TFrontendCodeElement>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
-                    new BinaryPopulateScope<TFrontendCodeElement, TCodeElement>(left, right, Make));
+                    new BinaryPopulateScope(left, right, Make));
             }
 
             return TokenMatching<IPopulateScope<TFrontendCodeElement>>.MakeNotMatch(
                     matching.Context);
         }
 
-    }
 
-
-    internal class BinaryPopulateScope<TFrontendCodeElement, TCodeElement> : IPopulateScope<TFrontendCodeElement>
-        where TFrontendCodeElement : class, IFrontendCodeElement<TCodeElement>
-        where TCodeElement : class, ICodeElement
-    {
-        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>> left;
-        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>> right;
-        private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-        private readonly DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box = new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>();
-
-        public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>> left,
-            IPopulateScope<IFrontendCodeElement<ICodeElement>> right,
-            BinaryOperation.Make<TFrontendCodeElement> make)
+        public static IPopulateScope<TFrontendCodeElement> PopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>> left,
+                IPopulateScope<IFrontendCodeElement<ICodeElement>> right,
+                BinaryOperation.Make<TFrontendCodeElement> make)
         {
-            this.left = left ?? throw new ArgumentNullException(nameof(left));
-            this.right = right ?? throw new ArgumentNullException(nameof(right));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            return new BinaryPopulateScope( left,
+                 right,
+                 make);
         }
-
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+        public static IPopulateBoxes<TFrontendCodeElement> PopulateBoxes(IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance1,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance2,
+                BinaryOperation.Make<TFrontendCodeElement> make,
+                DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box)
         {
-            return box;
-        }
-
-        public IPopulateBoxes<TFrontendCodeElement> Run(IPopulateScopeContext context)
-        {
-            // TODO
-            // this is something I don't much like
-            // right runs first because of assign
-            // in assign you might have something like
-            // method [int;int] input { input < ? 2 if { 1 return; } else { input - 1 > fac * input return; } } =: fac
-            // if the left runs first than fac will not be found
-            // and so it will add it to the scope
-            // but if the right is run first 
-            // fac works
-            // if I add an assign that goes the other way...
-            // this will break
-
-            // part of me just thinks 
-            // force 'var' on member definition 
-            var rightres = right.Run(context);
-
-            return new BinaryResolveReferance<TFrontendCodeElement,TCodeElement>(
-                left.Run(context),
-                rightres,
+            return new BinaryResolveReferance(resolveReferance1,
+                resolveReferance2,
                 make,
                 box);
         }
-    }
 
 
 
-    internal class BinaryResolveReferance<TFrontendCodeElement,TCodeElement> : IPopulateBoxes<TFrontendCodeElement>
-        where TFrontendCodeElement : class, IFrontendCodeElement<TCodeElement>
-        where TCodeElement : class, ICodeElement
-    {
-        public readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>> left;
-        public readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>> right;
-        private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-        private readonly DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box;
-
-        public BinaryResolveReferance(
-            IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance1,
-            IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance2,
-            BinaryOperation.Make<TFrontendCodeElement> make,
-            DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+        private class BinaryPopulateScope : IPopulateScope<TFrontendCodeElement>
         {
-            left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-            right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
+            private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>> left;
+            private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>> right;
+            private readonly BinaryOperation.Make<TFrontendCodeElement> make;
+            private readonly DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box = new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>();
+
+            public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>> left,
+                IPopulateScope<IFrontendCodeElement<ICodeElement>> right,
+                BinaryOperation.Make<TFrontendCodeElement> make)
+            {
+                this.left = left ?? throw new ArgumentNullException(nameof(left));
+                this.right = right ?? throw new ArgumentNullException(nameof(right));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+            }
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return box;
+            }
+
+            public IPopulateBoxes<TFrontendCodeElement> Run(IPopulateScopeContext context)
+            {
+                // TODO
+                // this is something I don't much like
+                // right runs first because of assign
+                // in assign you might have something like
+                // method [int;int] input { input < ? 2 if { 1 return; } else { input - 1 > fac * input return; } } =: fac
+                // if the left runs first than fac will not be found
+                // and so it will add it to the scope
+                // but if the right is run first 
+                // fac works
+                // if I add an assign that goes the other way...
+                // this will break
+
+                // part of me just thinks 
+                // force 'var' on member definition 
+                var rightres = right.Run(context);
+
+                return new BinaryResolveReferance(
+                    left.Run(context),
+                    rightres,
+                    make,
+                    box);
+            }
         }
 
-
-        public IIsPossibly<TFrontendCodeElement> Run(IResolveReferenceContext context)
+        private class BinaryResolveReferance : IPopulateBoxes<TFrontendCodeElement>
         {
-            var res = make(
-                left.Run(context),
-                right.Run(context));
-            box.Set(() => {
-                if (res.IsDefinately(out var yes, out var no))
-                {
-                    return yes.Value.Returns();
-                }
-                else {
+            public readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>> left;
+            public readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>> right;
+            private readonly BinaryOperation.Make<TFrontendCodeElement> make;
+            private readonly DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box;
 
-                    return Possibly.IsNot<IFrontendType<IVerifiableType>>(no);
-                }
-            });
-            return res;
+            public BinaryResolveReferance(
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance1,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>> resolveReferance2,
+                BinaryOperation.Make<TFrontendCodeElement> make,
+                DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+            {
+                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+
+            public IIsPossibly<TFrontendCodeElement> Run(IResolveReferenceContext context)
+            {
+                var res = make(
+                    left.Run(context),
+                    right.Run(context));
+                box.Set(() => {
+                    if (res.IsDefinately(out var yes, out var no))
+                    {
+                        return yes.Value.Returns();
+                    }
+                    else
+                    {
+
+                        return Possibly.IsNot<IFrontendType<IVerifiableType>>(no);
+                    }
+                });
+                return res;
+            }
         }
     }
+
 }

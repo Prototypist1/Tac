@@ -53,8 +53,8 @@ namespace Tac.Semantic_Model.Operations
 
                 return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeMatch(
                     matched.Tokens,
-                    matched.Context, 
-                    new BinaryPopulateScope<WeakPathOperation,IPathOperation>(left, right, (l,r)=> Possibly.Is(new WeakPathOperation(l,r))));
+                    matched.Context,
+                    BinaryOperationMaker<WeakPathOperation, IPathOperation >.PopulateScope(left, right, (l,r)=> Possibly.Is(new WeakPathOperation(l,r))));
             }
 
             return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeNotMatch(

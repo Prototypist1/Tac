@@ -118,75 +118,97 @@ namespace Tac.Semantic_Model
                     matching.Context);
         }
 
-
-
-    }
-
-    internal class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
-    {
-        private readonly NameKey nameKey;
-        private readonly IEnumerable<IPopulateScope<IFrontendCodeElement< ICodeElement>>> lines;
-        private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
-        private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
-
-        public GenericTypeDefinitionPopulateScope(
-            NameKey nameKey, 
-            IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
-            Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
+        public static IPopulateScope<WeakGenericTypeDefinition> PopulateScope(
+                NameKey nameKey,
+                IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
+                Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
         {
-            this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-            this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
-            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+            return new GenericTypeDefinitionPopulateScope(
+                nameKey,
+                lines,
+                genericParameters);
         }
-
-        public IPopulateBoxes<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
+        public static IPopulateBoxes<WeakGenericTypeDefinition> PopulateBoxes(NameKey nameKey,
+                IResolvableScope scope,
+                Box<IIsPossibly<IFrontendGenericType>> box,
+                Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
         {
-            var encolsing = context.Scope.TryAddGeneric(nameKey, box);
-            
-            var nextContext = context.TemplateChild(genericParameters);
-            var nextLines = lines.Select(x => x.Run(nextContext)).ToArray();
-            return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters,nextLines);
-        }
-
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
-        {
-            return box;
-        }
-    }
-
-    internal class GenericTypeDefinitionResolveReferance : IPopulateBoxes<WeakGenericTypeDefinition>
-    {
-        private readonly NameKey nameKey;
-        private readonly IResolvableScope scope;
-        private readonly Box<IIsPossibly<IFrontendGenericType>> box;
-        private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
-        private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
-
-        public GenericTypeDefinitionResolveReferance(
-            NameKey nameKey, 
-            IResolvableScope scope, 
-            Box<IIsPossibly<IFrontendGenericType>> box,
-            Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters,
-            IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
-        {
-            this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
-            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
-            this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
-        }
-        
-        public IIsPossibly<WeakGenericTypeDefinition> Run(IResolveReferenceContext context)
-        {
-            // hmm getting the template down here is hard
-            // scope mostly comes from context
-            // why is that?
-
-            var nextLines = lines.Select(x => x.Run(context)).ToArray();
-            return box.Fill(Possibly.Is(new WeakGenericTypeDefinition(
-                Possibly.Is(nameKey),
+            return new GenericTypeDefinitionResolveReferance(nameKey,
                 scope,
-                genericParameters.Select(x=>Possibly.Is(x)).ToArray())));
+                box,
+                genericParameters,
+                lines);
         }
+
+        private class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
+        {
+            private readonly NameKey nameKey;
+            private readonly IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines;
+            private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
+            private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
+
+            public GenericTypeDefinitionPopulateScope(
+                NameKey nameKey,
+                IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
+                Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
+            {
+                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+                this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
+                this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+            }
+
+            public IPopulateBoxes<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
+            {
+                var encolsing = context.Scope.TryAddGeneric(nameKey, box);
+
+                var nextContext = context.TemplateChild(genericParameters);
+                var nextLines = lines.Select(x => x.Run(nextContext)).ToArray();
+                return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters, nextLines);
+            }
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return box;
+            }
+        }
+
+        private class GenericTypeDefinitionResolveReferance : IPopulateBoxes<WeakGenericTypeDefinition>
+        {
+            private readonly NameKey nameKey;
+            private readonly IResolvableScope scope;
+            private readonly Box<IIsPossibly<IFrontendGenericType>> box;
+            private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
+            private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
+
+            public GenericTypeDefinitionResolveReferance(
+                NameKey nameKey,
+                IResolvableScope scope,
+                Box<IIsPossibly<IFrontendGenericType>> box,
+                Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
+            {
+                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+                this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
+            }
+
+            public IIsPossibly<WeakGenericTypeDefinition> Run(IResolveReferenceContext context)
+            {
+                // hmm getting the template down here is hard
+                // scope mostly comes from context
+                // why is that?
+
+                var nextLines = lines.Select(x => x.Run(context)).ToArray();
+                return box.Fill(Possibly.Is(new WeakGenericTypeDefinition(
+                    Possibly.Is(nameKey),
+                    scope,
+                    genericParameters.Select(x => Possibly.Is(x)).ToArray())));
+            }
+        }
+
+
     }
 }

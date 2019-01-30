@@ -60,58 +60,69 @@ namespace Tac.Semantic_Model
 
             return TokenMatching<IPopulateScope<WeakBlockDefinition>>.MakeNotMatch(tokenMatching.Context);
         }
+
+        public static IPopulateScope<WeakBlockDefinition> PopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
+        {
+            return new BlockDefinitionPopulateScope(elements);
+        }
+        public static IPopulateBoxes<WeakBlockDefinition> PopulateBoxes(IResolvableScope scope,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance)
+        {
+            return new ResolveReferanceBlockDefinition(scope, resolveReferance);
+        }
+
+        private class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition>
+        {
+            // TODO object??
+            // is it worth adding another T?
+            // this is the type the backend owns
+            private IPopulateScope<IFrontendCodeElement<ICodeElement>>[] Elements { get; }
+
+            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
+            {
+                Elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            }
+
+            public IPopulateBoxes<WeakBlockDefinition> Run(IPopulateScopeContext context)
+            {
+                var nextContext = context.Child();
+                return new ResolveReferanceBlockDefinition(
+                    nextContext.GetResolvableScope(),
+                    Elements.Select(x => x.Run(nextContext)).ToArray());
+            }
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType()));
+            }
+        }
+
+        private class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
+        {
+            private IResolvableScope Scope { get; }
+            private IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] ResolveReferance { get; }
+
+            public ResolveReferanceBlockDefinition(
+                IResolvableScope scope,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance)
+            {
+                Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                ResolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
+            }
+
+            public IIsPossibly<WeakBlockDefinition> Run(IResolveReferenceContext context)
+            {
+                return
+                        Possibly.Is(
+                            new WeakBlockDefinition(
+                                ResolveReferance.Select(x => x.Run(context)).ToArray(),
+                                Scope,
+                                new IIsPossibly<IFrontendCodeElement<ICodeElement>>[0]));
+            }
+
+        }
+
+
     }
-    
-    internal class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition>
-    {
-        // TODO object??
-        // is it worth adding another T?
-        // this is the type the backend owns
-        private IPopulateScope<IFrontendCodeElement<ICodeElement>>[] Elements { get; }
-
-        public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
-        {
-            Elements = elements ?? throw new ArgumentNullException(nameof(elements));
-        }
-
-        public IPopulateBoxes<WeakBlockDefinition> Run(IPopulateScopeContext context)
-        {
-            var nextContext = context.Child();
-            return new ResolveReferanceBlockDefinition(
-                nextContext.GetResolvableScope(), 
-                Elements.Select(x => x.Run(nextContext)).ToArray());
-        }
-
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
-        {
-            return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType()));
-        }
-    }
-
-    internal class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
-    {
-        private IResolvableScope Scope { get; }
-        private IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] ResolveReferance { get; }
-
-        public ResolveReferanceBlockDefinition(
-            IResolvableScope scope, 
-            IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance)
-        {
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            ResolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
-        }
-
-        public IIsPossibly<WeakBlockDefinition> Run(IResolveReferenceContext context)
-        {
-            return 
-                    Possibly.Is(
-                        new WeakBlockDefinition(
-                            ResolveReferance.Select(x => x.Run(context)).ToArray(), 
-                            Scope, 
-                            new IIsPossibly<IFrontendCodeElement<ICodeElement>>[0]));
-        }
-        
-    }
-    
 
 }

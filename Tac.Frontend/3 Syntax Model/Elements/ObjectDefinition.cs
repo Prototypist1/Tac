@@ -81,63 +81,79 @@ namespace Tac.Semantic_Model
             return TokenMatching<IPopulateScope<WeakObjectDefinition>>.MakeNotMatch(
                     matching.Context);
         }
-    }
 
-    internal class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
-    {
-        private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
-
-        public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
+        public static IPopulateScope<WeakObjectDefinition> PopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
         {
-            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            return new ObjectDefinitionPopulateScope(elements);
         }
-
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+        public static IPopulateBoxes<WeakObjectDefinition> PopulateBoxes(IResolvableScope scope,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements,
+                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+                ImplicitKey key)
         {
-            return box;
-        }
-
-        public IPopulateBoxes<WeakObjectDefinition> Run(IPopulateScopeContext context)
-        {
-            var nextContext = context.Child();
-            var key = new ImplicitKey();
-            nextContext.Scope.TryAddType(key, box);
-            return new ResolveReferanceObjectDefinition(
-                nextContext.GetResolvableScope(),
-                elements.Select(x => x.Run(nextContext)).ToArray(),
+            return new ResolveReferanceObjectDefinition( scope,
+                 elements,
                 box,
                 key);
         }
-    }
 
-    internal class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
-    {
-        private readonly IResolvableScope scope;
-        private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
-        private readonly ImplicitKey key;
-
-        public ResolveReferanceObjectDefinition(
-            IResolvableScope scope, 
-            IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements, 
-            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box, 
-            ImplicitKey key)
+        private class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
         {
-            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
-            this.key = key ?? throw new ArgumentNullException(nameof(key));
+            private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
+
+            public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
+            {
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            }
+
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return box;
+            }
+
+            public IPopulateBoxes<WeakObjectDefinition> Run(IPopulateScopeContext context)
+            {
+                var nextContext = context.Child();
+                var key = new ImplicitKey();
+                nextContext.Scope.TryAddType(key, box);
+                return new ResolveReferanceObjectDefinition(
+                    nextContext.GetResolvableScope(),
+                    elements.Select(x => x.Run(nextContext)).ToArray(),
+                    box,
+                    key);
+            }
         }
 
-        public IIsPossibly<WeakObjectDefinition> Run(IResolveReferenceContext context)
+        private class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
         {
-            return box.Fill(
-                Possibly.Is(
-                    new WeakObjectDefinition(
-                        scope, 
-                        elements.Select(x => x.Run(context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray(), 
-                        key)));
+            private readonly IResolvableScope scope;
+            private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+            private readonly ImplicitKey key;
+
+            public ResolveReferanceObjectDefinition(
+                IResolvableScope scope,
+                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements,
+                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+                ImplicitKey key)
+            {
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.key = key ?? throw new ArgumentNullException(nameof(key));
+            }
+
+            public IIsPossibly<WeakObjectDefinition> Run(IResolveReferenceContext context)
+            {
+                return box.Fill(
+                    Possibly.Is(
+                        new WeakObjectDefinition(
+                            scope,
+                            elements.Select(x => x.Run(context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray(),
+                            key)));
+            }
         }
     }
+
 }

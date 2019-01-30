@@ -40,74 +40,88 @@ namespace Tac.Semantic_Model
                 matching.Context);
         }
 
-    }
-
-
-    internal class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReference>
-    {
-        private readonly string memberName;
-        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
-
-        public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+        public static IPopulateScope<WeakMemberReference> PopulateScope(string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
         {
-            memberName = item ?? throw new ArgumentNullException(nameof(item));
-            this.type = type ?? throw new ArgumentNullException(nameof(type));
+            return new ImplicitMemberPopulateScope(item, type);
+        }
+        public static IPopulateBoxes<WeakMemberReference> PopulateBoxes(
+                string memberName,
+                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+                IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+        {
+            return new ImplicitMemberResolveReferance(
+                memberName,
+                box,
+                type);
         }
 
-        public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
+        private class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReference>
         {
-            
-            IBox< IIsPossibly < WeakMemberDefinition >> memberDef = new Box<IIsPossibly<WeakMemberDefinition>>();
+            private readonly string memberName;
+            private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
+            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
 
-            if (!context.Scope.TryAddMember(DefintionLifetime.Instance,new NameKey(memberName), memberDef))
+            public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
             {
-                throw new Exception("bad bad bad!");
+                memberName = item ?? throw new ArgumentNullException(nameof(item));
+                this.type = type ?? throw new ArgumentNullException(nameof(type));
+            }
+
+            public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
+            {
+
+                IBox<IIsPossibly<WeakMemberDefinition>> memberDef = new Box<IIsPossibly<WeakMemberDefinition>>();
+
+                if (!context.Scope.TryAddMember(DefintionLifetime.Instance, new NameKey(memberName), memberDef))
+                {
+                    throw new Exception("bad bad bad!");
+                }
+
+
+                return new ImplicitMemberResolveReferance(memberName, box, type);
             }
 
 
-            return new ImplicitMemberResolveReferance(memberName,box,type);
+            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            {
+                return box;
+            }
+
+
         }
 
-
-        public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+        private class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReference>
         {
-            return box;
-        }
+            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+            private readonly string memberName;
+            private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
 
+            public ImplicitMemberResolveReferance(
+                string memberName,
+                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+                IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+            {
+                this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.type = type ?? throw new ArgumentNullException(nameof(type));
+            }
 
-    }
-
-    internal class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReference>
-    {
-        private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
-        private readonly string memberName;
-        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
-
-        public ImplicitMemberResolveReferance(
-            string memberName,
-            Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
-            IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
-        {
-            this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
-            this.box = box ?? throw new ArgumentNullException(nameof(box));
-            this.type = type ?? throw new ArgumentNullException(nameof(type));
-        }
-        
-        public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
-        {
-           return box.Fill(
-               Possibly.Is(
-                new WeakMemberReference(
+            public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
+            {
+                return box.Fill(
                     Possibly.Is(
-                        new Box<IIsPossibly<WeakMemberDefinition>>(
-                            Possibly.Is(
-                                new WeakMemberDefinition(
-                                    false, 
-                                    new NameKey(memberName),
-                                    Possibly.Is(
-                                        new WeakTypeReference(
-                                            Possibly.Is(type))))))))));
+                     new WeakMemberReference(
+                         Possibly.Is(
+                             new Box<IIsPossibly<WeakMemberDefinition>>(
+                                 Possibly.Is(
+                                     new WeakMemberDefinition(
+                                         false,
+                                         new NameKey(memberName),
+                                         Possibly.Is(
+                                             new WeakTypeReference(
+                                                 Possibly.Is(type))))))))));
+            }
         }
+
     }
 }
