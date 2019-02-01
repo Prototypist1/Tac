@@ -117,7 +117,45 @@ namespace Tac.Semantic_Model
             Parent = parent ?? throw new ArgumentNullException(nameof(parent));
         }
 
-        public NewScope()
+        private void AddLibraries(IReadOnlyList<IAssembly> libraries)
+        {
+            foreach (var library in libraries)
+            {
+                
+                // TODO
+                // TODO 
+                // YOU ARE HERE
+
+                // ok so big project I think
+                // we don't put exteranl things in our scope
+                // but we will do look up against them
+
+                // this means we need to interface out a whole bunch of stuff in this model
+                // and have some of it wrap interfaces from model
+
+                // we could either convert the whole library or convert as we find matches
+                // probably convert as we find matches
+                // 
+
+                foreach (var module in library.Modules)
+                {
+                    var set = members.GetOrAdd(item.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
+
+                    if (!TryGetType(item.Type, out var typeBox))
+                    {
+                        throw new Exception($"could not find type {item.Type} referanced by {item.Key} from library {libraries}");
+                    }
+                    
+                    if (!set.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(DefintionLifetime.Static,
+                            new Box<IIsPossibly<WeakMemberDefinition>>(
+                                Possibly.Is(WeakMemberDefinition.InteranlMember(true,item.Key,Possibly.Is<WeakTypeReference>(new WeakTypeReference(Possibly.Is(typeBox))))))))) {
+                        throw new Exception("could not added exteranl referance");
+                    }
+                }
+            }
+        }
+
+        public NewScope(IReadOnlyList<IAssembly> libraries)
         {
             TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new NumberType())));
             TryAddType(new NameKey("string"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new StringType())));
@@ -131,6 +169,8 @@ namespace Tac.Semantic_Model
                 new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericMethodType())));
             TryAddGeneric(
                 new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericImplementationType())));
+            
+            AddLibraries(libraries);
         }
 
         public IResolvableScope ToResolvable()

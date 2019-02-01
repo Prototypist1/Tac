@@ -1,9 +1,11 @@
 ﻿using Newtonsoft.Json;
 using Prototypist.LeftToRight;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend.Test.Samples;
+using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
@@ -60,7 +62,7 @@ namespace Tac.Tests
 
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
-            var stack = new NewScope();
+            var stack = new NewScope(new List<IAssembly>());
             
             var populateScopeContex = new PopulateScopeContext(stack);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();

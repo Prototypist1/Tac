@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
@@ -24,7 +25,7 @@ namespace Tac.Frontend
 
             var scopePopulators = elementMatchingContest.ParseFile(tokens);
             
-            var stack = new NewScope();
+            var stack = new NewScope(new List<IAssembly>());
 
             var populateScopeContex = new PopulateScopeContext(stack);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
