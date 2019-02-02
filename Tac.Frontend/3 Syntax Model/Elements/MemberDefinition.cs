@@ -44,7 +44,41 @@ namespace Tac.Semantic_Model
         IKey Key { get; }
         IMemberDefinition Convert(TransformerExtensions.ConversionContext context);
     }
-    
+
+    internal class ExternalMemberDefinition : IWeakMemberDefinition
+    {
+        private readonly IMemberDefinition memberDefinition;
+
+        public IIsPossibly<IWeakTypeReferance> Type { get; }
+        public bool ReadOnly { get; }
+        public IKey Key { get; }
+
+        public ExternalMemberDefinition(IMemberDefinition memberDefinition, IIsPossibly<IWeakTypeReferance> type, bool readOnly, IKey key) {
+            this.memberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+            ReadOnly = readOnly;
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+        }
+
+        public IMemberDefinition Convert(TransformerExtensions.ConversionContext context)
+        {
+            return memberDefinition;
+        }
+
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+
+            return new BuildIntention<IMemberDefinition>(memberDefinition, () => { });
+        }
+
+        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        {
+            return Possibly.Is(this);
+        }
+
+        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+    }
+
     // it is possible members are single instances with look up
     // up I don't think so
     // it is easier just to have simple value objects

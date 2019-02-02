@@ -57,15 +57,15 @@ namespace Tac.Semantic_Model
 
     internal interface IFrontendGenericType : IFrontendType<IGenericType>
     {
-        IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
+        IIsPossibly<GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);
     }
 
     internal class TypeParameter {
-        public readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder parameterDefinition;
+        public readonly GemericTypeParameterPlacholder parameterDefinition;
         public readonly IFrontendType<IVerifiableType> frontendType;
 
-        public TypeParameter(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder parameterDefinition, IFrontendType<IVerifiableType> frontendType)
+        public TypeParameter(GemericTypeParameterPlacholder parameterDefinition, IFrontendType<IVerifiableType> frontendType)
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
@@ -74,21 +74,59 @@ namespace Tac.Semantic_Model
 
     internal class ScopeTemplate : NewScope //, IFinalizedScopeTemplate
     {
-        public ScopeTemplate(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] typeParameterDefinitions, NewScope parent):base(parent)
+        public ScopeTemplate(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] typeParameterDefinitions, NewScope parent) : base(parent)
         {
             TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
             foreach (var item in typeParameterDefinitions)
             {
                 // for the sake of validation type parameters are types 
 
-                if (!TryAddType(item.Key, new Box<IIsPossibly< IFrontendType<IVerifiableType>>>(Possibly.Is(new GemericTypeParameterPlacholder(item.Key))))) {
+                if (!TryAddType(item.Key, new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new GemericTypeParameterPlacholder(item.Key))))) {
                     throw new Exception("that is not right!");
                 }
             }
         }
 
-        public GemericTypeParameterPlacholder[] TypeParameterDefinitions {get;}
+        public GemericTypeParameterPlacholder[] TypeParameterDefinitions { get; }
 
+    }
+
+    internal  class AssemblyExtensions
+    {
+        private readonly IReadOnlyList<IAssembly> assemblies;
+        private readonly ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition> memberCache = new ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition>();
+        private readonly ConcurrentIndexed<ITypeReferance, IWeakTypeReferance> typeReferanceCache = new ConcurrentIndexed<ITypeReferance, IWeakTypeReferance>();
+        private readonly ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>> typeCache = new ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>>();
+
+        public AssemblyExtensions(IReadOnlyList<IAssembly> assemblies)
+        {
+            this.assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
+        }
+
+        public bool TryGetMember(IKey key,  out IBox<IIsPossibly<IWeakMemberDefinition>> res) {
+            var member = assemblies.SelectMany(x=>x.Scope.Members).SingleOrDefault(x => x.Key == key);
+            
+            if (member == null) {
+                res = default;
+                return false;
+            }
+
+            res = new Box<IIsPossibly<IWeakMemberDefinition>>(Possibly.Is(memberCache.GetOrAdd(member, new ExternalMemberDefinition(
+                member, Possibly.Is(GetTypeReferenceOrThrow(member.Type)), member.ReadOnly, member.Key
+                ))));
+            return true;
+        }
+
+        private IWeakTypeReferance GetTypeReferenceOrThrow(ITypeReferance typeReferance)
+        {
+            return typeReferanceCache.GetOrAdd(typeReferance, new ExternalTypeReference(GetTypeDefinitionOrThrow(typeReferance.TypeDefinition)));
+        }
+
+        private IFrontendType<IVerifiableType> GetTypeDefinitionOrThrow(IVerifiableType typeDefinition)
+        {
+            
+            return typeCache.GetOrAdd(typeDefinition, new ExternalTypeDefinition(typeDefinition));
+        }
     }
 
     internal class NewScope : IPopulatableScope, IResolvableScope
@@ -103,22 +141,26 @@ namespace Tac.Semantic_Model
             }
         }
 
-        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members
+        private readonly IReadOnlyList<IAssembly> libraries;
+
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
 
-        protected readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>> types
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>> types
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>>();
 
-        protected readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>> genericTypes
+        private readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>> genericTypes
             = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>>();
 
         public NewScope(NewScope parent)
         {
             Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            libraries = new List<IAssembly>();
         }
 
         private void AddLibraries(IReadOnlyList<IAssembly> libraries)
         {
+
             foreach (var library in libraries)
             {
                 
@@ -169,8 +211,9 @@ namespace Tac.Semantic_Model
                 new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericMethodType())));
             TryAddGeneric(
                 new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericImplementationType())));
-            
-            AddLibraries(libraries);
+
+
+            this.libraries = libraries ?? throw new ArgumentNullException(nameof(libraries));
         }
 
         public IResolvableScope ToResolvable()
@@ -203,20 +246,29 @@ namespace Tac.Semantic_Model
         {
             if (!members.TryGetValue(name, out var items))
             {
-                goto seeParent;
+                goto checkLibraries;
             }
 
             var thing = items.SingleOrDefault();
 
             if (thing == default)
             {
-                goto seeParent;
+                goto checkLibraries;
             }
 
             member = thing.Definition;
             return true;
 
-            seeParent:
+            checkLibraries:
+            foreach (var library in libraries)
+            {
+                var target = libraries.SelectMany(x=>x.Scope.Members).SingleOrDefault(x => x.Key == name);
+                if (target == null) {
+                    continue;
+                }
+                
+            }
+            
             if (Parent != null)
             {
                 return Parent.TryGetMember(name, staticOnly, out member);
