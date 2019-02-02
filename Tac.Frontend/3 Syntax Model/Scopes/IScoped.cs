@@ -91,46 +91,49 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal  class AssemblyExtensions
-    {
-        private readonly IReadOnlyList<IAssembly> assemblies;
-        private readonly ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition> memberCache = new ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition>();
-        private readonly ConcurrentIndexed<ITypeReferance, IWeakTypeReferance> typeReferanceCache = new ConcurrentIndexed<ITypeReferance, IWeakTypeReferance>();
-        private readonly ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>> typeCache = new ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>>();
-
-        public AssemblyExtensions(IReadOnlyList<IAssembly> assemblies)
-        {
-            this.assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
-        }
-
-        public bool TryGetMember(IKey key,  out IBox<IIsPossibly<IWeakMemberDefinition>> res) {
-            var member = assemblies.SelectMany(x=>x.Scope.Members).SingleOrDefault(x => x.Key == key);
-            
-            if (member == null) {
-                res = default;
-                return false;
-            }
-
-            res = new Box<IIsPossibly<IWeakMemberDefinition>>(Possibly.Is(memberCache.GetOrAdd(member, new ExternalMemberDefinition(
-                member, Possibly.Is(GetTypeReferenceOrThrow(member.Type)), member.ReadOnly, member.Key
-                ))));
-            return true;
-        }
-
-        private IWeakTypeReferance GetTypeReferenceOrThrow(ITypeReferance typeReferance)
-        {
-            return typeReferanceCache.GetOrAdd(typeReferance, new ExternalTypeReference(GetTypeDefinitionOrThrow(typeReferance.TypeDefinition)));
-        }
-
-        private IFrontendType<IVerifiableType> GetTypeDefinitionOrThrow(IVerifiableType typeDefinition)
-        {
-            
-            return typeCache.GetOrAdd(typeDefinition, new ExternalTypeDefinition(typeDefinition));
-        }
-    }
-
     internal class NewScope : IPopulatableScope, IResolvableScope
     {
+
+        internal class AssemblyManager
+        {
+            private readonly IReadOnlyList<IAssembly> assemblies;
+            private readonly ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition> memberCache = new ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition>();
+            private readonly ConcurrentIndexed<ITypeReferance, IWeakTypeReferance> typeReferanceCache = new ConcurrentIndexed<ITypeReferance, IWeakTypeReferance>();
+            private readonly ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>> typeCache = new ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>>();
+
+            public AssemblyManager(IReadOnlyList<IAssembly> assemblies)
+            {
+                this.assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
+            }
+
+            public bool TryGetMember(IKey key, out IBox<IIsPossibly<IWeakMemberDefinition>> res)
+            {
+                var member = assemblies.SelectMany(x => x.Scope.Members).SingleOrDefault(x => x.Key == key);
+
+                if (member == null)
+                {
+                    res = default;
+                    return false;
+                }
+
+                res = new Box<IIsPossibly<IWeakMemberDefinition>>(Possibly.Is(memberCache.GetOrAdd(member, new ExternalMemberDefinition(
+                    member, Possibly.Is(GetTypeReferenceOrThrow(member.Type)), member.ReadOnly, member.Key
+                    ))));
+                return true;
+            }
+
+            private IWeakTypeReferance GetTypeReferenceOrThrow(ITypeReferance typeReferance)
+            {
+                return typeReferanceCache.GetOrAdd(typeReferance, new ExternalTypeReference(GetTypeDefinitionOrThrow(typeReferance.TypeDefinition)));
+            }
+
+            private IFrontendType<IVerifiableType> GetTypeDefinitionOrThrow(IVerifiableType typeDefinition)
+            {
+                return typeCache.GetOrAdd(typeDefinition, new ExternalTypeDefinition(typeDefinition));
+            }
+        }
+
+
         public NewScope Parent { get; }
 
         public IEnumerable<IKey> MemberKeys
@@ -141,7 +144,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        private readonly IReadOnlyList<IAssembly> libraries;
+        private readonly AssemblyManager assemblyManager;
 
         private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
@@ -155,50 +158,12 @@ namespace Tac.Semantic_Model
         public NewScope(NewScope parent)
         {
             Parent = parent ?? throw new ArgumentNullException(nameof(parent));
-            libraries = new List<IAssembly>();
-        }
-
-        private void AddLibraries(IReadOnlyList<IAssembly> libraries)
-        {
-
-            foreach (var library in libraries)
-            {
-                
-                // TODO
-                // TODO 
-                // YOU ARE HERE
-
-                // ok so big project I think
-                // we don't put exteranl things in our scope
-                // but we will do look up against them
-
-                // this means we need to interface out a whole bunch of stuff in this model
-                // and have some of it wrap interfaces from model
-
-                // we could either convert the whole library or convert as we find matches
-                // probably convert as we find matches
-                // 
-
-                foreach (var module in library.Modules)
-                {
-                    var set = members.GetOrAdd(item.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
-
-                    if (!TryGetType(item.Type, out var typeBox))
-                    {
-                        throw new Exception($"could not find type {item.Type} referanced by {item.Key} from library {libraries}");
-                    }
-                    
-                    if (!set.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(DefintionLifetime.Static,
-                            new Box<IIsPossibly<WeakMemberDefinition>>(
-                                Possibly.Is(WeakMemberDefinition.InteranlMember(true,item.Key,Possibly.Is<WeakTypeReference>(new WeakTypeReference(Possibly.Is(typeBox))))))))) {
-                        throw new Exception("could not added exteranl referance");
-                    }
-                }
-            }
+            assemblyManager = new AssemblyManager(new List<IAssembly>());
         }
 
         public NewScope(IReadOnlyList<IAssembly> libraries)
         {
+
             TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new NumberType())));
             TryAddType(new NameKey("string"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new StringType())));
             TryAddType(new NameKey("any"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new AnyType())));
@@ -211,9 +176,33 @@ namespace Tac.Semantic_Model
                 new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericMethodType())));
             TryAddGeneric(
                 new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericImplementationType())));
+            
+            if (libraries == null)
+            {
+                throw new ArgumentNullException(nameof(libraries));
+            }
 
+            var flattenedLibs = new List<IAssembly>();
 
-            this.libraries = libraries ?? throw new ArgumentNullException(nameof(libraries));
+            foreach (var lib in libraries)
+            {
+                AddRecursivily(lib);
+            }
+
+            assemblyManager = new AssemblyManager(flattenedLibs);
+
+            void AddRecursivily(IAssembly assembly) {
+                if (flattenedLibs.Contains(assembly)) {
+                    return;
+                }
+
+                foreach (var dependency in assembly.Referances)
+                {
+                    AddRecursivily(dependency);
+                }
+
+                flattenedLibs.Add(assembly);
+            }
         }
 
         public IResolvableScope ToResolvable()
@@ -260,14 +249,9 @@ namespace Tac.Semantic_Model
             return true;
 
             checkLibraries:
-            foreach (var library in libraries)
-            {
-                var target = libraries.SelectMany(x=>x.Scope.Members).SingleOrDefault(x => x.Key == name);
-                if (target == null) {
-                    continue;
-                }
-                
-            }
+            if (assemblyManager.TryGetMember(name,out member)) {
+                return true;
+            };
             
             if (Parent != null)
             {
