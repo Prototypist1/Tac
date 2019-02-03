@@ -29,7 +29,6 @@ namespace Tac.Model
         T MemberDefinition(IMemberDefinition codeElement);
         T MemberReferance(IMemberReferance codeElement);
         T InternalMethodDefinition(IInternalMethodDefinition codeElement);
-        T ExternalMethodDefinition(IExternalMethodDefinition codeElement);
         T ModuleDefinition(IModuleDefinition codeElement);
         T LastCallOperation(ILastCallOperation co);
         T ObjectDefinition(IObjectDefiniton codeElement);

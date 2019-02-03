@@ -27,7 +27,7 @@ namespace Tac.Backend.Test
         private void Pairify(double d)
         {
             var testCase = new PairType();
-            var conversionContext = new Definitions(new ExternalMethodSource(new Dictionary<Guid, InterpetedExternalMethodDefinition>()));
+            var conversionContext = new Definitions();
 
             var res = testCase.Module.Convert(conversionContext).Interpet(InterpetedContext.Root());
 

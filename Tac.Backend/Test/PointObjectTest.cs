@@ -17,7 +17,7 @@ namespace Tac.Backend.Test
         public void Test()
         {
             var testCase = new PointObject();
-            var conversionContext = new Definitions(new ExternalMethodSource(new Dictionary<Guid, InterpetedExternalMethodDefinition>()));
+            var conversionContext = new Definitions();
             
             var res = testCase.Module.Convert(conversionContext).Interpet(InterpetedContext.Root());
             

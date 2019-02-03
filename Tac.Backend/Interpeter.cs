@@ -12,7 +12,7 @@ namespace Tac.Backend
     {
         public static void Run(IModuleDefinition moduleDefinition)
         {
-            var conversionContext = new Definitions(new ExternalMethodSource(new Dictionary<Guid, InterpetedExternalMethodDefinition>()));
+            var conversionContext = new Definitions();
             moduleDefinition.Convert(conversionContext).Interpet(InterpetedContext.Root());
 
             // todo find the entry point and run 

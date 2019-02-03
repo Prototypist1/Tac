@@ -18,7 +18,7 @@ namespace Tac.Backend.Test
         [Fact]
         public void Test() {
             var testCase = new Arithmetic();
-            var conversionContext = new Definitions(new ExternalMethodSource(new Dictionary<Guid, InterpetedExternalMethodDefinition>()));
+            var conversionContext = new Definitions();
             var module = testCase.Module.Convert(conversionContext);
 
             var res = module.Interpet(InterpetedContext.Root());

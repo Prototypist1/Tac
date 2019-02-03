@@ -15,12 +15,10 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
     internal class Definitions: IOpenBoxesContext<IInterpeted>
     {
-        private readonly IExternalMethodSource MethodSource;
         private readonly Dictionary<object, IInterpeted> backing = new Dictionary<object, IInterpeted>();
 
-        public Definitions(IExternalMethodSource methodSource)
+        public Definitions()
         {
-            MethodSource = methodSource ?? throw new ArgumentNullException(nameof(methodSource));
         }
 
         public InterpetedMemberDefinition MemberDefinition(IMemberDefinition member)
@@ -388,13 +386,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 return op;
             }
         }
-
-
-        public InterpetedExternalMethodDefinition ExternalMethodDefinition(IExternalMethodDefinition codeElement)
-        {
-            return MethodSource.GetExternalMethod(codeElement);
-        }
-
+        
         #region IOpenBoxesContext<IInterpeted>
 
         IInterpeted IOpenBoxesContext<IInterpeted>.BlockDefinition(IBlockDefinition codeElement) => BlockDefinition(codeElement);
@@ -419,7 +411,6 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         IInterpeted IOpenBoxesContext<IInterpeted>.SubtractOperation(ISubtractOperation codeElement) => SubtractOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.ReturnOperation(IReturnOperation codeElement) => ReturnOperation(codeElement);
         IInterpeted IOpenBoxesContext<IInterpeted>.TypeReferance(ITypeReferance codeElement) => TypeReferance(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.ExternalMethodDefinition(IExternalMethodDefinition codeElement) => ExternalMethodDefinition(codeElement);
         
         #endregion
 
