@@ -63,9 +63,7 @@ namespace Tac.Model.Instantiated
 
         public IEnumerable<IMemberDefinition> Members => members.Select(x => x.Value.Value);
         
-        public IEnumerable<IGenericType> GenericTypes => genericTypes.SelectMany(x=>x.Value);
-
-        public IEnumerable<GenericKeyDefinition> GenericTypeKeys => genericTypes.SelectMany(x=> x.Value.Select(y=>new GenericKeyDefinition(x.Key,y.TypeParameterKeys)));
+        public IEnumerable<GenericTypeEntry> GenericTypes => genericTypes.SelectMany(x=> x.Value.Select(y=> new GenericTypeEntry(y, new GenericKeyDefinition(x.Key,y.TypeParameterKeys))));
 
         IEnumerable<TypeEntry> IFinalizedScope.Types => types.Select(x => new TypeEntry(x.Key, x.Value));
         
