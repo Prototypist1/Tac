@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
@@ -32,6 +33,48 @@ namespace Tac.Semantic_Model
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
         IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IGenericType>>().GetBuildIntention(context); 
         IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns() => Possibly.Is(this);
+    }
+
+    internal class ExternalGenericType : IWeakGenericTypeDefinition
+    {
+        private readonly IGenericInterfaceDefinition type;
+
+        public ExternalGenericType(GenericNameKey key,IGenericInterfaceDefinition type)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            
+
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
+            this.TypeParameterDefinitions = type.TypeParameterKeys.Select(x => Possibly.Is( new _3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder(x))).ToArray();
+            this.Key = Possibly.Is(key);
+            this.Scope = new ExteranlResolvableScope(type.Scope);
+        }
+
+        public IIsPossibly<IKey> Key {get;}
+
+        public IResolvableScope Scope {get;}
+
+        public IIsPossibly<_3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
+        
+        public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
+        {
+
+        }
+
+        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        {
+            return Possibly.Is(this);
+        }
+
+        public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context)
+        {
+            return new BuildIntention<IGenericInterfaceDefinition>(type, () => { });
+        }
+
+        IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
     }
 
     internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IGenericType>, IFrontendGenericType
@@ -69,7 +112,7 @@ namespace Tac.Semantic_Model
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             var overlay =  new Overlay(typeParameters.ToDictionary(x=>x.parameterDefinition,x=>x.frontendType));
-            if (typeParameters.All(x => !(x.frontendType is GemericTypeParameterPlacholder)))
+            if (typeParameters.All(x => !(x.frontendType is Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder)))
             {
                 return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
                     new WeakTypeDefinition(Scope,Key),overlay));

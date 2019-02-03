@@ -96,58 +96,60 @@ namespace Tac.Semantic_Model
 
         internal class AssemblyManager
         {
-            private readonly IReadOnlyList<IAssembly> assemblies;
-            private readonly ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition> memberCache = new ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition>();
-            private readonly ConcurrentIndexed<ITypeReferance, IWeakTypeReferance> typeReferanceCache = new ConcurrentIndexed<ITypeReferance, IWeakTypeReferance>();
-            private readonly ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>> typeCache = new ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>>();
-            
+            private readonly IEnumerable<ExteranlResolvableScope> scopes;
+
             public AssemblyManager(IReadOnlyList<IAssembly> assemblies)
             {
-                this.assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
+                this.scopes = assemblies.Select(x => new ExteranlResolvableScope(x.Scope));
             }
 
-            public bool TryGetMember(IKey key, out IWeakMemberDefinition res)
+            public bool TryGetMember(IKey key, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> res)
             {
-                var member = assemblies.SelectMany(x => x.Scope.Members).SingleOrDefault(x => x.Key == key);
-
-                if (member == null)
+                var wrappedRes = scopes.Select<ExteranlResolvableScope,IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>>>(x =>
                 {
+                    if (x.TryGetMember(key, staticOnly, out var someRes))
+                    {
+                        return Possibly.Is(someRes);
+                    }
+                    else
+                    {
+                        return Possibly.IsNot<IBox<IIsPossibly<IWeakMemberDefinition>>>();
+                    }
+                }).OfType<IIsDefinately<IBox < IIsPossibly < IWeakMemberDefinition >>>>().SingleOrDefault();
+
+                if (wrappedRes == null) {
                     res = default;
                     return false;
                 }
 
-                res = memberCache.GetOrAdd(member, new ExternalMemberDefinition(
-                    member, Possibly.Is(GetTypeReference(member.Type)), member.ReadOnly, member.Key
-                    ));
+                res = wrappedRes.Value;
                 return true;
             }
 
-            public bool TryGetType(IKey key, out IFrontendType<IVerifiableType> res)
+            public bool TryGetType(IKey key, out IBox<IIsPossibly<IFrontendType<IVerifiableType>>> res)
             {
-                // TODO gerneric type!
+                var wrappedRes = scopes.Select<ExteranlResolvableScope, IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>(x =>
+                {
+                    if (x.TryGetType(key, out var someRes))
+                    {
+                        return Possibly.Is(someRes);
+                    }
+                    else
+                    {
+                        return Possibly.IsNot<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>();
+                    }
+                }).OfType<IIsDefinately<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>().SingleOrDefault();
 
-
-                var type = assemblies.SelectMany(x => x.Scope.Types).SingleOrDefault(x => x.Key == key);
-                
-                if (type == null)
+                if (wrappedRes == null)
                 {
                     res = default;
                     return false;
                 }
 
-                res = typeCache.GetOrAdd(type.Type, new ExternalTypeDefinition(type.Type));
+                res = wrappedRes.Value;
                 return true;
             }
             
-            private IWeakTypeReferance GetTypeReference(ITypeReferance typeReferance)
-            {
-                return typeReferanceCache.GetOrAdd(typeReferance, new ExternalTypeReference(GetTypeDefinition(typeReferance.TypeDefinition)));
-            }
-
-            private IFrontendType<IVerifiableType> GetTypeDefinition(IVerifiableType typeDefinition)
-            {
-                return typeCache.GetOrAdd(typeDefinition, new ExternalTypeDefinition(typeDefinition));
-            }
         }
 
 
@@ -266,8 +268,7 @@ namespace Tac.Semantic_Model
             return true;
 
             checkLibraries:
-            if (assemblyManager.TryGetMember(name,out var unwrappedMember)) {
-                member = new Box<IIsPossibly<IWeakMemberDefinition>>(Possibly.Is(unwrappedMember));
+            if (assemblyManager.TryGetMember(name, staticOnly,out member)) {
                 return true;
             };
             
@@ -329,8 +330,7 @@ namespace Tac.Semantic_Model
 
             // goto 🤘
             exit:
-            if (assemblyManager.TryGetType(name, out var innerTypr)){
-                type = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(innerTypr));
+            if (assemblyManager.TryGetType(name, out type)){
                 return true;
             }
             
