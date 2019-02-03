@@ -62,63 +62,13 @@ namespace Tac.Model.Instantiated
         public IEnumerable<IKey> MemberKeys => members.Keys;
 
         public IEnumerable<IMemberDefinition> Members => members.Select(x => x.Value.Value);
-
-        public IEnumerable<IVerifiableType> Types => types.Select(x=>x.Value);
-
-        public IEnumerable<IKey> TypeKeys => types.Keys;
-
+        
         public IEnumerable<IGenericType> GenericTypes => genericTypes.SelectMany(x=>x.Value);
 
         public IEnumerable<GenericKeyDefinition> GenericTypeKeys => genericTypes.SelectMany(x=> x.Value.Select(y=>new GenericKeyDefinition(x.Key,y.TypeParameterKeys)));
 
-        //public bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition member)
-        //{
-        //    if (members.TryGetValue(name, out var isStatic) && (!staticOnly || isStatic.Static)) { 
-        //        member = isStatic.Value;
-        //        return true;
-        //    }
-            
-        //    if (parent == null)
-        //    {
-        //        member = default;
-        //        return false;
-        //    }
-        //    return parent.TryGetMember(name, staticOnly, out member);
-        //}
-
-        //public bool TryGetParent(out IFinalizedScope res)
-        //{
-        //    res = parent;
-        //    return parent == null;
-        //}
-
-        //public bool TryGetType(IKey name, out IVerifiableType type)
-        //{
-        //    if (name is GenericNameKey genericNameKey)
-        //    {
-        //        if (!genericTypes.TryGetValue(new NameKey(genericNameKey.Name), out var list))
-        //        {
-        //            //TODO
-
-
-
-        //        }
-        //    }else{
-        //        if (!types.TryGetValue(name, out var item))
-        //        {
-        //            type = item;
-        //            return true;
-        //        }
-        //    }
-
-        //    if (parent == null)
-        //    {
-        //        type = default;
-        //        return false;
-        //    }
-        //    return parent.TryGetType(name, out type);
-        //}
-
+        IEnumerable<TypeEntry> IFinalizedScope.Types => types.Select(x => new TypeEntry(x.Key, x.Value));
+        
         public static (IFinalizedScope, IFinalizedScopeBuilder) Create(IFinalizedScope parent)
         {
             var res = new Scope(parent);

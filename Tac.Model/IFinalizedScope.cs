@@ -5,24 +5,39 @@ using System.Linq;
 
 namespace Tac.Model
 {
-    // what even is the point of this interface??
-    // I want an alis
-    // but is it worth the price?
-    
+    public class TypeEntry {
+        public TypeEntry(IKey key, IVerifiableType type)
+        {
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+        }
 
-    // TODO some scope has a lot of the same members
-    // figure scope interface our
+        public IKey Key { get; }
+        public IVerifiableType Type { get; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is TypeEntry entry &&
+                   EqualityComparer<IKey>.Default.Equals(Key, entry.Key) &&
+                   EqualityComparer<IVerifiableType>.Default.Equals(Type, entry.Type);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 207421273;
+            hashCode = (hashCode * -1521134295) + EqualityComparer<IKey>.Default.GetHashCode(Key);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<IVerifiableType>.Default.GetHashCode(Type);
+            return hashCode;
+        }
+    }
+    
     public interface IFinalizedScope
     {
         IEnumerable<IMemberDefinition> Members { get; }
-        IEnumerable<IVerifiableType> Types { get; }
-        IEnumerable<IKey> TypeKeys { get; }
+        IEnumerable<TypeEntry> Types { get; }
         IEnumerable<IKey> MemberKeys { get; }
         IEnumerable<IGenericType> GenericTypes { get; }
         IEnumerable<GenericKeyDefinition> GenericTypeKeys { get; }
-        //bool TryGetMember(IKey name, bool staticOnly, out IMemberDefinition box);
-        //bool TryGetType(IKey name, out IVerifiableType type);
-        //bool TryGetParent(out IFinalizedScope res); 
     }
 
     public class GenericKeyDefinition : IKey

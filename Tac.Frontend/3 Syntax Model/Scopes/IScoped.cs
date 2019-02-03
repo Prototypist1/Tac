@@ -100,13 +100,13 @@ namespace Tac.Semantic_Model
             private readonly ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition> memberCache = new ConcurrentIndexed<IMemberDefinition, IWeakMemberDefinition>();
             private readonly ConcurrentIndexed<ITypeReferance, IWeakTypeReferance> typeReferanceCache = new ConcurrentIndexed<ITypeReferance, IWeakTypeReferance>();
             private readonly ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>> typeCache = new ConcurrentIndexed<IVerifiableType, IFrontendType<IVerifiableType>>();
-
+            
             public AssemblyManager(IReadOnlyList<IAssembly> assemblies)
             {
                 this.assemblies = assemblies ?? throw new ArgumentNullException(nameof(assemblies));
             }
 
-            public bool TryGetMember(IKey key, out IBox<IIsPossibly<IWeakMemberDefinition>> res)
+            public bool TryGetMember(IKey key, out IWeakMemberDefinition res)
             {
                 var member = assemblies.SelectMany(x => x.Scope.Members).SingleOrDefault(x => x.Key == key);
 
@@ -116,18 +116,35 @@ namespace Tac.Semantic_Model
                     return false;
                 }
 
-                res = new Box<IIsPossibly<IWeakMemberDefinition>>(Possibly.Is(memberCache.GetOrAdd(member, new ExternalMemberDefinition(
-                    member, Possibly.Is(GetTypeReferenceOrThrow(member.Type)), member.ReadOnly, member.Key
-                    ))));
+                res = memberCache.GetOrAdd(member, new ExternalMemberDefinition(
+                    member, Possibly.Is(GetTypeReference(member.Type)), member.ReadOnly, member.Key
+                    ));
                 return true;
             }
 
-            private IWeakTypeReferance GetTypeReferenceOrThrow(ITypeReferance typeReferance)
+            public bool TryGetType(IKey key, out IFrontendType<IVerifiableType> res)
             {
-                return typeReferanceCache.GetOrAdd(typeReferance, new ExternalTypeReference(GetTypeDefinitionOrThrow(typeReferance.TypeDefinition)));
+                // TODO gerneric type!
+
+
+                var type = assemblies.SelectMany(x => x.Scope.Types).SingleOrDefault(x => x.Key == key);
+                
+                if (type == null)
+                {
+                    res = default;
+                    return false;
+                }
+
+                res = typeCache.GetOrAdd(type.Type, new ExternalTypeDefinition(type.Type));
+                return true;
+            }
+            
+            private IWeakTypeReferance GetTypeReference(ITypeReferance typeReferance)
+            {
+                return typeReferanceCache.GetOrAdd(typeReferance, new ExternalTypeReference(GetTypeDefinition(typeReferance.TypeDefinition)));
             }
 
-            private IFrontendType<IVerifiableType> GetTypeDefinitionOrThrow(IVerifiableType typeDefinition)
+            private IFrontendType<IVerifiableType> GetTypeDefinition(IVerifiableType typeDefinition)
             {
                 return typeCache.GetOrAdd(typeDefinition, new ExternalTypeDefinition(typeDefinition));
             }
@@ -249,7 +266,8 @@ namespace Tac.Semantic_Model
             return true;
 
             checkLibraries:
-            if (assemblyManager.TryGetMember(name,out member)) {
+            if (assemblyManager.TryGetMember(name,out var unwrappedMember)) {
+                member = new Box<IIsPossibly<IWeakMemberDefinition>>(Possibly.Is(unwrappedMember));
                 return true;
             };
             
@@ -311,6 +329,11 @@ namespace Tac.Semantic_Model
 
             // goto 🤘
             exit:
+            if (assemblyManager.TryGetType(name, out var innerTypr)){
+                type = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(innerTypr));
+                return true;
+            }
+            
             if (Parent != null)
             {
                 return Parent.TryGetType(name, out type);
