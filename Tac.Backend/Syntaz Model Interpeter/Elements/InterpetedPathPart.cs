@@ -2,7 +2,7 @@
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedMemberReferance :  IInterpeted
+    internal class InterpetedMemberReferance :  IInterpetedOperation
     {
         public InterpetedMemberReferance Init(InterpetedMemberDefinition memberDefinition)
         {

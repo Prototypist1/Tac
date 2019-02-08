@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    internal interface IRunTime
+    public interface IInterpeted
     {
     }
 }

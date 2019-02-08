@@ -35,8 +35,8 @@ namespace Tac.Backend.Test
 
             var scope = method.Invoke(new RuntimeNumber(d)).Get<InterpetedInstanceScope>();
 
-            Assert.Equal(d,scope.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().d);
-            Assert.Equal(d, scope.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().d);
+            Assert.Equal(d,scope.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().Value);
+            Assert.Equal(d, scope.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().Value);
         }
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal abstract class InterpetedTrailingOperation : IInterpeted
+    internal abstract class InterpetedTrailingOperation : IInterpetedOperation
     {
         public void Init(IInterpeted argument)
         {

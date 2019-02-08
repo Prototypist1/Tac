@@ -8,7 +8,7 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedObjectDefinition :  IInterpeted
+    internal class InterpetedObjectDefinition :  IInterpetedOperation
     {
         public void Init(IInterpetedScopeTemplate scope, IEnumerable<InterpetedAssignOperation> assignments)
         {
@@ -27,13 +27,13 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var line in Assignments)
             {
-                line.Cast<IInterpeted>().Interpet(context);
+                line.Cast<IInterpetedOperation>().Interpet(context);
             }
 
             return InterpetedResult.Create(scope);
         }
         
-        public IRunTime GetDefault(InterpetedContext interpetedContext)
+        public IInterpetedOperation GetDefault(InterpetedContext interpetedContext)
         {
             return InterpetedInstanceScope.Make();
         }

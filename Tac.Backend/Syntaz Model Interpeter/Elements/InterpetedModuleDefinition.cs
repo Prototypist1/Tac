@@ -25,13 +25,13 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var line in StaticInitialization)
             {
-                line.Cast<IInterpeted>().Interpet(context);
+                line.Cast<IInterpetedOperation>().Interpet(context);
             }
 
             return InterpetedResult.Create(scope);
         }
         
-        public IRunTime GetDefault(InterpetedContext interpetedContext)
+        public IInterpetedOperation GetDefault(InterpetedContext interpetedContext)
         {
             return InterpetedStaticScope.Make();
         }

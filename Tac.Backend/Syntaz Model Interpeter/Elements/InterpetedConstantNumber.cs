@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedConstantNumber : IInterpeted
+    internal class InterpetedConstantNumber : IInterpetedOperation
     {
         public void Init(double value) {
             this.Value = value;

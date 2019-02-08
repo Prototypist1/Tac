@@ -2,7 +2,7 @@
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedGenericTypeDefinition : IInterpeted
+    internal class InterpetedGenericTypeDefinition : IInterpetedOperation
     {
         public void Init() { }
         

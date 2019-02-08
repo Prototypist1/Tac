@@ -4,7 +4,7 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedImplementationDefinition : IInterpeted
+    internal class InterpetedImplementationDefinition : IInterpetedOperation
     {
         public void Init(
             InterpetedMemberDefinition parameterDefinition, 
@@ -33,7 +33,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 Scope));
         }
         
-        public IRunTime GetDefault(InterpetedContext interpetedContext)
+        public IInterpetedOperation GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation(
                     new InterpetedMemberDefinition().Init(new NameKey("input")),

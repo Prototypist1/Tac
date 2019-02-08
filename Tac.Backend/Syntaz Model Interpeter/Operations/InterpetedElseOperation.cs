@@ -12,7 +12,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return leftRes;
             }
 
-            if (!leftRes.GetAndUnwrapMemberWhenNeeded<RunTimeBoolean>(interpetedContext).b)
+            if (!leftRes.GetAndUnwrapMemberWhenNeeded<RunTimeBoolean>(interpetedContext).Value)
             {
                 var rightRes = Right.Interpet(interpetedContext);
                 if (rightRes.IsReturn) {

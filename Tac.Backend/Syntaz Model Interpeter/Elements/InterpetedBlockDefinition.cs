@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Tac.Model;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedBlockDefinition :  IInterpeted
+    internal class InterpetedBlockDefinition :  IInterpetedOperation
     {
         public void Init(IInterpeted[] body, IInterpetedScopeTemplate scope)
         {

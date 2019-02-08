@@ -6,13 +6,21 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedImplementation : IRunTime
+    public interface IInterpetedImplementation<TIn, TOut> : Run_Time_Objects.IInterpeted
+        where TIn : Run_Time_Objects.IInterpeted
+        where TOut : Run_Time_Objects.IInterpeted
+    {
+        IInterpetedResult<TOut> Invoke(TIn input);
+    }
+
+    internal class InterpetedImplementation : IInterpetedImplementation
     {
 
         public InterpetedImplementation(
             InterpetedMemberDefinition parameterDefinition,
             InterpetedMemberDefinition contextDefinition,
-            IInterpeted[] body, InterpetedContext context, 
+            IInterpeted[] body,
+            InterpetedContext context, 
             IInterpetedScopeTemplate scope)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -28,7 +36,7 @@ namespace Tac.Syntaz_Model_Interpeter
         private InterpetedContext Context { get; }
         private IInterpetedScopeTemplate Scope { get; }
         
-        public InterpetedResult Invoke(IRunTime input)
+        public InterpetedResult Invoke(Run_Time_Objects.IInterpeted input)
         {
 
             var context = Context.Child(InterpetedInstanceScope.Make((contextDefinition.Key, new InterpetedMember(input))));

@@ -7,9 +7,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
 {
-    internal class InterpetedExternalMethodDefinition : IInterpeted
+    internal class InterpetedExternalMethodDefinition : Tac.Syntaz_Model_Interpeter.IInterpetedOperation
     {
-        public void Init(InterpetedMemberDefinition parameterDefinition, Func<IRunTime, InterpetedResult> backing)
+        public void Init(InterpetedMemberDefinition parameterDefinition, Func<Tac.Syntaz_Model_Interpeter.Run_Time_Objects.IInterpeted, InterpetedResult> backing)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
@@ -21,7 +21,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
         }
 
         public InterpetedMemberDefinition ParameterDefinition { get; private set; }
-        public Func<IRunTime, InterpetedResult> Backing { get; private set; }
+        public Func<Tac.Syntaz_Model_Interpeter.Run_Time_Objects.IInterpeted, InterpetedResult> Backing { get; private set; }
 
     }
 

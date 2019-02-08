@@ -12,13 +12,17 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
     //    }
     //}
 
-    internal class RunTimeBoolean : IRunTime
+    public interface IInterpetedBoolean : IInterpeted{
+        bool Value { get; }
+    }
+
+    internal class RunTimeBoolean : IInterpetedBoolean
     {
-        public readonly bool b;
+        public bool Value { get;  }
 
         public RunTimeBoolean(bool b)
         {
-            this.b = b;
+            this.Value = b;
         }
     }
 }

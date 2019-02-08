@@ -9,8 +9,8 @@ namespace Tac.Syntaz_Model_Interpeter
         public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(new RuntimeNumber(
-                Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RuntimeNumber>(interpetedContext).d *
-                Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RuntimeNumber>(interpetedContext).d));
+                Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RuntimeNumber>(interpetedContext).Value *
+                Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RuntimeNumber>(interpetedContext).Value));
         }
     }
 }

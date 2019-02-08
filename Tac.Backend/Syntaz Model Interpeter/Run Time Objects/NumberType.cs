@@ -4,13 +4,17 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 {
-    internal class RuntimeNumber: IRunTime
+    public interface IInterpetedNumber {
+        double Value { get; }
+    }
+
+    internal class RuntimeNumber: IInterpeted
     {
-        public readonly double d;
+        public double Value { get; }
 
         public RuntimeNumber(double d)
         {
-            this.d = d;
+            this.Value = d;
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Tac.Syntaz_Model_Interpeter
         IInterpetedScope Create();
     }
 
-    internal interface IInterpetedScope: IRunTime
+    public interface IInterpetedScope: Run_Time_Objects.IInterpeted
     {
         bool ContainsMember(IKey name);
         InterpetedMember GetMember(IKey name);

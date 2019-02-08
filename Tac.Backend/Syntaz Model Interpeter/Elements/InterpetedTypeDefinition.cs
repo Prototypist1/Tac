@@ -3,7 +3,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedTypeDefinition: IInterpeted
+    internal class InterpetedTypeDefinition: IInterpetedOperation
     {
         public void Init() { }
         

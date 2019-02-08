@@ -9,7 +9,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             var toCall = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded(interpetedContext);
-            var parameter = Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>(interpetedContext);
+            var parameter = Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<Run_Time_Objects.IInterpeted>(interpetedContext);
             
             // TODO
             // maybe there is a "callable" interface here?
@@ -51,7 +51,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public override InterpetedResult Interpet(InterpetedContext interpetedContext)
         {
             var toCall = Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded(interpetedContext);
-            var parameter = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>(interpetedContext);
+            var parameter = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<Run_Time_Objects.IInterpeted>(interpetedContext);
 
 
             // maybe there is a "callable" interface here?

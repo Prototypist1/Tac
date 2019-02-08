@@ -40,6 +40,28 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
+    public interface IInterpetedResult<out T> : IInterpeted
+            where T : IInterpeted
+    {
+        // TODO think about this:
+        // how do I hide these??
+        // Don't use an interface??
+        // use IIsPossibly ??
+        T Value { get; }
+        bool HasValue { get; }
+    }
+
+    public static class IInterpetedResultExtensions{
+        
+        public static bool TryGet<T>(this IInterpetedResult<T> self, out T value)
+            where T: IInterpeted
+        {
+            value = self.Value;
+            return self.HasValue;
+        }
+    }
+
+
     internal class InterpetedResult
     {
         private InterpetedResult(object value, bool isReturn, bool hasValue)
@@ -113,7 +135,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
     }
 
-    internal interface IInterpeted
+    internal interface IInterpetedOperation: IInterpeted
     {
         InterpetedResult Interpet(InterpetedContext interpetedContext);
     }

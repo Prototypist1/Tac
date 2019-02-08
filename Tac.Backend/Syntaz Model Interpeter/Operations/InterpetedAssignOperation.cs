@@ -24,7 +24,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var res = GetMember();  
 
-            res.Value = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IRunTime>(interpetedContext);
+            res.Value = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<Run_Time_Objects.IInterpeted>(interpetedContext);
             return InterpetedResult.Create(res);
         }
     }

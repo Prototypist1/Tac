@@ -32,13 +32,13 @@ namespace Tac.Backend.Test
 
             implementation.Invoke(context).Get<InterpetedMethod>().Invoke(new RunTimeEmpty());
 
-            Assert.Equal(7,context.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().d);
-            Assert.Equal(5, context.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().d);
+            Assert.Equal(7,context.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().Value);
+            Assert.Equal(5, context.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().Value);
             
             implementation.Invoke(context).Get<InterpetedMethod>().Invoke(new RunTimeEmpty());
 
-            Assert.Equal(5, context.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().d);
-            Assert.Equal(7, context.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().d);
+            Assert.Equal(5, context.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().Value);
+            Assert.Equal(7, context.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().Value);
         }
     }
 }

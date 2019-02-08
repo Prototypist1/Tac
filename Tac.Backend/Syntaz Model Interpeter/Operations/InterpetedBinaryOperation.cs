@@ -1,8 +1,9 @@
 ﻿using System;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal abstract class InterpetedBinaryOperation: IInterpeted {
+    internal abstract class InterpetedBinaryOperation: IInterpetedOperation {
         public void Init(IInterpeted left, IInterpeted right)
         {
             Left = left ?? throw new ArgumentNullException(nameof(left));
