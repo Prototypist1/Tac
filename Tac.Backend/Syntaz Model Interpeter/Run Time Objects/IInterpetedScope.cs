@@ -11,7 +11,12 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public interface IInterpetedScope: Run_Time_Objects.IInterpeted
     {
+        // TODO
+        // hmmm maybe type should be passed in?
+        // Interpeted type???
+
         bool ContainsMember(IKey name);
-        InterpetedMember GetMember(IKey name);
+        bool ContainsMember<T>(IKey name) where T : IInterpeted;
+        IInterpetedMember<T> GetMember<T>(IKey name) where T : IInterpeted;
     }
 }

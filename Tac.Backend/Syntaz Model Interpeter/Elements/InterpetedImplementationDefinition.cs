@@ -33,7 +33,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 Scope));
         }
         
-        public IInterpetedOperation GetDefault(InterpetedContext interpetedContext)
+        public IInterpeted GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation(
                     new InterpetedMemberDefinition().Init(new NameKey("input")),
