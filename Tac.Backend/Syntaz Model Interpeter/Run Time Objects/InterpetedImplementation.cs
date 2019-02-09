@@ -6,14 +6,17 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedImplementation<TIn, TOut> : IInterpetedData
+    public interface IInterpetedImplementation<TIn, TMethodIn, TMethodOut> : IInterpetedData
         where TIn : IInterpetedData
-        where TOut : IInterpetedData
+        where TMethodIn: IInterpetedData
+        where TMethodOut : IInterpetedData
     {
-        IInterpetedResult<TOut> Invoke(TIn input);
+        IInterpetedResult<IInterpetedMethod<TMethodIn, TMethodOut>> Invoke(TIn input);
     }
 
-    internal class InterpetedImplementation : IInterpetedImplementation
+    internal class InterpetedImplementation<TIn, TMethodIn, TMethodOut> : IInterpetedImplementation<TIn, TMethodIn, TMethodOut>
+        where TIn : IInterpetedData
+        where TOut : IInterpetedData
     {
 
         public InterpetedImplementation(
@@ -36,12 +39,12 @@ namespace Tac.Syntaz_Model_Interpeter
         private InterpetedContext Context { get; }
         private IInterpetedScopeTemplate Scope { get; }
         
-        public InterpetedResult Invoke(Run_Time_Objects.IInterpeted input)
+        public IInterpetedResult<IInterpetedMethod> Invoke(Run_Time_Objects.IInterpeted input)
         {
 
             var context = Context.Child(InterpetedInstanceScope.Make((contextDefinition.Key, new InterpetedMember(input))));
 
-            return InterpetedResult.Create(
+            return InterpetedResult<IInterpetedMethod>.Create(
                 new InterpetedMethod(
                     ParameterDefinition,
                     Body,

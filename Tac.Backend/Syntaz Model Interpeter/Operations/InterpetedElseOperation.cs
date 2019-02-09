@@ -4,23 +4,25 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedElseOperation : InterpetedBinaryOperation<IInterpetedData,IInterpetedData, IInterpetedBoolean>
+    internal class InterpetedElseOperation : InterpetedBinaryOperation<IInterpetedMember<bool>, IInterpedEmpty, IInterpetedMember<bool>>
     {
-        public override IInterpetedResult<IInterpetedBoolean> Interpet(InterpetedContext interpetedContext) {
+        public override IInterpetedResult<IInterpetedMember<bool>> Interpet(InterpetedContext interpetedContext) {
             var leftRes = Left.Interpet(interpetedContext);
             if (leftRes.IsReturn) {
                 return leftRes;
             }
 
-            if (!leftRes.GetAndUnwrapMemberWhenNeeded<RunTimeBoolean>(interpetedContext).Value)
+            if (leftRes.Value.Value)
             {
-                var rightRes = Right.Interpet(interpetedContext);
-                if (rightRes.IsReturn) {
-                    return rightRes;
-                }
-                return InterpetedResult<IInterpetedBoolean>.Create(new RunTimeBoolean(true));
+                return InterpetedResult<IInterpetedMember<bool>>.Create(new RunTimeBoolean(false));
             }
-            return InterpetedResult<IInterpetedBoolean>.Create(new RunTimeBoolean(false));
+            
+            var rightRes = Right.Interpet(interpetedContext);
+            if (rightRes.IsReturn) {
+                return rightRes;
+            }
+
+            return InterpetedResult<IInterpetedMember<bool>>.Create(new RunTimeBoolean(true));
         }
     }
 }

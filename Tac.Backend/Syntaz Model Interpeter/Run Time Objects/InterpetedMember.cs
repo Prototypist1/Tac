@@ -5,11 +5,10 @@ namespace Tac.Syntaz_Model_Interpeter
 {
 
     public interface IInterpetedMember<T> : IInterpetedData
-        where T :IInterpetedData
     {
         T Value { get; set; }
     }
-
+    
     internal class InterpetedMember<T> : IInterpetedMember<T>
         where T : class,IInterpetedData
     {

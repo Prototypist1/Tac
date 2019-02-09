@@ -5,10 +5,17 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
     public interface IInterpetedMethod<TIn, TOut> : IInterpetedData
-        where TIn : Run_Time_Objects.IInterpeted
-        where TOut : Run_Time_Objects.IInterpeted
+        where TIn : Run_Time_Objects.IInterpetedData
+        where TOut : Run_Time_Objects.IInterpetedData
     {
         IInterpetedResult<TOut> Invoke(Run_Time_Objects.IInterpeted input);
+    }
+
+    public interface IInterpetedCallable<TIn, TOut> : IInterpetedData
+        where TIn : Run_Time_Objects.IInterpetedData
+        where TOut : Run_Time_Objects.IInterpetedData
+    {
+        IInterpetedResult<TOut> Invoke(TIn input);
     }
 
     internal class InterpetedMethod: IInterpetedMethod

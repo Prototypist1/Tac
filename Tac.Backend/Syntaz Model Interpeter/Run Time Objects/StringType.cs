@@ -12,14 +12,22 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
     //    }
     //}
 
-    public interface IInterpetedString : IInterpetedData
-    {
-        string Value { get; }
-    }
 
-    internal class RunTimeString: IInterpetedString
+    internal class RunTimeString : IInterpetedMember<string>
     {
-        public string Value { get; }
+        private string value;
+
+        public string Value
+        {
+            get
+            {
+                return value;
+            }
+            set
+            {
+                this.value = value ?? throw new ArgumentNullException(nameof(value));
+            }
+        }
 
         public RunTimeString(string s)
         {

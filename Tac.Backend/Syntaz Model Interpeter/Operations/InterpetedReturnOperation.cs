@@ -9,7 +9,7 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public override IInterpetedResult<T> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult<T>.Return(Argument.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded(interpetedContext));
+            return InterpetedResult<T>.Return(Argument.Interpet(interpetedContext).Value);
         }
         
     }
