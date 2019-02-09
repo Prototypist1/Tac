@@ -4,26 +4,27 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    public interface IInterpetedMember<T> : Run_Time_Objects.IInterpeted
-        where T : Run_Time_Objects.IInterpeted
+    public interface IInterpetedMember<T> : IInterpetedData
+        where T :IInterpetedData
     {
         T Value { get; set; }
     }
 
-    internal class InterpetedMember : IInterpetedMember
+    internal class InterpetedMember<T> : IInterpetedMember<T>
+        where T : class,IInterpetedData
     {
-        private Run_Time_Objects.IInterpeted _value =null;
+        private T _value =null;
 
         public InterpetedMember()
         {
         }
 
-        public InterpetedMember(Run_Time_Objects.IInterpeted value)
+        public InterpetedMember(T value)
         {
-            Value = value;
+            Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        public IInterpeted Value
+        public T Value
         {
             get
             {

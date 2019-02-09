@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedMethod<TIn, TOut> : Run_Time_Objects.IInterpeted
+    public interface IInterpetedMethod<TIn, TOut> : IInterpetedData
         where TIn : Run_Time_Objects.IInterpeted
         where TOut : Run_Time_Objects.IInterpeted
     {

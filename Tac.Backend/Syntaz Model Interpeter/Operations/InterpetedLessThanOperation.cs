@@ -4,11 +4,11 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedLessThanOperation : InterpetedBinaryOperation
+    internal class InterpetedLessThanOperation : InterpetedBinaryOperation<IInterpetedNumber,IInterpetedNumber,IInterpetedBoolean>
     {
-        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedBoolean> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new RunTimeBoolean(
+            return InterpetedResult<IInterpetedBoolean>.Create(new RunTimeBoolean(
                 Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RuntimeNumber>(interpetedContext).Value <
                 Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<RuntimeNumber>(interpetedContext).Value));
         }

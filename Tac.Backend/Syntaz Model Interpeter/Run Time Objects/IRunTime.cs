@@ -7,4 +7,8 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
     public interface IInterpeted
     {
     }
+
+    public interface IInterpetedData: IInterpeted
+    {
+    }
 }

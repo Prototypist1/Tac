@@ -41,102 +41,66 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
     public interface IInterpetedResult<out T> : IInterpeted
-            where T : IInterpeted
+            where T : IInterpetedData
     {
-        // TODO think about this:
-        // how do I hide these??
-        // Don't use an interface??
-        // use IIsPossibly ??
         T Value { get; }
-        bool HasValue { get; }
+        bool IsReturn { get; }
     }
-
-    public static class IInterpetedResultExtensions{
-        
-        public static bool TryGet<T>(this IInterpetedResult<T> self, out T value)
-            where T: IInterpeted
-        {
-            value = self.Value;
-            return self.HasValue;
-        }
-    }
-
-
-    internal class InterpetedResult
+    
+    internal class InterpetedResult<T> : IInterpetedResult<T>
+            where T : class, IInterpetedData
     {
-        private InterpetedResult(object value, bool isReturn, bool hasValue)
+        private InterpetedResult(T value, bool isReturn)
         {
-            Value = value;
-            HasValue = hasValue;
+            Value = value ?? throw new ArgumentNullException(nameof(value));
             IsReturn = isReturn;
         }
-
-        public bool HasValue { get; }
-        public bool IsReturn { get; }
-        private object Value { get; }
-
-        public T Get<T>()
-        {
-            if (!HasValue)
-            {
-                throw new Exception($"{nameof(InterpetedResult)} does not have a value");
-            }
-            return Value.Cast<T>();
-        }
         
-        public T GetAndUnwrapMemberWhenNeeded<T>(InterpetedContext context)
+        public bool IsReturn { get; }
+        public T Value { get; }
+
+        public T GetAndUnwrapMemberWhenNeeded(InterpetedContext context)
         {
-            if (!HasValue)
+            if (Value is IInterpetedMember<T> member)
             {
-                throw new Exception($"{nameof(InterpetedResult)} does not have a value");
+                return member.Value;
             }
-            if (Value is InterpetedMember member) {
-                return member.Value.Cast<T>();
-            }
-            if (Value is InterpetedMemberDefinition memberDefinition) {
+            if (Value is InterpetedMemberDefinition memberDefinition)
+            {
                 return context.GetMember(memberDefinition.Key).Value.Cast<T>();
             }
-            return Value.Cast<T>();
+            return Value;
         }
         
-        public object GetAndUnwrapMemberWhenNeeded(InterpetedContext context)
+        public static IInterpetedResult<T> Return(T value)
         {
-            return GetAndUnwrapMemberWhenNeeded<object>(context);
-        }
-
-        public object Get()
-        {
-            return Get<object>();
-        }
-
-        public static InterpetedResult Return(object value)
-        {
-            return new InterpetedResult(value, true, true);
+            return new InterpetedResult<T>(value, true);
         }
 
 
-        public static InterpetedResult Return()
+        public static IInterpetedResult<IInterpedEmpty> Return()
         {
-            return new InterpetedResult(null, true, false);
+            return new InterpetedResult<RunTimeEmpty>(new RunTimeEmpty(), true);
         }
 
 
-        public static InterpetedResult Create(object value)
+        public static IInterpetedResult<T> Create(T value)
         {
-            return new InterpetedResult(value, false, true);
+            return new InterpetedResult<T>(value, false);
         }
 
 
-        public static InterpetedResult Create()
+        public static IInterpetedResult<IInterpedEmpty> Create()
         {
 
-            return new InterpetedResult(null, false, false);
+            return new InterpetedResult<RunTimeEmpty>(new RunTimeEmpty(), false);
         }
 
     }
 
-    internal interface IInterpetedOperation: IInterpeted
+    internal interface IInterpetedOperation<T>: IInterpeted
+            where T : IInterpetedData
     {
-        InterpetedResult Interpet(InterpetedContext interpetedContext);
+        IInterpetedResult<T> Interpet(InterpetedContext interpetedContext);
     }
 }

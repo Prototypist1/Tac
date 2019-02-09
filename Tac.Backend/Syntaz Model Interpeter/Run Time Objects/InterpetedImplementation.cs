@@ -6,9 +6,9 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedImplementation<TIn, TOut> : Run_Time_Objects.IInterpeted
-        where TIn : Run_Time_Objects.IInterpeted
-        where TOut : Run_Time_Objects.IInterpeted
+    public interface IInterpetedImplementation<TIn, TOut> : IInterpetedData
+        where TIn : IInterpetedData
+        where TOut : IInterpetedData
     {
         IInterpetedResult<TOut> Invoke(TIn input);
     }

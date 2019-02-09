@@ -12,7 +12,8 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
     //    }
     //}
 
-    public interface IInterpedEmpty : IInterpeted {
+    public interface IInterpedEmpty : IInterpetedData
+    {
 
     }
 

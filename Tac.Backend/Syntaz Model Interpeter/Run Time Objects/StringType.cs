@@ -12,11 +12,12 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
     //    }
     //}
 
-    public interface IInterpetedString {
+    public interface IInterpetedString : IInterpetedData
+    {
         string Value { get; }
     }
 
-    internal class RunTimeString: IInterpeted
+    internal class RunTimeString: IInterpetedString
     {
         public string Value { get; }
 

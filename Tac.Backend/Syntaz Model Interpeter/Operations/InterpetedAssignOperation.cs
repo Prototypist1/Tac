@@ -4,14 +4,14 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedAssignOperation : InterpetedBinaryOperation
+    internal class InterpetedAssignOperation : InterpetedBinaryOperation<IInterpetedData,IInterpetedData,IInterpetedMember<IInterpetedData>>
     {
-        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedMember<IInterpetedData>> Interpet(InterpetedContext interpetedContext)
         {
-            InterpetedMember GetMember()
+            IInterpetedMember<IInterpetedData> GetMember()
             {
                 var rightRes = Right.Interpet(interpetedContext).Get();
-                if (rightRes is InterpetedMember innerMember)
+                if (rightRes is InterpetedMember<IInterpetedData> innerMember)
                 {
                     return innerMember;
                 }
@@ -24,8 +24,8 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var res = GetMember();  
 
-            res.Value = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<Run_Time_Objects.IInterpeted>(interpetedContext);
-            return InterpetedResult.Create(res);
+            res.Value = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IInterpetedData>(interpetedContext);
+            return InterpetedResult<IInterpetedMember<IInterpetedData>>.Create(res);
         }
     }
 }

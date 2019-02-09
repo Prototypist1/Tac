@@ -4,9 +4,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedElseOperation : InterpetedBinaryOperation
+    internal class InterpetedElseOperation : InterpetedBinaryOperation<IInterpetedData,IInterpetedData, IInterpetedBoolean>
     {
-        public override InterpetedResult Interpet(InterpetedContext interpetedContext) {
+        public override IInterpetedResult<IInterpetedBoolean> Interpet(InterpetedContext interpetedContext) {
             var leftRes = Left.Interpet(interpetedContext);
             if (leftRes.IsReturn) {
                 return leftRes;
@@ -18,9 +18,9 @@ namespace Tac.Syntaz_Model_Interpeter
                 if (rightRes.IsReturn) {
                     return rightRes;
                 }
-                return InterpetedResult.Create(new RunTimeBoolean(true));
+                return InterpetedResult<IInterpetedBoolean>.Create(new RunTimeBoolean(true));
             }
-            return InterpetedResult.Create(new RunTimeBoolean(false));
+            return InterpetedResult<IInterpetedBoolean>.Create(new RunTimeBoolean(false));
         }
     }
 }

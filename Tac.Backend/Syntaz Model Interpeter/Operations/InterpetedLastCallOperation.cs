@@ -4,9 +4,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedLastCallOperation : InterpetedBinaryOperation
+    internal class InterpetedLastCallOperation : InterpetedBinaryOperation<IInterpetedData,IInterpetedData,IInterpetedData>
     {
-        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedData> Interpet(InterpetedContext interpetedContext)
         {
             var toCall = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded(interpetedContext);
             var parameter = Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<Run_Time_Objects.IInterpeted>(interpetedContext);
@@ -20,11 +20,11 @@ namespace Tac.Syntaz_Model_Interpeter
                 var res = method.Invoke(parameter);
                 if (res.HasValue)
                 {
-                    return InterpetedResult.Create(res.Get());
+                    return InterpetedResult<IInterpetedData>.Create(res.Get());
                 }
                 else
                 {
-                    return InterpetedResult.Create();
+                    return InterpetedResult<IInterpetedData>.Create();
                 }
             }
 
@@ -33,11 +33,11 @@ namespace Tac.Syntaz_Model_Interpeter
                 var res = implementation.Invoke(parameter);
                 if (res.HasValue)
                 {
-                    return InterpetedResult.Create(res.Get());
+                    return InterpetedResult<IInterpetedData>.Create(res.Get());
                 }
                 else
                 {
-                    return InterpetedResult.Create();
+                    return InterpetedResult<IInterpetedData>.Create();
                 }
             }
 
@@ -46,12 +46,12 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    internal class InterpetedNextCallOperation : InterpetedBinaryOperation
+    internal class InterpetedNextCallOperation : InterpetedBinaryOperation<IInterpetedData,IInterpetedData,IInterpetedData>
     {
-        public override InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedData> Interpet(InterpetedContext interpetedContext)
         {
             var toCall = Right.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded(interpetedContext);
-            var parameter = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<Run_Time_Objects.IInterpeted>(interpetedContext);
+            var parameter = Left.Interpet(interpetedContext).GetAndUnwrapMemberWhenNeeded<IInterpetedData>(interpetedContext);
 
 
             // maybe there is a "callable" interface here?
@@ -61,11 +61,11 @@ namespace Tac.Syntaz_Model_Interpeter
                 var res = method.Invoke(parameter);
                 if (res.HasValue)
                 {
-                    return InterpetedResult.Create(res.Get());
+                    return InterpetedResult<IInterpetedData>.Create(res.Get());
                 }
                 else
                 {
-                    return InterpetedResult.Create();
+                    return InterpetedResult<IInterpetedData>.Create();
                 }
             }
 
@@ -74,11 +74,11 @@ namespace Tac.Syntaz_Model_Interpeter
                 var res = implementation.Invoke(parameter);
                 if (res.HasValue)
                 {
-                    return InterpetedResult.Create(res.Get());
+                    return InterpetedResult<IInterpetedData>.Create(res.Get());
                 }
                 else
                 {
-                    return InterpetedResult.Create();
+                    return InterpetedResult<IInterpetedData>.Create();
                 }
             }
 
