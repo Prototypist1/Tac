@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedMultiplyOperation : InterpetedBinaryOperation<IInterpetedMember<double>, IInterpetedMember<double>, IInterpetedMember<double>>
+    internal class InterpetedMultiplyOperation : InterpetedBinaryOperation<double, double, double>
     {
         // you are here.
         // control input types with constuctions

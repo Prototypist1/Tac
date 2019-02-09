@@ -95,12 +95,10 @@ namespace Tac.Syntaz_Model_Interpeter
 
             return new InterpetedResult<RunTimeEmpty>(new RunTimeEmpty(), false);
         }
-
     }
-
+    
     internal interface IInterpetedOperation<T>: IInterpeted
-            where T : IInterpetedData
     {
-        IInterpetedResult<T> Interpet(InterpetedContext interpetedContext);
+        IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext);
     }
 }

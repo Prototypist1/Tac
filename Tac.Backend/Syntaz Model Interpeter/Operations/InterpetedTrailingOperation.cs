@@ -12,7 +12,7 @@ namespace Tac.Syntaz_Model_Interpeter
             Argument = argument ?? throw new ArgumentNullException(nameof(argument));
         }
 
-        public abstract IInterpetedResult<TOut> Interpet(InterpetedContext interpetedContext);
+        public abstract IInterpetedResult<IInterpetedMember<TOut>> Interpet(InterpetedContext interpetedContext);
 
         public IInterpetedOperation<TIn> Argument { get; private set; }
     }

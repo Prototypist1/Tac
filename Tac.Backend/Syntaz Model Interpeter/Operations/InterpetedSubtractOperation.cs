@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedSubtractOperation : InterpetedBinaryOperation<IInterpetedMember<double>, IInterpetedMember<double>, IInterpetedMember<double>>
+    internal class InterpetedSubtractOperation : InterpetedBinaryOperation<double, double, double>
     {
         public override IInterpetedResult<IInterpetedMember<double>> Interpet(InterpetedContext interpetedContext)
         {

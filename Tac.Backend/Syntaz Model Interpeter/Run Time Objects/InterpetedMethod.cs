@@ -12,10 +12,8 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
     public interface IInterpetedCallable<TIn, TOut> : IInterpetedData
-        where TIn : Run_Time_Objects.IInterpetedData
-        where TOut : Run_Time_Objects.IInterpetedData
     {
-        IInterpetedResult<TOut> Invoke(TIn input);
+        IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input);
     }
 
     internal class InterpetedMethod: IInterpetedMethod

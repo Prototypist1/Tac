@@ -5,7 +5,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal class InterpetedIfTrueOperation : InterpetedBinaryOperation<IInterpetedMember<bool>, IInterpedEmpty, IInterpetedMember<bool>>
+    internal class InterpetedIfTrueOperation : InterpetedBinaryOperation<bool, IInterpedEmpty, bool>
     {
         // ugh! or types are killing me!
         // this return bool

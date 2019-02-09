@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedPathOperation : InterpetedBinaryOperation<IInterpetedMember<IInterpetedScope>, IInterpetedData,IInterpetedMember<IInterpetedData>>
+    internal class InterpetedPathOperation : InterpetedBinaryOperation<IInterpetedScope, IInterpetedData,IInterpetedData>
     {
         public override IInterpetedResult<IInterpetedMember<IInterpetedData>> Interpet(InterpetedContext interpetedContext)
         {

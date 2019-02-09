@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedElseOperation : InterpetedBinaryOperation<IInterpetedMember<bool>, IInterpedEmpty, IInterpetedMember<bool>>
+    internal class InterpetedElseOperation : InterpetedBinaryOperation<bool, IInterpedEmpty, bool>
     {
         public override IInterpetedResult<IInterpetedMember<bool>> Interpet(InterpetedContext interpetedContext) {
             var leftRes = Left.Interpet(interpetedContext);
