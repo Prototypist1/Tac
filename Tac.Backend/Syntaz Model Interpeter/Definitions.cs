@@ -45,8 +45,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedAddOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<double>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<double>>());
                 return op;
             }
         }
@@ -111,8 +111,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedElseOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<bool>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpedEmpty>>());
                 return op;
             }
         }
@@ -143,8 +143,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedIfTrueOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<bool>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpedEmpty>>());
                 return op;
             }
         }
@@ -196,8 +196,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedLessThanOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<double>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<double>>());
                 return op;
             }
         }
@@ -264,8 +264,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedMultiplyOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<double>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<double>>());
                 return op;
             }
         }
@@ -315,8 +315,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedPathOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<IInterpetedScope>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpetedData>>());
                 return op;
             }
         }
@@ -350,8 +350,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedSubtractOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<double>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<double>>());
                 return op;
             }
         }

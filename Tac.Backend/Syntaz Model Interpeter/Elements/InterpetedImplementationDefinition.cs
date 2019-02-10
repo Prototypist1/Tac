@@ -4,7 +4,10 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedImplementationDefinition : IInterpetedOperation<IInterpetedMember<IInterpetedImplementation>>
+    internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedMember<IInterpetedImplementation<TIn,TMethodIn,TMethodOut>>>
+        where TIn : IInterpetedData
+        where TMethodIn : IInterpetedData
+        where TMethodOut : IInterpetedData
     {
         public void Init(
             InterpetedMemberDefinition parameterDefinition, 
@@ -23,9 +26,9 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpeted[] MethodBody { get; private set; }
         public IInterpetedScopeTemplate Scope { get; private set; }
 
-        public IInterpetedResult<IInterpetedMember<IInterpetedImplementation>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpetedMember<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult<IInterpetedImplementation>.Create(new InterpetedImplementation(
+            return InterpetedResult.Create(new InterpetedImplementation<TIn, TMethodIn, TMethodOut>(
                 ParameterDefinition,
                 ContextDefinition,
                 MethodBody,

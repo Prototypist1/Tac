@@ -8,9 +8,23 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public override IInterpetedResult<IInterpetedMember<bool>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult<IInterpetedMember<bool>>.Create(new RunTimeBoolean(
-                Left.Interpet(interpetedContext).Value.Value <
-                Right.Interpet(interpetedContext).Value.Value));
+            var leftResult = Left.Interpet(interpetedContext);
+
+            if (leftResult.IsReturn(out var leftReturned, out var leftValue))
+            {
+                return InterpetedResult.Return<IInterpetedMember<bool>>(leftReturned);
+            }
+
+            var rightResult = Right.Interpet(interpetedContext);
+
+            if (rightResult.IsReturn(out var rightReturned, out var rightValue))
+            {
+                return InterpetedResult.Return<IInterpetedMember<bool>>(rightReturned);
+            }
+
+            return InterpetedResult.Create(new RunTimeBoolean(
+                leftValue.Value <
+                rightValue.Value));
         }
     }
 }

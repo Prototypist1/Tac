@@ -5,7 +5,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedBlockDefinition :  IInterpetedOperation
+    internal class InterpetedBlockDefinition :  IInterpetedOperation<IInterpedEmpty>
     {
         public void Init(IInterpeted[] body, IInterpetedScopeTemplate scope)
         {
@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpeted[] Body { get; private set; } 
         public IInterpetedScopeTemplate Scope { get; private set; }
 
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Interpet(InterpetedContext interpetedContext)
         {
             var scope = interpetedContext.Child(Scope.Create());
 

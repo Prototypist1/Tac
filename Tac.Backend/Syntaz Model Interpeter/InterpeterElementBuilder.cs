@@ -57,28 +57,32 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
     public static class InterpetedResultExtensions {
-        public static bool IsNotReturn<T>(this IInterpetedResult<T> self, out T value)
-            where T : IInterpetedData
+        
+        public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedData returned, out T value)
+            where T : class, IInterpetedData
         {
-            if (self is IInterpetedResultNotReturn<T> notReturn) {
-                value = notReturn.Value;
-                return true;
+            if (self is IInterpetedResultNotReturn<T> && self is IInterpetedResultReturn<T>) {
+                throw new Exception("should not be both!");
             }
-            value = default;
-            return false;
-        }
 
-        public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedData value)
-            where T : IInterpetedData
-        {
-            if (self is IInterpetedResultReturn<T> notReturn)
+            returned = default;
+            value = default;
+            
+            if (self is IInterpetedResultNotReturn<T> notReturn)
             {
                 value = notReturn.Value;
+                return false;
+            }
+
+            if (self is IInterpetedResultReturn<T> toReturn)
+            {
+                returned = toReturn.Value;
                 return true;
             }
-            value = default;
-            return false;
+            
+            throw new Exception("should be one!");
         }
+        
     }
 
     internal static class InterpetedResult
@@ -138,9 +142,9 @@ namespace Tac.Syntaz_Model_Interpeter
             return new NotReturn<T>(value);
         }
         
-        public static IInterpetedResult<IInterpedEmpty> Create()
+        public static IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Create()
         {
-            return new NotReturn<RunTimeEmpty>(new RunTimeEmpty());
+            return new NotReturn<IInterpetedMember<IInterpedEmpty>>(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
         }
     }
     

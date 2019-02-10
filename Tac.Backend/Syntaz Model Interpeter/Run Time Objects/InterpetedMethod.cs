@@ -4,11 +4,8 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedMethod<TIn, TOut> : IInterpetedData
-        where TIn : Run_Time_Objects.IInterpetedData
-        where TOut : Run_Time_Objects.IInterpetedData
+    public interface IInterpetedMethod<TIn, TOut> : IInterpetedCallable<TIn, TOut>
     {
-        IInterpetedResult<TOut> Invoke(Run_Time_Objects.IInterpeted input);
     }
 
     public interface IInterpetedCallable<TIn, TOut> : IInterpetedData
@@ -16,7 +13,9 @@ namespace Tac.Syntaz_Model_Interpeter
         IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input);
     }
 
-    internal class InterpetedMethod: IInterpetedMethod
+    internal class InterpetedMethod<TIn, TOut> : IInterpetedMethod<TIn, TOut>
+        where TIn : IInterpetedData
+        where TOut : IInterpetedData
     {
         public InterpetedMethod(
             InterpetedMemberDefinition parameterDefinition,
@@ -36,7 +35,7 @@ namespace Tac.Syntaz_Model_Interpeter
         private IInterpetedScopeTemplate Scope { get; }
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
         
-        public InterpetedResult Invoke(Run_Time_Objects.IInterpeted input) {
+        public IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input) {
 
             var res = Scope.Create();
 

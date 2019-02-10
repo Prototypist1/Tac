@@ -17,24 +17,26 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public override IInterpetedResult<IInterpetedMember<bool>> Interpet(InterpetedContext interpetedContext)
         {
-            var leftRes = Left.Interpet(interpetedContext);
-            if (leftRes.IsReturn)
+            var leftResult = Left.Interpet(interpetedContext);
+
+            if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return leftRes;
+                return InterpetedResult.Return<IInterpetedMember<bool>>(leftReturned);
             }
 
-            if (!leftRes.Value.Value)
+            if (!leftValue.Value)
             {
-                return InterpetedResult<IInterpetedMember<bool>>.Create(new RunTimeBoolean(false));
+                return InterpetedResult.Create(new RunTimeBoolean(false));
             }
 
-            var rightRes = Right.Interpet(interpetedContext);
-            if (rightRes.IsReturn)
+            var rightResult = Right.Interpet(interpetedContext);
+
+            if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return rightRes;
+                return InterpetedResult.Return<IInterpetedMember<bool>>(rightReturned);
             }
 
-            return InterpetedResult<IInterpetedMember<bool>>.Create(new RunTimeBoolean(true));
+            return InterpetedResult.Create(new RunTimeBoolean(true));
         }
     }
 }

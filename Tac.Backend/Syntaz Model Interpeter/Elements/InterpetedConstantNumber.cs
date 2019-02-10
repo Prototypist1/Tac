@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedConstantNumber : IInterpetedOperation
+    internal class InterpetedConstantNumber : IInterpetedOperation<double>
     {
         public void Init(double value) {
             this.Value = value;
@@ -12,7 +12,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public double Value { get; private set; }
 
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<double>> Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(new RuntimeNumber(Value));
         }

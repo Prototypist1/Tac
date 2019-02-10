@@ -8,9 +8,23 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public override IInterpetedResult<IInterpetedMember<double>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult<IInterpetedMember<double>>.Create(new RuntimeNumber(
-                Left.Interpet(interpetedContext).Value.Value -
-                Right.Interpet(interpetedContext).Value.Value));
+            var leftResult = Left.Interpet(interpetedContext);
+
+            if (leftResult.IsReturn(out var leftReturned, out var leftValue))
+            {
+                return InterpetedResult.Return<IInterpetedMember<double>>(leftReturned);
+            }
+
+            var rightResult = Right.Interpet(interpetedContext);
+
+            if (rightResult.IsReturn(out var rightReturned, out var rightValue))
+            {
+                return InterpetedResult.Return<IInterpetedMember<double>>(rightReturned);
+            }
+
+            return InterpetedResult.Create(new RuntimeNumber(
+                leftValue.Value -
+                rightValue.Value));
         }
     }
 }
