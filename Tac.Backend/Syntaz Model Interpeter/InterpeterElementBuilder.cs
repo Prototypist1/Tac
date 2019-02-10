@@ -39,61 +39,108 @@ namespace Tac.Syntaz_Model_Interpeter
             throw new Exception($"key not found: {key}");
         }
     }
-
+    
     public interface IInterpetedResult<out T> : IInterpeted
             where T : IInterpetedData
     {
-        T Value { get; }
-        bool IsReturn { get; }
     }
-    
-    internal class InterpetedResult<T> : IInterpetedResult<T>
-            where T : class, IInterpetedData
+    public interface IInterpetedResultNotReturn<out T> : IInterpetedResult<T>
+        where T : IInterpetedData
     {
-        private InterpetedResult(T value, bool isReturn)
+        T Value { get; }
+    }
+
+    public interface IInterpetedResultReturn<out T> : IInterpetedResult<T>
+        where T : IInterpetedData
+    {
+        IInterpetedData Value { get; }
+    }
+
+    public static class InterpetedResultExtensions {
+        public static bool IsNotReturn<T>(this IInterpetedResult<T> self, out T value)
+            where T : IInterpetedData
         {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
-            IsReturn = isReturn;
+            if (self is IInterpetedResultNotReturn<T> notReturn) {
+                value = notReturn.Value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedData value)
+            where T : IInterpetedData
+        {
+            if (self is IInterpetedResultReturn<T> notReturn)
+            {
+                value = notReturn.Value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    internal static class InterpetedResult
+    {
+        private class NotReturn<T> : IInterpetedResultNotReturn<T>
+            where T : class, IInterpetedData
+        {
+            public NotReturn(T value)
+            {
+                Value = value ?? throw new ArgumentNullException(nameof(value));
+            }
+            
+            public T Value { get; }
+
+        }
+
+        private class IsReturn<T> : IInterpetedResultReturn<T>
+            where T : class, IInterpetedData
+        {
+            public IsReturn(IInterpetedData value)
+            {
+                Value = value ?? throw new ArgumentNullException(nameof(value));
+            }
+
+            public IInterpetedData Value { get; }
+
+        }
+        //public T GetAndUnwrapMemberWhenNeeded(InterpetedContext context)
+        //{
+        //    if (Value is IInterpetedMember<T> member)
+        //    {
+        //        return member.Value;
+        //    }
+        //    if (Value is InterpetedMemberDefinition memberDefinition)
+        //    {
+        //        return context.GetMember(memberDefinition.Key).Value.Cast<T>();
+        //    }
+        //    return Value;
+        //}
+
+
+        public static IInterpetedResultReturn<T> Return<T>()
+            where T : class, IInterpetedData
+        {
+            return new IsReturn<T>(new RunTimeEmpty());
+        }
+
+        public static IInterpetedResultReturn<T> Return<T>(IInterpetedData value)
+            where T: class,IInterpetedData
+        {
+            return new IsReturn<T>(value);
         }
         
-        public bool IsReturn { get; }
-        public T Value { get; }
-
-        public T GetAndUnwrapMemberWhenNeeded(InterpetedContext context)
+        public static IInterpetedResultNotReturn<T> Create<T>(T value)
+            where T : class, IInterpetedData
         {
-            if (Value is IInterpetedMember<T> member)
-            {
-                return member.Value;
-            }
-            if (Value is InterpetedMemberDefinition memberDefinition)
-            {
-                return context.GetMember(memberDefinition.Key).Value.Cast<T>();
-            }
-            return Value;
+            return new NotReturn<T>(value);
         }
         
-        public static IInterpetedResult<T> Return(T value)
-        {
-            return new InterpetedResult<T>(value, true);
-        }
-
-
-        public static IInterpetedResult<IInterpedEmpty> Return()
-        {
-            return new InterpetedResult<RunTimeEmpty>(new RunTimeEmpty(), true);
-        }
-
-
-        public static IInterpetedResult<T> Create(T value)
-        {
-            return new InterpetedResult<T>(value, false);
-        }
-
-
         public static IInterpetedResult<IInterpedEmpty> Create()
         {
-
-            return new InterpetedResult<RunTimeEmpty>(new RunTimeEmpty(), false);
+            return new NotReturn<RunTimeEmpty>(new RunTimeEmpty());
         }
     }
     
