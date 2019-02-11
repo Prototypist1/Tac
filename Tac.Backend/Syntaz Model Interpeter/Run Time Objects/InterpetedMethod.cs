@@ -14,8 +14,6 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
     internal class InterpetedMethod<TIn, TOut> : IInterpetedMethod<TIn, TOut>
-        where TIn : IInterpetedData
-        where TOut : IInterpetedData
     {
         public InterpetedMethod(
             InterpetedMemberDefinition parameterDefinition,

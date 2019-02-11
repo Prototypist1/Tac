@@ -6,7 +6,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedMemberDefinition: IInterpetedOperation
+    internal class InterpetedMemberDefinition: IInterpetedOperation<IInterpedEmpty>
     {
         public InterpetedMemberDefinition Init(IKey key)
         {
@@ -16,9 +16,9 @@ namespace Tac.Syntaz_Model_Interpeter
         
         public IKey Key { get; private set; }
         
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(this);
+            return InterpetedResult.Create(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
         }
     }
 }

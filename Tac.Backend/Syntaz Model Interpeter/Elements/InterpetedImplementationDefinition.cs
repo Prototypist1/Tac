@@ -4,7 +4,7 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedMember<IInterpetedImplementation<TIn,TMethodIn,TMethodOut>>>
+    internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedImplementation<TIn,TMethodIn,TMethodOut>>
         where TIn : IInterpetedData
         where TMethodIn : IInterpetedData
         where TMethodOut : IInterpetedData
@@ -26,19 +26,21 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpeted[] MethodBody { get; private set; }
         public IInterpetedScopeTemplate Scope { get; private set; }
 
-        public IInterpetedResult<IInterpetedMember<IInterpetedMember<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedImplementation<TIn, TMethodIn, TMethodOut>(
+            return InterpetedResult.Create(
+                new InterpetedMember<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>(
+                new InterpetedImplementation<TIn, TMethodIn, TMethodOut>(
                 ParameterDefinition,
                 ContextDefinition,
                 MethodBody,
                 interpetedContext,
-                Scope));
+                Scope)));
         }
         
-        public IInterpetedImplementation GetDefault(InterpetedContext interpetedContext)
+        public IInterpetedImplementation<TIn, TMethodIn, TMethodOut> GetDefault(InterpetedContext interpetedContext)
         {
-            return new InterpetedImplementation<IInterpetedImplementation>(
+            return new InterpetedImplementation< TIn, TMethodIn, TMethodOut > (
                     new InterpetedMemberDefinition().Init(new NameKey("input")),
                     new InterpetedMemberDefinition().Init(new NameKey("context")),
                     new IInterpeted[] { },
