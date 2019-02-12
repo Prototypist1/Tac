@@ -6,18 +6,18 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedModuleDefinition : IInterpeted
+    internal class InterpetedModuleDefinition : IInterpetedOperation<IInterpetedScope>
     {
-        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpeted> staticInitialization)
+        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedOperation> staticInitialization)
         {
             ScopeTemplate = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
         }
-
+        
         public IInterpetedScopeTemplate ScopeTemplate { get; private set; }
-        public IEnumerable<IInterpeted> StaticInitialization { get; private set; }
+        public IEnumerable<IInterpetedOperation> StaticInitialization { get; private set; }
 
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpetedScope>> Interpet(InterpetedContext interpetedContext)
         {
             var scope = ScopeTemplate.Create();
 
@@ -25,15 +25,20 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var line in StaticInitialization)
             {
-                line.Cast<IInterpetedOperation>().Interpet(context);
+                line.Interpet(context);
             }
 
-            return InterpetedResult.Create(scope);
+            return InterpetedResult.Create(new InterpetedMember<IInterpetedScope>(scope));
         }
         
-        public IInterpetedOperation GetDefault(InterpetedContext interpetedContext)
+        public IInterpetedScope GetDefault(InterpetedContext interpetedContext)
         {
             return InterpetedStaticScope.Make();
+        }
+
+        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
+        {
+            Interpet(interpetedContext);
         }
     }
 }

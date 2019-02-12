@@ -12,9 +12,14 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public InterpetedMemberDefinition MemberDefinition { get; private set; }
 
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(MemberDefinition);
+            return InterpetedResult.Create(new InterpetedMember<InterpetedMemberDefinition>( MemberDefinition));
+        }
+        
+        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
+        {
+            Interpet(interpetedContext);
         }
     }
 }

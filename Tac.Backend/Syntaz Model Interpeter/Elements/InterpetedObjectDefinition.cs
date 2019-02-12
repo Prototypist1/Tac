@@ -19,7 +19,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpetedScopeTemplate Scope { get; private set; }
         public IEnumerable<InterpetedAssignOperation> Assignments { get; private set; }
         
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpetedScope>> Interpet(InterpetedContext interpetedContext)
         {
             var scope = Scope.Create();
 
@@ -30,12 +30,17 @@ namespace Tac.Syntaz_Model_Interpeter
                 line.Cast<IInterpetedOperation>().Interpet(context);
             }
 
-            return InterpetedResult.Create(scope);
+            return InterpetedResult.Create(new InterpetedMember<IInterpetedScope>(scope));
         }
         
-        public IInterpetedOperation GetDefault(InterpetedContext interpetedContext)
+        public IInterpetedScope GetDefault(InterpetedContext interpetedContext)
         {
             return InterpetedInstanceScope.Make();
+        }
+        
+        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
+        {
+            Interpet(interpetedContext);
         }
     }
 }

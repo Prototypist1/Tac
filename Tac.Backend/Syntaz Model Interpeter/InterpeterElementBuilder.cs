@@ -147,9 +147,13 @@ namespace Tac.Syntaz_Model_Interpeter
             return new NotReturn<IInterpetedMember<IInterpedEmpty>>(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
         }
     }
-    
-    internal interface IInterpetedOperation<T>: IInterpeted
+
+    internal interface IInterpetedOperation : IInterpeted {
+        void Interpet(InterpetedContext interpetedContext);
+    }
+
+    internal interface IInterpetedOperation<T>: IInterpetedOperation
     {
-        IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext);
+        new IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext);
     }
 }

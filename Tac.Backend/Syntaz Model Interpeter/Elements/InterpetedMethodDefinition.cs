@@ -39,5 +39,10 @@ namespace Tac.Syntaz_Model_Interpeter
                 interpetedContext,
                 Scope);
         }
+
+        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
+        {
+            Interpet(interpetedContext);
+        }
     }
 }

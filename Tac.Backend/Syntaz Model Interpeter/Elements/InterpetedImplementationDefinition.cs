@@ -38,6 +38,11 @@ namespace Tac.Syntaz_Model_Interpeter
                 Scope)));
         }
         
+        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
+        {
+            Interpet(interpetedContext);
+        }
+
         public IInterpetedImplementation<TIn, TMethodIn, TMethodOut> GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation< TIn, TMethodIn, TMethodOut > (
