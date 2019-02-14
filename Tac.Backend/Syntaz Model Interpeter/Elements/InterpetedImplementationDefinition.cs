@@ -10,8 +10,8 @@ namespace Tac.Syntaz_Model_Interpeter
         where TMethodOut : IInterpetedData
     {
         public void Init(
-            InterpetedMemberDefinition parameterDefinition, 
-            InterpetedMemberDefinition contextDefinition, 
+            InterpetedMemberDefinition<TMethodIn> parameterDefinition, 
+            InterpetedMemberDefinition<TIn> contextDefinition, 
             IInterpeted[] methodBody,
             IInterpetedScopeTemplate scope)
         {
@@ -21,8 +21,8 @@ namespace Tac.Syntaz_Model_Interpeter
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public InterpetedMemberDefinition ParameterDefinition { get; private set; }
-        public InterpetedMemberDefinition ContextDefinition { get; private set; }
+        public InterpetedMemberDefinition<TMethodIn> ParameterDefinition { get; private set; }
+        public InterpetedMemberDefinition<TIn> ContextDefinition { get; private set; }
         public IInterpeted[] MethodBody { get; private set; }
         public IInterpetedScopeTemplate Scope { get; private set; }
 
@@ -46,8 +46,8 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpetedImplementation<TIn, TMethodIn, TMethodOut> GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation< TIn, TMethodIn, TMethodOut > (
-                    new InterpetedMemberDefinition().Init(new NameKey("input")),
-                    new InterpetedMemberDefinition().Init(new NameKey("context")),
+                    new InterpetedMemberDefinition<TIn>().Init(new NameKey("input")),
+                    new InterpetedMemberDefinition<TMethodIn>().Init(new NameKey("context")),
                     new IInterpeted[] { },
                     interpetedContext,
                     Scope);

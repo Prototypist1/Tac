@@ -33,19 +33,19 @@ namespace Tac.Syntaz_Model_Interpeter
 
     internal class InterpetedStaticScope : IInterpetedScope
     {
-        protected InterpetedStaticScope(ConcurrentIndexed<IKey, InterpetedMember> backing)
+        protected InterpetedStaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing)
         {
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
         internal static InterpetedStaticScope Empty()
         {
-            return new InterpetedStaticScope(new ConcurrentIndexed<IKey, InterpetedMember>());
+            return new InterpetedStaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>());
         }
 
         // yeah, this is a really slow way to do this
         // we should be able to do this with object[]
-        private ConcurrentIndexed<IKey, InterpetedMember> Backing { get; }
+        private ConcurrentIndexed<IKey, IInterpetedMember> Backing { get; }
 
 
         public bool ContainsMember(IKey name)
@@ -53,14 +53,14 @@ namespace Tac.Syntaz_Model_Interpeter
             return Backing.ContainsKey(name);
         }
 
-        public InterpetedMember GetMember(IKey name)
+        public IInterpetedMember GetMember(IKey name)
         {
             return Backing.GetOrThrow(name);
         }
         
         public static InterpetedStaticScope Make(IFinalizedScope scopeDefinition)
         {
-            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
+            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
 
             var scope = new InterpetedStaticScope(backing);
 
@@ -74,7 +74,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public static InterpetedStaticScope Make()
         {
-            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
+            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
 
             var scope = new InterpetedStaticScope(backing);
             
@@ -85,7 +85,7 @@ namespace Tac.Syntaz_Model_Interpeter
     internal class InterpetedInstanceScope: InterpetedStaticScope
     {
 
-        private InterpetedInstanceScope(ConcurrentIndexed<IKey, InterpetedMember> backing, InterpetedStaticScope staticBacking): base(backing)
+        private InterpetedInstanceScope(ConcurrentIndexed<IKey, IInterpetedMember> backing, InterpetedStaticScope staticBacking): base(backing)
         {
             StaticBacking = staticBacking ?? throw new ArgumentNullException(nameof(staticBacking));
         }
@@ -96,7 +96,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public static InterpetedInstanceScope Make(
             InterpetedStaticScope staticBacking, 
             IFinalizedScope scopeDefinition) {
-            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
+            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
 
             var scope = new InterpetedInstanceScope(backing, staticBacking);
             
@@ -112,7 +112,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public new static InterpetedInstanceScope Make(
             IFinalizedScope scopeDefinition)
         {
-            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
+            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
 
             var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Make());
 
@@ -124,9 +124,9 @@ namespace Tac.Syntaz_Model_Interpeter
             return scope;
         }
 
-        public static InterpetedInstanceScope Make(params (IKey, InterpetedMember)[] members)
+        public static InterpetedInstanceScope Make(params (IKey, IInterpetedMember)[] members)
         {
-            var backing = new ConcurrentIndexed<IKey, InterpetedMember>();
+            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
 
             foreach (var memberKey in members)
             {

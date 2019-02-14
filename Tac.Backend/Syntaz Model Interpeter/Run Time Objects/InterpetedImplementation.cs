@@ -14,8 +14,8 @@ namespace Tac.Syntaz_Model_Interpeter
     {
 
         public InterpetedImplementation(
-            InterpetedMemberDefinition parameterDefinition,
-            InterpetedMemberDefinition contextDefinition,
+            InterpetedMemberDefinition<TMethodIn> parameterDefinition,
+            InterpetedMemberDefinition<TIn> contextDefinition,
             IInterpeted[] body,
             InterpetedContext context, 
             IInterpetedScopeTemplate scope)
@@ -27,8 +27,8 @@ namespace Tac.Syntaz_Model_Interpeter
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        private readonly InterpetedMemberDefinition contextDefinition;
-        private InterpetedMemberDefinition ParameterDefinition { get; }
+        private readonly InterpetedMemberDefinition<TIn> contextDefinition;
+        private InterpetedMemberDefinition<TMethodIn> ParameterDefinition { get; }
         private IInterpeted[] Body { get; }
         private InterpetedContext Context { get; }
         private IInterpetedScopeTemplate Scope { get; }
@@ -36,14 +36,14 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TMethodIn, TMethodOut>>> Invoke(IInterpetedMember<TIn> input)
         {
 
-            var context = Context.Child(InterpetedInstanceScope.Make((contextDefinition.Key, new InterpetedMember(input))));
+            var context = Context.Child(InterpetedInstanceScope.Make((contextDefinition.Key, input)));
 
-            return InterpetedResult.Create(
-                new InterpetedMethod<IInterpetedMethod<TMethodIn, TMethodOut>>(
+            return InterpetedResult.Create(new InterpetedMember< IInterpetedMethod < TMethodIn, TMethodOut >> (
+                new InterpetedMethod<TMethodIn, TMethodOut>(
                     ParameterDefinition,
                     Body,
                     context,
-                    Scope));
+                    Scope)));
         }
     }
 }

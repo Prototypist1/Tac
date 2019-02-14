@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
     internal class InterpetedMethod<TIn, TOut> : IInterpetedMethod<TIn, TOut>
     {
         public InterpetedMethod(
-            InterpetedMemberDefinition parameterDefinition,
+            InterpetedMemberDefinition<TIn> parameterDefinition,
             IInterpeted[] body, 
             InterpetedContext context,
             IInterpetedScopeTemplate scope) 
@@ -27,7 +27,7 @@ namespace Tac.Syntaz_Model_Interpeter
             Scope = scope ?? throw new System.ArgumentNullException(nameof(scope));
         }
 
-        private InterpetedMemberDefinition ParameterDefinition { get; }
+        private InterpetedMemberDefinition<TIn> ParameterDefinition { get; }
         private IInterpeted[] Body { get; }
         private InterpetedContext Context { get; }
         private IInterpetedScopeTemplate Scope { get; }

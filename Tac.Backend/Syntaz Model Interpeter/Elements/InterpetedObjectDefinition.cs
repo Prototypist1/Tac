@@ -10,14 +10,14 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedObjectDefinition :  IInterpetedOperation
     {
-        public void Init(IInterpetedScopeTemplate scope, IEnumerable<InterpetedAssignOperation> assignments)
+        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedAssignOperation> assignments)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Assignments = assignments ?? throw new ArgumentNullException(nameof(assignments));
         }
 
         public IInterpetedScopeTemplate Scope { get; private set; }
-        public IEnumerable<InterpetedAssignOperation> Assignments { get; private set; }
+        public IEnumerable<IInterpetedAssignOperation> Assignments { get; private set; }
         
         public IInterpetedResult<IInterpetedMember<IInterpetedScope>> Interpet(InterpetedContext interpetedContext)
         {

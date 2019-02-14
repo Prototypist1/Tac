@@ -7,7 +7,7 @@ namespace Tac.Syntaz_Model_Interpeter
     internal class InterpetedMethodDefinition<TIn, TOut> : IInterpetedOperation<IInterpetedMethod<TIn, TOut>>
     {
         public void Init(
-            InterpetedMemberDefinition parameterDefinition, 
+            InterpetedMemberDefinition<TIn> parameterDefinition, 
             IInterpeted[] methodBody,
             IInterpetedScopeTemplate scope)
         {
@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public InterpetedMemberDefinition ParameterDefinition { get; private set; }
+        public InterpetedMemberDefinition<TIn> ParameterDefinition { get; private set; }
         public IInterpeted[] Body { get; private set; }
         public IInterpetedScopeTemplate Scope { get; private set; }
         
@@ -34,7 +34,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpeted GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedMethod<TIn, TOut>(
-                new InterpetedMemberDefinition().Init(new NameKey("input")),
+                new InterpetedMemberDefinition<TIn> ().Init(new NameKey("input")),
                 new IInterpeted[] { },
                 interpetedContext,
                 Scope);

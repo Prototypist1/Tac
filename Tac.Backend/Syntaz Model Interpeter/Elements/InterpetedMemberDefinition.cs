@@ -6,19 +6,25 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedMemberDefinition: IInterpetedOperation<IInterpedEmpty>
+    internal class InterpetedMemberDefinition<T>: IInterpetedOperation<T>
     {
-        public InterpetedMemberDefinition Init(IKey key)
+        public InterpetedMemberDefinition<T> Init(IKey key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             return this;
         }
         
         public IKey Key { get; private set; }
-        
-        public IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Interpet(InterpetedContext interpetedContext)
+
+        public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+            var member = InterpetedMember.Make<T>();
+
+            if (!interpetedContext.TryAddMember(Key, member)) {
+                throw new Exception("bed, shit");
+            }
+
+            return InterpetedResult.Create(member);
         }
         
         void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)

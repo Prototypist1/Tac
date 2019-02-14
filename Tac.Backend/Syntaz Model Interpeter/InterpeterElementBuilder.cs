@@ -14,7 +14,7 @@ namespace Tac.Syntaz_Model_Interpeter
             Scopes = scopes ?? throw new ArgumentNullException(nameof(scopes));
         }
 
-        public IReadOnlyList<IInterpetedScope> Scopes { get; }
+        private IReadOnlyList<IInterpetedScope> Scopes { get; }
 
         public InterpetedContext Child(IInterpetedScope scope)
         {
@@ -28,7 +28,11 @@ namespace Tac.Syntaz_Model_Interpeter
             return new InterpetedContext(new IInterpetedScope[0]);
         }
 
-        internal InterpetedMember GetMember(IKey key)
+        internal bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) {
+            return Scopes.Last().TryAddMember(key, member);
+        }
+
+        internal IInterpetedMember<T> GetMember<T>(IKey key)
         {
             foreach (var item in Scopes.Reverse())
             {
