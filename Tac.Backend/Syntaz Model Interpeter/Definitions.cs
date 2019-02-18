@@ -13,7 +13,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Backend.Syntaz_Model_Interpeter
 {
 
-    internal class Definitions: IOpenBoxesContext<IInterpeted>
+    internal class Definitions: IOpenBoxesContext<IInterpetedOperation>
     {
         private readonly Dictionary<object, IInterpeted> backing = new Dictionary<object, IInterpeted>();
 
@@ -21,15 +21,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         {
         }
 
-        public InterpetedMemberDefinition MemberDefinition(IMemberDefinition member)
+        public IInterpetedMemberDefinition MemberDefinition(IMemberDefinition member)
         {
             if (backing.TryGetValue(member, out var res))
             {
-                return res.Cast<InterpetedMemberDefinition>();
+                return res.Cast<IInterpetedMemberDefinition>();
             }
             else
             {
-                var interpetedMemberDefinition = new InterpetedMemberDefinition();
+                var interpetedMemberDefinition = new InterpetedMemberDefinition<object>();
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition.Init(member.Key);
             }
@@ -51,15 +51,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedAssignOperation AssignOperation(IAssignOperation co)
+        public IInterpetedAssignOperation AssignOperation(IAssignOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
-                return res.Cast<InterpetedAssignOperation>();
+                return res.Cast<IInterpetedAssignOperation>();
             }
             else
             {
-                var op = new InterpetedAssignOperation();
+                var op = new InterpetedAssignOperation<object>();
                 backing.Add(co, op);
                 op.Init(
                     co.Left.Convert(this),
@@ -149,15 +149,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedImplementationDefinition ImplementationDefinition(IImplementationDefinition codeElement)
+        public IInterpetedImplementationDefinition ImplementationDefinition(IImplementationDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
-                return res.Cast<InterpetedImplementationDefinition>();
+                return res.Cast<IInterpetedImplementationDefinition>();
             }
             else
             {
-                var op = new InterpetedImplementationDefinition();
+                var op = new InterpetedImplementationDefinition<object, object, object>();
                 backing.Add(codeElement, op);
                 op.Init(
                     MemberDefinition(codeElement.ParameterDefinition),
@@ -168,15 +168,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedLastCallOperation LastCallOperation(ILastCallOperation co)
+        public IInterpetedLastCallOperation LastCallOperation(ILastCallOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
-                return res.Cast<InterpetedLastCallOperation>();
+                return res.Cast<IInterpetedLastCallOperation>();
             }
             else
             {
-                var op = new InterpetedLastCallOperation();
+                var op = new InterpetedLastCallOperation<object,object>();
                 backing.Add(co, op);
                 op.Init(
                     co.Left.Convert(this),
@@ -202,15 +202,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
         
-        public InterpetedMemberReferance MemberReferance(IMemberReferance codeElement)
+        public IInterpetedMemberReferance MemberReferance(IMemberReferance codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
-                return res.Cast<InterpetedMemberReferance>();
+                return res.Cast<IInterpetedMemberReferance>();
             }
             else
             {
-                var op = new InterpetedMemberReferance();
+                var op = new InterpetedMemberReferance<object>();
                 backing.Add(codeElement, op);
                 op.Init(
                     MemberDefinition(codeElement.MemberDefinition));
@@ -218,15 +218,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedMethodDefinition MethodDefinition(IInternalMethodDefinition codeElement)
+        public IInterpetedMethodDefinition MethodDefinition(IInternalMethodDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
-                return res.Cast<InterpetedMethodDefinition>();
+                return res.Cast<IInterpetedMethodDefinition>();
             }
             else
             {
-                var op = new InterpetedMethodDefinition();
+                var op = new InterpetedMethodDefinition<object,object>();
                 backing.Add(codeElement, op);
                 op.Init(
                     MemberDefinition(codeElement.ParameterDefinition),
@@ -270,15 +270,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedNextCallOperation NextCallOperation(INextCallOperation co)
+        public IInterpetedNextCallOperation NextCallOperation(INextCallOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
-                return res.Cast<InterpetedNextCallOperation>();
+                return res.Cast<IInterpetedNextCallOperation>();
             }
             else
             {
-                var op = new InterpetedNextCallOperation();
+                var op = new InterpetedNextCallOperation<object,object>();
                 backing.Add(co, op);
                 op.Init(
                     co.Left.Convert(this),
@@ -321,17 +321,17 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public InterpetedReturnOperation ReturnOperation(IReturnOperation co)
+        public IInterpetedReturnOperation ReturnOperation(IReturnOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
                 // TODO I don't much like all these casts,
                 // maybe I should split up my backing??
-                return res.Cast<InterpetedReturnOperation>();
+                return res.Cast<IInterpetedReturnOperation>();
             }
             else
             {
-                var op = new InterpetedReturnOperation();
+                var op = new InterpetedReturnOperation<object>();
                 backing.Add(co, op);
                 op.Init(
                     co.Result.Convert(this));
@@ -386,31 +386,31 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 return op;
             }
         }
-        
+
         #region IOpenBoxesContext<IInterpeted>
 
-        IInterpeted IOpenBoxesContext<IInterpeted>.BlockDefinition(IBlockDefinition codeElement) => BlockDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.AssignOperation(IAssignOperation codeElement) => AssignOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.ConstantNumber(IConstantNumber codeElement) => ConstantNumber(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.PathOperation(IPathOperation codeElement) => PathOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.GenericTypeDefinition(IGenericInterfaceDefinition codeElement) => GenericTypeDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.ImplementationDefinition(IImplementationDefinition codeElement) => ImplementationDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.MemberDefinition(IMemberDefinition codeElement) => MemberDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.MemberReferance(IMemberReferance codeElement) => MemberReferance(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.InternalMethodDefinition(IInternalMethodDefinition codeElement) => MethodDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.ModuleDefinition(IModuleDefinition codeElement) => ModuleDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.LastCallOperation(ILastCallOperation codeElement) => LastCallOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.ObjectDefinition(IObjectDefiniton codeElement) => ObjectDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.TypeDefinition(IInterfaceType codeElement) => TypeDefinition(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.AddOperation(IAddOperation codeElement) => AddOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.NextCallOperation(INextCallOperation codeElement) => NextCallOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.ElseOperation(IElseOperation codeElement) => ElseOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.IfTrueOperation(IIfOperation codeElement) => IfTrueOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.LessThanOperation(ILessThanOperation codeElement) => LessThanOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.MultiplyOperation(IMultiplyOperation codeElement) => MultiplyOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.SubtractOperation(ISubtractOperation codeElement) => SubtractOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.ReturnOperation(IReturnOperation codeElement) => ReturnOperation(codeElement);
-        IInterpeted IOpenBoxesContext<IInterpeted>.TypeReferance(ITypeReferance codeElement) => TypeReferance(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.BlockDefinition(IBlockDefinition codeElement) => BlockDefinition(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.AssignOperation(IAssignOperation codeElement) => AssignOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.ConstantNumber(IConstantNumber codeElement) => ConstantNumber(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.PathOperation(IPathOperation codeElement) => PathOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.GenericTypeDefinition(IGenericInterfaceDefinition codeElement) => GenericTypeDefinition(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.ImplementationDefinition(IImplementationDefinition codeElement) => ImplementationDefinition(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.MemberDefinition(IMemberDefinition codeElement) => MemberDefinition(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.MemberReferance(IMemberReferance codeElement) => MemberReferance(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.InternalMethodDefinition(IInternalMethodDefinition codeElement) => MethodDefinition(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.ModuleDefinition(IModuleDefinition codeElement) => ModuleDefinition(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.LastCallOperation(ILastCallOperation codeElement) => LastCallOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.ObjectDefinition(IObjectDefiniton codeElement) => ObjectDefinition(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.TypeDefinition(IInterfaceType codeElement) => TypeDefinition(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.AddOperation(IAddOperation codeElement) => AddOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.NextCallOperation(INextCallOperation codeElement) => NextCallOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.ElseOperation(IElseOperation codeElement) => ElseOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.IfTrueOperation(IIfOperation codeElement) => IfTrueOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.LessThanOperation(ILessThanOperation codeElement) => LessThanOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.MultiplyOperation(IMultiplyOperation codeElement) => MultiplyOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.SubtractOperation(ISubtractOperation codeElement) => SubtractOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.ReturnOperation(IReturnOperation codeElement) => ReturnOperation(codeElement);
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.TypeReferance(ITypeReferance codeElement) => TypeReferance(codeElement);
         
         #endregion
 

@@ -4,7 +4,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedMethodDefinition<TIn, TOut> : IInterpetedOperation<IInterpetedMethod<TIn, TOut>>
+
+    internal interface IInterpetedMethodDefinition : IInterpetedOperation { }
+    internal class InterpetedMethodDefinition<TIn, TOut> : IInterpetedOperation<IInterpetedMethod<TIn, TOut>>, IInterpetedMethodDefinition
     {
         public void Init(
             InterpetedMemberDefinition<TIn> parameterDefinition, 

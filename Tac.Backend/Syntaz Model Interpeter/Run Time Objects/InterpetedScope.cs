@@ -52,25 +52,21 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return Backing.ContainsKey(name);
         }
-
-        public IInterpetedMember GetMember(IKey name)
-        {
-            return Backing.GetOrThrow(name);
-        }
         
-        public static InterpetedStaticScope Make(IFinalizedScope scopeDefinition)
-        {
-            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
+        
+        //public static InterpetedStaticScope Make(IFinalizedScope scopeDefinition)
+        //{
+        //    var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
 
-            var scope = new InterpetedStaticScope(backing);
+        //    var scope = new InterpetedStaticScope(backing);
 
-            foreach (var memberKey in scopeDefinition.MemberKeys)
-            {
-                backing[memberKey] = new InterpetedMember();
-            }
+        //    foreach (var memberKey in scopeDefinition.MemberKeys)
+        //    {
+        //        backing[memberKey] = new InterpetedMember();
+        //    }
 
-            return scope;
-        }
+        //    return scope;
+        //}
 
         public static InterpetedStaticScope Make()
         {
@@ -79,6 +75,19 @@ namespace Tac.Syntaz_Model_Interpeter
             var scope = new InterpetedStaticScope(backing);
             
             return scope;
+        }
+
+        public IInterpetedMember<T> GetMember<T>(IKey name) 
+        {
+            return Backing.GetOrThrow(name).Cast<IInterpetedMember<T>>();
+        }
+
+        public bool TryAddMember<T>(IKey key, IInterpetedMember<T> member)
+        {
+            if (object.ReferenceEquals(member, Backing.GetOrAdd(key, member))){
+                return true;
+            }
+            return false;
         }
     }
 
@@ -100,9 +109,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var scope = new InterpetedInstanceScope(backing, staticBacking);
             
-            foreach (var memberKey in scopeDefinition.MemberKeys)
+            foreach (var member in scopeDefinition.Members)
             {
-                backing[memberKey] = new InterpetedMember();
+                backing[member.Key] = InterpetedMember.MakeOfType(member.Type.TypeDefinition);
             }
 
             return scope;
@@ -116,9 +125,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Make());
 
-            foreach (var memberKey in scopeDefinition.MemberKeys)
+            foreach (var member in scopeDefinition.Members)
             {
-                backing[memberKey] = new InterpetedMember();
+                backing[member.Key] = InterpetedMember.MakeOfType(member.Type.TypeDefinition);
             }
 
             return scope;

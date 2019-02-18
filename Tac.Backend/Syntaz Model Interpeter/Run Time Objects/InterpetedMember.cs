@@ -1,5 +1,6 @@
 ﻿using Prototypist.LeftToRight;
 using System;
+using Tac.Model.Elements;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -69,7 +70,33 @@ namespace Tac.Syntaz_Model_Interpeter
 
             throw new Exception("");
         }
-        
+
+        // pretty sure I don't need this.
+        // just make IInterpetedMember<object> ... 
+        internal static IInterpetedMember MakeOfType(IVerifiableType type)
+        {
+            if (type is INumberType)
+            {
+
+            }
+            else if (type is IBooleanType)
+            {
+
+            }
+            else if (type is IStringType)
+            {
+
+            }
+            else if (type is IMethodType)
+            {
+
+            }
+            else if (type is IImplementationType) {
+
+            }
+
+            throw new NotImplementedException();
+        }
     }
 
     internal class InterpetedMember<T> : IInterpetedMember<T>

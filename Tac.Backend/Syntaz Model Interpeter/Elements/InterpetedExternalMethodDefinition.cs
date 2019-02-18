@@ -9,13 +9,13 @@ namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
 {
     internal class InterpetedExternalMethodDefinition<TIn,TOut> : IInterpetedOperation<IInterpetedMethod<TIn,TOut>>
     {
-        public void Init(InterpetedMemberDefinition parameterDefinition, Func<TIn, TOut> backing)
+        public void Init(InterpetedMemberDefinition<TIn> parameterDefinition, Func<TIn, TOut> backing)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
-        public IInterpetedResult<IInterpetedMember< IInterpetedMethod<TIn,TOut>>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn, TOut>>> Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(InterpetedMember.Make<IInterpetedMethod<TIn, TOut>>( new InterpetedExternalMethod<TIn, TOut>(ParameterDefinition,Backing)));
         }
@@ -25,7 +25,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
             Interpet(interpetedContext);
         }
 
-        public InterpetedMemberDefinition ParameterDefinition { get; private set; }
+        public InterpetedMemberDefinition<TIn> ParameterDefinition { get; private set; }
         public Func<TIn, TOut> Backing { get; private set; }
 
     }

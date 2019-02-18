@@ -4,8 +4,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedReturnOperation<T> : InterpetedTrailingOperation<T,T>
-        where T: class,IInterpetedData
+    internal interface IInterpetedReturnOperation : IInterpetedOperation { }
+
+    internal class InterpetedReturnOperation<T> : InterpetedTrailingOperation<T,T>, IInterpetedReturnOperation
     {
         public override IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {

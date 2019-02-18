@@ -6,7 +6,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Backend.Syntaz_Model_Interpeter
 {
-    internal class InterpetedTypeReferance : IInterpeted, ITypeReferance
+    internal class InterpetedTypeReferance : IInterpetedOperation<IInterpetedData>, ITypeReferance
     {
         public IVerifiableType TypeDefinition
         {
@@ -18,9 +18,9 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             return context.TypeReferance(this);
         }
 
-        public InterpetedResult Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpetedData>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new RunTimeType());
+            return InterpetedResult.Create<IInterpetedMember<IInterpetedData>>(new InterpetedMember<IInterpetedData>( new RunTimeType()));
         }
 
         public IVerifiableType Returns()
@@ -31,6 +31,11 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         internal void Init(IVerifiableType typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
+        }
+
+        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
+        {
+            Interpet(interpetedContext);
         }
     }
 }

@@ -4,10 +4,13 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedImplementation<TIn,TMethodIn,TMethodOut>>
-        where TIn : IInterpetedData
-        where TMethodIn : IInterpetedData
-        where TMethodOut : IInterpetedData
+
+    internal interface IInterpetedImplementationDefinition: IInterpetedOperation
+    {
+
+    }
+
+    internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedImplementation<TIn,TMethodIn,TMethodOut>>, IInterpetedImplementationDefinition
     {
         public void Init(
             InterpetedMemberDefinition<TMethodIn> parameterDefinition, 
@@ -46,8 +49,8 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpetedImplementation<TIn, TMethodIn, TMethodOut> GetDefault(InterpetedContext interpetedContext)
         {
             return new InterpetedImplementation< TIn, TMethodIn, TMethodOut > (
-                    new InterpetedMemberDefinition<TIn>().Init(new NameKey("input")),
-                    new InterpetedMemberDefinition<TMethodIn>().Init(new NameKey("context")),
+                    new InterpetedMemberDefinition<TMethodIn>().Init(new NameKey("input")),
+                    new InterpetedMemberDefinition<TIn>().Init(new NameKey("context")),
                     new IInterpeted[] { },
                     interpetedContext,
                     Scope);
