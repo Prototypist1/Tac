@@ -21,7 +21,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {
-            var member = InterpetedMember.Make<T>();
+            var member = new InterpetedMember<T>();
 
             if (!interpetedContext.TryAddMember(Key, member)) {
                 throw new Exception("bed, shit");

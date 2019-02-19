@@ -22,7 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<bool>>(rightReturned);
             }
 
-            return InterpetedResult.Create(new RunTimeBoolean(
+            return InterpetedResult.Create(new InterpetedMember<bool>(
                 leftValue.Value <
                 rightValue.Value));
         }

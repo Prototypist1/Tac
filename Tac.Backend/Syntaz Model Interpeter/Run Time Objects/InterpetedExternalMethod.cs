@@ -20,7 +20,7 @@ namespace Tac.Syntaz_Model_Interpeter
         
         public IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input)
         {
-            return InterpetedResult.Create(InterpetedMember.Make(Backing(input.Value)));
+            return InterpetedResult.Create(new InterpetedMember<TOut>(Backing(input.Value)));
         }
     }
 }

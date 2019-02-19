@@ -17,7 +17,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
 
         public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn, TOut>>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(InterpetedMember.Make<IInterpetedMethod<TIn, TOut>>( new InterpetedExternalMethod<TIn, TOut>(ParameterDefinition,Backing)));
+            return InterpetedResult.Create(new InterpetedMember<IInterpetedMethod<TIn, TOut>>( new InterpetedExternalMethod<TIn, TOut>(ParameterDefinition,Backing)));
         }
 
         void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)

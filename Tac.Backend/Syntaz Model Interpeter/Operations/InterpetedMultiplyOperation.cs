@@ -22,7 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<double>>(rightReturned);
             }
 
-            return InterpetedResult.Create(new RuntimeNumber(
+            return InterpetedResult.Create(new InterpetedMember<double>(
                 leftValue.Value *
                 rightValue.Value));
         }

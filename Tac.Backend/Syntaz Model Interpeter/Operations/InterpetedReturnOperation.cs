@@ -17,7 +17,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<T>>(argumentReturned);
             }
 
-            return InterpetedResult.Return<IInterpetedMember<T>>(argumentValue.Value);
+            return InterpetedResult.Return<IInterpetedMember<T>>(argumentValue);
         }
         
     }

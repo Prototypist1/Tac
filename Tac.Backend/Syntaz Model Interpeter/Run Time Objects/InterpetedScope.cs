@@ -111,14 +111,14 @@ namespace Tac.Syntaz_Model_Interpeter
             
             foreach (var member in scopeDefinition.Members)
             {
-                backing[member.Key] = InterpetedMember.MakeOfType(member.Type.TypeDefinition);
+                backing[member.Key] = new InterpetedMember<object>();
             }
 
             return scope;
         }
 
 
-        public new static InterpetedInstanceScope Make(
+        public static InterpetedInstanceScope Make(
             IFinalizedScope scopeDefinition)
         {
             var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
@@ -127,7 +127,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var member in scopeDefinition.Members)
             {
-                backing[member.Key] = InterpetedMember.MakeOfType(member.Type.TypeDefinition);
+                backing[member.Key] = new InterpetedMember<object>();
             }
 
             return scope;

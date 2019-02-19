@@ -26,7 +26,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (!leftValue.Value)
             {
-                return InterpetedResult.Create(new RunTimeBoolean(false));
+                return InterpetedResult.Create(new InterpetedMember<bool>(false));
             }
 
             var rightResult = Right.Interpet(interpetedContext);
@@ -36,7 +36,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<bool>>(rightReturned);
             }
 
-            return InterpetedResult.Create(new RunTimeBoolean(true));
+            return InterpetedResult.Create(new InterpetedMember<bool>(true));
         }
     }
 }
