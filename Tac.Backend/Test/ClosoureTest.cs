@@ -27,11 +27,11 @@ namespace Tac.Backend.Test
             var scope = res.Get<IInterpetedScope>();
             var method = scope.GetMember(new NameKey("create-accululator")).Value.Cast<InterpetedMethod>();
             
-            var innerMethod = method.Invoke(new RuntimeNumber(1)).Get<InterpetedMethod>();
+            var innerMethod = method.Invoke(new InterpetedMember<double>(1)).Get<InterpetedMethod>();
             
-            Assert.Equal(3, innerMethod.Invoke(new RuntimeNumber(2)).Get<RuntimeNumber>().d);
-            Assert.Equal(6, innerMethod.Invoke(new RuntimeNumber(3)).Get<RuntimeNumber>().d);
-            Assert.Equal(10, innerMethod.Invoke(new RuntimeNumber(4)).Get<RuntimeNumber>().d);
+            Assert.Equal(3, innerMethod.Invoke(new InterpetedMember<double>(2)).Get<InterpetedMember<double>>().d);
+            Assert.Equal(6, innerMethod.Invoke(new InterpetedMember<double>(3)).Get<InterpetedMember<double>>().d);
+            Assert.Equal(10, innerMethod.Invoke(new InterpetedMember<double>(4)).Get<InterpetedMember<double>>().d);
         }
     }
 }

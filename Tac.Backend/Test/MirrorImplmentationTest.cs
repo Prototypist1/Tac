@@ -27,18 +27,18 @@ namespace Tac.Backend.Test
             var implementation = scope.GetMember(new NameKey("mirror")).Value.Cast<InterpetedImplementation>();
 
             var context = InterpetedInstanceScope.Make(
-                (new NameKey("x"), new InterpetedMember(new RuntimeNumber(5))),
-                (new NameKey("y"), new InterpetedMember(new RuntimeNumber(7))));
+                (new NameKey("x"), new InterpetedMember(new InterpetedMember<double>(5))),
+                (new NameKey("y"), new InterpetedMember(new InterpetedMember<double>(7))));
 
             implementation.Invoke(context).Get<InterpetedMethod>().Invoke(new RunTimeEmpty());
 
-            Assert.Equal(7,context.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().Value);
-            Assert.Equal(5, context.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().Value);
+            Assert.Equal(7,context.GetMember(new NameKey("x")).Value.Cast<InterpetedMember<double>>().Value);
+            Assert.Equal(5, context.GetMember(new NameKey("y")).Value.Cast<InterpetedMember<double>>().Value);
             
             implementation.Invoke(context).Get<InterpetedMethod>().Invoke(new RunTimeEmpty());
 
-            Assert.Equal(5, context.GetMember(new NameKey("x")).Value.Cast<RuntimeNumber>().Value);
-            Assert.Equal(7, context.GetMember(new NameKey("y")).Value.Cast<RuntimeNumber>().Value);
+            Assert.Equal(5, context.GetMember(new NameKey("x")).Value.Cast<InterpetedMember<double>>().Value);
+            Assert.Equal(7, context.GetMember(new NameKey("y")).Value.Cast<InterpetedMember<double>>().Value);
         }
     }
 }
