@@ -11,10 +11,5 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return InterpetedResult.Create(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
         }
-        
-        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
-        {
-            Interpet(interpetedContext);
-        }
     }
 }

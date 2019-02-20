@@ -37,19 +37,30 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var res = Scope.Create();
 
-            res.GetMember(ParameterDefinition.Key).Value = input;
+
+            if (!res.TryAddMember(ParameterDefinition.Key, input)) {
+                throw new System.Exception("trash, it is all trash!");
+            }
 
             var scope = Context.Child(res);
 
             foreach (var line in Body)
             {
                 var result =  line.Interpet(scope);
-                if (result.IsReturn) {
-                    return result;
+                if (result.IsReturn(out var resMember, out var value))
+                {
+                    return InterpetedResult.Create(resMember.Cast<IInterpetedMember<TOut>>());
                 }
             }
 
-            return InterpetedResult.Create();
+            if (typeof(IInterpedEmpty).IsAssignableFrom(typeof(TOut))){
+                dynamic hack = new RunTimeEmpty();
+                return InterpetedResult.Create<IInterpetedMember<TOut>>(hack);
+            }
+
+            throw new System.Exception("method did not return!");
+
+            
         }
     }
 }

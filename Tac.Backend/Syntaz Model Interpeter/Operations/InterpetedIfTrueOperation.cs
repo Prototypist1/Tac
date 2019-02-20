@@ -5,7 +5,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal class InterpetedIfTrueOperation : InterpetedBinaryOperation<bool, IInterpedEmpty, bool>
+    internal class InterpetedIfTrueOperation : InterpetedBinaryOperation<BoxedBool, IInterpedEmpty, BoxedBool>
     {
         // ugh! or types are killing me!
         // this return bool
@@ -15,28 +15,28 @@ namespace Tac.Syntaz_Model_Interpeter
         // until I solve this we are a hot mess
         // probably the solution is give up on types!!
 
-        public override IInterpetedResult<IInterpetedMember<bool>> Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedMember<BoxedBool>> Interpet(InterpetedContext interpetedContext)
         {
             var leftResult = Left.Interpet(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<bool>>(leftReturned);
+                return InterpetedResult.Return<IInterpetedMember<BoxedBool>>(leftReturned);
             }
 
-            if (!leftValue.Value)
+            if (!leftValue.Value.Value)
             {
-                return InterpetedResult.Create(new InterpetedMember<bool>(false));
+                return InterpetedResult.Create(new InterpetedMember<BoxedBool>(new BoxedBool(false)));
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<bool>>(rightReturned);
+                return InterpetedResult.Return<IInterpetedMember<BoxedBool>>(rightReturned);
             }
 
-            return InterpetedResult.Create(new InterpetedMember<bool>(true));
+            return InterpetedResult.Create(new InterpetedMember<BoxedBool>(new BoxedBool(true)));
         }
     }
 }

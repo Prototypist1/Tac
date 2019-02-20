@@ -37,7 +37,7 @@ namespace Tac.Syntaz_Model_Interpeter
             foreach (var item in Scopes.Reverse())
             {
                 if (item.ContainsMember(key)) {
-                    return item.GetMember(key);
+                    return item.GetMember<T>(key);
                 }
             }
             throw new Exception($"key not found: {key}");
@@ -63,7 +63,7 @@ namespace Tac.Syntaz_Model_Interpeter
     public static class InterpetedResultExtensions {
         
         public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedData returned, out T value)
-            where T : class, IInterpetedData
+            where T : IInterpetedData
         {
             if (self is IInterpetedResultNotReturn<T> && self is IInterpetedResultReturn<T>) {
                 throw new Exception("should not be both!");
@@ -154,8 +154,8 @@ namespace Tac.Syntaz_Model_Interpeter
 
 
 
-    internal interface IInterpetedOperation<out T>: IInterpetedOperation
+    internal interface IInterpetedOperation<out T>
     {
-        new IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext);
+        IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext);
     }
 }

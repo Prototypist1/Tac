@@ -4,29 +4,38 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedElseOperation : InterpetedBinaryOperation<bool, IInterpedEmpty, bool>
+    internal class BoxedBool {
+        public BoxedBool(bool value)
+        {
+            Value = value;
+        }
+
+        public bool Value { get; }
+    }
+
+    internal class InterpetedElseOperation : InterpetedBinaryOperation<BoxedBool, IInterpedEmpty, BoxedBool>
     {
-        public override IInterpetedResult<IInterpetedMember<bool>> Interpet(InterpetedContext interpetedContext) {
+        public override IInterpetedResult<IInterpetedMember<BoxedBool>> Interpet(InterpetedContext interpetedContext) {
             var leftResult = Left.Interpet(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<bool>>(leftReturned);
+                return InterpetedResult.Return<IInterpetedMember<BoxedBool>>(leftReturned);
             }
 
-            if (leftValue.Value)
+            if (leftValue.Value.Value)
             {
-                return InterpetedResult.Create(new InterpetedMember<bool>(false));
+                return InterpetedResult.Create(new InterpetedMember<BoxedBool>(new BoxedBool(false)));
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<bool>>(rightReturned);
+                return InterpetedResult.Return<IInterpetedMember<BoxedBool>>(rightReturned);
             }
             
-            return InterpetedResult.Create(new InterpetedMember<bool>(true));
+            return InterpetedResult.Create(new InterpetedMember<BoxedBool>(new BoxedBool(true)));
         }
     }
 }

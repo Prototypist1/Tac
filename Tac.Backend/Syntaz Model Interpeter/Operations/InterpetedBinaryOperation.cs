@@ -13,11 +13,6 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public abstract IInterpetedResult<IInterpetedMember<TRes>> Interpet(InterpetedContext interpetedContext);
         
-        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
-        {
-            Interpet(interpetedContext);
-        }
-
         public IInterpetedOperation<TLeft> Left { get; private set; }
         public IInterpetedOperation<TRight> Right { get; private set; }
     }

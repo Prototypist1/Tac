@@ -13,10 +13,5 @@ namespace Tac.Syntaz_Model_Interpeter
         public abstract IInterpetedResult<IInterpetedMember<TOut>> Interpet(InterpetedContext interpetedContext);
 
         public IInterpetedOperation<TIn> Argument { get; private set; }
-        
-        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
-        {
-            Interpet(interpetedContext);
-        }
     }
 }

@@ -23,9 +23,9 @@ namespace Tac.Syntaz_Model_Interpeter
             foreach (var line in Body)
             {
                 var result = line.Interpet(scope);
-                if (result.IsReturn)
+                if (result.IsReturn(out var res, out var value))
                 {
-                    return result;
+                    return InterpetedResult.Return<IInterpetedMember<IInterpedEmpty>>(res);
                 }
             }
 

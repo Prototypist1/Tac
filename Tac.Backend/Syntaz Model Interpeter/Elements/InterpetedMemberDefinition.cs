@@ -7,9 +7,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal interface IInterpetedMemberDefinition: IInterpetedOperation {
-    }
-    internal class InterpetedMemberDefinition<T>: IInterpetedOperation<T>, IInterpetedMemberDefinition
+    internal class InterpetedMemberDefinition<T>: IInterpetedOperation<T>
     {
         public InterpetedMemberDefinition<T> Init(IKey key)
         {
@@ -24,15 +22,10 @@ namespace Tac.Syntaz_Model_Interpeter
             var member = new InterpetedMember<T>();
 
             if (!interpetedContext.TryAddMember(Key, member)) {
-                throw new Exception("bed, shit");
+                throw new Exception("bad, shit");
             }
 
             return InterpetedResult.Create(member);
-        }
-        
-        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
-        {
-            Interpet(interpetedContext);
         }
     }
 }

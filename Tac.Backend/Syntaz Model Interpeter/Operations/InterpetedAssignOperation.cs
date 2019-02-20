@@ -24,7 +24,9 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<T>>(rightReturned);
             }
 
-            rightValue.Value = leftValue.Value;
+            if (rightValue.TrySet(leftValue.Value)){
+                throw new Exception("type error!");
+            }
             return InterpetedResult.Create(rightValue);
         }
     }

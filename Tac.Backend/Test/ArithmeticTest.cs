@@ -23,11 +23,12 @@ namespace Tac.Backend.Test
 
             var res = module.Interpet(InterpetedContext.Root());
 
-            var scope = res.Get<IInterpetedScope>();
-            var x = scope.GetMember(new NameKey("x"));
+            Assert.False(res.IsReturn(out var returned, out var member));
 
-            Assert.True(res.HasValue);
-            Assert.Equal(63.0, x.Value.Cast<RuntimeNumber>().d);
+            var scope = member.Value.Cast<IInterpetedScope>();
+            var x = scope.GetMember<BoxedDouble>(new NameKey("x"));
+
+            Assert.Equal(63.0, x.Value.Value);
         }
     }
 }

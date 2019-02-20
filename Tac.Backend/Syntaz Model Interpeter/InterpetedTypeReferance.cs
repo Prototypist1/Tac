@@ -32,10 +32,5 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
-
-        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
-        {
-            Interpet(interpetedContext);
-        }
     }
 }

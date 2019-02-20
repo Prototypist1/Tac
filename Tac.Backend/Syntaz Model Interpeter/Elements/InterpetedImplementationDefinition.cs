@@ -4,13 +4,7 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-
-    internal interface IInterpetedImplementationDefinition: IInterpetedOperation
-    {
-
-    }
-
-    internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedImplementation<TIn,TMethodIn,TMethodOut>>, IInterpetedImplementationDefinition
+    internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedImplementation<TIn,TMethodIn,TMethodOut>>
     {
         public void Init(
             InterpetedMemberDefinition<TMethodIn> parameterDefinition, 

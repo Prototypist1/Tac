@@ -10,11 +10,8 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public interface IInterpetedMember<out T> : IInterpetedMember
     {
-        T Value { get; }
-    }
-
-    public static class InterpetedMember{
-        
+        T Value { get;  }
+        bool TrySet(object o);
     }
 
     internal class InterpetedMember<T> : IInterpetedMember<T>
@@ -55,5 +52,15 @@ namespace Tac.Syntaz_Model_Interpeter
             }
         }
 
+        public bool TrySet(object o)
+        {
+            // the shit always ends up somewhere 💩💩💩
+
+            if (typeof(T).IsAssignableFrom(o.GetType())) {
+                Value = o.Cast<T>();
+                return true;
+            }
+            return false;
+        }
     }
 }
