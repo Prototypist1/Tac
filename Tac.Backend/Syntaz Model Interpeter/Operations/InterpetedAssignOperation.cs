@@ -4,9 +4,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal interface IInterpetedAssignOperation : IInterpetedOperation{ }
+    internal interface IInterpetedAssignOperation<out T> : IInterpetedOperation<T>{ }
 
-    internal class InterpetedAssignOperation<T> : InterpetedBinaryOperation<T, T, T>, IInterpetedAssignOperation
+    internal class InterpetedAssignOperation<T> : InterpetedBinaryOperation<T, T, T>, IInterpetedAssignOperation<T>
     {
         public override IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {

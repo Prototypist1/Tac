@@ -5,12 +5,12 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal interface IInterpetedMethodDefinition : IInterpetedOperation { }
+    internal interface IInterpetedMethodDefinition : IInterpetedOperation<object> { }
     internal class InterpetedMethodDefinition<TIn, TOut> : IInterpetedOperation<IInterpetedMethod<TIn, TOut>>, IInterpetedMethodDefinition
     {
         public void Init(
             InterpetedMemberDefinition<TIn> parameterDefinition, 
-            IInterpeted[] methodBody,
+            IInterpetedOperation<object>[] methodBody,
             IInterpetedScopeTemplate scope)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -19,7 +19,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         public InterpetedMemberDefinition<TIn> ParameterDefinition { get; private set; }
-        public IInterpeted[] Body { get; private set; }
+        public IInterpetedOperation<object>[] Body { get; private set; }
         public IInterpetedScopeTemplate Scope { get; private set; }
         
         public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn,TOut>>> Interpet(InterpetedContext interpetedContext)
@@ -37,14 +37,10 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return new InterpetedMethod<TIn, TOut>(
                 new InterpetedMemberDefinition<TIn> ().Init(new NameKey("input")),
-                new IInterpeted[] { },
+                new IInterpetedOperation<object>[] { },
                 interpetedContext,
                 Scope);
         }
 
-        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
-        {
-            Interpet(interpetedContext);
-        }
     }
 }

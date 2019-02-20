@@ -152,11 +152,9 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    internal interface IInterpetedOperation : IInterpeted {
-        void Interpet(InterpetedContext interpetedContext);
-    }
 
-    internal interface IInterpetedOperation<T>: IInterpetedOperation
+
+    internal interface IInterpetedOperation<out T>: IInterpetedOperation
     {
         new IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext);
     }

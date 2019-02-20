@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedImplementation(
             InterpetedMemberDefinition<TMethodIn> parameterDefinition,
             InterpetedMemberDefinition<TIn> contextDefinition,
-            IInterpeted[] body,
+            IInterpetedOperation<object>[] body,
             InterpetedContext context, 
             IInterpetedScopeTemplate scope)
         {
@@ -29,7 +29,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         private readonly InterpetedMemberDefinition<TIn> contextDefinition;
         private InterpetedMemberDefinition<TMethodIn> ParameterDefinition { get; }
-        private IInterpeted[] Body { get; }
+        private IInterpetedOperation<object>[] Body { get; }
         private InterpetedContext Context { get; }
         private IInterpetedScopeTemplate Scope { get; }
         

@@ -8,9 +8,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public interface IInterpetedMember : IInterpetedData { }
 
-    public interface IInterpetedMember<T> : IInterpetedMember
+    public interface IInterpetedMember<out T> : IInterpetedMember
     {
-        T Value { get; set; }
+        T Value { get; }
     }
 
     public static class InterpetedMember{

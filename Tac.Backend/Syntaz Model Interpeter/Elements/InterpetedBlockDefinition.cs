@@ -7,13 +7,13 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedBlockDefinition :  IInterpetedOperation<IInterpedEmpty>
     {
-        public void Init(IInterpeted[] body, IInterpetedScopeTemplate scope)
+        public void Init(IInterpetedOperation<object>[] body, IInterpetedScopeTemplate scope)
         {
             Body = body ?? throw new ArgumentNullException(nameof(body));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public IInterpeted[] Body { get; private set; } 
+        public IInterpetedOperation<object>[] Body { get; private set; } 
         public IInterpetedScopeTemplate Scope { get; private set; }
 
         public IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Interpet(InterpetedContext interpetedContext)
@@ -30,11 +30,6 @@ namespace Tac.Syntaz_Model_Interpeter
             }
 
             return InterpetedResult.Create();
-        }
-        
-        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
-        {
-            Interpet(interpetedContext);
         }
     }
 }

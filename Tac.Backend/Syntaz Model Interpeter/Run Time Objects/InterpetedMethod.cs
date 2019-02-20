@@ -17,7 +17,7 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public InterpetedMethod(
             InterpetedMemberDefinition<TIn> parameterDefinition,
-            IInterpeted[] body, 
+            IInterpetedOperation<object>[] body, 
             InterpetedContext context,
             IInterpetedScopeTemplate scope) 
         {
@@ -28,7 +28,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         private InterpetedMemberDefinition<TIn> ParameterDefinition { get; }
-        private IInterpeted[] Body { get; }
+        private IInterpetedOperation<object>[] Body { get; }
         private InterpetedContext Context { get; }
         private IInterpetedScopeTemplate Scope { get; }
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
@@ -43,7 +43,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var line in Body)
             {
-                var result =  line.Cast<IInterpetedOperation>().Interpet(scope);
+                var result =  line.Interpet(scope);
                 if (result.IsReturn) {
                     return result;
                 }

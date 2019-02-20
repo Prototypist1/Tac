@@ -8,14 +8,14 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedModuleDefinition : IInterpetedOperation<IInterpetedScope>
     {
-        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedOperation> staticInitialization)
+        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedOperation<object>> staticInitialization)
         {
             ScopeTemplate = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
         }
         
         public IInterpetedScopeTemplate ScopeTemplate { get; private set; }
-        public IEnumerable<IInterpetedOperation> StaticInitialization { get; private set; }
+        public IEnumerable<IInterpetedOperation<object>> StaticInitialization { get; private set; }
 
         public IInterpetedResult<IInterpetedMember<IInterpetedScope>> Interpet(InterpetedContext interpetedContext)
         {
@@ -34,11 +34,6 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpetedScope GetDefault(InterpetedContext interpetedContext)
         {
             return InterpetedStaticScope.Make();
-        }
-
-        void IInterpetedOperation.Interpet(InterpetedContext interpetedContext)
-        {
-            Interpet(interpetedContext);
         }
     }
 }
