@@ -24,14 +24,21 @@ namespace Tac.Backend.Test
 
             var res = module.Interpet(InterpetedContext.Root());
 
-            var scope = res.Get<IInterpetedScope>();
-            var method = scope.GetMember(new NameKey("create-accululator")).Value.Cast<InterpetedMethod>();
+            Assert.False(res.IsReturn(out var _, out var value));
+
+            var scope = value.Value.Cast<IInterpetedScope>();
+            var method = scope.GetMember<IInterpetedMethod<BoxedDouble, IInterpetedMethod<BoxedDouble,BoxedDouble>>>(new NameKey("create-accululator")).Value;
             
-            var innerMethod = method.Invoke(new InterpetedMember<double>(1)).Get<InterpetedMethod>();
-            
-            Assert.Equal(3, innerMethod.Invoke(new InterpetedMember<double>(2)).Get<InterpetedMember<double>>().d);
-            Assert.Equal(6, innerMethod.Invoke(new InterpetedMember<double>(3)).Get<InterpetedMember<double>>().d);
-            Assert.Equal(10, innerMethod.Invoke(new InterpetedMember<double>(4)).Get<InterpetedMember<double>>().d);
+            Assert.False( method.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(1))).IsReturn(out var _, out var innerMethod));
+
+            Assert.False(innerMethod.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(2))).IsReturn(out var _, out var res1));
+            Assert.Equal(3, res1.Value.Value);
+
+            Assert.False(innerMethod.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(3))).IsReturn(out var _, out var res2));
+            Assert.Equal(6, res2.Value.Value);
+
+            Assert.False(innerMethod.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(2))).IsReturn(out var _, out var res3));
+            Assert.Equal(10, res3.Value.Value);
         }
     }
 }

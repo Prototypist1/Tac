@@ -323,16 +323,24 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<object> ReturnOperation(IReturnOperation co)
         {
+            var method = typeof(Definitions).GetMethod(nameof(ReturnOperation));
+            var generic = method.MakeGenericMethod(MapType(co.Result.Returns()));
+            return generic.Invoke(this,new object[] { co }).Cast<IInterpetedOperation<object>>();
+        }
+
+        private InterpetedReturnOperation<T> ReturnOperation<T>(IReturnOperation co)
+            where T: class
+        {
             if (backing.TryGetValue(co, out var res))
             {
-                return res;
+                return res.Cast<InterpetedReturnOperation<T>>();
             }
             else
             {
-                var op = new InterpetedReturnOperation<object>();
+                var op = new InterpetedReturnOperation<T>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Result.Convert(this));
+                    co.Result.Convert(this).Cast<IInterpetedOperation<T>>());
                 return op;
             }
         }
@@ -386,5 +394,64 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         }
 
         public IInterpetedOperation<object> InternalMethodDefinition(IInternalMethodDefinition codeElement) => MethodDefinition(codeElement);
+
+
+
+        private static Type MapType(IVerifiableType verifiableType)
+        {
+            if (verifiableType is INumberType) {
+                return typeof(BoxedDouble);
+            }
+            if (verifiableType is IBooleanType)
+            {
+                return typeof(BoxedBool);
+            }
+            if (verifiableType is IStringType)
+            {
+                return typeof(string);
+            }
+            if (verifiableType is IBlockType)
+            {
+                return typeof(RunTimeEmpty);
+            }
+            if (verifiableType is IEmptyType)
+            {
+                return typeof(RunTimeEmpty);
+            }
+            if (verifiableType is IAnyType)
+            {
+                return typeof(InterpetedInstanceScope);
+            }
+            if (verifiableType is IModuleType)
+            {
+                return typeof(InterpetedInstanceScope);
+            }
+            if (verifiableType is IMethodType method)
+            {
+                return typeof(IInterpetedMethod<,>).MakeGenericType(
+                    MapType(method.InputType),
+                    MapType(method.OutputType)
+                    );
+            }
+            if (verifiableType is IGenericMethodType)
+            {
+                throw new NotImplementedException();
+            }
+            if (verifiableType is IImplementationType implementation)
+            {
+                return typeof(IInterpetedImplementation<,,>).MakeGenericType(
+                    MapType(implementation.ContextType),
+                    MapType(implementation.InputType),
+                    MapType(implementation.OutputType)
+                    );
+            }
+            if (verifiableType is IGenericImplementationType)
+            {
+                throw new NotImplementedException();
+            }
+
+            throw new NotImplementedException();
+        }
+
     }
 }

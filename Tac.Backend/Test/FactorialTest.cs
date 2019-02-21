@@ -34,10 +34,15 @@ namespace Tac.Backend.Test
 
             var res = module.Interpet(InterpetedContext.Root());
 
-            var scope = res.Get<IInterpetedScope>();
-            var method = scope.GetMember(new NameKey("fac")).Value.Cast<InterpetedMethod>();
- 
-            return method.Invoke(new RuntimeNumber(d)).Get<RuntimeNumber>().d;
+            Assert.False(res.IsReturn(out var _, out var value));
+
+            var scope = value.Value.Cast<IInterpetedScope>();
+            // no way this cast works...
+            var method = scope.GetMember<InterpetedMethod<BoxedDouble,BoxedDouble>>(new NameKey("fac"));
+
+            Assert.False(method.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(d))).IsReturn(out var _, out var methodReturn));
+
+            return methodReturn.Value.Value;
         }
 
     }

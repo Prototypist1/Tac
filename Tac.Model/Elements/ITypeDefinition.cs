@@ -20,6 +20,7 @@ namespace Tac.Model.Elements
 
     public interface IAnyType : IVerifiableType { }
     public interface IEmptyType : IVerifiableType { }
+    
     public interface IObjectType : IVerifiableType { }
     public interface IModuleType : IVerifiableType { }
 
