@@ -23,13 +23,22 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<object> MemberDefinition(IMemberDefinition member)
         {
+            var method = typeof(Definitions).GetMethod(nameof(MemberDefinition));
+            var generic = method.MakeGenericMethod(MapType(member.Type));
+            return generic.Invoke(this, new object[] { member }).Cast<IInterpetedOperation<object>>();
+
+        }
+
+        private IInterpetedOperation<object> MemberDefinition<T>(IMemberDefinition member)
+            where T: class
+        {
             if (backing.TryGetValue(member, out var res))
             {
                 return res;
             }
             else
             {
-                var interpetedMemberDefinition = new InterpetedMemberDefinition<object>();
+                var interpetedMemberDefinition = new InterpetedMemberDefinition<T>();
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition.Init(member.Key);
             }
@@ -53,17 +62,26 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<object> AssignOperation(IAssignOperation co)
         {
+            var method = typeof(Definitions).GetMethod(nameof(AssignOperation));
+            var generic = method.MakeGenericMethod(MapType(co.Right.Returns()));
+            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<object>>();
+
+        }
+
+        private IInterpetedOperation<object> AssignOperation<T>(IAssignOperation co)
+            where T: class
+        {
             if (backing.TryGetValue(co, out var res))
             {
                 return res;
             }
             else
             {
-                var op = new InterpetedAssignOperation<object>();
+                var op = new InterpetedAssignOperation<T>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<T>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<T>>());
                 return op;
             }
         }
@@ -151,18 +169,30 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<object> ImplementationDefinition(IImplementationDefinition codeElement)
         {
+            var method = typeof(Definitions).GetMethod(nameof(ImplementationDefinition));
+            
+            var generic = method.MakeGenericMethod(MapType(codeElement.ContextType), MapType(codeElement.InputType), MapType(codeElement.OutputType));
+            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<object>>();
+
+        }
+
+        private IInterpetedOperation<object> ImplementationDefinition<TContext,TIn,TOut>(IImplementationDefinition codeElement)
+            where TContext : class
+            where TIn      : class
+            where TOut     : class
+        {
             if (backing.TryGetValue(codeElement, out var res))
             {
                 return res;
             }
             else
             {
-                var op = new InterpetedImplementationDefinition<object, object, object>();
+                var op = new InterpetedImplementationDefinition<TContext, TIn, TOut>();
                 backing.Add(codeElement, op);
                 op.Init(
-                    MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<object>>(),
-                    MemberDefinition(codeElement.ContextDefinition).Cast<InterpetedMemberDefinition<object>>(),
-                    codeElement.MethodBody.Select(x=>x.Convert(this)).ToArray(),
+                    MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
+                    MemberDefinition(codeElement.ContextDefinition).Cast<InterpetedMemberDefinition<TContext>>(),
+                    codeElement.MethodBody.Select(x => x.Convert(this)).ToArray(),
                     new InterpetedScopeTemplate(codeElement.Scope));
                 return op;
             }
@@ -170,17 +200,28 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<object> LastCallOperation(ILastCallOperation co)
         {
+            var method = typeof(Definitions).GetMethod(nameof(LastCallOperation));
+            var methodType = co.Left.Returns().Cast<IMethodType>();
+            var generic = method.MakeGenericMethod(MapType(methodType.InputType), MapType(methodType.OutputType));
+            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<object>>();
+
+        }
+
+        private IInterpetedOperation<object> LastCallOperation<TIn,TOut>(ILastCallOperation co)
+            where TIn:class
+            where TOut: class
+        {
             if (backing.TryGetValue(co, out var res))
             {
                 return res;
             }
             else
             {
-                var op = new InterpetedLastCallOperation<object,object>();
+                var op = new InterpetedLastCallOperation<TIn, TOut>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IInterpetedCallable<object,object>>>(),
-                    co.Right.Convert(this));
+                    co.Left.Convert(this).Cast<IInterpetedOperation<IInterpetedCallable<TIn, TOut>>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<TIn>>());
                 return op;
             }
         }
@@ -204,21 +245,14 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         
         public IInterpetedOperation<object> MemberReferance(IMemberReferance codeElement)
         {
-            if (backing.TryGetValue(codeElement, out var res))
-            {
-                return res;
-            }
-            else
-            {
-                var op = new InterpetedMemberReferance<object>();
-                backing.Add(codeElement, op);
-                op.Init(
-                    MemberDefinition(codeElement.MemberDefinition).Cast<InterpetedMemberDefinition<object>>());
-                return op;
-            }
+            var method = typeof(Definitions).GetMethod(nameof(MemberReferance));
+            var generic = method.MakeGenericMethod(MapType(codeElement.MemberDefinition.Type));
+            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<object>>();
+
         }
 
-        public IInterpetedOperation<object> MethodDefinition(IInternalMethodDefinition codeElement)
+        private IInterpetedOperation<object> MemberReferance<T>(IMemberReferance codeElement)
+            where T:class
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -226,10 +260,36 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             else
             {
-                var op = new InterpetedMethodDefinition<object,object>();
+                var op = new InterpetedMemberReferance<T>();
                 backing.Add(codeElement, op);
                 op.Init(
-                    MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<object>>(),
+                    MemberDefinition(codeElement.MemberDefinition).Cast<InterpetedMemberDefinition<T>>());
+                return op;
+            }
+        }
+
+        public IInterpetedOperation<object> MethodDefinition(IInternalMethodDefinition codeElement)
+        {
+            var method = typeof(Definitions).GetMethod(nameof(MethodDefinition));
+            var generic = method.MakeGenericMethod(MapType(codeElement.InputType), MapType(codeElement.OutputType));
+            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<object>>();
+
+        }
+
+        private IInterpetedOperation<object> MethodDefinition<TIn,TOut>(IInternalMethodDefinition codeElement)
+            where TIn: class
+            where TOut: class
+        {
+            if (backing.TryGetValue(codeElement, out var res))
+            {
+                return res;
+            }
+            else
+            {
+                var op = new InterpetedMethodDefinition<TIn, TOut>();
+                backing.Add(codeElement, op);
+                op.Init(
+                    MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
                     new InterpetedScopeTemplate(codeElement.Scope));
                 return op;
@@ -272,17 +332,27 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<object> NextCallOperation(INextCallOperation co)
         {
+            var method = typeof(Definitions).GetMethod(nameof(NextCallOperation));
+            var methodType = co.Right.Returns().Cast<IMethodType>();
+            var generic = method.MakeGenericMethod(MapType( methodType.InputType), MapType(methodType.OutputType));
+            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<object>>();
+        }
+
+        private IInterpetedOperation<object> NextCallOperation<TIn,TOut>(INextCallOperation co)
+            where TIn: class
+            where TOut : class
+        {
             if (backing.TryGetValue(co, out var res))
             {
                 return res;
             }
             else
             {
-                var op = new InterpetedNextCallOperation<object,object>();
+                var op = new InterpetedNextCallOperation<TIn, TOut>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpetedCallable<object,object>>>());
+                    co.Left.Convert(this).Cast<IInterpetedOperation<TIn>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpetedCallable<TIn, TOut>>>());
                 return op;
             }
         }
@@ -328,12 +398,12 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             return generic.Invoke(this,new object[] { co }).Cast<IInterpetedOperation<object>>();
         }
 
-        private InterpetedReturnOperation<T> ReturnOperation<T>(IReturnOperation co)
+        private IInterpetedOperation<object> ReturnOperation<T>(IReturnOperation co)
             where T: class
         {
             if (backing.TryGetValue(co, out var res))
             {
-                return res.Cast<InterpetedReturnOperation<T>>();
+                return res;
             }
             else
             {

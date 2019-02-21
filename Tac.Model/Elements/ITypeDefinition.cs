@@ -32,6 +32,7 @@ namespace Tac.Model.Elements
     public interface IGenericMethodType : IGenericType
     {
     }
+    // TODO an implementation type is a method type!
     public interface IImplementationType : IVerifiableType {
         IVerifiableType InputType { get; }
         IVerifiableType OutputType { get; }
