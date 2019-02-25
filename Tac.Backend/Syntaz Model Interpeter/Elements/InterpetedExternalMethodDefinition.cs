@@ -8,19 +8,19 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
 {
     internal class InterpetedExternalMethodDefinition<TIn,TOut> : IInterpetedOperation<IInterpetedMethod<TIn,TOut>>
+        where TOut : class, IInterpetedAnyType
+        where TIn : class, IInterpetedAnyType
     {
-        public void Init(InterpetedMemberDefinition<TIn> parameterDefinition, Func<TIn, TOut> backing)
+        public void Init(Func<TIn, TOut> backing)
         {
-            ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
         public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn, TOut>>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedMember<IInterpetedMethod<TIn, TOut>>( new InterpetedExternalMethod<TIn, TOut>(ParameterDefinition,Backing)));
+            return InterpetedResult.Create(new InterpetedMember<IInterpetedMethod<TIn, TOut>>( new InterpetedExternalMethod<TIn, TOut>(Backing)));
         }
 
-        public InterpetedMemberDefinition<TIn> ParameterDefinition { get; private set; }
         public Func<TIn, TOut> Backing { get; private set; }
 
     }

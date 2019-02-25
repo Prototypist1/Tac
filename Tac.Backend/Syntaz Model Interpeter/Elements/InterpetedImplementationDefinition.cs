@@ -5,6 +5,9 @@ using Tac.Model;
 namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedImplementation<TIn,TMethodIn,TMethodOut>>
+        where TIn : class, IInterpetedAnyType
+        where TMethodIn : class, IInterpetedAnyType
+        where TMethodOut : class, IInterpetedAnyType
     {
         public void Init(
             InterpetedMemberDefinition<TMethodIn> parameterDefinition, 

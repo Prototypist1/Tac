@@ -31,12 +31,18 @@ namespace Tac.Backend.Test
 
             var res = testCase.Module.Convert(conversionContext).Interpet(InterpetedContext.Root());
 
-            var method = res.Get<IInterpetedScope>().GetMember(new NameKey("pairify")).Value.Cast<InterpetedMethod>();
+            Assert.False(res.IsReturn(out var _, out var scope));
 
-            var scope = method.Invoke(new InterpetedMember<double>(d)).Get<InterpetedInstanceScope>();
+            
 
-            Assert.Equal(d,scope.GetMember(new NameKey("x")).Value.Cast<InterpetedMember<double>>().Value);
-            Assert.Equal(d, scope.GetMember(new NameKey("y")).Value.Cast<InterpetedMember<double>>().Value);
+            var method = scope.Cast<IInterpetedScope>().GetMember<InterpetedMethod<BoxedDouble,IInterpetedScope>>(new NameKey("pairify"));
+
+
+            Assert.False( method.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(d))).IsReturn(out var _, out var methodResult));
+
+
+            Assert.Equal(d, methodResult.Value.GetMember< BoxedDouble>(new NameKey("x")).Value.Value);
+            Assert.Equal(d, methodResult.Value.GetMember< BoxedDouble>(new NameKey("y")).Value.Value);
         }
     }
 }

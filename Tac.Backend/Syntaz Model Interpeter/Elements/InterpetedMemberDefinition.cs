@@ -8,6 +8,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
 
     internal class InterpetedMemberDefinition<T>: IInterpetedOperation<T>
+        where T: IInterpetedAnyType
     {
         public InterpetedMemberDefinition<T> Init(IKey key)
         {

@@ -9,6 +9,7 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
     internal class InterpetedMemberReferance<T> : IInterpetedOperation<T>, IInterpetedMemberReferance
+        where T : class, IInterpetedAnyType
     {
         public InterpetedMemberReferance<T> Init(InterpetedMemberDefinition<T> memberDefinition)
         {

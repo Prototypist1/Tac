@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Tac.Backend.Syntaz_Model_Interpeter.Elements;
 using Tac.Model;
@@ -13,24 +14,23 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Backend.Syntaz_Model_Interpeter
 {
 
-    internal class Definitions: IOpenBoxesContext<IInterpetedOperation<object>>
+    internal class Definitions: IOpenBoxesContext<IInterpetedOperation<IInterpetedAnyType>>
     {
-        private readonly Dictionary<object, IInterpetedOperation<object>> backing = new Dictionary<object, IInterpetedOperation<object>>();
+        private readonly Dictionary<object, IInterpetedOperation<IInterpetedAnyType>> backing = new Dictionary<object, IInterpetedOperation<IInterpetedAnyType>>();
 
         public Definitions()
         {
         }
 
-        public IInterpetedOperation<object> MemberDefinition(IMemberDefinition member)
+        public IInterpetedOperation<IInterpetedAnyType> MemberDefinition(IMemberDefinition member)
         {
-            var method = typeof(Definitions).GetMethod(nameof(MemberDefinition));
-            var generic = method.MakeGenericMethod(MapType(member.Type));
-            return generic.Invoke(this, new object[] { member }).Cast<IInterpetedOperation<object>>();
+            var method = typeof(Definitions).GetMethod(nameof(MemberDefinition),1,new Type[] { MapType(member.Type) });
+            return method.Invoke(this, new object[] { member }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
 
-        private IInterpetedOperation<object> MemberDefinition<T>(IMemberDefinition member)
-            where T: class
+        private IInterpetedOperation<IInterpetedAnyType> MemberDefinition<T>(IMemberDefinition member)
+            where T:class, IInterpetedAnyType
         {
             if (backing.TryGetValue(member, out var res))
             {
@@ -44,7 +44,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> AddOperation(IAddOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> AddOperation(IAddOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -60,16 +60,14 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> AssignOperation(IAssignOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> AssignOperation(IAssignOperation co)
         {
-            var method = typeof(Definitions).GetMethod(nameof(AssignOperation));
-            var generic = method.MakeGenericMethod(MapType(co.Right.Returns()));
-            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<object>>();
-
+            var method = GetMethod(new Type[] { MapType(co.Right.Returns()) }, nameof(AssignOperation));
+            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
-        private IInterpetedOperation<object> AssignOperation<T>(IAssignOperation co)
-            where T: class
+        private IInterpetedOperation<IInterpetedAnyType> AssignOperation<T>(IAssignOperation co)
+            where T : class, IInterpetedAnyType
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -86,7 +84,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> BlockDefinition(IBlockDefinition codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> BlockDefinition(IBlockDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -103,7 +101,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> ConstantNumber(IConstantNumber codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> ConstantNumber(IConstantNumber codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -118,7 +116,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> ElseOperation(IElseOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> ElseOperation(IElseOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -135,7 +133,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> GenericTypeDefinition(IGenericInterfaceDefinition codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> GenericTypeDefinition(IGenericInterfaceDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -150,7 +148,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> IfTrueOperation(IIfOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> IfTrueOperation(IIfOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -167,19 +165,19 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> ImplementationDefinition(IImplementationDefinition codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition(IImplementationDefinition codeElement)
         {
             var method = typeof(Definitions).GetMethod(nameof(ImplementationDefinition));
             
             var generic = method.MakeGenericMethod(MapType(codeElement.ContextType), MapType(codeElement.InputType), MapType(codeElement.OutputType));
-            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<object>>();
+            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
 
-        private IInterpetedOperation<object> ImplementationDefinition<TContext,TIn,TOut>(IImplementationDefinition codeElement)
-            where TContext : class
-            where TIn      : class
-            where TOut     : class
+        private IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition<TContext,TIn,TOut>(IImplementationDefinition codeElement)
+            where TContext : class, IInterpetedAnyType
+            where TIn      : class, IInterpetedAnyType
+            where TOut     : class, IInterpetedAnyType
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -198,18 +196,17 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> LastCallOperation(ILastCallOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> LastCallOperation(ILastCallOperation co)
         {
             var method = typeof(Definitions).GetMethod(nameof(LastCallOperation));
             var methodType = co.Left.Returns().Cast<IMethodType>();
             var generic = method.MakeGenericMethod(MapType(methodType.InputType), MapType(methodType.OutputType));
-            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<object>>();
-
+            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
-        private IInterpetedOperation<object> LastCallOperation<TIn,TOut>(ILastCallOperation co)
-            where TIn:class
-            where TOut: class
+        private IInterpetedOperation<IInterpetedAnyType> LastCallOperation<TIn,TOut>(ILastCallOperation co)
+            where TIn:class, IInterpetedAnyType
+            where TOut: class, IInterpetedAnyType
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -226,7 +223,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> LessThanOperation(ILessThanOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> LessThanOperation(ILessThanOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -243,16 +240,16 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
         
-        public IInterpetedOperation<object> MemberReferance(IMemberReferance codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> MemberReferance(IMemberReferance codeElement)
         {
             var method = typeof(Definitions).GetMethod(nameof(MemberReferance));
             var generic = method.MakeGenericMethod(MapType(codeElement.MemberDefinition.Type));
-            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<object>>();
+            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
 
-        private IInterpetedOperation<object> MemberReferance<T>(IMemberReferance codeElement)
-            where T:class
+        private IInterpetedOperation<IInterpetedAnyType> MemberReferance<T>(IMemberReferance codeElement)
+            where T:class, IInterpetedAnyType
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -268,17 +265,16 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> MethodDefinition(IInternalMethodDefinition codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> MethodDefinition(IInternalMethodDefinition codeElement)
         {
-            var method = typeof(Definitions).GetMethod(nameof(MethodDefinition));
-            var generic = method.MakeGenericMethod(MapType(codeElement.InputType), MapType(codeElement.OutputType));
-            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<object>>();
+            var method = typeof(Definitions).GetMethod(nameof(MethodDefinition),new Type[] { MapType(codeElement.InputType), MapType(codeElement.OutputType) });
+            return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
 
-        private IInterpetedOperation<object> MethodDefinition<TIn,TOut>(IInternalMethodDefinition codeElement)
-            where TIn: class
-            where TOut: class
+        private IInterpetedOperation<IInterpetedAnyType> MethodDefinition<TIn,TOut>(IInternalMethodDefinition codeElement)
+            where TIn: class, IInterpetedAnyType
+            where TOut: class, IInterpetedAnyType
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -296,7 +292,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> ModuleDefinition(IModuleDefinition codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> ModuleDefinition(IModuleDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -313,7 +309,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> MultiplyOperation(IMultiplyOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> MultiplyOperation(IMultiplyOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -330,17 +326,17 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> NextCallOperation(INextCallOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> NextCallOperation(INextCallOperation co)
         {
             var method = typeof(Definitions).GetMethod(nameof(NextCallOperation));
             var methodType = co.Right.Returns().Cast<IMethodType>();
             var generic = method.MakeGenericMethod(MapType( methodType.InputType), MapType(methodType.OutputType));
-            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<object>>();
+            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
-        private IInterpetedOperation<object> NextCallOperation<TIn,TOut>(INextCallOperation co)
-            where TIn: class
-            where TOut : class
+        private IInterpetedOperation<IInterpetedAnyType> NextCallOperation<TIn,TOut>(INextCallOperation co)
+            where TIn: class, IInterpetedAnyType
+            where TOut : class, IInterpetedAnyType
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -357,7 +353,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> ObjectDefinition(IObjectDefiniton codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> ObjectDefinition(IObjectDefiniton codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -368,13 +364,13 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedObjectDefinition();
                 backing.Add(codeElement, op);
                 op.Init(new InterpetedScopeTemplate(codeElement.Scope),
-                    codeElement.Assignments.Select(x => AssignOperation(x).Cast<IInterpetedAssignOperation<object>>()).ToArray()
+                    codeElement.Assignments.Select(x => AssignOperation(x).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>()).ToArray()
                     );
                 return op;
             }
         }
 
-        public IInterpetedOperation<object> PathOperation(IPathOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> PathOperation(IPathOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -391,15 +387,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> ReturnOperation(IReturnOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> ReturnOperation(IReturnOperation co)
         {
             var method = typeof(Definitions).GetMethod(nameof(ReturnOperation));
             var generic = method.MakeGenericMethod(MapType(co.Result.Returns()));
-            return generic.Invoke(this,new object[] { co }).Cast<IInterpetedOperation<object>>();
+            return generic.Invoke(this,new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
-        private IInterpetedOperation<object> ReturnOperation<T>(IReturnOperation co)
-            where T: class
+        private IInterpetedOperation<IInterpetedAnyType> ReturnOperation<T>(IReturnOperation co)
+            where T: class, IInterpetedAnyType
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -415,7 +411,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> SubtractOperation(ISubtractOperation co)
+        public IInterpetedOperation<IInterpetedAnyType> SubtractOperation(ISubtractOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -432,7 +428,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> TypeDefinition(IInterfaceType codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> TypeDefinition(IInterfaceType codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -447,8 +443,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-
-        public IInterpetedOperation<object> TypeReferance(ITypeReferance codeElement)
+        public IInterpetedOperation<IInterpetedAnyType> TypeReferance(ITypeReferance codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -463,13 +458,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<object> InternalMethodDefinition(IInternalMethodDefinition codeElement) => MethodDefinition(codeElement);
+        public IInterpetedOperation<IInterpetedAnyType> InternalMethodDefinition(IInternalMethodDefinition codeElement) => MethodDefinition(codeElement);
 
+        #region Help
 
 
         private static Type MapType(IVerifiableType verifiableType)
         {
-            if (verifiableType is INumberType) {
+            if (verifiableType is INumberType)
+            {
                 return typeof(BoxedDouble);
             }
             if (verifiableType is IBooleanType)
@@ -478,7 +475,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             if (verifiableType is IStringType)
             {
-                return typeof(string);
+                return typeof(BoxedString);
             }
             if (verifiableType is IBlockType)
             {
@@ -519,9 +516,28 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 throw new NotImplementedException();
             }
+            if (verifiableType is IMemberReferance memberReferance)
+            {
+                return MapType(memberReferance.MemberDefinition.Type);
+            }
+            if (verifiableType is ITypeReferance typeReferance)
+            {
+                return MapType(typeReferance.TypeDefinition);
+            }
 
             throw new NotImplementedException();
         }
+
+        private static System.Reflection.MethodInfo GetMethod(Type[] types, string name)
+        {
+            var method = typeof(Definitions).GetMethods(BindingFlags.NonPublic|BindingFlags.Instance).Single(x => 
+            x.Name == name && x.IsGenericMethod);
+            return method.MakeGenericMethod(types);
+        }
+
+
+        #endregion
+
 
     }
 }

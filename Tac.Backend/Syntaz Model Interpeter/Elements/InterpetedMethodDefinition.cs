@@ -6,6 +6,8 @@ namespace Tac.Syntaz_Model_Interpeter
 {
 
     internal class InterpetedMethodDefinition<TIn, TOut> : IInterpetedOperation<IInterpetedMethod<TIn, TOut>>
+        where TOut : class, IInterpetedAnyType
+        where TIn : class, IInterpetedAnyType
     {
         public void Init(
             InterpetedMemberDefinition<TIn> parameterDefinition, 

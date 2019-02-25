@@ -4,15 +4,6 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal class BoxedDouble {
-        public BoxedDouble(double value)
-        {
-            Value = value;
-        }
-
-        public double Value { get; }
-    }
-
     internal class InterpetedAddOperation : InterpetedBinaryOperation<BoxedDouble, BoxedDouble, BoxedDouble>
     {
         public override IInterpetedResult<IInterpetedMember<BoxedDouble>> Interpet(InterpetedContext interpetedContext)

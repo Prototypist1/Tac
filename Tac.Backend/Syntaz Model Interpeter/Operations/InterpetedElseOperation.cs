@@ -4,14 +4,6 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class BoxedBool {
-        public BoxedBool(bool value)
-        {
-            Value = value;
-        }
-
-        public bool Value { get; }
-    }
 
     internal class InterpetedElseOperation : InterpetedBinaryOperation<BoxedBool, IInterpedEmpty, BoxedBool>
     {

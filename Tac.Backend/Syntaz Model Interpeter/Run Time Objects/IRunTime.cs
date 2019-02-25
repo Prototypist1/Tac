@@ -8,7 +8,7 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
     {
     }
 
-    public interface IInterpetedData: IInterpeted
+    public interface IInterpetedData: IInterpeted, IInterpetedAnyType
     {
     }
 }

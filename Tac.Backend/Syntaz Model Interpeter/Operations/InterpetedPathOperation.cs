@@ -4,9 +4,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedPathOperation : InterpetedBinaryOperation<IInterpetedScope, IInterpetedMemberReferance, object>
+    internal class InterpetedPathOperation : InterpetedBinaryOperation<IInterpetedScope, IInterpetedMemberReferance, IInterpetedAnyType>
     {
-        public override IInterpetedResult<IInterpetedMember<object>> Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedMember<IInterpetedAnyType>> Interpet(InterpetedContext interpetedContext)
         {
             var leftResult = Left.Interpet(interpetedContext);
 
@@ -22,7 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<IInterpetedData>>(rightReturned);
             }
             
-            return InterpetedResult.Create(leftValue.Value.GetMember<object>(rightValue.Value.Key));
+            return InterpetedResult.Create(leftValue.Value.GetMember<IInterpetedAnyType>(rightValue.Value.Key));
         }
     }
 }

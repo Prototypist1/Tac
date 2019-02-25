@@ -6,16 +6,14 @@ namespace Tac.Syntaz_Model_Interpeter
 {
 
     internal class InterpetedExternalMethod<TIn, TOut> : IInterpetedMethod<TIn,TOut>
+        where TIn: class, IInterpetedAnyType
     {
         public InterpetedExternalMethod(
-            InterpetedMemberDefinition<TIn> parameterDefinition,
             Func<TIn, TOut> backing)
         {
-            ParameterDefinition = parameterDefinition ?? throw new System.ArgumentNullException(nameof(parameterDefinition));
             Backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
-        private InterpetedMemberDefinition<TIn> ParameterDefinition { get; }
         private Func<TIn, TOut> Backing { get; }
         
         public IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input)

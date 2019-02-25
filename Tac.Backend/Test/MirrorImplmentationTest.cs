@@ -23,22 +23,33 @@ namespace Tac.Backend.Test
 
             var res = module.Interpet(InterpetedContext.Root());
 
-            var scope = res.Get<IInterpetedScope>();
-            var implementation = scope.GetMember(new NameKey("mirror")).Value.Cast<InterpetedImplementation>();
+            Assert.False(res.IsReturn(out var _, out var value));
+
+            var scope = value.Value.Cast<IInterpetedScope>();
+            var implementation = scope.GetMember<InterpetedImplementation<IInterpetedScope,IInterpedEmpty, IInterpedEmpty>>(new NameKey("mirror"));
 
             var context = InterpetedInstanceScope.Make(
-                (new NameKey("x"), new InterpetedMember(new InterpetedMember<double>(5))),
-                (new NameKey("y"), new InterpetedMember(new InterpetedMember<double>(7))));
+                (new NameKey("x"), new InterpetedMember<double>(5)),
+                (new NameKey("y"), new InterpetedMember<double>(7)));
 
-            implementation.Invoke(context).Get<InterpetedMethod>().Invoke(new RunTimeEmpty());
+            {
+                Assert.False(implementation.Value.Invoke(new InterpetedMember<IInterpetedScope>(context)).IsReturn(out var _, out var method));
 
-            Assert.Equal(7,context.GetMember(new NameKey("x")).Value.Cast<InterpetedMember<double>>().Value);
-            Assert.Equal(5, context.GetMember(new NameKey("y")).Value.Cast<InterpetedMember<double>>().Value);
-            
-            implementation.Invoke(context).Get<InterpetedMethod>().Invoke(new RunTimeEmpty());
+                method.Value.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+            }
 
-            Assert.Equal(5, context.GetMember(new NameKey("x")).Value.Cast<InterpetedMember<double>>().Value);
-            Assert.Equal(7, context.GetMember(new NameKey("y")).Value.Cast<InterpetedMember<double>>().Value);
+            Assert.Equal(7,context.GetMember<double>(new NameKey("x")).Value.Cast<InterpetedMember<double>>().Value);
+            Assert.Equal(5, context.GetMember<double>(new NameKey("y")).Value.Cast<InterpetedMember<double>>().Value);
+
+            {
+                Assert.False(implementation.Value.Invoke(new InterpetedMember<IInterpetedScope>(context)).IsReturn(out var _, out var method));
+
+                method.Value.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+            }
+
+            Assert.Equal(5, context.GetMember<double>(new NameKey("x")).Value.Cast<InterpetedMember<double>>().Value);
+            Assert.Equal(7, context.GetMember<double>(new NameKey("y")).Value.Cast<InterpetedMember<double>>().Value);
+
         }
     }
 }

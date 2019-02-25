@@ -19,11 +19,10 @@ namespace Tac.Backend.Test
             var testCase = new PointObject();
             var conversionContext = new Definitions();
             
-            var res = testCase.Module.Convert(conversionContext).Interpet(InterpetedContext.Root());
-            
-            var scope = res.Get<IInterpetedScope>().GetMember(new NameKey("point")).Value.Cast<InterpetedInstanceScope>();
+            Assert.False( testCase.Module.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
 
-            
+            var scope = res.Value.Cast<IInterpetedScope>().GetMember<InterpetedInstanceScope>(new NameKey("point")).Value;
+
             Assert.True(scope.ContainsMember(new NameKey("x")));
             Assert.True(scope.ContainsMember(new NameKey("y")));
         }
