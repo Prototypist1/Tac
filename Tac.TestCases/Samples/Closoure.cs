@@ -14,7 +14,7 @@ namespace Tac.Tests.Samples
             var x = MemberDefinition.CreateAndBuild(xKey, TypeReference.CreateAndBuild(new NumberType()), false);
 
             var yKey = new NameKey("y");
-            var y = MemberDefinition.CreateAndBuild(yKey, TypeReference.CreateAndBuild(new NumberType()), false);
+            var y = MemberDefinition.CreateAndBuild(yKey, TypeReference.CreateAndBuild(new EmptyType()), false);
 
             var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(x ,false) },
                 new List<Scope.TypeData>(),

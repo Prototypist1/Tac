@@ -31,7 +31,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var rightResult = Right.Interpet(interpetedContext);
 
-            if (rightResult.IsReturn(out var rightReturned, out var rightValue))
+            if (rightResult.IsReturn(out var rightReturned, out var _))
             {
                 return InterpetedResult.Return<IInterpetedMember<BoxedBool>>(rightReturned);
             }

@@ -10,7 +10,7 @@ namespace Tac.Syntaz_Model_Interpeter
     {
     }
 
-    internal class InterpetedImplementation<TIn, TMethodIn, TMethodOut> : IInterpetedImplementation<TIn, TMethodIn, TMethodOut>
+    internal class InterpetedImplementation<TIn, TMethodIn, TMethodOut> : RunTimeAny, IInterpetedImplementation<TIn, TMethodIn, TMethodOut>
         where TIn : class, IInterpetedAnyType
         where TMethodIn : class, IInterpetedAnyType
         where TMethodOut : class, IInterpetedAnyType

@@ -29,8 +29,8 @@ namespace Tac.Model.Instantiated
         public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
         public bool IsEntryPoint { get => buildableIsEntryPoint.Get(); }
 
-        IVerifiableType IMethodType.InputType => InputType;
-        IVerifiableType IMethodType.OutputType => OutputType;
+        IVerifiableType IMethodType.InputType => InputType.TypeDefinition;
+        IVerifiableType IMethodType.OutputType => OutputType.TypeDefinition;
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {

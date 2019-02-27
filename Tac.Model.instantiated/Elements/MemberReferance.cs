@@ -20,7 +20,7 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-            return this;
+            return MemberDefinition.Type.TypeDefinition;
         }
 
         public void Build(IMemberDefinition memberDefinition)

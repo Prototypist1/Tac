@@ -8,12 +8,12 @@ namespace Tac.Syntaz_Model_Interpeter
     {
     }
 
-    public interface IInterpetedCallable<TIn, TOut> : IInterpetedData
+    public interface IInterpetedCallable<TIn, TOut> : IInterpetedAnyType
     {
         IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input);
     }
 
-    internal class InterpetedMethod<TIn, TOut> : IInterpetedMethod<TIn, TOut>
+    internal class InterpetedMethod<TIn, TOut> : RunTimeAny, IInterpetedMethod<TIn, TOut>
         where TIn : class, IInterpetedAnyType
         where TOut : class, IInterpetedAnyType
     {
@@ -39,8 +39,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var res = Scope.Create();
 
-
-            if (!res.TryAddMember(ParameterDefinition.Key, input)) {
+            if (!res.GetMember<TIn>(ParameterDefinition.Key).TrySet(input.Value)) {
                 throw new System.Exception("trash, it is all trash!");
             }
 

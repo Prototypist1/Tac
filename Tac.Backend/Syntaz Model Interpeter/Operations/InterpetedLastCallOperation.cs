@@ -49,8 +49,8 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<TOut>>(rightReturned);
             }
 
-            if (rightValue.Value.Invoke(leftValue).IsReturn(out var returned, out var _) && returned is IInterpetedMember<TOut> outReturned){
-                return InterpetedResult.Create(outReturned);
+            if (!rightValue.Value.Invoke(leftValue).IsReturn(out var _, out var value)){
+                return InterpetedResult.Create(value);
             }
 
             throw new Exception("should never get here!");

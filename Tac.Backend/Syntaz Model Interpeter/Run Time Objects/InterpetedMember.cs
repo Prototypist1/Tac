@@ -1,12 +1,15 @@
 ﻿using Prototypist.LeftToRight;
 using System;
+using System.Linq;
+using System.Reflection;
+using Tac.Backend.Syntaz_Model_Interpeter;
 using Tac.Model.Elements;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    public interface IInterpetedMember : IInterpetedData { }
+    public interface IInterpetedMember : IInterpetedAnyType { }
 
     public interface IInterpetedMember<out T> : IInterpetedMember
     {
@@ -14,7 +17,23 @@ namespace Tac.Syntaz_Model_Interpeter
         bool TrySet(object o);
     }
 
-    internal class InterpetedMember<T> : IInterpetedMember<T>
+    internal static class InterpetedMember {
+
+        internal static IInterpetedMember Make(IVerifiableType type)
+        {
+            var method = typeof(InterpetedMember).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Single(x =>
+              x.Name == nameof(Make) && x.IsGenericMethod);
+            var made = method.MakeGenericMethod(new Type[] { Definitions.MapType(type) });
+            return made.Invoke(null,new object[] { }).Cast<IInterpetedMember>();
+        }
+
+        private static IInterpetedMember<T> Make<T>()
+        {
+            return new InterpetedMember<T>();
+        }
+    }
+
+    internal class InterpetedMember<T> : RunTimeAny, IInterpetedMember<T>
     {
         private T _value;
 
@@ -62,5 +81,6 @@ namespace Tac.Syntaz_Model_Interpeter
             }
             return false;
         }
+
     }
 }

@@ -38,11 +38,11 @@ namespace Tac.Backend.Test
 
             var scope = value.Value.Cast<IInterpetedScope>();
             // no way this cast works...
-            var method = scope.GetMember<InterpetedMethod<BoxedDouble,BoxedDouble>>(new NameKey("fac"));
+            var method = scope.GetMember<IInterpetedMethod<BoxedDouble, BoxedDouble>>(new NameKey("fac"));
 
             Assert.False(method.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(d))).IsReturn(out var _, out var methodReturn));
 
-            return methodReturn.Value.Value;
+            return methodReturn.Value.Cast<BoxedDouble>().Value;
         }
 
     }

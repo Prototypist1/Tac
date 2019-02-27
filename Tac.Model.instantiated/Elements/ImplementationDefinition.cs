@@ -27,9 +27,9 @@ namespace Tac.Model.Instantiated
         public IEnumerable<ICodeElement> MethodBody { get => buildableMethodBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitialzers { get => buildableStaticInitialzers.Get(); }
 
-        public IVerifiableType InputType => ParameterDefinition.Type;
-        public IVerifiableType ContextType => ContextDefinition;
-        IVerifiableType IImplementationType.OutputType => OutputType;
+        public IVerifiableType InputType => ParameterDefinition.Type.TypeDefinition;
+        public IVerifiableType ContextType => ContextDefinition.Type.TypeDefinition;
+        IVerifiableType IImplementationType.OutputType => OutputType.TypeDefinition;
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {

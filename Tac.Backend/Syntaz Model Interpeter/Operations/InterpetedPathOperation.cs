@@ -12,14 +12,14 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<IInterpetedData>>(leftReturned);
+                return InterpetedResult.Return<IInterpetedMember<IInterpetedAnyType>>(leftReturned);
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<IInterpetedData>>(rightReturned);
+                return InterpetedResult.Return<IInterpetedMember<IInterpetedAnyType>>(rightReturned);
             }
             
             return InterpetedResult.Create(leftValue.Value.GetMember<IInterpetedAnyType>(rightValue.Value.Key));

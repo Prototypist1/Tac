@@ -24,9 +24,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> MemberDefinition(IMemberDefinition member)
         {
-            var method = typeof(Definitions).GetMethod(nameof(MemberDefinition),1,new Type[] { MapType(member.Type) });
+            var method = GetMethod(new Type[] { MapType(member.Type) }, nameof(MemberDefinition));
             return method.Invoke(this, new object[] { member }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
-
         }
 
         private IInterpetedOperation<IInterpetedAnyType> MemberDefinition<T>(IMemberDefinition member)
@@ -167,11 +166,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition(IImplementationDefinition codeElement)
         {
-            var method = typeof(Definitions).GetMethod(nameof(ImplementationDefinition));
-            
-            var generic = method.MakeGenericMethod(MapType(codeElement.ContextType), MapType(codeElement.InputType), MapType(codeElement.OutputType));
-            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
-
+            var method = GetMethod(new Type[] { MapType(codeElement.ContextType), MapType(codeElement.InputType), MapType(codeElement.OutputType) }, nameof(ImplementationDefinition));
+            return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition<TContext,TIn,TOut>(IImplementationDefinition codeElement)
@@ -198,10 +194,9 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> LastCallOperation(ILastCallOperation co)
         {
-            var method = typeof(Definitions).GetMethod(nameof(LastCallOperation));
             var methodType = co.Left.Returns().Cast<IMethodType>();
-            var generic = method.MakeGenericMethod(MapType(methodType.InputType), MapType(methodType.OutputType));
-            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            var method = GetMethod(new Type[] { MapType(methodType.InputType), MapType(methodType.OutputType) } ,nameof(LastCallOperation));
+            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> LastCallOperation<TIn,TOut>(ILastCallOperation co)
@@ -242,9 +237,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         
         public IInterpetedOperation<IInterpetedAnyType> MemberReferance(IMemberReferance codeElement)
         {
-            var method = typeof(Definitions).GetMethod(nameof(MemberReferance));
-            var generic = method.MakeGenericMethod(MapType(codeElement.MemberDefinition.Type));
-            return generic.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            var method = GetMethod(new Type[] { MapType(codeElement.MemberDefinition.Type) }, nameof(MemberReferance));
+            return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
 
@@ -267,7 +261,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> MethodDefinition(IInternalMethodDefinition codeElement)
         {
-            var method = typeof(Definitions).GetMethod(nameof(MethodDefinition),new Type[] { MapType(codeElement.InputType), MapType(codeElement.OutputType) });
+            var method = GetMethod(new Type[] { MapType(codeElement.InputType), MapType(codeElement.OutputType) }, nameof(MethodDefinition));
             return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
@@ -328,10 +322,10 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> NextCallOperation(INextCallOperation co)
         {
-            var method = typeof(Definitions).GetMethod(nameof(NextCallOperation));
             var methodType = co.Right.Returns().Cast<IMethodType>();
-            var generic = method.MakeGenericMethod(MapType( methodType.InputType), MapType(methodType.OutputType));
-            return generic.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+
+            var method = GetMethod( new Type[] { MapType(methodType.InputType), MapType(methodType.OutputType) } ,nameof(NextCallOperation));
+            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> NextCallOperation<TIn,TOut>(INextCallOperation co)
@@ -389,13 +383,12 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> ReturnOperation(IReturnOperation co)
         {
-            var method = typeof(Definitions).GetMethod(nameof(ReturnOperation));
-            var generic = method.MakeGenericMethod(MapType(co.Result.Returns()));
-            return generic.Invoke(this,new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            var method = GetMethod(new Type[] { MapType(co.Result.Returns()) }, nameof(ReturnOperation));
+            return method.Invoke(this,new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> ReturnOperation<T>(IReturnOperation co)
-            where T: class, IInterpetedAnyType
+            where T:class,  IInterpetedAnyType
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -462,8 +455,18 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         #region Help
 
+        // you are here
+        // I need to use interfaces here
+        // espesally for anytime
+        // my type system is not hat mcuh likes C#
+        // maybe leaning on C# type system is not a good idea??
+        
+        // I need to use IAnyTime no the class
+        // so I can assign IIO<Boxeddouble> to IIO<IAny>
+        // but that means I wll have to drop the class requirement
+        // which is good becasue I don't understand where that is coming form anyway
 
-        private static Type MapType(IVerifiableType verifiableType)
+        public static Type MapType(IVerifiableType verifiableType)
         {
             if (verifiableType is INumberType)
             {
@@ -487,9 +490,9 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             if (verifiableType is IAnyType)
             {
-                return typeof(InterpetedInstanceScope);
+                return typeof(IInterpetedAnyType);
             }
-            if (verifiableType is IModuleType)
+            if (verifiableType is IModuleType || verifiableType is IInterfaceType)
             {
                 return typeof(InterpetedInstanceScope);
             }
@@ -524,11 +527,14 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 return MapType(typeReferance.TypeDefinition);
             }
+            if (verifiableType is IGenericInterfaceDefinition) {
+                return typeof(RunTimeType);
+            }
 
             throw new NotImplementedException();
         }
 
-        private static System.Reflection.MethodInfo GetMethod(Type[] types, string name)
+        private static MethodInfo GetMethod(Type[] types, string name)
         {
             var method = typeof(Definitions).GetMethods(BindingFlags.NonPublic|BindingFlags.Instance).Single(x => 
             x.Name == name && x.IsGenericMethod);

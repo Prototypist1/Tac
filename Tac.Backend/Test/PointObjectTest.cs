@@ -21,10 +21,10 @@ namespace Tac.Backend.Test
             
             Assert.False( testCase.Module.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
 
-            var scope = res.Value.Cast<IInterpetedScope>().GetMember<InterpetedInstanceScope>(new NameKey("point")).Value;
+            var scope = res.Value.Cast<IInterpetedScope>().GetMember<IInterpetedAnyType>(new NameKey("point")).Value;
 
-            Assert.True(scope.ContainsMember(new NameKey("x")));
-            Assert.True(scope.ContainsMember(new NameKey("y")));
+            Assert.True(scope.Cast<IInterpetedScope>().ContainsMember(new NameKey("x")));
+            Assert.True(scope.Cast<IInterpetedScope>().ContainsMember(new NameKey("y")));
         }
     }
 }

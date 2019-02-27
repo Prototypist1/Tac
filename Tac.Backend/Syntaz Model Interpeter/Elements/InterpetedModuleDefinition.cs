@@ -31,7 +31,7 @@ namespace Tac.Syntaz_Model_Interpeter
             return InterpetedResult.Create(new InterpetedMember<IInterpetedScope>(scope));
         }
         
-        public IInterpetedScope GetDefault(InterpetedContext interpetedContext)
+        public IInterpetedScope GetDefault()
         {
             return InterpetedStaticScope.Make();
         }

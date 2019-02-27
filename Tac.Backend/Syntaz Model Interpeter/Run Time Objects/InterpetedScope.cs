@@ -31,7 +31,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
     // I also need to handle primitive types
 
-    internal class InterpetedStaticScope : IInterpetedScope
+    internal class InterpetedStaticScope : RunTimeAny, IInterpetedScope
     {
         protected InterpetedStaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing)
         {
@@ -98,9 +98,10 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             StaticBacking = staticBacking ?? throw new ArgumentNullException(nameof(staticBacking));
         }
-        
-        private InterpetedStaticScope StaticBacking { get; }
 
+#pragma warning disable IDE0052 // Remove unread private members
+        private InterpetedStaticScope StaticBacking { get; }
+#pragma warning restore IDE0052 // Remove unread private members
 
         public static InterpetedInstanceScope Make(
             InterpetedStaticScope staticBacking, 
@@ -111,7 +112,7 @@ namespace Tac.Syntaz_Model_Interpeter
             
             foreach (var member in scopeDefinition.Members)
             {
-                backing[member.Key] = new InterpetedMember<object>();
+                backing[member.Key] = InterpetedMember.Make(member.Type);
             }
 
             return scope;
@@ -127,7 +128,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             foreach (var member in scopeDefinition.Members)
             {
-                backing[member.Key] = new InterpetedMember<object>();
+                backing[member.Key] = InterpetedMember.Make(member.Type); ;
             }
 
             return scope;

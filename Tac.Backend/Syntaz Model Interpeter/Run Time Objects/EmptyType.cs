@@ -12,12 +12,12 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
     //    }
     //}
 
-    public interface IInterpedEmpty : IInterpetedData
+    public interface IInterpedEmpty : IInterpetedAnyType
     {
 
     }
 
-    internal class RunTimeEmpty : IInterpedEmpty
+    internal class RunTimeEmpty : RunTimeAny, IInterpedEmpty
     {
     }
 }

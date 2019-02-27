@@ -5,7 +5,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal class InterpetedExternalMethod<TIn, TOut> : IInterpetedMethod<TIn,TOut>
+    internal class InterpetedExternalMethod<TIn, TOut> : RunTimeAny, IInterpetedMethod<TIn,TOut>
         where TIn: class, IInterpetedAnyType
     {
         public InterpetedExternalMethod(

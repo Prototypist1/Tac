@@ -29,12 +29,12 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         internal bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) {
-            return Scopes.Last().TryAddMember(key, member);
+            return Scopes.First().TryAddMember(key, member);
         }
 
         internal IInterpetedMember<T> GetMember<T>(IKey key)
         {
-            foreach (var item in Scopes.Reverse())
+            foreach (var item in Scopes)
             {
                 if (item.ContainsMember(key)) {
                     return item.GetMember<T>(key);
@@ -45,25 +45,25 @@ namespace Tac.Syntaz_Model_Interpeter
     }
     
     public interface IInterpetedResult<out T> : IInterpeted
-            where T : IInterpetedData
+            where T : IInterpetedAnyType
     {
     }
     public interface IInterpetedResultNotReturn<out T> : IInterpetedResult<T>
-        where T : IInterpetedData
+        where T : IInterpetedAnyType
     {
         T Value { get; }
     }
 
     public interface IInterpetedResultReturn<out T> : IInterpetedResult<T>
-        where T : IInterpetedData
+        where T : IInterpetedAnyType
     {
-        IInterpetedData Value { get; }
+        IInterpetedAnyType Value { get; }
     }
 
     public static class InterpetedResultExtensions {
         
-        public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedData returned, out T value)
-            where T : IInterpetedData
+        public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedAnyType returned, out T value)
+            where T : IInterpetedAnyType
         {
             if (self is IInterpetedResultNotReturn<T> && self is IInterpetedResultReturn<T>) {
                 throw new Exception("should not be both!");
@@ -92,7 +92,7 @@ namespace Tac.Syntaz_Model_Interpeter
     internal static class InterpetedResult
     {
         private class NotReturn<T> : IInterpetedResultNotReturn<T>
-            where T : class, IInterpetedData
+            where T : class, IInterpetedAnyType
         {
             public NotReturn(T value)
             {
@@ -104,14 +104,14 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         private class IsReturn<T> : IInterpetedResultReturn<T>
-            where T : class, IInterpetedData
+            where T : class, IInterpetedAnyType
         {
-            public IsReturn(IInterpetedData value)
+            public IsReturn(IInterpetedAnyType value)
             {
                 Value = value ?? throw new ArgumentNullException(nameof(value));
             }
 
-            public IInterpetedData Value { get; }
+            public IInterpetedAnyType Value { get; }
 
         }
         //public T GetAndUnwrapMemberWhenNeeded(InterpetedContext context)
@@ -129,26 +129,26 @@ namespace Tac.Syntaz_Model_Interpeter
 
 
         public static IInterpetedResultReturn<T> Return<T>()
-            where T : class, IInterpetedData
+            where T : class, IInterpetedAnyType
         {
             return new IsReturn<T>(new RunTimeEmpty());
         }
 
-        public static IInterpetedResultReturn<T> Return<T>(IInterpetedData value)
-            where T: class,IInterpetedData
+        public static IInterpetedResultReturn<T> Return<T>(IInterpetedAnyType value)
+            where T: class, IInterpetedAnyType
         {
             return new IsReturn<T>(value);
         }
         
         public static IInterpetedResultNotReturn<T> Create<T>(T value)
-            where T : class, IInterpetedData
+            where T : class, IInterpetedAnyType
         {
             return new NotReturn<T>(value);
         }
         
-        public static IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Create()
+        public static IInterpetedResult<IInterpetedMember<RunTimeEmpty>> Create()
         {
-            return new NotReturn<IInterpetedMember<IInterpedEmpty>>(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+            return new NotReturn<IInterpetedMember<RunTimeEmpty>>(new InterpetedMember<RunTimeEmpty>(new RunTimeEmpty()));
         }
     }
 
