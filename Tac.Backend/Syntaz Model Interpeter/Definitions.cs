@@ -466,6 +466,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         // but that means I wll have to drop the class requirement
         // which is good becasue I don't understand where that is coming form anyway
 
+        // this does not really live here
+
         public static Type MapType(IVerifiableType verifiableType)
         {
             if (verifiableType is INumberType)
@@ -492,7 +494,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 return typeof(IInterpetedAnyType);
             }
-            if (verifiableType is IModuleType || verifiableType is IInterfaceType)
+            if (verifiableType is IModuleType || verifiableType is IInterfaceType || verifiableType is IObjectDefiniton)
             {
                 return typeof(InterpetedInstanceScope);
             }

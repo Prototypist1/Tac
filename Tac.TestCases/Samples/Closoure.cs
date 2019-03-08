@@ -14,7 +14,7 @@ namespace Tac.Tests.Samples
             var x = MemberDefinition.CreateAndBuild(xKey, TypeReference.CreateAndBuild(new NumberType()), false);
 
             var yKey = new NameKey("y");
-            var y = MemberDefinition.CreateAndBuild(yKey, TypeReference.CreateAndBuild(new EmptyType()), false);
+            var y = MemberDefinition.CreateAndBuild(yKey, TypeReference.CreateAndBuild(new NumberType()), false);
 
             var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(x ,false) },
                 new List<Scope.TypeData>(),
@@ -26,7 +26,8 @@ namespace Tac.Tests.Samples
 
             Module = ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
-                    new List<Scope.IsStatic>() { new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) },
+                    new List<Scope.IsStatic>() {
+                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) },
                     new List<Scope.TypeData>(),
                     new List<Scope.GenericTypeData>()),
                 new[]{
@@ -34,14 +35,14 @@ namespace Tac.Tests.Samples
                         MethodDefinition.CreateAndBuild(
                             TypeReference.CreateAndBuild(new NumberType()),
                             TypeReference.CreateAndBuild(MethodType.CreateAndBuild(
-                                new EmptyType(),
+                                new NumberType(),
                                 new NumberType())),
                             x,
                             methodScope,
                             new ICodeElement[]{
                                 ReturnOperation.CreateAndBuild(
                                     MethodDefinition.CreateAndBuild(
-                                        TypeReference.CreateAndBuild(new EmptyType()),
+                                        TypeReference.CreateAndBuild(new NumberType()),
                                         TypeReference.CreateAndBuild(new NumberType()),
                                         y,
                                         innerMethodScope,
@@ -71,7 +72,7 @@ namespace Tac.Tests.Samples
                 return
 @"
 module closoure {
-    method [ int ; method [ empty ; int ; ] ; ] x {
+    method [ int ; method [ int ; int ; ] ; ] x {
         method [ int ; int ; ] y {
             x + y =: x ;
             x return ;

@@ -27,7 +27,7 @@ namespace Tac.Backend.Test
             Assert.False(res.IsReturn(out var _, out var value));
 
             var scope = value.Value.Cast<IInterpetedScope>();
-            var method = scope.GetMember<IInterpetedMethod<BoxedDouble, IInterpetedMethod<BoxedDouble,BoxedDouble>>>(new NameKey("create-accululator")).Value;
+            var method = scope.GetMember<IInterpetedAnyType>(new NameKey("create-accululator")).Value.Cast<IInterpetedMethod<BoxedDouble, IInterpetedMethod<BoxedDouble, BoxedDouble>>>();
             
             Assert.False( method.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(1))).IsReturn(out var _, out var innerMethod));
 
@@ -37,7 +37,7 @@ namespace Tac.Backend.Test
             Assert.False(innerMethod.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(3))).IsReturn(out var _, out var res2));
             Assert.Equal(6, res2.Value.Value);
 
-            Assert.False(innerMethod.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(2))).IsReturn(out var _, out var res3));
+            Assert.False(innerMethod.Value.Invoke(new InterpetedMember<BoxedDouble>(new BoxedDouble(4))).IsReturn(out var _, out var res3));
             Assert.Equal(10, res3.Value.Value);
         }
     }
