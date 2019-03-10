@@ -6,7 +6,7 @@ namespace Tac.Syntaz_Model_Interpeter
 {
 
     internal class InterpetedExternalMethod<TIn, TOut> : RunTimeAny, IInterpetedMethod<TIn,TOut>
-        where TIn: class, IInterpetedAnyType
+        where TIn: IInterpetedAnyType
         where TOut: IInterpetedAnyType
     {
         public InterpetedExternalMethod(

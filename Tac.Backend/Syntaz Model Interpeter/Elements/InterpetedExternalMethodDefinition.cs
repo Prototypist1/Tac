@@ -8,8 +8,8 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
 {
     internal class InterpetedExternalMethodDefinition<TIn,TOut> : IInterpetedOperation<IInterpetedMethod<TIn,TOut>>
-        where TOut : class, IInterpetedAnyType
-        where TIn : class, IInterpetedAnyType
+        where TOut :  IInterpetedAnyType
+        where TIn :  IInterpetedAnyType
     {
         public void Init(Func<TIn, TOut> backing)
         {
