@@ -77,12 +77,12 @@ namespace Tac.Syntaz_Model_Interpeter
             return scope;
         }
 
-        public IInterpetedMember<T> GetMember<T>(IKey name) 
+        public IInterpetedMember<T> GetMember<T>(IKey name) where T : IInterpetedAnyType
         {
             return Backing.GetOrThrow(name).Cast<IInterpetedMember<T>>();
         }
 
-        public bool TryAddMember<T>(IKey key, IInterpetedMember<T> member)
+        public bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType
         {
             if (object.ReferenceEquals(member, Backing.GetOrAdd(key, member))){
                 return true;

@@ -5,6 +5,8 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedLastCallOperation<TIn,TOut> : InterpetedBinaryOperation<IInterpetedCallable<TIn,TOut>, TIn,TOut>
+        where TOut : IInterpetedAnyType
+        where TIn: class, IInterpetedAnyType
     {
         public override IInterpetedResult<IInterpetedMember<TOut>> Interpet(InterpetedContext interpetedContext)
         {
@@ -32,6 +34,8 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
     internal class InterpetedNextCallOperation<TIn, TOut> : InterpetedBinaryOperation<TIn, IInterpetedCallable<TIn, TOut>, TOut>
+        where TOut : IInterpetedAnyType
+        where TIn : class, IInterpetedAnyType
     {
         public override IInterpetedResult<IInterpetedMember<TOut>> Interpet(InterpetedContext interpetedContext)
         {

@@ -4,6 +4,8 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
     internal abstract class InterpetedTrailingOperation<TIn,TOut> : IInterpetedOperation<TOut>
+        where TOut : IInterpetedAnyType
+        where TIn : IInterpetedAnyType
     {
         public void Init(IInterpetedOperation<TIn> argument)
         {

@@ -366,17 +366,24 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> PathOperation(IPathOperation co)
         {
+            var method = GetMethod(new Type[] { MapType(co.Returns()) }, nameof(PathOperation));
+            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+        }
+
+        private IInterpetedOperation<IInterpetedAnyType> PathOperation<T>(IPathOperation co)
+            where T : class, IInterpetedAnyType
+        {
             if (backing.TryGetValue(co, out var res))
             {
                 return res;
             }
             else
             {
-                var op = new InterpetedPathOperation();
+                var op = new InterpetedPathOperation<T>();
                 backing.Add(co, op);
                 op.Init(
                     co.Left.Convert(this).Cast<IInterpetedOperation<IInterpetedScope>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpetedMemberReferance>>());
+                    co.Right.Convert(this).Cast<IInterpetedMemberReferance<T>>());
                 return op;
             }
         }
@@ -484,11 +491,11 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             if (verifiableType is IBlockType)
             {
-                return typeof(RunTimeEmpty);
+                return typeof(IInterpedEmpty);
             }
             if (verifiableType is IEmptyType)
             {
-                return typeof(RunTimeEmpty);
+                return typeof(IInterpedEmpty);
             }
             if (verifiableType is IAnyType)
             {
@@ -496,7 +503,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             if (verifiableType is IModuleType || verifiableType is IInterfaceType || verifiableType is IObjectDefiniton)
             {
-                return typeof(InterpetedInstanceScope);
+                return typeof(IInterpetedScope);
             }
             if (verifiableType is IMethodType method)
             {

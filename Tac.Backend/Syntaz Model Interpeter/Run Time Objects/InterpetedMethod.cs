@@ -4,22 +4,26 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedMethod<TIn, TOut> : IInterpetedCallable<TIn, TOut>
+    public interface IInterpetedMethod<in TIn,  out TOut> : IInterpetedCallable<TIn, TOut>
+        where TOut : IInterpetedAnyType
+        where TIn : IInterpetedAnyType
     {
     }
 
-    public interface IInterpetedCallable<TIn, TOut> : IInterpetedAnyType
+    public interface IInterpetedCallable<in TIn, out TOut> : IInterpetedAnyType
+        where TOut : IInterpetedAnyType
+        where TIn : IInterpetedAnyType
     {
         IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input);
     }
 
     internal class InterpetedMethod<TIn, TOut> : RunTimeAny, IInterpetedMethod<TIn, TOut>
-        where TIn : class, IInterpetedAnyType
-        where TOut : class, IInterpetedAnyType
+        where TIn :  IInterpetedAnyType
+        where TOut :  IInterpetedAnyType
     {
         public InterpetedMethod(
             InterpetedMemberDefinition<TIn> parameterDefinition,
-            IInterpetedOperation<object>[] body, 
+            IInterpetedOperation<IInterpetedAnyType>[] body, 
             InterpetedContext context,
             IInterpetedScopeTemplate scope) 
         {
@@ -30,7 +34,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         private InterpetedMemberDefinition<TIn> ParameterDefinition { get; }
-        private IInterpetedOperation<object>[] Body { get; }
+        private IInterpetedOperation<IInterpetedAnyType>[] Body { get; }
         private InterpetedContext Context { get; }
         private IInterpetedScopeTemplate Scope { get; }
         private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
@@ -55,8 +59,8 @@ namespace Tac.Syntaz_Model_Interpeter
             }
 
             if (typeof(IInterpedEmpty).IsAssignableFrom(typeof(TOut))){
-                dynamic hack = new RunTimeEmpty();
-                return InterpetedResult.Create<IInterpetedMember<TOut>>(hack);
+                var hack = new RunTimeEmpty();
+                return InterpetedResult.Create<IInterpetedMember<TOut>>(new InterpetedMember<TOut>( hack.Cast<TOut>()));
             }
 
             throw new System.Exception("method did not return!");

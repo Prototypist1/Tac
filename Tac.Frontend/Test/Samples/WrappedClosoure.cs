@@ -25,7 +25,7 @@ namespace Tac.Frontend.Test.Samples
                                                     TokenHelp.Line(TokenHelp.Ele(
                                                         TokenHelp.Atom("method"),
                                                         TokenHelp.Square(
-                                                            TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("empty"))),
+                                                            TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int"))),
                                                             TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int")))
                                                         )))),
                                                 TokenHelp.Atom("x"),

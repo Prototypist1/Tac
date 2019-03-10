@@ -28,11 +28,12 @@ namespace Tac.Syntaz_Model_Interpeter
             return new InterpetedContext(new IInterpetedScope[0]);
         }
 
-        internal bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) {
+        internal bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType
+        {
             return Scopes.First().TryAddMember(key, member);
         }
 
-        internal IInterpetedMember<T> GetMember<T>(IKey key)
+        internal IInterpetedMember<T> GetMember<T>(IKey key) where T : IInterpetedAnyType
         {
             foreach (var item in Scopes)
             {
@@ -92,11 +93,12 @@ namespace Tac.Syntaz_Model_Interpeter
     internal static class InterpetedResult
     {
         private class NotReturn<T> : IInterpetedResultNotReturn<T>
-            where T : class, IInterpetedAnyType
+            where T :  IInterpetedAnyType
         {
             public NotReturn(T value)
             {
-                Value = value ?? throw new ArgumentNullException(nameof(value));
+                if (value == null) { throw new ArgumentNullException(nameof(value)); }
+                Value = value;
             }
             
             public T Value { get; }
@@ -104,7 +106,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         private class IsReturn<T> : IInterpetedResultReturn<T>
-            where T : class, IInterpetedAnyType
+            where T :  IInterpetedAnyType
         {
             public IsReturn(IInterpetedAnyType value)
             {
@@ -129,19 +131,19 @@ namespace Tac.Syntaz_Model_Interpeter
 
 
         public static IInterpetedResultReturn<T> Return<T>()
-            where T : class, IInterpetedAnyType
+            where T : IInterpetedAnyType
         {
             return new IsReturn<T>(new RunTimeEmpty());
         }
 
         public static IInterpetedResultReturn<T> Return<T>(IInterpetedAnyType value)
-            where T: class, IInterpetedAnyType
+            where T: IInterpetedAnyType
         {
             return new IsReturn<T>(value);
         }
         
         public static IInterpetedResultNotReturn<T> Create<T>(T value)
-            where T : class, IInterpetedAnyType
+            where T : IInterpetedAnyType
         {
             return new NotReturn<T>(value);
         }
@@ -155,6 +157,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
 
     internal interface IInterpetedOperation<out T>
+        where T : IInterpetedAnyType
     {
         IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext);
     }

@@ -11,7 +11,7 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public void Init(
             InterpetedMemberDefinition<TIn> parameterDefinition, 
-            IInterpetedOperation<object>[] methodBody,
+            IInterpetedOperation<IInterpetedAnyType>[] methodBody,
             IInterpetedScopeTemplate scope)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -20,7 +20,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         public InterpetedMemberDefinition<TIn> ParameterDefinition { get; private set; }
-        public IInterpetedOperation<object>[] Body { get; private set; }
+        public IInterpetedOperation<IInterpetedAnyType>[] Body { get; private set; }
         public IInterpetedScopeTemplate Scope { get; private set; }
         
         public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn,TOut>>> Interpet(InterpetedContext interpetedContext)
@@ -38,7 +38,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return new InterpetedMethod<TIn, TOut>(
                 new InterpetedMemberDefinition<TIn> ().Init(new NameKey("input")),
-                new IInterpetedOperation<object>[] { },
+                new IInterpetedOperation<IInterpetedAnyType>[] { },
                 interpetedContext,
                 Scope);
         }

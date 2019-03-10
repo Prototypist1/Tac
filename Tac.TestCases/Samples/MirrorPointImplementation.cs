@@ -52,12 +52,11 @@ module mirror-module {
             var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new EmptyType()), false);
 
             var tempKey = new NameKey("temp");
-            var temp = MemberDefinition.CreateAndBuild(tempKey, TypeReference.CreateAndBuild(new NumberType()), false);
+            var temp = MemberDefinition.CreateAndBuild(tempKey, TypeReference.CreateAndBuild(new AnyType()), false);
 
             var implementationScope = Scope.CreateAndBuild(
                 new List<Scope.IsStatic> {
                     new Scope.IsStatic( input ,false),
-                    new Scope.IsStatic(context ,false),
                     new Scope.IsStatic(temp ,false) },
                     new List<Scope.TypeData>(),
                     new List<Scope.GenericTypeData>());

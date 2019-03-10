@@ -6,7 +6,10 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedImplementation<TIn, TMethodIn, TMethodOut> : IInterpetedCallable<TIn, IInterpetedMethod<TMethodIn,TMethodOut>>
+    public interface IInterpetedImplementation<in  TIn,in  TMethodIn, out TMethodOut> : IInterpetedCallable<TIn, IInterpetedMethod<TMethodIn,TMethodOut>>
+        where TIn : class, IInterpetedAnyType
+        where TMethodIn : class, IInterpetedAnyType
+        where TMethodOut : class, IInterpetedAnyType
     {
     }
 
@@ -19,7 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public InterpetedImplementation(
             InterpetedMemberDefinition<TMethodIn> parameterDefinition,
             InterpetedMemberDefinition<TIn> contextDefinition,
-            IInterpetedOperation<object>[] body,
+            IInterpetedOperation<IInterpetedAnyType>[] body,
             InterpetedContext context, 
             IInterpetedScopeTemplate scope)
         {
@@ -32,7 +35,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         private readonly InterpetedMemberDefinition<TIn> contextDefinition;
         private InterpetedMemberDefinition<TMethodIn> ParameterDefinition { get; }
-        private IInterpetedOperation<object>[] Body { get; }
+        private IInterpetedOperation<IInterpetedAnyType>[] Body { get; }
         private InterpetedContext Context { get; }
         private IInterpetedScopeTemplate Scope { get; }
         

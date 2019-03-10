@@ -3,12 +3,12 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal interface IInterpetedMemberReferance
+    internal interface IInterpetedMemberReferance<out T>
     {
         IKey Key { get; }
     }
 
-    internal class InterpetedMemberReferance<T> : IInterpetedOperation<T>, IInterpetedMemberReferance
+    internal class InterpetedMemberReferance<T> : IInterpetedOperation<T>, IInterpetedMemberReferance<T>
         where T : class, IInterpetedAnyType
     {
         public InterpetedMemberReferance<T> Init(InterpetedMemberDefinition<T> memberDefinition)

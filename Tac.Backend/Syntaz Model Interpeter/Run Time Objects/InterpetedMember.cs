@@ -12,6 +12,7 @@ namespace Tac.Syntaz_Model_Interpeter
     public interface IInterpetedMember : IInterpetedAnyType { }
 
     public interface IInterpetedMember<out T> : IInterpetedMember
+        where T: IInterpetedAnyType
     {
         T Value { get;  }
         bool TrySet(object o);
@@ -28,12 +29,14 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
         private static IInterpetedMember<T> Make<T>()
+            where T : IInterpetedAnyType
         {
             return new InterpetedMember<T>();
         }
     }
 
     internal class InterpetedMember<T> : RunTimeAny, IInterpetedMember<T>
+        where T : IInterpetedAnyType
     {
         private T _value;
 

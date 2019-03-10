@@ -4,25 +4,29 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedPathOperation : InterpetedBinaryOperation<IInterpetedScope, IInterpetedMemberReferance, IInterpetedAnyType>
+    internal class InterpetedPathOperation<T> : IInterpetedOperation<T>
+        where T : IInterpetedAnyType
     {
-        public override IInterpetedResult<IInterpetedMember<IInterpetedAnyType>> Interpet(InterpetedContext interpetedContext)
+
+        public void Init(IInterpetedOperation<IInterpetedScope> left, IInterpetedMemberReferance<T> right)
+        {
+            Left = left ?? throw new ArgumentNullException(nameof(left));
+            Right = right ?? throw new ArgumentNullException(nameof(right));
+        }
+        
+        public IInterpetedOperation<IInterpetedScope> Left { get; private set; }
+        public IInterpetedMemberReferance<T> Right { get; private set; }
+
+        public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {
             var leftResult = Left.Interpet(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<IInterpetedAnyType>>(leftReturned);
+                return InterpetedResult.Return<IInterpetedMember<T>>(leftReturned);
             }
 
-            var rightResult = Right.Interpet(interpetedContext);
-
-            if (rightResult.IsReturn(out var rightReturned, out var rightValue))
-            {
-                return InterpetedResult.Return<IInterpetedMember<IInterpetedAnyType>>(rightReturned);
-            }
-            
-            return InterpetedResult.Create(leftValue.Value.GetMember<IInterpetedAnyType>(rightValue.Value.Key));
+            return InterpetedResult.Create(leftValue.Value.GetMember<T>(Right.Key));
         }
     }
 }

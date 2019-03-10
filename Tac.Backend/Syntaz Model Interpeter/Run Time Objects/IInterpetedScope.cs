@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
         // Interpeted type???
 
         bool ContainsMember(IKey name);
-        IInterpetedMember<T> GetMember<T>(IKey name);
-        bool TryAddMember<T>(IKey key, IInterpetedMember<T> member);
+        IInterpetedMember<T> GetMember<T>(IKey name) where T: IInterpetedAnyType;
+        bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType;
     }
 }
