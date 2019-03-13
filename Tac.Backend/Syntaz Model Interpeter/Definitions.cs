@@ -7,6 +7,7 @@ using System.Text;
 using Tac.Backend.Syntaz_Model_Interpeter.Elements;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
@@ -24,7 +25,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> MemberDefinition(IMemberDefinition member)
         {
-            var method = GetMethod(new Type[] { MapType(member.Type) }, nameof(MemberDefinition));
+            var method = GetMethod(new Type[] { TypeMap.MapType(member.Type) }, nameof(MemberDefinition));
             return method.Invoke(this, new object[] { member }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -61,7 +62,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> AssignOperation(IAssignOperation co)
         {
-            var method = GetMethod(new Type[] { MapType(co.Right.Returns()) }, nameof(AssignOperation));
+            var method = GetMethod(new Type[] { TypeMap.MapType(co.Right.Returns()) }, nameof(AssignOperation));
             return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -166,7 +167,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition(IImplementationDefinition codeElement)
         {
-            var method = GetMethod(new Type[] { MapType(codeElement.ContextType), MapType(codeElement.InputType), MapType(codeElement.OutputType) }, nameof(ImplementationDefinition));
+            var method = GetMethod(new Type[] { TypeMap.MapType(codeElement.ContextType), TypeMap.MapType(codeElement.InputType), TypeMap.MapType(codeElement.OutputType) }, nameof(ImplementationDefinition));
             return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -195,7 +196,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> LastCallOperation(ILastCallOperation co)
         {
             var methodType = co.Left.Returns().Cast<IMethodType>();
-            var method = GetMethod(new Type[] { MapType(methodType.InputType), MapType(methodType.OutputType) } ,nameof(LastCallOperation));
+            var method = GetMethod(new Type[] { TypeMap.MapType(methodType.InputType), TypeMap.MapType(methodType.OutputType) } ,nameof(LastCallOperation));
             return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -237,7 +238,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         
         public IInterpetedOperation<IInterpetedAnyType> MemberReferance(IMemberReferance codeElement)
         {
-            var method = GetMethod(new Type[] { MapType(codeElement.MemberDefinition.Type) }, nameof(MemberReferance));
+            var method = GetMethod(new Type[] { TypeMap.MapType(codeElement.MemberDefinition.Type) }, nameof(MemberReferance));
             return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
@@ -261,7 +262,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> MethodDefinition(IInternalMethodDefinition codeElement)
         {
-            var method = GetMethod(new Type[] { MapType(codeElement.InputType), MapType(codeElement.OutputType) }, nameof(MethodDefinition));
+            var method = GetMethod(new Type[] { TypeMap.MapType(codeElement.InputType), TypeMap.MapType(codeElement.OutputType) }, nameof(MethodDefinition));
             return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
@@ -324,7 +325,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         {
             var methodType = co.Right.Returns().Cast<IMethodType>();
 
-            var method = GetMethod( new Type[] { MapType(methodType.InputType), MapType(methodType.OutputType) } ,nameof(NextCallOperation));
+            var method = GetMethod( new Type[] { TypeMap.MapType(methodType.InputType), TypeMap.MapType(methodType.OutputType) } ,nameof(NextCallOperation));
             return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -366,7 +367,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> PathOperation(IPathOperation co)
         {
-            var method = GetMethod(new Type[] { MapType(co.Returns()) }, nameof(PathOperation));
+            var method = GetMethod(new Type[] { TypeMap.MapType(co.Returns()) }, nameof(PathOperation));
             return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -390,7 +391,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> ReturnOperation(IReturnOperation co)
         {
-            var method = GetMethod(new Type[] { MapType(co.Result.Returns()) }, nameof(ReturnOperation));
+            var method = GetMethod(new Type[] { TypeMap.MapType(co.Result.Returns()) }, nameof(ReturnOperation));
             return method.Invoke(this,new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -475,6 +476,112 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         // this does not really live here
 
+        private static MethodInfo GetMethod(Type[] types, string name)
+        {
+            var method = typeof(Definitions).GetMethods(BindingFlags.NonPublic|BindingFlags.Instance).Single(x => 
+            x.Name == name && x.IsGenericMethod);
+            return method.MakeGenericMethod(types);
+        }
+
+
+        #endregion
+
+
+    }
+
+
+    internal static class TypeMap {
+
+        // oh man, this sucks!
+        // types are defined once
+        // in the the default scope
+        // that is not right tho
+        // they need to be defined once in a place everyone reference
+        // I don't think converting like this works
+
+        // wait is that even right??
+        // I use types in my tests
+        // but types are used very lightly currently 
+        // it might just work because they are not used
+
+        // the type checking is done on the backend
+        // and it just goes off the type of the class
+        // I did not really imagine I would be passing things back out of the backend
+        // crazy ... 
+
+        // maybe I could pass it off to the user...?
+        
+        // I don't want to spend much time on it if I am going to push all these generic up to the model
+        // which I think I am 
+
+        // so yeah pass it off to the user
+
+        //public static IVerifiableType ReverseMapType(object type) {
+        //    if (type is BoxedDouble INumberType)
+        //    {
+        //        return new NumberType();
+        //    }
+        //    if (type is BoxedBool)
+        //    {
+        //        return new BooleanType();
+        //    }
+        //    if (type is BoxedString)
+        //    {
+        //        return new StringType();
+        //    }
+        //    if (type is IInterpedEmpty)
+        //    {
+        //        return new EmptyType();
+        //    }
+            
+        //    if (type is IModuleType || type is IInterfaceType || type is IObjectDefiniton)
+        //    {
+        //        return typeof(IInterpetedScope);
+        //    }
+        //    if (type is IMethodType method)
+        //    {
+        //        return typeof(IInterpetedMethod<,>).MakeGenericType(
+        //            MapType(method.InputType),
+        //            MapType(method.OutputType)
+        //            );
+        //    }
+        //    if (type is IGenericMethodType)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //    if (type is IImplementationType implementation)
+        //    {
+        //        return typeof(IInterpetedImplementation<,,>).MakeGenericType(
+        //            MapType(implementation.ContextType),
+        //            MapType(implementation.InputType),
+        //            MapType(implementation.OutputType)
+        //            );
+        //    }
+        //    if (type is IGenericImplementationType)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //    if (type is IMemberReferance memberReferance)
+        //    {
+        //        return MapType(memberReferance.MemberDefinition.Type);
+        //    }
+        //    if (type is ITypeReferance typeReferance)
+        //    {
+        //        return MapType(typeReferance.TypeDefinition);
+        //    }
+        //    if (type is IGenericInterfaceDefinition)
+        //    {
+        //        return typeof(RunTimeType);
+        //    }
+
+        //    if (type is IInterpetedAnyType)
+        //    {
+        //        return new AnyType();
+        //    }
+
+        //    throw new NotImplementedException();
+        //}
+
         public static Type MapType(IVerifiableType verifiableType)
         {
             if (verifiableType is INumberType)
@@ -536,23 +643,14 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 return MapType(typeReferance.TypeDefinition);
             }
-            if (verifiableType is IGenericInterfaceDefinition) {
+            if (verifiableType is IGenericInterfaceDefinition)
+            {
                 return typeof(RunTimeType);
             }
 
             throw new NotImplementedException();
         }
 
-        private static MethodInfo GetMethod(Type[] types, string name)
-        {
-            var method = typeof(Definitions).GetMethods(BindingFlags.NonPublic|BindingFlags.Instance).Single(x => 
-            x.Name == name && x.IsGenericMethod);
-            return method.MakeGenericMethod(types);
-        }
-
-
-        #endregion
-
-
     }
+
 }

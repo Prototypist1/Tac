@@ -5,8 +5,8 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal abstract class InterpetedBinaryOperation<TLeft,TRight,TRes>: IInterpetedOperation<TRes>
         where TRes : IInterpetedAnyType
-        where TLeft : class, IInterpetedAnyType
-        where TRight : class, IInterpetedAnyType
+        where TLeft :  IInterpetedAnyType
+        where TRight :  IInterpetedAnyType
     {
         public void Init(IInterpetedOperation<TLeft> left, IInterpetedOperation<TRight> right)
         {

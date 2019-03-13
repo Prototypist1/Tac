@@ -7,7 +7,16 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal class InterpetedMemberDefinition<T>: IInterpetedOperation<T>
+    internal interface IInterpetedMemberDefinition<out T> : IInterpetedOperation<T>
+            where T : IInterpetedAnyType
+    {
+        IKey Key
+        {
+            get;
+        }
+    }
+
+    internal class InterpetedMemberDefinition<T>: IInterpetedMemberDefinition<T>
         where T: IInterpetedAnyType
     {
         public InterpetedMemberDefinition<T> Init(IKey key)

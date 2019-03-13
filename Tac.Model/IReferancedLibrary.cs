@@ -5,8 +5,10 @@ using Tac.Model.Elements;
 
 namespace Tac.Model
 {
-    public interface IAssembly: IModuleDefinition
+    public interface IAssembly
     {
         IReadOnlyList<IAssembly> Referances { get; }
+        IKey Key { get; }
+        IFinalizedScope Scope { get; }
     }
 }

@@ -5,6 +5,8 @@ namespace Tac.Model.Instantiated
 {
     public class MemberDefinition : IMemberDefinition, IMemberDefinitionBuilder
     {
+        private MemberDefinition() { }
+
         private readonly Buildable<IKey> buildableKey = new Buildable<IKey>();
         private readonly Buildable<ITypeReferance> buildableType = new Buildable<ITypeReferance>();
         private readonly BuildableValue<bool> buildableReadOnly = new BuildableValue<bool>();
