@@ -5,6 +5,7 @@ using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
+using Tac.Semantic_Model;
 
 namespace Tac.Frontend
 {
@@ -24,40 +25,48 @@ namespace Tac.Frontend
             }
             else
             {
-                var interpetedMemberDefinition = new InterpetedMemberDefinition<T>();
+                var interpetedMemberDefinition = new WeakMemberDefinition(
+                    member.ReadOnly,
+                    member.Key,
+                    Possibly.Is(
+                        new WeakTypeReference(
+                            Possibly.Is(
+                                new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
+                                    Possibly.Is(
+                                        TypeMap.MapType(member.Type)))))));
                 backing.Add(member, interpetedMemberDefinition);
-                return interpetedMemberDefinition.Init(member.Key);
+                return interpetedMemberDefinition;
             }
         }
 
         public IFrontendCodeElement<ICodeElement> GenericTypeDefinition(IGenericInterfaceDefinition codeElement)
         {
-            if (backing.TryGetValue(codeElement, out var res))
-            {
-                return res;
-            }
-            else
-            {
-                var op = new InterpetedGenericTypeDefinition();
-                backing.Add(codeElement, op);
-                op.Init();
-                return op;
-            }
+            throw new NotImplementedException();
+            //if (backing.TryGetValue(codeElement, out var res))
+            //{
+            //    return res;
+            //}
+            //else
+            //{
+            //    var op = new WeakGenericTypeDefinition(,,);
+            //    backing.Add(codeElement, op);
+            //    return op;
+            //}
         }
 
         public IFrontendCodeElement<ICodeElement> TypeDefinition(IInterfaceType codeElement)
         {
-            if (backing.TryGetValue(codeElement, out var res))
-            {
-                return res;
-            }
-            else
-            {
-                var op = new InterpetedTypeDefinition();
-                backing.Add(codeElement, op);
-                op.Init();
-                return op;
-            }
+            throw new NotImplementedException();
+            //if (backing.TryGetValue(codeElement, out var res))
+            //{
+            //    return res;
+            //}
+            //else
+            //{
+            //    var op = new WeakTypeDefinition(,);
+            //    backing.Add(codeElement, op);
+            //    return op;
+            //}
         }
 
         public IFrontendCodeElement<ICodeElement> AddOperation(IAddOperation co) => throw new NotImplementedException();
