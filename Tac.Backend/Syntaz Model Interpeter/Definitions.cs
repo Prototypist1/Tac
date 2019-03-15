@@ -483,12 +483,9 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             return method.MakeGenericMethod(types);
         }
 
-
         #endregion
 
-
     }
-
 
     internal static class TypeMap {
 

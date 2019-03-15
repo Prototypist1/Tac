@@ -13,47 +13,10 @@ using Tac.Parser;
 namespace Tac.Semantic_Model
 {
     // I am not really sure this is a useful concept
-    //
     internal interface IScoped
     {
         IResolvableScope Scope { get; }
     }
-
-    // ok.. you are here
-    // you are here
-    // you are here
-    // IFrontendGenericType can be overlayed
-    // when you overlay it, it returns an 
-    // OverlayWeakTypeDefinition or a OverlayGenericTypeDefinition
-    // ...
-    // but how does that work with methods?
-    // they are IFrontendGenericType but they return ...?
-    // 
-    // ...
-    //
-    // maybe we just have a generic type called Generic<T>
-    // it has a method called overlay
-    // overlay returns T or Generic<T>
-    // well... you have to overlay all the types
-    // so before you call the method you should know if the result will be generic
-    // maybe there are two method on generic
-    // Overlay and GenericOverlay
-    //
-    // no no no, that does not work
-    // how do you use it anywhere
-    // inside a generic method
-    // a generic type looks just like a type
-    //
-    // maybe things that can be generic, just have a flag
-    // so no more GenericTypeDefiniiton
-    // instead typeDefinition can be generic
-    // typeDefinition has an overlay function that returns a typeDefinition
-    //
-    // I should start by making the generic type interfact
-    // I think it returns an or<IGeneric,IFrontendType<IVarifiableType>>
-    // 
-    // ah! a IFrontendGenericType is a IFrontendType<IVarifiableType>
-    // two methods
 
     internal interface IFrontendGenericType : IFrontendType<IGenericType>
     {
@@ -80,7 +43,6 @@ namespace Tac.Semantic_Model
             foreach (var item in typeParameterDefinitions)
             {
                 // for the sake of validation type parameters are types 
-
                 if (!TryAddType(item.Key, new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new GemericTypeParameterPlacholder(item.Key))))) {
                     throw new Exception("that is not right!");
                 }
@@ -96,11 +58,11 @@ namespace Tac.Semantic_Model
 
         internal class AssemblyManager
         {
-            private readonly IEnumerable<ExteranlResolvableScope> scopes;
+            private readonly IReadOnlyList<ExteranlResolvableScope> scopes;
 
             public AssemblyManager(IReadOnlyList<IAssembly> assemblies)
             {
-                this.scopes = assemblies.Select(x => new ExteranlResolvableScope(x.Scope));
+                this.scopes = assemblies.Select(x => new ExteranlResolvableScope(x.Scope)).ToList();
             }
 
             public bool TryGetMember(IKey key, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> res)
@@ -152,7 +114,6 @@ namespace Tac.Semantic_Model
             
         }
 
-
         public NewScope Parent { get; }
 
         public IEnumerable<IKey> MemberKeys
@@ -182,26 +143,21 @@ namespace Tac.Semantic_Model
 
         public NewScope(IReadOnlyList<IAssembly> libraries)
         {
-
+            // do these really belong here or should they be defined in some sort of 'standard library'
+            // here for now I think 
             TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new NumberType())));
             TryAddType(new NameKey("string"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new StringType())));
             TryAddType(new NameKey("any"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new AnyType())));
             TryAddType(new NameKey("empty"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new EmptyType())));
             TryAddType(new NameKey("bool"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new BooleanType())));
-            // TODO, I need to figure out how method types work
-            //
             TryAddGeneric(
                 new NameKey("method"),
                 new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericMethodType())));
             TryAddGeneric(
                 new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericImplementationType())));
             
-            if (libraries == null)
-            {
-                throw new ArgumentNullException(nameof(libraries));
-            }
-
-            var flattenedLibs = new List<IAssembly>();
+            
+            var flattenedLibs = new List<IAssembly>() ?? throw new ArgumentNullException(nameof(libraries));
 
             foreach (var lib in libraries)
             {

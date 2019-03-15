@@ -43,7 +43,7 @@ namespace Tac.Backend.Public
             var scope = new Scope();
 
             scope.Build(
-                members.Select(x =>  new IsStatic(Model.Instantiated.MemberDefinition.CreateAndBuild(x.Item1.Key,x.Item2, true), true)).ToList(), 
+                members.Select(x =>  new IsStatic(MemberDefinition.CreateAndBuild(x.Item1.Key,x.Item2, true), true)).ToList(), 
                 new List<TypeData>() { },
                 new List<GenericTypeData>() { });
 
@@ -51,22 +51,6 @@ namespace Tac.Backend.Public
                 key,
                 scope,
                 init);
-        }
-
-        private class MemberDefinition : IMemberDefinition
-        {
-            public MemberDefinition(IKey key, ITypeReferance type, bool readOnly)
-            {
-                Key = key ?? throw new ArgumentNullException(nameof(key));
-                Type = type ?? throw new ArgumentNullException(nameof(type));
-                ReadOnly = readOnly;
-            }
-
-            public IKey Key {get;}
-            public ITypeReferance Type {get;}
-            public bool ReadOnly {get;}
-            public T Convert<T>(IOpenBoxesContext<T> context)=>context.MemberDefinition(this);
-            public IVerifiableType Returns() => Type.TypeDefinition;
         }
 
         private class Assembly : IAssembly
