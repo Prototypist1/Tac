@@ -11,11 +11,12 @@ using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using static Tac.Backend.Public.AssemblyBuilder;
 
 namespace Tac.Backend.Syntaz_Model_Interpeter
 {
 
-    internal class Definitions: IOpenBoxesContext<IInterpetedOperation<IInterpetedAnyType>>
+    internal class Definitions: IOpenBoxesContext<IInterpetedOperation<IInterpetedAnyType>, InternalAssemblyBacking>
     {
         private readonly Dictionary<object, IInterpetedOperation<IInterpetedAnyType>> backing = new Dictionary<object, IInterpetedOperation<IInterpetedAnyType>>();
 
@@ -458,8 +459,6 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 return op;
             }
         }
-
-        public IInterpetedOperation<IInterpetedAnyType> InternalMethodDefinition(IInternalMethodDefinition codeElement) => MethodDefinition(codeElement);
 
         #region Help
 

@@ -53,68 +53,73 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal class NewScope : IPopulatableScope, IResolvableScope
+    internal interface IPopulatableResolvableScope : IPopulatableScope, IResolvableScope
     {
 
-        internal class AssemblyManager
-        {
-            private readonly IReadOnlyList<ExteranlResolvableScope> scopes;
+    }
 
-            public AssemblyManager(IReadOnlyList<IAssembly> assemblies)
-            {
-                this.scopes = assemblies.Select(x => new ExteranlResolvableScope(x.Scope)).ToList();
-            }
+    internal class NewScope : IPopulatableResolvableScope
+    {
 
-            public bool TryGetMember(IKey key, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> res)
-            {
-                var wrappedRes = scopes.Select<ExteranlResolvableScope,IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>>>(x =>
-                {
-                    if (x.TryGetMember(key, staticOnly, out var someRes))
-                    {
-                        return Possibly.Is(someRes);
-                    }
-                    else
-                    {
-                        return Possibly.IsNot<IBox<IIsPossibly<IWeakMemberDefinition>>>();
-                    }
-                }).OfType<IIsDefinately<IBox < IIsPossibly < IWeakMemberDefinition >>>>().SingleOrDefault();
+        //internal class AssemblyManager
+        //{
+        //    private readonly IReadOnlyList<ExteranlResolvableScope> scopes;
 
-                if (wrappedRes == null) {
-                    res = default;
-                    return false;
-                }
+        //    public AssemblyManager(IReadOnlyList<IAssembly> assemblies)
+        //    {
+        //        this.scopes = assemblies.Select(x => new ExteranlResolvableScope(x.Scope)).ToList();
+        //    }
 
-                res = wrappedRes.Value;
-                return true;
-            }
+        //    public bool TryGetMember(IKey key, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> res)
+        //    {
+        //        var wrappedRes = scopes.Select<ExteranlResolvableScope,IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>>>(x =>
+        //        {
+        //            if (x.TryGetMember(key, staticOnly, out var someRes))
+        //            {
+        //                return Possibly.Is(someRes);
+        //            }
+        //            else
+        //            {
+        //                return Possibly.IsNot<IBox<IIsPossibly<IWeakMemberDefinition>>>();
+        //            }
+        //        }).OfType<IIsDefinately<IBox < IIsPossibly < IWeakMemberDefinition >>>>().SingleOrDefault();
 
-            public bool TryGetType(IKey key, out IBox<IIsPossibly<IFrontendType<IVerifiableType>>> res)
-            {
-                var wrappedRes = scopes.Select<ExteranlResolvableScope, IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>(x =>
-                {
-                    if (x.TryGetType(key, out var someRes))
-                    {
-                        return Possibly.Is(someRes);
-                    }
-                    else
-                    {
-                        return Possibly.IsNot<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>();
-                    }
-                }).OfType<IIsDefinately<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>().SingleOrDefault();
+        //        if (wrappedRes == null) {
+        //            res = default;
+        //            return false;
+        //        }
 
-                if (wrappedRes == null)
-                {
-                    res = default;
-                    return false;
-                }
+        //        res = wrappedRes.Value;
+        //        return true;
+        //    }
 
-                res = wrappedRes.Value;
-                return true;
-            }
+        //    public bool TryGetType(IKey key, out IBox<IIsPossibly<IFrontendType<IVerifiableType>>> res)
+        //    {
+        //        var wrappedRes = scopes.Select<ExteranlResolvableScope, IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>(x =>
+        //        {
+        //            if (x.TryGetType(key, out var someRes))
+        //            {
+        //                return Possibly.Is(someRes);
+        //            }
+        //            else
+        //            {
+        //                return Possibly.IsNot<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>();
+        //            }
+        //        }).OfType<IIsDefinately<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>().SingleOrDefault();
+
+        //        if (wrappedRes == null)
+        //        {
+        //            res = default;
+        //            return false;
+        //        }
+
+        //        res = wrappedRes.Value;
+        //        return true;
+        //    }
             
-        }
+        //}
 
-        public NewScope Parent { get; }
+        public IPopulatableResolvableScope Parent { get; }
 
         public IEnumerable<IKey> MemberKeys
         {
@@ -123,9 +128,7 @@ namespace Tac.Semantic_Model
                 return members.Keys;
             }
         }
-
-        private readonly AssemblyManager assemblyManager;
-
+        
         private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
 
@@ -135,13 +138,18 @@ namespace Tac.Semantic_Model
         private readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>> genericTypes
             = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>>();
 
-        public NewScope(NewScope parent)
+        public NewScope(IPopulatableResolvableScope parent)
         {
             Parent = parent ?? throw new ArgumentNullException(nameof(parent));
-            assemblyManager = new AssemblyManager(new List<IAssembly>());
         }
 
-        public NewScope(IReadOnlyList<IAssembly> libraries)
+        // how do I add dependencies?
+        // well they are all just in the scope stack
+        // NewScope() is root
+        // than each dependency stacks on top
+        // and then what we are buiding goes on last
+
+        public NewScope()
         {
             // do these really belong here or should they be defined in some sort of 'standard library'
             // here for now I think 
@@ -155,29 +163,6 @@ namespace Tac.Semantic_Model
                 new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericMethodType())));
             TryAddGeneric(
                 new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericImplementationType())));
-            
-            
-            var flattenedLibs = new List<IAssembly>() ?? throw new ArgumentNullException(nameof(libraries));
-
-            foreach (var lib in libraries)
-            {
-                AddRecursivily(lib);
-            }
-
-            assemblyManager = new AssemblyManager(flattenedLibs);
-
-            void AddRecursivily(IAssembly assembly) {
-                if (flattenedLibs.Contains(assembly)) {
-                    return;
-                }
-
-                foreach (var dependency in assembly.Referances)
-                {
-                    AddRecursivily(dependency);
-                }
-
-                flattenedLibs.Add(assembly);
-            }
         }
 
         public IResolvableScope ToResolvable()
@@ -210,23 +195,20 @@ namespace Tac.Semantic_Model
         {
             if (!members.TryGetValue(name, out var items))
             {
-                goto checkLibraries;
+                goto checkParent;
             }
 
             var thing = items.SingleOrDefault();
 
             if (thing == default)
             {
-                goto checkLibraries;
+                goto checkParent;
             }
 
             member = thing.Definition;
             return true;
 
-            checkLibraries:
-            if (assemblyManager.TryGetMember(name, staticOnly,out member)) {
-                return true;
-            };
+            checkParent:
             
             if (Parent != null)
             {
@@ -286,9 +268,6 @@ namespace Tac.Semantic_Model
 
             // goto 🤘
             exit:
-            if (assemblyManager.TryGetType(name, out type)){
-                return true;
-            }
             
             if (Parent != null)
             {
@@ -314,6 +293,5 @@ namespace Tac.Semantic_Model
             });
         }
     }
-
 }
 

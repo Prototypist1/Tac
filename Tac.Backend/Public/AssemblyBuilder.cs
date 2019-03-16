@@ -11,11 +11,14 @@ using static Tac.Model.Instantiated.Scope;
 
 namespace Tac.Backend.Public
 {
+
+
+
     public class AssemblyBuilder
     {
         private readonly IKey key;
-        private readonly List<IInterpetedOperation<IInterpetedAnyType>> init = new List<IInterpetedOperation<IInterpetedAnyType>>();
-        private readonly List<(IInterpetedMemberDefinition<IInterpetedAnyType>, ITypeReferance)> members = new List<(IInterpetedMemberDefinition<IInterpetedAnyType>, ITypeReferance)>();
+        private readonly Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues = new Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>>();
+        private readonly List<IsStatic> members = new List<IsStatic>();
 
         public AssemblyBuilder(IKey key)
         {
@@ -28,47 +31,59 @@ namespace Tac.Backend.Public
         {
             var memberDef = new InterpetedMemberDefinition<IInterpetedMethod<TIn, TOut>>();
             memberDef.Init(key);
-            var assign = new InterpetedAssignOperation<IInterpetedMethod<TIn,TOut>>();
             var method = new InterpetedExternalMethodDefinition<TIn,TOut>();
             method.Init(func);
-            var memberReference = new InterpetedMemberReferance<IInterpetedMethod<TIn, TOut>>();
-            memberReference.Init(memberDef);
-            assign.Init(method, memberReference);
-            init.Add(assign);
-            members.Add((memberDef,typeReferance));
+            memberValues.Add(key, method);
+            members.Add(new IsStatic(MemberDefinition.CreateAndBuild(key, typeReferance, true),false));
             return this;
         }
 
-        public IAssembly Build() {
+        public class  InternalAssemblyBacking : IBacking
+        {
+            private readonly Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues;
+
+            internal InternalAssemblyBacking(Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues)
+            {
+                this.memberValues = memberValues ?? throw new ArgumentNullException(nameof(memberValues));
+            }
+
+            // TODO someday this will comsume an object with the right members to defined and initialize them!
+
+        }
+
+        public IAssembly<InternalAssemblyBacking> Build() {
             var scope = new Scope();
 
             scope.Build(
-                members.Select(x =>  new IsStatic(MemberDefinition.CreateAndBuild(x.Item1.Key,x.Item2, true), true)).ToList(), 
+                members, 
                 new List<TypeData>() { },
                 new List<GenericTypeData>() { });
 
             return new Assembly(
                 key,
                 scope,
-                init);
+                new InternalAssemblyBacking(memberValues)
+                );
         }
 
-        private class Assembly : IAssembly
+        private class Assembly : IAssembly<InternalAssemblyBacking>
         {
-            private IReadOnlyList<IInterpetedOperation<IInterpetedAnyType>> initialization;
-            public Assembly(IKey key, IFinalizedScope scope, IReadOnlyList<IInterpetedOperation<IInterpetedAnyType>> initialization)
+            public Assembly(IKey key, IFinalizedScope scope, InternalAssemblyBacking backing)
             {
                 Key = key ?? throw new ArgumentNullException(nameof(key));
                 Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.initialization = initialization ?? throw new ArgumentNullException(nameof(initialization));
+                this.Backing = backing ?? throw new ArgumentNullException(nameof(backing));
             }
 
             public IReadOnlyList<IAssembly> Referances => new List<IAssembly>();
 
             public IKey Key { get; }
             public IFinalizedScope Scope { get; }
+            public InternalAssemblyBacking Backing {get;}
 
-            public T Convert<T>(IOpenBoxesContext<T> context)
+            public T Convert<T, TBaking>(IOpenBoxesContext<T,TBaking> context)
+                where TBaking:IBacking
+
             {
                 throw new NotImplementedException();
             }

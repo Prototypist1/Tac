@@ -5,10 +5,14 @@ using Tac.Model.Elements;
 
 namespace Tac.Model
 {
-    public interface IAssembly
+    public interface IAssembly<TBacking>
+        where TBacking : IBacking
     {
-        IReadOnlyList<IAssembly> Referances { get; }
         IKey Key { get; }
         IFinalizedScope Scope { get; }
+        IReadOnlyList<IAssembly<TBacking>> References { get; }
+        TBacking Backing { get; }
     }
+
+    public interface IBacking { }
 }

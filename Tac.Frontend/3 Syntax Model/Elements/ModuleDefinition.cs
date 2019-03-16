@@ -57,7 +57,7 @@ namespace Tac.Semantic_Model
         public ITokenMatching<IPopulateScope<WeakModuleDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new KeyWordMaker("module"), out var frist)
+                .Has(new KeyWordMaker("module"), out _)
                 .Has(new NameMaker(), out var name)
                 .Has(new BodyMaker(), out var third);
             if (matching is IMatchedTokenMatching matched)

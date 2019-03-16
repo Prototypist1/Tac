@@ -9,7 +9,7 @@ using Tac.Semantic_Model;
 
 namespace Tac.Frontend
 {
-    internal class DependencyConverter : IOpenBoxesContext<IFrontendCodeElement<ICodeElement>>
+    internal class DependencyConverter : IOpenBoxesContext<IFrontendCodeElement<ICodeElement>, IBacking>
     {
         private readonly Dictionary<object, IFrontendCodeElement<ICodeElement>> backing = new Dictionary<object, IFrontendCodeElement<ICodeElement>>();
 
@@ -79,18 +79,15 @@ namespace Tac.Frontend
         public IFrontendCodeElement<ICodeElement> LastCallOperation(ILastCallOperation co) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> LessThanOperation(ILessThanOperation co) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> MemberReferance(IMemberReferance codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> MethodDefinition(IInternalMethodDefinition codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> ModuleDefinition(IModuleDefinition codeElement) => throw new NotImplementedException();
+        public IFrontendCodeElement<ICodeElement> MethodDefinition(IInternalMethodDefinition _) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> MultiplyOperation(IMultiplyOperation co) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> NextCallOperation(INextCallOperation co) => throw new NotImplementedException();
-        private IFrontendCodeElement<ICodeElement> NextCallOperation<TIn, TOut>(INextCallOperation co) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> ObjectDefinition(IObjectDefiniton codeElement) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> PathOperation(IPathOperation co) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> ReturnOperation(IReturnOperation co) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> SubtractOperation(ISubtractOperation co) => throw new NotImplementedException();
         public IFrontendCodeElement<ICodeElement> TypeReferance(ITypeReferance codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> InternalMethodDefinition(IInternalMethodDefinition codeElement) => MethodDefinition(codeElement);
-
+        public IFrontendCodeElement<ICodeElement> ModuleDefinition(IModuleDefinition codeElement)=> throw new NotImplementedException();
     }
 
     internal static class TypeMap

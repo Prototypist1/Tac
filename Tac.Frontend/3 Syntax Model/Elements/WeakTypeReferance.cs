@@ -58,49 +58,49 @@ namespace Tac.Semantic_Model
         IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
     }
 
-    internal class ExternalTypeDefinition : IFrontendType<IVerifiableType>
-    {
-        private readonly IVerifiableType type;
+    //internal class ExternalTypeDefinition : IFrontendType<IVerifiableType>
+    //{
+    //    private readonly IVerifiableType type;
 
-        public ExternalTypeDefinition(IVerifiableType type)
-        {
-            this.type = type ?? throw new ArgumentNullException(nameof(type));
-        }
+    //    public ExternalTypeDefinition(IVerifiableType type)
+    //    {
+    //        this.type = type ?? throw new ArgumentNullException(nameof(type));
+    //    }
 
-        public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
-        {
-            return new BuildIntention<IVerifiableType>(type, () => {});
-        }
-    }
+    //    public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+    //    {
+    //        return new BuildIntention<IVerifiableType>(type, () => {});
+    //    }
+    //}
 
-    internal class ExternalTypeReference : IWeakTypeReferance
-    {
-        public ExternalTypeReference(IFrontendType<IVerifiableType> type)
-        {
-            this.type = type ?? throw new ArgumentNullException(nameof(type));
-            TypeDefinition = Possibly.Is(new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(type)));
-        }
+    //internal class ExternalTypeReference : IWeakTypeReferance
+    //{
+    //    public ExternalTypeReference(IFrontendType<IVerifiableType> type)
+    //    {
+    //        this.type = type ?? throw new ArgumentNullException(nameof(type));
+    //        TypeDefinition = Possibly.Is(new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(type)));
+    //    }
 
-        private readonly IFrontendType<IVerifiableType> type;
+    //    private readonly IFrontendType<IVerifiableType> type;
 
-        public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
+    //    public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
 
-        public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
-        {
-            var (toBuild, maker) = TypeReference.Create();
-            return new BuildIntention<ITypeReferance>(toBuild, () =>
-            {
-                maker.Build(type.Convert(context));
-            });
-        }
+    //    public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+    //    {
+    //        var (toBuild, maker) = TypeReference.Create();
+    //        return new BuildIntention<ITypeReferance>(toBuild, () =>
+    //        {
+    //            maker.Build(type.Convert(context));
+    //        });
+    //    }
 
-        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
-        {
-            return TypeDefinition.IfIs(x => x.GetValue());
-        }
+    //    public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+    //    {
+    //        return TypeDefinition.IfIs(x => x.GetValue());
+    //    }
 
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
-    }
+    //    IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+    //}
 
     internal class WeakTypeReference : IWeakTypeReferance
     {

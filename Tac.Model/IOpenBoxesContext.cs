@@ -17,7 +17,8 @@ namespace Tac.Model
     // here the visited classes know they are being visited
     // and so it requires an entry here
     // which forces the front end to up
-    public interface IOpenBoxesContext<T> 
+    public interface IOpenBoxesContext<T,TBacking>
+        where TBacking: IBacking
     {
         T BlockDefinition(IBlockDefinition codeElement);
         T AssignOperation(IAssignOperation co);
@@ -28,7 +29,6 @@ namespace Tac.Model
         T ImplementationDefinition(IImplementationDefinition codeElement);
         T MemberDefinition(IMemberDefinition codeElement);
         T MemberReferance(IMemberReferance codeElement);
-        T InternalMethodDefinition(IInternalMethodDefinition codeElement);
         T ModuleDefinition(IModuleDefinition codeElement);
         T LastCallOperation(ILastCallOperation co);
         T ObjectDefinition(IObjectDefiniton codeElement);
@@ -41,5 +41,6 @@ namespace Tac.Model
         T MultiplyOperation(IMultiplyOperation co);
         T SubtractOperation(ISubtractOperation co);
         T ReturnOperation(IReturnOperation co);
+        
     }
 }

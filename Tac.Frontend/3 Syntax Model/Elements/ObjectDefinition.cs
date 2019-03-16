@@ -66,7 +66,7 @@ namespace Tac.Semantic_Model
         public ITokenMatching<IPopulateScope<WeakObjectDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new KeyWordMaker("object"), out var keyword)
+                .Has(new KeyWordMaker("object"), out var _)
                 .Has(new BodyMaker(), out var block);
             if (matching is IMatchedTokenMatching matched)
             {
