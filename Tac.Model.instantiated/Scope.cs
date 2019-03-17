@@ -59,13 +59,13 @@ namespace Tac.Model.Instantiated
             this.parent = parent ?? throw new ArgumentNullException(nameof(parent));
         }
 
-        public IEnumerable<IKey> MemberKeys => members.Keys;
+        public IReadOnlyList<IKey> MemberKeys => members.Keys.ToList();
 
-        public IEnumerable<IMemberDefinition> Members => members.Select(x => x.Value.Value);
+        public IReadOnlyList<IMemberDefinition> Members => members.Select(x => x.Value.Value).ToList();
         
-        public IEnumerable<GenericTypeEntry> GenericTypes => genericTypes.SelectMany(x=> x.Value.Select(y=> new GenericTypeEntry(y, new GenericKeyDefinition(x.Key,y.TypeParameterKeys))));
+        public IReadOnlyList<GenericTypeEntry> GenericTypes => genericTypes.SelectMany(x=> x.Value.Select(y=> new GenericTypeEntry(y, new GenericKeyDefinition(x.Key,y.TypeParameterKeys)))).ToList();
 
-        IEnumerable<TypeEntry> IFinalizedScope.Types => types.Select(x => new TypeEntry(x.Key, x.Value));
+        IReadOnlyList<TypeEntry> IFinalizedScope.Types => types.Select(x => new TypeEntry(x.Key, x.Value)).ToList();
         
         public static (IFinalizedScope, IFinalizedScopeBuilder) Create(IFinalizedScope parent)
         {

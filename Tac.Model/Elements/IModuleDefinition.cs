@@ -10,10 +10,10 @@ namespace Tac.Model.Elements
         IReadOnlyList<ICodeElement> StaticInitialization { get; }
     }
 
-    public interface IModuleAsAssembly<TBacking> : IModuleDefinition
+    public interface IProject<TBacking> 
         where TBacking : IBacking
     {
-
+        IModuleDefinition ModuleDefinition { get; }
         IReadOnlyList<IAssembly<TBacking>> References { get; }
     }
 }

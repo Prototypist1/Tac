@@ -16,7 +16,7 @@ using static Tac.Backend.Public.AssemblyBuilder;
 namespace Tac.Backend.Syntaz_Model_Interpeter
 {
 
-    internal class Definitions: IOpenBoxesContext<IInterpetedOperation<IInterpetedAnyType>, InternalAssemblyBacking>
+    internal class Definitions: IOpenBoxesContext<IInterpetedOperation<IInterpetedAnyType>, InterpetedAssemblyBacking>
     {
         private readonly Dictionary<object, IInterpetedOperation<IInterpetedAnyType>> backing = new Dictionary<object, IInterpetedOperation<IInterpetedAnyType>>();
 

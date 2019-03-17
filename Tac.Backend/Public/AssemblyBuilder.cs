@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using Tac.Backend.Syntaz_Model_Interpeter;
 using Tac.Backend.Syntaz_Model_Interpeter.Elements;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -38,20 +41,51 @@ namespace Tac.Backend.Public
             return this;
         }
 
-        public class  InternalAssemblyBacking : IBacking
+        public class  InterpetedAssemblyBacking : IBacking
         {
             private readonly Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues;
+            private readonly IFinalizedScope scope;
 
-            internal InternalAssemblyBacking(Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues)
+            internal InterpetedAssemblyBacking(Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues, IFinalizedScope scope)
             {
                 this.memberValues = memberValues ?? throw new ArgumentNullException(nameof(memberValues));
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             }
 
-            // TODO someday this will comsume an object with the right members to defined and initialize them!
+            internal IInterpetedMember<IInterpetedAnyType> CreateMember(InterpetedContext interpetedContext)
+            {
+                var scopeTemplate = new InterpetedScopeTemplate(scope);
+                var objectDefinition = new InterpetedObjectDefinition();
+                objectDefinition.Init(scopeTemplate, memberValues.Select(memberValuePair => {
+                    var typeParameter = memberValuePair.Value.GetType().GetGenericArguments().First();
+                        var method = typeof(Definitions).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
+                          x.Name == nameof(GetAssignemnt) && x.IsGenericMethod);
+                        var madeMethod= method.MakeGenericMethod(new[] { typeParameter});
+                    return madeMethod.Invoke(this, new object[] { memberValuePair }).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>();
+                }));
+
+                var member = new InterpetedMember<IInterpetedAnyType>();
+                member.TrySet(objectDefinition.Interpet(interpetedContext));
+                return member;
+            }
+
+            private IInterpetedAssignOperation<T> GetAssignemnt<T>(KeyValuePair<IKey, IInterpetedOperation<T>> memberValuePair)
+                where T: IInterpetedAnyType
+            {
+                var memberDefinition = new InterpetedMemberDefinition<T>();
+                memberDefinition.Init(memberValuePair.Key);
+
+                var memberReference = new InterpetedMemberReferance<T>();
+                memberReference.Init(memberDefinition);
+                var assign = new InterpetedAssignOperation<T>();
+                assign.Init(memberReference, memberValuePair.Value);
+                return assign;
+            }
+
 
         }
 
-        public IAssembly<InternalAssemblyBacking> Build() {
+        public IAssembly<InterpetedAssemblyBacking> Build() {
             var scope = new Scope();
 
             scope.Build(
@@ -62,24 +96,24 @@ namespace Tac.Backend.Public
             return new Assembly(
                 key,
                 scope,
-                new InternalAssemblyBacking(memberValues)
+                new InterpetedAssemblyBacking(memberValues, scope)
                 );
         }
 
-        private class Assembly : IAssembly<InternalAssemblyBacking>
+        private class Assembly : IAssembly<InterpetedAssemblyBacking>
         {
-            public Assembly(IKey key, IFinalizedScope scope, InternalAssemblyBacking backing)
+            public Assembly(IKey key, IFinalizedScope scope, InterpetedAssemblyBacking backing)
             {
                 Key = key ?? throw new ArgumentNullException(nameof(key));
                 Scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.Backing = backing ?? throw new ArgumentNullException(nameof(backing));
             }
 
-            public IReadOnlyList<IAssembly> Referances => new List<IAssembly>();
+            public IReadOnlyList<IAssembly<InterpetedAssemblyBacking>> References => new List<IAssembly<InterpetedAssemblyBacking>>();
 
             public IKey Key { get; }
             public IFinalizedScope Scope { get; }
-            public InternalAssemblyBacking Backing {get;}
+            public InterpetedAssemblyBacking Backing {get;}
 
             public T Convert<T, TBaking>(IOpenBoxesContext<T,TBaking> context)
                 where TBaking:IBacking

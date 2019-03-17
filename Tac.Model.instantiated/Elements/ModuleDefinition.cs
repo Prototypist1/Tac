@@ -16,7 +16,8 @@ namespace Tac.Model.Instantiated
         public IReadOnlyList<ICodeElement> StaticInitialization => buildableStaticInitialization.Get();
         public IKey Key => buildableKey.Get();
 
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public T Convert<T,TBaking>(IOpenBoxesContext<T, TBaking> context)
+            where TBaking: IBacking
         {
             return context.ModuleDefinition(this);
         }

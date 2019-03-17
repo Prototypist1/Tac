@@ -149,8 +149,14 @@ namespace Tac.Semantic_Model
         // than each dependency stacks on top
         // and then what we are buiding goes on last
 
+        // yeah.. that is not right at all
+        // the reference stuff have a name right? so they just exist in the base scope under their name
+
         public NewScope()
         {
+            // todo handle a list of referenced things
+            string error = 0;
+
             // do these really belong here or should they be defined in some sort of 'standard library'
             // here for now I think 
             TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new NumberType())));

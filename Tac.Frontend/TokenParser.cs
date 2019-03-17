@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
@@ -16,7 +17,9 @@ namespace Tac.Frontend
     public static class TokenParser
     {
         
-        public static IModuleDefinition Parse(string text) {
+        public static IProject<TBacking> Parse<TBacking>(string text,IReadOnlyList<IAssembly<TBacking>> dependencies)
+            where TBacking:IBacking
+        {
 
             var tokenizer = new Parser.Tokenizer(Symbols.GetSymbols());
             var tokens = tokenizer.Tokenize(text);
@@ -24,8 +27,24 @@ namespace Tac.Frontend
             var elementMatchingContest = new ElementMatchingContext();
 
             var scopePopulators = elementMatchingContest.ParseFile(tokens);
-            
-            var stack = new NewScope(new List<IAssembly>());
+
+            var dependencyConverter = new DependencyConverter();
+
+            var stack = new NewScope();
+
+            foreach (var dependency in dependencies)
+            {
+                var convertedDependency = dependencyConverter.ConvertToType<TBacking>(dependency);
+                if (!stack.TryAddMember(DefintionLifetime.Instance, dependency.Key, new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is(
+                    new WeakMemberDefinition(true, dependency.Key, Possibly.Is(
+                        new WeakTypeReference(
+                            Possibly.Is(
+                                new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
+                                    Possibly.Is<IFrontendType<IVerifiableType>>(
+                                        convertedDependency)))))))))) {
+                    throw new Exception("could not add dependency!");
+                }
+            }
 
             var populateScopeContex = new PopulateScopeContext(stack);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
@@ -35,8 +54,13 @@ namespace Tac.Frontend
 
             var context = new ConversionContext();
 
-            return result.Convert<IModuleDefinition>(context);
+            var module = result.Convert<IModuleDefinition>(context);
 
+            return new Project<TBacking>(module, dependencies);
+
+            // Tac dependencies are really loosely bound
+            // you can just have types that match the types
+            // and pass in at runtime 
         }
     }
 }

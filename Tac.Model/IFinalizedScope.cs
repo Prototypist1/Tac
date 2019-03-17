@@ -61,10 +61,10 @@ namespace Tac.Model
 
     public interface IFinalizedScope
     {
-        IEnumerable<IMemberDefinition> Members { get; }
-        IEnumerable<TypeEntry> Types { get; }
-        IEnumerable<IKey> MemberKeys { get; }
-        IEnumerable<GenericTypeEntry> GenericTypes { get; }
+        IReadOnlyList<IMemberDefinition> Members { get; }
+        IReadOnlyList<TypeEntry> Types { get; }
+        IReadOnlyList<IKey> MemberKeys { get; }
+        IReadOnlyList<GenericTypeEntry> GenericTypes { get; }
     }
 
     public class GenericKeyDefinition : IKey

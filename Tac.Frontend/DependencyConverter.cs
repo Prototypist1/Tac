@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
@@ -9,19 +10,61 @@ using Tac.Semantic_Model;
 
 namespace Tac.Frontend
 {
-    internal class DependencyConverter : IOpenBoxesContext<IFrontendCodeElement<ICodeElement>, IBacking>
+    internal class DependencyConverter
     {
+
+
+        public WeakTypeDefinition ConvertToType<TBaking>(IAssembly<TBaking> assembly)
+            where TBaking:IBacking
+        {
+            // is it ok to create a scope here?
+            // yeah i think so
+            // it is not like you are going to be mocking scope
+            // i mean it is not a pure data objet
+            // what is the cost to passing it in?
+
+            var scope = new NewScope();
+            foreach (var member in assembly.Scope.Members)
+            {
+                if (!scope.TryAddMember(DefintionLifetime.Instance,member.Key,new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is( MemberDefinition(member))))) {
+                    throw new Exception("😨 member should not already exist");
+                }
+            }
+            foreach (var type in assembly.Scope.Types)
+            {
+                if (type.Type is IInterfaceType interfaceType)
+                {
+                    if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
+                    {
+                        throw new Exception("type should not already exist");
+                    }
+                }
+            }
+            foreach (var genericType in assembly.Scope.GenericTypes)
+            {
+                if (genericType.Type is IGenericInterfaceDefinition genericInterface)
+                {
+                    if (!scope.TryAddGeneric(genericType.Key.Name, new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(GenericTypeDefinition(genericInterface)))))
+                    {
+                        throw new Exception("type should not already exist");
+                    }
+                }
+            }
+            return new WeakTypeDefinition(scope, Possibly.Is(new ImplicitKey()));
+        }
+
+
         private readonly Dictionary<object, IFrontendCodeElement<ICodeElement>> backing = new Dictionary<object, IFrontendCodeElement<ICodeElement>>();
 
         public DependencyConverter()
         {
         }
 
-        public IFrontendCodeElement<ICodeElement> MemberDefinition(IMemberDefinition member)
+        public WeakMemberDefinition MemberDefinition(IMemberDefinition member)
         {
             if (backing.TryGetValue(member, out var res))
             {
-                return res;
+                return res.Cast<WeakMemberDefinition>();
             }
             else
             {
@@ -39,7 +82,7 @@ namespace Tac.Frontend
             }
         }
 
-        public IFrontendCodeElement<ICodeElement> GenericTypeDefinition(IGenericInterfaceDefinition codeElement)
+        public IFrontendGenericType GenericTypeDefinition(IGenericInterfaceDefinition codeElement)
         {
             throw new NotImplementedException();
             //if (backing.TryGetValue(codeElement, out var res))
@@ -54,7 +97,7 @@ namespace Tac.Frontend
             //}
         }
 
-        public IFrontendCodeElement<ICodeElement> TypeDefinition(IInterfaceType codeElement)
+        public IFrontendType<IVerifiableType> TypeDefinition(IInterfaceType codeElement)
         {
             throw new NotImplementedException();
             //if (backing.TryGetValue(codeElement, out var res))
@@ -68,26 +111,6 @@ namespace Tac.Frontend
             //    return op;
             //}
         }
-
-        public IFrontendCodeElement<ICodeElement> AddOperation(IAddOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> AssignOperation(IAssignOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> BlockDefinition(IBlockDefinition codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> ConstantNumber(IConstantNumber codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> ElseOperation(IElseOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> IfTrueOperation(IIfOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> ImplementationDefinition(IImplementationDefinition codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> LastCallOperation(ILastCallOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> LessThanOperation(ILessThanOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> MemberReferance(IMemberReferance codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> MethodDefinition(IInternalMethodDefinition _) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> MultiplyOperation(IMultiplyOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> NextCallOperation(INextCallOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> ObjectDefinition(IObjectDefiniton codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> PathOperation(IPathOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> ReturnOperation(IReturnOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> SubtractOperation(ISubtractOperation co) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> TypeReferance(ITypeReferance codeElement) => throw new NotImplementedException();
-        public IFrontendCodeElement<ICodeElement> ModuleDefinition(IModuleDefinition codeElement)=> throw new NotImplementedException();
     }
 
     internal static class TypeMap
