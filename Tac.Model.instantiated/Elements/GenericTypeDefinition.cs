@@ -20,8 +20,8 @@ namespace Tac.Model.Instantiated
 
         public IFinalizedScope Scope { get => buildableScope.Get(); }
         public IVerifiableType[] TypeParameterDefinitions { get => buildableTypeParameterDefinitions.Get(); }
-
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
+            where TBacking : IBacking
         {
             return context.GenericTypeDefinition(this);
         }

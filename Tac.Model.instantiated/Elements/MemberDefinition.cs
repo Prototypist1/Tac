@@ -14,8 +14,9 @@ namespace Tac.Model.Instantiated
         public IKey Key { get => buildableKey.Get(); }
         public ITypeReferance Type { get => buildableType.Get(); }
         public bool ReadOnly { get => buildableReadOnly.Get(); }
-        
-        public T Convert<T>(IOpenBoxesContext<T> context)
+
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
+            where TBacking : IBacking
         {
             return context.MemberDefinition(this);
         }

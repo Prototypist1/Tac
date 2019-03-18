@@ -26,8 +26,8 @@ namespace Tac.Model.Instantiated
             var res = new MultiplyOperation();
             return (res, res);
         }
-
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
+            where TBacking : IBacking
         {
             return context.MultiplyOperation(this);
         }

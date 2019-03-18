@@ -32,9 +32,10 @@ namespace Tac.Model.Instantiated
         IVerifiableType IMethodType.InputType => InputType.TypeDefinition;
         IVerifiableType IMethodType.OutputType => OutputType.TypeDefinition;
 
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
+            where TBacking : IBacking
         {
-            return context.InternalMethodDefinition(this);
+            return context.MethodDefinition(this);
         }
 
         public IVerifiableType Returns()

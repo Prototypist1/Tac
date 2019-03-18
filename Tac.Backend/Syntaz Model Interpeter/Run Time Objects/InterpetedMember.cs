@@ -24,7 +24,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var method = typeof(InterpetedMember).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Single(x =>
               x.Name == nameof(Make) && x.IsGenericMethod);
-            var made = method.MakeGenericMethod(new Type[] { Definitions.MapType(type) });
+            var made = method.MakeGenericMethod(new Type[] { TypeMap.MapType(type) });
             return made.Invoke(null,new object[] { }).Cast<IInterpetedMember>();
         }
 

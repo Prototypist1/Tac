@@ -18,8 +18,8 @@ namespace Tac.Model.Instantiated
         public IFinalizedScope Scope { get => buildableScope.Get(); }
         public ICodeElement[] Body { get => buildableBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
-        
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
+            where TBacking : IBacking
         {
             return context.BlockDefinition(this);
         }

@@ -19,7 +19,7 @@ namespace Tac.Backend
             var interpetedContext = InterpetedContext.Root();
             foreach (var reference in moduleDefinition.References)
             {
-                interpetedContext.TryAddMember(reference.Key,reference.Backing.CreateMember());
+                interpetedContext.TryAddMember(reference.Key,reference.Backing.CreateMember(interpetedContext));
             }
             moduleDefinition.ModuleDefinition.Convert(conversionContext).Interpet(interpetedContext);
 

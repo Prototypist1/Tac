@@ -27,7 +27,8 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
         
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public T Convert<T,TBacking>(IOpenBoxesContext<T,TBacking> context)
+            where TBacking:IBacking
         {
             return context.AddOperation(this);
         }

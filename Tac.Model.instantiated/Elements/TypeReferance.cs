@@ -23,7 +23,7 @@ namespace Tac.Model.Instantiated
         }
 
         public IVerifiableType Returns() => this;
-        public T Convert<T>(IOpenBoxesContext<T> context) => context.TypeReferance(this);
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context) where TBacking : IBacking => context.TypeReferance(this);
 
         public static ITypeReferance CreateAndBuild(IVerifiableType typeDefinition) {
             var (x, y) = Create();

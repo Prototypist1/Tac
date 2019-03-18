@@ -11,8 +11,8 @@ namespace Tac.Model.Instantiated
         #region IConstantNumber
 
         public double Value { get => valueBuilder.Get(); }
-
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
+            where TBacking : IBacking
         {
             return context.ConstantNumber(this);
         }

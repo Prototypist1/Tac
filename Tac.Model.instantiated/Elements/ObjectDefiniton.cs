@@ -14,8 +14,8 @@ namespace Tac.Model.Instantiated
 
         public IFinalizedScope Scope => buildableScope.Get();
         public IEnumerable<IAssignOperation> Assignments => buildableAssignments.Get();
-
-        public T Convert<T>(IOpenBoxesContext<T> context)
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
+            where TBacking : IBacking
         {
             return context.ObjectDefinition(this);
         }
