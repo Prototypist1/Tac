@@ -76,13 +76,13 @@ namespace Tac.Frontend
                             Possibly.Is(
                                 new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
                                     Possibly.Is(
-                                        TypeMap.MapType(member.Type)))))));
+                                        TypeMap.MapType(member.Type.TypeDefinition)))))));
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition;
             }
         }
 
-        public IFrontendGenericType GenericTypeDefinition(IGenericInterfaceDefinition codeElement)
+        public IFrontendGenericType GenericTypeDefinition(IGenericInterfaceDefinition _)
         {
             throw new NotImplementedException();
             //if (backing.TryGetValue(codeElement, out var res))
@@ -97,7 +97,7 @@ namespace Tac.Frontend
             //}
         }
 
-        public IFrontendType<IVerifiableType> TypeDefinition(IInterfaceType codeElement)
+        public IFrontendType<IVerifiableType> TypeDefinition(IInterfaceType _)
         {
             throw new NotImplementedException();
             //if (backing.TryGetValue(codeElement, out var res))
