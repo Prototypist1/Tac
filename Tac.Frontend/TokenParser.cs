@@ -57,10 +57,6 @@ namespace Tac.Frontend
             var module = result.Convert<IModuleDefinition>(context);
 
             return new Project<TBacking>(module, dependencies);
-
-            // Tac dependencies are really loosely bound
-            // you can just have types that match the types
-            // and pass in at runtime 
         }
     }
 }

@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac.Backend.Syntaz_Model_Interpeter;
 using Tac.Backend.Syntaz_Model_Interpeter.Elements;
 using Tac.Model.Elements;
 using Tac.Syntaz_Model_Interpeter;
+using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using static Tac.Backend.Public.AssemblyBuilder;
 
 namespace Tac.Backend
@@ -15,15 +17,14 @@ namespace Tac.Backend
         {
             var conversionContext = new Definitions();
 
-
             var interpetedContext = InterpetedContext.Root();
             foreach (var reference in moduleDefinition.References)
             {
                 interpetedContext.TryAddMember(reference.Key,reference.Backing.CreateMember(interpetedContext));
             }
-            moduleDefinition.ModuleDefinition.Convert(conversionContext).Interpet(interpetedContext);
+            conversionContext.ModuleDefinition(moduleDefinition.ModuleDefinition).Interpet(interpetedContext).Cast<InterpetedMember<IInterpetedScope>>();
 
-            // todo find the entry point and run 
+            conversionContext.EntryPoint.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
         }
     }
 }

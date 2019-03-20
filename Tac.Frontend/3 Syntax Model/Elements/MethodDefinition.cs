@@ -71,7 +71,9 @@ namespace Tac.Semantic_Model
         {
             IPopulateScope<WeakTypeReference> input = null, output = null;
             var matching = tokenMatching
-                .HasOne(x=>x.Has(new KeyWordMaker("method"),out var _),x=>x.Has( new KeyWordMaker("entry-point"),out var _), out var entryPoint)
+                .HasOne(
+                    x=>x.Has(new KeyWordMaker("method"),out var _),
+                    x=>x.Has( new KeyWordMaker("entry-point"),out var _), out var entryPoint)
                 .HasSquare(x => x
                     .HasLine(y => y
                         .HasElement(z=>z

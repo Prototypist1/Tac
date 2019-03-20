@@ -17,7 +17,7 @@ namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
 
     }
 
-    internal class RunTimeEmpty : RunTimeAny, IInterpedEmpty
+    public class RunTimeEmpty : RunTimeAny, IInterpedEmpty
     {
     }
 }

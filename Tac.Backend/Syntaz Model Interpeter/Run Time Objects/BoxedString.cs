@@ -1,6 +1,6 @@
 ﻿namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class BoxedString: RunTimeAny
+    public class BoxedString: RunTimeAny
     {
         public BoxedString(string value)
         {

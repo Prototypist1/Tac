@@ -1,6 +1,6 @@
 ﻿namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class BoxedDouble: RunTimeAny
+    public class BoxedDouble: RunTimeAny
     {
         public BoxedDouble(double value)
         {

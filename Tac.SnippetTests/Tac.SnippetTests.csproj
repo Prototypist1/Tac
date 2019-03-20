@@ -15,4 +15,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Tac.Backend\Tac.Backend.csproj" />
+    <ProjectReference Include="..\Tac.Model\Tac.Model.csproj" />
+    <ProjectReference Include="..\Tac.Runner\Tac.Runner.csproj" />
+  </ItemGroup>
+
 </Project>

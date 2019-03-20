@@ -20,6 +20,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
     {
         private readonly Dictionary<object, IInterpetedOperation<IInterpetedAnyType>> backing = new Dictionary<object, IInterpetedOperation<IInterpetedAnyType>>();
 
+        public IInterpetedMethod<IInterpedEmpty, IInterpedEmpty> EntryPoint { get; private set; }
+
         public Definitions()
         {
         }
@@ -284,6 +286,16 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                     MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
                     new InterpetedScopeTemplate(codeElement.Scope));
+                if (codeElement.IsEntryPoint) {
+                    // sloppy this should be on the prop
+                    if (EntryPoint == null)
+                    {
+                        EntryPoint = op.Cast<IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>>();
+                    }
+                    else {
+                        new Exception("we already have an entry point");
+                    }
+                }
                 return op;
             }
         }

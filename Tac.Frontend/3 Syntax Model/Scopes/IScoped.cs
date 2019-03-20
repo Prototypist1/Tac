@@ -154,9 +154,6 @@ namespace Tac.Semantic_Model
 
         public NewScope()
         {
-            // todo handle a list of referenced things
-            string error = 0;
-
             // do these really belong here or should they be defined in some sort of 'standard library'
             // here for now I think 
             TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new NumberType())));
