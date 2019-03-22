@@ -99,7 +99,7 @@ namespace Tac.Semantic_Model
             if (matching
                  is IMatchedTokenMatching matched)
             {
-                var isEntryPoint = entryPoint.Item == "entryPoint";
+                var isEntryPoint = entryPoint.Item == "entry-point";
 
                 var elements = matching.Context.ParseBlock(body);
                 

@@ -20,11 +20,20 @@ namespace Tac.Backend
             var interpetedContext = InterpetedContext.Root();
             foreach (var reference in moduleDefinition.References)
             {
-                interpetedContext.TryAddMember(reference.Key,reference.Backing.CreateMember(interpetedContext));
+                interpetedContext.TryAddMember(reference.Key, reference.Backing.CreateMember(interpetedContext));
             }
-            conversionContext.ModuleDefinition(moduleDefinition.ModuleDefinition).Interpet(interpetedContext).Cast<InterpetedMember<IInterpetedScope>>();
 
-            conversionContext.EntryPoint.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+            if (conversionContext.ModuleDefinition(moduleDefinition.ModuleDefinition).Interpet(interpetedContext).IsReturn(out var _, out var _))
+            {
+                throw new Exception("this should not really return");
+            }
+
+            if (conversionContext.EntryPoint.Interpet(interpetedContext).IsReturn(out var _, out var value))
+            {
+                throw new Exception("this should not really return");
+            }
+            value.Value.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+
         }
     }
 }

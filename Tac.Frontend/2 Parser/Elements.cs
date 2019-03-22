@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -46,6 +47,7 @@ namespace Tac.Parser
                 new MethodDefinitionMaker(),
                 new ModuleDefinitionMaker(),
                 new ObjectDefinitionMaker(),
+                new EmptyInstanceMaker(),
                 new TypeDefinitionMaker(),
                 new ImplicitMemberMaker(box),
                 new MemberMaker(),
@@ -82,6 +84,7 @@ namespace Tac.Parser
                     new ObjectDefinitionMaker(),
                     new TypeDefinitionMaker(),
                     new GenericTypeDefinitionMaker(),
+                    new EmptyInstanceMaker(),
                     new MemberMaker(),
                 }){}
         

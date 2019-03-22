@@ -17,7 +17,7 @@ namespace Tac.Frontend
     public static class TokenParser
     {
         
-        public static IProject<TBacking> Parse<TBacking>(string text,IReadOnlyList<IAssembly<TBacking>> dependencies)
+        public static IProject<TBacking> Parse<TBacking>(string text,IReadOnlyList<IAssembly<TBacking>> dependencies, string name)
             where TBacking:IBacking
         {
 
@@ -30,12 +30,12 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var stack = new NewScope();
+            var dependendcyScope = new NewScope();
 
             foreach (var dependency in dependencies)
             {
                 var convertedDependency = dependencyConverter.ConvertToType<TBacking>(dependency);
-                if (!stack.TryAddMember(DefintionLifetime.Instance, dependency.Key, new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is(
+                if (!dependendcyScope.TryAddMember(DefintionLifetime.Instance, dependency.Key, new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is(
                     new WeakMemberDefinition(true, dependency.Key, Possibly.Is(
                         new WeakTypeReference(
                             Possibly.Is(
@@ -46,17 +46,21 @@ namespace Tac.Frontend
                 }
             }
 
-            var populateScopeContex = new PopulateScopeContext(stack);
+            var scope = new NewScope(dependendcyScope);
+
+            var populateScopeContex = new PopulateScopeContext(scope);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
 
             var resolveReferanceContext = new ResolveReferanceContext();
-            var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray().Single().GetOrThrow().Cast<WeakModuleDefinition>();
 
             var context = new ConversionContext();
 
-            var module = result.Convert<IModuleDefinition>(context);
+            var module = new WeakModuleDefinition(
+                scope, 
+                referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray(), 
+                new NameKey(name));
 
-            return new Project<TBacking>(module, dependencies);
+            return new Project<TBacking>(module.Convert<IModuleDefinition>(context), dependencies);
         }
     }
 }

@@ -40,7 +40,7 @@ namespace Tac.Model.Instantiated
         
         public IVerifiableType Returns()
         {
-            return Right.Cast<IMemberReferance>();
+            return Right.Returns();
         }
         
         public static IPathOperation CreateAndBuild(ICodeElement left, ICodeElement right)

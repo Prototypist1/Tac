@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakModuleDefinition : IScoped, IFrontendCodeElement<IModuleDefinition>, IFrontendType<IVerifiableType>
     {
-        public WeakModuleDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitialization, NameKey Key)
+        public WeakModuleDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitialization, IKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));

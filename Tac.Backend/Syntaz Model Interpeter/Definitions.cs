@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Tac.Backend.Syntaz_Model_Interpeter.Elements;
+using Tac.Backend.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -20,7 +21,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
     {
         private readonly Dictionary<object, IInterpetedOperation<IInterpetedAnyType>> backing = new Dictionary<object, IInterpetedOperation<IInterpetedAnyType>>();
 
-        public IInterpetedMethod<IInterpedEmpty, IInterpedEmpty> EntryPoint { get; private set; }
+        public IInterpetedOperation<IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>> EntryPoint { get; private set; }
 
         public Definitions()
         {
@@ -118,6 +119,22 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 return op;
             }
         }
+
+        public IInterpetedOperation<IInterpetedAnyType> EmptyInstance(IEmptyInstance co)
+        {
+            if (backing.TryGetValue(co, out var res))
+            {
+                return res;
+            }
+            else
+            {
+                var op = new InterpetedEmptyInstance();
+                backing.Add(co, op);
+                op.Init();
+                return op;
+            }
+        }
+
 
         public IInterpetedOperation<IInterpetedAnyType> ElseOperation(IElseOperation co)
         {
@@ -290,7 +307,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                     // sloppy this should be on the prop
                     if (EntryPoint == null)
                     {
-                        EntryPoint = op.Cast<IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>>();
+                        EntryPoint = op.Cast<IInterpetedOperation<IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>>>();
                     }
                     else {
                         new Exception("we already have an entry point");

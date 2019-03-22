@@ -42,6 +42,6 @@ namespace Tac.Model
         T SubtractOperation(ISubtractOperation co);
         T ReturnOperation(IReturnOperation co);
         T MethodDefinition(IInternalMethodDefinition co);
-        
+        T EmptyInstance(IEmptyInstance co);
     }
 }

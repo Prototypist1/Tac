@@ -25,7 +25,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public static InterpetedContext Root()
         {
-            return new InterpetedContext(new IInterpetedScope[0]);
+            return new InterpetedContext(new IInterpetedScope[] { InterpetedInstanceScope.Make() });
         }
 
         internal bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType

@@ -178,8 +178,6 @@ namespace Tac.Semantic_Model
     {
         public ITokenMatching<IPopulateScope<WeakTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-
-            var list = new List<IPopulateScope<WeakTypeReference>>();
             var matching = tokenMatching
                 .Has(new TypeMaker(), out var type);
             

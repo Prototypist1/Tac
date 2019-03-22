@@ -12,11 +12,11 @@ namespace Tac.SnippetTests
             var (intIn, verifyIntIn) = BasicInputOutput.ToInput(new double[] { });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToInput(new string[] { "test" });
 
-            Tac.Runner.Runner.Run(new[] {
+            Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Input(intIn ,stringIn)},
  @"
 entry-point [ empty ; empty ] _ {
-    object {} > ( input . read-string ) ;
+    new-empty > ( input . read-string ) ;
 } ;");
 
             verifyIntIn();
@@ -30,11 +30,11 @@ entry-point [ empty ; empty ] _ {
             var (intIn, verifyIntIn) = BasicInputOutput.ToInput(new double[] { 1.0 });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToInput(new string[] { });
 
-            Tac.Runner.Runner.Run(new[] {
-                BasicInputOutput.Input(intIn ,stringIn)},
+            Tac.Runner.Runner.Run("test",
+                new[] {BasicInputOutput.Input(intIn ,stringIn)},
 @"
 entry-point [ empty ; empty ] _ {
-    object {} > ( input . read-number ) ;
+    new-empty > ( input . read-number ) ;
 } ;");
 
             verifyIntIn();
@@ -48,7 +48,7 @@ entry-point [ empty ; empty ] _ {
             var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 2.0 });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
 
-            Tac.Runner.Runner.Run(new[] {
+            Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn)},
  @"
  entry-point [ empty ; empty ] _ {
@@ -65,7 +65,7 @@ entry-point [ empty ; empty ] _ {
             var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { "hello world"  });
 
-            Tac.Runner.Runner.Run(new[] {
+            Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn)},
  @"
 entry-point [ empty ; empty ] _ {

@@ -57,28 +57,28 @@ namespace Tac.Backend.Public
                 var scopeTemplate = new InterpetedScopeTemplate(scope);
                 var objectDefinition = new InterpetedObjectDefinition();
                 objectDefinition.Init(scopeTemplate, memberValues.Select(memberValuePair => {
-                    var typeParameter = memberValuePair.Value.GetType().GetGenericArguments().First();
-                        var method = typeof(Definitions).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
+                    var typeParameter = memberValuePair.Value.GetType().GetInterfaces().Where(x=>x.GetGenericTypeDefinition().Equals(typeof(IInterpetedOperation<>))).Single().GetGenericArguments().First();
+                        var method = typeof(InterpetedAssemblyBacking).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
                           x.Name == nameof(GetAssignemnt) && x.IsGenericMethod);
                         var madeMethod= method.MakeGenericMethod(new[] { typeParameter});
-                    return madeMethod.Invoke(this, new object[] { memberValuePair }).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>();
+                    return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value }).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>();
                 }));
 
-                var member = new InterpetedMember<IInterpetedAnyType>();
+                var member = new InterpetedMember<IInterpetedScope>();
                 member.TrySet(objectDefinition.Interpet(interpetedContext));
                 return member;
             }
 
-            private IInterpetedAssignOperation<T> GetAssignemnt<T>(KeyValuePair<IKey, IInterpetedOperation<T>> memberValuePair)
+            private IInterpetedAssignOperation<T> GetAssignemnt<T>(IKey key, IInterpetedOperation<T> operation)
                 where T: IInterpetedAnyType
             {
                 var memberDefinition = new InterpetedMemberDefinition<T>();
-                memberDefinition.Init(memberValuePair.Key);
+                memberDefinition.Init(key);
 
                 var memberReference = new InterpetedMemberReferance<T>();
                 memberReference.Init(memberDefinition);
                 var assign = new InterpetedAssignOperation<T>();
-                assign.Init(memberReference, memberValuePair.Value);
+                assign.Init(operation, memberReference);
                 return assign;
             }
 
