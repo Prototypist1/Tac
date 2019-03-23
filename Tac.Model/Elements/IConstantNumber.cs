@@ -4,6 +4,11 @@
         double Value { get; }
     }
 
+    public interface IConstantString : ICodeElement
+    {
+        string Value { get; }
+    }
+
     public interface IEmptyInstance : ICodeElement {
     }
 }

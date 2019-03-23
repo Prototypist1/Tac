@@ -48,6 +48,7 @@ namespace Tac.Parser
                 new ModuleDefinitionMaker(),
                 new ObjectDefinitionMaker(),
                 new EmptyInstanceMaker(),
+                new ConstantStringMaker(),
                 new TypeDefinitionMaker(),
                 new ImplicitMemberMaker(box),
                 new MemberMaker(),
@@ -85,6 +86,7 @@ namespace Tac.Parser
                     new TypeDefinitionMaker(),
                     new GenericTypeDefinitionMaker(),
                     new EmptyInstanceMaker(),
+                    new ConstantStringMaker(),
                     new MemberMaker(),
                 }){}
         

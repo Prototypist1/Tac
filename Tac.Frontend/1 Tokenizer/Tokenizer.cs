@@ -282,6 +282,10 @@ namespace Tac.Parser
             var buildingPart = "";
             while (enumerator.MoveNext())
             {
+                if (buildingPart == "" && enumerator.Current=='"') {
+                    return BuildStringConstant(enumerator,out part);
+                }
+
                 if (IsNothing(enumerator.Current)) {
                     if (buildingPart != "")
                     {
@@ -297,6 +301,8 @@ namespace Tac.Parser
             part = default;
             return false;
             
+
+
             bool IsNothing(char current) {
                 return 
                     current == ' ' ||
@@ -304,6 +310,19 @@ namespace Tac.Parser
                     current == '\n' ||
                     current == '\r';
             }
+        }
+
+        private bool BuildStringConstant(CharEnumerator enumerator,out string part)
+        {
+            part = enumerator.Current + "";
+            while (enumerator.MoveNext() ) {
+                part += enumerator.Current;
+                if (enumerator.Current == '"') {
+                    return true; 
+                }
+            }
+            part = default;
+            return false;
         }
 
         public FileToken Tokenize(string s) {

@@ -60,24 +60,28 @@ namespace Tac.Backend.Public
                     var typeParameter = memberValuePair.Value.GetType().GetInterfaces().Where(x=>x.GetGenericTypeDefinition().Equals(typeof(IInterpetedOperation<>))).Single().GetGenericArguments().First();
                         var method = typeof(InterpetedAssemblyBacking).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
                           x.Name == nameof(GetAssignemnt) && x.IsGenericMethod);
-                        var madeMethod= method.MakeGenericMethod(new[] { typeParameter});
+                        var madeMethod= method.MakeGenericMethod(new[] { typeParameter , typeParameter });
                     return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value }).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>();
                 }));
 
                 var member = new InterpetedMember<IInterpetedScope>();
-                member.TrySet(objectDefinition.Interpet(interpetedContext));
+                if (objectDefinition.Interpet(interpetedContext).IsReturn(out var _, out var value)) {
+                    throw new Exception("this should not throw");
+                }
+                member.Cast<IInterpetedMemberSet<IInterpetedScope>>().Set(value.Value);
                 return member;
             }
 
-            private IInterpetedAssignOperation<T> GetAssignemnt<T>(IKey key, IInterpetedOperation<T> operation)
-                where T: IInterpetedAnyType
+            private IInterpetedAssignOperation<TLeft,TRight> GetAssignemnt<TLeft, TRight>(IKey key, IInterpetedOperation<TLeft> operation)
+                where TLeft : TRight
+                where TRight : IInterpetedAnyType
             {
-                var memberDefinition = new InterpetedMemberDefinition<T>();
+                var memberDefinition = new InterpetedMemberDefinition<TRight>();
                 memberDefinition.Init(key);
 
-                var memberReference = new InterpetedMemberReferance<T>();
+                var memberReference = new InterpetedMemberReferance<TRight>();
                 memberReference.Init(memberDefinition);
-                var assign = new InterpetedAssignOperation<T>();
+                var assign = new InterpetedAssignOperation<TLeft,TRight>();
                 assign.Init(operation, memberReference);
                 return assign;
             }

@@ -9,6 +9,7 @@ using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Xunit;
 using static Tac.Backend.Public.AssemblyBuilder;
+using Prototypist.LeftToRight;
 
 namespace Tac.SnippetTests
 {
@@ -58,14 +59,14 @@ namespace Tac.SnippetTests
             return new AssemblyBuilder(new NameKey("output"))
                        .AddMethod(
                            new NameKey("write-number"),
-                           (BoxedDouble x) => { numberDestination(x.Value); return new RunTimeEmpty(); },
+                           (BoxedDouble x) => { numberDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
                            TypeReference.CreateAndBuild(
                                MethodType.CreateAndBuild(
                                    new NumberType(),
                                    new EmptyType())))
                        .AddMethod(
                            new NameKey("write-string"),
-                           (BoxedString x) => { stringDestination(x.Value); return new RunTimeEmpty(); },
+                           (BoxedString x) => { stringDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
                            TypeReference.CreateAndBuild(
                                MethodType.CreateAndBuild(
                                    new StringType(),

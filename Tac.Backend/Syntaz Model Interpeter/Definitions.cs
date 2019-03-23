@@ -66,12 +66,13 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> AssignOperation(IAssignOperation co)
         {
-            var method = GetMethod(new Type[] { TypeMap.MapType(co.Right.Returns()) }, nameof(AssignOperation));
+            var method = GetMethod(new Type[] { TypeMap.MapType(co.Left.Returns()), TypeMap.MapType(co.Right.Returns()) }, nameof(AssignOperation));
             return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
-        private IInterpetedOperation<IInterpetedAnyType> AssignOperation<T>(IAssignOperation co)
-            where T : class, IInterpetedAnyType
+        private IInterpetedOperation<IInterpetedAnyType> AssignOperation<TLeft,TRight>(IAssignOperation co)
+            where TRight : class, IInterpetedAnyType
+            where TLeft: class,TRight
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -79,11 +80,11 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             else
             {
-                var op = new InterpetedAssignOperation<T>();
+                var op = new InterpetedAssignOperation<TLeft,TRight>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<T>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<T>>());
+                    co.Left.Convert(this).Cast<IInterpetedOperation<TLeft>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<TRight>>());
                 return op;
             }
         }
@@ -116,6 +117,21 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedConstantNumber();
                 backing.Add(codeElement, op);
                 op.Init(codeElement.Value);
+                return op;
+            }
+        }
+
+        public IInterpetedOperation<IInterpetedAnyType> ConstantString(IConstantString co)
+        {
+            if (backing.TryGetValue(co, out var res))
+            {
+                return res;
+            }
+            else
+            {
+                var op = new InterpetedConstantString();
+                backing.Add(co, op);
+                op.Init(co.Value);
                 return op;
             }
         }

@@ -43,9 +43,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             var res = Scope.Create();
 
-            if (!res.GetMember<TIn>(ParameterDefinition.Key).TrySet(input.Value)) {
-                throw new System.Exception("trash, it is all trash!");
-            }
+            res.GetMember<TIn>(ParameterDefinition.Key).Cast<IInterpetedMemberSet<TIn>>().Set(input.Value);
 
             var scope = Context.Child(res);
 

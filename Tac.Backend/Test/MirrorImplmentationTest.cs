@@ -29,8 +29,8 @@ namespace Tac.Backend.Test
             var implementation = scope.GetMember<IInterpetedAnyType>(new NameKey("mirror")).Value.Cast<IInterpetedImplementation<IInterpetedScope, IInterpedEmpty, IInterpedEmpty>>();
 
             var context = InterpetedInstanceScope.Make(
-                (new NameKey("x"), new InterpetedMember<BoxedDouble>(new BoxedDouble( 5))),
-                (new NameKey("y"), new InterpetedMember<BoxedDouble>(new BoxedDouble(7))));
+                (new NameKey("x"), new InterpetedMember<IInterpetedAnyType>(new BoxedDouble( 5))),
+                (new NameKey("y"), new InterpetedMember<IInterpetedAnyType>(new BoxedDouble(7))));
 
             {
                 Assert.False(implementation.Invoke(new InterpetedMember<IInterpetedScope>(context)).IsReturn(out var _, out var method));
@@ -38,8 +38,8 @@ namespace Tac.Backend.Test
                 method.Value.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
             }
 
-            Assert.Equal(7,context.GetMember<BoxedDouble>(new NameKey("x")).Value.Value);
-            Assert.Equal(5, context.GetMember<BoxedDouble>(new NameKey("y")).Value.Value);
+            Assert.Equal(7,context.GetMember<IInterpetedAnyType>(new NameKey("x")).Value.Cast<BoxedDouble>().Value);
+            Assert.Equal(5, context.GetMember<IInterpetedAnyType>(new NameKey("y")).Value.Cast<BoxedDouble>().Value);
 
             {
                 Assert.False(implementation.Invoke(new InterpetedMember<IInterpetedScope>(context)).IsReturn(out var _, out var method));
@@ -47,8 +47,8 @@ namespace Tac.Backend.Test
                 method.Value.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
             }
 
-            Assert.Equal(5, context.GetMember<BoxedDouble>(new NameKey("x")).Value.Value);
-            Assert.Equal(7, context.GetMember<BoxedDouble>(new NameKey("y")).Value.Value);
+            Assert.Equal(5, context.GetMember<IInterpetedAnyType>(new NameKey("x")).Value.Cast<BoxedDouble>().Value);
+            Assert.Equal(7, context.GetMember<IInterpetedAnyType>(new NameKey("y")).Value.Cast<BoxedDouble>().Value);
 
         }
     }

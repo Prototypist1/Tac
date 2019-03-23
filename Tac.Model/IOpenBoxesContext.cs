@@ -43,5 +43,6 @@ namespace Tac.Model
         T ReturnOperation(IReturnOperation co);
         T MethodDefinition(IInternalMethodDefinition co);
         T EmptyInstance(IEmptyInstance co);
+        T ConstantString(IConstantString co);
     }
 }
