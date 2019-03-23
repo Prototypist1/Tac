@@ -45,6 +45,37 @@ entry-point [ empty ; empty ] _ {
             verifyBoolIn();
         }
 
+
+
+        [Fact]
+        public void BoolInputOutput()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToInput(new double[] {  });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToInput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToInput(new bool[] { true });
+
+            var (intOut, verifyIntOut) = BasicInputOutput.ToOutput(new double[] { });
+            var (stringOut, verifyStringOut) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolOut, verifyBoolOut) = BasicInputOutput.ToOutput(new bool[] { true });
+
+            Tac.Runner.Runner.Run("test",
+                new[] {
+                    BasicInputOutput.Input(intIn, stringIn, boolIn),
+                    BasicInputOutput.Output(intOut, stringOut, boolOut) },
+@"
+entry-point [ empty ; empty ] _ {
+    new-empty > ( input . read-bool ) > ( output . write-bool ) ;
+} ;");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+            verifyIntOut();
+            verifyStringOut();
+            verifyBoolOut();
+        }
+
+
         [Fact]
         public void Multiply()
         {
