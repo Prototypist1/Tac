@@ -1,6 +1,6 @@
 ﻿namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class BoxedBool: RunTimeAny
+    public class BoxedBool: RunTimeAny
     {
         public BoxedBool(bool value)
         {

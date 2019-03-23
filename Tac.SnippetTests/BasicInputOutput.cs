@@ -35,7 +35,7 @@ namespace Tac.SnippetTests
                 });
         }
 
-        public static IAssembly<InterpetedAssemblyBacking> Input(Func<double> numberSource, Func<string> stringSource) {
+        public static IAssembly<InterpetedAssemblyBacking> Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource) {
             return new AssemblyBuilder(new NameKey("input"))
                        .AddMethod(
                            new NameKey("read-number"),
@@ -51,10 +51,17 @@ namespace Tac.SnippetTests
                                MethodType.CreateAndBuild(
                                    new EmptyType(),
                                    new StringType())))
+                       .AddMethod(
+                           new NameKey("read-bool"),
+                           (IInterpedEmpty x) => new BoxedBool(boolSource()),
+                           TypeReference.CreateAndBuild(
+                               MethodType.CreateAndBuild(
+                                   new EmptyType(),
+                                   new BooleanType())))
                        .Build();
         }
 
-        public static IAssembly<InterpetedAssemblyBacking> Output(Action<double> numberDestination, Action<string> stringDestination)
+        public static IAssembly<InterpetedAssemblyBacking> Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
         {
             return new AssemblyBuilder(new NameKey("output"))
                        .AddMethod(
@@ -70,6 +77,13 @@ namespace Tac.SnippetTests
                            TypeReference.CreateAndBuild(
                                MethodType.CreateAndBuild(
                                    new StringType(),
+                                   new EmptyType())))
+                       .AddMethod(
+                           new NameKey("write-bool"),
+                           (BoxedBool x) => { boolDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
+                           TypeReference.CreateAndBuild(
+                               MethodType.CreateAndBuild(
+                                   new BooleanType(),
                                    new EmptyType())))
                        .Build();
         }
