@@ -36,7 +36,7 @@ namespace Tac.SnippetTests
         }
 
         public static IAssembly<InterpetedAssemblyBacking> Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource) {
-            return new AssemblyBuilder(new NameKey("input"))
+            return new AssemblyBuilder(new NameKey("in"))
                        .AddMethod(
                            new NameKey("read-number"),
                            (IInterpedEmpty x) => new BoxedDouble(numberSource()), 
@@ -63,7 +63,7 @@ namespace Tac.SnippetTests
 
         public static IAssembly<InterpetedAssemblyBacking> Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
         {
-            return new AssemblyBuilder(new NameKey("output"))
+            return new AssemblyBuilder(new NameKey("out"))
                        .AddMethod(
                            new NameKey("write-number"),
                            (BoxedDouble x) => { numberDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },

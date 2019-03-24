@@ -16,8 +16,8 @@ namespace Tac.SnippetTests
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Input(intIn ,stringIn,boolIn)},
  @"
-entry-point [ empty ; empty ] _ {
-    new-empty > ( input . read-string ) ;
+entry-point {
+    new-empty > ( in . read-string ) ;
 } ;");
 
             verifyIntIn();
@@ -36,8 +36,8 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test",
                 new[] {BasicInputOutput.Input(intIn ,stringIn, boolIn) },
 @"
-entry-point [ empty ; empty ] _ {
-    new-empty > ( input . read-number ) ;
+entry-point {
+    new-empty > ( in . read-number ) ;
 } ;");
 
             verifyIntIn();
@@ -63,8 +63,8 @@ entry-point [ empty ; empty ] _ {
                     BasicInputOutput.Input(intIn, stringIn, boolIn),
                     BasicInputOutput.Output(intOut, stringOut, boolOut) },
 @"
-entry-point [ empty ; empty ] _ {
-    new-empty > ( input . read-bool ) > ( output . write-bool ) ;
+entry-point {
+    new-empty > ( in . read-bool ) > ( out . write-bool ) ;
 } ;");
 
             verifyIntIn();
@@ -86,11 +86,11 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point [ empty ; empty ] _ {
-     2 * 2 > ( output . write-number ) ;
-     3 * 2 > ( output . write-number ) ;
-     4 * 2 > ( output . write-number ) ;
-     5 * 2 > ( output . write-number ) ;
+ entry-point {
+     2 * 2 > ( out . write-number ) ;
+     3 * 2 > ( out . write-number ) ;
+     4 * 2 > ( out . write-number ) ;
+     5 * 2 > ( out . write-number ) ;
  } ;");
 
             verifyIntIn();
@@ -108,11 +108,11 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point [ empty ; empty ] _ {
-     2 - 2 > ( output . write-number ) ;
-     3 - 2 > ( output . write-number ) ;
-     4 - 2 > ( output . write-number ) ;
-     5 - 2 > ( output . write-number ) ;
+ entry-point {
+     2 - 2 > ( out . write-number ) ;
+     3 - 2 > ( out . write-number ) ;
+     4 - 2 > ( out . write-number ) ;
+     5 - 2 > ( out . write-number ) ;
  } ;");
 
             verifyIntIn();
@@ -130,11 +130,11 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point [ empty ; empty ] _ {
-     2 + 2 > ( output . write-number ) ;
-     3 + 2 > ( output . write-number ) ;
-     4 + 2 > ( output . write-number ) ;
-     5 + 2 > ( output . write-number ) ;
+ entry-point {
+     2 + 2 > ( out . write-number ) ;
+     3 + 2 > ( out . write-number ) ;
+     4 + 2 > ( out . write-number ) ;
+     5 + 2 > ( out . write-number ) ;
  } ;");
 
             verifyIntIn();
@@ -152,10 +152,10 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point [ empty ; empty ] _ {
-     1 <? 2 > ( output . write-bool ) ;
-     2 <? 2 > ( output . write-bool ) ;
-     3 <? 2 > ( output . write-bool ) ;
+ entry-point {
+     1 <? 2 > ( out . write-bool ) ;
+     2 <? 2 > ( out . write-bool ) ;
+     3 <? 2 > ( out . write-bool ) ;
  } ;");
 
             verifyIntIn();
@@ -173,8 +173,8 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point [ empty ; empty ] _ {
-     2 > ( output . write-number ) ;
+ entry-point {
+     2 > ( out . write-number ) ;
  } ;");
 
             verifyIntIn();
@@ -193,9 +193,9 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point [ empty ; empty ] _ {
-     true then { 2.0 > ( output . write-number ) ; } ;
-     false then { 1.0 > ( output . write-number ) ; } ;
+ entry-point {
+     true then { 2.0 > ( out . write-number ) ; } ;
+     false then { 1.0 > ( out . write-number ) ; } ;
  } ;");
 
             verifyIntIn();
@@ -213,9 +213,9 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point [ empty ; empty ] _ {
-     true else { 1.0 > ( output . write-number ) ; } ;
-     false else { 2.0 > ( output . write-number ) ; } ;
+ entry-point {
+     true else { 1.0 > ( out . write-number ) ; } ;
+     false else { 2.0 > ( out . write-number ) ; } ;
  } ;");
 
             verifyIntIn();
@@ -234,8 +234,8 @@ entry-point [ empty ; empty ] _ {
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
-entry-point [ empty ; empty ] _ {
-   ""hello world"" > ( output . write-string ) ;
+entry-point {
+   ""hello world"" > ( out . write-string ) ;
 };");
 
             verifyIntIn();

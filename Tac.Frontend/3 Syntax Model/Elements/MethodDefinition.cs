@@ -65,63 +65,90 @@ namespace Tac.Semantic_Model
         public MethodDefinitionMaker()
         {
         }
-        
+
 
         public ITokenMatching<IPopulateScope<WeakMethodDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            IPopulateScope<WeakTypeReference> input = null, output = null;
-            var matching = tokenMatching
-                .HasOne(
-                    x=>x.Has(new KeyWordMaker("method"),out var _),
-                    x=>x.Has( new KeyWordMaker("entry-point"),out var _), out var entryPoint)
-                .HasSquare(x => x
-                    .HasLine(y => y
-                        .HasElement(z=>z
-                            .HasOne( 
-                                w=>w.Has(new TypeReferanceMaker(),out var _)
-                                    .Has(new DoneMaker()),
-                                w=>w.Has(new TypeDefinitionMaker(), out var _)
-                                    .Has(new DoneMaker()),
-                                out input))
-                         .Has(new DoneMaker()))
-                    .HasLine(y => y
-                        .HasElement(z => z
-                            .HasOne(
-                                w => w.Has(new TypeReferanceMaker(), out var _)
-                                    .Has(new DoneMaker()),
-                                w => w.Has(new TypeDefinitionMaker(), out var _)
-                                    .Has(new DoneMaker()),
-                                out output))
-                        .Has(new DoneMaker()))
-                    .Has(new DoneMaker()))
-                .OptionalHas(new NameMaker(), out var parameterName)
-                .Has(new BodyMaker(), out var body);
-            if (matching
-                 is IMatchedTokenMatching matched)
-            {
-                var isEntryPoint = entryPoint.Item == "entry-point";
 
-                var elements = matching.Context.ParseBlock(body);
-                
-                var parameterDefinition = MemberDefinitionMaker.PopulateScope(
-                        parameterName?.Item ?? "input",
-                        false,
-                        input
+            
+            {
+                IPopulateScope<WeakTypeReference> input = null, output = null;
+                var matching = tokenMatching
+                    .Has(new KeyWordMaker("method"), out var _)
+                    .HasSquare(x => x
+                        .HasLine(y => y
+                            .HasElement(z => z
+                                .HasOne(
+                                    w => w.Has(new TypeReferanceMaker(), out var _)
+                                        .Has(new DoneMaker()),
+                                    w => w.Has(new TypeDefinitionMaker(), out var _)
+                                        .Has(new DoneMaker()),
+                                    out input))
+                             .Has(new DoneMaker()))
+                        .HasLine(y => y
+                            .HasElement(z => z
+                                .HasOne(
+                                    w => w.Has(new TypeReferanceMaker(), out var _)
+                                        .Has(new DoneMaker()),
+                                    w => w.Has(new TypeDefinitionMaker(), out var _)
+                                        .Has(new DoneMaker()),
+                                    out output))
+                            .Has(new DoneMaker()))
+                        .Has(new DoneMaker()))
+                    .OptionalHas(new NameMaker(), out var parameterName)
+                    .Has(new BodyMaker(), out var body);
+                if (matching
+                     is IMatchedTokenMatching matched)
+                {
+                    var elements = matching.Context.ParseBlock(body);
+
+                    var parameterDefinition = MemberDefinitionMaker.PopulateScope(
+                            parameterName?.Item ?? "input",
+                            false,
+                            input
+                            );
+
+                    return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeMatch(
+                        matched.Tokens,
+                        matched.Context,
+                        new MethodDefinitionPopulateScope(
+                            parameterDefinition,
+                            elements,
+                            output,
+                            false)
                         );
-                
-                return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context, 
-                    new MethodDefinitionPopulateScope(
-                        parameterDefinition,
-                        elements, 
-                        output,
-                        isEntryPoint)
-                    );
+                }
+            }
+            {
+                var matching = tokenMatching
+                    .Has(new KeyWordMaker("entry-point"), out var _)
+                    .Has(new BodyMaker(), out var body);
+                if (matching
+                     is IMatchedTokenMatching matched)
+                {
+                    var elements = matching.Context.ParseBlock(body);
+
+                    var parameterDefinition = MemberDefinitionMaker.PopulateScope(
+                            "input",
+                            false,
+                            TypeReferanceMaker.PopulateScope(new NameKey("empty"))
+                            );
+
+                    return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeMatch(
+                        matched.Tokens,
+                        matched.Context,
+                        new MethodDefinitionPopulateScope(
+                            parameterDefinition,
+                            elements,
+                            TypeReferanceMaker.PopulateScope(new NameKey("empty")),
+                            true)
+                        );
+                }
+
+                return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeNotMatch(
+                        matching.Context);
             }
 
-            return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeNotMatch(
-                    matching.Context);
         }
 
         public static IPopulateScope<WeakMethodDefinition> PopulateScope(IPopulateScope<WeakMemberReference> parameterDefinition,
