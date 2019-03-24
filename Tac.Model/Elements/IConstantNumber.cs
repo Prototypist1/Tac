@@ -9,6 +9,13 @@
         string Value { get; }
     }
 
+
+    public interface IConstantBool : ICodeElement
+    {
+        bool Value { get; }
+    }
+
+
     public interface IEmptyInstance : ICodeElement {
     }
 }

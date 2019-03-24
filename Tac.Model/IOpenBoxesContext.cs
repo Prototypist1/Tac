@@ -44,5 +44,6 @@ namespace Tac.Model
         T MethodDefinition(IInternalMethodDefinition co);
         T EmptyInstance(IEmptyInstance co);
         T ConstantString(IConstantString co);
+        T ConstantBool(IConstantBool constantBool);
     }
 }

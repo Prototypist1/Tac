@@ -136,6 +136,23 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
+
+        public IInterpetedOperation<IInterpetedAnyType> ConstantBool(IConstantBool constantBool)
+        {
+            if (backing.TryGetValue(constantBool, out var res))
+            {
+                return res;
+            }
+            else
+            {
+                var op = new InterpetedConstantBool();
+                backing.Add(constantBool, op);
+                op.Init(constantBool.Value);
+                return op;
+            }
+        }
+
+
         public IInterpetedOperation<IInterpetedAnyType> EmptyInstance(IEmptyInstance co)
         {
             if (backing.TryGetValue(co, out var res))

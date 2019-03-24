@@ -182,6 +182,48 @@ entry-point [ empty ; empty ] _ {
             verifyBoolIn();
         }
 
+
+        [Fact]
+        public void Then()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 2.0 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+ @"
+ entry-point [ empty ; empty ] _ {
+     true then { 2.0 > ( output . write-number ) ; } ;
+     false then { 1.0 > ( output . write-number ) ; } ;
+ } ;");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+        [Fact]
+        public void Else()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 2.0 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+ @"
+ entry-point [ empty ; empty ] _ {
+     true else { 1.0 > ( output . write-number ) ; } ;
+     false else { 2.0 > ( output . write-number ) ; } ;
+ } ;");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+
         [Fact]
         public void StringOutput()
         {
