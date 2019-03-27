@@ -47,14 +47,14 @@ namespace Tac.Model.Instantiated
         void Build(IFinalizedScope scope);
     }
 
-    public class NumberType : INumberType { }
-    public class AnyType : IAnyType { }
-    public class EmptyType : IEmptyType { }
-    public class BooleanType : IBooleanType { }
-    public class BlockType : IBlockType { }
-    public class StringType : IStringType { }
-    public class ObjectType : IObjectType { }
-    public class ModuleType : IModuleType { }
+    public struct NumberType : INumberType { }
+    public struct AnyType : IAnyType { }
+    public struct EmptyType : IEmptyType { }
+    public struct BooleanType : IBooleanType { }
+    public struct BlockType : IBlockType { }
+    public struct StringType : IStringType { }
+    public struct ObjectType : IObjectType { }
+    public struct ModuleType : IModuleType { }
     
     public class GemericTypeParameterPlacholder : IVerifiableType, IGemericTypeParameterPlacholderBuilder
     {
@@ -101,8 +101,7 @@ namespace Tac.Model.Instantiated
     public interface IGenericMethodTypeBuilder {
         void Build(IVerifiableType inputType, IVerifiableType ouputType);
     }
-
-
+    
     public class GenericMethodType : IGenericMethodType, IGenericMethodTypeBuilder
     {
         // TODO should be broken apart, buildable

@@ -1,4 +1,5 @@
 ﻿using Prototypist.LeftToRight;
+using Prototypist.TaskChain.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,6 +95,8 @@ namespace Tac.Semantic_Model
 
     internal class WeakGenericTypeDefinition : IWeakGenericTypeDefinition
     {
+        private readonly ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>> typeCache = new ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>>();
+
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key,
             IResolvableScope scope,
@@ -123,14 +126,21 @@ namespace Tac.Semantic_Model
         {
             // I kept reusing this code..
             var overlay =  new Overlay(typeParameters.ToDictionary(x=>x.parameterDefinition,x=>x.frontendType));
-            if (typeParameters.All(x => !(x.frontendType is Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder)))
+
+            return typeCache.GetOrAdd(overlay, Help());
+            
+            OrType<IFrontendGenericType,IFrontendType<IVerifiableType>> Help()
             {
-                return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
-                    new WeakTypeDefinition(Scope,Key),overlay));
-            }
-            else {
-                return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayGenericTypeDefinition(
-                    this, overlay).Cast<IFrontendGenericType>());
+                if (typeParameters.All(x => !(x.frontendType is _3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder)))
+                {
+                    return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
+                        new WeakTypeDefinition(Scope, Key), overlay));
+                }
+                else
+                {
+                    return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayGenericTypeDefinition(
+                        this, overlay).Cast<IFrontendGenericType>());
+                }
             }
         }
 

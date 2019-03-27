@@ -13,15 +13,6 @@ using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Frontend._3_Syntax_Model.Elements
 {
-
-    // TODO how does this work???
-    // is it returnable?
-    // no
-    // it returns a number?
-    // one might say all numbers are the same
-    // but we do know more about constants
-    // I guess maybe there should be a class number extended by constant number?
-    // IDK!
     internal class WeakEmptyInstance : IFrontendCodeElement<IEmptyInstance>
     {
         public WeakEmptyInstance()

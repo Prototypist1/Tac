@@ -18,7 +18,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakMethodDefinition :
         WeakAbstractBlockDefinition<IInternalMethodDefinition>,
-        Frontend._3_Syntax_Model.Elements.IMethodDefinition,
+        IMethodDefinition,
         IFrontendType<IVerifiableType>
     {
         public WeakMethodDefinition(
