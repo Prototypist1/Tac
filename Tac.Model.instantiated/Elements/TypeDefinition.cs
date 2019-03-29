@@ -125,6 +125,7 @@ namespace Tac.Model.Instantiated
     }
 
     // TODO struct?
+    // no, anything that is built can not be a struct
     public class MethodType : IMethodType, IMethodTypeBuilder
     {
         private MethodType() { }
@@ -157,6 +158,7 @@ namespace Tac.Model.Instantiated
     }
 
     // TODO struct?
+    // no, anything that is built can not be a struct
     public class ImplementationType : IImplementationType, IImplementationTypeBuilder
     {
         private ImplementationType() { }
