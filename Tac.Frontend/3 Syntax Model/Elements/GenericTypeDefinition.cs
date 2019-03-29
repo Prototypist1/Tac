@@ -11,6 +11,7 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
+using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
 using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model
@@ -29,7 +30,7 @@ namespace Tac.Semantic_Model
         public IResolvableScope Scope { get; }
 
         public IIsPossibly<IKey> Key => backing.Key;
-        public IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions=> backing.TypeParameterDefinitions;
+        public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions=> backing.TypeParameterDefinitions;
         public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendCodeElement<IGenericInterfaceDefinition>>().GetBuildIntention(context);
         public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
         IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IGenericType>>().GetBuildIntention(context); 
@@ -63,7 +64,7 @@ namespace Tac.Semantic_Model
     //    public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
     //    {
     //        var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
-    //        if (typeParameters.All(x => !(x.frontendType is Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder)))
+    //        if (typeParameters.All(x => !(x.frontendType is IGenericTypeParameterPlacholder)))
     //        {
     //            return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
     //                new WeakTypeDefinition(Scope, Key), overlay));
@@ -100,14 +101,14 @@ namespace Tac.Semantic_Model
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key,
             IResolvableScope scope,
-            IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions)
+            IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public IIsPossibly<Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
+        public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IKey> Key { get; }
         public IResolvableScope Scope { get; }
 
@@ -131,7 +132,7 @@ namespace Tac.Semantic_Model
             
             OrType<IFrontendGenericType,IFrontendType<IVerifiableType>> Help()
             {
-                if (typeParameters.All(x => !(x.frontendType is _3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder)))
+                if (typeParameters.All(x => !(x.frontendType is IGenericTypeParameterPlacholder)))
                 {
                     return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
                         new WeakTypeDefinition(Scope, Key), overlay));
@@ -174,8 +175,8 @@ namespace Tac.Semantic_Model
                     new GenericTypeDefinitionPopulateScope(
                         new NameKey(typeName.Item),
                         tokenMatching.Context.ParseBlock(body),
-                        genericTypes.Select(x => 
-                        new Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder(new NameKey(x))).ToArray()));
+                        genericTypes.Select(x =>
+                        PrimitiveTypes.CreateGenericTypeParameterPlacholder(new NameKey(x))).ToArray()));
             }
 
             return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeNotMatch(
@@ -185,7 +186,7 @@ namespace Tac.Semantic_Model
         public static IPopulateScope<WeakGenericTypeDefinition> PopulateScope(
                 NameKey nameKey,
                 IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
-                Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
+                IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
                 nameKey,
@@ -195,7 +196,7 @@ namespace Tac.Semantic_Model
         public static IPopulateBoxes<WeakGenericTypeDefinition> PopulateBoxes(NameKey nameKey,
                 IResolvableScope scope,
                 Box<IIsPossibly<IFrontendGenericType>> box,
-                Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters,
+                IGenericTypeParameterPlacholder[] genericParameters,
                 IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
         {
             return new GenericTypeDefinitionResolveReferance(nameKey,
@@ -209,13 +210,13 @@ namespace Tac.Semantic_Model
         {
             private readonly NameKey nameKey;
             private readonly IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines;
-            private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
+            private readonly IGenericTypeParameterPlacholder[] genericParameters;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
                 IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
-                Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters)
+                IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
                 this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
@@ -242,14 +243,14 @@ namespace Tac.Semantic_Model
             private readonly NameKey nameKey;
             private readonly IResolvableScope scope;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box;
-            private readonly Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters;
+            private readonly IGenericTypeParameterPlacholder[] genericParameters;
             private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
 
             public GenericTypeDefinitionResolveReferance(
                 NameKey nameKey,
                 IResolvableScope scope,
                 Box<IIsPossibly<IFrontendGenericType>> box,
-                Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] genericParameters,
+                IGenericTypeParameterPlacholder[] genericParameters,
                 IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));

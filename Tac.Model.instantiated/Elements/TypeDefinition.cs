@@ -124,6 +124,7 @@ namespace Tac.Model.Instantiated
         }
     }
 
+    // TODO struct?
     public class MethodType : IMethodType, IMethodTypeBuilder
     {
         private MethodType() { }
@@ -155,6 +156,7 @@ namespace Tac.Model.Instantiated
         void Build(IVerifiableType inputType, IVerifiableType outputType);
     }
 
+    // TODO struct?
     public class ImplementationType : IImplementationType, IImplementationTypeBuilder
     {
         private ImplementationType() { }

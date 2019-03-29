@@ -28,7 +28,7 @@ namespace Tac.Semantic_Model.Operations
         
         public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BooleanType());
+            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
         }
         
         public override IBuildIntention<IElseOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)

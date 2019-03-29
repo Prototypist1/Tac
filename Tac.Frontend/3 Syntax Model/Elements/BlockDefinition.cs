@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model;
@@ -35,7 +36,7 @@ namespace Tac.Semantic_Model
 
         public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType());
+            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBlockType());
         }
     }
 
@@ -93,7 +94,7 @@ namespace Tac.Semantic_Model
 
             public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
             {
-                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.BlockType()));
+                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBlockType()));
             }
         }
 

@@ -120,38 +120,38 @@ namespace Tac.Frontend
         {
             if (verifiableType is INumberType)
             {
-                return new NumberType();
+                return PrimitiveTypes.CreateNumberType();
             }
             if (verifiableType is IBooleanType)
             {
-                return new BooleanType();
+                return PrimitiveTypes.CreateBooleanType();
             }
             if (verifiableType is IStringType)
             {
-                return new StringType();
+                return PrimitiveTypes.CreateStringType();
             }
             if (verifiableType is IBlockType)
             {
-                return new BlockType();
+                return PrimitiveTypes.CreateBlockType();
             }
             if (verifiableType is IEmptyType)
             {
-                return new EmptyType();
+                return PrimitiveTypes.CreateEmptyType();
             }
             if (verifiableType is IAnyType)
             {
-                return new AnyType();
+                return PrimitiveTypes.CreateAnyType();
             }
             if (verifiableType is IMethodType method)
             {
-                return new MethodType(
+                return PrimitiveTypes.CreateMethodType(
                     MapType(method.InputType),
                     MapType(method.OutputType)
                     );
             }
             if (verifiableType is IImplementationType implementation)
             {
-                return new ImplementationType(
+                return PrimitiveTypes.CreateImplementationType(
                     MapType(implementation.ContextType),
                     MapType(implementation.InputType),
                     MapType(implementation.OutputType)

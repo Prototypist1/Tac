@@ -30,7 +30,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
         public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is(new EmptyType() );
+            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType() );
         }
     }
 
@@ -72,7 +72,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
             {
-                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new EmptyType()));
+                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType()));
             }
         }
 

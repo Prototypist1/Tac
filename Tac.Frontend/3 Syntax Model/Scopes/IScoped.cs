@@ -9,6 +9,7 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Parser;
+using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
 
 namespace Tac.Semantic_Model
 {
@@ -20,36 +21,36 @@ namespace Tac.Semantic_Model
 
     internal interface IFrontendGenericType : IFrontendType<IGenericType>
     {
-        IIsPossibly<GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
+        IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);
     }
 
     internal class TypeParameter {
-        public readonly GemericTypeParameterPlacholder parameterDefinition;
+        public readonly IGenericTypeParameterPlacholder parameterDefinition;
         public readonly IFrontendType<IVerifiableType> frontendType;
 
-        public TypeParameter(GemericTypeParameterPlacholder parameterDefinition, IFrontendType<IVerifiableType> frontendType)
+        public TypeParameter(IGenericTypeParameterPlacholder parameterDefinition, IFrontendType<IVerifiableType> frontendType)
         {
-            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            this.parameterDefinition = parameterDefinition;
             this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
         }
     }
 
     internal class ScopeTemplate : NewScope //, IFinalizedScopeTemplate
     {
-        public ScopeTemplate(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] typeParameterDefinitions, NewScope parent) : base(parent)
+        public ScopeTemplate(IGenericTypeParameterPlacholder[] typeParameterDefinitions, NewScope parent) : base(parent)
         {
             TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
             foreach (var item in typeParameterDefinitions)
             {
                 // for the sake of validation type parameters are types 
-                if (!TryAddType(item.Key, new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new GemericTypeParameterPlacholder(item.Key))))) {
+                if (!TryAddType(item.Key, new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateGenericTypeParameterPlacholder(item.Key))))) {
                     throw new Exception("that is not right!");
                 }
             }
         }
 
-        public GemericTypeParameterPlacholder[] TypeParameterDefinitions { get; }
+        public IGenericTypeParameterPlacholder[] TypeParameterDefinitions { get; }
 
     }
 
@@ -156,16 +157,16 @@ namespace Tac.Semantic_Model
         {
             // do these really belong here or should they be defined in some sort of 'standard library'
             // here for now I think 
-            TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new NumberType())));
-            TryAddType(new NameKey("string"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new StringType())));
-            TryAddType(new NameKey("any"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new AnyType())));
-            TryAddType(new NameKey("empty"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new EmptyType())));
-            TryAddType(new NameKey("bool"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new BooleanType())));
+            TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType())));
+            TryAddType(new NameKey("string"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateStringType())));
+            TryAddType(new NameKey("any"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateAnyType())));
+            TryAddType(new NameKey("empty"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType())));
+            TryAddType(new NameKey("bool"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType())));
             TryAddGeneric(
                 new NameKey("method"),
-                new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericMethodType())));
+                new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is<IFrontendGenericType>(PrimitiveTypes.CreateGenericMethodType())));
             TryAddGeneric(
-                new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(new GenericImplementationType())));
+                new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is<IFrontendGenericType>(PrimitiveTypes.CreateGenericImplementationType())));
         }
 
         public IResolvableScope ToResolvable()

@@ -7,7 +7,7 @@ using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
-
+using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
 
 namespace Tac.New
 {
@@ -70,7 +70,7 @@ namespace Tac.New
 
         IPopulatableScope Scope { get; }
         IPopulateScopeContext Child();
-        IPopulateScopeContext TemplateChild(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] parameters);
+        IPopulateScopeContext TemplateChild(IGenericTypeParameterPlacholder[] parameters);
         IResolvableScope GetResolvableScope();
 
     }
@@ -100,7 +100,7 @@ namespace Tac.New
             return stack.ToResolvable();
         }
 
-        public IPopulateScopeContext TemplateChild(Tac._3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder[] parameters)
+        public IPopulateScopeContext TemplateChild(IGenericTypeParameterPlacholder[] parameters)
         {
             var template = new ScopeTemplate(parameters,stack);
             return new PopulateScopeContext(template);

@@ -5,14 +5,15 @@ using System.Linq;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Model.Elements;
+using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
 
 namespace Tac.Semantic_Model
 {
     internal class Overlay {
 
-        private readonly Dictionary<GemericTypeParameterPlacholder, IFrontendType<IVerifiableType>> map;
+        private readonly Dictionary<IGenericTypeParameterPlacholder, IFrontendType<IVerifiableType>> map;
 
-        public Overlay(Dictionary<GemericTypeParameterPlacholder, IFrontendType<IVerifiableType>> map)
+        public Overlay(Dictionary<IGenericTypeParameterPlacholder, IFrontendType<IVerifiableType>> map)
         {
             this.map = map ?? throw new ArgumentNullException(nameof(map));
         }
@@ -22,7 +23,7 @@ namespace Tac.Semantic_Model
             {
                 return new OverlayTypeDefinition(typeDef,this);
             }
-            if (type is _3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder generic && map.TryGetValue(generic, out var value)){
+            if (type is IGenericTypeParameterPlacholder generic && map.TryGetValue(generic, out var value)){
                 return value;
             }
             return type;
@@ -40,7 +41,7 @@ namespace Tac.Semantic_Model
                     return false;
                 }
 
-                if (!overlay.map[key].NullSafeEqual<GemericTypeParameterPlacholder>(map[key])) {
+                if (!overlay.map[key].NullSafeEqual<IGenericTypeParameterPlacholder>(map[key])) {
                     return false;
                 }
             }
@@ -52,7 +53,7 @@ namespace Tac.Semantic_Model
                     return false;
                 }
 
-                if (!map[key].NullSafeEqual<GemericTypeParameterPlacholder>(overlay.map[key]))
+                if (!map[key].NullSafeEqual<IGenericTypeParameterPlacholder>(overlay.map[key]))
                 {
                     return false;
                 }

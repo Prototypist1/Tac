@@ -4,13 +4,13 @@ using System.Linq;
 
 namespace Tac.Semantic_Model
 {
-    public interface IBox<out T> where T : class
+    public interface IBox<out T> 
     {
         T GetValue();
     }
     
     // todo - should this cache?
-    public class DelegateBox<T> : IBox<T> where T : class
+    public class DelegateBox<T> : IBox<T> 
     {
         private Func<T> func;
 
@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model
         }
     }
     
-    public class Box<T> : IBox<T> where T : class
+    public class Box<T> : IBox<T> 
     {
         public Box()
         {
@@ -71,7 +71,11 @@ namespace Tac.Semantic_Model
 
         public Box(T innerType)
         {
-            InnerType = innerType ?? throw new System.ArgumentNullException(nameof(innerType));
+            if (innerType == null) {
+                throw new System.ArgumentNullException(nameof(innerType));
+            }
+
+            InnerType = innerType;
         }
 
         private T InnerType { get; set; }

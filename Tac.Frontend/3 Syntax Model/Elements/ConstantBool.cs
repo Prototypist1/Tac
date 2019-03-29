@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model.Elements;
@@ -10,14 +11,6 @@ using static Tac.Frontend.TransformerExtensions;
 namespace Tac.Semantic_Model.Operations
 {
 
-    // TODO how does this work???
-    // is it returnable?
-    // no
-    // it returns a number?
-    // one might say all numbers are the same
-    // but we do know more about constants
-    // I guess maybe there should be a class number extended by constant number?
-    // IDK!
     internal class WeakConstantBool : IFrontendCodeElement<IConstantBool>
     {
         public WeakConstantBool(IIsPossibly<bool> value)
@@ -39,7 +32,7 @@ namespace Tac.Semantic_Model.Operations
 
         public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType());
+            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
         }
     }
 
@@ -109,7 +102,7 @@ namespace Tac.Semantic_Model.Operations
 
             public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
             {
-                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType()));
+                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType()));
             }
         }
 

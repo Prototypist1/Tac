@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Model.Elements;
@@ -39,7 +40,7 @@ namespace Tac.Semantic_Model.Operations
 
         public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType());
+            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
         }
     }
 
@@ -103,7 +104,7 @@ namespace Tac.Semantic_Model.Operations
 
             public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
             {
-                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(new _3_Syntax_Model.Elements.Atomic_Types.NumberType()));
+                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType()));
             }
         }
 

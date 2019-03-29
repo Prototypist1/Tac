@@ -76,8 +76,8 @@ namespace Tac.Semantic_Model
                                         new WeakTypeReference(
                                             Possibly.Is(
                                                 new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
-                                                    Possibly.Is(
-                                                        new AnyType()))))))))))
+                                                    Possibly.Is<IFrontendType<IVerifiableType>>(
+                                                        PrimitiveTypes.CreateAnyType()))))))))))
                 {
                     throw new Exception("uhh that is not right");
                 }
