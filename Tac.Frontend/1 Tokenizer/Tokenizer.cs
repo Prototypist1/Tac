@@ -13,18 +13,16 @@ namespace Tac.Parser
             this.operations = operations ?? throw new ArgumentNullException(nameof(operations));
         }
 
-        //private class ResultAndExitString { }
-
         private interface IResultAndExitString<out T>
         {
             T GetTokenOrThrow();
             bool HasToken();
             bool TryGetExitString(out string exitString);
         }
-        
 
-        private class ResultAndExitString<T>: IResultAndExitString<T>//: ResultAndExitString
-            where T :class, IToken
+
+        private class ResultAndExitString<T> : IResultAndExitString<T>//: ResultAndExitString
+            where T : class, IToken
         {
             public ResultAndExitString(string exitString, T result)
             {
@@ -84,13 +82,13 @@ namespace Tac.Parser
         }
 
         private ResultAndExitString<T> OuterTokenzie<T>(
-            CharEnumerator enumerator, 
-            Func<CharEnumerator, IResultAndExitString<IToken>> inner, 
-            Func<string, bool> isExit, 
-            Func<IToken[], T> makeToken, 
+            StringWalker enumerator,
+            Func<StringWalker, IResultAndExitString<IToken>> inner,
+            Func<string, bool> isExit,
+            Func<IToken[], T> makeToken,
             bool alwaysMake,
             bool addExitString)
-            where T: class,IToken
+            where T : class, IToken
         {
             var elements = new List<IToken>();
             while (true)
@@ -135,7 +133,7 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<ElementToken> TokenizeElement(CharEnumerator enumerator)
+        private IResultAndExitString<ElementToken> TokenizeElement(StringWalker enumerator)
         {
             var elementsParts = new List<IToken>();
             while (true)
@@ -186,7 +184,7 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<LineToken> TokenzieLine(CharEnumerator enumerator)
+        private IResultAndExitString<LineToken> TokenzieLine(StringWalker enumerator)
         {
 
             return OuterTokenzie<LineToken>(enumerator, TokenizeElement, IsExit, x => new LineToken(x), false, true);
@@ -200,8 +198,8 @@ namespace Tac.Parser
                     str == "]";
             }
         }
-        
-        private IResultAndExitString<ParenthesisToken> TokenzieParenthesis(CharEnumerator enumerator)
+
+        private IResultAndExitString<ParenthesisToken> TokenzieParenthesis(StringWalker enumerator)
         {
             return OuterTokenzie(enumerator, TokenizeElement, IsExit, x => new ParenthesisToken(x), false, true);
 
@@ -211,8 +209,8 @@ namespace Tac.Parser
                     str == ")";
             }
         }
-        
-        private IResultAndExitString<CurleyBracketToken> TokenzieCurleyBrackets(CharEnumerator enumerator)
+
+        private IResultAndExitString<CurleyBracketToken> TokenzieCurleyBrackets(StringWalker enumerator)
         {
             return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new CurleyBracketToken(x), true, false);
 
@@ -223,7 +221,7 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<SquareBacketToken> TokenzieSquareBrackets(CharEnumerator enumerator)
+        private IResultAndExitString<SquareBacketToken> TokenzieSquareBrackets(StringWalker enumerator)
         {
             return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new SquareBacketToken(x), true, false);
 
@@ -234,7 +232,7 @@ namespace Tac.Parser
             }
         }
 
-        //private ResultAndExitString TokenzieBrokenBrackets(CharEnumerator enumerator)
+        //private ResultAndExitString TokenzieBrokenBrackets(StringWalker enumerator)
         //{
         //    return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new BrokenBracketToken(x), true, false);
 
@@ -245,7 +243,7 @@ namespace Tac.Parser
         //    }
         //}
 
-        private IResultAndExitString<FileToken> TokenzieFile(CharEnumerator enumerator)
+        private IResultAndExitString<FileToken> TokenzieFile(StringWalker enumerator)
         {
             return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new FileToken(x), true, false);
 
@@ -255,7 +253,7 @@ namespace Tac.Parser
             }
         }
 
-        private bool TryEnter(string part, CharEnumerator enumerator, out IToken token)
+        private bool TryEnter(string part, StringWalker enumerator, out IToken token)
         {
             if (part == "(")
             {
@@ -277,16 +275,16 @@ namespace Tac.Parser
             return false;
         }
 
-        private bool NextPart(CharEnumerator enumerator, out string part)
+        private bool NextPart(StringWalker enumerator, out string part)
         {
             var buildingPart = "";
-            while (enumerator.MoveNext())
+            while (enumerator.TryTake(out var next))
             {
-                if (buildingPart == "" && enumerator.Current=='"') {
-                    return BuildStringConstant(enumerator,out part);
+                if (buildingPart == "" && next == '"') {
+                    return BuildStringConstant(enumerator, out part);
                 }
 
-                if (IsNothing(enumerator.Current)) {
+                if (IsNothing(next)) {
                     if (buildingPart != "")
                     {
                         part = buildingPart;
@@ -296,29 +294,27 @@ namespace Tac.Parser
                         continue;
                     }
                 }
-                buildingPart += enumerator.Current;
+                buildingPart += next;
             }
             part = default;
             return false;
-            
 
-
-            bool IsNothing(char current) {
-                return 
-                    current == ' ' ||
-                    current == '\t' ||
-                    current == '\n' ||
-                    current == '\r';
+            bool IsNothing(char next) {
+                return
+                    next == ' ' ||
+                    next =='\t' ||
+                    next =='\n' ||
+                    next =='\r';
             }
         }
 
-        private bool BuildStringConstant(CharEnumerator enumerator,out string part)
+        private bool BuildStringConstant(StringWalker enumerator, out string part)
         {
-            part = enumerator.Current + "";
-            while (enumerator.MoveNext() ) {
-                part += enumerator.Current;
-                if (enumerator.Current == '"') {
-                    return true; 
+            part = "\"";
+            while (enumerator.TryTake(out var next)) {
+                part += next;
+                if (next == '"') {
+                    return true;
                 }
             }
             part = default;
@@ -326,8 +322,37 @@ namespace Tac.Parser
         }
 
         public FileToken Tokenize(string s) {
-            return TokenzieFile(s.GetEnumerator()).GetTokenOrThrow();
+            return TokenzieFile(new StringWalker(s)).GetTokenOrThrow();
+        }
+
+
+        private class StringWalker{
+
+            private readonly string backing;
+            private int at = 0;
+
+            public StringWalker(string backing) {
+                this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            }
+
+            public bool TryTake(out char character) {
+                if (at >= backing.Length) {
+                    character = default;
+                    return false;
+                }
+                character = backing[at];
+                at = at + 1;
+                return true;
+            }
+
+            public bool StartsWith(string s) {
+                return backing.AsSpan(at).StartsWith(s);
+            }
+
+            public bool StartsWith(char s)
+            {
+                return backing[at] == s;
+            }
         }
     }
-
 }
