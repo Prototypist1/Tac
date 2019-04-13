@@ -81,9 +81,11 @@ namespace Tac.Parser
             }
         }
 
+        private delegate IResultAndExitString<IToken> Inner(ref StringWalker stringWalker);
+
         private ResultAndExitString<T> OuterTokenzie<T>(
-            StringWalker enumerator,
-            Func<StringWalker, IResultAndExitString<IToken>> inner,
+            ref StringWalker enumerator,
+            Inner inner,
             Func<string, bool> isExit,
             Func<IToken[], T> makeToken,
             bool alwaysMake,
@@ -93,7 +95,7 @@ namespace Tac.Parser
             var elements = new List<IToken>();
             while (true)
             {
-                var res = inner(enumerator);
+                var res = inner(ref enumerator);
                 if (res.HasToken())
                 {
                     elements.Add(res.GetTokenOrThrow());
@@ -133,12 +135,12 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<ElementToken> TokenizeElement(StringWalker enumerator)
+        private IResultAndExitString<ElementToken> TokenizeElement(ref StringWalker enumerator)
         {
             var elementsParts = new List<IToken>();
             while (true)
             {
-                if (NextPart(enumerator, out var part))
+                if (NextPart(ref enumerator, out var part))
                 {
                     if (IsExit(part))
                     {
@@ -151,7 +153,7 @@ namespace Tac.Parser
                             return new ResultAndExitString<ElementToken>(part);
                         }
                     }
-                    if (TryEnter(part, enumerator, out var token))
+                    if (TryEnter(part, ref enumerator, out var token))
                     {
                         elementsParts.Add(token);
                     }
@@ -184,10 +186,10 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<LineToken> TokenzieLine(StringWalker enumerator)
+        private IResultAndExitString<LineToken> TokenzieLine(ref StringWalker enumerator)
         {
 
-            return OuterTokenzie<LineToken>(enumerator, TokenizeElement, IsExit, x => new LineToken(x), false, true);
+            return OuterTokenzie<LineToken>(ref enumerator, TokenizeElement, IsExit, x => new LineToken(x), false, true);
 
             bool IsExit(string str)
             {
@@ -199,9 +201,9 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<ParenthesisToken> TokenzieParenthesis(StringWalker enumerator)
+        private IResultAndExitString<ParenthesisToken> TokenzieParenthesis(ref StringWalker enumerator)
         {
-            return OuterTokenzie(enumerator, TokenizeElement, IsExit, x => new ParenthesisToken(x), false, true);
+            return OuterTokenzie(ref enumerator, TokenizeElement, IsExit, x => new ParenthesisToken(x), false, true);
 
             bool IsExit(string str)
             {
@@ -210,9 +212,9 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<CurleyBracketToken> TokenzieCurleyBrackets(StringWalker enumerator)
+        private IResultAndExitString<CurleyBracketToken> TokenzieCurleyBrackets(ref StringWalker enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new CurleyBracketToken(x), true, false);
+            return OuterTokenzie(ref enumerator, TokenzieLine, IsExit, x => new CurleyBracketToken(x), true, false);
 
             bool IsExit(string str)
             {
@@ -221,9 +223,9 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<SquareBacketToken> TokenzieSquareBrackets(StringWalker enumerator)
+        private IResultAndExitString<SquareBacketToken> TokenzieSquareBrackets(ref StringWalker enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new SquareBacketToken(x), true, false);
+            return OuterTokenzie(ref enumerator, TokenzieLine, IsExit, x => new SquareBacketToken(x), true, false);
 
             bool IsExit(string str)
             {
@@ -232,20 +234,9 @@ namespace Tac.Parser
             }
         }
 
-        //private ResultAndExitString TokenzieBrokenBrackets(StringWalker enumerator)
-        //{
-        //    return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new BrokenBracketToken(x), true, false);
-
-        //    bool IsExit(string str)
-        //    {
-        //        return
-        //            str == ">";
-        //    }
-        //}
-
-        private IResultAndExitString<FileToken> TokenzieFile(StringWalker enumerator)
+        private IResultAndExitString<FileToken> TokenzieFile(ref StringWalker enumerator)
         {
-            return OuterTokenzie(enumerator, TokenzieLine, IsExit, x => new FileToken(x), true, false);
+            return OuterTokenzie(ref enumerator, TokenzieLine, IsExit, x => new FileToken(x), true, false);
 
             bool IsExit(string str)
             {
@@ -253,35 +244,67 @@ namespace Tac.Parser
             }
         }
 
-        private bool TryEnter(string part, StringWalker enumerator, out IToken token)
+        private bool TryEnter(string part, ref StringWalker enumerator, out IToken token)
         {
             if (part == "(")
             {
 
-                token = TokenzieParenthesis(enumerator).GetTokenOrThrow();
+                token = TokenzieParenthesis(ref enumerator).GetTokenOrThrow();
                 return true;
             }
             else if (part == "{")
             {
-                token = TokenzieCurleyBrackets(enumerator).GetTokenOrThrow();
+                token = TokenzieCurleyBrackets(ref enumerator).GetTokenOrThrow();
                 return true;
             }
             else if (part == "[")
             {
-                token = TokenzieSquareBrackets(enumerator).GetTokenOrThrow();
+                token = TokenzieSquareBrackets(ref enumerator).GetTokenOrThrow();
                 return true;
             }
             token = default;
             return false;
         }
 
-        private bool NextPart(StringWalker enumerator, out string part)
+        private bool NextPart(ref StringWalker enumerator, out string part)
         {
             var buildingPart = "";
-            while (enumerator.TryTake(out var next))
+            while (enumerator.TryPeek(out var next))
             {
                 if (buildingPart == "" && next == '"') {
-                    return BuildStringConstant(enumerator, out part);
+                    return BuildStringConstant(ref enumerator, out part);
+                }
+
+                var numberWalker = new StringWalker(enumerator);
+                if (buildingPart == "" && IsNumber(ref numberWalker, out var num)) {
+                    enumerator.Update(numberWalker);
+                    part = num;
+                    return true;
+                }
+
+                if (IsOperation(ref enumerator, out var exit))
+                {
+                    if (buildingPart != "")
+                    {
+                        part = buildingPart;
+                        return true;
+                    }
+                    else
+                    {
+                        while (buildingPart != exit)
+                        {
+                            if (enumerator.TryTake(out var innerNext))
+                            {
+                                buildingPart += innerNext;
+                            }
+                            else
+                            {
+                                throw new Exception("bug!");
+                            }
+                        }
+                        part = buildingPart;
+                        return true;
+                    }
                 }
 
                 if (IsNothing(next)) {
@@ -291,26 +314,111 @@ namespace Tac.Parser
                         return true;
                     }
                     else {
+                        if (!enumerator.TryTake(out var _))
+                        {
+                            throw new Exception("bug!");
+                        }
+
                         continue;
                     }
                 }
+
+                if (!enumerator.TryTake(out var _))
+                {
+                    throw new Exception("bug!");
+                }
+
                 buildingPart += next;
+
             }
             part = default;
             return false;
 
-            bool IsNothing(char next) {
-                return
-                    next == ' ' ||
-                    next =='\t' ||
-                    next =='\n' ||
-                    next =='\r';
-            }
+            
         }
 
-        private bool BuildStringConstant(StringWalker enumerator, out string part)
+        private static bool IsNothing(char next)
         {
-            part = "\"";
+            return
+                next == ' ' ||
+                next == '\t' ||
+                next == '\n' ||
+                next == '\r';
+        }
+
+        private static bool IsNumber(ref StringWalker stringWalker, out string number)
+        {
+            var myWalker = new StringWalker(stringWalker);
+
+            string res = "";
+            var numbers = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
+            if (!myWalker.TryTake(out var first))
+            {
+                number = default;
+                return false;
+            }
+
+            if (!numbers.Contains(first))
+            {
+                number = default;
+                return false;
+            }
+
+            res += first;
+            stringWalker.Update(myWalker);
+            
+
+            bool hasDecimelPoint = false;
+
+            
+            while (myWalker.TryTake(out var peeked))
+            {
+                if (!hasDecimelPoint && peeked == '.' && myWalker.TryPeek(out var next) && numbers.Contains(next))
+                {
+                    hasDecimelPoint = true;
+                    res += peeked;
+                }
+                else if (numbers.Contains(peeked))
+                {
+                    res += peeked;
+                    stringWalker.Update(myWalker);
+                }
+                else 
+                {
+                    number = res;
+                    return true;
+                }
+            }
+            throw new Exception("bug!");
+
+        }
+
+        private bool IsOperation(ref StringWalker stringWalker, out string exitString)
+        {
+            foreach (var op in operations.OrderByDescending(x => x.Length))
+            {
+                if (stringWalker.Span().StartsWith(op))
+                {
+                    exitString = op;
+                    return true;
+                }
+            }
+            exitString = default;
+            return false;
+        }
+
+        private static bool BuildStringConstant(ref StringWalker enumerator, out string part)
+        {
+            part = "";
+
+            if (!enumerator.TryTake(out var first) || first != '"') {
+                part = default;
+                return false;
+            }
+
+            part += first;
+
             while (enumerator.TryTake(out var next)) {
                 part += next;
                 if (next == '"') {
@@ -322,36 +430,57 @@ namespace Tac.Parser
         }
 
         public FileToken Tokenize(string s) {
-            return TokenzieFile(new StringWalker(s)).GetTokenOrThrow();
+            var stringWalker = new StringWalker(s);
+            return TokenzieFile(ref stringWalker).GetTokenOrThrow();
         }
 
 
-        private class StringWalker{
+        private ref struct StringWalker{
 
-            private readonly string backing;
-            private int at = 0;
+            private ReadOnlySpan<char> backing;
 
-            public StringWalker(string backing) {
-                this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            public StringWalker(ReadOnlySpan<char> backing) {
+                this.backing = backing;
+            }
+
+            public StringWalker(StringWalker other):this(other.backing)
+            {
+            }
+
+            public void Update(ReadOnlySpan<char> backing)
+            {
+                this.backing = backing;
+            }
+            public void Update(StringWalker other)
+            {
+                this.backing = other.backing;
             }
 
             public bool TryTake(out char character) {
-                if (at >= backing.Length) {
-                    character = default;
+                if (!TryPeek(out character)) {
                     return false;
                 }
-                character = backing[at];
-                at = at + 1;
+                backing = backing.Slice(1);
                 return true;
             }
 
-            public bool StartsWith(string s) {
-                return backing.AsSpan(at).StartsWith(s);
+            public bool HasNext() {
+                return backing.Length ==0;
             }
 
-            public bool StartsWith(char s)
+            public bool TryPeek(out char character)
             {
-                return backing[at] == s;
+                if (HasNext())
+                {
+                    character = default;
+                    return false;
+                }
+                character = backing[0];
+                return true;
+            }
+
+            public ReadOnlySpan<char> Span() {
+                return backing;
             }
         }
     }

@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model.Operations
 {
     internal class SubtractSymbols : ISymbols
     {
-        public string Symbols => "-";
+        public string Symbols => " - ";
     }
 
     internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, ISubtractOperation>
