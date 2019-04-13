@@ -86,7 +86,7 @@ namespace Tac.Parser
         private ResultAndExitString<T> OuterTokenzie<T>(
             ref StringWalker enumerator,
             Inner inner,
-            Func<string, bool> isExit,
+            IReadOnlyList<string> exits,
             Func<IToken[], T> makeToken,
             bool alwaysMake,
             bool addExitString)
@@ -102,7 +102,7 @@ namespace Tac.Parser
                 }
                 if (res.TryGetExitString(out var exitString))
                 {
-                    if (isExit(exitString))
+                    if (exits.Contains(exitString))
                     {
                         if (alwaysMake || elements.Any())
                         {
@@ -189,59 +189,28 @@ namespace Tac.Parser
         private IResultAndExitString<LineToken> TokenzieLine(ref StringWalker enumerator)
         {
 
-            return OuterTokenzie<LineToken>(ref enumerator, TokenizeElement, IsExit, x => new LineToken(x), false, true);
-
-            bool IsExit(string str)
-            {
-                return
-                    str == ";" ||
-                    str == "}" ||
-                    str == ")" ||
-                    str == "]";
-            }
+            return OuterTokenzie<LineToken>(ref enumerator, TokenizeElement, new[] { ";","}",")","]"}, x => new LineToken(x), false, true);
         }
 
         private IResultAndExitString<ParenthesisToken> TokenzieParenthesis(ref StringWalker enumerator)
         {
-            return OuterTokenzie(ref enumerator, TokenizeElement, IsExit, x => new ParenthesisToken(x), false, true);
-
-            bool IsExit(string str)
-            {
-                return
-                    str == ")";
-            }
+            return OuterTokenzie(ref enumerator, TokenizeElement, new[] { ")", }, x => new ParenthesisToken(x), false, true);
         }
 
         private IResultAndExitString<CurleyBracketToken> TokenzieCurleyBrackets(ref StringWalker enumerator)
         {
-            return OuterTokenzie(ref enumerator, TokenzieLine, IsExit, x => new CurleyBracketToken(x), true, false);
-
-            bool IsExit(string str)
-            {
-                return
-                    str == "}";
-            }
+            return OuterTokenzie(ref enumerator, TokenzieLine, new[] { "}", }, x => new CurleyBracketToken(x), true, false);
         }
 
         private IResultAndExitString<SquareBacketToken> TokenzieSquareBrackets(ref StringWalker enumerator)
         {
-            return OuterTokenzie(ref enumerator, TokenzieLine, IsExit, x => new SquareBacketToken(x), true, false);
-
-            bool IsExit(string str)
-            {
-                return
-                    str == "]";
-            }
+            return OuterTokenzie(ref enumerator, TokenzieLine, new[] { "]", }, x => new SquareBacketToken(x), true, false);
         }
 
         private IResultAndExitString<FileToken> TokenzieFile(ref StringWalker enumerator)
         {
-            return OuterTokenzie(ref enumerator, TokenzieLine, IsExit, x => new FileToken(x), true, false);
+            return OuterTokenzie(ref enumerator, TokenzieLine, new string[] { }, x => new FileToken(x), true, false);
 
-            bool IsExit(string str)
-            {
-                return false;
-            }
         }
 
         private bool TryEnter(string part, ref StringWalker enumerator, out IToken token)
@@ -282,7 +251,7 @@ namespace Tac.Parser
                     return true;
                 }
 
-                if (IsOperation(ref enumerator, out var exit))
+                if (IsOperationOrExit(ref enumerator, out var exit))
                 {
                     if (buildingPart != "")
                     {
@@ -394,9 +363,9 @@ namespace Tac.Parser
 
         }
 
-        private bool IsOperation(ref StringWalker stringWalker, out string exitString)
+        private bool IsOperationOrExit(ref StringWalker stringWalker,  out string exitString)
         {
-            foreach (var op in operations.OrderByDescending(x => x.Length))
+            foreach (var op in operations.Union(new[] { "{","}","(",")","[","]",";"}).OrderByDescending(x => x.Length))
             {
                 if (stringWalker.Span().StartsWith(op))
                 {
@@ -433,7 +402,6 @@ namespace Tac.Parser
             var stringWalker = new StringWalker(s);
             return TokenzieFile(ref stringWalker).GetTokenOrThrow();
         }
-
 
         private ref struct StringWalker{
 

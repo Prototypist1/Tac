@@ -17,8 +17,8 @@ namespace Tac.SnippetTests
                 BasicInputOutput.Input(intIn ,stringIn,boolIn)},
  @"
 entry-point {
-    new-empty > ( in . read-string ) ;
-} ;");
+    new-empty > (in.read-string);
+};");
 
             verifyIntIn();
             verifyStringIn();
@@ -37,8 +37,8 @@ entry-point {
                 new[] {BasicInputOutput.Input(intIn ,stringIn, boolIn) },
 @"
 entry-point {
-    new-empty > ( in . read-number ) ;
-} ;");
+    new-empty > (in.read-number);
+};");
 
             verifyIntIn();
             verifyStringIn();
@@ -64,8 +64,8 @@ entry-point {
                     BasicInputOutput.Output(intOut, stringOut, boolOut) },
 @"
 entry-point {
-    new-empty > ( in . read-bool ) > ( out . write-bool ) ;
-} ;");
+    new-empty > (in.read-bool) > (out.write-bool);
+};");
 
             verifyIntIn();
             verifyStringIn();
@@ -87,11 +87,27 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
-     2 * 2 > ( out . write-number ) ;
-     3 * 2 > ( out . write-number ) ;
-     4 * 2 > ( out . write-number ) ;
-     5 * 2 > ( out . write-number ) ;
- } ;");
+     2 * 2 > (out.write-number);
+     3 * 2 > (out.write-number);
+     4 * 2 > (out.write-number);
+     5 * 2 > (out.write-number);
+ };");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+        [Fact]
+        public void MultiplyCompact()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 4.0, 6.0, 8.0, 10.0 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+                @"entry-point{2*2>(out.write-number);3*2>(out.write-number);4*2>(out.write-number);5*2>(out.write-number);};");
 
             verifyIntIn();
             verifyStringIn();
@@ -109,11 +125,11 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
-     2 - 2 > ( out . write-number ) ;
-     3 - 2 > ( out . write-number ) ;
-     4 - 2 > ( out . write-number ) ;
-     5 - 2 > ( out . write-number ) ;
- } ;");
+     2 - 2 > (out.write-number);
+     3 - 2 > (out.write-number);
+     4 - 2 > (out.write-number);
+     5 - 2 > (out.write-number);
+ };");
 
             verifyIntIn();
             verifyStringIn();
@@ -131,11 +147,11 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
-     2 + 2 > ( out . write-number ) ;
-     3 + 2 > ( out . write-number ) ;
-     4 + 2 > ( out . write-number ) ;
-     5 + 2 > ( out . write-number ) ;
- } ;");
+     2 + 2 > (out.write-number);
+     3 + 2 > (out.write-number);
+     4 + 2 > (out.write-number);
+     5 + 2 > (out.write-number);
+ };");
 
             verifyIntIn();
             verifyStringIn();
@@ -153,10 +169,10 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
-     1 <? 2 > ( out . write-bool ) ;
-     2 <? 2 > ( out . write-bool ) ;
-     3 <? 2 > ( out . write-bool ) ;
- } ;");
+     1 <? 2 > (out.write-bool);
+     2 <? 2 > (out.write-bool);
+     3 <? 2 > (out.write-bool);
+ };");
 
             verifyIntIn();
             verifyStringIn();
@@ -174,8 +190,8 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
-     2 > ( out . write-number ) ;
- } ;");
+     2 > (out.write-number);
+ };");
 
             verifyIntIn();
             verifyStringIn();
@@ -194,9 +210,9 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
-     true then { 2.0 > ( out . write-number ) ; } ;
-     false then { 1.0 > ( out . write-number ) ; } ;
- } ;");
+     true then { 2.0 > (out.write-number); };
+     false then { 1.0 > (out.write-number); };
+ };");
 
             verifyIntIn();
             verifyStringIn();
@@ -214,9 +230,9 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
-     true else { 1.0 > ( out . write-number ) ; } ;
-     false else { 2.0 > ( out . write-number ) ; } ;
- } ;");
+     true else { 1.0 > (out.write-number); };
+     false else { 2.0 > (out.write-number); };
+ };");
 
             verifyIntIn();
             verifyStringIn();
@@ -235,7 +251,7 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
-   ""hello world"" > ( out . write-string ) ;
+   ""hello world"" > (out.write-string);
 };");
 
             verifyIntIn();
