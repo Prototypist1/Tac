@@ -57,6 +57,8 @@ namespace Tac.Semantic_Model
         }
 
         public IIsPossibly<IKey> Key { get; }
+        // I am not sure I agree with this
+        // it is an ordered set of types, names and acccessablity modifiers
         public IResolvableScope Scope { get; }
         
         IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IInterfaceType>.Returns()

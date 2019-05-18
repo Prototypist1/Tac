@@ -62,64 +62,6 @@ namespace Tac.Semantic_Model
     internal class NewScope : IPopulatableResolvableScope
     {
 
-        //internal class AssemblyManager
-        //{
-        //    private readonly IReadOnlyList<ExteranlResolvableScope> scopes;
-
-        //    public AssemblyManager(IReadOnlyList<IAssembly> assemblies)
-        //    {
-        //        this.scopes = assemblies.Select(x => new ExteranlResolvableScope(x.Scope)).ToList();
-        //    }
-
-        //    public bool TryGetMember(IKey key, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> res)
-        //    {
-        //        var wrappedRes = scopes.Select<ExteranlResolvableScope,IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>>>(x =>
-        //        {
-        //            if (x.TryGetMember(key, staticOnly, out var someRes))
-        //            {
-        //                return Possibly.Is(someRes);
-        //            }
-        //            else
-        //            {
-        //                return Possibly.IsNot<IBox<IIsPossibly<IWeakMemberDefinition>>>();
-        //            }
-        //        }).OfType<IIsDefinately<IBox < IIsPossibly < IWeakMemberDefinition >>>>().SingleOrDefault();
-
-        //        if (wrappedRes == null) {
-        //            res = default;
-        //            return false;
-        //        }
-
-        //        res = wrappedRes.Value;
-        //        return true;
-        //    }
-
-        //    public bool TryGetType(IKey key, out IBox<IIsPossibly<IFrontendType<IVerifiableType>>> res)
-        //    {
-        //        var wrappedRes = scopes.Select<ExteranlResolvableScope, IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>(x =>
-        //        {
-        //            if (x.TryGetType(key, out var someRes))
-        //            {
-        //                return Possibly.Is(someRes);
-        //            }
-        //            else
-        //            {
-        //                return Possibly.IsNot<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>();
-        //            }
-        //        }).OfType<IIsDefinately<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>().SingleOrDefault();
-
-        //        if (wrappedRes == null)
-        //        {
-        //            res = default;
-        //            return false;
-        //        }
-
-        //        res = wrappedRes.Value;
-        //        return true;
-        //    }
-            
-        //}
-
         public IPopulatableResolvableScope Parent { get; }
 
         public IEnumerable<IKey> MemberKeys
