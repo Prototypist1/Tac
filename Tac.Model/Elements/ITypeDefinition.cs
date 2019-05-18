@@ -13,11 +13,6 @@ namespace Tac.Model.Elements
     //    bool IsAssignableTo(IVerifiableType from, IVerifiableType to);
     //}
 
-    public interface IInterfaceType : IVerifiableType, ICodeElement
-    {
-        IFinalizedScope Scope { get; }
-    }
-    
     public interface IVerifiableType {
 
         bool TheyAreUs(IVerifiableType they, bool noTagBacks);
@@ -47,13 +42,13 @@ namespace Tac.Model.Elements
     public interface IAnyType : IVerifiableType { }
     public interface IEmptyType : IVerifiableType { }
     
-    public interface IObjectType : IVerifiableType {
+    public interface IInterfaceType : IVerifiableType, ICodeElement
+    {
         // am I sure these need to be ordered?
         // is staticness important here?
         // staticness just controlls access 
         IReadOnlyList<IMemberDefinition> Members { get; }
     }
-
 
     public interface IModuleType : IVerifiableType {
         // am I sure these need to be ordered?
@@ -65,9 +60,22 @@ namespace Tac.Model.Elements
         IVerifiableType OutputType { get; }
     }
 
+    // what is this??
+    // 
+    // so Method is system generic type
+    // i have a hard time thinking about this
+    // 
+    // but really it is not so complex 
+    // this creates methods with types
+    // 
+    // in that case this should have an input type and a output type
+    // they are either placeholders or real types.. we can expect atleat one is a placeholder
+    //
+    // 
     public interface IGenericMethodType : IGenericType
     {
     }
+
     // TODO an implementation type is a method type!
     public interface IImplementationType : IVerifiableType {
         IVerifiableType InputType { get; }

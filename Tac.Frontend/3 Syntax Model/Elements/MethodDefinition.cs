@@ -97,6 +97,7 @@ namespace Tac.Semantic_Model
                         .Has(new DoneMaker()))
                     .OptionalHas(new NameMaker(), out var parameterName)
                     .Has(new BodyMaker(), out var body);
+
                 if (matching
                      is IMatchedTokenMatching matched)
                 {

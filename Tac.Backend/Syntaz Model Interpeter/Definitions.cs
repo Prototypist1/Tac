@@ -529,7 +529,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         // espesally for anytime
         // my type system is not hat mcuh likes C#
         // maybe leaning on C# type system is not a good idea??
-        
+
         // I need to use IAnyTime no the class
         // so I can assign IIO<Boxeddouble> to IIO<IAny>
         // but that means I wll have to drop the class requirement

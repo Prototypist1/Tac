@@ -10,6 +10,7 @@ using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 
 
@@ -21,7 +22,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
         public string Symbols => "|";
     }
 
-    internal class WeakTypeOrOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, ITypeOrOperation>
+    internal class WeakTypeOrOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, WeakTypeReference>
     {
         public WeakTypeOrOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
@@ -42,7 +43,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
         }
     }
 
-    internal class TypeOrOperationMaker : BinaryOperationMaker<WeakTypeOrOperation, ITypeOrOperation>
+    internal class TypeOrOperationMaker : BinaryOperationMaker<WeakTypeOrOperation, WeakTypeReference>
     {
         public TypeOrOperationMaker() : base(new TypeOrSymbols(), (l, r) => Possibly.Is(new WeakTypeOrOperation(l, r)))
         {

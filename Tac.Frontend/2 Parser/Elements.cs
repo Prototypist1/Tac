@@ -102,8 +102,12 @@ namespace Tac.Parser
 
         private readonly IMaker<IPopulateScope<IFrontendCodeElement<ICodeElement>>>[] elementMakers;
         private readonly IMaker<IPopulateScope<IFrontendCodeElement<ICodeElement>>>[] operationMatchers;
-        
+
         #region Parse
+
+        public IPopulateScope<IFrontendType<IVerifiableType>> ParseParenthesisOrElementType(IToken token) {
+
+        }
 
         public IPopulateScope<IFrontendCodeElement<ICodeElement>> ParseParenthesisOrElement(IToken token)
         {
@@ -156,6 +160,11 @@ namespace Tac.Parser
             }
 
             throw new Exception("");
+        }
+
+        public IPopulateScope<IFrontendType<IVerifiableType>> ParseTypeLine(IEnumerable<IToken> tokens)
+        {
+
         }
 
         public IPopulateScope<IFrontendCodeElement<ICodeElement>>[] ParseFile(FileToken file)
@@ -348,6 +357,36 @@ namespace Tac.Parser
             {
                 res = secondMatched.Value;
                 return secondResult;
+            }
+
+            res = default;
+            return TokenMatching<T>.MakeNotMatch(self.Context);
+        }
+
+        public static ITokenMatching<T> HasOne<T>(
+            this ITokenMatching self,
+            Func<ITokenMatching, ITokenMatching<T>>[] items,
+            out T res)
+        {
+            if (!(self is IMatchedTokenMatching matchedTokenMatching))
+            {
+                res = default;
+                return TokenMatching<T>.MakeNotMatch(self.Context);
+            }
+
+            var results = items.Select(x => x(self)).ToArray();
+
+            var goodResults = results.OfType<IMatchedTokenMatching<T>>().ToArray();
+
+            if (goodResults.Count() > 1)
+            {
+                throw new Exception("more than one should not match!");
+            }
+
+            if (goodResults.Count() == 1)
+            {
+                res = goodResults.First().Value;
+                return goodResults.First();
             }
 
             res = default;

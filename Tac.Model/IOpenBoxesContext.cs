@@ -45,6 +45,5 @@ namespace Tac.Model
         T EmptyInstance(IEmptyInstance co);
         T ConstantString(IConstantString co);
         T ConstantBool(IConstantBool constantBool);
-        T TypeOrOperation(ITypeOrOperation co);
     }
 }

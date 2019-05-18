@@ -14,18 +14,54 @@ namespace Tac.Model.Instantiated
     //    }
     //}
 
-    public class InterfaceType : IInterfaceType, IInterfaceTypeBuilder
+
+    // 🤫 IInterfaceType and module are they same 
+    public class InterfaceType : IInterfaceType, IModuleType, IInterfaceTypeBuilder
     {
-        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
+
+        private readonly Buildable<IReadOnlyList<IMemberDefinition>> buildableMembers = new Buildable<IReadOnlyList<IMemberDefinition>>();
+        public IReadOnlyList<IMemberDefinition> Members => buildableMembers.Get();
+
+        public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
+        {
+            if (they is IInterfaceType otherObject)
+            {
+                // they have all our members
+                return Members.All(member => otherObject.Members.Any(otherMember => otherMember.TheyAreUs(member, false)));
+            }
+
+            if (noTagBacks)
+            {
+                return false;
+            }
+
+            return they.WeAreThem(this, true);
+        }
+
+        public bool WeAreThem(IVerifiableType them, bool noTagBacks)
+        {
+            if (them is IInterfaceType otherObject)
+            {
+                // we have all their members
+                return otherObject.Members.All(otherMember => Members.Any(member => otherMember.WeAreThem(member, false)));
+            }
+
+            if (noTagBacks)
+            {
+                return false;
+            }
+
+            return this.WeAreThem(this, true);
+        }
+
 
         private InterfaceType() { }
 
-        public void Build(IFinalizedScope scope)
+        public void Build(IReadOnlyList<IMemberDefinition> scope)
         {
-            buildableScope.Set(scope);
+            buildableMembers.Set(scope);
         }
 
-        public IFinalizedScope Scope => buildableScope.Get();
         
         public static (IInterfaceType, IInterfaceTypeBuilder) Create()
         {
@@ -33,9 +69,9 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IInterfaceType CreateAndBuild(IFinalizedScope scope) {
+        public static IInterfaceType CreateAndBuild(IReadOnlyList<IMemberDefinition> members) {
             var (x, y) = Create();
-            y.Build(scope);
+            y.Build(members);
             return x;
         }
 
@@ -52,7 +88,7 @@ namespace Tac.Model.Instantiated
 
     public interface IInterfaceTypeBuilder
     {
-        void Build(IFinalizedScope scope);
+        void Build(IReadOnlyList<IMemberDefinition> scope);
     }
 
     public struct TypeOr : ITypeOr
@@ -172,78 +208,7 @@ namespace Tac.Model.Instantiated
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks) => true;
         public bool WeAreThem(IVerifiableType them, bool noTagBacks) => SimpleTypeHelp.WeAreThem<IAnyType>(this, them, noTagBacks);
     }
-    public class ObjectType : IObjectType
-    {
-        public IReadOnlyList<IMemberDefinition> Members { get; }
 
-        public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
-        {
-            if (they is IObjectType otherObject)
-            {
-                // they have all our members
-                return Members.All(member =>otherObject.Members.Any(otherMember => otherMember.TheyAreUs(member,false) ));
-            }
-
-            if (noTagBacks)
-            {
-                return false;
-            }
-
-            return they.WeAreThem(this, true);
-        }
-
-        public bool WeAreThem(IVerifiableType them, bool noTagBacks)
-        {
-            if (them is IObjectType otherObject)
-            {
-                // we have all their members
-                return otherObject.Members.All(otherMember => Members.Any(member => otherMember.WeAreThem(member, false)));
-            }
-
-            if (noTagBacks)
-            {
-                return false;
-            }
-
-            return this.WeAreThem(this, true);
-        }
-    }
-    public class ModuleType : IModuleType {
-
-        public IReadOnlyList<IMemberDefinition> Members { get; }
-
-        public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
-        {
-            if (they is IModuleType otherModule)
-            {
-                // they have all our members
-                return Members.All(member => otherModule.Members.Any(otherMember => otherMember.TheyAreUs(member, false)));
-            }
-
-            if (noTagBacks)
-            {
-                return false;
-            }
-
-            return they.WeAreThem(this, true);
-        }
-
-        public bool WeAreThem(IVerifiableType them, bool noTagBacks)
-        {
-            if (them is IModuleType otherModule)
-            {
-                // we have all their members
-                return otherModule.Members.All(otherMember => Members.Any(member => otherMember.WeAreThem(member, false)));
-            }
-
-            if (noTagBacks)
-            {
-                return false;
-            }
-
-            return this.WeAreThem(this, true);
-        }
-    }
     
     public class GemericTypeParameterPlacholder : IVerifiableType, IGemericTypeParameterPlacholderBuilder
     {
@@ -278,6 +243,36 @@ namespace Tac.Model.Instantiated
         {
             return Key.GetHashCode();
         }
+
+        public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
+        {
+            if (they is GemericTypeParameterPlacholder otherPlaceHolder)
+            {
+                return Key.Equals(otherPlaceHolder.Key);
+            }
+
+            if (noTagBacks)
+            {
+                return false;
+            }
+
+            return they.WeAreThem(this, true);
+        }
+
+        public bool WeAreThem(IVerifiableType them, bool noTagBacks)
+        {
+            if (them is GemericTypeParameterPlacholder otherPlaceHolder)
+            {
+                return Key.Equals(otherPlaceHolder.Key);
+            }
+
+            if (noTagBacks)
+            {
+                return false;
+            }
+
+            return this.WeAreThem(this, true);
+        }
     }
     
     public interface IGemericTypeParameterPlacholderBuilder
@@ -310,6 +305,16 @@ namespace Tac.Model.Instantiated
         {
             var res = new GenericMethodType();
             return (res, res);
+        }
+
+        public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool WeAreThem(IVerifiableType them, bool noTagBacks)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -385,9 +390,14 @@ namespace Tac.Model.Instantiated
 
         public void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
         {
-            InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
-            OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
+            ImplementationInputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
+            ImplementationOutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
+            MethodInputType = contextType ?? throw new ArgumentNullException(nameof(contextType));
+            var (outputMethod, outputMethodBuilder) = MethodType.Create();
+            outputMethodBuilder.Build(inputType, outputType);
+            MethodOutputType = outputMethod;
+
         }
         
         public static (IImplementationType, IImplementationTypeBuilder) Create()
@@ -426,10 +436,15 @@ namespace Tac.Model.Instantiated
             return this.WeAreThem(this, true);
         }
 
-        IVerifiableType IImplementationType.InputType { get; private set; }
-        IVerifiableType IImplementationType.OutputType { get; private set; }
-        IVerifiableType IMethodType.InputType { get; private set; }
-        IVerifiableType IMethodType.OutputType { get; private set; }
+        private IVerifiableType ImplementationInputType;
+        private IVerifiableType ImplementationOutputType;
+        private IVerifiableType MethodInputType;
+        private IVerifiableType MethodOutputType;
+
+        IVerifiableType IImplementationType.InputType => ImplementationInputType;
+        IVerifiableType IImplementationType.OutputType => ImplementationOutputType;
+        IVerifiableType IMethodType.InputType => MethodInputType;
+        IVerifiableType IMethodType.OutputType => MethodOutputType;
         public IVerifiableType ContextType { get; private set; }
     }
 
@@ -452,6 +467,16 @@ namespace Tac.Model.Instantiated
         {
             var res = new GenericImplementationType();
             return (res, res);
+        }
+
+        public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool WeAreThem(IVerifiableType them, bool noTagBacks)
+        {
+            throw new NotImplementedException();
         }
     }
     public interface IGenericImplementationBuilder
