@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
         IFrontendType<IVerifiableType>
     {
         public WeakMethodDefinition(
-            IIsPossibly<IWeakTypeReferance> outputType, 
+            IIsPossibly<IWeakTypeReference> outputType, 
             IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
             IIsPossibly<IFrontendCodeElement<ICodeElement>>[] body,
             IResolvableScope scope,
@@ -34,8 +34,8 @@ namespace Tac.Semantic_Model
             IsEntryPoint = isEntryPoint;
         }
         
-        public IIsPossibly<IWeakTypeReferance> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
-        public IIsPossibly<IWeakTypeReferance> OutputType { get; }
+        public IIsPossibly<IWeakTypeReference> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
+        public IIsPossibly<IWeakTypeReference> OutputType { get; }
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
         public bool IsEntryPoint { get; }
 

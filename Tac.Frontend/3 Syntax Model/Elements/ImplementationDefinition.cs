@@ -35,14 +35,14 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public IIsPossibly<IWeakTypeReferance> ContextTypeBox
+        public IIsPossibly<IWeakTypeReference> ContextTypeBox
         {
             get
             {
                 return ContextDefinition.IfIs(x=>x.GetValue()).IfIs(x=> x.Type);
             }
         }
-        public IIsPossibly<IWeakTypeReferance> InputTypeBox
+        public IIsPossibly<IWeakTypeReference> InputTypeBox
         {
             get
             {

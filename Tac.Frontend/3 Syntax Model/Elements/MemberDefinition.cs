@@ -26,7 +26,7 @@ namespace Tac.Semantic_Model
             this.Type = backing.Type.IfIs(x => Possibly.Is(new OverlayTypeReferance(x,overlay)));
         }
 
-        public IIsPossibly<IWeakTypeReferance> Type { get; }
+        public IIsPossibly<IWeakTypeReference> Type { get; }
         public bool ReadOnly => backing.ReadOnly;
         public IKey Key=> backing.Key;
 
@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model
 
     internal interface IWeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVerifiableType>
     {
-        IIsPossibly<IWeakTypeReferance> Type { get; }
+        IIsPossibly<IWeakTypeReference> Type { get; }
         bool ReadOnly { get; }
         IKey Key { get; }
         IMemberDefinition Convert(TransformerExtensions.ConversionContext context);
@@ -92,7 +92,7 @@ namespace Tac.Semantic_Model
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IIsPossibly<IWeakTypeReferance> Type { get; }
+        public IIsPossibly<IWeakTypeReference> Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
 

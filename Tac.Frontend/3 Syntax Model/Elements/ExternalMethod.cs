@@ -10,8 +10,8 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
     internal interface IMethodDefinition: IFrontendType<IVerifiableType>
     {
-        IIsPossibly<IWeakTypeReferance> InputType { get; }
-        IIsPossibly<IWeakTypeReferance> OutputType { get; }
+        IIsPossibly<IWeakTypeReference> InputType { get; }
+        IIsPossibly<IWeakTypeReference> OutputType { get; }
         IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
     }
     

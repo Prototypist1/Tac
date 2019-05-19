@@ -477,3 +477,25 @@ and you can define contracts on tags
 ======================= things I don't like:
 
 all the elements should have a compiled form
+
+
+======================= simpler!?
+
+method [i,o] input {}                                                       method
+implementation [c,i,o] context input {}                                     implementation
+type [typeParameter] name {}                                                generic type
+
+could be:
+
+method input-type output-type input {}                                      method
+implementation context-type input-type output-type context input {}         implementation
+type typeParameter1 typeParameter2 name {}                                  generic type
+
+idk force everything to be fixed size
+having optional stuff is nice
+
+I like the old way I think
+the metaphone is a method call
+generic types are "build time" methods that take some number of parameters a create a type 
+
+is it even like a method call? methods take one parameter

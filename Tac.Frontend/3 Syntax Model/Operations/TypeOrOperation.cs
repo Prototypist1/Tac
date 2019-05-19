@@ -22,13 +22,13 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
         public string Symbols => "|";
     }
 
-    internal class WeakTypeOrOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, WeakTypeReference>
+    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>, ITypeOr>
     {
-        public WeakTypeOrOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakTypeOrOperation(IIsPossibly<IFrontendType<IVerifiableType>> left, IIsPossibly<IFrontendType<IVerifiableType>> right) : base(left, right)
         {
         }
 
-        public override IBuildIntention<ITypeOrOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<ITypeOr> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             var (toBuild, maker) = TypeOrOperation.Create();
             return new BuildIntention<ITypeOrOperation>(toBuild, () =>
@@ -36,16 +36,17 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
                 maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
             });
         }
-
-        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
-        {
-            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
-        }
     }
 
-    internal class TypeOrOperationMaker : BinaryOperationMaker<WeakTypeOrOperation, WeakTypeReference>
+    internal class TypeOrOperationMaker : BinaryTypeMaker
     {
-        public TypeOrOperationMaker() : base(new TypeOrSymbols(), (l, r) => Possibly.Is(new WeakTypeOrOperation(l, r)))
+        public TypeOrOperationMaker() : base(new TypeOrSymbols(), (l, r) => 
+            Possibly.Is<IWeakTypeReference>(
+                new WeakTypeReference(
+                    Possibly.Is<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>(
+                        new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
+                            Possibly.Is<IFrontendType<IVerifiableType>>(
+                                new WeakTypeOrOperation(l, r)))))))
         {
         }
     }

@@ -12,9 +12,9 @@ using Tac.Parser;
 
 namespace Tac.Semantic_Model
 {
-    internal class OverlayTypeReferance : IWeakTypeReferance
+    internal class OverlayTypeReferance : IWeakTypeReference
     {
-        public OverlayTypeReferance(IWeakTypeReferance weakTypeReferance, Overlay overlay)
+        public OverlayTypeReferance(IWeakTypeReference weakTypeReferance, Overlay overlay)
         {
             if (weakTypeReferance == null)
             {
@@ -54,7 +54,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal interface IWeakTypeReferance : IFrontendCodeElement<ITypeReferance>, IFrontendType<IVerifiableType> {
+    internal interface IWeakTypeReference : IFrontendCodeElement<ITypeReferance>, IFrontendType<IVerifiableType> {
         IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
     }
 
@@ -102,7 +102,7 @@ namespace Tac.Semantic_Model
     //    IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
     //}
 
-    internal class WeakTypeReference : IWeakTypeReferance
+    internal class WeakTypeReference : IWeakTypeReference
     {
         public WeakTypeReference(IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> typeDefinition)
         {
