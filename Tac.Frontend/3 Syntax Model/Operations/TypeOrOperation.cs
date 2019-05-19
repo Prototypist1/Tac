@@ -7,6 +7,7 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
+using Tac.Model.Instantiated.Operations;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
@@ -17,10 +18,12 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Frontend._3_Syntax_Model.Operations
 {
 
+
     internal class TypeOrSymbols : ISymbols
     {
         public string Symbols => "|";
     }
+
 
     internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>, ITypeOr>
     {
@@ -30,11 +33,13 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
 
         public override IBuildIntention<ITypeOr> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            var (toBuild, maker) = TypeOrOperation.Create();
-            return new BuildIntention<ITypeOrOperation>(toBuild, () =>
-            {
-                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
-            });
+            // not sure what I am doing with this ... should it just become a type?
+
+            var (res, builder) = TypeOr.Create();
+            return new BuildIntention<ITypeOr>(res, () => builder.Build(
+                Left.GetOrThrow().Convert(context),
+                Right.GetOrThrow().Convert(context)
+                ));
         }
     }
 
@@ -47,6 +52,9 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
                         new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
                             Possibly.Is<IFrontendType<IVerifiableType>>(
                                 new WeakTypeOrOperation(l, r)))))))
+
+
+        //
         {
         }
     }

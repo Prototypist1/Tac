@@ -91,17 +91,20 @@ namespace Tac.Model.Instantiated
         void Build(IReadOnlyList<IMemberDefinition> scope);
     }
 
-    public struct TypeOr : ITypeOr
+
+    public class TypeOr : ITypeOr, ITypeOrBuilder
     {
-        public TypeOr(IVerifiableType left, IVerifiableType right)
+        private TypeOr()
         {
-            Left = left ?? throw new ArgumentNullException(nameof(left));
-            Right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public IVerifiableType Left { get; }
+        private Buildable<IVerifiableType> 
+            left = new Buildable<IVerifiableType>() , 
+            right = new Buildable<IVerifiableType>();
 
-        public IVerifiableType Right { get; }
+        public IVerifiableType Left => left.Get();
+
+        public IVerifiableType Right => right.Get();
 
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
@@ -113,7 +116,36 @@ namespace Tac.Model.Instantiated
             return Left.WeAreThem(them, noTagBacks) && Left.WeAreThem(them, noTagBacks);
         }
 
+
+        public static (ITypeOr, ITypeOrBuilder) Create()
+        {
+            var res = new TypeOr();
+            return (res, res);
+        }
+
+
+        public void Build(IVerifiableType left, IVerifiableType right)
+        {
+            if (left == null)
+            {
+                throw new ArgumentNullException(nameof(left));
+            }
+
+            if (right == null)
+            {
+                throw new ArgumentNullException(nameof(right));
+            }
+
+            this.left.Set(left);
+            this.right.Set(right);
+        }
     }
+
+    public interface ITypeOrBuilder
+    {
+        void Build(IVerifiableType left, IVerifiableType right);
+    }
+
 
     public struct TypeAnd : ITypeAnd
     {

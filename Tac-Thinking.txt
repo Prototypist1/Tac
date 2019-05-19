@@ -420,13 +420,13 @@ it is the new way to do main
 []                                              quick thing type infered (object, type, generics-parameters object)
 object {}                                       object
 method [i,o] input {}                           method
-inline {}                                       inline
+inline {}                                       inline -- what is an inline? method without a new scope?
 type name {}                                    type
 type [typeParameter] name {}                    generic type
 implementation [c,i,o] context input {}         implementation
 {}                                              block               
 ()                                              do thing code first!
-meta {}                                     ?   Meta
+meta {}                                     ?   Meta -- what is a meta??
 := =: as = is => <= =                       ?   assign
 +                                               add
 /                                               divide
@@ -457,7 +457,7 @@ of  /                                       ?   reverse feild
 return                                          return
 and                                             and
 or                                              or
-not                                             not
+not !                                           not
 xor                                             xor
 shift-left                                      bit-shift
 shift-right                                     bit-shift right

@@ -304,5 +304,29 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                 return GetBuildIntention(context);
             }
         }
-    } 
+
+        // I don't think I need this, WeakTypeOrOperation instead.
+
+        //internal struct TypeOr : IFrontendType<ITypeOr>
+        //{
+        //    public readonly IFrontendType<ITypeOr> left, right;
+
+        //    public TypeOr(IFrontendType<ITypeOr> left, IFrontendType<ITypeOr> right)
+        //    {
+        //        this.left = left ?? throw new ArgumentNullException(nameof(left));
+        //        this.right = right ?? throw new ArgumentNullException(nameof(right));
+        //    }
+
+        //    public IBuildIntention<ITypeOr> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        //    {
+        //        var (res, builder) = Tac.Model.Instantiated.TypeOr.Create();
+        //        var myLeft = left;
+        //        var myRIght = right;
+        //        return new BuildIntention<Model.Elements.ITypeOr>(res, () => builder.Build(
+        //            myLeft.Convert(context),
+        //            myRIght.Convert(context)
+        //            ));
+        //    }
+        //}
+    }
 }
