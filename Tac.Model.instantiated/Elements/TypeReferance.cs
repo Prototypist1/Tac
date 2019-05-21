@@ -13,7 +13,7 @@ namespace Tac.Model.Instantiated
             buildableTypeDefinition.Set(typeDefinition);
         }
 
-        public IVerifiableType TypeDefinition => buildableTypeDefinition.Get();
+        public IVerifiableType VerifiableType => buildableTypeDefinition.Get();
 
 
         public static (ITypeReferance, ITypeReferanceBuilder) Create()

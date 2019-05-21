@@ -27,9 +27,6 @@ namespace Tac.Model.Instantiated
         public IEnumerable<ICodeElement> MethodBody { get => buildableMethodBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitialzers { get => buildableStaticInitialzers.Get(); }
 
-        public IVerifiableType InputType => ParameterDefinition.Type.TypeDefinition;
-        public IVerifiableType ContextType => ContextDefinition.Type.TypeDefinition;
-        IVerifiableType IImplementationType.OutputType => OutputType.TypeDefinition;
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking
         {
@@ -38,7 +35,7 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-            return this;
+            return ImplementationType.CreateAndBuild(ParameterDefinition.Type.VerifiableType,OutputType.VerifiableType, ContextDefinition.Type.VerifiableType);
         }
 
         #endregion

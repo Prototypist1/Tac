@@ -1,7 +1,7 @@
 ﻿namespace Tac.Model.Elements
 {
-    public interface ITypeReferance: IVerifiableType, ICodeElement
+    public interface ITypeReferance: ICodeElement
     {
-        IVerifiableType TypeDefinition { get; }
+        IVerifiableType VerifiableType { get; }
     }
 }

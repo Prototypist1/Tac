@@ -517,7 +517,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 var op = new InterpetedTypeReferance();
                 backing.Add(codeElement, op);
-                op.Init(codeElement.TypeDefinition);
+                op.Init(codeElement.VerifiableType);
                 return op;
             }
         }
@@ -609,7 +609,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             if (verifiableType is ITypeReferance typeReferance)
             {
-                return MapType(typeReferance.TypeDefinition);
+                return MapType(typeReferance.VerifiableType);
             }
             if (verifiableType is IGenericInterfaceDefinition)
             {

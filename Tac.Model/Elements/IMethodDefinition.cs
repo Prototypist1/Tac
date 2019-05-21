@@ -3,7 +3,8 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Elements
 {
-    public interface IInternalMethodDefinition: IBlockDefinition, IMethodType, ICodeElement
+    // what is internal about this??
+    public interface IInternalMethodDefinition: IBlockDefinition,  ICodeElement
     {
         IMemberDefinition ParameterDefinition { get; }
         bool IsEntryPoint { get; }

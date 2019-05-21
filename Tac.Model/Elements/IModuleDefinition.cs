@@ -2,7 +2,7 @@
 
 namespace Tac.Model.Elements
 {
-    public interface IModuleDefinition : ICodeElement, IVerifiableType
+    public interface IModuleDefinition : ICodeElement
 
     {
         IKey Key { get; }

@@ -28,7 +28,7 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-            return this;
+            return ??;
         }
         
         public void Build(IFinalizedScope scope, IVerifiableType[] typeParameterDefinitions)

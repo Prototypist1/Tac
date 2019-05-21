@@ -438,6 +438,13 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
+        public static IImplementationType CreateAndBuild(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
+        {
+            var (res, builder) = Create();
+            builder.Build(inputType, outputType, contextType);
+            return res;
+        }
+
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
             if (they is IMethodType method)

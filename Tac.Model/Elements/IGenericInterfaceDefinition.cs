@@ -1,6 +1,6 @@
 ﻿namespace Tac.Model.Elements
 {
-    public interface IGenericInterfaceDefinition : IInterfaceType, IGenericType
+    public interface IGenericInterfaceDefinition
     {
 
     }
