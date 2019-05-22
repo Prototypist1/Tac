@@ -29,7 +29,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> MemberDefinition(IMemberDefinition member)
         {
-            var method = GetMethod(new Type[] { TypeMap.MapType(member.Type) }, nameof(MemberDefinition));
+            var method = GetMethod(new Type[] { TypeMap.MapType(member.Type.VerifiableType) }, nameof(MemberDefinition));
             return method.Invoke(this, new object[] { member }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -605,7 +605,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             if (verifiableType is IMemberReferance memberReferance)
             {
-                return MapType(memberReferance.MemberDefinition.Type);
+                return MapType(memberReferance.MemberDefinition.Type.VerifiableType);
             }
             if (verifiableType is ITypeReferance typeReferance)
             {
