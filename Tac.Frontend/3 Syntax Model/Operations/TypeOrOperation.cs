@@ -24,9 +24,9 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
     }
 
 
-    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>, ITypeOr>
+    internal class WeakTypeOrOperation : BinaryTypeOperation<IConvertableFrontendType<IVerifiableType>, IConvertableFrontendType<IVerifiableType>, ITypeOr>
     {
-        public WeakTypeOrOperation(IIsPossibly<IFrontendType<IVerifiableType>> left, IIsPossibly<IFrontendType<IVerifiableType>> right) : base(left, right)
+        public WeakTypeOrOperation(IIsPossibly<IConvertableFrontendType<IVerifiableType>> left, IIsPossibly<IConvertableFrontendType<IVerifiableType>> right) : base(left, right)
         {
         }
 
@@ -47,9 +47,9 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
         public TypeOrOperationMaker() : base(new TypeOrSymbols(), (l, r) => 
             Possibly.Is<IWeakTypeReference>(
                 new WeakTypeReference(
-                    Possibly.Is<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>(
-                        new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
-                            Possibly.Is<IFrontendType<IVerifiableType>>(
+                    Possibly.Is<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>>(
+                        new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
+                            Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
                                 new WeakTypeOrOperation(l, r)))))))
 
 

@@ -1,6 +1,6 @@
 ﻿namespace Tac.Model.Elements
 {
-    public interface ITypeReferance: ICodeElement
+    public interface ITypeReferance: IConvertable
     {
         IVerifiableType VerifiableType { get; }
     }

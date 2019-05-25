@@ -21,11 +21,6 @@ namespace Tac.Model.Instantiated
             return context.MemberDefinition(this);
         }
 
-        public IVerifiableType Returns()
-        {
-            return this;
-        }
-
         public void Build(IKey key, ITypeReferance type, bool readOnly)
         {
             buildableKey.Set(key);

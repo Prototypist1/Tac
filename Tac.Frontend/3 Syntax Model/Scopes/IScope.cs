@@ -19,12 +19,12 @@ namespace Tac.Semantic_Model
     {
         bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition);
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
-        bool TryAddType(IKey name, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type);
+        bool TryAddType(IKey name, IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type);
     }
 
     internal interface IResolvableScope: ISomeScope, IConvertable<IFinalizedScope>
     {
-        bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type);
+        bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType>> type);
     }
 
     //internal class ExteranlResolvableScope : IResolvableScope
@@ -127,7 +127,7 @@ namespace Tac.Semantic_Model
     
     internal static class ResolvableScopeExtension
     {
-        internal static IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetTypeOrThrow(this IResolvableScope scope, IKey name) {
+        internal static IBox<IIsPossibly<IFrontendType>> GetTypeOrThrow(this IResolvableScope scope, IKey name) {
             if (scope.TryGetType(name, out var thing)) {
                 return thing;
             }
@@ -144,7 +144,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        internal static IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> PossiblyGetType(this IResolvableScope scope, IKey name) {
+        internal static IIsPossibly<IBox<IIsPossibly<IFrontendType>>> PossiblyGetType(this IResolvableScope scope, IKey name) {
             if (scope.TryGetType(name, out var thing))
             {
                 return Possibly.Is(thing);

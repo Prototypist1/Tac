@@ -22,7 +22,6 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public IVerifiableType Returns() => this;
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context) where TBacking : IBacking => context.TypeReferance(this);
 
         public static ITypeReferance CreateAndBuild(IVerifiableType typeDefinition) {

@@ -31,13 +31,13 @@ namespace Tac.Semantic_Model
         public IKey Key=> backing.Key;
 
         public IMemberDefinition Convert(TransformerExtensions.ConversionContext context) => backing.Convert(context);
-        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IFrontendCodeElement<IMemberDefinition>).GetBuildIntention(context);
-        public IIsPossibly<IFrontendType<IVerifiableType>> Returns() => backing.Returns();
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IConvertableFrontendCodeElement<IMemberDefinition>).GetBuildIntention(context);
+        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns() => backing.Returns();
         IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IConvertable<IVerifiableType>).GetBuildIntention(context);
         
     }
 
-    internal interface IWeakMemberDefinition: IFrontendCodeElement<IMemberDefinition>, IFrontendType<IVerifiableType>
+    internal interface IWeakMemberDefinition: IConvertableFrontendCodeElement<IMemberDefinition>, IConvertableFrontendType<IVerifiableType>
     {
         IIsPossibly<IWeakTypeReference> Type { get; }
         bool ReadOnly { get; }
@@ -120,7 +120,7 @@ namespace Tac.Semantic_Model
 
         IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IMemberDefinition>.Returns()
+        IIsPossibly<IConvertableFrontendType<IVerifiableType>> IConvertableFrontendCodeElement<IMemberDefinition>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -199,7 +199,7 @@ namespace Tac.Semantic_Model
                 return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName.Run(context), context.GetResolvableScope(), memberDefinitionBox);
             }
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
             {
                 return box;
             }

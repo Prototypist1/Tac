@@ -34,7 +34,7 @@ namespace Tac.Frontend
             {
                 if (type.Type is IInterfaceType interfaceType)
                 {
-                    if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
+                    if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
                     {
                         throw new Exception("type should not already exist");
                     }
@@ -54,7 +54,7 @@ namespace Tac.Frontend
         }
 
 
-        private readonly Dictionary<object, IFrontendCodeElement<ICodeElement>> backing = new Dictionary<object, IFrontendCodeElement<ICodeElement>>();
+        private readonly Dictionary<object, IConvertableFrontendCodeElement<ICodeElement>> backing = new Dictionary<object, IConvertableFrontendCodeElement<ICodeElement>>();
 
         public DependencyConverter()
         {
@@ -74,7 +74,7 @@ namespace Tac.Frontend
                     Possibly.Is(
                         new WeakTypeReference(
                             Possibly.Is(
-                                new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
+                                new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
                                     Possibly.Is(
                                         TypeMap.MapType(member.Type.VerifiableType)))))));
                 backing.Add(member, interpetedMemberDefinition);
@@ -97,7 +97,7 @@ namespace Tac.Frontend
             //}
         }
 
-        public IFrontendType<IVerifiableType> TypeDefinition(IInterfaceType _)
+        public IConvertableFrontendType<IVerifiableType> TypeDefinition(IInterfaceType _)
         {
             throw new NotImplementedException();
             //if (backing.TryGetValue(codeElement, out var res))
@@ -116,7 +116,7 @@ namespace Tac.Frontend
     internal static class TypeMap
     {
 
-        public static IFrontendType<IVerifiableType> MapType(IVerifiableType verifiableType)
+        public static IConvertableFrontendType<IVerifiableType> MapType(IVerifiableType verifiableType)
         {
             if (verifiableType is INumberType)
             {

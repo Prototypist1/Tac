@@ -22,17 +22,17 @@ namespace Tac.Model.Instantiated
             public IVerifiableType Type { get; }
         }
 
-        public class GenericTypeData
-        {
-            public GenericTypeData(NameKey key, IGenericType type)
-            {
-                Key = key ?? throw new ArgumentNullException(nameof(key));
-                Type = type ?? throw new ArgumentNullException(nameof(type));
-            }
+        //public class GenericTypeData
+        //{
+        //    public GenericTypeData(NameKey key, IGenericType type)
+        //    {
+        //        Key = key ?? throw new ArgumentNullException(nameof(key));
+        //        Type = type ?? throw new ArgumentNullException(nameof(type));
+        //    }
 
-            public NameKey Key { get; }
-            public IGenericType Type { get; }
-        }
+        //    public NameKey Key { get; }
+        //    public IGenericType Type { get; }
+        //}
 
         public class IsStatic
         {
@@ -48,7 +48,7 @@ namespace Tac.Model.Instantiated
 
         private readonly IDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
         private readonly IDictionary<IKey, IVerifiableType> types = new ConcurrentDictionary<IKey, IVerifiableType>();
-        private readonly IDictionary<NameKey, List<IGenericType>> genericTypes = new ConcurrentDictionary<NameKey, List<IGenericType>>();
+        //private readonly IDictionary<NameKey, List<IGenericType>> genericTypes = new ConcurrentDictionary<NameKey, List<IGenericType>>();
 
         public Scope()
         {
@@ -63,7 +63,7 @@ namespace Tac.Model.Instantiated
 
         public IReadOnlyList<IMemberDefinition> Members => members.Select(x => x.Value.Value).ToList();
         
-        public IReadOnlyList<GenericTypeEntry> GenericTypes => genericTypes.SelectMany(x=> x.Value.Select(y=> new GenericTypeEntry(y, new GenericKeyDefinition(x.Key,y.TypeParameterKeys)))).ToList();
+        //public IReadOnlyList<GenericTypeEntry> GenericTypes => genericTypes.SelectMany(x=> x.Value.Select(y=> new GenericTypeEntry(y, new GenericKeyDefinition(x.Key,y.TypeParameterKeys)))).ToList();
 
         IReadOnlyList<TypeEntry> IFinalizedScope.Types => types.Select(x => new TypeEntry(x.Key, x.Value)).ToList();
         
@@ -79,7 +79,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public void Build(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IReadOnlyList<Scope.GenericTypeData> genericTypesToAdd)
+        public void Build(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd)
         {
             foreach (var member in toAdd)
             {
@@ -91,35 +91,25 @@ namespace Tac.Model.Instantiated
                 types[type.Key] =  type.Type;
             }
 
-            foreach (var genericType in genericTypesToAdd)
-            {
-                if (genericTypes.ContainsKey(genericType.Key)) {
-                    genericTypes[genericType.Key].Add(genericType.Type);
-                }
-                else
-                {
-                    genericTypes[genericType.Key] = new List<IGenericType>() { genericType.Type };
-                }
-            }
         }
         
 
-        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IReadOnlyList<Scope.GenericTypeData> genericTypes) {
+        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd) {
             var (x, y) = Create();
-            y.Build(toAdd, typesToAdd, genericTypes);
+            y.Build(toAdd, typesToAdd);
             return x;
         }
 
 
-        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IReadOnlyList<Scope.GenericTypeData> genericTypes, IFinalizedScope parent)
+        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IFinalizedScope parent)
         {
             var (x, y) = Create(parent);
-            y.Build(toAdd, typesToAdd, genericTypes);
+            y.Build(toAdd, typesToAdd);
             return x;
         }
     }
 
     public interface IFinalizedScopeBuilder {
-        void Build(IReadOnlyList<Scope.IsStatic> members, IReadOnlyList<Scope.TypeData> types, IReadOnlyList<Scope.GenericTypeData> genericTypes);
+        void Build(IReadOnlyList<Scope.IsStatic> members, IReadOnlyList<Scope.TypeData> types);
     }
 }

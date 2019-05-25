@@ -13,7 +13,7 @@ using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Frontend._3_Syntax_Model.Elements
 {
-    internal class WeakEmptyInstance : IFrontendCodeElement<IEmptyInstance>
+    internal class WeakEmptyInstance : IConvertableFrontendCodeElement<IEmptyInstance>
     {
         public WeakEmptyInstance()
         {
@@ -28,9 +28,9 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             });
         }
 
-        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType() );
+            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType() );
         }
     }
 
@@ -70,9 +70,9 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
                 return new EmptyInstanceResolveReferance();
             }
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
             {
-                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType()));
+                return new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType()));
             }
         }
 

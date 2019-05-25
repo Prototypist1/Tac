@@ -27,7 +27,7 @@ namespace Tac.Model.Instantiated
             if (they is IInterfaceType otherObject)
             {
                 // they have all our members
-                return Members.All(member => otherObject.Members.Any(otherMember => otherMember.TheyAreUs(member, false)));
+                return Members.All(member => otherObject.Members.Any(otherMember => otherMember.Type.VerifiableType.TheyAreUs(member.Type.VerifiableType, false)));
             }
 
             if (noTagBacks)
@@ -43,7 +43,7 @@ namespace Tac.Model.Instantiated
             if (them is IInterfaceType otherObject)
             {
                 // we have all their members
-                return otherObject.Members.All(otherMember => Members.Any(member => otherMember.WeAreThem(member, false)));
+                return otherObject.Members.All(otherMember => Members.Any(member => otherMember.Type.VerifiableType.WeAreThem(member.Type.VerifiableType, false)));
             }
 
             if (noTagBacks)
@@ -318,37 +318,37 @@ namespace Tac.Model.Instantiated
         void Build(IVerifiableType inputType, IVerifiableType ouputType);
     }
     
-    public class GenericMethodType : IGenericMethodType, IGenericMethodTypeBuilder
-    {
-        // TODO should be broken apart, buildable
-        private readonly Buildable<IVerifiableType[]> buildTypeParameterDefinitions = new Buildable<IVerifiableType[]>();
+    //public class GenericMethodType : IGenericMethodType, IGenericMethodTypeBuilder
+    //{
+    //    // TODO should be broken apart, buildable
+    //    private readonly Buildable<IVerifiableType[]> buildTypeParameterDefinitions = new Buildable<IVerifiableType[]>();
 
-        public IReadOnlyList<IKey> TypeParameterKeys => buildTypeParameterDefinitions.Get().OfType<GemericTypeParameterPlacholder>().Select(x => x.Key).ToArray();
+    //    public IReadOnlyList<IKey> TypeParameterKeys => buildTypeParameterDefinitions.Get().OfType<GemericTypeParameterPlacholder>().Select(x => x.Key).ToArray();
 
 
-        private GenericMethodType() { }
+    //    private GenericMethodType() { }
 
-        public void Build(IVerifiableType inputType, IVerifiableType ouputType)
-        {
-            buildTypeParameterDefinitions.Set(new[] { inputType, ouputType });
-        }
+    //    public void Build(IVerifiableType inputType, IVerifiableType ouputType)
+    //    {
+    //        buildTypeParameterDefinitions.Set(new[] { inputType, ouputType });
+    //    }
 
-        public static (IGenericMethodType, IGenericMethodTypeBuilder) Create()
-        {
-            var res = new GenericMethodType();
-            return (res, res);
-        }
+    //    public static (IGenericMethodType, IGenericMethodTypeBuilder) Create()
+    //    {
+    //        var res = new GenericMethodType();
+    //        return (res, res);
+    //    }
 
-        public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
-        {
-            throw new NotImplementedException();
-        }
+    //    public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public bool WeAreThem(IVerifiableType them, bool noTagBacks)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    //    public bool WeAreThem(IVerifiableType them, bool noTagBacks)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 
     // TODO struct?
     // no, anything that is built can not be a struct
@@ -487,37 +487,37 @@ namespace Tac.Model.Instantiated
         public IVerifiableType ContextType { get; private set; }
     }
 
-    public class GenericImplementationType : IGenericImplementationType, IGenericImplementationBuilder
-    {
-        // TODO should be broken apart, buildable
-        private readonly Buildable<IVerifiableType[]> buildTypeParameterDefinitions = new Buildable<IVerifiableType[]>();
+    //public class GenericImplementationType : IGenericImplementationType, IGenericImplementationBuilder
+    //{
+    //    // TODO should be broken apart, buildable
+    //    private readonly Buildable<IVerifiableType[]> buildTypeParameterDefinitions = new Buildable<IVerifiableType[]>();
 
-        public IReadOnlyList<IKey> TypeParameterKeys  => buildTypeParameterDefinitions.Get().OfType<GemericTypeParameterPlacholder>().Select(x => x.Key).ToArray();
+    //    public IReadOnlyList<IKey> TypeParameterKeys  => buildTypeParameterDefinitions.Get().OfType<GemericTypeParameterPlacholder>().Select(x => x.Key).ToArray();
         
-        private GenericImplementationType() { }
+    //    private GenericImplementationType() { }
 
-        public void Build(IVerifiableType inputType, IVerifiableType ouputType, IVerifiableType contextType)
-        {
+    //    public void Build(IVerifiableType inputType, IVerifiableType ouputType, IVerifiableType contextType)
+    //    {
 
-            buildTypeParameterDefinitions.Set(new[] { inputType, ouputType, contextType });
-        }
+    //        buildTypeParameterDefinitions.Set(new[] { inputType, ouputType, contextType });
+    //    }
 
-        public static (IGenericImplementationType, IGenericImplementationBuilder) Create()
-        {
-            var res = new GenericImplementationType();
-            return (res, res);
-        }
+    //    public static (IGenericImplementationType, IGenericImplementationBuilder) Create()
+    //    {
+    //        var res = new GenericImplementationType();
+    //        return (res, res);
+    //    }
 
-        public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
-        {
-            throw new NotImplementedException();
-        }
+    //    public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public bool WeAreThem(IVerifiableType them, bool noTagBacks)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    //    public bool WeAreThem(IVerifiableType them, bool noTagBacks)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
     public interface IGenericImplementationBuilder
     {
         void Build(IVerifiableType inputType, IVerifiableType ouputType, IVerifiableType contextType);

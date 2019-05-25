@@ -13,9 +13,9 @@ namespace Tac.Semantic_Model
 {
 
 
-    internal class WeakModuleDefinition : IScoped, IFrontendCodeElement<IModuleDefinition>, IFrontendType<IVerifiableType>
+    internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IConvertableFrontendType<IVerifiableType>
     {
-        public WeakModuleDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> staticInitialization, IKey Key)
+        public WeakModuleDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitialization, IKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model
         }
         
         public IResolvableScope Scope { get; }
-        public IEnumerable<IIsPossibly<IFrontendCodeElement<ICodeElement>>> StaticInitialization { get; }
+        public IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> StaticInitialization { get; }
 
         public IKey Key
         {
@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model
 
         IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IModuleDefinition>.Returns()
+        IIsPossibly<IConvertableFrontendType<IVerifiableType>> IConvertableFrontendCodeElement<IModuleDefinition>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -77,19 +77,19 @@ namespace Tac.Semantic_Model
         
         private class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition>
         {
-            private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements;
             private readonly NameKey nameKey;
-            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
+            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
 
             public ModuleDefinitionPopulateScope(
-                IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements,
+                IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
             {
                 return box;
             }
@@ -105,16 +105,16 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public static IPopulateScope<WeakModuleDefinition> PopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements,
+        public static IPopulateScope<WeakModuleDefinition> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
                 NameKey nameKey)
         {
             return new ModuleDefinitionPopulateScope(elements,
                 nameKey);
         }
         public static IPopulateBoxes<WeakModuleDefinition> PopulateBoxes(IResolvableScope scope,
-                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance,
+                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance,
                 NameKey nameKey,
-                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
         {
             return new ModuleDefinitionResolveReferance(scope,
                resolveReferance,
@@ -125,15 +125,15 @@ namespace Tac.Semantic_Model
         private class ModuleDefinitionResolveReferance : IPopulateBoxes<WeakModuleDefinition>
         {
             private readonly IResolvableScope scope;
-            private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance;
+            private readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance;
             private readonly NameKey nameKey;
-            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
 
             public ModuleDefinitionResolveReferance(
                 IResolvableScope scope,
-                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] resolveReferance,
+                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance,
                 NameKey nameKey,
-                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
             {
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));

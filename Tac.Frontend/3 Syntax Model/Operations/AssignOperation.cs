@@ -18,14 +18,14 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "=:";
     }
 
-    internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, IAssignOperation>
+    internal class WeakAssignOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, IAssignOperation>
     {
         
-        public WeakAssignOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakAssignOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
             return Left.IfIs(x=>x.Returns());
         }

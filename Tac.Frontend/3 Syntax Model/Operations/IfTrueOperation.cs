@@ -19,16 +19,16 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "then";
     }
 
-    internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, IIfOperation>
+    internal class WeakIfTrueOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, IIfOperation>
     {
         // right should have more validation
-        public WeakIfTrueOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakIfTrueOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
+            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
         }
         
         public override IBuildIntention<IIfOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)

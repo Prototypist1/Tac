@@ -19,17 +19,17 @@ namespace Tac.Semantic_Model
         IResolvableScope Scope { get; }
     }
 
-    internal interface IFrontendGenericType : IFrontendType<IGenericType>
+    internal interface IFrontendGenericType : IFrontendType
     {
         IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
-        OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);
+        OrType<IFrontendGenericType, IFrontendType> Overlay(TypeParameter[] typeParameters);
     }
 
     internal class TypeParameter {
         public readonly IGenericTypeParameterPlacholder parameterDefinition;
-        public readonly IFrontendType<IVerifiableType> frontendType;
+        public readonly IFrontendType frontendType;
 
-        public TypeParameter(IGenericTypeParameterPlacholder parameterDefinition, IFrontendType<IVerifiableType> frontendType)
+        public TypeParameter(IGenericTypeParameterPlacholder parameterDefinition, IFrontendType frontendType)
         {
             this.parameterDefinition = parameterDefinition;
             this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
@@ -44,7 +44,7 @@ namespace Tac.Semantic_Model
             foreach (var item in typeParameterDefinitions)
             {
                 // for the sake of validation type parameters are types 
-                if (!TryAddType(item.Key, new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateGenericTypeParameterPlacholder(item.Key))))) {
+                if (!TryAddType(item.Key, new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateGenericTypeParameterPlacholder(item.Key))))) {
                     throw new Exception("that is not right!");
                 }
             }
@@ -75,8 +75,8 @@ namespace Tac.Semantic_Model
         private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members
             = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
 
-        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>> types
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>>>> types
+            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>>>>();
 
         private readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>> genericTypes
             = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>>();
@@ -99,11 +99,11 @@ namespace Tac.Semantic_Model
         {
             // do these really belong here or should they be defined in some sort of 'standard library'
             // here for now I think 
-            TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType())));
-            TryAddType(new NameKey("string"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateStringType())));
-            TryAddType(new NameKey("any"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateAnyType())));
-            TryAddType(new NameKey("empty"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType())));
-            TryAddType(new NameKey("bool"), new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType())));
+            TryAddType(new NameKey("int"), new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType())));
+            TryAddType(new NameKey("string"), new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateStringType())));
+            TryAddType(new NameKey("any"), new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateAnyType())));
+            TryAddType(new NameKey("empty"), new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType())));
+            TryAddType(new NameKey("bool"), new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType())));
             TryAddGeneric(
                 new NameKey("method"),
                 new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is<IFrontendGenericType>(PrimitiveTypes.CreateGenericMethodType())));
@@ -130,10 +130,10 @@ namespace Tac.Semantic_Model
             return list.TryAdd(visiblity);
         }
 
-        public bool TryAddType(IKey key, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> definition)
+        public bool TryAddType(IKey key, IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> definition)
         {
-            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>>());
-            var visiblity = new Visiblity<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>>(DefintionLifetime.Static, definition);
+            var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>>>());
+            var visiblity = new Visiblity<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
         
@@ -167,7 +167,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        public bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+        public bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType>> type)
         {
             if (name is GenericNameKey generic)
             {
@@ -182,7 +182,7 @@ namespace Tac.Semantic_Model
                     return innerTypeBox;
                 }).ToList();
 
-                type = new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>(() =>
+                type = new DelegateBox<IIsPossibly<IFrontendType>>(() =>
                 {
                     var overlayed = set.Select(x => x.Definition.GetValue())
                         .Where(x => x.IsDefinately(out var _, out var _))
@@ -190,7 +190,7 @@ namespace Tac.Semantic_Model
                         .Single()
                         .Assign(out var single).GetOrThrow()
                         .Overlay(single.GetOrThrow().TypeParameterDefinitions.Zip(typesBoxes, (x, y) => new TypeParameter(x.GetOrThrow(), y.GetValue().GetOrThrow())).ToArray());
-                    if (overlayed.Is(out IFrontendType<IVerifiableType> frontendType)) {
+                    if (overlayed.Is(out IConvertableFrontendType<IVerifiableType> frontendType)) {
                         return Possibly.Is(frontendType);
                     }
                     if (overlayed.Is(out IFrontendGenericType frontendGeneric))
@@ -233,8 +233,7 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     members.Select(x=>new Tac.Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)).ToArray(),
-                    types.SelectMany(x=> x.Value.Select(y=> new Tac.Model.Instantiated.Scope.TypeData(x.Key,y.Definition.GetValue().GetOrThrow().Convert(context)))).ToList(),
-                    genericTypes.SelectMany(x => x.Value.Select(y => new Tac.Model.Instantiated.Scope.GenericTypeData(x.Key, y.Definition.GetValue().GetOrThrow().Convert(context)))).ToList()
+                    types.SelectMany(x=> x.Value.Select(y=> new Tac.Model.Instantiated.Scope.TypeData(x.Key,y.Definition.GetValue().GetOrThrow().Convert(context)))).ToList()
                     );
             });
         }

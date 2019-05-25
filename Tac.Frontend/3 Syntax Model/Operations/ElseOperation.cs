@@ -19,16 +19,16 @@ namespace Tac.Semantic_Model.Operations
 
 
     // really an if not
-    internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, IElseOperation>
+    internal class WeakElseOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, IElseOperation>
     {
         // right should have more validation
-        public WeakElseOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakElseOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
+            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
         }
         
         public override IBuildIntention<IElseOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)

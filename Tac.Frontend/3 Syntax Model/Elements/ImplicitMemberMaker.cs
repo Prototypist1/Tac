@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model
 {
     internal class ImplicitMemberMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
-        private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
+        private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type;
 
-        public ImplicitMemberMaker( IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+        public ImplicitMemberMaker( IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type)
         {
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
@@ -40,14 +40,14 @@ namespace Tac.Semantic_Model
                 matching.Context);
         }
 
-        public static IPopulateScope<WeakMemberReference> PopulateScope(string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+        public static IPopulateScope<WeakMemberReference> PopulateScope(string item, IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type)
         {
             return new ImplicitMemberPopulateScope(item, type);
         }
         public static IPopulateBoxes<WeakMemberReference> PopulateBoxes(
                 string memberName,
-                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
-                IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box,
+                IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type)
         {
             return new ImplicitMemberResolveReferance(
                 memberName,
@@ -58,10 +58,10 @@ namespace Tac.Semantic_Model
         private class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReference>
         {
             private readonly string memberName;
-            private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
-            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
+            private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type;
+            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
 
-            public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+            public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -82,7 +82,7 @@ namespace Tac.Semantic_Model
             }
 
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
             {
                 return box;
             }
@@ -92,14 +92,14 @@ namespace Tac.Semantic_Model
 
         private class ImplicitMemberResolveReferance : IPopulateBoxes<WeakMemberReference>
         {
-            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
             private readonly string memberName;
-            private readonly IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type;
+            private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type;
 
             public ImplicitMemberResolveReferance(
                 string memberName,
-                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
-                IBox<IIsPossibly<IFrontendType<IVerifiableType>>> type)
+                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box,
+                IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type)
             {
                 this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));

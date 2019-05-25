@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    internal class WeakConstantString : IFrontendCodeElement<IConstantString>
+    internal class WeakConstantString : IConvertableFrontendCodeElement<IConstantString>
     {
         public WeakConstantString(IIsPossibly<string> value)
         {
@@ -38,9 +38,9 @@ namespace Tac.Semantic_Model.Operations
             });
         }
 
-        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
+            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
         }
     }
 
@@ -102,9 +102,9 @@ namespace Tac.Semantic_Model.Operations
                 return new ConstantStringResolveReferance(str);
             }
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
             {
-                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType()));
+                return new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType()));
             }
         }
 

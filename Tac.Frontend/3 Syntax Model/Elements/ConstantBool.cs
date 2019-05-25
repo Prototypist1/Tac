@@ -11,7 +11,7 @@ using static Tac.Frontend.TransformerExtensions;
 namespace Tac.Semantic_Model.Operations
 {
 
-    internal class WeakConstantBool : IFrontendCodeElement<IConstantBool>
+    internal class WeakConstantBool : IConvertableFrontendCodeElement<IConstantBool>
     {
         public WeakConstantBool(IIsPossibly<bool> value)
         {
@@ -30,9 +30,9 @@ namespace Tac.Semantic_Model.Operations
             });
         }
 
-        public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
+            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
         }
     }
 
@@ -100,9 +100,9 @@ namespace Tac.Semantic_Model.Operations
                 return new ConstantBoolResolveReferance(dub);
             }
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
             {
-                return new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType()));
+                return new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType()));
             }
         }
 

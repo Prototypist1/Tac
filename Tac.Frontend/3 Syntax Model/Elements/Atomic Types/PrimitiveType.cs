@@ -13,10 +13,10 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
     internal static class PrimitiveTypes
     {
 
-        public static IFrontendType<IBlockType> CreateBlockType() {
+        public static IConvertableFrontendType<IBlockType> CreateBlockType() {
             return new BlockType();
         }
-        private struct BlockType : IFrontendType<IBlockType>
+        private struct BlockType : IConvertableFrontendType<IBlockType>
         {
             public IBuildIntention<IBlockType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
@@ -24,24 +24,24 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
         }
 
-        public static IFrontendType<IStringType> CreateStringType()
+        public static IConvertableFrontendType<IStringType> CreateStringType()
         {
             return new StringType();
         }
 
-        private struct StringType : IFrontendType<IStringType>
+        private struct StringType : IConvertableFrontendType<IStringType>
         {
             public IBuildIntention<IStringType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
                 return new BuildIntention<IStringType>(new Model.Instantiated.StringType(), () => { });
             }
         }
-        public static IFrontendType<IEmptyType> CreateEmptyType()
+        public static IConvertableFrontendType<IEmptyType> CreateEmptyType()
         {
             return new EmptyType();
         }
 
-        private struct EmptyType : IFrontendType<IEmptyType>
+        private struct EmptyType : IConvertableFrontendType<IEmptyType>
         {
             public IBuildIntention<IEmptyType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
@@ -49,11 +49,11 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
         }
 
-        public static IFrontendType<INumberType> CreateNumberType()
+        public static IConvertableFrontendType<INumberType> CreateNumberType()
         {
             return new NumberType();
         }
-        private struct NumberType : IFrontendType<INumberType>
+        private struct NumberType : IConvertableFrontendType<INumberType>
         {
             public IBuildIntention<INumberType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
@@ -65,7 +65,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new GenericTypeParameterPlacholder(key);
         }
 
-        internal interface IGenericTypeParameterPlacholder:  IFrontendType<IVerifiableType>{
+        internal interface IGenericTypeParameterPlacholder:  IConvertableFrontendType<IVerifiableType>{
             IKey Key { get; }
         }
 
@@ -99,12 +99,12 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                 return new BuildIntention<IVerifiableType>(res, () => { maker.Build(key); });
             }
         }
-        public static IFrontendType<IAnyType> CreateAnyType()
+        public static IConvertableFrontendType<IAnyType> CreateAnyType()
         {
             return new AnyType();
         }
 
-        private struct AnyType : IFrontendType<IAnyType>
+        private struct AnyType : IConvertableFrontendType<IAnyType>
         {
             public IBuildIntention<IAnyType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
@@ -112,33 +112,33 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             }
         }
 
-        public static IFrontendType<IBooleanType> CreateBooleanType()
+        public static IConvertableFrontendType<IBooleanType> CreateBooleanType()
         {
             return new BooleanType();
         }
-        private struct BooleanType : IFrontendType<IBooleanType>
+        private struct BooleanType : IConvertableFrontendType<IBooleanType>
         {
             public IBuildIntention<IBooleanType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
                 return new BuildIntention<IBooleanType>(new Tac.Model.Instantiated.BooleanType(), () => { });
             }
         }
-        public static IFrontendType<IImplementationType> CreateImplementationType(IFrontendType<IVerifiableType> inputType, IFrontendType<IVerifiableType> outputType, IFrontendType<IVerifiableType> contextType)
+        public static IConvertableFrontendType<IImplementationType> CreateImplementationType(IConvertableFrontendType<IVerifiableType> inputType, IConvertableFrontendType<IVerifiableType> outputType, IConvertableFrontendType<IVerifiableType> contextType)
         {
             return new ImplementationType(inputType, outputType, contextType);
         }
-        private struct ImplementationType : IFrontendType<IImplementationType>
+        private struct ImplementationType : IConvertableFrontendType<IImplementationType>
         {
-            public ImplementationType(IFrontendType<IVerifiableType> inputType, IFrontendType<IVerifiableType> outputType, IFrontendType<IVerifiableType> contextType)
+            public ImplementationType(IConvertableFrontendType<IVerifiableType> inputType, IConvertableFrontendType<IVerifiableType> outputType, IConvertableFrontendType<IVerifiableType> contextType)
             {
                 InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
                 OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
                 ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
             }
 
-            public IFrontendType<IVerifiableType> InputType { get; }
-            public IFrontendType<IVerifiableType> OutputType { get; }
-            public IFrontendType<IVerifiableType> ContextType { get; }
+            public IConvertableFrontendType<IVerifiableType> InputType { get; }
+            public IConvertableFrontendType<IVerifiableType> OutputType { get; }
+            public IConvertableFrontendType<IVerifiableType> ContextType { get; }
 
             public IBuildIntention<IImplementationType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
@@ -159,20 +159,20 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                     });
             }
         }
-        public static IFrontendType<IMethodType> CreateMethodType(IFrontendType<IVerifiableType> inputType, IFrontendType<IVerifiableType> outputType)
+        public static IConvertableFrontendType<IMethodType> CreateMethodType(IConvertableFrontendType<IVerifiableType> inputType, IConvertableFrontendType<IVerifiableType> outputType)
         {
             return new MethodType(inputType, outputType);
         }
-        private struct MethodType : IFrontendType<IMethodType>
+        private struct MethodType : IConvertableFrontendType<IMethodType>
         {
-            public MethodType(IFrontendType<IVerifiableType> inputType, IFrontendType<IVerifiableType> outputType)
+            public MethodType(IConvertableFrontendType<IVerifiableType> inputType, IConvertableFrontendType<IVerifiableType> outputType)
             {
                 InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
                 OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             }
 
-            public IFrontendType<IVerifiableType> InputType { get; }
-            public IFrontendType<IVerifiableType> OutputType { get; }
+            public IConvertableFrontendType<IVerifiableType> InputType { get; }
+            public IConvertableFrontendType<IVerifiableType> OutputType { get; }
 
             public IBuildIntention<IMethodType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
@@ -197,16 +197,16 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new GenericMethodType(new GenericTypeParameterPlacholder(new NameKey("input")), new GenericTypeParameterPlacholder(new NameKey("output")));
         }
 
-        internal interface IGenericMethodType : IFrontendType<Model.Elements.IGenericMethodType>, IFrontendGenericType { }
+        internal interface IGenericMethodType : IConvertableFrontendType<Model.Elements.IGenericMethodType>, IFrontendGenericType { }
 
         private struct GenericMethodType : IGenericMethodType
         {
-            private readonly IFrontendType<IVerifiableType> input;
-            private readonly IFrontendType<IVerifiableType> output;
+            private readonly IConvertableFrontendType<IVerifiableType> input;
+            private readonly IConvertableFrontendType<IVerifiableType> output;
 
 
 
-            public GenericMethodType(IFrontendType<IVerifiableType> input, IFrontendType<IVerifiableType> output)
+            public GenericMethodType(IConvertableFrontendType<IVerifiableType> input, IConvertableFrontendType<IVerifiableType> output)
             {
                 this.input = input ?? throw new ArgumentNullException(nameof(input));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
@@ -226,17 +226,17 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                     ));
             }
 
-            public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
+            public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
             {
                 var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
 
                 if (typeParameters.All(x => !(x.frontendType is IGenericTypeParameterPlacholder)))
                 {
-                    return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new GenericMethodType(overlay.Convert(input), overlay.Convert(output)));
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericMethodType(overlay.Convert(input), overlay.Convert(output)));
                 }
                 else
                 {
-                    return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new MethodType(overlay.Convert(input), overlay.Convert(output)));
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new MethodType(overlay.Convert(input), overlay.Convert(output)));
                 }
 
             }
@@ -252,15 +252,15 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new GenericImplementationType(new GenericTypeParameterPlacholder(new NameKey("input")), new GenericTypeParameterPlacholder(new NameKey("output")), new GenericTypeParameterPlacholder(new NameKey("context")));
         }
 
-        internal interface IGenericImplementationType : IFrontendType<Tac.Model.Elements.IGenericImplementationType>, IFrontendGenericType { }
+        internal interface IGenericImplementationType : IConvertableFrontendType<Tac.Model.Elements.IGenericImplementationType>, IFrontendGenericType { }
 
         private struct GenericImplementationType : IGenericImplementationType
         {
-            private readonly IFrontendType<IVerifiableType> input;
-            private readonly IFrontendType<IVerifiableType> output;
-            private readonly IFrontendType<IVerifiableType> context;
+            private readonly IConvertableFrontendType<IVerifiableType> input;
+            private readonly IConvertableFrontendType<IVerifiableType> output;
+            private readonly IConvertableFrontendType<IVerifiableType> context;
             
-            public GenericImplementationType(IFrontendType<IVerifiableType> input, IFrontendType<IVerifiableType> output, IFrontendType<IVerifiableType> context)
+            public GenericImplementationType(IConvertableFrontendType<IVerifiableType> input, IConvertableFrontendType<IVerifiableType> output, IConvertableFrontendType<IVerifiableType> context)
             {
                 this.input = input ?? throw new ArgumentNullException(nameof(input));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
@@ -285,17 +285,17 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                 });
             }
 
-            public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
+            public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
             {
                 var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
 
                 if (typeParameters.All(x => !(x.frontendType is GenericTypeParameterPlacholder)))
                 {
-                    return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new GenericImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
                 }
                 else
                 {
-                    return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new ImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new ImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
                 }
             }
 

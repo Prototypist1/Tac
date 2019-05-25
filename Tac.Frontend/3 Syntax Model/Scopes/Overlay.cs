@@ -11,14 +11,14 @@ namespace Tac.Semantic_Model
 {
     internal class Overlay {
 
-        private readonly Dictionary<IGenericTypeParameterPlacholder, IFrontendType<IVerifiableType>> map;
+        private readonly Dictionary<IGenericTypeParameterPlacholder, IFrontendType> map;
 
-        public Overlay(Dictionary<IGenericTypeParameterPlacholder, IFrontendType<IVerifiableType>> map)
+        public Overlay(Dictionary<IGenericTypeParameterPlacholder, IFrontendType> map)
         {
             this.map = map ?? throw new ArgumentNullException(nameof(map));
         }
 
-        public IFrontendType<IVerifiableType> Convert(IFrontendType<IVerifiableType> type) {
+        public IFrontendType Convert(IFrontendType type) {
             if (type.Is<IWeakTypeDefinition>(out var typeDef))
             {
                 return new OverlayTypeDefinition(typeDef,this);

@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model
         public static IPopulateBoxes<WeakMemberReference> PopulateBoxes(
                 IResolvableScope resolvableScope,
                 NameKey key,
-                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
         {
             return new MemberResolveReferance(
                 resolvableScope,
@@ -48,14 +48,14 @@ namespace Tac.Semantic_Model
         private class MemberPopulateScope : IPopulateScope<WeakMemberReference>
         {
             private readonly string memberName;
-            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
+            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
 
             public MemberPopulateScope(string item)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
             }
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
             {
                 return box;
             }
@@ -75,8 +75,8 @@ namespace Tac.Semantic_Model
                                     Possibly.Is(
                                         new WeakTypeReference(
                                             Possibly.Is(
-                                                new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
-                                                    Possibly.Is<IFrontendType<IVerifiableType>>(
+                                                new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
+                                                    Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
                                                         PrimitiveTypes.CreateAnyType()))))))))))
                 {
                     throw new Exception("uhh that is not right");
@@ -91,12 +91,12 @@ namespace Tac.Semantic_Model
         {
             private readonly IResolvableScope resolvableScope;
             private readonly NameKey key;
-            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
 
             public MemberResolveReferance(
                 IResolvableScope resolvableScope,
                 NameKey key,
-                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box)
+                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
             {
                 this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
                 this.key = key ?? throw new ArgumentNullException(nameof(key));

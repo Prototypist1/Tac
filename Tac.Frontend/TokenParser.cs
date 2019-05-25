@@ -39,8 +39,8 @@ namespace Tac.Frontend
                     new WeakMemberDefinition(true, dependency.Key, Possibly.Is(
                         new WeakTypeReference(
                             Possibly.Is(
-                                new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(
-                                    Possibly.Is<IFrontendType<IVerifiableType>>(
+                                new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
+                                    Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
                                         convertedDependency)))))))))) {
                     throw new Exception("could not add dependency!");
                 }

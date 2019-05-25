@@ -20,11 +20,6 @@ namespace Tac.Model.Instantiated
             return context.ObjectDefinition(this);
         }
 
-        public IVerifiableType Returns()
-        {
-            return this;
-        }
-
         public void Build(IFinalizedScope scope, IEnumerable<IAssignOperation> assignments)
         {
             buildableScope.Set(scope);

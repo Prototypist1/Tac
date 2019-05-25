@@ -21,13 +21,13 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => ">";
     }
 
-    internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, INextCallOperation>
+    internal class WeakNextCallOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, INextCallOperation>
     {
-        public WeakNextCallOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakNextCallOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
             return Right.GetOrThrow().Unwrap<Frontend._3_Syntax_Model.Elements.IMethodDefinition>().OutputType
                 .IfIs(x => x.TypeDefinition)
@@ -57,15 +57,15 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => "<";
     }
 
-    internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, ILastCallOperation>
+    internal class WeakLastCallOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, ILastCallOperation>
     {
         public const string Identifier = "<";
 
-        public WeakLastCallOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakLastCallOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
             return Left.GetOrThrow().Unwrap<Frontend._3_Syntax_Model.Elements.IMethodDefinition>().OutputType
                 .IfIs(x=>x.TypeDefinition)
@@ -90,7 +90,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal static class MemberUnwrapper{
-        public static T Unwrap<T>(this IFrontendCodeElement<ICodeElement> codeElement) where T: IFrontendType<IVerifiableType>
+        public static T Unwrap<T>(this IConvertableFrontendCodeElement<ICodeElement> codeElement) where T: IConvertableFrontendType<IVerifiableType>
         {
             if (codeElement.Returns().Is< WeakMemberDefinition>(out var member) && 
                 member.Type.IsDefinately(out var yes, out var _) &&  

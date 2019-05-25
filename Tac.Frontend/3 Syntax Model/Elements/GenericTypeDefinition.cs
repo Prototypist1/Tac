@@ -31,10 +31,9 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IKey> Key => backing.Key;
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions=> backing.TypeParameterDefinitions;
-        public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendCodeElement<IGenericInterfaceDefinition>>().GetBuildIntention(context);
-        public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
-        IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => backing.Cast<IFrontendType<IGenericType>>().GetBuildIntention(context); 
-        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns() => Possibly.Is(this);
+        public OrType<IFrontendGenericType, IFrontendType> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
+
+        public IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
     }
 
     //internal class ExternalGenericType : IWeakGenericTypeDefinition
@@ -89,14 +88,14 @@ namespace Tac.Semantic_Model
     //    IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
     //}
 
-    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement<IGenericInterfaceDefinition>, IScoped, IFrontendType<IGenericType>, IFrontendGenericType
+    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement, IScoped, IFrontendType, IFrontendGenericType
     {
         IIsPossibly<IKey> Key { get; }
     }
 
     internal class WeakGenericTypeDefinition : IWeakGenericTypeDefinition
     {
-        private readonly ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>> typeCache = new ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>>();
+        private readonly ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IFrontendType>> typeCache = new ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IFrontendType>>();
 
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key,
@@ -112,42 +111,42 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IKey> Key { get; }
         public IResolvableScope Scope { get; }
 
-        public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context)
-        {
-            var (toBuild, maker) = GenericInterfaceDefinition.Create();
-            return new BuildIntention<IGenericInterfaceDefinition>(toBuild, () =>
-            {
-                maker.Build(
-                    Scope.Convert(context),
-                    TypeParameterDefinitions.Select(x=>x.GetOrThrow().Convert(context)).ToArray());
-            });
-        }
+        //public IBuildIntention<IGenericType> GetBuildIntention(ConversionContext context)
+        //{
+        //    var (toBuild, maker) = GenericInterfaceDefinition.Create();
+        //    return new BuildIntention<IGenericInterfaceDefinition>(toBuild, () =>
+        //    {
+        //        maker.Build(
+        //            Scope.Convert(context),
+        //            TypeParameterDefinitions.Select(x=>x.GetOrThrow().Convert(context)).ToArray());
+        //    });
+        //}
 
-        public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
+        public OrType<IFrontendGenericType, IFrontendType> Overlay(TypeParameter[] typeParameters)
         {
             // I kept reusing this code..
             var overlay =  new Overlay(typeParameters.ToDictionary(x=>x.parameterDefinition,x=>x.frontendType));
 
             return typeCache.GetOrAdd(overlay, Help());
             
-            OrType<IFrontendGenericType,IFrontendType<IVerifiableType>> Help()
+            OrType<IFrontendGenericType,IFrontendType> Help()
             {
                 if (typeParameters.All(x => !(x.frontendType is IGenericTypeParameterPlacholder)))
                 {
-                    return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
+                    return new OrType<IFrontendGenericType, IFrontendType>(new OverlayTypeDefinition(
                         new WeakTypeDefinition(Scope, Key), overlay));
                 }
                 else
                 {
-                    return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayGenericTypeDefinition(
+                    return new OrType<IFrontendGenericType, IFrontendType>(new OverlayGenericTypeDefinition(
                         this, overlay).Cast<IFrontendGenericType>());
                 }
             }
         }
 
-        IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
+        //IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IGenericInterfaceDefinition>.Returns()
+        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
         {
             return Possibly.Is(this);
         }
@@ -185,7 +184,7 @@ namespace Tac.Semantic_Model
 
         public static IPopulateScope<WeakGenericTypeDefinition> PopulateScope(
                 NameKey nameKey,
-                IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
+                IEnumerable<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
@@ -197,7 +196,7 @@ namespace Tac.Semantic_Model
                 IResolvableScope scope,
                 Box<IIsPossibly<IFrontendGenericType>> box,
                 IGenericTypeParameterPlacholder[] genericParameters,
-                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
+                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] lines)
         {
             return new GenericTypeDefinitionResolveReferance(nameKey,
                 scope,
@@ -209,13 +208,13 @@ namespace Tac.Semantic_Model
         private class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
         {
             private readonly NameKey nameKey;
-            private readonly IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines;
+            private readonly IEnumerable<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IEnumerable<IPopulateScope<IFrontendCodeElement<ICodeElement>>> lines,
+                IEnumerable<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -232,7 +231,7 @@ namespace Tac.Semantic_Model
                 return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters, nextLines);
             }
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }
@@ -244,14 +243,14 @@ namespace Tac.Semantic_Model
             private readonly IResolvableScope scope;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
-            private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines;
+            private readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] lines;
 
             public GenericTypeDefinitionResolveReferance(
                 NameKey nameKey,
                 IResolvableScope scope,
                 Box<IIsPossibly<IFrontendGenericType>> box,
                 IGenericTypeParameterPlacholder[] genericParameters,
-                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] lines)
+                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] lines)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));

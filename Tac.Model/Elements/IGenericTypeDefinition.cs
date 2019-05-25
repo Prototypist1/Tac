@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace Tac.Model.Elements
 {
-
-    public interface IGenericType : IVerifiableType
-    {
-        IReadOnlyList<IKey> TypeParameterKeys { get; }
-        //IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
-    }
+    // Generic should not exist in the model
+    //public interface IGenericType : IVerifiableType
+    //{
+    //    IReadOnlyList<IKey> TypeParameterKeys { get; }
+    //    //IGenericTypeParameterDefinition[] TypeParameterDefinitions { get; }
+    //}
     // I don't think this is a useful interface...
     //public interface IGenericTypeParameterDefinition {
     //    IKey Key { get; }

@@ -25,7 +25,7 @@ namespace Tac.Model
         T TypeReferance(ITypeReferance weakTypeReferance);
         T ConstantNumber(IConstantNumber codeElement);
         T PathOperation(IPathOperation co);
-        T GenericTypeDefinition(IGenericInterfaceDefinition codeElement);
+        //T GenericTypeDefinition(IGenericInterfaceDefinition codeElement);
         T ImplementationDefinition(IImplementationDefinition codeElement);
         T MemberDefinition(IMemberDefinition codeElement);
         T MemberReferance(IMemberReferance codeElement);

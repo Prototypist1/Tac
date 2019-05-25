@@ -72,9 +72,9 @@ namespace Tac.Model.Elements
     // they are either placeholders or real types.. we can expect atleat one is a placeholder
     //
     // 
-    public interface IGenericMethodType : IGenericType
-    {
-    }
+    //public interface IGenericMethodType : IGenericType
+    //{
+    //}
 
     // TODO an implementation type is a method type!
     public interface IImplementationType : IVerifiableType {
@@ -83,7 +83,7 @@ namespace Tac.Model.Elements
         IVerifiableType ContextType { get; }
     }
 
-    public interface IGenericImplementationType : IGenericType
-    {
-    }
+    //public interface IGenericImplementationType : IGenericType
+    //{
+    //}
 }

@@ -8,7 +8,7 @@ using Tac.Semantic_Model;
 namespace Tac.Frontend._3_Syntax_Model.Elements
 {
 
-    internal interface IMethodDefinition: IFrontendType<IVerifiableType>
+    internal interface IMethodDefinition: IConvertableFrontendType<IVerifiableType>
     {
         IIsPossibly<IWeakTypeReference> InputType { get; }
         IIsPossibly<IWeakTypeReference> OutputType { get; }

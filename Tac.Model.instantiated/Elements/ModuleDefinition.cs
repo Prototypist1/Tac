@@ -22,11 +22,6 @@ namespace Tac.Model.Instantiated
             return context.ModuleDefinition(this);
         }
 
-        public IVerifiableType Returns()
-        {
-            return this;
-        }
-
         public void Build(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key)
         {
             buildableScope.Set(scope);

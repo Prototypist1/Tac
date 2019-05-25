@@ -18,7 +18,7 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakObjectDefinition: IFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType<IVerifiableType>
+    internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>,  IScoped, IConvertableFrontendType<IVerifiableType>
     {
         public WeakObjectDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
             if (assigns == null)
@@ -51,7 +51,7 @@ namespace Tac.Semantic_Model
 
         IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
 
-        IIsPossibly<IFrontendType<IVerifiableType>> IFrontendCodeElement<IObjectDefiniton>.Returns()
+        IIsPossibly<IConvertableFrontendType<IVerifiableType>> IConvertableFrontendCodeElement<IObjectDefiniton>.Returns()
         {
             return Possibly.Is(this);
         }
@@ -82,13 +82,13 @@ namespace Tac.Semantic_Model
                     matching.Context);
         }
 
-        public static IPopulateScope<WeakObjectDefinition> PopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
+        public static IPopulateScope<WeakObjectDefinition> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements)
         {
             return new ObjectDefinitionPopulateScope(elements);
         }
         public static IPopulateBoxes<WeakObjectDefinition> PopulateBoxes(IResolvableScope scope,
-                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements,
-                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
+                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box,
                 ImplicitKey key)
         {
             return new ResolveReferanceObjectDefinition( scope,
@@ -99,15 +99,15 @@ namespace Tac.Semantic_Model
 
         private class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
         {
-            private readonly IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements;
-            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IFrontendType<IVerifiableType>>>();
+            private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
 
-            public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement<ICodeElement>>[] elements)
+            public ObjectDefinitionPopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IBox<IIsPossibly<IFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
             {
                 return box;
             }
@@ -128,14 +128,14 @@ namespace Tac.Semantic_Model
         private class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
         {
             private readonly IResolvableScope scope;
-            private readonly IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements;
-            private readonly Box<IIsPossibly<IFrontendType<IVerifiableType>>> box;
+            private readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
             private readonly ImplicitKey key;
 
             public ResolveReferanceObjectDefinition(
                 IResolvableScope scope,
-                IPopulateBoxes<IFrontendCodeElement<ICodeElement>>[] elements,
-                Box<IIsPossibly<IFrontendType<IVerifiableType>>> box,
+                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
+                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box,
                 ImplicitKey key)
             {
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));

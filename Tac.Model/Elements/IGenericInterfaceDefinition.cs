@@ -1,8 +1,9 @@
 ﻿namespace Tac.Model.Elements
 {
-    public interface IGenericInterfaceDefinition
-    {
+    // I don't think anything generic exists in the model
+    //public interface IGenericInterfaceDefinition
+    //{
 
-    }
+    //}
     
 }

@@ -17,17 +17,17 @@ namespace Tac.Semantic_Model.CodeStuff
         public string Symbols => "<?";
     }
     
-    internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement<ICodeElement>, IFrontendCodeElement<ICodeElement>, ILessThanOperation>
+    internal class WeakLessThanOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, ILessThanOperation>
     {
         public const string Identifier = "<?";
 
-        public WeakLessThanOperation(IIsPossibly<IFrontendCodeElement<ICodeElement>> left, IIsPossibly<IFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakLessThanOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
         {
-            return Possibly.Is<IFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
+            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
         }
         
         public override IBuildIntention<ILessThanOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
