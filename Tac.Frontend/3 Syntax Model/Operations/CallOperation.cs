@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = NextCallOperation.Create();
             return new BuildIntention<INextCallOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
+                maker.Build(Left.GetOrThrow().ConvertOrThrow(context), Right.GetOrThrow().ConvertOrThrow(context));
             });
         }
     }
@@ -77,7 +77,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = LastCallOperation.Create();
             return new BuildIntention<ILastCallOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
+                maker.Build(Left.GetOrThrow().ConvertOrThrow(context), Right.GetOrThrow().ConvertOrThrow(context));
             });
         }
     }

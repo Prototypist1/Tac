@@ -35,7 +35,7 @@ namespace Tac.Semantic_Model.CodeStuff
             var (toBuild, maker) = LessThanOperation.Create();
             return new BuildIntention<ILessThanOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
+                maker.Build(Left.GetOrThrow().ConvertOrThrow(context), Right.GetOrThrow().ConvertOrThrow(context));
             });
         }
     }

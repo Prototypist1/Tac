@@ -32,7 +32,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = SubtractOperation.Create();
             return new BuildIntention<ISubtractOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().Convert(context), Right.GetOrThrow().Convert(context));
+                maker.Build(Left.GetOrThrow().ConvertOrThrow(context), Right.GetOrThrow().ConvertOrThrow(context));
             });
         }
     }

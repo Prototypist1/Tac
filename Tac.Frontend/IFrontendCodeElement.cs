@@ -6,13 +6,23 @@ using Tac.Model.Elements;
 using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Frontend
-{ 
+{
     // not every frontend code element is convertable. type definitions are not.
     internal interface IFrontendCodeElement
     {
         // we can do better, but what does it get us?
         // let's wait and see
         IIsPossibly<IFrontendType> Returns();
+    }
+
+    internal static class IFrontendCodeElementStatic{
+
+        public static ICodeElement ConvertOrThrow(this IFrontendCodeElement self, ConversionContext context) {
+            if (self is IConvertableFrontendCodeElement<ICodeElement> convertable) {
+                return convertable.Convert(context);
+            }
+            throw new Exception("could not be converted");
+        }
     }
 
     internal interface IConvertableFrontendCodeElement<out T>: IFrontendCodeElement, IConvertable<T> 
