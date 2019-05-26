@@ -14,9 +14,9 @@ namespace Tac.Semantic_Model
 {
     internal class ImplicitMemberMaker : IMaker<IPopulateScope<WeakMemberReference>>
     {
-        private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type;
+        private readonly IBox<IIsPossibly<IFrontendType>> type;
 
-        public ImplicitMemberMaker( IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type)
+        public ImplicitMemberMaker( IBox<IIsPossibly<IFrontendType>> type)
         {
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
@@ -58,10 +58,10 @@ namespace Tac.Semantic_Model
         private class ImplicitMemberPopulateScope : IPopulateScope<WeakMemberReference>
         {
             private readonly string memberName;
-            private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type;
+            private readonly IBox<IIsPossibly<IFrontendType>> type;
             private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
-            public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type)
+            public ImplicitMemberPopulateScope(string item, IBox<IIsPossibly<IFrontendType>> type)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -94,12 +94,12 @@ namespace Tac.Semantic_Model
         {
             private readonly Box<IIsPossibly<IFrontendType>> box;
             private readonly string memberName;
-            private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type;
+            private readonly IBox<IIsPossibly<IFrontendType>> type;
 
             public ImplicitMemberResolveReferance(
                 string memberName,
                 Box<IIsPossibly<IFrontendType>> box,
-                IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type)
+                IBox<IIsPossibly<IFrontendType>> type)
             {
                 this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));

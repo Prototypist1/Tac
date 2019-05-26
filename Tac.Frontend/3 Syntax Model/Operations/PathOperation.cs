@@ -18,13 +18,13 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => ".";
     }
 
-    internal class WeakPathOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, IPathOperation>
+    internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IPathOperation>
     {
-        public WeakPathOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakPathOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IFrontendType> Returns()
         {
             // should this check to see if the left contains the member defined on the rhs?
             return Right.IfIs(x =>  Possibly.Is(x.Cast<WeakMemberReference>()));

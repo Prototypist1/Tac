@@ -16,13 +16,13 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols => " - ";
     }
 
-    internal class WeakSubtractOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, ISubtractOperation>
+    internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ISubtractOperation>
     {
-        public WeakSubtractOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakSubtractOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IFrontendType> Returns()
         {
             return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
         }

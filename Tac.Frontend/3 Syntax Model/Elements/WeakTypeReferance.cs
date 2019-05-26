@@ -12,19 +12,6 @@ using Tac.Parser;
 
 namespace Tac.Semantic_Model
 {
-    // TODO 
-    // TODO
-    // TOOD
-    // YOU ARE HERE
-    // YOU ARE HERE 
-    // huh.
-    // I need to think about this.
-    // what is overlayTypeReference ??
-    // it is a generic type reference
-    // but I should actually have a generic type reference
-    // and that should be the thing you can overlay 
-    // and only the concrete type reference should be convertable 
-
     internal class OverlayTypeReference : IWeakTypeReference
     {
         public OverlayTypeReference(IWeakTypeReference weakTypeReferance, Overlay overlay)
@@ -33,7 +20,11 @@ namespace Tac.Semantic_Model
             {
                 throw new ArgumentNullException(nameof(weakTypeReferance));
             }
-            this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
+
+            if (overlay == null)
+            {
+                throw new ArgumentNullException(nameof(overlay));
+            }
 
             TypeDefinition = weakTypeReferance.TypeDefinition.IfIs(x =>
                 Possibly.Is(
@@ -43,20 +34,11 @@ namespace Tac.Semantic_Model
 
         }
 
-        private readonly Overlay overlay;
-        public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get;}
-
-        // TODO this code is dup
-        // should it be shared?
-
+        public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
 
         public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            var (toBuild, maker) = TypeReference.Create();
-            return new BuildIntention<ITypeReferance>(toBuild, () =>
-            {
-                maker.Build(TypeDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context));
-            });
+            return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
         }
 
         public IIsPossibly<IFrontendType> Returns()
@@ -65,77 +47,49 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal interface IWeakTypeReference : IConvertable<ITypeReferance>, IFrontendType {
+    internal interface IWeakTypeReference : IConvertable<ITypeReferance>, IFrontendType, IFrontendCodeElement
+    {
         IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
     }
 
-    //internal class ExternalTypeDefinition : IFrontendType<IVerifiableType>
-    //{
-    //    private readonly IVerifiableType type;
-
-    //    public ExternalTypeDefinition(IVerifiableType type)
-    //    {
-    //        this.type = type ?? throw new ArgumentNullException(nameof(type));
-    //    }
-
-    //    public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
-    //    {
-    //        return new BuildIntention<IVerifiableType>(type, () => {});
-    //    }
-    //}
-
-    //internal class ExternalTypeReference : IWeakTypeReferance
-    //{
-    //    public ExternalTypeReference(IFrontendType<IVerifiableType> type)
-    //    {
-    //        this.type = type ?? throw new ArgumentNullException(nameof(type));
-    //        TypeDefinition = Possibly.Is(new Box<IIsPossibly<IFrontendType<IVerifiableType>>>(Possibly.Is(type)));
-    //    }
-
-    //    private readonly IFrontendType<IVerifiableType> type;
-
-    //    public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
-
-    //    public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
-    //    {
-    //        var (toBuild, maker) = TypeReference.Create();
-    //        return new BuildIntention<ITypeReferance>(toBuild, () =>
-    //        {
-    //            maker.Build(type.Convert(context));
-    //        });
-    //    }
-
-    //    public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
-    //    {
-    //        return TypeDefinition.IfIs(x => x.GetValue());
-    //    }
-
-    //    IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
-    //}
-
     internal class WeakTypeReference : IWeakTypeReference
     {
-        public WeakTypeReference(IIsPossibly<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>> typeDefinition)
+        public WeakTypeReference(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> typeDefinition)
         {
-            ConvertableTypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
+            TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
 
-        public IIsPossibly<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>> ConvertableTypeDefinition { get; }
-
-        public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition => ConvertableTypeDefinition;
+        public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
 
         public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
+        }
+
+
+
+        public IIsPossibly<IFrontendType> Returns()
+        {
+            return TypeDefinition.IfIs(x => x.GetValue());
+        }
+    }
+
+    internal static class TypeReferenceStatic{
+        public static IBuildIntention<ITypeReferance> GetBuildIntention(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition, TransformerExtensions.ConversionContext context)
         {
             var (toBuild, maker) = TypeReference.Create();
             return new BuildIntention<ITypeReferance>(toBuild, () =>
             {
-                maker.Build(ConvertableTypeDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context));
+                var type = TypeDefinition.GetOrThrow().GetValue().GetOrThrow();
+
+                if (type is IConvertableFrontendType<IVerifiableType> convertableType)
+                {
+                    maker.Build(convertableType.Convert(context));
+                }
+                else {
+                    throw new Exception("can not be built, type is not convertable");
+                }
             });
-        }
-        
-        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
-        {
-            return ConvertableTypeDefinition.IfIs(x => x.GetValue());
         }
     }
 

@@ -17,15 +17,15 @@ namespace Tac.Semantic_Model.CodeStuff
         public string Symbols => "<?";
     }
     
-    internal class WeakLessThanOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, ILessThanOperation>
+    internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILessThanOperation>
     {
         public const string Identifier = "<?";
 
-        public WeakLessThanOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakLessThanOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
-        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IFrontendType> Returns()
         {
             return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
         }

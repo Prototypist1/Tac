@@ -30,15 +30,15 @@ namespace Tac.Parser
     internal class ElementMatchingContext
     {
 
-        internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box) {
-            return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>[] {
+        internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IFrontendType>> box) {
+            return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
                 new MemberReferanceMaker(box)
             });
         }
         
-        internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+        internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IFrontendType>> box)
         {
-            return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>[] {
+            return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
                 new BlockDefinitionMaker(),
                 new ConstantNumberMaker(),
                 new GenericTypeDefinitionMaker(),
@@ -47,7 +47,6 @@ namespace Tac.Parser
                 new MethodDefinitionMaker(),
                 new ModuleDefinitionMaker(),
                 new ObjectDefinitionMaker(),
-                new EmptyInstanceMaker(),
                 new ConstantBoolMaker(),
                 new ConstantStringMaker(),
                 new TypeDefinitionMaker(),
@@ -63,7 +62,7 @@ namespace Tac.Parser
         
         public ElementMatchingContext() : 
             this(
-                new IMaker<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>[] {
+                new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
                     new AddOperationMaker(),
                     new SubtractOperationMaker(),
                     new MultiplyOperationMaker(),
@@ -75,7 +74,7 @@ namespace Tac.Parser
                     new PathOperationMaker(),
                     new ReturnOperationMaker()
                 },
-                new IMaker<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>[] {
+                new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
                     new BlockDefinitionMaker(),
                     new ConstantNumberMaker(),
                     new GenericTypeDefinitionMaker(),
@@ -86,22 +85,21 @@ namespace Tac.Parser
                     new ObjectDefinitionMaker(),
                     new TypeDefinitionMaker(),
                     new GenericTypeDefinitionMaker(),
-                    new EmptyInstanceMaker(),
                     new ConstantBoolMaker(),
                     new ConstantStringMaker(),
                     new MemberMaker(),
                 }){}
         
         public ElementMatchingContext(
-            IMaker<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>[] operationMatchers, 
-            IMaker<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>[] elementMakers)
+            IMaker<IPopulateScope<IFrontendCodeElement>>[] operationMatchers, 
+            IMaker<IPopulateScope<IFrontendCodeElement>>[] elementMakers)
         {
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
             this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
         }
 
-        private readonly IMaker<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>[] elementMakers;
-        private readonly IMaker<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>[] operationMatchers;
+        private readonly IMaker<IPopulateScope<IFrontendCodeElement>>[] elementMakers;
+        private readonly IMaker<IPopulateScope<IFrontendCodeElement>>[] operationMatchers;
 
         #region Parse
 
@@ -109,7 +107,7 @@ namespace Tac.Parser
 
         }
 
-        public IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> ParseParenthesisOrElement(IToken token)
+        public IPopulateScope<IFrontendCodeElement> ParseParenthesisOrElement(IToken token)
         {
             if (token is ElementToken elementToken)
             {
@@ -125,7 +123,7 @@ namespace Tac.Parser
 
                 foreach (var tryMatch in elementMakers)
                 {
-                    if (TokenMatching<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>>.MakeStart(elementToken.Tokens,this)
+                    if (TokenMatching<IPopulateScope<IFrontendCodeElement>>.MakeStart(elementToken.Tokens,this)
                         .Has(tryMatch, out var res)
                         .Has(new DoneMaker())
                         is IMatchedTokenMatching)
@@ -142,7 +140,7 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> ParseLine(IEnumerable<IToken> tokens)
+        public IPopulateScope<IFrontendCodeElement> ParseLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in operationMatchers)
             {
@@ -167,12 +165,12 @@ namespace Tac.Parser
 
         }
 
-        public IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] ParseFile(FileToken file)
+        public IPopulateScope<IFrontendCodeElement>[] ParseFile(FileToken file)
         {
             return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
         }
 
-        public IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] ParseBlock(CurleyBracketToken block)
+        public IPopulateScope<IFrontendCodeElement>[] ParseBlock(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {

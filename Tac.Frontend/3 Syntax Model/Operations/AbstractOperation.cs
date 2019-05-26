@@ -30,22 +30,22 @@ namespace Tac.Semantic_Model.CodeStuff
     
     internal class BinaryOperation
     {
-        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right);
-        public delegate IIsPossibly<T> MakeBinaryType<out T>(IIsPossibly<IConvertableFrontendType<IVerifiableType>> left, IIsPossibly<IConvertableFrontendType<IVerifiableType>> right);
+        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right);
+        public delegate IIsPossibly<T> MakeBinaryType<out T>(IIsPossibly<IFrontendType> left, IIsPossibly<IFrontendType> right);
     }
 
     internal abstract class BinaryOperation<TLeft, TRight,TCodeElement> :  IConvertableFrontendCodeElement<TCodeElement>
-        where TLeft : class, IConvertableFrontendCodeElement<ICodeElement>
-        where TRight : class, IConvertableFrontendCodeElement<ICodeElement>
+        where TLeft : class, IFrontendCodeElement
+        where TRight : class, IFrontendCodeElement
         where TCodeElement: class, ICodeElement
     {
         public IIsPossibly<TLeft> Left { get; }
         public IIsPossibly<TRight> Right { get; }
-        public IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[] Operands
+        public IIsPossibly<IFrontendCodeElement>[] Operands
         {
             get
             {
-                return new IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[] { Left, Right };
+                return new IIsPossibly<IFrontendCodeElement>[] { Left, Right };
             }
         }
         
@@ -128,8 +128,8 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
 
-        public static IPopulateScope<TFrontendCodeElement> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> left,
-                IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> right,
+        public static IPopulateScope<TFrontendCodeElement> PopulateScope(IPopulateScope<IFrontendCodeElement> left,
+                IPopulateScope<IFrontendCodeElement> right,
                 BinaryOperation.Make<TFrontendCodeElement> make)
         {
             return new BinaryPopulateScope(left,
@@ -151,13 +151,13 @@ namespace Tac.Semantic_Model.CodeStuff
 
         private class BinaryPopulateScope : IPopulateScope<TFrontendCodeElement>
         {
-            private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> left;
-            private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> right;
+            private readonly IPopulateScope<IFrontendCodeElement> left;
+            private readonly IPopulateScope<IFrontendCodeElement> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
             private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
-            public BinaryPopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> left,
-                IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> right,
+            public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement> left,
+                IPopulateScope<IFrontendCodeElement> right,
                 BinaryOperation.Make<TFrontendCodeElement> make)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -198,14 +198,14 @@ namespace Tac.Semantic_Model.CodeStuff
 
         private class BinaryResolveReferance : IPopulateBoxes<TFrontendCodeElement>
         {
-            public readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> left;
-            public readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> right;
+            public readonly IPopulateBoxes<IFrontendCodeElement> left;
+            public readonly IPopulateBoxes<IFrontendCodeElement> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
             private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
             public BinaryResolveReferance(
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance1,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance2,
+                IPopulateBoxes<IFrontendCodeElement> resolveReferance1,
+                IPopulateBoxes<IFrontendCodeElement> resolveReferance2,
                 BinaryOperation.Make<TFrontendCodeElement> make,
                 DelegateBox<IIsPossibly<IFrontendType>> box)
             {

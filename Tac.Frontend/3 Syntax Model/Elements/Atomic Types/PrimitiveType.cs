@@ -65,7 +65,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new GenericTypeParameterPlacholder(key);
         }
 
-        internal interface IGenericTypeParameterPlacholder:  IConvertableFrontendType<IVerifiableType>{
+        internal interface IGenericTypeParameterPlacholder:  IFrontendType{
             IKey Key { get; }
         }
 
@@ -99,6 +99,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                 return new BuildIntention<IVerifiableType>(res, () => { maker.Build(key); });
             }
         }
+
         public static IConvertableFrontendType<IAnyType> CreateAnyType()
         {
             return new AnyType();

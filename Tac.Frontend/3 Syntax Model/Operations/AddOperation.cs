@@ -20,9 +20,9 @@ namespace Tac.Semantic_Model.Operations
         public string Symbols=> "+";
     }
 
-    internal class WeakAddOperation : BinaryOperation<IConvertableFrontendCodeElement<ICodeElement>, IConvertableFrontendCodeElement<ICodeElement>, IAddOperation>
+    internal class WeakAddOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAddOperation>
     {
-        public WeakAddOperation(IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> left, IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> right) : base(left, right)
+        public WeakAddOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
 
@@ -35,7 +35,7 @@ namespace Tac.Semantic_Model.Operations
             });
         }
 
-        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns() {
+        public override IIsPossibly<IFrontendType> Returns() {
             return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
         }
     }

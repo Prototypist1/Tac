@@ -19,7 +19,7 @@ namespace Tac.Semantic_Model
     {
         bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition);
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
-        bool TryAddType(IKey name, IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> type);
+        bool TryAddType(IKey name, IBox<IIsPossibly<IFrontendType>> type);
     }
 
     internal interface IResolvableScope: ISomeScope, IConvertable<IFinalizedScope>
@@ -144,12 +144,12 @@ namespace Tac.Semantic_Model
         }
 
 
-        internal static IIsPossibly<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>> PossiblyGetType(this IResolvableScope scope, IKey name) {
+        internal static IIsPossibly<IBox<IIsPossibly<IFrontendType>>> PossiblyGetType(this IResolvableScope scope, IKey name) {
             if (scope.TryGetType(name, out var thing))
             {
                 return Possibly.Is(thing);
             }
-            return Possibly.Is(thing);
+            return Possibly.IsNot<IBox<IIsPossibly<IFrontendType>>>();
         }
 
 
@@ -159,7 +159,7 @@ namespace Tac.Semantic_Model
             {
                 return Possibly.Is(thing);
             }
-            return Possibly.Is(thing);
+            return Possibly.IsNot<IBox<IIsPossibly<IWeakMemberDefinition>>>();
         }
     }
 }

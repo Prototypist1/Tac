@@ -76,12 +76,12 @@ namespace Tac.Semantic_Model
     internal class MemberReferanceMaker : IMaker<IPopulateScope<IWeakMemberReference>>
     {
         public MemberReferanceMaker(
-            IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> lhs)
+            IBox<IIsPossibly<IFrontendType>> lhs)
         {
             this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
         }
 
-        private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> lhs;
+        private readonly IBox<IIsPossibly<IFrontendType>> lhs;
 
         public ITokenMatching<IPopulateScope<IWeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
@@ -114,11 +114,11 @@ namespace Tac.Semantic_Model
         private class MemberReferancePopulateScope : IPopulateScope<IWeakMemberReference>
         {
 
-            private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> lhs;
+            private readonly IBox<IIsPossibly<IFrontendType>> lhs;
             private readonly string memberName;
             private readonly DelegateBox<IIsPossibly<IWeakMemberDefinition>> box = new DelegateBox<IIsPossibly<IWeakMemberDefinition>>();
 
-            public MemberReferancePopulateScope(string item, IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> lhs)
+            public MemberReferancePopulateScope(string item, IBox<IIsPossibly<IFrontendType>> lhs)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
@@ -140,13 +140,13 @@ namespace Tac.Semantic_Model
         {
 
             private readonly string memberName;
-            private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> lhs;
+            private readonly IBox<IIsPossibly<IFrontendType>> lhs;
             private readonly DelegateBox<IIsPossibly<IWeakMemberDefinition>> box;
 
             public MemberReferanceResolveReferance(
                 string memberName,
                 DelegateBox<IIsPossibly<IWeakMemberDefinition>> box,
-                IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> lhs)
+                IBox<IIsPossibly<IFrontendType>> lhs)
             {
                 this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
