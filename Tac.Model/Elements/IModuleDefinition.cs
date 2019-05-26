@@ -2,8 +2,7 @@
 
 namespace Tac.Model.Elements
 {
-    public interface IModuleDefinition : IConvertable
-
+    public interface IModuleDefinition : ICodeElement
     {
         IKey Key { get; }
         IFinalizedScope Scope { get; }

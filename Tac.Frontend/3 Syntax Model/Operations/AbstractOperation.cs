@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model.CodeStuff
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
         
-        public abstract IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns();
+        public abstract IIsPossibly<IFrontendType> Returns();
 
         public abstract IBuildIntention<TCodeElement> GetBuildIntention(TransformerExtensions.ConversionContext context);
     }
@@ -139,7 +139,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public static IPopulateBoxes<TFrontendCodeElement> PopulateBoxes(IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance1,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance2,
                 BinaryOperation.Make<TFrontendCodeElement> make,
-                DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+                DelegateBox<IIsPossibly<IFrontendType>> box)
         {
             return new BinaryResolveReferance(resolveReferance1,
                 resolveReferance2,
@@ -154,7 +154,7 @@ namespace Tac.Semantic_Model.CodeStuff
             private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> left;
             private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
             public BinaryPopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> left,
                 IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> right,
@@ -165,7 +165,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }
@@ -201,13 +201,13 @@ namespace Tac.Semantic_Model.CodeStuff
             public readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> left;
             public readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
             public BinaryResolveReferance(
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance1,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance2,
                 BinaryOperation.Make<TFrontendCodeElement> make,
-                DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+                DelegateBox<IIsPossibly<IFrontendType>> box)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
@@ -295,7 +295,7 @@ namespace Tac.Semantic_Model.CodeStuff
             private readonly IPopulateScope<IConvertableFrontendType<IVerifiableType>> left;
             private readonly IPopulateScope<IConvertableFrontendType<IVerifiableType>> right;
             private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
-            private readonly IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(new TypeType());
+            private readonly IBox<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>(new TypeType());
 
             public BinaryPopulateScope(IPopulateScope<IConvertableFrontendType<IVerifiableType>> left,
                 IPopulateScope<IConvertableFrontendType<IVerifiableType>> right,
@@ -306,7 +306,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }

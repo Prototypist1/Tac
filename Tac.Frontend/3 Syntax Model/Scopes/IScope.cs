@@ -144,7 +144,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        internal static IIsPossibly<IBox<IIsPossibly<IFrontendType>>> PossiblyGetType(this IResolvableScope scope, IKey name) {
+        internal static IIsPossibly<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>> PossiblyGetType(this IResolvableScope scope, IKey name) {
             if (scope.TryGetType(name, out var thing))
             {
                 return Possibly.Is(thing);

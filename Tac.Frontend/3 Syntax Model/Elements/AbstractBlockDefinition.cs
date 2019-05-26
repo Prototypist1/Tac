@@ -26,6 +26,6 @@ namespace Tac.Semantic_Model
         public IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> StaticInitailizers { get; }
 
         public abstract IBuildIntention<T> GetBuildIntention(ConversionContext context);
-        public abstract IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns();
+        public abstract IIsPossibly<IFrontendType> Returns();
     }
 }

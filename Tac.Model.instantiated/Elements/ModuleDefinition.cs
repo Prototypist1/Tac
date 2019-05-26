@@ -40,6 +40,10 @@ namespace Tac.Model.Instantiated
             y.Build(scope, staticInitialization, key);
             return x;
         }
+
+        public IVerifiableType Returns() {
+
+        }
     }
 
     public interface IModuleDefinitionBuilder

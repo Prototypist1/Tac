@@ -47,7 +47,7 @@ namespace Tac.Model.Instantiated
         }
 
         private readonly IDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
-        private readonly IDictionary<IKey, IVerifiableType> types = new ConcurrentDictionary<IKey, IVerifiableType>();
+        //private readonly IDictionary<IKey, IVerifiableType> types = new ConcurrentDictionary<IKey, IVerifiableType>();
         //private readonly IDictionary<NameKey, List<IGenericType>> genericTypes = new ConcurrentDictionary<NameKey, List<IGenericType>>();
 
         public Scope()
@@ -65,7 +65,7 @@ namespace Tac.Model.Instantiated
         
         //public IReadOnlyList<GenericTypeEntry> GenericTypes => genericTypes.SelectMany(x=> x.Value.Select(y=> new GenericTypeEntry(y, new GenericKeyDefinition(x.Key,y.TypeParameterKeys)))).ToList();
 
-        IReadOnlyList<TypeEntry> IFinalizedScope.Types => types.Select(x => new TypeEntry(x.Key, x.Value)).ToList();
+        //IReadOnlyList<TypeEntry> IFinalizedScope.Types => types.Select(x => new TypeEntry(x.Key, x.Value)).ToList();
         
         public static (IFinalizedScope, IFinalizedScopeBuilder) Create(IFinalizedScope parent)
         {
@@ -79,37 +79,37 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public void Build(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd)
+        public void Build(IReadOnlyList<IsStatic> toAdd) //, IReadOnlyList<Scope.TypeData> typesToAdd
         {
             foreach (var member in toAdd)
             {
                 members[member.Value.Key] = member;
             }
 
-            foreach (var type in typesToAdd)
-            {
-                types[type.Key] =  type.Type;
-            }
+            //foreach (var type in typesToAdd)
+            //{
+            //    types[type.Key] =  type.Type;
+            //}
 
         }
         
 
-        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd) {
+        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd) {
             var (x, y) = Create();
-            y.Build(toAdd, typesToAdd);
+            y.Build(toAdd);
             return x;
         }
 
 
-        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd, IReadOnlyList<Scope.TypeData> typesToAdd, IFinalizedScope parent)
+        public static IFinalizedScope CreateAndBuild(IReadOnlyList<IsStatic> toAdd,IFinalizedScope parent)
         {
             var (x, y) = Create(parent);
-            y.Build(toAdd, typesToAdd);
+            y.Build(toAdd);
             return x;
         }
     }
 
     public interface IFinalizedScopeBuilder {
-        void Build(IReadOnlyList<Scope.IsStatic> members, IReadOnlyList<Scope.TypeData> types);
+        void Build(IReadOnlyList<Scope.IsStatic> members);
     }
 }

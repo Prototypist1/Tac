@@ -13,7 +13,7 @@ namespace Tac.Semantic_Model
 {
 
 
-    internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IConvertableFrontendType<IVerifiableType>
+    internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IFrontendType
     {
         public WeakModuleDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitialization, IKey Key)
         {
@@ -39,9 +39,7 @@ namespace Tac.Semantic_Model
             });
         }
 
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
-
-        IIsPossibly<IConvertableFrontendType<IVerifiableType>> IConvertableFrontendCodeElement<IModuleDefinition>.Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
             return Possibly.Is(this);
         }
@@ -79,7 +77,7 @@ namespace Tac.Semantic_Model
         {
             private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements;
             private readonly NameKey nameKey;
-            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
+            private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
             public ModuleDefinitionPopulateScope(
                 IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
@@ -89,7 +87,7 @@ namespace Tac.Semantic_Model
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }
@@ -114,7 +112,7 @@ namespace Tac.Semantic_Model
         public static IPopulateBoxes<WeakModuleDefinition> PopulateBoxes(IResolvableScope scope,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance,
                 NameKey nameKey,
-                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+                Box<IIsPossibly<IFrontendType>> box)
         {
             return new ModuleDefinitionResolveReferance(scope,
                resolveReferance,
@@ -127,13 +125,13 @@ namespace Tac.Semantic_Model
             private readonly IResolvableScope scope;
             private readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance;
             private readonly NameKey nameKey;
-            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
+            private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public ModuleDefinitionResolveReferance(
                 IResolvableScope scope,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance,
                 NameKey nameKey,
-                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+                Box<IIsPossibly<IFrontendType>> box)
             {
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
@@ -143,14 +141,17 @@ namespace Tac.Semantic_Model
 
             public IIsPossibly<WeakModuleDefinition> Run(IResolveReferenceContext context)
             {
-                return box.Fill(
-                    Possibly.Is(
-                        new WeakModuleDefinition(
+                var innerRes = new WeakModuleDefinition(
                         scope,
                         resolveReferance.Select(x => x.Run(context)).ToArray(),
-                        nameKey)));
+                        nameKey);
+
+                var res = Possibly.Is(innerRes);
+
+                box.Fill(innerRes.Returns());
+
+                return res;
             }
         }
     }
-
 }

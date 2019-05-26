@@ -31,7 +31,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IKey> Key => backing.Key;
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions=> backing.TypeParameterDefinitions;
-        public OrType<IFrontendGenericType, IFrontendType> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
+        public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
 
         public IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
     }
@@ -95,7 +95,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakGenericTypeDefinition : IWeakGenericTypeDefinition
     {
-        private readonly ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IFrontendType>> typeCache = new ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IFrontendType>>();
+        private readonly ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>> typeCache = new ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>>();
 
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key,
@@ -122,27 +122,28 @@ namespace Tac.Semantic_Model
         //    });
         //}
 
-        public OrType<IFrontendGenericType, IFrontendType> Overlay(TypeParameter[] typeParameters)
+        public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         {
             // I kept reusing this code..
             var overlay =  new Overlay(typeParameters.ToDictionary(x=>x.parameterDefinition,x=>x.frontendType));
 
             return typeCache.GetOrAdd(overlay, Help());
             
-            OrType<IFrontendGenericType,IFrontendType> Help()
+            OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Help()
             {
                 if (typeParameters.All(x => !(x.frontendType is IGenericTypeParameterPlacholder)))
                 {
-                    return new OrType<IFrontendGenericType, IFrontendType>(new OverlayTypeDefinition(
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
                         new WeakTypeDefinition(Scope, Key), overlay));
                 }
                 else
                 {
-                    return new OrType<IFrontendGenericType, IFrontendType>(new OverlayGenericTypeDefinition(
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new OverlayGenericTypeDefinition(
                         this, overlay).Cast<IFrontendGenericType>());
                 }
             }
         }
+
 
         //IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
 

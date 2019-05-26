@@ -30,9 +30,9 @@ namespace Tac.Semantic_Model.Operations
             });
         }
 
-        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
-            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
+            return Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType());
         }
     }
 
@@ -100,9 +100,9 @@ namespace Tac.Semantic_Model.Operations
                 return new ConstantBoolResolveReferance(dub);
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
-                return new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType()));
+                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType()));
             }
         }
 

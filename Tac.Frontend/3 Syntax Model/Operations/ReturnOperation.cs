@@ -28,11 +28,10 @@ namespace Tac.Semantic_Model.Operations
         
         public IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>> Result { get; }
         
-        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
             return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType());
         }
-
 
         public IBuildIntention<IReturnOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
@@ -94,7 +93,7 @@ namespace Tac.Semantic_Model.Operations
         }
         public static IPopulateBoxes<TFrontendCodeElement> PopulateBoxes(IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> left,
                 TrailingOperation.Make<TFrontendCodeElement> make,
-                DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+                DelegateBox<IIsPossibly<IFrontendType>> box)
         {
             return new TrailingResolveReferance(left,
                 make,
@@ -106,7 +105,7 @@ namespace Tac.Semantic_Model.Operations
         {
             private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
             public TrailingPopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>> left, TrailingOperation.Make<TFrontendCodeElement> make)
             {
@@ -114,7 +113,7 @@ namespace Tac.Semantic_Model.Operations
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }
@@ -131,9 +130,9 @@ namespace Tac.Semantic_Model.Operations
         {
             public readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
-            public TrailingResolveReferance(IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, DelegateBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+            public TrailingResolveReferance(IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, DelegateBox<IIsPossibly<IFrontendType>> box)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -156,8 +155,6 @@ namespace Tac.Semantic_Model.Operations
                 return res;
             }
         }
-
-
     }
 
 

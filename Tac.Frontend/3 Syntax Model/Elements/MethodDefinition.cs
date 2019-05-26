@@ -18,8 +18,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakMethodDefinition :
         WeakAbstractBlockDefinition<IInternalMethodDefinition>,
-        IMethodDefinition,
-        IConvertableFrontendType<IVerifiableType>
+        IMethodDefinition
     {
         public WeakMethodDefinition(
             IIsPossibly<IWeakTypeReference> outputType, 
@@ -55,9 +54,7 @@ namespace Tac.Semantic_Model
             });
         }
 
-        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns() => Possibly.Is(this);
-
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+        public override IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
     }
     
     internal class MethodDefinitionMaker : IMaker<IPopulateScope<WeakMethodDefinition>>
@@ -167,7 +164,7 @@ namespace Tac.Semantic_Model
                 IResolvableScope methodScope,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance2,
                 IPopulateBoxes<WeakTypeReference> output,
-                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box,
+                Box<IIsPossibly<IFrontendType>> box,
                 bool isEntryPoint)
         {
             return new MethodDefinitionResolveReferance(
@@ -186,7 +183,7 @@ namespace Tac.Semantic_Model
             private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements;
             private readonly IPopulateScope<WeakTypeReference> output;
             private readonly bool isEntryPoint;
-            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
+            private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
             public MethodDefinitionPopulateScope(
                 IPopulateScope<WeakMemberReference> parameterDefinition,
@@ -201,7 +198,7 @@ namespace Tac.Semantic_Model
                 this.isEntryPoint = isEntryPoint;
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }
@@ -226,7 +223,7 @@ namespace Tac.Semantic_Model
             private readonly IResolvableScope methodScope;
             private readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] lines;
             private readonly IPopulateBoxes<WeakTypeReference> output;
-            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
+            private readonly Box<IIsPossibly<IFrontendType>> box;
             private readonly bool isEntryPoint;
 
             public MethodDefinitionResolveReferance(
@@ -234,7 +231,7 @@ namespace Tac.Semantic_Model
                 IResolvableScope methodScope,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance2,
                 IPopulateBoxes<WeakTypeReference> output,
-                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box,
+                Box<IIsPossibly<IFrontendType>> box,
                 bool isEntryPoint)
             {
                 this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));

@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IKey> Key => backing.Key;
         public IResolvableScope Scope { get; }
 
-        IIsPossibly<IConvertableFrontendType<IVerifiableType>> IConvertableFrontendCodeElement<IInterfaceType>.Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
             return Possibly.Is(this);
         }
@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
             {
-                maker.Build(Scope.Convert(context));
+                maker.Build(Scope.Convert(context).Members);
             });
         }
     }
@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model
         // it is an ordered set of types, names and acccessablity modifiers
         public IResolvableScope Scope { get; }
         
-        IIsPossibly<IConvertableFrontendType<IVerifiableType>> IConvertableFrontendCodeElement<IInterfaceType>.Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
             return Possibly.Is(this);
         }
@@ -71,7 +71,7 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
             {
-                maker.Build(Scope.Convert(context));
+                maker.Build(Scope.Convert(context).Members);
             });
         }
     }
@@ -137,7 +137,7 @@ namespace Tac.Semantic_Model
                 box = new Box<IIsPossibly<WeakTypeReference>>(Possibly.Is(typeReferance));
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }

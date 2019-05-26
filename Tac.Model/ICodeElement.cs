@@ -11,7 +11,6 @@ namespace Tac.Model
 
     public interface ICodeElement: IConvertable
     {
-        // maybe we should encode return types in the type?
         IVerifiableType Returns();
     }
 }

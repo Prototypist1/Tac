@@ -63,7 +63,7 @@ namespace Tac.Model
     public interface IFinalizedScope
     {
         IReadOnlyList<IMemberDefinition> Members { get; }
-        IReadOnlyList<TypeEntry> Types { get; }
+        //IReadOnlyList<TypeEntry> Types { get; }
         IReadOnlyList<IKey> MemberKeys { get; }
         //IReadOnlyList<GenericTypeEntry> GenericTypes { get; }
     }

@@ -197,16 +197,16 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new GenericMethodType(new GenericTypeParameterPlacholder(new NameKey("input")), new GenericTypeParameterPlacholder(new NameKey("output")));
         }
 
-        internal interface IGenericMethodType : IConvertableFrontendType<Model.Elements.IGenericMethodType>, IFrontendGenericType { }
+        internal interface IGenericMethodType : IFrontendType, IFrontendGenericType { }
 
         private struct GenericMethodType : IGenericMethodType
         {
-            private readonly IConvertableFrontendType<IVerifiableType> input;
-            private readonly IConvertableFrontendType<IVerifiableType> output;
+            private readonly IFrontendType input;
+            private readonly IFrontendType output;
 
 
 
-            public GenericMethodType(IConvertableFrontendType<IVerifiableType> input, IConvertableFrontendType<IVerifiableType> output)
+            public GenericMethodType(IFrontendType input, IFrontendType output)
             {
                 this.input = input ?? throw new ArgumentNullException(nameof(input));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
@@ -215,35 +215,19 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
             public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
-            public IBuildIntention<Model.Elements.IGenericMethodType> GetBuildIntention(TransformerExtensions.ConversionContext context)
-            {
-                var (res, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
-                var myIn = input;
-                var myOut = output;
-                return new BuildIntention<Model.Elements.IGenericMethodType>(res, () => builder.Build(
-                    myIn.Convert(context),
-                    myOut.Convert(context)
-                    ));
-            }
-
             public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
             {
                 var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
 
-                if (typeParameters.All(x => !(x.frontendType is IGenericTypeParameterPlacholder)))
-                {
-                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericMethodType(overlay.Convert(input), overlay.Convert(output)));
-                }
-                else
-                {
-                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new MethodType(overlay.Convert(input), overlay.Convert(output)));
+                var overlayedInput = overlay.Convert(input);
+                var overlayedOutput = overlay.Convert(output);
+
+                if (overlayedInput is IConvertableFrontendType<IVerifiableType> convertableInput && overlayedOutput is IConvertableFrontendType<IVerifiableType> convertableOutput) {
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new MethodType(convertableInput, convertableOutput));
                 }
 
-            }
-
-            IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
-            {
-                return GetBuildIntention(context);
+                return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericMethodType(overlayedInput, overlayedOutput));
+                
             }
         }
 
@@ -252,15 +236,15 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             return new GenericImplementationType(new GenericTypeParameterPlacholder(new NameKey("input")), new GenericTypeParameterPlacholder(new NameKey("output")), new GenericTypeParameterPlacholder(new NameKey("context")));
         }
 
-        internal interface IGenericImplementationType : IConvertableFrontendType<Tac.Model.Elements.IGenericImplementationType>, IFrontendGenericType { }
+        internal interface IGenericImplementationType : IFrontendType, IFrontendGenericType { }
 
         private struct GenericImplementationType : IGenericImplementationType
         {
-            private readonly IConvertableFrontendType<IVerifiableType> input;
-            private readonly IConvertableFrontendType<IVerifiableType> output;
-            private readonly IConvertableFrontendType<IVerifiableType> context;
+            private readonly IFrontendType input;
+            private readonly IFrontendType output;
+            private readonly IFrontendType context;
             
-            public GenericImplementationType(IConvertableFrontendType<IVerifiableType> input, IConvertableFrontendType<IVerifiableType> output, IConvertableFrontendType<IVerifiableType> context)
+            public GenericImplementationType(IFrontendType input, IFrontendType output, IFrontendType context)
             {
                 this.input = input ?? throw new ArgumentNullException(nameof(input));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
@@ -270,38 +254,20 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
             public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
-            public IBuildIntention<Model.Elements.IGenericImplementationType> GetBuildIntention(TransformerExtensions.ConversionContext context)
-            {
-                var (toBuild, builder) = Tac.Model.Instantiated.GenericImplementationType.Create();
-                var myContext = this.context;
-                var myInput = input;
-                var myOutput = output;
-                return new BuildIntention<Model.Elements.IGenericImplementationType>(toBuild, () =>
-                {
-                    builder.Build(
-                        myInput.Convert(context),
-                        myOutput.Convert(context),
-                        myContext.Convert(context));
-                });
-            }
-
             public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
             {
                 var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
 
-                if (typeParameters.All(x => !(x.frontendType is GenericTypeParameterPlacholder)))
-                {
-                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
-                }
-                else
-                {
-                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new ImplementationType(overlay.Convert(input), overlay.Convert(output), overlay.Convert(context)));
-                }
-            }
+                var overlayedInput = overlay.Convert(input);
+                var overlayedOut = overlay.Convert(output);
+                var overlayedContext = overlay.Convert(context);
 
-            IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
-            {
-                return GetBuildIntention(context);
+                if (overlayedInput is IConvertableFrontendType<IVerifiableType> convertableInput && overlayedOut is IConvertableFrontendType<IVerifiableType> convertableOut && overlayedContext is IConvertableFrontendType<IVerifiableType> convertableContext) {
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new ImplementationType(convertableInput, convertableOut, convertableContext));
+                }
+
+                return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericImplementationType(overlayedInput, overlayedOut, overlayedContext));
+
             }
         }
 

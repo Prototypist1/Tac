@@ -16,6 +16,6 @@
     }
 
 
-    public interface IEmptyInstance : ICodeElement {
-    }
+    //public interface IEmptyInstance : ICodeElement {
+    //}
 }

@@ -34,9 +34,9 @@ namespace Tac.Semantic_Model
             });
         }
 
-        public override IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
+        public override IIsPossibly<IFrontendType> Returns()
         {
-            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBlockType());
+            return Possibly.Is<IFrontendType>(PrimitiveTypes.CreateBlockType());
         }
     }
 
@@ -92,10 +92,11 @@ namespace Tac.Semantic_Model
                     Elements.Select(x => x.Run(nextContext)).ToArray());
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
-                return new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBlockType()));
+                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateBlockType()));
             }
+
         }
 
         private class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>

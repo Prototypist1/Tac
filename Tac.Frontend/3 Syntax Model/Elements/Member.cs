@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model
         public static IPopulateBoxes<WeakMemberReference> PopulateBoxes(
                 IResolvableScope resolvableScope,
                 NameKey key,
-                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+                Box<IIsPossibly<IFrontendType>> box)
         {
             return new MemberResolveReferance(
                 resolvableScope,
@@ -48,14 +48,14 @@ namespace Tac.Semantic_Model
         private class MemberPopulateScope : IPopulateScope<WeakMemberReference>
         {
             private readonly string memberName;
-            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box = new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>();
+            private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
             public MemberPopulateScope(string item)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }
@@ -91,12 +91,12 @@ namespace Tac.Semantic_Model
         {
             private readonly IResolvableScope resolvableScope;
             private readonly NameKey key;
-            private readonly Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box;
+            private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public MemberResolveReferance(
                 IResolvableScope resolvableScope,
                 NameKey key,
-                Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> box)
+                Box<IIsPossibly<IFrontendType>> box)
             {
                 this.resolvableScope = resolvableScope ?? throw new ArgumentNullException(nameof(resolvableScope));
                 this.key = key ?? throw new ArgumentNullException(nameof(key));

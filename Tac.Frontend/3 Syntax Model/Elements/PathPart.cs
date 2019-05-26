@@ -38,18 +38,13 @@ namespace Tac.Semantic_Model
             return backing.Cast<IConvertableFrontendCodeElement<IMemberReferance>>().GetBuildIntention(context);
         }
 
-        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
             return backing.Returns();
         }
-
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
-        {
-            return backing.Cast<IConvertable<IVerifiableType>>().GetBuildIntention(context);
-        }
     }
 
-    internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReferance>, IConvertableFrontendType<IVerifiableType>
+    internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReferance>, IFrontendType
     {
         IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
     }
@@ -72,14 +67,9 @@ namespace Tac.Semantic_Model
             });
         }
 
-        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns()
+        public IIsPossibly<IFrontendType> Returns()
         {
             return MemberDefinition.IfIs(x => x.GetValue());
-        }
-
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context)
-        {
-            return GetBuildIntention(context);
         }
     }
 
@@ -134,7 +124,7 @@ namespace Tac.Semantic_Model
                 this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }

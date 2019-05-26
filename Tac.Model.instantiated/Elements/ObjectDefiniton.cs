@@ -37,6 +37,11 @@ namespace Tac.Model.Instantiated
             y.Build(scope, assignments);
             return x;
         }
+
+        public IVerifiableType Returns()
+        {
+
+        }
     }
 
     public interface IObjectDefinitonBuilder

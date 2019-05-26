@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
     internal interface IFrontendGenericType : IFrontendType
     {
         IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
-        OrType<IFrontendGenericType, IFrontendType> Overlay(TypeParameter[] typeParameters);
+        OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);
     }
 
     internal class TypeParameter {
@@ -217,7 +217,9 @@ namespace Tac.Semantic_Model
             
             if (Parent != null)
             {
-                return Parent.TryGetType(name, out type);
+                var res = Parent.TryGetType(name, out var theType);
+                type = theType;
+                return res;
             }
             else
             {
@@ -231,10 +233,7 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = Model.Instantiated.Scope.Create();
             return new BuildIntention<IFinalizedScope>(toBuild, () =>
             {
-                maker.Build(
-                    members.Select(x=>new Tac.Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)).ToArray(),
-                    types.SelectMany(x=> x.Value.Select(y=> new Tac.Model.Instantiated.Scope.TypeData(x.Key,y.Definition.GetValue().GetOrThrow().Convert(context)))).ToList()
-                    );
+                maker.Build(members.Select(x=>new Tac.Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)).ToArray());
             });
         }
     }

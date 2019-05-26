@@ -98,9 +98,8 @@ namespace Tac.Model.Instantiated
         {
         }
 
-        private Buildable<IVerifiableType> 
-            left = new Buildable<IVerifiableType>() , 
-            right = new Buildable<IVerifiableType>();
+        private readonly Buildable<IVerifiableType> left = new Buildable<IVerifiableType>();
+        private readonly Buildable<IVerifiableType> right = new Buildable<IVerifiableType>();
 
         public IVerifiableType Left => left.Get();
 

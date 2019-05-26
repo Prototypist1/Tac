@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
             this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
-            this.Type = backing.Type.IfIs(x => Possibly.Is(new OverlayTypeReferance(x,overlay)));
+            this.Type = backing.Type.IfIs(x => Possibly.Is(new OverlayTypeReference(x,overlay)));
         }
 
         public IIsPossibly<IWeakTypeReference> Type { get; }
@@ -31,13 +31,11 @@ namespace Tac.Semantic_Model
         public IKey Key=> backing.Key;
 
         public IMemberDefinition Convert(TransformerExtensions.ConversionContext context) => backing.Convert(context);
-        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IConvertableFrontendCodeElement<IMemberDefinition>).GetBuildIntention(context);
-        public IIsPossibly<IConvertableFrontendType<IVerifiableType>> Returns() => backing.Returns();
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => (backing as IConvertable<IVerifiableType>).GetBuildIntention(context);
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) => backing.GetBuildIntention(context);
         
     }
 
-    internal interface IWeakMemberDefinition: IConvertableFrontendCodeElement<IMemberDefinition>, IConvertableFrontendType<IVerifiableType>
+    internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>, IFrontendType
     {
         IIsPossibly<IWeakTypeReference> Type { get; }
         bool ReadOnly { get; }
@@ -118,12 +116,6 @@ namespace Tac.Semantic_Model
             return def; 
         }
 
-        IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
-
-        IIsPossibly<IConvertableFrontendType<IVerifiableType>> IConvertableFrontendCodeElement<IMemberDefinition>.Returns()
-        {
-            return Possibly.Is(this);
-        }
     }
 
     internal class MemberDefinitionMaker : IMaker<IPopulateScope<WeakMemberReference>>
@@ -199,7 +191,7 @@ namespace Tac.Semantic_Model
                 return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName.Run(context), context.GetResolvableScope(), memberDefinitionBox);
             }
 
-            public IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> GetReturnType()
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }

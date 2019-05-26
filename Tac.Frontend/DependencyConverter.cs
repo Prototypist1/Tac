@@ -30,31 +30,31 @@ namespace Tac.Frontend
                     throw new Exception("😨 member should not already exist");
                 }
             }
-            foreach (var type in assembly.Scope.Types)
-            {
-                if (type.Type is IInterfaceType interfaceType)
-                {
-                    if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
-                    {
-                        throw new Exception("type should not already exist");
-                    }
-                }
-            }
-            foreach (var genericType in assembly.Scope.GenericTypes)
-            {
-                if (genericType.Type is IGenericInterfaceDefinition genericInterface)
-                {
-                    if (!scope.TryAddGeneric(genericType.Key.Name, new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(GenericTypeDefinition(genericInterface)))))
-                    {
-                        throw new Exception("type should not already exist");
-                    }
-                }
-            }
+            //foreach (var type in assembly.Scope.Types)
+            //{
+            //    if (type.Type is IInterfaceType interfaceType)
+            //    {
+            //        if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
+            //        {
+            //            throw new Exception("type should not already exist");
+            //        }
+            //    }
+            //}
+            //foreach (var genericType in assembly.Scope.GenericTypes)
+            //{
+            //    if (genericType.Type is IGenericInterfaceDefinition genericInterface)
+            //    {
+            //        if (!scope.TryAddGeneric(genericType.Key.Name, new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(GenericTypeDefinition(genericInterface)))))
+            //        {
+            //            throw new Exception("type should not already exist");
+            //        }
+            //    }
+            //}
             return new WeakTypeDefinition(scope, Possibly.Is(new ImplicitKey()));
         }
 
 
-        private readonly Dictionary<object, IConvertableFrontendCodeElement<ICodeElement>> backing = new Dictionary<object, IConvertableFrontendCodeElement<ICodeElement>>();
+        private readonly Dictionary<IMemberDefinition, WeakMemberDefinition> backing = new Dictionary<IMemberDefinition, WeakMemberDefinition>();
 
         public DependencyConverter()
         {
@@ -64,7 +64,7 @@ namespace Tac.Frontend
         {
             if (backing.TryGetValue(member, out var res))
             {
-                return res.Cast<WeakMemberDefinition>();
+                return res;
             }
             else
             {
@@ -82,20 +82,20 @@ namespace Tac.Frontend
             }
         }
 
-        public IFrontendGenericType GenericTypeDefinition(IGenericInterfaceDefinition _)
-        {
-            throw new NotImplementedException();
-            //if (backing.TryGetValue(codeElement, out var res))
-            //{
-            //    return res;
-            //}
-            //else
-            //{
-            //    var op = new WeakGenericTypeDefinition(,,);
-            //    backing.Add(codeElement, op);
-            //    return op;
-            //}
-        }
+        //public IFrontendGenericType GenericTypeDefinition(IGenericInterfaceDefinition _)
+        //{
+        //    throw new NotImplementedException();
+        //    //if (backing.TryGetValue(codeElement, out var res))
+        //    //{
+        //    //    return res;
+        //    //}
+        //    //else
+        //    //{
+        //    //    var op = new WeakGenericTypeDefinition(,,);
+        //    //    backing.Add(codeElement, op);
+        //    //    return op;
+        //    //}
+        //}
 
         public IConvertableFrontendType<IVerifiableType> TypeDefinition(IInterfaceType _)
         {
