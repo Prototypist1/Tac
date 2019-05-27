@@ -5,7 +5,6 @@ using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated.Elements
 {
-
     public class EmptyInstance : IEmptyInstance, IEmptyInstanceBuilder
     {
         private EmptyInstance() { }

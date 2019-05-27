@@ -91,7 +91,6 @@ namespace Tac.Model.Instantiated
         void Build(IReadOnlyList<IMemberDefinition> scope);
     }
 
-
     public class TypeOr : ITypeOr, ITypeOrBuilder
     {
         private TypeOr()
@@ -144,7 +143,6 @@ namespace Tac.Model.Instantiated
     {
         void Build(IVerifiableType left, IVerifiableType right);
     }
-
 
     public struct TypeAnd : ITypeAnd
     {
@@ -208,18 +206,21 @@ namespace Tac.Model.Instantiated
         public bool WeAreThem(IVerifiableType them, bool noTagBacks) => SimpleTypeHelp.WeAreThem<INumberType>(this, them, noTagBacks);
 
     }
+
     public struct EmptyType : IEmptyType
     {
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks) => SimpleTypeHelp.TheyAreUs<IEmptyType>(this, they, noTagBacks);
 
         public bool WeAreThem(IVerifiableType them, bool noTagBacks) => SimpleTypeHelp.WeAreThem<IEmptyType>(this, them, noTagBacks);
     }
+
     public struct BooleanType : IBooleanType
     {
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks) => SimpleTypeHelp.TheyAreUs<IBooleanType>(this, they, noTagBacks);
 
         public bool WeAreThem(IVerifiableType them, bool noTagBacks) => SimpleTypeHelp.WeAreThem<IBooleanType>(this, them, noTagBacks);
     }
+    
     // why do I have block type
     // it is just an empty type right?
     public struct BlockType : IBlockType
@@ -228,19 +229,20 @@ namespace Tac.Model.Instantiated
 
         public bool WeAreThem(IVerifiableType them, bool noTagBacks) => SimpleTypeHelp.WeAreThem<IBlockType>(this, them, noTagBacks);
     }
+
     public struct StringType : IStringType
     {
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks) => SimpleTypeHelp.TheyAreUs<IStringType>(this, they, noTagBacks);
 
         public bool WeAreThem(IVerifiableType them, bool noTagBacks) => SimpleTypeHelp.WeAreThem<IStringType>(this, them, noTagBacks);
     }
+
     public struct AnyType : IAnyType
     {
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks) => true;
         public bool WeAreThem(IVerifiableType them, bool noTagBacks) => SimpleTypeHelp.WeAreThem<IAnyType>(this, them, noTagBacks);
     }
 
-    
     public class GemericTypeParameterPlacholder : IVerifiableType, IGemericTypeParameterPlacholderBuilder
     {
         private GemericTypeParameterPlacholder() { }
@@ -316,41 +318,7 @@ namespace Tac.Model.Instantiated
     public interface IGenericMethodTypeBuilder {
         void Build(IVerifiableType inputType, IVerifiableType ouputType);
     }
-    
-    //public class GenericMethodType : IGenericMethodType, IGenericMethodTypeBuilder
-    //{
-    //    // TODO should be broken apart, buildable
-    //    private readonly Buildable<IVerifiableType[]> buildTypeParameterDefinitions = new Buildable<IVerifiableType[]>();
 
-    //    public IReadOnlyList<IKey> TypeParameterKeys => buildTypeParameterDefinitions.Get().OfType<GemericTypeParameterPlacholder>().Select(x => x.Key).ToArray();
-
-
-    //    private GenericMethodType() { }
-
-    //    public void Build(IVerifiableType inputType, IVerifiableType ouputType)
-    //    {
-    //        buildTypeParameterDefinitions.Set(new[] { inputType, ouputType });
-    //    }
-
-    //    public static (IGenericMethodType, IGenericMethodTypeBuilder) Create()
-    //    {
-    //        var res = new GenericMethodType();
-    //        return (res, res);
-    //    }
-
-    //    public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-
-    //    public bool WeAreThem(IVerifiableType them, bool noTagBacks)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
-
-    // TODO struct?
-    // no, anything that is built can not be a struct
     public class MethodType : IMethodType, IMethodTypeBuilder
     {
         private MethodType() { }
@@ -486,37 +454,6 @@ namespace Tac.Model.Instantiated
         public IVerifiableType ContextType { get; private set; }
     }
 
-    //public class GenericImplementationType : IGenericImplementationType, IGenericImplementationBuilder
-    //{
-    //    // TODO should be broken apart, buildable
-    //    private readonly Buildable<IVerifiableType[]> buildTypeParameterDefinitions = new Buildable<IVerifiableType[]>();
-
-    //    public IReadOnlyList<IKey> TypeParameterKeys  => buildTypeParameterDefinitions.Get().OfType<GemericTypeParameterPlacholder>().Select(x => x.Key).ToArray();
-        
-    //    private GenericImplementationType() { }
-
-    //    public void Build(IVerifiableType inputType, IVerifiableType ouputType, IVerifiableType contextType)
-    //    {
-
-    //        buildTypeParameterDefinitions.Set(new[] { inputType, ouputType, contextType });
-    //    }
-
-    //    public static (IGenericImplementationType, IGenericImplementationBuilder) Create()
-    //    {
-    //        var res = new GenericImplementationType();
-    //        return (res, res);
-    //    }
-
-    //    public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-
-    //    public bool WeAreThem(IVerifiableType them, bool noTagBacks)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
     public interface IGenericImplementationBuilder
     {
         void Build(IVerifiableType inputType, IVerifiableType ouputType, IVerifiableType contextType);

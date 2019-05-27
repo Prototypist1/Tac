@@ -15,7 +15,7 @@
         bool Value { get; }
     }
 
-
-    //public interface IEmptyInstance : ICodeElement {
-    //}
+    public interface IEmptyInstance : ICodeElement
+    {
+    }
 }

@@ -41,8 +41,9 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
-        public IVerifiableType Returns() {
-
+        public IVerifiableType Returns()
+        {
+            return InterfaceType.CreateAndBuild(Scope.Members);
         }
     }
 

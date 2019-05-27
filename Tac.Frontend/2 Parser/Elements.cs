@@ -5,6 +5,7 @@ using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Elements;
+using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -31,28 +32,36 @@ namespace Tac.Parser
     {
 
         internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IFrontendType>> box) {
-            return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
-                new MemberReferanceMaker(box)
-            });
+            return new ElementMatchingContext(
+                operationMatchers, 
+                new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
+                    new MemberReferanceMaker(box)
+                },
+                typeOperationMatchers,
+                typeMakers);
         }
         
         internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IFrontendType>> box)
         {
-            return new ElementMatchingContext(operationMatchers, new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
-                new BlockDefinitionMaker(),
-                new ConstantNumberMaker(),
-                new GenericTypeDefinitionMaker(),
-                new ImplementationDefinitionMaker(),
-                new MemberDefinitionMaker(),
-                new MethodDefinitionMaker(),
-                new ModuleDefinitionMaker(),
-                new ObjectDefinitionMaker(),
-                new ConstantBoolMaker(),
-                new ConstantStringMaker(),
-                new TypeDefinitionMaker(),
-                new ImplicitMemberMaker(box),
-                new MemberMaker(),
-            });
+            return new ElementMatchingContext(
+                operationMatchers, 
+                new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
+                    new BlockDefinitionMaker(),
+                    new ConstantNumberMaker(),
+                    new GenericTypeDefinitionMaker(),
+                    new ImplementationDefinitionMaker(),
+                    new MemberDefinitionMaker(),
+                    new MethodDefinitionMaker(),
+                    new ModuleDefinitionMaker(),
+                    new ObjectDefinitionMaker(),
+                    new ConstantBoolMaker(),
+                    new ConstantStringMaker(),
+                    new TypeDefinitionMaker(),
+                    new ImplicitMemberMaker(box),
+                    new MemberMaker(),
+                },
+                typeOperationMatchers, 
+                typeMakers);
         }
         
         //internal ElementMatchingContext Child(ScopeStack scope)
@@ -88,23 +97,65 @@ namespace Tac.Parser
                     new ConstantBoolMaker(),
                     new ConstantStringMaker(),
                     new MemberMaker(),
-                }){}
+                },
+                new IMaker<IPopulateScope<IFrontendType>>[] {
+                    new TypeOrOperationMaker()
+                },
+                new IMaker<IPopulateScope<IFrontendType>>[] {
+                    new Semantic_Model.TypeMaker()
+                }
+                ){}
         
         public ElementMatchingContext(
             IMaker<IPopulateScope<IFrontendCodeElement>>[] operationMatchers, 
-            IMaker<IPopulateScope<IFrontendCodeElement>>[] elementMakers)
+            IMaker<IPopulateScope<IFrontendCodeElement>>[] elementMakers,
+            IMaker<IPopulateScope<IFrontendType>>[] typeOperationMatchers,
+            IMaker<IPopulateScope<IFrontendType>>[] typeMakers
+            )
         {
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
             this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
+            this.typeOperationMatchers = typeOperationMatchers ?? throw new ArgumentNullException(nameof(typeOperationMatchers));
+            this.typeMakers = typeMakers ?? throw new ArgumentNullException(nameof(typeMakers));
         }
 
         private readonly IMaker<IPopulateScope<IFrontendCodeElement>>[] elementMakers;
         private readonly IMaker<IPopulateScope<IFrontendCodeElement>>[] operationMatchers;
+        private readonly IMaker<IPopulateScope<IFrontendType>>[] typeOperationMatchers;
+        private readonly IMaker<IPopulateScope<IFrontendType>>[] typeMakers;
 
         #region Parse
 
-        public IPopulateScope<IConvertableFrontendType<IVerifiableType>> ParseParenthesisOrElementType(IToken token) {
+        public IPopulateScope<IFrontendType> ParseParenthesisOrElementType(IToken token) {
+            if (token is ElementToken elementToken)
+            {
+                // smells
+                // why did i write this agian?
+                // why would an element be wrapped in parenthesis ?
+                // maybe I can just remove??
+                // maybe we have a parentthesis matcher?
+                if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken)
+                {
+                    return ParseTypeLine(parenthesisToken.Tokens);
+                }
 
+                foreach (var tryMatch in typeMakers)
+                {
+                    if (TokenMatching<IPopulateScope<IFrontendType>>.MakeStart(elementToken.Tokens, this)
+                        .Has(tryMatch, out var res)
+                        .Has(new DoneMaker())
+                        is IMatchedTokenMatching)
+                    {
+                        return res;
+                    }
+                }
+            }
+            else if (token is ParenthesisToken parenthesisToken)
+            {
+                return ParseTypeLine(parenthesisToken.Tokens);
+            }
+
+            throw new Exception("");
         }
 
         public IPopulateScope<IFrontendCodeElement> ParseParenthesisOrElement(IToken token)
@@ -160,9 +211,24 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<IConvertableFrontendType<IVerifiableType>> ParseTypeLine(IEnumerable<IToken> tokens)
+        public IPopulateScope<IFrontendType> ParseTypeLine(IEnumerable<IToken> tokens)
         {
+            foreach (var operationMatcher in typeOperationMatchers)
+            {
+                if (TokenMatching<IPopulateScope<ICodeElement>>.MakeStart(tokens.ToArray(), this)
+                        .Has(operationMatcher, out var res)
+                         is IMatchedTokenMatching)
+                {
+                    return res;
+                }
+            }
 
+            if (tokens.Count() == 1)
+            {
+                return ParseParenthesisOrElementType(tokens.Single());
+            }
+
+            throw new Exception("");
         }
 
         public IPopulateScope<IFrontendCodeElement>[] ParseFile(FileToken file)

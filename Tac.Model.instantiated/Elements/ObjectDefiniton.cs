@@ -40,7 +40,7 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-
+            return InterfaceType.CreateAndBuild(Scope.Members);
         }
     }
 

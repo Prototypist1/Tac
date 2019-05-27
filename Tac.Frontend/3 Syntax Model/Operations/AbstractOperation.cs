@@ -281,24 +281,26 @@ namespace Tac.Semantic_Model.CodeStuff
         }
         public static IPopulateBoxes<IWeakTypeReference> PopulateBoxes(IPopulateBoxes<IConvertableFrontendType<IVerifiableType>> resolveReferance1,
                 IPopulateBoxes<IConvertableFrontendType<IVerifiableType>> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IWeakTypeReference> make)
+                BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
+                DelegateBox<IIsPossibly<IFrontendType>> box)
         {
             return new BinaryResolveReferance(resolveReferance1,
                 resolveReferance2,
-                make);
+                make,
+                box);
         }
 
 
 
         private class BinaryPopulateScope : IPopulateScope<IWeakTypeReference>
         {
-            private readonly IPopulateScope<IConvertableFrontendType<IVerifiableType>> left;
-            private readonly IPopulateScope<IConvertableFrontendType<IVerifiableType>> right;
+            private readonly IPopulateScope<IFrontendType> left;
+            private readonly IPopulateScope<IFrontendType> right;
             private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
-            private readonly IBox<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>(new TypeType());
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
-            public BinaryPopulateScope(IPopulateScope<IConvertableFrontendType<IVerifiableType>> left,
-                IPopulateScope<IConvertableFrontendType<IVerifiableType>> right,
+            public BinaryPopulateScope(IPopulateScope<IFrontendType> left,
+                IPopulateScope<IFrontendType> right,
                 BinaryOperation.MakeBinaryType<IWeakTypeReference> make)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -332,24 +334,28 @@ namespace Tac.Semantic_Model.CodeStuff
                 return new BinaryResolveReferance(
                     left.Run(context),
                     rightres,
-                    make);
+                    make,
+                    box);
             }
         }
 
         private class BinaryResolveReferance : IPopulateBoxes<IWeakTypeReference>
         {
-            public readonly IPopulateBoxes<IConvertableFrontendType<IVerifiableType>> left;
-            public readonly IPopulateBoxes<IConvertableFrontendType<IVerifiableType>> right;
+            public readonly IPopulateBoxes<IFrontendType> left;
+            public readonly IPopulateBoxes<IFrontendType> right;
             private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
             public BinaryResolveReferance(
-                IPopulateBoxes<IConvertableFrontendType<IVerifiableType>> resolveReferance1,
-                IPopulateBoxes<IConvertableFrontendType<IVerifiableType>> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IWeakTypeReference> make)
+                IPopulateBoxes<IFrontendType> resolveReferance1,
+                IPopulateBoxes<IFrontendType> resolveReferance2,
+                BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
+                DelegateBox<IIsPossibly<IFrontendType>> box)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
 
@@ -358,6 +364,18 @@ namespace Tac.Semantic_Model.CodeStuff
                 var res = make(
                     left.Run(context),
                     right.Run(context));
+
+                box.Set(() => {
+                    if (res.IsDefinately(out var yes, out var no))
+                    {
+                        return yes.Value.Returns();
+                    }
+                    else
+                    {
+
+                        return Possibly.IsNot<IConvertableFrontendType<IVerifiableType>>(no);
+                    }
+                });
 
                 return res;
             }

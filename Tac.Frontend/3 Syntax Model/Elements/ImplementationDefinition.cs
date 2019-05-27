@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model
         public WeakImplementationDefinition(
             IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> contextDefinition,
             IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
-            IIsPossibly<WeakTypeReference> outputType, 
+            IIsPossibly<IWeakTypeReference> outputType, 
             IEnumerable<IIsPossibly<IFrontendCodeElement>> metohdBody,
             IResolvableScope scope, 
             IEnumerable<IFrontendCodeElement> staticInitializers)
@@ -49,7 +49,7 @@ namespace Tac.Semantic_Model
                 return ParameterDefinition.IfIs(x => x.GetValue()).IfIs(x => x.Type);
             }
         }
-        public IIsPossibly<WeakTypeReference> OutputType { get; }
+        public IIsPossibly<IWeakTypeReference> OutputType { get; }
         // are these really boxes
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ContextDefinition { get; }
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
@@ -86,7 +86,7 @@ namespace Tac.Semantic_Model
         
         public ITokenMatching<IPopulateScope<WeakImplementationDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            IPopulateScope<WeakTypeReference> context= null, input = null, output = null;
+            IPopulateScope<IWeakTypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -188,14 +188,14 @@ namespace Tac.Semantic_Model
             private readonly IPopulateScope<WeakMemberReference> contextDefinition;
             private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
             private readonly IPopulateScope<IFrontendCodeElement>[] elements;
-            private readonly IPopulateScope<WeakTypeReference> output;
+            private readonly IPopulateScope<IWeakTypeReference> output;
             private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
             public PopulateScopeImplementationDefinition(
                 IPopulateScope<WeakMemberReference> contextDefinition,
                 IPopulateScope<WeakMemberReference> parameterDefinition,
                 IPopulateScope<IFrontendCodeElement>[] elements,
-                IPopulateScope<WeakTypeReference> output)
+                IPopulateScope<IWeakTypeReference> output)
             {
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
                 this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -229,7 +229,7 @@ namespace Tac.Semantic_Model
             private readonly IPopulateBoxes<WeakMemberReference> parameterDefinition;
             private readonly IResolvableScope methodScope;
             private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
-            private readonly IPopulateBoxes<WeakTypeReference> output;
+            private readonly IPopulateBoxes<IWeakTypeReference> output;
             private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public ImplementationDefinitionResolveReferance(
@@ -237,7 +237,7 @@ namespace Tac.Semantic_Model
                 IPopulateBoxes<WeakMemberReference> parameterDefinition,
                 IResolvableScope methodScope,
                 IPopulateBoxes<IFrontendCodeElement>[] elements,
-                IPopulateBoxes<WeakTypeReference> output,
+                IPopulateBoxes<IWeakTypeReference> output,
                 Box<IIsPossibly<IFrontendType>> box)
             {
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));

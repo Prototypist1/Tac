@@ -83,7 +83,7 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition:  IWeakMemberDefinition
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<WeakTypeReference> type)
+        public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<IWeakTypeReference> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
@@ -144,7 +144,10 @@ namespace Tac.Semantic_Model
         }
 
 
-        public static IPopulateScope<WeakMemberReference> PopulateScope(string item, bool v, IPopulateScope<WeakTypeReference> typeToken)
+        public static IPopulateScope<WeakMemberReference> PopulateScope(
+            string item, 
+            bool v, 
+            IPopulateScope<IWeakTypeReference> typeToken)
         {
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
@@ -170,11 +173,11 @@ namespace Tac.Semantic_Model
         {
             private readonly string memberName;
             private readonly bool isReadonly;
-            private readonly IPopulateScope<WeakTypeReference> typeName;
+            private readonly IPopulateScope<IWeakTypeReference> typeName;
             private readonly Box<IIsPossibly<WeakMemberReference>> box = new Box<IIsPossibly<WeakMemberReference>>();
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox = new Box<IIsPossibly<WeakMemberDefinition>>();
 
-            public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<WeakTypeReference> typeToken)
+            public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<IWeakTypeReference> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;
@@ -202,7 +205,7 @@ namespace Tac.Semantic_Model
             private readonly string memberName;
             private readonly Box<IIsPossibly<WeakMemberReference>> box;
             private readonly bool isReadonly;
-            public readonly IPopulateBoxes<WeakTypeReference> type;
+            public readonly IPopulateBoxes<IWeakTypeReference> type;
             private readonly IResolvableScope scope;
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox;
 
@@ -210,7 +213,7 @@ namespace Tac.Semantic_Model
                 string memberName,
                 Box<IIsPossibly<WeakMemberReference>> box,
                 bool isReadonly,
-                IPopulateBoxes<WeakTypeReference> type,
+                IPopulateBoxes<IWeakTypeReference> type,
                 IResolvableScope scope,
                 Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
             {

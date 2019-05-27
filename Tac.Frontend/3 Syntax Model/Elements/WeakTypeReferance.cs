@@ -138,22 +138,22 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<IPopulateScope<WeakTypeReference>>
+    internal class TypeReferanceMaker : IMaker<IPopulateScope<IWeakTypeReference>>
     {
-        public ITokenMatching<IPopulateScope<WeakTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<IWeakTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new TypeMaker(), out var typeReferancePopulateScope);
             
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakTypeReference>>.MakeMatch(
+                return TokenMatching<IPopulateScope<IWeakTypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     typeReferancePopulateScope);
             }
 
-            return TokenMatching<IPopulateScope<WeakTypeReference>>.MakeNotMatch(matching.Context);
+            return TokenMatching<IPopulateScope<IWeakTypeReference>>.MakeNotMatch(matching.Context);
         }
 
 

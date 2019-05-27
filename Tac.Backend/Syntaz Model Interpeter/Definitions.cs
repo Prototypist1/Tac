@@ -168,7 +168,6 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-
         public IInterpetedOperation<IInterpetedAnyType> ElseOperation(IElseOperation co)
         {
             if (backing.TryGetValue(co, out var res))

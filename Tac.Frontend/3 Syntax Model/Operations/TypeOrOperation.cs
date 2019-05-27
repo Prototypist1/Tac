@@ -17,7 +17,6 @@ using Tac.Semantic_Model.CodeStuff;
 namespace Tac.Frontend._3_Syntax_Model.Operations
 {
 
-
     internal class TypeOrSymbols : ISymbols
     {
         public string Symbols => "|";
