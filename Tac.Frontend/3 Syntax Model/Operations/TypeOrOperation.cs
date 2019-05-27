@@ -24,9 +24,9 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
     }
 
 
-    internal class WeakTypeOrOperation : BinaryTypeOperation<IConvertableFrontendType<IVerifiableType>, IConvertableFrontendType<IVerifiableType>, ITypeOr>
+    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>
     {
-        public WeakTypeOrOperation(IIsPossibly<IConvertableFrontendType<IVerifiableType>> left, IIsPossibly<IConvertableFrontendType<IVerifiableType>> right) : base(left, right)
+        public WeakTypeOrOperation(IIsPossibly<IFrontendType> left, IIsPossibly<IFrontendType> right) : base(left, right)
         {
         }
 
@@ -36,8 +36,8 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
 
             var (res, builder) = TypeOr.Create();
             return new BuildIntention<ITypeOr>(res, () => builder.Build(
-                Left.GetOrThrow().Convert(context),
-                Right.GetOrThrow().Convert(context)
+                Left.GetOrThrow().ConvertOrThrow(context),
+                Right.GetOrThrow().ConvertOrThrow(context)
                 ));
         }
     }

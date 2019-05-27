@@ -23,7 +23,7 @@ namespace Tac.Semantic_Model
         public WeakMethodDefinition(
             IIsPossibly<IWeakTypeReference> outputType, 
             IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
-            IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[] body,
+            IIsPossibly<IFrontendCodeElement>[] body,
             IResolvableScope scope,
             IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers,
             bool isEntryPoint) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
@@ -48,8 +48,8 @@ namespace Tac.Semantic_Model
                     TransformerExtensions.Convert<ITypeReferance>(OutputType.GetOrThrow(),context),
                     ParameterDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context),
                     Scope.Convert(context),
-                    Body.Select(x=>x.GetOrThrow().Convert(context)).ToArray(),
-                    StaticInitailizers.Select(x=>x.GetOrThrow().Convert(context)).ToArray(),
+                    Body.Select(x=>x.GetOrThrow().ConvertOrThrow(context)).ToArray(),
+                    StaticInitailizers.Select(x=>x.GetOrThrow().ConvertOrThrow(context)).ToArray(),
                     IsEntryPoint);
             });
         }
@@ -180,14 +180,14 @@ namespace Tac.Semantic_Model
         private class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
         {
             private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
-            private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly IPopulateScope<IFrontendCodeElement>[] elements;
             private readonly IPopulateScope<WeakTypeReference> output;
             private readonly bool isEntryPoint;
             private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
             public MethodDefinitionPopulateScope(
                 IPopulateScope<WeakMemberReference> parameterDefinition,
-                IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
+                IPopulateScope<IFrontendCodeElement>[] elements,
                 IPopulateScope<WeakTypeReference> output,
                 bool isEntryPoint
                 )
@@ -221,7 +221,7 @@ namespace Tac.Semantic_Model
         {
             private readonly IPopulateBoxes<WeakMemberReference> parameter;
             private readonly IResolvableScope methodScope;
-            private readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] lines;
+            private readonly IPopulateBoxes<IFrontendCodeElement>[] lines;
             private readonly IPopulateBoxes<WeakTypeReference> output;
             private readonly Box<IIsPossibly<IFrontendType>> box;
             private readonly bool isEntryPoint;
@@ -229,7 +229,7 @@ namespace Tac.Semantic_Model
             public MethodDefinitionResolveReferance(
                 IPopulateBoxes<WeakMemberReference> parameter,
                 IResolvableScope methodScope,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance2,
+                IPopulateBoxes<IFrontendCodeElement>[] resolveReferance2,
                 IPopulateBoxes<WeakTypeReference> output,
                 Box<IIsPossibly<IFrontendType>> box,
                 bool isEntryPoint)

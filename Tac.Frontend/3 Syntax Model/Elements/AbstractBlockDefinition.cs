@@ -13,8 +13,8 @@ namespace Tac.Semantic_Model
     {
         protected WeakAbstractBlockDefinition(
             IResolvableScope scope,
-            IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[] body, 
-            IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitailizers){
+            IIsPossibly<IFrontendCodeElement>[] body, 
+            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Body = body ?? throw new ArgumentNullException(nameof(body));
             StaticInitailizers = staticInitailizers ?? throw new ArgumentNullException(nameof(staticInitailizers));
@@ -22,9 +22,8 @@ namespace Tac.Semantic_Model
 
 
         public IResolvableScope Scope { get; }
-        public IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[] Body { get; }
-        public IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> StaticInitailizers { get; }
-
+        public IIsPossibly<IFrontendCodeElement>[] Body { get; }
+        public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitailizers { get; }
         public abstract IBuildIntention<T> GetBuildIntention(ConversionContext context);
         public abstract IIsPossibly<IFrontendType> Returns();
     }

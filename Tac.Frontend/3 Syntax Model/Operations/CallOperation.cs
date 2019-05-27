@@ -90,13 +90,13 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal static class MemberUnwrapper{
-        public static T Unwrap<T>(this IConvertableFrontendCodeElement<ICodeElement> codeElement) where T: IConvertableFrontendType<IVerifiableType>
+        public static T Unwrap<T>(this IFrontendCodeElement codeElement) where T: IFrontendType
         {
             if (codeElement.Returns().Is< WeakMemberDefinition>(out var member) && 
                 member.Type.IsDefinately(out var yes, out var _) &&  
                 yes.Value.TypeDefinition.IsDefinately(out var yes2, out var _) &&
                 yes2.Value.GetValue().IsDefinately(out var yes3, out var _) &&
-                yes3.Is<T>(out var t)) {
+                yes3.Value.Is<T>(out var t)) {
                 return t;
             }
             return codeElement.Returns().Cast<T>();

@@ -97,10 +97,10 @@ namespace Tac.Semantic_Model
 
         private class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
         {
-            private readonly IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly IPopulateScope<IFrontendCodeElement>[] elements;
             private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
-            public ObjectDefinitionPopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements)
+            public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
@@ -126,13 +126,13 @@ namespace Tac.Semantic_Model
         private class ResolveReferanceObjectDefinition : IPopulateBoxes<WeakObjectDefinition>
         {
             private readonly IResolvableScope scope;
-            private readonly IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] elements;
+            private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
             private readonly Box<IIsPossibly<IFrontendType>> box;
             private readonly ImplicitKey key;
 
             public ResolveReferanceObjectDefinition(
                 IResolvableScope scope,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
+                IPopulateBoxes<IFrontendCodeElement>[] elements,
                 Box<IIsPossibly<IFrontendType>> box,
                 ImplicitKey key)
             {

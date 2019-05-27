@@ -63,8 +63,8 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
     internal abstract class BinaryTypeOperation<TLeft, TRight, TType> : IConvertableFrontendType<TType>
-        where TLeft : IConvertableFrontendType<IVerifiableType>
-        where TRight : IConvertableFrontendType<IVerifiableType>
+        where TLeft : IFrontendType
+        where TRight : IFrontendType
         where TType: IVerifiableType 
     { 
         public IIsPossibly<TLeft> Left { get; }

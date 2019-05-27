@@ -17,9 +17,9 @@ namespace Tac.Semantic_Model
     internal class WeakBlockDefinition : WeakAbstractBlockDefinition<IBlockDefinition>
     {
         public WeakBlockDefinition(
-            IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[] body,
+            IIsPossibly<IFrontendCodeElement>[] body,
             IResolvableScope scope,
-            IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitailizers) : 
+            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
 
         public override IBuildIntention<IBlockDefinition> GetBuildIntention(ConversionContext context)
@@ -29,8 +29,8 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     Scope.Convert(context),
-                    Body.Select(x => x.GetOrThrow().Convert(context)).ToArray(),
-                    StaticInitailizers.Select(x => x.GetOrThrow().Convert(context)).ToArray());
+                    Body.Select(x => x.GetOrThrow().ConvertOrThrow(context)).ToArray(),
+                    StaticInitailizers.Select(x => x.GetOrThrow().ConvertOrThrow(context)).ToArray());
             });
         }
 
@@ -56,7 +56,8 @@ namespace Tac.Semantic_Model
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
 
-                return TokenMatching<IPopulateScope<WeakBlockDefinition>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new BlockDefinitionPopulateScope(elements));
+                return TokenMatching<IPopulateScope<WeakBlockDefinition>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, 
+                    new BlockDefinitionPopulateScope(elements));
             }
 
             return TokenMatching<IPopulateScope<WeakBlockDefinition>>.MakeNotMatch(tokenMatching.Context);
@@ -77,9 +78,9 @@ namespace Tac.Semantic_Model
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] Elements { get; }
+            private IPopulateScope<IFrontendCodeElement>[] Elements { get; }
 
-            public BlockDefinitionPopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements)
+            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
@@ -102,11 +103,11 @@ namespace Tac.Semantic_Model
         private class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
         {
             private IResolvableScope Scope { get; }
-            private IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] ResolveReferance { get; }
+            private IPopulateBoxes<IFrontendCodeElement>[] ResolveReferance { get; }
 
             public ResolveReferanceBlockDefinition(
                 IResolvableScope scope,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance)
+                IPopulateBoxes<IFrontendCodeElement>[] resolveReferance)
             {
                 Scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 ResolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
@@ -123,7 +124,6 @@ namespace Tac.Semantic_Model
             }
 
         }
-
 
     }
 

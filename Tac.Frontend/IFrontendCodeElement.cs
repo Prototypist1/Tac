@@ -34,6 +34,20 @@ namespace Tac.Frontend
     {
     }
 
+
+    internal static class IFrontendTypeStatic
+    {
+
+        public static IVerifiableType ConvertOrThrow(this IFrontendType self, ConversionContext context)
+        {
+            if (self is IConvertableFrontendType<IVerifiableType> convertable)
+            {
+                return convertable.Convert(context);
+            }
+            throw new Exception("could not be converted");
+        }
+    }
+
     // TODO, some of these transform to specific types!
     internal interface IConvertableFrontendType<out T>: IFrontendType, IConvertable<T>
         where T: IVerifiableType
