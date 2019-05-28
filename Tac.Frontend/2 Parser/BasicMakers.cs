@@ -54,7 +54,7 @@ namespace Tac.Frontend._2_Parser
         }
     }
 
-    internal class TypeMaker : IMaker<NameKey>
+    internal class TypeNameMaker : IMaker<NameKey>
     {
         public ITokenMatching<NameKey> TryMake(IMatchedTokenMatching self)
         {
@@ -201,7 +201,7 @@ namespace Tac.Frontend._2_Parser
                     NameKey typeSource = null;
                     if (matcher
                         .HasElement(x=>x
-                        .Has(new TypeMaker(), out typeSource)
+                        .Has(new TypeNameMaker(), out typeSource)
                         .Has(new DoneMaker()))
                         .Has(new DoneMaker()) is IMatchedTokenMatching)
                     {

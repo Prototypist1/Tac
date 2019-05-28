@@ -35,7 +35,14 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = ModuleDefinition.Create();
             return new BuildIntention<IModuleDefinition>(toBuild, () =>
             {
-                maker.Build(Scope.Convert(context), StaticInitialization.Select(x=>x.GetOrThrow().ConvertOrThrow(context)).ToArray(),Key);
+                maker.Build(
+                    Scope.Convert(context), 
+                    StaticInitialization
+                        .Select(x=>x.GetOrThrow().PossiblyConvert(context))
+                        .OfType<IIsDefinately<ICodeElement>>()
+                        .Select(x=>x.Value)
+                        .ToArray(),
+                    Key);
             });
         }
 

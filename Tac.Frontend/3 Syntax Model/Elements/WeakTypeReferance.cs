@@ -143,14 +143,14 @@ namespace Tac.Semantic_Model
         public ITokenMatching<IPopulateScope<IWeakTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new TypeMaker(), out var typeReferancePopulateScope);
+                .Has(new TypeNameMaker(), out var name);
             
             if (matching is IMatchedTokenMatching matched)
             {
                 return TokenMatching<IPopulateScope<IWeakTypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
-                    typeReferancePopulateScope);
+                    new TypeReferancePopulateScope(name));
             }
 
             return TokenMatching<IPopulateScope<IWeakTypeReference>>.MakeNotMatch(matching.Context);

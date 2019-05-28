@@ -23,6 +23,16 @@ namespace Tac.Frontend
             }
             throw new Exception("could not be converted");
         }
+
+
+        public static IIsPossibly<ICodeElement> PossiblyConvert(this IFrontendCodeElement self, ConversionContext context)
+        {
+            if (self is IConvertableFrontendCodeElement<ICodeElement> convertable)
+            {
+                return Possibly.Is(convertable.Convert(context));
+            }
+            return Possibly.IsNot<ICodeElement>();
+        }
     }
 
     internal interface IConvertableFrontendCodeElement<out T>: IFrontendCodeElement, IConvertable<T> 
