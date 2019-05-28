@@ -216,7 +216,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
             public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
-            public OrType<IFrontendGenericType, IFrontendType> Overlay(TypeParameter[] typeParameters)
+            public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
             {
                 var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
 
@@ -224,10 +224,10 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                 var overlayedOutput = overlay.Convert(output);
 
                 if (overlayedInput is IConvertableFrontendType<IVerifiableType> convertableInput && overlayedOutput is IConvertableFrontendType<IVerifiableType> convertableOutput) {
-                    return new OrType<IFrontendGenericType, IFrontendType>(new MethodType(convertableInput, convertableOutput));
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new MethodType(convertableInput, convertableOutput));
                 }
 
-                return new OrType<IFrontendGenericType, IFrontendType>(new GenericMethodType(overlayedInput, overlayedOutput));
+                return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericMethodType(overlayedInput, overlayedOutput));
                 
             }
         }
@@ -255,7 +255,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
             public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
-            public OrType<IFrontendGenericType, IFrontendType> Overlay(TypeParameter[] typeParameters)
+            public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
             {
                 var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
 
@@ -264,10 +264,10 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                 var overlayedContext = overlay.Convert(context);
 
                 if (overlayedInput is IConvertableFrontendType<IVerifiableType> convertableInput && overlayedOut is IConvertableFrontendType<IVerifiableType> convertableOut && overlayedContext is IConvertableFrontendType<IVerifiableType> convertableContext) {
-                    return new OrType<IFrontendGenericType, IFrontendType>(new ImplementationType(convertableInput, convertableOut, convertableContext));
+                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new ImplementationType(convertableInput, convertableOut, convertableContext));
                 }
 
-                return new OrType<IFrontendGenericType, IFrontendType>(new GenericImplementationType(overlayedInput, overlayedOut, overlayedContext));
+                return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericImplementationType(overlayedInput, overlayedOut, overlayedContext));
 
             }
         }

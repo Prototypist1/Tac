@@ -74,7 +74,7 @@ namespace Tac.Tests
 
             var context = new ConversionContext();
 
-            var converted = result.Convert<IModuleDefinition>(context);
+            var converted = result.Convert(context);
             
             converted.ValueEqualOrThrow(target);
         }

@@ -16,20 +16,13 @@ namespace Tac.Tests.Samples
             var yKey = new NameKey("y");
             var y = MemberDefinition.CreateAndBuild(yKey, TypeReference.CreateAndBuild(new NumberType()), false);
 
-            var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(x ,false) },
-                new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>());
-            var innerMethodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(y ,false) },
-                new List<Scope.TypeData>(),
-                new List<Scope.GenericTypeData>(),
-                methodScope);
+            var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(x ,false) });
+            var innerMethodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(y ,false) }, methodScope);
 
             Module = ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
                     new List<Scope.IsStatic>() {
-                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) },
-                    new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>()),
+                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) }),
                 new[]{
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(

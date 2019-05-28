@@ -38,14 +38,15 @@ module mirror-module {
 
             var contextKey = new NameKey("context");
 
-            var context = MemberDefinition.CreateAndBuild(contextKey, TypeReference.CreateAndBuild(InterfaceType.CreateAndBuild(
-                Scope.CreateAndBuild(
-                    new List<Scope.IsStatic>() {
-                        new Scope.IsStatic(localX ,false),
-                        new Scope.IsStatic(localY ,false),
-                    },
-                    new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>()))),
+            var context = MemberDefinition.CreateAndBuild(
+                contextKey, 
+                TypeReference.CreateAndBuild(
+                    InterfaceType.CreateAndBuild(
+                        Scope.CreateAndBuild(
+                            new List<Scope.IsStatic>() {
+                                new Scope.IsStatic(localX ,false),
+                                new Scope.IsStatic(localY ,false),
+                            }).Members)),
                 false); ;
 
             var inputKey = new NameKey("input");
@@ -57,17 +58,13 @@ module mirror-module {
             var implementationScope = Scope.CreateAndBuild(
                 new List<Scope.IsStatic> {
                     new Scope.IsStatic( input ,false),
-                    new Scope.IsStatic(temp ,false) },
-                    new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>());
+                    new Scope.IsStatic(temp ,false) });
 
 
             Module = ModuleDefinition.CreateAndBuild(
                  Scope.CreateAndBuild(
                     new List<Scope.IsStatic>() {
-                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) },
-                    new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>()),
+                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) }),
                 new[] {
                     AssignOperation.CreateAndBuild(
                     ImplementationDefinition.CreateAndBuild(

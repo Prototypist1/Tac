@@ -12,12 +12,8 @@ namespace Tac.Tests.Samples
     public class Factorial : ITestCase
     {
         public Factorial() {
-            var ifBlockScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { },
-                new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>());
-            var elseBlock = Scope.CreateAndBuild(new List<Scope.IsStatic> { },
-                new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>());
+            var ifBlockScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { });
+            var elseBlock = Scope.CreateAndBuild(new List<Scope.IsStatic> { });
 
             var inputKey = new NameKey("input");
             var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new NumberType()), false);
@@ -26,20 +22,14 @@ namespace Tac.Tests.Samples
             var fac = MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false);
 
 
-            var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(input ,false) },
-                new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>());
+            var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(input ,false) });
 
-            var rootScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(fac, false) },
-                new List<Scope.TypeData>(),
-                    new List<Scope.GenericTypeData>());
+            var rootScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(fac, false) });
 
             Module =
                 ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
-                        new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false), false) },
-                        new List<Scope.TypeData>(),
-                        new List<Scope.GenericTypeData>()),
+                        new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false), false) }),
                     new ICodeElement[]{
                         AssignOperation.CreateAndBuild(
                                 MethodDefinition.CreateAndBuild(
