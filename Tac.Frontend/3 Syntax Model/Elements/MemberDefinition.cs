@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model
         
     }
 
-    // tac-ian 
+    // very tac-ian 
     internal static class MemberDefinitionShared {
 
         public static IMemberDefinition Convert(IIsPossibly<IWeakTypeReference> Type,TransformerExtensions.ConversionContext context, bool ReadOnly, IKey Key)

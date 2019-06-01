@@ -121,6 +121,13 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
+        public static ITypeOr CreateAndBuild(IVerifiableType left, IVerifiableType right)
+        {
+            var res = new TypeOr();
+            res.Build(left, right);
+            return res;
+        }
+
 
         public void Build(IVerifiableType left, IVerifiableType right)
         {

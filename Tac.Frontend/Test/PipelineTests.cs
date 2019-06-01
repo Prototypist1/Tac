@@ -86,6 +86,12 @@ namespace Tac.Tests
         }
 
         [Fact]
+        public void Text_Token_Or()
+        {
+            Text_Token(new WrappedOr());
+        }
+
+        [Fact]
         public void Text_Token_Arithmetic()
         {
             Text_Token(new WrappedArithmetic());
