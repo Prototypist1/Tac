@@ -56,7 +56,6 @@ namespace Tac.Semantic_Model
 
     internal interface IPopulatableResolvableScope : IPopulatableScope, IResolvableScope
     {
-
     }
 
     internal class NewScope : IPopulatableResolvableScope
@@ -190,7 +189,7 @@ namespace Tac.Semantic_Model
                         .Single()
                         .Assign(out var single).GetOrThrow()
                         .Overlay(single.GetOrThrow().TypeParameterDefinitions.Zip(typesBoxes, (x, y) => new TypeParameter(x.GetOrThrow(), y.GetValue().GetOrThrow())).ToArray());
-                    if (overlayed.Is(out IFrontendType frontendType)) {
+                    if (overlayed.Is(out IConvertableFrontendType<IVerifiableType> frontendType)) {
                         return Possibly.Is(frontendType);
                     }
                     if (overlayed.Is(out IFrontendGenericType frontendGeneric))

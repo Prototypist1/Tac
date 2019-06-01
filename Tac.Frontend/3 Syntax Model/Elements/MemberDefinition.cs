@@ -30,9 +30,41 @@ namespace Tac.Semantic_Model
         public bool ReadOnly => backing.ReadOnly;
         public IKey Key=> backing.Key;
 
-        public IMemberDefinition Convert(TransformerExtensions.ConversionContext context) => backing.Convert(context);
-        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) => backing.GetBuildIntention(context);
+        public IMemberDefinition Convert(TransformerExtensions.ConversionContext context)
+        {
+            return MemberDefinitionShared.Convert(Type,context, ReadOnly,Key);
+        }
+
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) {
+            return MemberDefinitionShared.GetBuildIntention(Type, context, ReadOnly, Key);
+        }
         
+    }
+
+    // tac-ian 
+    internal static class MemberDefinitionShared {
+
+        public static IMemberDefinition Convert(IIsPossibly<IWeakTypeReference> Type,TransformerExtensions.ConversionContext context, bool ReadOnly, IKey Key)
+        {
+            var (def, builder) = MemberDefinition.Create();
+
+            var buildIntention = Type.GetOrThrow().Cast<IConvertable<ITypeReferance>>().GetBuildIntention(context);
+            buildIntention.Build();
+            builder.Build(Key, buildIntention.Tobuild, ReadOnly);
+            return def;
+        }
+        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IIsPossibly<IWeakTypeReference> Type, TransformerExtensions.ConversionContext context, bool ReadOnly, IKey Key)
+        {
+            var (toBuild, maker) = MemberDefinition.Create();
+            return new BuildIntention<IMemberDefinition>(toBuild, () =>
+            {
+                maker.Build(
+                    Key,
+                    TransformerExtensions.Convert<ITypeReferance>(Type.GetOrThrow(), context),
+                    ReadOnly);
+            });
+        }
+
     }
 
     internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>, IFrontendType
@@ -60,26 +92,14 @@ namespace Tac.Semantic_Model
         public bool ReadOnly { get; }
         public IKey Key { get; }
 
-        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
-        {
-            var (toBuild, maker) = MemberDefinition.Create();
-            return new BuildIntention<IMemberDefinition>(toBuild, () =>
-            {
-                maker.Build(
-                    Key,
-                    TransformerExtensions.Convert<ITypeReferance>(Type.GetOrThrow(),context),
-                    ReadOnly);
-            });
-        }
-
         public IMemberDefinition Convert(TransformerExtensions.ConversionContext context)
         {
-            var (def,builder) = MemberDefinition.Create();
+            return MemberDefinitionShared.Convert(Type, context, ReadOnly, Key);
+        }
 
-            var buildIntention = Type.GetOrThrow().Cast<IConvertable<ITypeReferance>>().GetBuildIntention(context);
-            buildIntention.Build();
-            builder.Build(Key, buildIntention.Tobuild, ReadOnly);
-            return def; 
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        {
+            return MemberDefinitionShared.GetBuildIntention(Type, context, ReadOnly, Key);
         }
 
     }

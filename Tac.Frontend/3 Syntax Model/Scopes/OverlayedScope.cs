@@ -1,5 +1,7 @@
 ﻿using Prototypist.LeftToRight;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -17,9 +19,23 @@ namespace Tac.Semantic_Model
             this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
         }
 
+        public IEnumerable<IKey> MemberKeys => inner.MemberKeys;
+
         public IBuildIntention<IFinalizedScope> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            return inner.GetBuildIntention(context);
+            var (toBuild, maker) = Model.Instantiated.Scope.Create();
+            return new BuildIntention<IFinalizedScope>(toBuild, () =>
+            {
+                maker.Build(inner.MemberKeys.Select(key => 
+                {
+                    if (TryGetMember(key, false, out var member)) {
+                        return new Tac.Model.Instantiated.Scope.IsStatic(member.GetValue().GetOrThrow().Convert(context), false);
+                    }
+                    else {
+                        throw new Exception("bug");
+                    }
+                }).ToArray());
+            });
         }
 
         public bool TryGetMember(IKey name, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> box)
