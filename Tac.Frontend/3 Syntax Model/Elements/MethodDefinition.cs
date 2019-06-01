@@ -74,22 +74,10 @@ namespace Tac.Semantic_Model
                     .Has(new KeyWordMaker("method"), out var _)
                     .HasSquare(x => x
                         .HasLine(y => y
-                            .HasElement(z => z
-                                .HasOne(
-                                    w => w.Has(new TypeReferanceMaker(), out var _)
-                                        .Has(new DoneMaker()),
-                                    w => w.Has(new TypeDefinitionMaker(), out var _)
-                                        .Has(new DoneMaker()),
-                                    out input))
-                             .Has(new DoneMaker()))
+                            .HasElement(z => z.Has(new TypeMaker(), out input))
+                            .Has(new DoneMaker()))
                         .HasLine(y => y
-                            .HasElement(z => z
-                                .HasOne(
-                                    w => w.Has(new TypeReferanceMaker(), out var _)
-                                        .Has(new DoneMaker()),
-                                    w => w.Has(new TypeDefinitionMaker(), out var _)
-                                        .Has(new DoneMaker()),
-                                    out output))
+                            .HasElement(z => z.Has(new TypeMaker(), out output))
                             .Has(new DoneMaker()))
                         .Has(new DoneMaker()))
                     .OptionalHas(new NameMaker(), out var parameterName)

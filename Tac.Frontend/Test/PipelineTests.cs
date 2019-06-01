@@ -56,6 +56,12 @@ namespace Tac.Tests
             Toke_CodeElements(new WrappedPairType());
         }
 
+        [Fact]
+        public void Token_CodeElements_Token_Or()
+        {
+            Toke_CodeElements(new WrappedOr());
+        }
+
         private static void Toke_CodeElements(IWrappedTestCase sample) { 
 
             var elementMatchingContest = new ElementMatchingContext();
