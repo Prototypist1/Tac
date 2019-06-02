@@ -440,7 +440,7 @@ meta {}                                     ?   Meta -- what is a meta??
 >=?                                         ?   greater than or eqaul
 =?                                              eqaul
 if                                              if
-if-null ??                                      null check
+if-empty ??                                     empty check
 else                                            else
                                             ?   for
 while                                       ?   while
@@ -499,3 +499,30 @@ the metaphone is a method call
 generic types are "build time" methods that take some number of parameters a create a type 
 
 is it even like a method call? methods take one parameter
+
+==================== do OR type require ()??
+
+method [(bool | int ), (bool | int)] { ... }
+
+
+method [bool | int , bool | int] x { ... } 
+
+I can certainly read that... 
+
+man do I hate parsing. 
+
+6 =: bool | int x 
+
+the parser is going to have a hard time with the above 
+
+maybe if it knows | is an operation internal to an element??
+
+ele(6) =: ele(bool,|,int,x)
+
+I think from there I could figure out ele(bool,|,int,x) was a member. it ends with a names and then we look at the rest to see if it is a type
+
+...
+
+maybe I need another step where I parse in to a more reasonible represnetation. it could group type operations. and tree operations properally. 
+think about it project for later I think 
+

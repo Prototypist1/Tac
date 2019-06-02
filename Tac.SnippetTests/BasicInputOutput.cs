@@ -40,24 +40,21 @@ namespace Tac.SnippetTests
                        .AddMethod(
                            new NameKey("read-number"),
                            (IInterpedEmpty x) => new BoxedDouble(numberSource()), 
-                           TypeReference.CreateAndBuild( 
-                               MethodType.CreateAndBuild(
+                           MethodType.CreateAndBuild(
                                    new EmptyType(), 
-                                   new NumberType())))
+                                   new NumberType()))
                        .AddMethod(
                            new NameKey("read-string"),
                            (IInterpedEmpty x) => new BoxedString(stringSource()),
-                           TypeReference.CreateAndBuild(
-                               MethodType.CreateAndBuild(
+                           MethodType.CreateAndBuild(
                                    new EmptyType(),
-                                   new StringType())))
+                                   new StringType()))
                        .AddMethod(
                            new NameKey("read-bool"),
                            (IInterpedEmpty x) => new BoxedBool(boolSource()),
-                           TypeReference.CreateAndBuild(
-                               MethodType.CreateAndBuild(
+                           MethodType.CreateAndBuild(
                                    new EmptyType(),
-                                   new BooleanType())))
+                                   new BooleanType()))
                        .Build();
         }
 
@@ -67,24 +64,21 @@ namespace Tac.SnippetTests
                        .AddMethod(
                            new NameKey("write-number"),
                            (BoxedDouble x) => { numberDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
-                           TypeReference.CreateAndBuild(
-                               MethodType.CreateAndBuild(
+                           MethodType.CreateAndBuild(
                                    new NumberType(),
-                                   new EmptyType())))
+                                   new EmptyType()))
                        .AddMethod(
                            new NameKey("write-string"),
                            (BoxedString x) => { stringDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
-                           TypeReference.CreateAndBuild(
-                               MethodType.CreateAndBuild(
+                           MethodType.CreateAndBuild(
                                    new StringType(),
-                                   new EmptyType())))
+                                   new EmptyType()))
                        .AddMethod(
                            new NameKey("write-bool"),
                            (BoxedBool x) => { boolDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
-                           TypeReference.CreateAndBuild(
-                               MethodType.CreateAndBuild(
+                           MethodType.CreateAndBuild(
                                    new BooleanType(),
-                                   new EmptyType())))
+                                   new EmptyType()))
                        .Build();
         }
     }

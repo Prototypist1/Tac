@@ -28,7 +28,7 @@ namespace Tac.Backend.Public
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public AssemblyBuilder AddMethod<TIn,TOut>(IKey key, Func<TIn,TOut> func, ITypeReferance typeReferance)
+        public AssemblyBuilder AddMethod<TIn,TOut>(IKey key, Func<TIn,TOut> func, IVerifiableType type)
             where TIn: IInterpetedAnyType
             where TOut : IInterpetedAnyType
         {
@@ -37,7 +37,7 @@ namespace Tac.Backend.Public
             var method = new InterpetedExternalMethodDefinition<TIn,TOut>();
             method.Init(func);
             memberValues.Add(key, method);
-            members.Add(new IsStatic(MemberDefinition.CreateAndBuild(key, typeReferance, true),false));
+            members.Add(new IsStatic(MemberDefinition.CreateAndBuild(key, type, true),false));
             return this;
         }
 
@@ -92,10 +92,7 @@ namespace Tac.Backend.Public
         public IAssembly<InterpetedAssemblyBacking> Build() {
             var scope = new Scope();
 
-            scope.Build(
-                members, 
-                new List<TypeData>() { },
-                new List<GenericTypeData>() { });
+            scope.Build(members);
 
             return new Assembly(
                 key,

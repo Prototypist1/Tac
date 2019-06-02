@@ -29,7 +29,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> MemberDefinition(IMemberDefinition member)
         {
-            var method = GetMethod(new Type[] { TypeMap.MapType(member.Type.VerifiableType) }, nameof(MemberDefinition));
+            var method = GetMethod(new Type[] { TypeMap.MapType(member.Type) }, nameof(MemberDefinition));
             return method.Invoke(this, new object[] { member }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -185,21 +185,6 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<IInterpetedAnyType> GenericTypeDefinition(IGenericInterfaceDefinition codeElement)
-        {
-            if (backing.TryGetValue(codeElement, out var res))
-            {
-                return res;
-            }
-            else
-            {
-                var op = new InterpetedGenericTypeDefinition();
-                backing.Add(codeElement, op);
-                op.Init();
-                return op;
-            }
-        }
-
         public IInterpetedOperation<IInterpetedAnyType> IfTrueOperation(IIfOperation co)
         {
             if (backing.TryGetValue(co, out var res))
@@ -219,7 +204,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition(IImplementationDefinition codeElement)
         {
-            var method = GetMethod(new Type[] { TypeMap.MapType(codeElement.ContextType), TypeMap.MapType(codeElement.InputType), TypeMap.MapType(codeElement.OutputType) }, nameof(ImplementationDefinition));
+            var method = GetMethod(new Type[] { TypeMap.MapType(codeElement.ContextDefinition.Type), TypeMap.MapType(codeElement.ParameterDefinition.Type), TypeMap.MapType(codeElement.OutputType) }, nameof(ImplementationDefinition));
             return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
@@ -506,21 +491,6 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
-        public IInterpetedOperation<IInterpetedAnyType> TypeReferance(ITypeReferance codeElement)
-        {
-            if (backing.TryGetValue(codeElement, out var res))
-            {
-                return res;
-            }
-            else
-            {
-                var op = new InterpetedTypeReferance();
-                backing.Add(codeElement, op);
-                op.Init(codeElement.VerifiableType);
-                return op;
-            }
-        }
-
         #region Help
 
         // you are here
@@ -586,10 +556,6 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                     MapType(method.OutputType)
                     );
             }
-            if (verifiableType is IGenericMethodType)
-            {
-                throw new NotImplementedException();
-            }
             if (verifiableType is IImplementationType implementation)
             {
                 return typeof(IInterpetedImplementation<,,>).MakeGenericType(
@@ -598,23 +564,10 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                     MapType(implementation.OutputType)
                     );
             }
-            if (verifiableType is IGenericImplementationType)
-            {
-                throw new NotImplementedException();
-            }
             if (verifiableType is IMemberReferance memberReferance)
             {
-                return MapType(memberReferance.MemberDefinition.Type.VerifiableType);
+                return MapType(memberReferance.MemberDefinition.Type);
             }
-            if (verifiableType is ITypeReferance typeReferance)
-            {
-                return MapType(typeReferance.VerifiableType);
-            }
-            if (verifiableType is IGenericInterfaceDefinition)
-            {
-                return typeof(RunTimeType);
-            }
-
             throw new NotImplementedException();
         }
 
