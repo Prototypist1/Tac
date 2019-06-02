@@ -22,7 +22,6 @@ namespace Tac.Model
     {
         T BlockDefinition(IBlockDefinition codeElement);
         T AssignOperation(IAssignOperation co);
-        T TypeReferance(ITypeReferance weakTypeReferance);
         T ConstantNumber(IConstantNumber codeElement);
         T PathOperation(IPathOperation co);
         //T GenericTypeDefinition(IGenericInterfaceDefinition codeElement);

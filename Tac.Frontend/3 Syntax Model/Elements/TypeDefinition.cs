@@ -18,12 +18,15 @@ namespace Tac.Semantic_Model
     internal class OverlayTypeDefinition : IWeakTypeDefinition
     {
         private readonly IWeakTypeDefinition backing;
-        private readonly Overlay overlay;
 
         public OverlayTypeDefinition(IWeakTypeDefinition backing, Overlay overlay)
         {
+            if (overlay == null)
+            {
+                throw new ArgumentNullException(nameof(overlay));
+            }
+
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-            this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
             Scope = new OverlayedScope(backing.Scope,overlay);
         }
         public IIsPossibly<IKey> Key => backing.Key;

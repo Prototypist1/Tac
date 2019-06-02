@@ -68,12 +68,12 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    TransformerExtensions.Convert<ITypeReferance>(OutputType.GetOrThrow(),context),
+                    TransformerExtensions.Convert<IVerifiableType>(OutputType.GetOrThrow(),context),
                     ContextDefinition.IfIs(x=>x.GetValue()).GetOrThrow().Convert(context),
                     ParameterDefinition.IfIs(x => x.GetValue()).GetOrThrow().Convert(context),
                     Scope.Convert(context),
-                    MethodBody.Select(x => x.GetOrThrow().ConvertOrThrow(context)).ToArray(),
-                    StaticInitialzers.Select(x => x.ConvertOrThrow(context)).ToArray());
+                    MethodBody.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
+                    StaticInitialzers.Select(x => x.ConvertElementOrThrow(context)).ToArray());
             });
         }
     }
@@ -101,9 +101,9 @@ namespace Tac.Semantic_Model
                         .HasElement(z => z.Has(new TypeMaker(), out output))
                         .Has(new DoneMaker()))
                     .Has(new DoneMaker()))
-                .OptionalHas(new NameMaker(), out AtomicToken contextName)
-                .OptionalHas(new NameMaker(), out AtomicToken parameterName)
-                .Has(new BodyMaker(), out CurleyBracketToken body);
+                .OptionalHas(new NameMaker(), out var contextName)
+                .OptionalHas(new NameMaker(), out var parameterName)
+                .Has(new BodyMaker(), out var body);
             if (match is IMatchedTokenMatching matched)
             {
                 var elements = tokenMatching.Context.ParseBlock(body);

@@ -89,9 +89,9 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                 return HashCode.Combine(Key);
             }
 
-            public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext _)
             {
-                var (res, maker) = Tac.Model.Instantiated.GemericTypeParameterPlacholder.Create();
+                var (res, maker) = Model.Instantiated.GemericTypeParameterPlacholder.Create();
 
                 // this is stack allocated and might be GC'ed so we need to create locals
                 // to feed to the lambda
@@ -109,7 +109,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         {
             public IBuildIntention<IAnyType> GetBuildIntention(TransformerExtensions.ConversionContext context)
             {
-                return new BuildIntention<IAnyType>(new Tac.Model.Instantiated.AnyType(), () => { });
+                return new BuildIntention<IAnyType>(new Model.Instantiated.AnyType(), () => { });
             }
         }
 

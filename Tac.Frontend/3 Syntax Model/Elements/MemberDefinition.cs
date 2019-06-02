@@ -17,12 +17,15 @@ namespace Tac.Semantic_Model
     internal class OverlayMemberDefinition: IWeakMemberDefinition
     {
         private readonly IWeakMemberDefinition backing;
-        private readonly Overlay overlay;
 
         public OverlayMemberDefinition(IWeakMemberDefinition backing, Overlay overlay)
         {
+            if (overlay == null)
+            {
+                throw new ArgumentNullException(nameof(overlay));
+            }
+
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-            this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
             this.Type = backing.Type.IfIs(x => Possibly.Is(new OverlayTypeReference(x,overlay)));
         }
 
@@ -48,7 +51,7 @@ namespace Tac.Semantic_Model
         {
             var (def, builder) = MemberDefinition.Create();
 
-            var buildIntention = Type.GetOrThrow().Cast<IConvertable<ITypeReferance>>().GetBuildIntention(context);
+            var buildIntention = Type.GetOrThrow().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().Cast<IConvertable<IVerifiableType>>().GetBuildIntention(context);
             buildIntention.Build();
             builder.Build(Key, buildIntention.Tobuild, ReadOnly);
             return def;
@@ -60,7 +63,7 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     Key,
-                    TransformerExtensions.Convert<ITypeReferance>(Type.GetOrThrow(), context),
+                    Type.GetOrThrow().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().ConvertTypeOrThrow(context),
                     ReadOnly);
             });
         }
@@ -135,12 +138,12 @@ namespace Tac.Semantic_Model
         {
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
+
         public static IPopulateBoxes<WeakMemberReference> PopulateBoxes(
                 string memberName,
                 Box<IIsPossibly<WeakMemberReference>> box,
                 bool isReadonly,
                 IPopulateBoxes<WeakTypeReference> type,
-                IResolvableScope scope,
                 Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
         {
             return new MemberDefinitionResolveReferance(
@@ -148,7 +151,6 @@ namespace Tac.Semantic_Model
                 box,
                 isReadonly,
                 type,
-                scope,
                 memberDefinitionBox);
         }
 
@@ -175,7 +177,12 @@ namespace Tac.Semantic_Model
                 {
                     throw new Exception("bad bad bad!");
                 }
-                return new MemberDefinitionResolveReferance(memberName, box, isReadonly, typeName.Run(context), context.GetResolvableScope(), memberDefinitionBox);
+                return new MemberDefinitionResolveReferance(
+                    memberName, 
+                    box, 
+                    isReadonly, 
+                    typeName.Run(context), 
+                    memberDefinitionBox);
             }
 
             public IBox<IIsPossibly<IFrontendType>> GetReturnType()
@@ -190,7 +197,6 @@ namespace Tac.Semantic_Model
             private readonly Box<IIsPossibly<WeakMemberReference>> box;
             private readonly bool isReadonly;
             public readonly IPopulateBoxes<IWeakTypeReference> type;
-            private readonly IResolvableScope scope;
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox;
 
             public MemberDefinitionResolveReferance(
@@ -198,14 +204,12 @@ namespace Tac.Semantic_Model
                 Box<IIsPossibly<WeakMemberReference>> box,
                 bool isReadonly,
                 IPopulateBoxes<IWeakTypeReference> type,
-                IResolvableScope scope,
                 Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
             {
                 this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
                 this.isReadonly = isReadonly;
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
             }
 

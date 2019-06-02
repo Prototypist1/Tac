@@ -6,9 +6,9 @@ namespace Tac.Frontend
 {
     public static class Possibly {
 
-        private class _Is<T> : IIsDefinately<T>
+        private class PrivateIs<T> : IIsDefinately<T>
         {
-            public _Is(T value)
+            public PrivateIs(T value)
             {
                 Value = value;
             }
@@ -16,9 +16,9 @@ namespace Tac.Frontend
             public T Value {get;}
         }
 
-        private class _IsNot<T> : IIsDefinatelyNot<T>
+        private class PrivateIsNot<T> : IIsDefinatelyNot<T>
         {
-            public _IsNot(IReadOnlyList<IIsDefinatelyNot> reasons)
+            public PrivateIsNot(IReadOnlyList<IIsDefinatelyNot> reasons)
             {
                 Reasons = reasons ?? throw new ArgumentNullException(nameof(reasons));
             }
@@ -27,13 +27,13 @@ namespace Tac.Frontend
         }
 
         public static IIsDefinately<T> Is<T>(T t) {
-            return new _Is<T>(t);
+            return new PrivateIs<T>(t);
         }
 
 
         public static IIsDefinatelyNot<T> IsNot<T>(params IIsDefinatelyNot[] nots)
         {
-            return new _IsNot<T>(nots);
+            return new PrivateIsNot<T>(nots);
         }
 
     }

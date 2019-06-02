@@ -136,8 +136,10 @@ namespace Tac.Tests
 
             var target = sample.Token;
 
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
             var targetJson = JsonConvert.SerializeObject(target);
             var resJson = JsonConvert.SerializeObject(res);
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
 
             Assert.Equal(target.ToString(), res.ToString());
         }

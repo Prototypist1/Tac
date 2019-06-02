@@ -76,7 +76,7 @@ namespace Tac.Frontend
                             Possibly.Is(
                                 new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
                                     Possibly.Is(
-                                        TypeMap.MapType(member.Type.VerifiableType)))))));
+                                        TypeMap.MapType(member.Type)))))));
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition;
             }

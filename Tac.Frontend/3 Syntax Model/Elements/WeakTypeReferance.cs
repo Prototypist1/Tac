@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
 
-        public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
         }
@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal interface IWeakTypeReference : IConvertable<ITypeReferance>, IFrontendType, IFrontendCodeElement
+    internal interface IWeakTypeReference : IConvertableFrontendType<IVerifiableType>, IFrontendCodeElement
     {
         IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
     }
@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
 
-        public IBuildIntention<ITypeReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
             return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
         }
@@ -74,22 +74,18 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal static class TypeReferenceStatic{
-        public static IBuildIntention<ITypeReferance> GetBuildIntention(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition, TransformerExtensions.ConversionContext context)
+    internal static class TypeReferenceStatic
+    {
+        public static IBuildIntention<IVerifiableType> GetBuildIntention(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition, TransformerExtensions.ConversionContext context)
         {
-            var (toBuild, maker) = TypeReference.Create();
-            return new BuildIntention<ITypeReferance>(toBuild, () =>
+            if (TypeDefinition.GetOrThrow().GetValue().GetOrThrow() is IConvertableFrontendType<IVerifiableType> convertableType)
             {
-                var type = TypeDefinition.GetOrThrow().GetValue().GetOrThrow();
-
-                if (type is IConvertableFrontendType<IVerifiableType> convertableType)
-                {
-                    maker.Build(convertableType.Convert(context));
-                }
-                else {
-                    throw new Exception("can not be built, type is not convertable");
-                }
-            });
+                return convertableType.GetBuildIntention(context);
+            }
+            else
+            {
+                throw new Exception("can not be built, type is not convertable");
+            }
         }
     }
 
@@ -100,10 +96,11 @@ namespace Tac.Semantic_Model
 
             var matching = tokenMatching
                 .Has(new NameMaker(), out var typeName);
-            
+
             var list = new List<IKey>();
             var genericMatachig = matching
-                .HasSquare(x => {
+                .HasSquare(x =>
+                {
                     while (true)
                     {
                         // colin, why! w x y z
@@ -114,7 +111,8 @@ namespace Tac.Semantic_Model
                         {
                             x = w;
                             list.Add(item);
-                            if (w.Tokens.Any().Not()) {
+                            if (w.Tokens.Any().Not())
+                            {
                                 return w;
                             }
                         }
@@ -127,10 +125,11 @@ namespace Tac.Semantic_Model
 
             if (genericMatachig is IMatchedTokenMatching genericMatched)
             {
-                return TokenMatching<IKey>.MakeMatch(genericMatched.Tokens,genericMatched.Context, new GenericNameKey(new NameKey(typeName.Item),list.ToArray()));
+                return TokenMatching<IKey>.MakeMatch(genericMatched.Tokens, genericMatched.Context, new GenericNameKey(new NameKey(typeName.Item), list.ToArray()));
             }
 
-            if (matching is IMatchedTokenMatching matched) {
+            if (matching is IMatchedTokenMatching matched)
+            {
                 return TokenMatching<IKey>.MakeMatch(matched.Tokens, matched.Context, new NameKey(typeName.Item));
             }
 
@@ -144,7 +143,7 @@ namespace Tac.Semantic_Model
         {
             var matching = tokenMatching
                 .Has(new TypeNameMaker(), out var name);
-            
+
             if (matching is IMatchedTokenMatching matched)
             {
                 return TokenMatching<IPopulateScope<IWeakTypeReference>>.MakeMatch(

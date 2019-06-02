@@ -12,7 +12,7 @@ namespace Tac.Tests.Samples
 
         public IModuleDefinition Module => ModuleDefinition.CreateAndBuild(
              Scope.CreateAndBuild(
-                new List<Scope.IsStatic> { new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(new AnyType()), false) ,false)}),
+                new List<Scope.IsStatic> { new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false) ,false)}),
             new[] {
                 AssignOperation.CreateAndBuild(
                     MultiplyOperation.CreateAndBuild(
@@ -22,7 +22,7 @@ namespace Tac.Tests.Samples
                         AddOperation.CreateAndBuild(
                             ConstantNumber.CreateAndBuild(2),
                             ConstantNumber.CreateAndBuild(7))),
-                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),TypeReference.CreateAndBuild(new AnyType()), false)))},
+                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false)))},
             new NameKey("math-module"));
             
     }

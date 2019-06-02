@@ -399,7 +399,7 @@ namespace Tac.Parser
             Func<ITokenMatching, ITokenMatching<T>> second,
             out T res)
         {
-            if (!(self is IMatchedTokenMatching matchedTokenMatching))
+            if (!(self is IMatchedTokenMatching))
             {
                 res = default;
                 return TokenMatching<T>.MakeNotMatch(self.Context);
@@ -471,7 +471,7 @@ namespace Tac.Parser
 
             if (matchedTokenMatching.Tokens.First() is LineToken line)
             {
-                if (inner(TokenMatching<object>.MakeStart(line.Tokens, self.Context)) is IMatchedTokenMatching matched)
+                if (inner(TokenMatching<object>.MakeStart(line.Tokens, self.Context)) is IMatchedTokenMatching)
                 {
                     return TokenMatching<object>.MakeStart(matchedTokenMatching.Tokens.Skip(1).ToArray(), self.Context);
                 };
@@ -524,7 +524,7 @@ namespace Tac.Parser
 
         public static ITokenMatching Has(this ITokenMatching self, IMaker pattern)
         {
-            if (!(self is IMatchedTokenMatching matchedTokenMatching))
+            if (!(self is IMatchedTokenMatching))
             {
                 return self;
             }
@@ -556,7 +556,7 @@ namespace Tac.Parser
 
         public static ITokenMatching OptionalHas(this ITokenMatching self, IMaker pattern)
         {
-            if (!(self is IMatchedTokenMatching matchedTokenMatching))
+            if (!(self is IMatchedTokenMatching))
             {
                 return self;
             }

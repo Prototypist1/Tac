@@ -319,7 +319,7 @@ namespace Tac.Parser
         {
             var myWalker = new StringWalker(stringWalker);
 
-            string res = "";
+            var res = "";
             var numbers = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
             if (!myWalker.TryTake(out var first))
@@ -338,7 +338,7 @@ namespace Tac.Parser
             stringWalker.Update(myWalker);
             
 
-            bool hasDecimelPoint = false;
+            var hasDecimelPoint = false;
 
             
             while (myWalker.TryTake(out var peeked))

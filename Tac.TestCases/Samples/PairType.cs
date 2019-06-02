@@ -25,35 +25,32 @@ module pair-type {
 
         public PairType()
         {
-            var key = new NameKey("T");
-            var type = GemericTypeParameterPlacholder.CreateAndBuild(key);
-
             var pairTypeNumber =
                 InterfaceType.CreateAndBuild(
                         new List<IMemberDefinition>{
-                                MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(new NumberType()), false) ,
-                                MemberDefinition.CreateAndBuild(new NameKey("y"), TypeReference.CreateAndBuild(new NumberType()), false)
+                                MemberDefinition.CreateAndBuild(new NameKey("x"),new NumberType(), false) ,
+                                MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false)
                         });
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new NumberType()), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
             
             var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(input, false) });
 
-            var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), TypeReference.CreateAndBuild(new NumberType()), false);
-            var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), TypeReference.CreateAndBuild(new NumberType()), false);
+            var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), false);
+            var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false);
 
             var pairifyKey = new NameKey("pairify");
-            var pairify = MemberDefinition.CreateAndBuild(pairifyKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), pairTypeNumber)), false);
+            var pairify = MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false);
             
             Module = ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
-                    new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), pairTypeNumber)), false), false) }),
+                    new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
                 new ICodeElement[] {
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(
-                            TypeReference.CreateAndBuild(new NumberType()),
-                            TypeReference.CreateAndBuild(pairTypeNumber),
+                            new NumberType(),
+                            pairTypeNumber,
                             input,
                             methodScope,
                             new ICodeElement[]{

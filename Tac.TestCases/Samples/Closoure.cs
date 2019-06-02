@@ -11,10 +11,10 @@ namespace Tac.Tests.Samples
         public Closoure()
         {
             var xKey = new NameKey("x");
-            var x = MemberDefinition.CreateAndBuild(xKey, TypeReference.CreateAndBuild(new NumberType()), false);
+            var x = MemberDefinition.CreateAndBuild(xKey, new NumberType(), false);
 
             var yKey = new NameKey("y");
-            var y = MemberDefinition.CreateAndBuild(yKey, TypeReference.CreateAndBuild(new NumberType()), false);
+            var y = MemberDefinition.CreateAndBuild(yKey, new NumberType(), false);
 
             var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(x ,false) });
             var innerMethodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(y ,false) }, methodScope);
@@ -22,21 +22,21 @@ namespace Tac.Tests.Samples
             Module = ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
                     new List<Scope.IsStatic>() {
-                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) }),
+                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(), false) ,false) }),
                 new[]{
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(
-                            TypeReference.CreateAndBuild(new NumberType()),
-                            TypeReference.CreateAndBuild(MethodType.CreateAndBuild(
+                            new NumberType(),
+                            MethodType.CreateAndBuild(
                                 new NumberType(),
-                                new NumberType())),
+                                new NumberType()),
                             x,
                             methodScope,
                             new ICodeElement[]{
                                 ReturnOperation.CreateAndBuild(
                                     MethodDefinition.CreateAndBuild(
-                                        TypeReference.CreateAndBuild(new NumberType()),
-                                        TypeReference.CreateAndBuild(new NumberType()),
+                                        new NumberType(),
+                                        new NumberType(),
                                         y,
                                         innerMethodScope,
                                         new ICodeElement[]{
@@ -53,7 +53,7 @@ namespace Tac.Tests.Samples
                                     )},
                             new ICodeElement[0],
                             false),
-                        MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"),TypeReference.CreateAndBuild( new AnyType()),false)))
+                        MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))
                  },
                 new NameKey("closoure"));
         }

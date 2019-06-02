@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = ElseOperation.Create();
             return new BuildIntention<IElseOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertOrThrow(context), Right.GetOrThrow().ConvertOrThrow(context));
+                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
             });
         }
     }

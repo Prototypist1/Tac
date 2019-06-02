@@ -34,7 +34,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = MultiplyOperation.Create();
             return new BuildIntention<IMultiplyOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertOrThrow(context), Right.GetOrThrow().ConvertOrThrow(context));
+                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
             });
         }
 

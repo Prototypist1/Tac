@@ -17,7 +17,7 @@ namespace Tac.Frontend
 
     internal static class IFrontendCodeElementStatic{
 
-        public static ICodeElement ConvertOrThrow(this IFrontendCodeElement self, ConversionContext context) {
+        public static ICodeElement ConvertElementOrThrow(this IFrontendCodeElement self, ConversionContext context) {
             if (self is IConvertableFrontendCodeElement<ICodeElement> convertable) {
                 return convertable.Convert(context);
             }
@@ -48,7 +48,7 @@ namespace Tac.Frontend
     internal static class IFrontendTypeStatic
     {
 
-        public static IVerifiableType ConvertOrThrow(this IFrontendType self, ConversionContext context)
+        public static IVerifiableType ConvertTypeOrThrow(this IFrontendType self, ConversionContext context)
         {
             if (self is IConvertableFrontendType<IVerifiableType> convertable)
             {

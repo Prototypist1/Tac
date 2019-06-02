@@ -44,12 +44,12 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    TransformerExtensions.Convert<ITypeReferance>(InputType.GetOrThrow(),context),
-                    TransformerExtensions.Convert<ITypeReferance>(OutputType.GetOrThrow(),context),
+                    InputType.GetOrThrow().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().ConvertTypeOrThrow(context),
+                    OutputType.GetOrThrow().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context),
                     Scope.Convert(context),
-                    Body.Select(x=>x.GetOrThrow().ConvertOrThrow(context)).ToArray(),
-                    StaticInitailizers.Select(x=>x.GetOrThrow().ConvertOrThrow(context)).ToArray(),
+                    Body.Select(x=>x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
+                    StaticInitailizers.Select(x=>x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
                     IsEntryPoint);
             });
         }

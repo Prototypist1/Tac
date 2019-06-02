@@ -16,25 +16,24 @@ namespace Tac.Tests.Samples
             var elseBlock = Scope.CreateAndBuild(new List<Scope.IsStatic> { });
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new NumberType()), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
 
             var facKey = new NameKey("fac");
-            var fac = MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false);
+            var fac = MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false);
 
 
             var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(input ,false) });
 
-            var rootScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(fac, false) });
 
             Module =
                 ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
-                        new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(facKey, TypeReference.CreateAndBuild(MethodType.CreateAndBuild(new NumberType(), new NumberType())), false), false) }),
+                        new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false), false) }),
                     new ICodeElement[]{
                         AssignOperation.CreateAndBuild(
                                 MethodDefinition.CreateAndBuild(
-                                    TypeReference.CreateAndBuild(new NumberType()),
-                                    TypeReference.CreateAndBuild(new NumberType()),
+                                    new NumberType(),
+                                    new NumberType(),
                                     input,
                                     methodScope,
                                     new ICodeElement[]{

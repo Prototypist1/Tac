@@ -21,13 +21,13 @@ namespace Tac.Tests.Samples
         public PointObject()
         {
                 var keyX = new NameKey("x");
-                var localX = MemberDefinition.CreateAndBuild(keyX, TypeReference.CreateAndBuild(new AnyType()), false);
+                var localX = MemberDefinition.CreateAndBuild(keyX, new AnyType(), false);
                 var keyY = new NameKey("y");
-                var localY = MemberDefinition.CreateAndBuild(keyY, TypeReference.CreateAndBuild(new AnyType()), false);
+                var localY = MemberDefinition.CreateAndBuild(keyY, new AnyType(), false);
                                 
                 Module = ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
-                        new List<Scope.IsStatic>(){new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("point"), TypeReference.CreateAndBuild(new AnyType()), false),false) } ),
+                        new List<Scope.IsStatic>(){new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false),false) } ),
                     new[] {
                         AssignOperation.CreateAndBuild(
                         ObjectDefiniton.CreateAndBuild(
@@ -44,7 +44,7 @@ namespace Tac.Tests.Samples
                                     ConstantNumber.CreateAndBuild(2),
                                     MemberReference.CreateAndBuild(localY))
                             }),
-                        MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("point"), TypeReference.CreateAndBuild(new AnyType()), false)))
+                        MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false)))
                     },
                     new NameKey("point-module"));
         }

@@ -29,8 +29,8 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     Scope.Convert(context),
-                    Body.Select(x => x.GetOrThrow().ConvertOrThrow(context)).ToArray(),
-                    StaticInitailizers.Select(x => x.GetOrThrow().ConvertOrThrow(context)).ToArray());
+                    Body.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
+                    StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
 

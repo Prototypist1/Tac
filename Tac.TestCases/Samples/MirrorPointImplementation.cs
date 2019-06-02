@@ -31,29 +31,28 @@ module mirror-module {
         public MirrorPointImplementation()
         {
             var keyX = new NameKey("x");
-            var localX = MemberDefinition.CreateAndBuild(keyX, TypeReference.CreateAndBuild(new AnyType()), false);
+            var localX = MemberDefinition.CreateAndBuild(keyX, new AnyType(), false);
 
             var keyY = new NameKey("y");
-            var localY = MemberDefinition.CreateAndBuild(keyY, TypeReference.CreateAndBuild(new AnyType()), false);
+            var localY = MemberDefinition.CreateAndBuild(keyY, new AnyType(), false);
 
             var contextKey = new NameKey("context");
 
             var context = MemberDefinition.CreateAndBuild(
                 contextKey, 
-                TypeReference.CreateAndBuild(
                     InterfaceType.CreateAndBuild(
                         Scope.CreateAndBuild(
                             new List<Scope.IsStatic>() {
                                 new Scope.IsStatic(localX ,false),
                                 new Scope.IsStatic(localY ,false),
-                            }).Members)),
+                            }).Members),
                 false); ;
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, TypeReference.CreateAndBuild(new EmptyType()), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, new EmptyType(), false);
 
             var tempKey = new NameKey("temp");
-            var temp = MemberDefinition.CreateAndBuild(tempKey, TypeReference.CreateAndBuild(new AnyType()), false);
+            var temp = MemberDefinition.CreateAndBuild(tempKey, new AnyType(), false);
 
             var implementationScope = Scope.CreateAndBuild(
                 new List<Scope.IsStatic> {
@@ -64,11 +63,11 @@ module mirror-module {
             Module = ModuleDefinition.CreateAndBuild(
                  Scope.CreateAndBuild(
                     new List<Scope.IsStatic>() {
-                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false) ,false) }),
+                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false) ,false) }),
                 new[] {
                     AssignOperation.CreateAndBuild(
                     ImplementationDefinition.CreateAndBuild(
-                        TypeReference.CreateAndBuild(new EmptyType()),
+                        new EmptyType(),
                         context,
                         input,
                         implementationScope,
@@ -87,7 +86,7 @@ module mirror-module {
                                     )
                         },
                         new ICodeElement[0]),
-                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), TypeReference.CreateAndBuild(new AnyType()), false)))
+                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))
                 },
                 new NameKey("mirror-module"));
             

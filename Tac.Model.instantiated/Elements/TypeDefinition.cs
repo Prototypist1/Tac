@@ -27,7 +27,7 @@ namespace Tac.Model.Instantiated
             if (they is IInterfaceType otherObject)
             {
                 // they have all our members
-                return Members.All(member => otherObject.Members.Any(otherMember => otherMember.Type.VerifiableType.TheyAreUs(member.Type.VerifiableType, false)));
+                return Members.All(member => otherObject.Members.Any(otherMember => otherMember.Type.TheyAreUs(member.Type, false)));
             }
 
             if (noTagBacks)
@@ -43,7 +43,7 @@ namespace Tac.Model.Instantiated
             if (them is IInterfaceType otherObject)
             {
                 // we have all their members
-                return otherObject.Members.All(otherMember => Members.Any(member => otherMember.Type.VerifiableType.WeAreThem(member.Type.VerifiableType, false)));
+                return otherObject.Members.All(otherMember => Members.Any(member => otherMember.Type.WeAreThem(member.Type, false)));
             }
 
             if (noTagBacks)

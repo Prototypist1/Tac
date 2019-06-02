@@ -35,8 +35,8 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
 
             var (res, builder) = TypeOr.Create();
             return new BuildIntention<ITypeOr>(res, () => builder.Build(
-                Left.GetOrThrow().ConvertOrThrow(context),
-                Right.GetOrThrow().ConvertOrThrow(context)
+                Left.GetOrThrow().ConvertTypeOrThrow(context),
+                Right.GetOrThrow().ConvertTypeOrThrow(context)
                 ));
         }
     }
