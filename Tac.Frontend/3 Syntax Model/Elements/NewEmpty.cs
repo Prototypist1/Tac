@@ -17,7 +17,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
     // I though empty was a type
     // more analgous to something like a bool with a single value
     // than the null reference 
-    // yeah but you still need to be able to creat one...
+    // yeah but you still need to be able to create one...
     internal class WeakEmptyInstance : IConvertableFrontendCodeElement<IEmptyInstance>
     {
         public WeakEmptyInstance()
@@ -45,6 +45,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
         public ITokenMatching<IPopulateScope<WeakEmptyInstance>> TryMake(IMatchedTokenMatching tokenMatching)
         {
+            // change key word to nothing?
             var match = tokenMatching
                 .Has(new KeyWordMaker("new-empty"), out var _);
 
