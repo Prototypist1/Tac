@@ -549,19 +549,19 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 return typeof(IInterpetedScope);
             }
-            if (verifiableType is IMethodType method)
-            {
-                return typeof(IInterpetedMethod<,>).MakeGenericType(
-                    MapType(method.InputType),
-                    MapType(method.OutputType)
-                    );
-            }
             if (verifiableType is IImplementationType implementation)
             {
                 return typeof(IInterpetedImplementation<,,>).MakeGenericType(
                     MapType(implementation.ContextType),
                     MapType(implementation.InputType),
                     MapType(implementation.OutputType)
+                    );
+            }
+            if (verifiableType is IMethodType method)
+            {
+                return typeof(IInterpetedMethod<,>).MakeGenericType(
+                    MapType(method.InputType),
+                    MapType(method.OutputType)
                     );
             }
             if (verifiableType is IMemberReferance memberReferance)
