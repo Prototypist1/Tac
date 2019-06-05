@@ -9,13 +9,14 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    public interface IInterpetedMember : IInterpetedAnyType { }
+    internal interface IInterpetedMember : IInterpetedAnyType { }
 
-    public interface IInterpetedMember<out T> : IInterpetedMember
+    internal interface IInterpetedMember<out T> : IInterpetedMember
         where T: IInterpetedAnyType
     {
         T Value { get;  }
     }
+
     public interface IInterpetedMemberSet<in T>
     {
         void Set(T o);
@@ -38,53 +39,64 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
+    internal static partial class TypeManager {
 
-    // is this really a type?
-    // yeah, I think this is really like ref x
-    // ref x is exactly a type
-    internal class InterpetedMember<T> : RootedTypeAny, IInterpetedMember<T>, IInterpetedMemberSet<T>
-        where T : IInterpetedAnyType
-    {
-        private T _value;
+        public static Func<RunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>()
+            where T : IInterpetedAnyType
+            => root => new InterpetedMember<T>(root);
 
-        public InterpetedMember()
+
+        // is this really a type?
+        // yeah, I think this is really like ref x
+        // ref x is exactly a type
+        private class InterpetedMember<T> : RootedTypeAny, IInterpetedMember<T>, IInterpetedMemberSet<T>
+            where T : IInterpetedAnyType
         {
-        }
+            private T _value;
 
-        public InterpetedMember(T value)
-        {
-            if (value == null) {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            Value = value;
-        }
-
-        public T Value
-        {
-            get
+            public InterpetedMember(RunTimeAnyRoot root) : base(root)
             {
-                if (_value == null) {
-                    throw new Exception($"members must be initialized before they are read");
-                }
-
-                return _value;
             }
-            set
+
+            public InterpetedMember(T value, RunTimeAnyRoot root) : base(root)
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
 
-                _value = value;
+                Value = value;
             }
-        }
 
-        public void Set(T o)
-        {
-            Value = o.Cast<T>();
+            public T Value
+            {
+                get
+                {
+                    if (_value == null)
+                    {
+                        throw new Exception($"members must be initialized before they are read");
+                    }
+
+                    return _value;
+                }
+                set
+                {
+                    if (value == null)
+                    {
+                        throw new ArgumentNullException(nameof(value));
+                    }
+
+                    _value = value;
+                }
+            }
+
+            public void Set(T o)
+            {
+                Value = o.Cast<T>();
+            }
+
         }
 
     }
+
 }
