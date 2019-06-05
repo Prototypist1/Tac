@@ -38,9 +38,8 @@ namespace Tac.Backend.Test
 
             Assert.False(testCase.Module.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
 
-            Assert.Equal(5, res.Value.Cast<IInterpetedScope>().GetMember<>(new NameKey("x")).Value);
-
-            var y = res.Value.Cast<IInterpetedScope>().GetMember<IInterpetedAnyType>(new NameKey("y")).Value;
+            Assert.Equal(5, res.Value.Cast<IInterpetedScope>().GetMember<BoxedDouble>(new NameKey("x")).Value.Value);
+            Assert.False(res.Value.Cast<IInterpetedScope>().GetMember<BoxedBool>(new NameKey("y")).Value.Value);
         }
     }
 }

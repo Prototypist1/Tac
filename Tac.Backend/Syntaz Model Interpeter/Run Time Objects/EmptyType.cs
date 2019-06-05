@@ -2,14 +2,22 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Tac.Syntaz_Model_Interpeter.Run_Time_Objects
-{
-    public interface IInterpedEmpty : IInterpetedAnyType
-    {
+namespace Tac.Syntaz_Model_Interpeter { 
 
+    internal interface IInterpedEmpty : IInterpetedAnyType
+    {
     }
 
-    public class RunTimeEmpty : RunTimeAny, IInterpedEmpty
+    internal static partial class TypeManager
     {
+        public static Func<RunTimeAnyRoot, IInterpedEmpty> EmptyIntention() => root => new RunTimeEmpty(root);
+
+        private class RunTimeEmpty : RootedTypeAny, IInterpedEmpty
+        {
+            public RunTimeEmpty(RunTimeAnyRoot root) : base(root)
+            {
+            }
+        }
+
     }
 }

@@ -38,7 +38,11 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    internal class InterpetedMember<T> : RunTimeAny, IInterpetedMember<T>, IInterpetedMemberSet<T>
+
+    // is this really a type?
+    // yeah, I think this is really like ref x
+    // ref x is exactly a type
+    internal class InterpetedMember<T> : RootedTypeAny, IInterpetedMember<T>, IInterpetedMemberSet<T>
         where T : IInterpetedAnyType
     {
         private T _value;

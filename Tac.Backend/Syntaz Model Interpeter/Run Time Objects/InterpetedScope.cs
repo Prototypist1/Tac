@@ -31,7 +31,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
     // I also need to handle primitive types
 
-    internal class InterpetedStaticScope : RunTimeAny, IInterpetedScope
+    internal class InterpetedStaticScope : RootedTypeAny, IInterpetedScope
     {
         protected InterpetedStaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing)
         {

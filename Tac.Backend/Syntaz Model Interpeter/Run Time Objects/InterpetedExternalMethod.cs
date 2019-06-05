@@ -5,21 +5,30 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal class InterpetedExternalMethod<TIn, TOut> : RunTimeAny, IInterpetedMethod<TIn,TOut>
-        where TIn: IInterpetedAnyType
-        where TOut: IInterpetedAnyType
+    internal static partial class TypeManager
     {
-        public InterpetedExternalMethod(
-            Func<TIn, TOut> backing)
-        {
-            Backing = backing ?? throw new ArgumentNullException(nameof(backing));
-        }
 
-        private Func<TIn, TOut> Backing { get; }
-        
-        public IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input)
+        public static Func<RunTimeAnyRoot, IInterpetedMethod<TIn, TOut>> ExternalMethodIntention<TIn, TOut>(Func<TIn, TOut> value)
+            where TIn : IInterpetedAnyType
+            where TOut : IInterpetedAnyType 
+            => root => new InterpetedExternalMethod<TIn, TOut>(value, root);
+
+
+        private class InterpetedExternalMethod<TIn, TOut> : RootedTypeAny, IInterpetedMethod<TIn, TOut>
+        where TIn : IInterpetedAnyType
+        where TOut : IInterpetedAnyType
         {
-            return InterpetedResult.Create(new InterpetedMember<TOut>(Backing(input.Value)));
+            public InterpetedExternalMethod(Func<TIn, TOut> backing, RunTimeAnyRoot root) : base(root)
+            {
+                Backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            }
+
+            private Func<TIn, TOut> Backing { get; }
+
+            public IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input)
+            {
+                return InterpetedResult.Create(new InterpetedMember<TOut>(Backing(input.Value)));
+            }
         }
     }
 }

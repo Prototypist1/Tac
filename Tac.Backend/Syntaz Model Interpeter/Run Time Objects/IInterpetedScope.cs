@@ -9,7 +9,7 @@ namespace Tac.Syntaz_Model_Interpeter
         IInterpetedScope Create();
     }
 
-    public interface IInterpetedScope: IInterpetedAnyType
+    internal interface IInterpetedScope: IInterpetedAnyType
     {
         // TODO
         // hmmm maybe type should be passed in?
