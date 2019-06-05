@@ -104,7 +104,7 @@ namespace Tac.Parser
                     new TypeOrOperationMaker()
                 },
                 new IMaker<IPopulateScope<IFrontendType>>[] {
-                    new Semantic_Model.TypeMaker()
+                    new TypeMaker()
                 }
                 ){}
         

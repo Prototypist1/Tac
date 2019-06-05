@@ -27,4 +27,20 @@ namespace Tac.Backend.Test
             Assert.True(scope.Cast<IInterpetedScope>().ContainsMember(new NameKey("y")));
         }
     }
+
+    public class OrTest
+    {
+        [Fact]
+        public void Test()
+        {
+            var testCase = new OrTypeSample();
+            var conversionContext = new Definitions();
+
+            Assert.False(testCase.Module.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
+
+            Assert.Equal(5, res.Value.Cast<IInterpetedScope>().GetMember<>(new NameKey("x")).Value);
+
+            var y = res.Value.Cast<IInterpetedScope>().GetMember<IInterpetedAnyType>(new NameKey("y")).Value;
+        }
+    }
 }
