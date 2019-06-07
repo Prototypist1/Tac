@@ -9,6 +9,8 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
+
+
     internal class InterpetedScopeTemplate : IInterpetedScopeTemplate
     {
         private readonly InterpetedStaticScope staticScope;
@@ -25,116 +27,93 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    // TODO you are here
-    // IInterpetedScope is a pretty big mess
-    // objects and modules needs to be an interpeted scope
-
-    // I also need to handle primitive types
-
-    internal class InterpetedStaticScope : RootedTypeAny, IInterpetedScope
+    internal static partial class TypeManager
     {
-        protected InterpetedStaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing)
-        {
-            Backing = backing ?? throw new ArgumentNullException(nameof(backing));
-        }
-
-        internal static InterpetedStaticScope Empty()
+        internal static InterpetedStaticScope EmptyStaticScope()
         {
             return new InterpetedStaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>());
         }
 
-        // yeah, this is a really slow way to do this
-        // we should be able to do this with object[]
-        private ConcurrentIndexed<IKey, IInterpetedMember> Backing { get; }
+        public static Func<RunTimeAnyRoot, IInterpetedScope> StaticScopeIntention<T>(ConcurrentIndexed<IKey, IInterpetedMember> backing)
+            where T : IInterpetedAnyType
+            => root => new InterpetedStaticScope(backing, root);
 
+        // TODO you are here
+        // IInterpetedScope is a pretty big mess
+        // objects and modules needs to be an interpeted scope
 
-        public bool ContainsMember(IKey name)
+        // I also need to handle primitive types
+
+        private class InterpetedStaticScope : RootedTypeAny, IInterpetedScope
         {
-            return Backing.ContainsKey(name);
-        }
-        
-        
-        //public static InterpetedStaticScope Make(IFinalizedScope scopeDefinition)
-        //{
-        //    var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
-
-        //    var scope = new InterpetedStaticScope(backing);
-
-        //    foreach (var memberKey in scopeDefinition.MemberKeys)
-        //    {
-        //        backing[memberKey] = new InterpetedMember();
-        //    }
-
-        //    return scope;
-        //}
-
-        public static InterpetedStaticScope Make()
-        {
-            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
-
-            var scope = new InterpetedStaticScope(backing);
-            
-            return scope;
-        }
-
-        public IInterpetedMember<T> GetMember<T>(IKey name) where T : IInterpetedAnyType
-        {
-            return Backing.GetOrThrow(name).Cast<IInterpetedMember<T>>();
-        }
-
-        public bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType
-        {
-            if (object.ReferenceEquals(member, Backing.GetOrAdd(key, member))){
-                return true;
-            }
-            return false;
-        }
-    }
-
-    internal class InterpetedInstanceScope: InterpetedStaticScope
-    {
-
-        private InterpetedInstanceScope(ConcurrentIndexed<IKey, IInterpetedMember> backing, InterpetedStaticScope staticBacking): base(backing)
-        {
-            StaticBacking = staticBacking ?? throw new ArgumentNullException(nameof(staticBacking));
-        }
-
-#pragma warning disable IDE0052 // Remove unread private members
-        private InterpetedStaticScope StaticBacking { get; }
-#pragma warning restore IDE0052 // Remove unread private members
-
-        public static InterpetedInstanceScope Make(
-            InterpetedStaticScope staticBacking, 
-            IFinalizedScope scopeDefinition) {
-            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
-
-            var scope = new InterpetedInstanceScope(backing, staticBacking);
-            
-            foreach (var member in scopeDefinition.Members)
+            public InterpetedStaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing, RunTimeAnyRoot root) : base(root)
             {
-                backing[member.Key] = InterpetedMember.Make(member.Type);
+                Backing = backing ?? throw new ArgumentNullException(nameof(backing));
             }
 
-            return scope;
+
+
+            // yeah, this is a really slow way to do this
+            // we should be able to do this with object[]
+            private ConcurrentIndexed<IKey, IInterpetedMember> Backing { get; }
+
+
+            public bool ContainsMember(IKey name)
+            {
+                return Backing.ContainsKey(name);
+            }
+        
+            public IInterpetedMember<T> GetMember<T>(IKey name) where T : IInterpetedAnyType
+            {
+                return Backing.GetOrThrow(name).Cast<IInterpetedMember<T>>();
+            }
+
+            public bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType
+            {
+                if (object.ReferenceEquals(member, Backing.GetOrAdd(key, member))){
+                    return true;
+                }
+                return false;
+            }
         }
 
-
-        public static InterpetedInstanceScope Make(
+        public static Func<RunTimeAnyRoot, IInterpetedScope> InstanceScopeIntention(
+            InterpetedStaticScope staticBacking,
             IFinalizedScope scopeDefinition)
         {
             var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
 
-            var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Make());
 
-            foreach (var member in scopeDefinition.Members)
-            {
-                backing[member.Key] = InterpetedMember.Make(member.Type); ;
-            }
+            return (RunTimeAnyRoot root) => {
+                var scope = new InterpetedInstanceScope(backing, staticBacking, root);
 
-            return scope;
+                foreach (var member in scopeDefinition.Members)
+                {
+                    backing[member.Key] = InterpetedMember.Make(member.Type);
+                }
+                return scope;
+            };
         }
 
-        public static InterpetedInstanceScope Make(params (IKey, IInterpetedMember)[] members)
+        public static Func<RunTimeAnyRoot, IInterpetedScope> InstanceScopeIntention(
+            IFinalizedScope scopeDefinition)
+        {
+            var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
+
+            return (RunTimeAnyRoot root) =>
+            {
+                var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Empty(), root);
+
+                foreach (var member in scopeDefinition.Members)
+                {
+                    backing[member.Key] = InterpetedMember.Make(member.Type); ;
+                }
+
+                return scope;
+            };
+        }
+
+        public static Func<RunTimeAnyRoot, IInterpetedScope> InstanceScopeIntention(params (IKey, IInterpetedMember)[] members)
         {
             var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
 
@@ -143,11 +122,26 @@ namespace Tac.Syntaz_Model_Interpeter
                 backing[memberKey.Item1] = memberKey.Item2;
             }
 
-            var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Empty());
+            return (RunTimeAnyRoot root) =>
+            {
+                var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Empty(), root);
 
-            return scope;
+                return scope;
+            };
         }
 
+        private class InterpetedInstanceScope : InterpetedStaticScope
+        {
 
+            public InterpetedInstanceScope(ConcurrentIndexed<IKey, IInterpetedMember> backing, InterpetedStaticScope staticBacking, RunTimeAnyRoot root) : base(backing, root)
+            {
+                StaticBacking = staticBacking ?? throw new ArgumentNullException(nameof(staticBacking));
+            }
+
+#pragma warning disable IDE0052 // Remove unread private members
+            private InterpetedStaticScope StaticBacking { get; }
+#pragma warning restore IDE0052 // Remove unread private members
+
+        }
     }
 }

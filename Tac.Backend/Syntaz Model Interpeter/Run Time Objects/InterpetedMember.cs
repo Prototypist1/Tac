@@ -22,11 +22,14 @@ namespace Tac.Syntaz_Model_Interpeter
         void Set(T o);
     }
 
-    internal static class InterpetedMember {
+
+
+    internal static partial class TypeManager
+    {
 
         internal static IInterpetedMember Make(IVerifiableType type)
         {
-            var method = typeof(InterpetedMember).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Single(x =>
+            var method = typeof(TypeManager).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Single(x =>
               x.Name == nameof(Make) && x.IsGenericMethod);
             var made = method.MakeGenericMethod(new Type[] { TypeMap.MapType(type) });
             return made.Invoke(null,new object[] { }).Cast<IInterpetedMember>();
@@ -37,10 +40,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return new InterpetedMember<T>();
         }
-    }
-
-    internal static partial class TypeManager {
-
+    
         public static Func<RunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>()
             where T : IInterpetedAnyType
             => root => new InterpetedMember<T>(root);
