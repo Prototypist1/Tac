@@ -29,13 +29,17 @@ namespace Tac.Syntaz_Model_Interpeter
 
     internal static partial class TypeManager
     {
-        internal static InterpetedStaticScope EmptyStaticScope()
+        internal static IInterpetedScope EmptyStaticScope()
         {
-            return new InterpetedStaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>());
+            return StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>());
         }
 
-        public static Func<RunTimeAnyRoot, IInterpetedScope> StaticScopeIntention<T>(ConcurrentIndexed<IKey, IInterpetedMember> backing)
-            where T : IInterpetedAnyType
+
+        public static IInterpetedScope StaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing)
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { StaticScopeIntention(backing) }).Has<IInterpetedScope>();
+
+
+        public static Func<RunTimeAnyRoot, IInterpetedScope> StaticScopeIntention(ConcurrentIndexed<IKey, IInterpetedMember> backing)
             => root => new InterpetedStaticScope(backing, root);
 
         // TODO you are here
@@ -76,6 +80,12 @@ namespace Tac.Syntaz_Model_Interpeter
                 return false;
             }
         }
+
+
+        public static IInterpetedScope InstanceScope(InterpetedStaticScope staticBacking,
+            IFinalizedScope scopeDefinition)
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { StaticScopeIntention(staticBacking, scopeDefinition) }).Has<IInterpetedScope>();
+
 
         public static Func<RunTimeAnyRoot, IInterpetedScope> InstanceScopeIntention(
             InterpetedStaticScope staticBacking,

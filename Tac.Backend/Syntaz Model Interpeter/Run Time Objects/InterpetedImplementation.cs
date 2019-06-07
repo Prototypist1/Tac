@@ -27,6 +27,18 @@ namespace Tac.Syntaz_Model_Interpeter
                     where TMethodOut : class, IInterpetedAnyType
             => root => new InterpetedImplementation<TIn, TMethodIn, TMethodOut>(parameterDefinition, contextDefinition, body, context, scope, root);
 
+
+        public static IInterpetedImplementation<TIn, TMethodIn, TMethodOut> Implementation<TIn, TMethodIn, TMethodOut>(InterpetedMemberDefinition<TMethodIn> parameterDefinition,
+                InterpetedMemberDefinition<TIn> contextDefinition,
+                IInterpetedOperation<IInterpetedAnyType>[] body,
+                InterpetedContext context,
+                IInterpetedScopeTemplate scope)
+                   where TIn : class, IInterpetedAnyType
+                    where TMethodIn : class, IInterpetedAnyType
+                    where TMethodOut : class, IInterpetedAnyType
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { InterpetedImplementationIntention<TIn, TMethodIn, TMethodOut>(parameterDefinition, contextDefinition, body, context, scope) }).Has<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>();
+
+
         private class InterpetedImplementation<TIn, TMethodIn, TMethodOut> : RootedTypeAny, IInterpetedImplementation<TIn, TMethodIn, TMethodOut>
         where TIn : class, IInterpetedAnyType
         where TMethodIn : class, IInterpetedAnyType

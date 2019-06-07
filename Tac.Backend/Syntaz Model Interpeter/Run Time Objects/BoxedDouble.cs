@@ -4,13 +4,16 @@ namespace Tac.Syntaz_Model_Interpeter
 {
 
 
-    internal interface IBoxedDouble
+    internal interface IBoxedDouble: IInterpetedAnyType
     {
         double Value { get; }
     }
 
     internal static partial class TypeManager
     {
+
+        public static IBoxedDouble Double(double value)  => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { DoubleIntention(value) }).Has<IBoxedDouble>();
+        
         public static Func<RunTimeAnyRoot, IBoxedDouble> DoubleIntention(double value) => root => new BoxedDouble(value, root);
 
         private class BoxedDouble : RootedTypeAny, IBoxedDouble

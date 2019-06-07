@@ -40,7 +40,14 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             return new InterpetedMember<T>();
         }
-    
+
+
+
+        public static IInterpetedMember<T> Member<T>()
+            where T : IInterpetedAnyType 
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>() }).Has<IInterpetedMember<T>>();
+
+
         public static Func<RunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>()
             where T : IInterpetedAnyType
             => root => new InterpetedMember<T>(root);

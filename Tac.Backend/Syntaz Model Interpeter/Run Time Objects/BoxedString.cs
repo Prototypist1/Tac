@@ -2,14 +2,18 @@
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal interface IBoxedString
+    internal interface IBoxedString: IInterpetedAnyType
     {
         string Value { get; }
     }
 
     internal static partial class TypeManager
     {
-        public static Func<RunTimeAnyRoot, IBoxedString> BoolIntention(string value) => root => new BoxedString(value, root);
+
+        public static IBoxedString String(string value) => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { StringIntention(value) }).Has<IBoxedString>();
+
+
+        public static Func<RunTimeAnyRoot, IBoxedString> StringIntention(string value) => root => new BoxedString(value, root);
 
         private class BoxedString : RootedTypeAny, IBoxedString
         {

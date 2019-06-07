@@ -19,6 +19,15 @@ namespace Tac.Syntaz_Model_Interpeter
 
     internal static partial class TypeManager
     {
+
+        public static IInterpetedMethod<TIn, TOut> InternalMethod<TIn, TOut>(InterpetedMemberDefinition<TIn> parameterDefinition,
+                IInterpetedOperation<IInterpetedAnyType>[] body,
+                InterpetedContext context,
+                IInterpetedScopeTemplate scope)
+            where TIn : IInterpetedAnyType
+            where TOut : IInterpetedAnyType
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { InterpetedMethodIntention<TIn, TOut>(parameterDefinition, body, context, scope) }).Has<IInterpetedMethod<TIn, TOut>>();
+
         public static Func<RunTimeAnyRoot, IInterpetedMethod<TIn, TOut>> InterpetedMethodIntention<TIn, TOut>(
                 InterpetedMemberDefinition<TIn> parameterDefinition,
                 IInterpetedOperation<IInterpetedAnyType>[] body,

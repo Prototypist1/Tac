@@ -13,6 +13,10 @@ namespace Tac.Syntaz_Model_Interpeter
             where TOut : IInterpetedAnyType 
             => root => new InterpetedExternalMethod<TIn, TOut>(value, root);
 
+        public static IInterpetedMethod<TIn, TOut> ExternalMethod<TIn, TOut>(Func<TIn, TOut> backing)
+            where TIn : IInterpetedAnyType
+            where TOut : IInterpetedAnyType 
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { ExternalMethodIntention(backing) }).Has<IInterpetedMethod<TIn, TOut>>();
 
         private class InterpetedExternalMethod<TIn, TOut> : RootedTypeAny, IInterpetedMethod<TIn, TOut>
         where TIn : IInterpetedAnyType
