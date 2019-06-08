@@ -570,10 +570,11 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             if (verifiableType is ITypeOr orType) {
                 // I am not really sure that is how it works over here...
-                // it might just be 
-                return typeof(IInterpetedOrType<,>).MakeGenericType(
-                    MapType(orType.Left),
-                    MapType(orType.Right));
+                // it might just be a any type
+                //return typeof(IInterpetedOrType<,>).MakeGenericType(
+                //    MapType(orType.Left),
+                //    MapType(orType.Right));
+                return typeof(IInterpetedAnyType);
             }
 
             throw new NotImplementedException();

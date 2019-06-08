@@ -19,7 +19,7 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-            return new NumberType();
+            return new BooleanType();
         }
 
         #endregion
