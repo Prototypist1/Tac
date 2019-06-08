@@ -29,8 +29,8 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpetedResult<IInterpetedMember<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>> Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(
-                new InterpetedMember<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>(
-                new InterpetedImplementation<TIn, TMethodIn, TMethodOut>(
+                TypeManager.Member<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>(
+                TypeManager.Implementation<TIn, TMethodIn, TMethodOut>(
                 ParameterDefinition,
                 ContextDefinition,
                 MethodBody,
@@ -40,7 +40,7 @@ namespace Tac.Syntaz_Model_Interpeter
         
         public IInterpetedImplementation<TIn, TMethodIn, TMethodOut> GetDefault(InterpetedContext interpetedContext)
         {
-            return new InterpetedImplementation< TIn, TMethodIn, TMethodOut > (
+            return TypeManager.Implementation< TIn, TMethodIn, TMethodOut > (
                     new InterpetedMemberDefinition<TMethodIn>().Init(new NameKey("input")),
                     new InterpetedMemberDefinition<TIn>().Init(new NameKey("context")),
                     new IInterpetedOperation<IInterpetedAnyType>[] { },

@@ -4,21 +4,21 @@ namespace Tac.Syntaz_Model_Interpeter
 {
 
 
-    internal interface IBoxedDouble: IInterpetedAnyType
+    public interface IBoxedDouble: IInterpetedAnyType
     {
         double Value { get; }
     }
 
-    internal static partial class TypeManager
+    public static partial class TypeManager
     {
 
-        public static IBoxedDouble Double(double value)  => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { DoubleIntention(value) }).Has<IBoxedDouble>();
+        public static IBoxedDouble Double(double value)  => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { DoubleIntention(value) }).Has<IBoxedDouble>();
         
-        public static Func<RunTimeAnyRoot, IBoxedDouble> DoubleIntention(double value) => root => new BoxedDouble(value, root);
+        public static Func<IRunTimeAnyRoot, IBoxedDouble> DoubleIntention(double value) => root => new BoxedDouble(value, root);
 
         private class BoxedDouble : RootedTypeAny, IBoxedDouble
         {
-            public BoxedDouble(double value, RunTimeAnyRoot root) : base(root)
+            public BoxedDouble(double value, IRunTimeAnyRoot root) : base(root)
             {
                 Value = value;
             }

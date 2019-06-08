@@ -45,7 +45,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
     
-    internal interface IInterpetedResult<out T> : IInterpeted
+    public interface IInterpetedResult<out T> : IInterpeted
             where T : IInterpetedAnyType
     {
     }

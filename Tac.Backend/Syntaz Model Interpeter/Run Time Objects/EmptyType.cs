@@ -4,21 +4,21 @@ using System.Text;
 
 namespace Tac.Syntaz_Model_Interpeter { 
 
-    internal interface IInterpedEmpty : IInterpetedAnyType
+    public interface IInterpedEmpty : IInterpetedAnyType
     {
     }
 
-    internal static partial class TypeManager
+    public static partial class TypeManager
     {
 
-        public static IInterpedEmpty Empty() => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { EmptyIntention() }).Has<IInterpedEmpty>();
+        public static IInterpedEmpty Empty() => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { EmptyIntention() }).Has<IInterpedEmpty>();
 
 
-        public static Func<RunTimeAnyRoot, IInterpedEmpty> EmptyIntention() => root => new RunTimeEmpty(root);
+        public static Func<IRunTimeAnyRoot, IInterpedEmpty> EmptyIntention() => root => new RunTimeEmpty(root);
 
         private class RunTimeEmpty : RootedTypeAny, IInterpedEmpty
         {
-            public RunTimeEmpty(RunTimeAnyRoot root) : base(root)
+            public RunTimeEmpty(IRunTimeAnyRoot root) : base(root)
             {
             }
         }

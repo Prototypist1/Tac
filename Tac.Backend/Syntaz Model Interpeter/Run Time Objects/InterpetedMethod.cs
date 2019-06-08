@@ -3,13 +3,13 @@ using System;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal interface IInterpetedMethod<in TIn,  out TOut> : IInterpetedCallable<TIn, TOut>
+    public interface IInterpetedMethod<in TIn,  out TOut> : IInterpetedCallable<TIn, TOut>
         where TOut : IInterpetedAnyType
         where TIn : IInterpetedAnyType
     {
     }
 
-    internal interface IInterpetedCallable<in TIn, out TOut> : IInterpetedAnyType
+    public interface IInterpetedCallable<in TIn, out TOut> : IInterpetedAnyType
         where TOut : IInterpetedAnyType
         where TIn : IInterpetedAnyType
     {
@@ -17,18 +17,18 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
 
-    internal static partial class TypeManager
+    public static partial class TypeManager
     {
 
-        public static IInterpetedMethod<TIn, TOut> InternalMethod<TIn, TOut>(InterpetedMemberDefinition<TIn> parameterDefinition,
+        internal static IInterpetedMethod<TIn, TOut> InternalMethod<TIn, TOut>(InterpetedMemberDefinition<TIn> parameterDefinition,
                 IInterpetedOperation<IInterpetedAnyType>[] body,
                 InterpetedContext context,
                 IInterpetedScopeTemplate scope)
             where TIn : IInterpetedAnyType
             where TOut : IInterpetedAnyType
-            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { InterpetedMethodIntention<TIn, TOut>(parameterDefinition, body, context, scope) }).Has<IInterpetedMethod<TIn, TOut>>();
+            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { InterpetedMethodIntention<TIn, TOut>(parameterDefinition, body, context, scope) }).Has<IInterpetedMethod<TIn, TOut>>();
 
-        public static Func<RunTimeAnyRoot, IInterpetedMethod<TIn, TOut>> InterpetedMethodIntention<TIn, TOut>(
+        internal static Func<IRunTimeAnyRoot, IInterpetedMethod<TIn, TOut>> InterpetedMethodIntention<TIn, TOut>(
                 InterpetedMemberDefinition<TIn> parameterDefinition,
                 IInterpetedOperation<IInterpetedAnyType>[] body,
                 InterpetedContext context,
@@ -47,7 +47,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 IInterpetedOperation<IInterpetedAnyType>[] body,
                 InterpetedContext context,
                 IInterpetedScopeTemplate scope,
-                RunTimeAnyRoot root) : base(root)
+                IRunTimeAnyRoot root) : base(root)
             {
                 ParameterDefinition = parameterDefinition ?? throw new System.ArgumentNullException(nameof(parameterDefinition));
                 Body = body ?? throw new System.ArgumentNullException(nameof(body));

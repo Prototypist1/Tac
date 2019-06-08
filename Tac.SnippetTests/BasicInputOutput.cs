@@ -39,19 +39,19 @@ namespace Tac.SnippetTests
             return new AssemblyBuilder(new NameKey("in"))
                        .AddMethod(
                            new NameKey("read-number"),
-                           (IInterpedEmpty x) => new BoxedDouble(numberSource()), 
+                           (IInterpedEmpty x) => TypeManager.Double(numberSource()), 
                            MethodType.CreateAndBuild(
                                    new EmptyType(), 
                                    new NumberType()))
                        .AddMethod(
                            new NameKey("read-string"),
-                           (IInterpedEmpty x) => new BoxedString(stringSource()),
+                           (IInterpedEmpty x) => TypeManager.String(stringSource()),
                            MethodType.CreateAndBuild(
                                    new EmptyType(),
                                    new StringType()))
                        .AddMethod(
                            new NameKey("read-bool"),
-                           (IInterpedEmpty x) => new BoxedBool(boolSource()),
+                           (IInterpedEmpty x) => TypeManager.Bool(boolSource()),
                            MethodType.CreateAndBuild(
                                    new EmptyType(),
                                    new BooleanType()))
@@ -63,19 +63,19 @@ namespace Tac.SnippetTests
             return new AssemblyBuilder(new NameKey("out"))
                        .AddMethod(
                            new NameKey("write-number"),
-                           (BoxedDouble x) => { numberDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
+                           (IBoxedDouble x) => { numberDestination(x.Value); return TypeManager.Empty().Cast<IInterpedEmpty>(); },
                            MethodType.CreateAndBuild(
                                    new NumberType(),
                                    new EmptyType()))
                        .AddMethod(
                            new NameKey("write-string"),
-                           (BoxedString x) => { stringDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
+                           (IBoxedString x) => { stringDestination(x.Value); return TypeManager.Empty().Cast<IInterpedEmpty>(); },
                            MethodType.CreateAndBuild(
                                    new StringType(),
                                    new EmptyType()))
                        .AddMethod(
                            new NameKey("write-bool"),
-                           (BoxedBool x) => { boolDestination(x.Value); return new RunTimeEmpty().Cast<IInterpedEmpty>(); },
+                           (IBoxedBool x) => { boolDestination(x.Value); return TypeManager.Empty().Cast<IInterpedEmpty>(); },
                            MethodType.CreateAndBuild(
                                    new BooleanType(),
                                    new EmptyType()))

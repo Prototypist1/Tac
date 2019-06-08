@@ -28,12 +28,12 @@ namespace Tac.Syntaz_Model_Interpeter
                 line.Interpet(context);
             }
 
-            return InterpetedResult.Create(new InterpetedMember<IInterpetedScope>(scope));
+            return InterpetedResult.Create(TypeManager.Member(scope));
         }
         
         public IInterpetedScope GetDefault()
         {
-            return InterpetedStaticScope.Make();
+            return TypeManager.EmptyStaticScope();
         }
     }
 }

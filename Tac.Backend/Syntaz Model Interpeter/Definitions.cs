@@ -58,8 +58,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedAddOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<BoxedDouble>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<BoxedDouble>>());
+                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>());
                 return op;
             }
         }
@@ -179,7 +179,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedElseOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<BoxedBool>>(),
+                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedBool>>(),
                     co.Right.Convert(this).Cast<IInterpetedOperation<IInterpedEmpty>>());
                 return op;
             }
@@ -196,7 +196,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedIfTrueOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<BoxedBool>>(),
+                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedBool>>(),
                     co.Right.Convert(this).Cast<IInterpetedOperation<IInterpedEmpty>>());
                 return op;
             }
@@ -267,8 +267,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedLessThanOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<BoxedDouble>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<BoxedDouble>>());
+                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>());
                 return op;
             }
         }
@@ -362,8 +362,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedMultiplyOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<BoxedDouble>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<BoxedDouble>>());
+                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>());
                 return op;
             }
         }
@@ -470,8 +470,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedSubtractOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<BoxedDouble>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<BoxedDouble>>());
+                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>());
                 return op;
             }
         }
@@ -523,15 +523,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         {
             if (verifiableType is INumberType)
             {
-                return typeof(BoxedDouble);
+                return typeof(IBoxedDouble);
             }
             if (verifiableType is IBooleanType)
             {
-                return typeof(BoxedBool);
+                return typeof(IBoxedBool);
             }
             if (verifiableType is IStringType)
             {
-                return typeof(BoxedString);
+                return typeof(IBoxedString);
             }
             if (verifiableType is IBlockType)
             {

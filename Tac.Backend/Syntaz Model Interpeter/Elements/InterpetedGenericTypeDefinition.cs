@@ -8,7 +8,7 @@ namespace Tac.Syntaz_Model_Interpeter
         
         public IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+            return InterpetedResult.Create(TypeManager.Member<IInterpedEmpty>(TypeManager.Empty()));
         }
     }
 }

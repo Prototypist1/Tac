@@ -6,7 +6,7 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal interface IInterpetedImplementation<in  TIn,in  TMethodIn, out TMethodOut> : IInterpetedCallable<TIn, IInterpetedMethod<TMethodIn,TMethodOut>>
+    public interface IInterpetedImplementation<in  TIn,in  TMethodIn, out TMethodOut> : IInterpetedCallable<TIn, IInterpetedMethod<TMethodIn,TMethodOut>>
         where TIn : class, IInterpetedAnyType
         where TMethodIn : class, IInterpetedAnyType
         where TMethodOut : class, IInterpetedAnyType
@@ -14,9 +14,9 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
 
-    internal static partial class TypeManager
+    public static partial class TypeManager
     {
-        public static Func<RunTimeAnyRoot, IInterpetedImplementation<TIn, TMethodIn, TMethodOut>> InterpetedImplementationIntention<TIn, TMethodIn, TMethodOut>(
+        internal static Func<IRunTimeAnyRoot, IInterpetedImplementation<TIn, TMethodIn, TMethodOut>> InterpetedImplementationIntention<TIn, TMethodIn, TMethodOut>(
                 InterpetedMemberDefinition<TMethodIn> parameterDefinition,
                 InterpetedMemberDefinition<TIn> contextDefinition,
                 IInterpetedOperation<IInterpetedAnyType>[] body,
@@ -28,7 +28,7 @@ namespace Tac.Syntaz_Model_Interpeter
             => root => new InterpetedImplementation<TIn, TMethodIn, TMethodOut>(parameterDefinition, contextDefinition, body, context, scope, root);
 
 
-        public static IInterpetedImplementation<TIn, TMethodIn, TMethodOut> Implementation<TIn, TMethodIn, TMethodOut>(InterpetedMemberDefinition<TMethodIn> parameterDefinition,
+        internal static IInterpetedImplementation<TIn, TMethodIn, TMethodOut> Implementation<TIn, TMethodIn, TMethodOut>(InterpetedMemberDefinition<TMethodIn> parameterDefinition,
                 InterpetedMemberDefinition<TIn> contextDefinition,
                 IInterpetedOperation<IInterpetedAnyType>[] body,
                 InterpetedContext context,
@@ -36,7 +36,7 @@ namespace Tac.Syntaz_Model_Interpeter
                    where TIn : class, IInterpetedAnyType
                     where TMethodIn : class, IInterpetedAnyType
                     where TMethodOut : class, IInterpetedAnyType
-            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { InterpetedImplementationIntention<TIn, TMethodIn, TMethodOut>(parameterDefinition, contextDefinition, body, context, scope) }).Has<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>();
+            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { InterpetedImplementationIntention<TIn, TMethodIn, TMethodOut>(parameterDefinition, contextDefinition, body, context, scope) }).Has<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>();
 
 
         private class InterpetedImplementation<TIn, TMethodIn, TMethodOut> : RootedTypeAny, IInterpetedImplementation<TIn, TMethodIn, TMethodOut>
@@ -51,7 +51,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 IInterpetedOperation<IInterpetedAnyType>[] body,
                 InterpetedContext context,
                 IInterpetedScopeTemplate scope, 
-                RunTimeAnyRoot root) : base(root)
+                IRunTimeAnyRoot root) : base(root)
             {
                 ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));

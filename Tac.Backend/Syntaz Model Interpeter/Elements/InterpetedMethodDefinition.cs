@@ -26,8 +26,8 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn,TOut>>> Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(
-                new InterpetedMember<IInterpetedMethod<TIn, TOut>>(
-                    new InterpetedMethod<TIn, TOut>(
+                TypeManager.Member<IInterpetedMethod<TIn, TOut>>(
+                    TypeManager.InternalMethod<TIn, TOut>(
                         ParameterDefinition,
                         Body, 
                         interpetedContext,
@@ -36,7 +36,7 @@ namespace Tac.Syntaz_Model_Interpeter
         
         public IInterpeted GetDefault(InterpetedContext interpetedContext)
         {
-            return new InterpetedMethod<TIn, TOut>(
+            return TypeManager.InternalMethod<TIn, TOut>(
                 new InterpetedMemberDefinition<TIn> ().Init(new NameKey("input")),
                 new IInterpetedOperation<IInterpetedAnyType>[] { },
                 interpetedContext,

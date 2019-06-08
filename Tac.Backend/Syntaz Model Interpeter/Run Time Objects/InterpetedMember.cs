@@ -9,9 +9,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal interface IInterpetedMember : IInterpetedAnyType { }
+    public interface IInterpetedMember : IInterpetedAnyType { }
 
-    internal interface IInterpetedMember<out T> : IInterpetedMember
+    public interface IInterpetedMember<out T> : IInterpetedMember
         where T: IInterpetedAnyType
     {
         T Value { get;  }
@@ -22,9 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
         void Set(T o);
     }
 
-
-
-    internal static partial class TypeManager
+    public static partial class TypeManager
     {
 
         internal static IInterpetedMember MakeMember(IVerifiableType type)
@@ -37,17 +35,17 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public static IInterpetedMember<T> Member<T>(T t)
             where T : IInterpetedAnyType 
-            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>(t) }).Has<IInterpetedMember<T>>();
+            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>(t) }).Has<IInterpetedMember<T>>();
 
         public static IInterpetedMember<T> Member<T>()
             where T : IInterpetedAnyType
-            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>() }).Has<IInterpetedMember<T>>();
+            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>() }).Has<IInterpetedMember<T>>();
 
-        public static Func<RunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>()
+        public static Func<IRunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>()
             where T : IInterpetedAnyType
             => root => new InterpetedMember<T>(root);
 
-        public static Func<RunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>(T t)
+        public static Func<IRunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>(T t)
             where T : IInterpetedAnyType
             => root => new InterpetedMember<T>(t,root);
 
@@ -60,11 +58,11 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             private T _value;
 
-            public InterpetedMember(RunTimeAnyRoot root) : base(root)
+            public InterpetedMember(IRunTimeAnyRoot root) : base(root)
             {
             }
 
-            public InterpetedMember(T value, RunTimeAnyRoot root) : base(root)
+            public InterpetedMember(T value, IRunTimeAnyRoot root) : base(root)
             {
                 if (value == null)
                 {

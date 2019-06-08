@@ -28,27 +28,27 @@ namespace Tac.Backend.Test
             var scope = value.Value.Cast<IInterpetedScope>();
             var implementation = scope.GetMember<IInterpetedAnyType>(new NameKey("mirror")).Value.Cast<IInterpetedImplementation<IInterpetedScope, IInterpedEmpty, IInterpedEmpty>>();
 
-            var context = InterpetedInstanceScope.Make(
-                (new NameKey("x"), new InterpetedMember<IInterpetedAnyType>(new BoxedDouble( 5))),
-                (new NameKey("y"), new InterpetedMember<IInterpetedAnyType>(new BoxedDouble(7))));
+            var context = TypeManager.InstanceScope(
+                (new NameKey("x"), TypeManager.Member<IInterpetedAnyType>(TypeManager.Double( 5))),
+                (new NameKey("y"), TypeManager.Member<IInterpetedAnyType>(TypeManager.Double(7))));
 
             {
-                Assert.False(implementation.Invoke(new InterpetedMember<IInterpetedScope>(context)).IsReturn(out var _, out var method));
+                Assert.False(implementation.Invoke(TypeManager.Member<IInterpetedScope>(context)).IsReturn(out var _, out var method));
 
-                method.Value.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+                method.Value.Invoke(TypeManager.Member<IInterpedEmpty>(TypeManager.Empty()));
             }
 
-            Assert.Equal(7,context.GetMember<IInterpetedAnyType>(new NameKey("x")).Value.Cast<BoxedDouble>().Value);
-            Assert.Equal(5, context.GetMember<IInterpetedAnyType>(new NameKey("y")).Value.Cast<BoxedDouble>().Value);
+            Assert.Equal(7,context.GetMember<IInterpetedAnyType>(new NameKey("x")).Value.Cast<IBoxedDouble>().Value);
+            Assert.Equal(5, context.GetMember<IInterpetedAnyType>(new NameKey("y")).Value.Cast<IBoxedDouble>().Value);
 
             {
-                Assert.False(implementation.Invoke(new InterpetedMember<IInterpetedScope>(context)).IsReturn(out var _, out var method));
+                Assert.False(implementation.Invoke(TypeManager.Member<IInterpetedScope>(context)).IsReturn(out var _, out var method));
 
-                method.Value.Invoke(new InterpetedMember<IInterpedEmpty>(new RunTimeEmpty()));
+                method.Value.Invoke(TypeManager.Member<IInterpedEmpty>(TypeManager.Empty()));
             }
 
-            Assert.Equal(5, context.GetMember<IInterpetedAnyType>(new NameKey("x")).Value.Cast<BoxedDouble>().Value);
-            Assert.Equal(7, context.GetMember<IInterpetedAnyType>(new NameKey("y")).Value.Cast<BoxedDouble>().Value);
+            Assert.Equal(5, context.GetMember<IInterpetedAnyType>(new NameKey("x")).Value.Cast<IBoxedDouble>().Value);
+            Assert.Equal(7, context.GetMember<IInterpetedAnyType>(new NameKey("y")).Value.Cast<IBoxedDouble>().Value);
 
         }
     }

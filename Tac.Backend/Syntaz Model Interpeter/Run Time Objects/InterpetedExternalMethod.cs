@@ -5,10 +5,10 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal static partial class TypeManager
+    public static partial class TypeManager
     {
 
-        public static Func<RunTimeAnyRoot, IInterpetedMethod<TIn, TOut>> ExternalMethodIntention<TIn, TOut>(Func<TIn, TOut> value)
+        public static Func<IRunTimeAnyRoot, IInterpetedMethod<TIn, TOut>> ExternalMethodIntention<TIn, TOut>(Func<TIn, TOut> value)
             where TIn : IInterpetedAnyType
             where TOut : IInterpetedAnyType 
             => root => new InterpetedExternalMethod<TIn, TOut>(value, root);
@@ -16,13 +16,13 @@ namespace Tac.Syntaz_Model_Interpeter
         public static IInterpetedMethod<TIn, TOut> ExternalMethod<TIn, TOut>(Func<TIn, TOut> backing)
             where TIn : IInterpetedAnyType
             where TOut : IInterpetedAnyType 
-            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { ExternalMethodIntention(backing) }).Has<IInterpetedMethod<TIn, TOut>>();
+            => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { ExternalMethodIntention(backing) }).Has<IInterpetedMethod<TIn, TOut>>();
 
         private class InterpetedExternalMethod<TIn, TOut> : RootedTypeAny, IInterpetedMethod<TIn, TOut>
         where TIn : IInterpetedAnyType
         where TOut : IInterpetedAnyType
         {
-            public InterpetedExternalMethod(Func<TIn, TOut> backing, RunTimeAnyRoot root) : base(root)
+            public InterpetedExternalMethod(Func<TIn, TOut> backing, IRunTimeAnyRoot root) : base(root)
             {
                 Backing = backing ?? throw new ArgumentNullException(nameof(backing));
             }
