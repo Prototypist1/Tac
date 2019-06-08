@@ -16,7 +16,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public static partial class TypeManager {
 
-        // comment becuase it does not save much code and the cast stinks
+        // commented becuase it does not save much code and the cast stinks
         // pretty cheap code to duplicate 
         // T: class, stinks too
         // 😢
