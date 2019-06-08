@@ -568,6 +568,14 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 return MapType(memberReferance.MemberDefinition.Type);
             }
+            if (verifiableType is ITypeOr orType) {
+                // I am not really sure that is how it works over here...
+                // it might just be 
+                return typeof(IInterpetedOrType<,>).MakeGenericType(
+                    MapType(orType.Left),
+                    MapType(orType.Right));
+            }
+
             throw new NotImplementedException();
         }
 
