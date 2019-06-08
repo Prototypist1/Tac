@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedConstantBool : IInterpetedOperation<BoxedBool>
+    internal class InterpetedConstantBool : IInterpetedOperation<IBoxedBool>
     {
         public void Init(bool value)
         {
@@ -13,9 +13,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public bool Value { get; private set; }
 
-        public IInterpetedResult<IInterpetedMember<BoxedBool>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IBoxedBool>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedMember<BoxedBool>(new BoxedBool(Value)));
+            return InterpetedResult.Create(TypeManager.Member(TypeManager.Bool(Value)));
         }
     }
 }

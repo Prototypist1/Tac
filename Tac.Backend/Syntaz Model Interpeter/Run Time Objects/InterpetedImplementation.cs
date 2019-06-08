@@ -69,14 +69,16 @@ namespace Tac.Syntaz_Model_Interpeter
             public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TMethodIn, TMethodOut>>> Invoke(IInterpetedMember<TIn> input)
             {
 
-                var context = Context.Child(InterpetedInstanceScope.Make((contextDefinition.Key, input)));
+                var context = Context.Child(TypeManager.InstanceScope((contextDefinition.Key, input)));
 
-                return InterpetedResult.Create(new InterpetedMember<IInterpetedMethod<TMethodIn, TMethodOut>>(
-                    new InterpetedMethod<TMethodIn, TMethodOut>(
-                        ParameterDefinition,
-                        Body,
-                        context,
-                        Scope)));
+                return 
+                    InterpetedResult.Create(
+                        Member(
+                            InternalMethod<TMethodIn, TMethodOut>(
+                                ParameterDefinition,
+                                Body,
+                                context,
+                                Scope)));
             }
         }
     }

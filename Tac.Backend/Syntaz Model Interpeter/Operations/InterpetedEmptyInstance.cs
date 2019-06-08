@@ -7,15 +7,15 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Backend.Syntaz_Model_Interpeter.Run_Time_Objects
 {
 
-    internal class InterpetedEmptyInstance : IInterpetedOperation<RunTimeEmpty>
+    internal class InterpetedEmptyInstance : IInterpetedOperation<IInterpedEmpty>
     {
         public void Init()
         {
         }
 
-        public IInterpetedResult<IInterpetedMember<RunTimeEmpty>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedMember<RunTimeEmpty>(new RunTimeEmpty()));
+            return InterpetedResult.Create(TypeManager.Member(TypeManager.Empty()));
         }
     }
 }

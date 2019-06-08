@@ -3,29 +3,29 @@
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal class InterpetedElseOperation : InterpetedBinaryOperation<BoxedBool, IInterpedEmpty, BoxedBool>
+    internal class InterpetedElseOperation : InterpetedBinaryOperation<IBoxedBool, IInterpedEmpty, IBoxedBool>
     {
-        public override IInterpetedResult<IInterpetedMember<BoxedBool>> Interpet(InterpetedContext interpetedContext) {
+        public override IInterpetedResult<IInterpetedMember<IBoxedBool>> Interpet(InterpetedContext interpetedContext) {
             var leftResult = Left.Interpet(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<BoxedBool>>(leftReturned);
+                return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(leftReturned);
             }
 
             if (leftValue.Value.Value)
             {
-                return InterpetedResult.Create(new InterpetedMember<BoxedBool>(new BoxedBool(false)));
+                return InterpetedResult.Create(TypeManager.Member(TypeManager.Bool(false)));
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var _))
             {
-                return InterpetedResult.Return<IInterpetedMember<BoxedBool>>(rightReturned);
+                return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(rightReturned);
             }
             
-            return InterpetedResult.Create(new InterpetedMember<BoxedBool>(new BoxedBool(true)));
+            return InterpetedResult.Create(TypeManager.Member<IBoxedBool>(TypeManager.Bool(true)));
         }
     }
 }

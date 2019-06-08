@@ -23,4 +23,6 @@ namespace Tac.Syntaz_Model_Interpeter
         IInterpetedMember<T> GetMember<T>(IKey name) where T: IInterpetedAnyType;
         bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType;
     }
+
+    internal interface IInterpetedStaticScope : IInterpetedScope { }
 }

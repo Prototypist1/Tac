@@ -27,30 +27,29 @@ namespace Tac.Syntaz_Model_Interpeter
     internal static partial class TypeManager
     {
 
-        internal static IInterpetedMember Make(IVerifiableType type)
+        internal static IInterpetedMember MakeMember(IVerifiableType type)
         {
             var method = typeof(TypeManager).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Single(x =>
-              x.Name == nameof(Make) && x.IsGenericMethod);
+              x.Name == nameof(Member) && x.IsGenericMethod);
             var made = method.MakeGenericMethod(new Type[] { TypeMap.MapType(type) });
             return made.Invoke(null,new object[] { }).Cast<IInterpetedMember>();
         }
 
-        private static IInterpetedMember<T> Make<T>()
-            where T : IInterpetedAnyType
-        {
-            return new InterpetedMember<T>();
-        }
-
-
+        public static IInterpetedMember<T> Member<T>(T t)
+            where T : IInterpetedAnyType 
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>(t) }).Has<IInterpetedMember<T>>();
 
         public static IInterpetedMember<T> Member<T>()
-            where T : IInterpetedAnyType 
+            where T : IInterpetedAnyType
             => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>() }).Has<IInterpetedMember<T>>();
-
 
         public static Func<RunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>()
             where T : IInterpetedAnyType
             => root => new InterpetedMember<T>(root);
+
+        public static Func<RunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>(T t)
+            where T : IInterpetedAnyType
+            => root => new InterpetedMember<T>(t,root);
 
 
         // is this really a type?

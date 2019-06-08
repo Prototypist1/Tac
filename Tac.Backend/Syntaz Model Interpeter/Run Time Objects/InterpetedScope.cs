@@ -13,33 +13,33 @@ namespace Tac.Syntaz_Model_Interpeter
 
     internal class InterpetedScopeTemplate : IInterpetedScopeTemplate
     {
-        private readonly InterpetedStaticScope staticScope;
+        private readonly IInterpetedStaticScope staticScope;
         private readonly IFinalizedScope finalizedScope;
 
         public InterpetedScopeTemplate(IFinalizedScope finalizedScope) {
-            this.staticScope = InterpetedStaticScope.Make();
+            this.staticScope = TypeManager.StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>());
             this.finalizedScope = finalizedScope ?? throw new ArgumentNullException(nameof(finalizedScope));
         }
 
         public IInterpetedScope Create()
         {
-            return InterpetedInstanceScope.Make(staticScope, finalizedScope);
+            return TypeManager.InstanceScope(staticScope, finalizedScope);
         }
     }
 
     internal static partial class TypeManager
     {
-        internal static IInterpetedScope EmptyStaticScope()
+        internal static IInterpetedStaticScope EmptyStaticScope()
         {
             return StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>());
         }
 
 
-        public static IInterpetedScope StaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing)
-            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { StaticScopeIntention(backing) }).Has<IInterpetedScope>();
+        public static IInterpetedStaticScope StaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing)
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { StaticScopeIntention(backing) }).Has<IInterpetedStaticScope>();
 
 
-        public static Func<RunTimeAnyRoot, IInterpetedScope> StaticScopeIntention(ConcurrentIndexed<IKey, IInterpetedMember> backing)
+        public static Func<RunTimeAnyRoot, IInterpetedStaticScope> StaticScopeIntention(ConcurrentIndexed<IKey, IInterpetedMember> backing)
             => root => new InterpetedStaticScope(backing, root);
 
         // TODO you are here
@@ -48,7 +48,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         // I also need to handle primitive types
 
-        private class InterpetedStaticScope : RootedTypeAny, IInterpetedScope
+        private class InterpetedStaticScope : RootedTypeAny, IInterpetedStaticScope
         {
             public InterpetedStaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing, RunTimeAnyRoot root) : base(root)
             {
@@ -82,13 +82,16 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
 
-        public static IInterpetedScope InstanceScope(InterpetedStaticScope staticBacking,
+        internal static IInterpetedScope InstanceScope(IInterpetedStaticScope staticBacking,
             IFinalizedScope scopeDefinition)
-            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { StaticScopeIntention(staticBacking, scopeDefinition) }).Has<IInterpetedScope>();
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { InstanceScopeIntention(staticBacking, scopeDefinition) }).Has<IInterpetedScope>();
+
+        internal static IInterpetedScope InstanceScope(params (IKey, IInterpetedMember)[] members)
+            => new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { InstanceScopeIntention(members) }).Has<IInterpetedScope>();
 
 
         public static Func<RunTimeAnyRoot, IInterpetedScope> InstanceScopeIntention(
-            InterpetedStaticScope staticBacking,
+            IInterpetedStaticScope staticBacking,
             IFinalizedScope scopeDefinition)
         {
             var backing = new ConcurrentIndexed<IKey, IInterpetedMember>();
@@ -99,7 +102,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
                 foreach (var member in scopeDefinition.Members)
                 {
-                    backing[member.Key] = InterpetedMember.Make(member.Type);
+                    backing[member.Key] = TypeManager.MakeMember(member.Type);
                 }
                 return scope;
             };
@@ -112,11 +115,11 @@ namespace Tac.Syntaz_Model_Interpeter
 
             return (RunTimeAnyRoot root) =>
             {
-                var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Empty(), root);
+                var scope = new InterpetedInstanceScope(backing, EmptyStaticScope(), root);
 
                 foreach (var member in scopeDefinition.Members)
                 {
-                    backing[member.Key] = InterpetedMember.Make(member.Type); ;
+                    backing[member.Key] = TypeManager.MakeMember(member.Type); ;
                 }
 
                 return scope;
@@ -134,7 +137,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             return (RunTimeAnyRoot root) =>
             {
-                var scope = new InterpetedInstanceScope(backing, InterpetedStaticScope.Empty(), root);
+                var scope = new InterpetedInstanceScope(backing, TypeManager.EmptyStaticScope(), root);
 
                 return scope;
             };
@@ -143,14 +146,12 @@ namespace Tac.Syntaz_Model_Interpeter
         private class InterpetedInstanceScope : InterpetedStaticScope
         {
 
-            public InterpetedInstanceScope(ConcurrentIndexed<IKey, IInterpetedMember> backing, InterpetedStaticScope staticBacking, RunTimeAnyRoot root) : base(backing, root)
+            public InterpetedInstanceScope(ConcurrentIndexed<IKey, IInterpetedMember> backing, IInterpetedStaticScope staticBacking, RunTimeAnyRoot root) : base(backing, root)
             {
                 StaticBacking = staticBacking ?? throw new ArgumentNullException(nameof(staticBacking));
             }
 
-#pragma warning disable IDE0052 // Remove unread private members
-            private InterpetedStaticScope StaticBacking { get; }
-#pragma warning restore IDE0052 // Remove unread private members
+            private IInterpetedStaticScope StaticBacking { get; }
 
         }
     }

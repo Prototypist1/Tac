@@ -64,7 +64,7 @@ namespace Tac.Backend.Public
                     return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value }).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>();
                 }));
 
-                var member = new InterpetedMember<IInterpetedScope>();
+                var member = TypeManager.Member<IInterpetedScope>();
                 if (objectDefinition.Interpet(interpetedContext).IsReturn(out var _, out var value)) {
                     throw new Exception("this should not throw");
                 }

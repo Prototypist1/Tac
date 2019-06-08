@@ -59,7 +59,7 @@ namespace Tac.Syntaz_Model_Interpeter
             private IInterpetedOperation<IInterpetedAnyType>[] Body { get; }
             private InterpetedContext Context { get; }
             private IInterpetedScopeTemplate Scope { get; }
-            private InterpetedStaticScope StaticScope { get; } = InterpetedStaticScope.Empty();
+            private IInterpetedStaticScope StaticScope { get; } = TypeManager.EmptyStaticScope();
 
             public IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input)
             {
@@ -81,8 +81,8 @@ namespace Tac.Syntaz_Model_Interpeter
 
                 if (typeof(IInterpedEmpty).IsAssignableFrom(typeof(TOut)))
                 {
-                    var hack = new RunTimeEmpty();
-                    return InterpetedResult.Create<IInterpetedMember<TOut>>(new InterpetedMember<TOut>(hack.Cast<TOut>()));
+                    var hack = TypeManager.Empty();
+                    return InterpetedResult.Create(Member(hack.Cast<TOut>()));
                 }
 
                 throw new System.Exception("method did not return!");

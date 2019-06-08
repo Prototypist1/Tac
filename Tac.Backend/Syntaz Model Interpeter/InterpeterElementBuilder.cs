@@ -25,7 +25,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public static InterpetedContext Root()
         {
-            return new InterpetedContext(new IInterpetedScope[] { InterpetedInstanceScope.Make() });
+            return new InterpetedContext(new IInterpetedScope[] { TypeManager.InstanceScope() });
         }
 
         internal bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType
@@ -45,23 +45,23 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
     
-    public interface IInterpetedResult<out T> : IInterpeted
+    internal interface IInterpetedResult<out T> : IInterpeted
             where T : IInterpetedAnyType
     {
     }
-    public interface IInterpetedResultNotReturn<out T> : IInterpetedResult<T>
+    internal interface IInterpetedResultNotReturn<out T> : IInterpetedResult<T>
         where T : IInterpetedAnyType
     {
         T Value { get; }
     }
 
-    public interface IInterpetedResultReturn<out T> : IInterpetedResult<T>
+    internal interface IInterpetedResultReturn<out T> : IInterpetedResult<T>
         where T : IInterpetedAnyType
     {
         IInterpetedAnyType Value { get; }
     }
 
-    public static class InterpetedResultExtensions {
+    internal static class InterpetedResultExtensions {
         
         public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedAnyType returned, out T value)
             where T : IInterpetedAnyType
@@ -133,7 +133,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public static IInterpetedResultReturn<T> Return<T>()
             where T : IInterpetedAnyType
         {
-            return new IsReturn<T>(new RunTimeEmpty());
+            return new IsReturn<T>( TypeManager.Empty());
         }
 
         public static IInterpetedResultReturn<T> Return<T>(IInterpetedAnyType value)
@@ -148,9 +148,9 @@ namespace Tac.Syntaz_Model_Interpeter
             return new NotReturn<T>(value);
         }
         
-        public static IInterpetedResult<IInterpetedMember<RunTimeEmpty>> Create()
+        public static IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Create()
         {
-            return new NotReturn<IInterpetedMember<RunTimeEmpty>>(new InterpetedMember<RunTimeEmpty>(new RunTimeEmpty()));
+            return new NotReturn<IInterpetedMember<IInterpedEmpty>>(TypeManager.Member<IInterpedEmpty>(TypeManager.Empty()));
         }
     }
 

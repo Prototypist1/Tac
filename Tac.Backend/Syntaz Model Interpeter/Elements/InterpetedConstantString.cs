@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedConstantString : IInterpetedOperation<BoxedString>
+    internal class InterpetedConstantString : IInterpetedOperation<IBoxedString>
     {
         public void Init(string value)
         {
@@ -13,9 +13,9 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public string Value { get; private set; }
 
-        public IInterpetedResult<IInterpetedMember<BoxedString>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember<IBoxedString>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(new InterpetedMember<BoxedString>(new BoxedString(Value)));
+            return InterpetedResult.Create(TypeManager.Member(TypeManager.String(Value)));
         }
     }
 }
