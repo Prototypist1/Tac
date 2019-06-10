@@ -290,7 +290,8 @@ namespace Tac.Frontend._2_Parser
         public ITokenMatching<(IEnumerable<IToken>, AtomicToken)> TryMake(IMatchedTokenMatching elementMatching)
         {
             if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.Last() is AtomicToken op)
+                elementMatching.Tokens.Last() is AtomicToken op 
+                && op.Item == s)
             {
 
                 var preface = elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray(); ;

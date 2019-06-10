@@ -12,15 +12,16 @@ using Tac.Parser;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
-    internal class LessThenSymbols : ISymbols
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
     {
-        public string Symbols => "<?";
+        public static readonly string StaticLessThanSymbol = StaticSymbolsRegistry.AddOrThrow("<?");
+        public readonly string LessThanSymbol = StaticLessThanSymbol;
     }
     
+
     internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILessThanOperation>
     {
-        public const string Identifier = "<?";
-
         public WeakLessThanOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
         {
         }
@@ -42,7 +43,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation, ILessThanOperation>
     {
-        public LessThanOperationMaker() : base(new LessThenSymbols(), (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)))
+        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)))
         {
         }
     }

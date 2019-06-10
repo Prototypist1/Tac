@@ -11,14 +11,20 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
+
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+        public static readonly string StaticIfSymbol = StaticSymbolsRegistry.AddOrThrow("then");
+        public readonly string IfSymbol = StaticIfSymbol;
+    }
+}
+
+
 namespace Tac.Semantic_Model.Operations
 {
-
-    internal class IfTrueSymbols : ISymbols
-    {
-        public string Symbols => "then";
-    }
-
     internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IIfOperation>
     {
         // right should have more validation
@@ -43,7 +49,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation,IIfOperation>
     {
-        public IfTrueOperationMaker() : base(new IfTrueSymbols(), (l,r)=> Possibly.Is(new WeakIfTrueOperation(l,r)))
+        public IfTrueOperationMaker() : base(SymbolsRegistry.StaticIfSymbol, (l,r)=> Possibly.Is(new WeakIfTrueOperation(l,r)))
         {
         }
     }

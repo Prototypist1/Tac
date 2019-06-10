@@ -9,13 +9,20 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
+
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+        public static readonly string StaticMultiplySymbols = StaticSymbolsRegistry.AddOrThrow("*");
+        public readonly string MultiplySymbols = StaticMultiplySymbols;
+    }
+}
+
+
 namespace Tac.Semantic_Model.Operations
 {
-    internal class MultiplySymbols : ISymbols
-    {
-        public string Symbols => "*";
-    }
-
     internal class WeakMultiplyOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IMultiplyOperation>
     {
         public const string Identifier = "*";
@@ -42,7 +49,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation, IMultiplyOperation>
     {
-        public MultiplyOperationMaker() : base(new MultiplySymbols(), (l,r)=>Possibly.Is(new WeakMultiplyOperation(l,r)))
+        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>Possibly.Is(new WeakMultiplyOperation(l,r)))
         {
         }
     }

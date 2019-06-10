@@ -131,7 +131,7 @@ namespace Tac.Tests
         {
             var text = sample.Text;
             
-            var tokenizer = new Parser.Tokenizer(Symbols.GetSymbols());
+            var tokenizer = new Parser.Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
             var res = tokenizer.Tokenize(text);
 
             var target = sample.Token;

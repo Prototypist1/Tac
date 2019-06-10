@@ -9,13 +9,20 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
+
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+        public static readonly string StaticSubtractSymbol = StaticSymbolsRegistry.AddOrThrow(" - ");
+        public readonly string SubtractSymbol = StaticSubtractSymbol;
+    }
+}
+
+
 namespace Tac.Semantic_Model.Operations
 {
-    internal class SubtractSymbols : ISymbols
-    {
-        public string Symbols => " - ";
-    }
-
     internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ISubtractOperation>
     {
         public WeakSubtractOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
@@ -39,7 +46,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation,ISubtractOperation>
     {
-        public SubtractOperationMaker() : base(new SubtractSymbols(), (l,r)=>
+        public SubtractOperationMaker() : base(SymbolsRegistry.StaticSubtractSymbol, (l,r)=>
             Possibly.Is(
                 new WeakSubtractOperation(l,r))){}
     }

@@ -12,13 +12,20 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+        public static readonly string StaticAddSymbol = StaticSymbolsRegistry.AddOrThrow("+");
+        public readonly string AddSymbol = StaticAddSymbol;
+    }
+
+}
+
 namespace Tac.Semantic_Model.Operations
 {
 
-    internal class AddSymbols : ISymbols
-    {
-        public string Symbols=> "+";
-    }
 
     internal class WeakAddOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAddOperation>
     {
@@ -42,7 +49,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation, IAddOperation>
     {
-        public AddOperationMaker() : base(new AddSymbols(),(l,r)=>Possibly.Is(new WeakAddOperation(l,r)))
+        public AddOperationMaker() : base(SymbolsRegistry.StaticAddSymbol, (l,r)=>Possibly.Is(new WeakAddOperation(l,r)))
         {
         }
     }

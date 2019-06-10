@@ -12,14 +12,23 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
+
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+        public  static readonly string StaticNextCallSymbol = StaticSymbolsRegistry.AddOrThrow(">");
+        public  readonly string NextCallSymbol = StaticNextCallSymbol;
+        public static readonly string StaticLastCallSymbol = StaticSymbolsRegistry.AddOrThrow("<");
+        public  readonly string LastCallSymbol = StaticLastCallSymbol;
+    }
+
+}
+
+
 namespace Tac.Semantic_Model.Operations
 {
-
-
-    internal class NextCallSymbols : ISymbols
-    {
-        public string Symbols => ">";
-    }
 
     internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, INextCallOperation>
     {
@@ -46,15 +55,9 @@ namespace Tac.Semantic_Model.Operations
 
     internal class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation,INextCallOperation>
     {
-        public NextCallOperationMaker() : base(new NextCallSymbols(), (l,r)=> Possibly.Is( new WeakNextCallOperation(l,r)))
+        public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> Possibly.Is( new WeakNextCallOperation(l,r)))
         {
         }
-    }
-
-
-    internal class LastCallSymbols : ISymbols
-    {
-        public string Symbols => "<";
     }
 
     internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILastCallOperation>
@@ -84,7 +87,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation, ILastCallOperation>
     {
-        public LastCallOperationMaker() : base(new LastCallSymbols(), (l,r)=>Possibly.Is( new WeakLastCallOperation(l,r)))
+        public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>Possibly.Is( new WeakLastCallOperation(l,r)))
         {
         }
     }

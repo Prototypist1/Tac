@@ -9,14 +9,20 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
+
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+        public static readonly string StaticElseSymbol = StaticSymbolsRegistry.AddOrThrow("else");
+        public readonly string ElseSymbol = StaticElseSymbol;
+    }
+}
+
+
 namespace Tac.Semantic_Model.Operations
 {
-
-    internal class ElseSymbols : ISymbols
-    {
-        public string Symbols => "else";
-    }
-
 
     // really an if not
     internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IElseOperation>
@@ -44,7 +50,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation,IElseOperation>
     {
-        public ElseOperationMaker() : base(new ElseSymbols(), (l,r)=>Possibly.Is(new WeakElseOperation(l,r)))
+        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>Possibly.Is(new WeakElseOperation(l,r)))
         {
         }
     }

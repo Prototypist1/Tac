@@ -14,15 +14,22 @@ using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 
 
+
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+
+        public static string StaticTypeOrSymbol = StaticSymbolsRegistry.AddOrThrow("|");
+        public readonly string TypeOrSymbol = StaticTypeOrSymbol;
+    }
+}
+
+
+
 namespace Tac.Frontend._3_Syntax_Model.Operations
 {
-
-    internal class TypeOrSymbols : ISymbols
-    {
-        public string Symbols => "|";
-    }
-
-
     internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>
     {
         public WeakTypeOrOperation(IIsPossibly<IFrontendType> left, IIsPossibly<IFrontendType> right) : base(left, right)
@@ -43,7 +50,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
 
     internal class TypeOrOperationMaker : BinaryTypeMaker
     {
-        public TypeOrOperationMaker() : base(new TypeOrSymbols(), (l, r) => 
+        public TypeOrOperationMaker() : base(SymbolsRegistry.StaticTypeOrSymbol, (l, r) => 
             Possibly.Is<IWeakTypeReference>(
                 new WeakTypeReference(
                     Possibly.Is<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>>(

@@ -14,20 +14,51 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
-    public static class Symbols{
-        public static string[] GetSymbols()=> 
-            AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(s => s.GetTypes())
-            .Where(p => typeof(ISymbols).IsAssignableFrom(p) && p.IsClass && !p.IsAbstract)
-            .Select(x=> Activator.CreateInstance(x)
-            .Cast<ISymbols>().Symbols)
-            .ToArray();
+
+    public static class StaticSymbolsRegistry {
+        private static readonly Prototypist.TaskChain.JumpBallConcurrent<List<string>> listLocker = new Prototypist.TaskChain.JumpBallConcurrent<List<string>>(new List<string>());
+        public static string AddOrThrow(string s)
+        {
+            listLocker.Run(x =>
+            {
+                if (x.Contains(s))
+                {
+                    throw new Exception("Already added");
+                }
+                x.Add(s);
+                return x;
+            });
+            return s;
+        }
+        // playing some fucking games here
+        // I want each symbol to register itself in stead of having a centeral list
+        // unfo, ensuring static init is hard in C#
+
+        // my solution:
+        // 1. you get the list of symbols from StaticSymbolsRegistry.SymbolsRegistry
+        // 2. SymbolsRegistry is partail each symbol creates a member
+        //    when that member is initialized the symbol is added to StaticSymbolsRegistry
+        // 
+        // when you use StaticSymbolsRegistry.SymbolsRegistry
+        // we create a SymbolsRegistry so all the symbols are added to listLocker
+        // then we set SymbolsRegistry.Symbols to listLocker
+        public static SymbolsRegistry SymbolsRegistry = CreateSymbolsRegistry();
+
+        private static SymbolsRegistry CreateSymbolsRegistry() {
+            var res = new SymbolsRegistry
+            {
+                Symbols = listLocker.Run(x => x)
+            };
+            return res;
+        }
     }
 
-    public interface ISymbols {
-        string Symbols { get; }
+    public partial class SymbolsRegistry
+    {
+        public IEnumerable<string> Symbols { get; set; }
+
     }
-    
+
     internal class BinaryOperation
     {
         public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right);
@@ -98,20 +129,20 @@ namespace Tac.Semantic_Model.CodeStuff
         where TCodeElement : class, ICodeElement
     {
 
-        public BinaryOperationMaker(ISymbols name, BinaryOperation.Make<TFrontendCodeElement> make
+        public BinaryOperationMaker(string symbol, BinaryOperation.Make<TFrontendCodeElement> make
             )
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public ISymbols Name { get; }
+        public string Symbol { get; }
         private BinaryOperation.Make<TFrontendCodeElement> Make { get; }
 
         public ITokenMatching<IPopulateScope<TFrontendCodeElement>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(Name.Symbols), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(match.perface);
@@ -241,20 +272,20 @@ namespace Tac.Semantic_Model.CodeStuff
     internal class BinaryTypeMaker : IMaker<IPopulateScope<IWeakTypeReference>>
     {
 
-        public BinaryTypeMaker(ISymbols name, BinaryOperation.MakeBinaryType<IWeakTypeReference> make
+        public BinaryTypeMaker(string symbol, BinaryOperation.MakeBinaryType<IWeakTypeReference> make
             )
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public ISymbols Name { get; }
+        public string Symbol { get; }
         private BinaryOperation.MakeBinaryType<IWeakTypeReference> Make { get; }
 
         public ITokenMatching<IPopulateScope<IWeakTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(Name.Symbols), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseTypeLine(match.perface);

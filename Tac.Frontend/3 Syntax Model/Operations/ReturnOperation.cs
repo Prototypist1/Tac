@@ -12,13 +12,18 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+        public static readonly string StaticReturnSymbol = StaticSymbolsRegistry.AddOrThrow("return");
+        public readonly string ReturnSymbol = StaticReturnSymbol;
+    }
+}
+
 namespace Tac.Semantic_Model.Operations
 {
-    internal class RetunrSymbols : ISymbols
-    {
-        public string Symbols => "return";
-    }
-    
     internal class WeakReturnOperation : TrailingOperation, IConvertableFrontendCodeElement<IReturnOperation>
     {
         public WeakReturnOperation(IIsPossibly<IFrontendCodeElement> result)
@@ -58,13 +63,13 @@ namespace Tac.Semantic_Model.Operations
         where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
-        public TrailingOperationMaker(ISymbols name, TrailingOperation.Make<TFrontendCodeElement> make)
+        public TrailingOperationMaker(string symbol, TrailingOperation.Make<TFrontendCodeElement> make)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
             Make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
-        public ISymbols Name { get; }
+        public string Symbol { get; }
         private TrailingOperation.Make<TFrontendCodeElement> Make { get; }
 
         public ITokenMatching<IPopulateScope<TFrontendCodeElement>> TryMake(IMatchedTokenMatching tokenMatching)
@@ -72,7 +77,7 @@ namespace Tac.Semantic_Model.Operations
             
 
             var matching = tokenMatching
-                .Has(new TrailingOperationMatcher(Name.Symbols), out (IEnumerable<IToken> perface, AtomicToken _) res);
+                .Has(new TrailingOperationMatcher(Symbol), out (IEnumerable<IToken> perface, AtomicToken _) res);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(res.perface);
@@ -160,7 +165,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ReturnOperationMaker : TrailingOperationMaker<WeakReturnOperation, IReturnOperation>
     {
-        public ReturnOperationMaker() : base(new RetunrSymbols(), x=>Possibly.Is(new WeakReturnOperation(x)))
+        public ReturnOperationMaker() : base(SymbolsRegistry.StaticReturnSymbol, x=>Possibly.Is(new WeakReturnOperation(x)))
         {
         }
     }

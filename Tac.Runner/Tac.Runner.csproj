@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Prototypist.TaskChain" Version="1.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Tac.Backend\Tac.Backend.csproj" />
     <ProjectReference Include="..\Tac.Frontend\Tac.Frontend.csproj" />
   </ItemGroup>

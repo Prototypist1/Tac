@@ -11,13 +11,18 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 
+namespace Tac.Semantic_Model.CodeStuff
+{
+    // this is how we register the symbol
+    public partial class SymbolsRegistry
+    {
+        public static readonly string StaticPathSymbol = StaticSymbolsRegistry.AddOrThrow(".");
+        public readonly string PathSymbol = StaticPathSymbol;
+    }
+}
+
 namespace Tac.Semantic_Model.Operations
 {
-    internal class PathSymbols : ISymbols
-    {
-        public string Symbols => ".";
-    }
-
     internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IPathOperation>
     {
         public WeakPathOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
@@ -45,7 +50,7 @@ namespace Tac.Semantic_Model.Operations
         public ITokenMatching<IPopulateScope<WeakPathOperation>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(new PathSymbols().Symbols), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) res);
+                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) res);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(res.perface);
