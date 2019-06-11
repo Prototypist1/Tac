@@ -9,6 +9,17 @@ using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model.CodeStuff;
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticLessThanMaker = AddOperationMatcher(() => new LessThanOperationMaker());
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> LessThanMaker = StaticLessThanMaker;
+    }
+}
 
 namespace Tac.Semantic_Model.CodeStuff
 {

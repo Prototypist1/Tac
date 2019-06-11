@@ -8,7 +8,7 @@ using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
@@ -17,6 +17,16 @@ namespace Tac.Semantic_Model.CodeStuff
     {
         public static readonly string StaticMultiplySymbols = StaticSymbolsRegistry.AddOrThrow("*");
         public readonly string MultiplySymbols = StaticMultiplySymbols;
+    }
+}
+
+
+namespace Tac.Parser
+{
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMultiplyMaker = AddOperationMatcher(() => new MultiplyOperationMaker());
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MultiplyMaker = StaticMultiplyMaker;
     }
 }
 

@@ -10,6 +10,7 @@ using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
@@ -18,6 +19,16 @@ namespace Tac.Semantic_Model.CodeStuff
     {
         public static readonly string StaticPathSymbol = StaticSymbolsRegistry.AddOrThrow(".");
         public readonly string PathSymbol = StaticPathSymbol;
+    }
+}
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticPathMaker = AddOperationMatcher(() => new PathOperationMaker());
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> PathMaker = StaticPathMaker;
     }
 }
 

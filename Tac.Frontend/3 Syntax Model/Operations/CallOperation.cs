@@ -11,7 +11,7 @@ using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
-
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
@@ -24,6 +24,19 @@ namespace Tac.Semantic_Model.CodeStuff
         public  readonly string LastCallSymbol = StaticLastCallSymbol;
     }
 
+}
+
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticLastCallMaker = AddOperationMatcher(() => new LastCallOperationMaker());
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> LastCallMaker = StaticLastCallMaker;
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticNextCallMaker = AddOperationMatcher(() => new NextCallOperationMaker());
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> NextCallMaker = StaticNextCallMaker;
+    }
 }
 
 

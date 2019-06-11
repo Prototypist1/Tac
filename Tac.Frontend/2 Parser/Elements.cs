@@ -15,6 +15,107 @@ using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
+
+    internal partial class MakerRegistry {
+
+        private class WithConditions<T> {
+            public readonly Func<IMaker<T>> makerMaker;
+            private readonly IReadOnlyList<Condition<T>> conditions;
+
+            public WithConditions(Func<IMaker<T>> maker, IReadOnlyList<Condition<T>> conditions)
+            {
+                this.makerMaker = maker ?? throw new ArgumentNullException(nameof(maker));
+                this.conditions = conditions ?? throw new ArgumentNullException(nameof(conditions));
+            }
+
+            public bool CanGo(IEnumerable<IMaker<T>> list) => conditions.All(x=>x(list));
+        }
+
+        private delegate bool Condition<T>(IEnumerable<IMaker<T>> makers);
+
+        private Condition<T> MustBeBefore<T>(Type type) => list => !list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
+
+        private Condition<T> MustBeAfter<T>(Type type) => list => list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
+
+        private static List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>>> implicitOperationMatchers = new List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>>>();
+        private static List<WithConditions<IPopulateScope<IFrontendCodeElement>>> operationMatchers = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
+        private static List<WithConditions<IPopulateScope<IFrontendCodeElement>>> elementMakers = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
+        private static List<WithConditions<IPopulateScope<IFrontendType>>> typeOperationMatchers = new List<WithConditions<IPopulateScope<IFrontendType>>>();
+        private static List<WithConditions<IPopulateScope<IFrontendType>>> typeMakers = new List<WithConditions<IPopulateScope<IFrontendType>>>();
+        public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> OperationMatchers => Process(operationMatchers);
+        public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> ImplicitOperationMatchers(IBox<IIsPossibly<IFrontendType>> box) {
+            var list = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
+            list.AddRange(operationMatchers);
+            list.AddRange(implicitOperationMatchers.Select(x => x(box)));
+
+            return Process(list);
+        }
+
+        public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> ElementMakers => Process(elementMakers);
+        public IEnumerable<IMaker<IPopulateScope<IFrontendType>>> TypeOperationMatchers => Process(typeOperationMatchers);
+        public IEnumerable<IMaker<IPopulateScope<IFrontendType>>> TypeMakers => Process(typeMakers);
+
+        private IEnumerable<IMaker<T>> Process<T>(List<WithConditions<T>> withConditionss) {
+            var lastCount = -1;
+            var res = new List<IMaker<T>>();
+            while (withConditionss.Count != lastCount) {
+                lastCount = withConditionss.Count;
+
+                var nextWithConditionss = new List<WithConditions<T>>();
+
+                foreach (var withConditions in withConditionss)
+                {
+                    if (withConditions.CanGo(res))
+                    {
+                        res.Add(withConditions.makerMaker());
+                    }
+                    else {
+                        nextWithConditionss.Add(withConditions);
+                    }
+                }
+
+                if (!nextWithConditionss.Any()) {
+                    return res;
+                }
+
+                withConditionss = nextWithConditionss;
+            }
+            throw new Exception("could not order");
+        }
+
+        private static Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>> AddImplicitOperationMatcher(
+            Func<IBox<IIsPossibly<IFrontendType>>, IMaker<IPopulateScope<IFrontendCodeElement>>> func, 
+            params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions)
+        {
+            Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>> res = (x) => new WithConditions<IPopulateScope<IFrontendCodeElement>>(() => func(x), conditions.ToList());
+            implicitOperationMatchers.Add(res);
+            return res;
+        }
+        private static WithConditions<IPopulateScope<IFrontendCodeElement>> AddOperationMatcher(Func<IMaker<IPopulateScope<IFrontendCodeElement>>> item, params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions) {
+            var res = new WithConditions<IPopulateScope<IFrontendCodeElement>>(item, conditions.ToList());
+            operationMatchers.Add(res);
+            return res;
+        }
+        private static WithConditions<IPopulateScope<IFrontendCodeElement>> AddElementMakers(Func<IMaker<IPopulateScope<IFrontendCodeElement>>> item, params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions)
+        {
+            var res = new WithConditions<IPopulateScope<IFrontendCodeElement>>(item, conditions.ToList());
+            operationMatchers.Add(res);
+            return res;
+        }
+        private static WithConditions<IPopulateScope<IFrontendType>> AddTypeOperationMatchers(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
+        {
+            var res = new WithConditions<IPopulateScope<IFrontendType>>(item, conditions.ToList());
+            typeOperationMatchers.Add(res);
+            return res;
+        }
+        private static WithConditions<IPopulateScope<IFrontendType>> AddMakers(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
+        {
+            var res = new WithConditions<IPopulateScope<IFrontendType>>(item, conditions.ToList());
+            typeMakers.Add(res);
+            return res;
+        }
+    }
+
     public class Operation<T>
         where T: Delegate
     {
