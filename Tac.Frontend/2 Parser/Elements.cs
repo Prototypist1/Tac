@@ -18,6 +18,8 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry {
 
+        public static MakerRegistry Instance = new MakerRegistry();
+
         private class WithConditions<T> {
             public readonly Func<IMaker<T>> makerMaker;
             private readonly IReadOnlyList<Condition<T>> conditions;
@@ -67,7 +69,13 @@ namespace Tac.Parser
                 {
                     if (withConditions.CanGo(res))
                     {
-                        res.Add(withConditions.makerMaker());
+                        var testList = new List<IMaker<T>>();
+                        var item = withConditions.makerMaker();
+                        testList.AddRange(res);
+                        testList.Add(item);
+                        if (withConditionss.Except(new[] { withConditions }).All(x => withConditions.CanGo(testList))) {
+                            res = testList;
+                        }
                     }
                     else {
                         nextWithConditionss.Add(withConditions);
@@ -102,13 +110,13 @@ namespace Tac.Parser
             operationMatchers.Add(res);
             return res;
         }
-        private static WithConditions<IPopulateScope<IFrontendType>> AddTypeOperationMatchers(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
+        private static WithConditions<IPopulateScope<IFrontendType>> AddTypeOperationMatcher(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
         {
             var res = new WithConditions<IPopulateScope<IFrontendType>>(item, conditions.ToList());
             typeOperationMatchers.Add(res);
             return res;
         }
-        private static WithConditions<IPopulateScope<IFrontendType>> AddMakers(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
+        private static WithConditions<IPopulateScope<IFrontendType>> AddTypeMaker(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
         {
             var res = new WithConditions<IPopulateScope<IFrontendType>>(item, conditions.ToList());
             typeMakers.Add(res);
@@ -173,18 +181,7 @@ namespace Tac.Parser
         
         public ElementMatchingContext() : 
             this(
-                new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
-                    new AddOperationMaker(),
-                    new SubtractOperationMaker(),
-                    new MultiplyOperationMaker(),
-                    new IfTrueOperationMaker(),
-                    new ElseOperationMaker(),
-                    new LessThanOperationMaker(),
-                    new NextCallOperationMaker(),
-                    new AssignOperationMaker(),
-                    new PathOperationMaker(),
-                    new ReturnOperationMaker()
-                },
+                MakerRegistry.Instance.OperationMatchers.ToArray(),
                 new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
                     new BlockDefinitionMaker(),
                     new ConstantNumberMaker(),
@@ -201,13 +198,10 @@ namespace Tac.Parser
                     new ConstantStringMaker(),
                     new MemberMaker(),
                 },
-                new IMaker<IPopulateScope<IFrontendType>>[] {
-                    new TypeOrOperationMaker()
-                },
-                new IMaker<IPopulateScope<IFrontendType>>[] {
-                    new TypeMaker()
-                }
-                ){}
+                MakerRegistry.Instance.TypeOperationMatchers.ToArray(),
+                MakerRegistry.Instance.TypeMakers.ToArray()
+                )
+        {}
         
         public ElementMatchingContext(
             IMaker<IPopulateScope<IFrontendCodeElement>>[] operationMatchers, 

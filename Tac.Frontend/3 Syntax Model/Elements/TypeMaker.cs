@@ -1,10 +1,23 @@
 ﻿using System;
 using System.Linq;
+using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Model;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendType>> StaticTypeMaker = AddTypeMaker(() => new TypeMaker());
+        private readonly WithConditions<IPopulateScope<IFrontendType>> TypeMaker = StaticTypeMaker;
+    }
+}
+
 
 namespace Tac.Semantic_Model
 {

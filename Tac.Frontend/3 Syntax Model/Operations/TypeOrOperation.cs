@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
+using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -14,6 +15,15 @@ using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 
 
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendType>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
+        private readonly WithConditions<IPopulateScope<IFrontendType>> TypeOrMaker = StaticTypeOrMaker;
+    }
+}
 
 namespace Tac.Semantic_Model.CodeStuff
 {
@@ -25,8 +35,6 @@ namespace Tac.Semantic_Model.CodeStuff
         public readonly string TypeOrSymbol = StaticTypeOrSymbol;
     }
 }
-
-
 
 namespace Tac.Frontend._3_Syntax_Model.Operations
 {
@@ -57,9 +65,6 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
                         new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
                             Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
                                 new WeakTypeOrOperation(l, r)))))))
-
-
-        //
         {
         }
     }
