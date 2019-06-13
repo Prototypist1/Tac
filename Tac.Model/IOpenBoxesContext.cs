@@ -24,7 +24,7 @@ namespace Tac.Model
         T AssignOperation(IAssignOperation co);
         T ConstantNumber(IConstantNumber codeElement);
         T PathOperation(IPathOperation co);
-        //T GenericTypeDefinition(IGenericInterfaceDefinition codeElement);
+        T TryAssignOperation(ITryAssignOperation tryAssignOperation);
         T ImplementationDefinition(IImplementationDefinition codeElement);
         T MemberDefinition(IMemberDefinition codeElement);
         T MemberReferance(IMemberReferance codeElement);

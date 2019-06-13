@@ -89,6 +89,33 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
+
+        public IInterpetedOperation<IInterpetedAnyType> TryAssignOperation(ITryAssignOperation co)
+        {
+            var method = GetMethod(new Type[] { TypeMap.MapType(co.Left.Returns()), TypeMap.MapType(co.Right.Returns()) }, nameof(TryAssignOperation));
+            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+        }
+
+        private IInterpetedOperation<IInterpetedAnyType> TryAssignOperation<TLeft, TRight>(ITryAssignOperation co)
+            where TRight : class, IInterpetedAnyType
+            where TLeft : class, TRight
+        {
+            if (backing.TryGetValue(co, out var res))
+            {
+                return res;
+            }
+            else
+            {
+                var op = new InterpetedTryAssignOperation<TLeft, TRight>();
+                backing.Add(co, op);
+                op.Init(
+                    co.Left.Convert(this).Cast<IInterpetedOperation<TLeft>>(),
+                    co.Right.Convert(this).Cast<IInterpetedOperation<TRight>>());
+                return op;
+            }
+        }
+
+
         public IInterpetedOperation<IInterpetedAnyType> BlockDefinition(IBlockDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))

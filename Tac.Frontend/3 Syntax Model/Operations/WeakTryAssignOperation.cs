@@ -24,7 +24,7 @@ namespace Tac.Semantic_Model.Operations
 
         public override IBuildIntention<ITryAssignOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
         {
-            var (toBuild, maker) = AssignOperation.Create();
+            var (toBuild, maker) = TryAssignOperation.Create();
             return new BuildIntention<ITryAssignOperation>(toBuild, () =>
             {
                 maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
@@ -53,7 +53,7 @@ namespace Tac.Semantic_Model.Operations
                 return TokenMatching<IPopulateScope<WeakTryAssignOperation>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
-                    BinaryOperationMaker<WeakTryAssignOperation, IAssignOperation>.PopulateScope(left, right, (l, r) =>
+                    BinaryOperationMaker<WeakTryAssignOperation, ITryAssignOperation>.PopulateScope(left, right, (l, r) =>
                         Possibly.Is(
                             new WeakTryAssignOperation(l, r))));
             }
