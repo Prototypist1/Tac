@@ -6,6 +6,19 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMemberMaker = AddElementMakers(
+            () => new MemberMaker());
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MemberMaker = StaticMemberMaker;
+    }
+}
+
 
 namespace Tac.Semantic_Model
 {

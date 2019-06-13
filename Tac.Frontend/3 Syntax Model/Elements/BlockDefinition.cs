@@ -9,7 +9,22 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
 using static Tac.Frontend.TransformerExtensions;
+
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticBlockDefinitionMaker = AddElementMakers(
+            () => new BlockDefinitionMaker(),
+            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
+    }
+}
+
 
 namespace Tac.Semantic_Model
 {

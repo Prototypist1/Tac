@@ -8,6 +8,20 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticModuleDefinitionMaker = AddElementMakers(
+            () => new ModuleDefinitionMaker(),
+            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
+    }
+}
+
 
 namespace Tac.Semantic_Model
 {

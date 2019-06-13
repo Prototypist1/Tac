@@ -10,6 +10,22 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using static Tac.Frontend.TransformerExtensions;
+using Tac.Frontend;
+using Tac.Frontend._3_Syntax_Model.Elements;
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticEmptyInstanceMaker = AddElementMakers(
+            () => new EmptyInstanceMaker(),
+            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
+    }
+}
+
+
 
 namespace Tac.Frontend._3_Syntax_Model.Elements
 {

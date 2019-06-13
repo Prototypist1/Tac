@@ -35,11 +35,11 @@ namespace Tac.Parser
 
         private delegate bool Condition<T>(IEnumerable<IMaker<T>> makers);
 
-        private Condition<T> MustBeBefore<T>(Type type) => list => !list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
+        private static Condition<T> MustBeBefore<T>(Type type) => list => !list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
 
-        private Condition<T> MustBeAfter<T>(Type type) => list => list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
+        private static Condition<T> MustBeAfter<T>(Type type) => list => list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
 
-        private static List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>>> implicitOperationMatchers = new List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>>>();
+        private static List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>>> implicitElementMakers = new List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>>>();
         private static List<WithConditions<IPopulateScope<IFrontendCodeElement>>> operationMatchers = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
         private static List<WithConditions<IPopulateScope<IFrontendCodeElement>>> elementMakers = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
         private static List<WithConditions<IPopulateScope<IFrontendType>>> typeOperationMatchers = new List<WithConditions<IPopulateScope<IFrontendType>>>();
@@ -47,8 +47,8 @@ namespace Tac.Parser
         public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> OperationMatchers => Process(operationMatchers);
         public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> ImplicitOperationMatchers(IBox<IIsPossibly<IFrontendType>> box) {
             var list = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
-            list.AddRange(operationMatchers);
-            list.AddRange(implicitOperationMatchers.Select(x => x(box)));
+            list.AddRange(elementMakers);
+            list.AddRange(implicitElementMakers.Select(x => x(box)));
 
             return Process(list);
         }
@@ -73,8 +73,12 @@ namespace Tac.Parser
                         var item = withConditions.makerMaker();
                         testList.AddRange(res);
                         testList.Add(item);
-                        if (withConditionss.Except(new[] { withConditions }).All(x => withConditions.CanGo(testList))) {
+                        if (withConditionss.Except(new[] { withConditions }).All(x => x.CanGo(testList)))
+                        {
                             res = testList;
+                        }
+                        else {
+                            nextWithConditionss.Add(withConditions);
                         }
                     }
                     else {
@@ -96,7 +100,7 @@ namespace Tac.Parser
             params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions)
         {
             Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>> res = (x) => new WithConditions<IPopulateScope<IFrontendCodeElement>>(() => func(x), conditions.ToList());
-            implicitOperationMatchers.Add(res);
+            implicitElementMakers.Add(res);
             return res;
         }
         private static WithConditions<IPopulateScope<IFrontendCodeElement>> AddOperationMatcher(Func<IMaker<IPopulateScope<IFrontendCodeElement>>> item, params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions) {
@@ -107,7 +111,7 @@ namespace Tac.Parser
         private static WithConditions<IPopulateScope<IFrontendCodeElement>> AddElementMakers(Func<IMaker<IPopulateScope<IFrontendCodeElement>>> item, params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions)
         {
             var res = new WithConditions<IPopulateScope<IFrontendCodeElement>>(item, conditions.ToList());
-            operationMatchers.Add(res);
+            elementMakers.Add(res);
             return res;
         }
         private static WithConditions<IPopulateScope<IFrontendType>> AddTypeOperationMatcher(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
@@ -153,23 +157,8 @@ namespace Tac.Parser
         internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IFrontendType>> box)
         {
             return new ElementMatchingContext(
-                operationMatchers, 
-                new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
-                    new BlockDefinitionMaker(),
-                    new ConstantNumberMaker(),
-                    new GenericTypeDefinitionMaker(),
-                    new ImplementationDefinitionMaker(),
-                    new MemberDefinitionMaker(),
-                    new MethodDefinitionMaker(),
-                    new ModuleDefinitionMaker(),
-                    new ObjectDefinitionMaker(),
-                    new EmptyInstanceMaker(),
-                    new ConstantBoolMaker(),
-                    new ConstantStringMaker(),
-                    new TypeDefinitionMaker(),
-                    new ImplicitMemberMaker(box),
-                    new MemberMaker(),
-                },
+                operationMatchers,
+                MakerRegistry.Instance.ImplicitOperationMatchers(box).ToArray(),
                 typeOperationMatchers, 
                 typeMakers);
         }
@@ -182,22 +171,7 @@ namespace Tac.Parser
         public ElementMatchingContext() : 
             this(
                 MakerRegistry.Instance.OperationMatchers.ToArray(),
-                new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
-                    new BlockDefinitionMaker(),
-                    new ConstantNumberMaker(),
-                    new GenericTypeDefinitionMaker(),
-                    new ImplementationDefinitionMaker(),
-                    new MemberDefinitionMaker(),
-                    new MethodDefinitionMaker(),
-                    new ModuleDefinitionMaker(),
-                    new ObjectDefinitionMaker(),
-                    new TypeDefinitionMaker(),
-                    new GenericTypeDefinitionMaker(),
-                    new EmptyInstanceMaker(),
-                    new ConstantBoolMaker(),
-                    new ConstantStringMaker(),
-                    new MemberMaker(),
-                },
+                MakerRegistry.Instance.ElementMakers.ToArray(),
                 MakerRegistry.Instance.TypeOperationMatchers.ToArray(),
                 MakerRegistry.Instance.TypeMakers.ToArray()
                 )

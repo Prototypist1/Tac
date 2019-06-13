@@ -11,8 +11,24 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
 using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
 using static Tac.Frontend.TransformerExtensions;
+
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticGenericTypeDefinitionMaker = AddElementMakers(
+            () => new GenericTypeDefinitionMaker(),
+            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
+    }
+}
+
+
 
 namespace Tac.Semantic_Model
 {
@@ -35,58 +51,6 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
     }
-
-    //internal class ExternalGenericType : IWeakGenericTypeDefinition
-    //{
-    //    private readonly IGenericInterfaceDefinition type;
-
-    //    public ExternalGenericType(GenericNameKey key,IGenericInterfaceDefinition type)
-    //    {
-    //        if (key == null)
-    //        {
-    //            throw new ArgumentNullException(nameof(key));
-    //        }
-            
-
-    //        this.type = type ?? throw new ArgumentNullException(nameof(type));
-    //        this.TypeParameterDefinitions = type.TypeParameterKeys.Select(x => Possibly.Is( new _3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder(x))).ToArray();
-    //        this.Key = Possibly.Is(key);
-    //        this.Scope = new ExteranlResolvableScope(type.Scope);
-    //    }
-
-    //    public IIsPossibly<IKey> Key {get;}
-
-    //    public IResolvableScope Scope {get;}
-
-    //    public IIsPossibly<_3_Syntax_Model.Elements.Atomic_Types.GemericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
-        
-    //    public OrType<IFrontendGenericType, IFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
-    //    {
-    //        var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
-    //        if (typeParameters.All(x => !(x.frontendType is IGenericTypeParameterPlacholder)))
-    //        {
-    //            return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
-    //                new WeakTypeDefinition(Scope, Key), overlay));
-    //        }
-    //        else
-    //        {
-    //            return new OrType<IFrontendGenericType, IFrontendType<IVerifiableType>>(new OverlayGenericTypeDefinition(
-    //                this, overlay).Cast<IFrontendGenericType>());
-    //        }
-    //    }
-
-    //    public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
-    //    {
-    //        return Possibly.Is(this);
-    //    }
-
-    //    public IBuildIntention<IGenericInterfaceDefinition> GetBuildIntention(ConversionContext context)
-    //    {
-    //        return new BuildIntention<IGenericInterfaceDefinition>(type, () => { });
-    //    }
-
-    //    IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
-    //}
 
     internal interface IWeakGenericTypeDefinition: IFrontendCodeElement, IScoped, IFrontendType, IFrontendGenericType
     {

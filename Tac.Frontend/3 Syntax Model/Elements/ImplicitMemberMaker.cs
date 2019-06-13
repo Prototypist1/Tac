@@ -7,8 +7,22 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
+
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>> StaticImplicitMemberMaker = AddImplicitOperationMatcher(
+            box => new ImplicitMemberMaker(box),
+            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+        private readonly Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>> ImplicitMemberMaker = StaticImplicitMemberMaker;
+    }
+}
 
 namespace Tac.Semantic_Model
 {

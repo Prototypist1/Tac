@@ -10,7 +10,23 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
+
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticTypeDefinitionMaker = AddElementMakers(
+            () => new TypeDefinitionMaker(),
+            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
+    }
+}
+
+
 
 namespace Tac.Semantic_Model
 {

@@ -9,8 +9,21 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
+using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using static Tac.Frontend.TransformerExtensions;
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticImplementationDefinitionMaker = AddElementMakers(
+            () => new ImplementationDefinitionMaker(),
+            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
+    }
+}
 
 namespace Tac.Semantic_Model
 {
