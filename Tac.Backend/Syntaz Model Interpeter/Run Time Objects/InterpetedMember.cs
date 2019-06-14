@@ -19,6 +19,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
     public interface IInterpetedMemberSet<in T>
     {
+        bool TrySet(IInterpetedAnyType o);
         void Set(T o);
     }
 
@@ -33,21 +34,21 @@ namespace Tac.Syntaz_Model_Interpeter
             return made.Invoke(null,new object[] { }).Cast<IInterpetedMember>();
         }
 
-        public static IInterpetedMember<T> Member<T>(T t)
+        public static IInterpetedMember<T> Member<T>(IVerifiableType type,T t)
             where T : IInterpetedAnyType 
-            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>(t) }).Has<IInterpetedMember<T>>();
+            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>(type,t) }).Has<IInterpetedMember<T>>();
 
-        public static IInterpetedMember<T> Member<T>()
+        public static IInterpetedMember<T> Member<T>(IVerifiableType type)
             where T : IInterpetedAnyType
-            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>() }).Has<IInterpetedMember<T>>();
+            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>(type) }).Has<IInterpetedMember<T>>();
 
-        public static Func<IRunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>()
+        public static Func<IRunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>(IVerifiableType type)
             where T : IInterpetedAnyType
-            => root => new InterpetedMember<T>(root);
+            => root => new InterpetedMember<T>(type,root);
 
-        public static Func<IRunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>(T t)
+        public static Func<IRunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>(IVerifiableType type,T t)
             where T : IInterpetedAnyType
-            => root => new InterpetedMember<T>(t,root);
+            => root => new InterpetedMember<T>(type,t, root);
 
 
         // is this really a type?
@@ -56,13 +57,16 @@ namespace Tac.Syntaz_Model_Interpeter
         private class InterpetedMember<T> : RootedTypeAny, IInterpetedMember<T>, IInterpetedMemberSet<T>
             where T : IInterpetedAnyType
         {
+            private IVerifiableType verifiableType;
+
             private T _value;
 
-            public InterpetedMember(IRunTimeAnyRoot root) : base(root)
+            public InterpetedMember(IVerifiableType verifiableType,IRunTimeAnyRoot root) : base(root)
             {
+                this.verifiableType = verifiableType ?? throw new ArgumentNullException(nameof(verifiableType));
             }
 
-            public InterpetedMember(T value, IRunTimeAnyRoot root) : base(root)
+            public InterpetedMember(IVerifiableType verifiableType, T value, IRunTimeAnyRoot root) : base(root)
             {
                 if (value == null)
                 {
@@ -70,6 +74,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 }
 
                 Value = value;
+                this.verifiableType = verifiableType ?? throw new ArgumentNullException(nameof(verifiableType));
             }
 
             public T Value
