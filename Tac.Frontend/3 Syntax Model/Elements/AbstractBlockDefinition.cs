@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
-using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Semantic_Model
 {
@@ -24,7 +23,7 @@ namespace Tac.Semantic_Model
         public IResolvableScope Scope { get; }
         public IIsPossibly<IFrontendCodeElement>[] Body { get; }
         public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitailizers { get; }
-        public abstract IBuildIntention<T> GetBuildIntention(ConversionContext context);
+        public abstract IBuildIntention<T> GetBuildIntention(IConversionContext context);
         public abstract IIsPossibly<IFrontendType> Returns();
     }
 }

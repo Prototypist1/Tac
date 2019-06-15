@@ -10,7 +10,6 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
-using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Frontend
 {
@@ -53,7 +52,7 @@ namespace Tac.Frontend
 
             var resolveReferanceContext = new ResolveReferanceContext();
 
-            var context = new ConversionContext();
+            var context = TransformerExtensions.NewConversionContext();
 
             var module = new WeakModuleDefinition(
                 scope, 

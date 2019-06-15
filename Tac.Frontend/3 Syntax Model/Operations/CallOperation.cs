@@ -33,9 +33,13 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticLastCallMaker = AddOperationMatcher(() => new LastCallOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> LastCallMaker = StaticLastCallMaker;
+#pragma warning restore IDE0052 // Remove unread private members
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticNextCallMaker = AddOperationMatcher(() => new NextCallOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> NextCallMaker = StaticNextCallMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -56,7 +60,7 @@ namespace Tac.Semantic_Model.Operations
                 .IfIs(x => x.GetValue());
         }
 
-        public override IBuildIntention<INextCallOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<INextCallOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = NextCallOperation.Create();
             return new BuildIntention<INextCallOperation>(toBuild, () =>
@@ -88,7 +92,7 @@ namespace Tac.Semantic_Model.Operations
                 .IfIs(x=>x.GetValue());
         }
 
-        public override IBuildIntention<ILastCallOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<ILastCallOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = LastCallOperation.Create();
             return new BuildIntention<ILastCallOperation>(toBuild, () =>

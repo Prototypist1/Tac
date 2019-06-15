@@ -28,7 +28,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticPathMaker = AddOperationMatcher(() => new PathOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> PathMaker = StaticPathMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -46,7 +48,7 @@ namespace Tac.Semantic_Model.Operations
             return Right.IfIs(x =>  Possibly.Is(x.Cast<WeakMemberReference>()));
         }
         
-        public override IBuildIntention<IPathOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<IPathOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = PathOperation.Create();
             return new BuildIntention<IPathOperation>(toBuild, () =>

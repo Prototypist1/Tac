@@ -33,7 +33,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
     //    public IIsPossibly<IWeakTypeReferance> OutputType { get; }
     //    public IIsPossibly<IBox<IIsPossibly<Semantic_Model.IWeakMemberDefinition>>> ParameterDefinition { get; }
 
-    //    public IBuildIntention<IExternalMethodDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+    //    public IBuildIntention<IExternalMethodDefinition> GetBuildIntention(IConversionContext context)
     //    {
     //        var (toBuild, maker) = ExternalMethodDefinition.Create();
     //        return new BuildIntention<IExternalMethodDefinition>(toBuild, () =>
@@ -48,6 +48,6 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
     //    public IIsPossibly<IFrontendType<IVerifiableType>> Returns() => Possibly.Is(this);
 
-    //    IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(TransformerExtensions.ConversionContext context) => GetBuildIntention(context);
+    //    IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(IConversionContext context) => GetBuildIntention(context);
     //}
 }

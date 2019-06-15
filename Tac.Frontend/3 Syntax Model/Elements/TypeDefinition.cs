@@ -22,7 +22,9 @@ namespace Tac.Parser
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticTypeDefinitionMaker = AddElementMakers(
             () => new TypeDefinitionMaker(),
             MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -53,7 +55,7 @@ namespace Tac.Semantic_Model
             return Possibly.Is(this);
         }
 
-        public IBuildIntention<IInterfaceType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
@@ -85,7 +87,7 @@ namespace Tac.Semantic_Model
             return Possibly.Is(this);
         }
 
-        public IBuildIntention<IInterfaceType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>

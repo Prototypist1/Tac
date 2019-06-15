@@ -7,6 +7,7 @@ using Tac.Frontend;
 using Tac.Frontend.Test.Samples;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
@@ -14,7 +15,6 @@ using Tac.Semantic_Model.CodeStuff;
 using Tac.Tests.Help;
 using Tac.Tests.Samples;
 using Xunit;
-using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Tests
 {
@@ -78,7 +78,7 @@ namespace Tac.Tests
             
             var target = sample.Module;
 
-            var context = new ConversionContext();
+            var context = TransformerExtensions.NewConversionContext();
 
             var converted = result.Convert(context);
             

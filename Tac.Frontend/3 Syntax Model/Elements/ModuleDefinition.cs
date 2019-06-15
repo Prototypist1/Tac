@@ -18,7 +18,9 @@ namespace Tac.Parser
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticModuleDefinitionMaker = AddElementMakers(
             () => new ModuleDefinitionMaker(),
             MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -44,7 +46,7 @@ namespace Tac.Semantic_Model
             get;
         }
 
-        public IBuildIntention<IModuleDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IModuleDefinition> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = ModuleDefinition.Create();
             return new BuildIntention<IModuleDefinition>(toBuild, () =>

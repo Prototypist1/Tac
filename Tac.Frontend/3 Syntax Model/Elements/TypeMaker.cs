@@ -14,7 +14,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendType>> StaticTypeMaker = AddTypeMaker(() => new TypeMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendType>> TypeMaker = StaticTypeMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 

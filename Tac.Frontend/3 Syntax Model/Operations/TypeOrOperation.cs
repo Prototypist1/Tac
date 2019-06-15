@@ -21,7 +21,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendType>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendType>> TypeOrMaker = StaticTypeOrMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -44,7 +46,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
         {
         }
 
-        public override IBuildIntention<ITypeOr> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
         {
             // not sure what I am doing with this ... should it just become a type?
 

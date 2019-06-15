@@ -13,7 +13,6 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
-using static Tac.Frontend.TransformerExtensions;
 
 
 namespace Tac.Parser
@@ -24,7 +23,9 @@ namespace Tac.Parser
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticGenericTypeDefinitionMaker = AddElementMakers(
             () => new GenericTypeDefinitionMaker(),
             MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 

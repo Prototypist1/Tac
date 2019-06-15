@@ -57,7 +57,11 @@ namespace Tac.Syntaz_Model_Interpeter
         private class InterpetedMember<T> : RootedTypeAny, IInterpetedMember<T>, IInterpetedMemberSet<T>
             where T : IInterpetedAnyType
         {
-            private IVerifiableType verifiableType;
+
+            // you are here!
+            // I don't think this is really a verifiable type!
+            // it does have to be a type of some sort
+            private readonly IVerifiableType verifiableType;
 
             private T _value;
 
@@ -104,6 +108,10 @@ namespace Tac.Syntaz_Model_Interpeter
                 Value = o.Cast<T>();
             }
 
+            public bool TrySet(IInterpetedAnyType o)
+            {
+                throw new NotImplementedException();
+            }
         }
 
     }

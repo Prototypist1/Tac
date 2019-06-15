@@ -33,7 +33,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
 
-        public IBuildIntention<IMemberReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IMemberReferance> GetBuildIntention(IConversionContext context)
         {
             return backing.Cast<IConvertableFrontendCodeElement<IMemberReferance>>().GetBuildIntention(context);
         }
@@ -58,7 +58,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
 
-        public IBuildIntention<IMemberReferance> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IMemberReferance> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = MemberReference.Create();
             return new BuildIntention<IMemberReferance>(toBuild, () =>

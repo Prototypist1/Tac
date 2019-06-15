@@ -26,7 +26,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMultiplyMaker = AddOperationMatcher(() => new MultiplyOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MultiplyMaker = StaticMultiplyMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -46,7 +48,7 @@ namespace Tac.Semantic_Model.Operations
             return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
         }
 
-        public override IBuildIntention<IMultiplyOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<IMultiplyOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = MultiplyOperation.Create();
             return new BuildIntention<IMultiplyOperation>(toBuild, () =>

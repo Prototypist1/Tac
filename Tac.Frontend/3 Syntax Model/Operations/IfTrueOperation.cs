@@ -28,7 +28,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticIfMaker = AddOperationMatcher(() => new IfTrueOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> IfMaker = StaticIfMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -46,7 +48,7 @@ namespace Tac.Semantic_Model.Operations
             return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
         }
         
-        public override IBuildIntention<IIfOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<IIfOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = IfOperation.Create();
             return new BuildIntention<IIfOperation>(toBuild, () =>

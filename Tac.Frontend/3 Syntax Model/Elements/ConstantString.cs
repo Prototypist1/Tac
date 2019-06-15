@@ -2,13 +2,13 @@
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Operations;
-using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Parser
 {
@@ -18,7 +18,9 @@ namespace Tac.Parser
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticConstantStringMaker = AddElementMakers(
             () => new ConstantStringMaker(),
             MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ConstantStringMaker = StaticConstantStringMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -43,7 +45,7 @@ namespace Tac.Semantic_Model.Operations
 
         public IIsPossibly<string> Value { get; }
 
-        public IBuildIntention<IConstantString> GetBuildIntention(ConversionContext context)
+        public IBuildIntention<IConstantString> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = ConstantString.Create();
             return new BuildIntention<IConstantString>(toBuild, () =>

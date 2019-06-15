@@ -9,9 +9,9 @@ using Tac.Model.Instantiated.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
-using static Tac.Frontend.TransformerExtensions;
 using Tac.Frontend;
 using Tac.Frontend._3_Syntax_Model.Elements;
+using Tac.Model;
 
 namespace Tac.Parser
 {
@@ -40,7 +40,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
         {
         }
 
-        public IBuildIntention<IEmptyInstance> GetBuildIntention(ConversionContext context)
+        public IBuildIntention<IEmptyInstance> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = EmptyInstance.Create();
             return new BuildIntention<IEmptyInstance>(toBuild, () =>

@@ -26,7 +26,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticSubtractMaker = AddOperationMatcher(() => new SubtractOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> SubtractMaker = StaticSubtractMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -44,7 +46,7 @@ namespace Tac.Semantic_Model.Operations
             return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
         }
         
-        public override IBuildIntention<ISubtractOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<ISubtractOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = SubtractOperation.Create();
             return new BuildIntention<ISubtractOperation>(toBuild, () =>

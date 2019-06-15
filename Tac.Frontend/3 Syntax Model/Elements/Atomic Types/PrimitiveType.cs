@@ -6,6 +6,7 @@ using System.Linq;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Semantic_Model;
 
 namespace Tac._3_Syntax_Model.Elements.Atomic_Types
@@ -18,7 +19,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
         private struct BlockType : IConvertableFrontendType<IBlockType>
         {
-            public IBuildIntention<IBlockType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<IBlockType> GetBuildIntention(IConversionContext context)
             {
                 return new BuildIntention<IBlockType>(new Model.Instantiated.BlockType(), () => { });
             }
@@ -31,7 +32,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         private struct StringType : IConvertableFrontendType<IStringType>
         {
-            public IBuildIntention<IStringType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<IStringType> GetBuildIntention(IConversionContext context)
             {
                 return new BuildIntention<IStringType>(new Model.Instantiated.StringType(), () => { });
             }
@@ -43,7 +44,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         private struct EmptyType : IConvertableFrontendType<IEmptyType>
         {
-            public IBuildIntention<IEmptyType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<IEmptyType> GetBuildIntention(IConversionContext context)
             {
                 return new BuildIntention<IEmptyType>(new Model.Instantiated.EmptyType(), () => { });
             }
@@ -55,7 +56,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
         private struct NumberType : IConvertableFrontendType<INumberType>
         {
-            public IBuildIntention<INumberType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<INumberType> GetBuildIntention(IConversionContext context)
             {
                 return new BuildIntention<INumberType>(new Model.Instantiated.NumberType(), () => { });
             }
@@ -89,7 +90,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
                 return HashCode.Combine(Key);
             }
 
-            public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext _)
+            public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext _)
             {
                 var (res, maker) = Model.Instantiated.GemericTypeParameterPlacholder.Create();
 
@@ -107,7 +108,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
 
         private struct AnyType : IConvertableFrontendType<IAnyType>
         {
-            public IBuildIntention<IAnyType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<IAnyType> GetBuildIntention(IConversionContext context)
             {
                 return new BuildIntention<IAnyType>(new Model.Instantiated.AnyType(), () => { });
             }
@@ -119,7 +120,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         }
         private struct BooleanType : IConvertableFrontendType<IBooleanType>
         {
-            public IBuildIntention<IBooleanType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<IBooleanType> GetBuildIntention(IConversionContext context)
             {
                 return new BuildIntention<IBooleanType>(new Tac.Model.Instantiated.BooleanType(), () => { });
             }
@@ -141,7 +142,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             public IConvertableFrontendType<IVerifiableType> OutputType { get; }
             public IConvertableFrontendType<IVerifiableType> ContextType { get; }
 
-            public IBuildIntention<IImplementationType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<IImplementationType> GetBuildIntention(IConversionContext context)
             {
                 var (res, builder) = Model.Instantiated.ImplementationType.Create();
 
@@ -175,7 +176,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
             public IConvertableFrontendType<IVerifiableType> InputType { get; }
             public IConvertableFrontendType<IVerifiableType> OutputType { get; }
 
-            public IBuildIntention<IMethodType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+            public IBuildIntention<IMethodType> GetBuildIntention(IConversionContext context)
             {
                 var (res, builder) = Tac.Model.Instantiated.MethodType.Create();
 
@@ -284,7 +285,7 @@ namespace Tac._3_Syntax_Model.Elements.Atomic_Types
         //        this.right = right ?? throw new ArgumentNullException(nameof(right));
         //    }
 
-        //    public IBuildIntention<ITypeOr> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        //    public IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
         //    {
         //        var (res, builder) = Tac.Model.Instantiated.TypeOr.Create();
         //        var myLeft = left;

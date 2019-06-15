@@ -30,7 +30,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticAddMaker = AddOperationMatcher(()=> new AddOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> AddMaker = StaticAddMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -44,7 +46,7 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IBuildIntention<IAddOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<IAddOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = AddOperation.Create();
             return new BuildIntention<IAddOperation>(toBuild, () =>

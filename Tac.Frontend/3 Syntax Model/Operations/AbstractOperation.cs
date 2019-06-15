@@ -88,7 +88,7 @@ namespace Tac.Semantic_Model.CodeStuff
         
         public abstract IIsPossibly<IFrontendType> Returns();
 
-        public abstract IBuildIntention<TCodeElement> GetBuildIntention(TransformerExtensions.ConversionContext context);
+        public abstract IBuildIntention<TCodeElement> GetBuildIntention(IConversionContext context);
     }
 
 
@@ -119,7 +119,7 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
 
-        public abstract IBuildIntention<TType> GetBuildIntention(TransformerExtensions.ConversionContext context);
+        public abstract IBuildIntention<TType> GetBuildIntention(IConversionContext context);
     }
 
 

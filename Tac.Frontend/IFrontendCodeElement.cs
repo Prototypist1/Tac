@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
-using static Tac.Frontend.TransformerExtensions;
+using Tac.Model.Instantiated;
 
 namespace Tac.Frontend
 {
@@ -17,7 +17,7 @@ namespace Tac.Frontend
 
     internal static class IFrontendCodeElementStatic{
 
-        public static ICodeElement ConvertElementOrThrow(this IFrontendCodeElement self, ConversionContext context) {
+        public static ICodeElement ConvertElementOrThrow(this IFrontendCodeElement self, IConversionContext context) {
             if (self is IConvertableFrontendCodeElement<ICodeElement> convertable) {
                 return convertable.Convert(context);
             }
@@ -25,7 +25,7 @@ namespace Tac.Frontend
         }
 
 
-        public static IIsPossibly<ICodeElement> PossiblyConvert(this IFrontendCodeElement self, ConversionContext context)
+        public static IIsPossibly<ICodeElement> PossiblyConvert(this IFrontendCodeElement self, IConversionContext context)
         {
             if (self is IConvertableFrontendCodeElement<ICodeElement> convertable)
             {
@@ -48,7 +48,7 @@ namespace Tac.Frontend
     internal static class IFrontendTypeStatic
     {
 
-        public static IVerifiableType ConvertTypeOrThrow(this IFrontendType self, ConversionContext context)
+        public static IVerifiableType ConvertTypeOrThrow(this IFrontendType self, IConversionContext context)
         {
             if (self is IConvertableFrontendType<IVerifiableType> convertable)
             {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Model;
 using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
@@ -22,7 +23,7 @@ namespace Tac.Semantic_Model.Operations
             return Left.IfIs(x => x.Returns());
         }
 
-        public override IBuildIntention<ITryAssignOperation> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<ITryAssignOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = TryAssignOperation.Create();
             return new BuildIntention<ITryAssignOperation>(toBuild, () =>
@@ -74,7 +75,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticTryAssignMaker = AddOperationMatcher(() => new TryAssignOperationMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> TryAssignMaker = StaticTryAssignMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 

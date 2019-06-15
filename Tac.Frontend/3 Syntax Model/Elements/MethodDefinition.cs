@@ -23,7 +23,9 @@ namespace Tac.Parser
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMethodDefinitionMaker = AddElementMakers(
             () => new MethodDefinitionMaker(),
             MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MethodDefinitionMaker = StaticMethodDefinitionMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -53,7 +55,7 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
         public bool IsEntryPoint { get; }
 
-        public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = MethodDefinition.Create();
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>

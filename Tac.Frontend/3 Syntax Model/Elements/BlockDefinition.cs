@@ -10,7 +10,6 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
-using static Tac.Frontend.TransformerExtensions;
 
 
 namespace Tac.Parser
@@ -21,10 +20,11 @@ namespace Tac.Parser
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticBlockDefinitionMaker = AddElementMakers(
             () => new BlockDefinitionMaker(),
             MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
-
 
 namespace Tac.Semantic_Model
 {
@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model
             IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) : 
             base(scope, body, staticInitailizers) { }
 
-        public override IBuildIntention<IBlockDefinition> GetBuildIntention(ConversionContext context)
+        public override IBuildIntention<IBlockDefinition> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = BlockDefinition.Create();
             return new BuildIntention<IBlockDefinition>(toBuild, () =>

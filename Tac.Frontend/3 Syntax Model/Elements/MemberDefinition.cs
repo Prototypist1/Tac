@@ -22,7 +22,9 @@ namespace Tac.Parser
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMemberDefinitionMaker = AddElementMakers(
             () => new MemberDefinitionMaker(),
             MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MemberDefinitionMaker = StaticMemberDefinitionMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 
@@ -48,12 +50,12 @@ namespace Tac.Semantic_Model
         public bool ReadOnly => backing.ReadOnly;
         public IKey Key=> backing.Key;
 
-        public IMemberDefinition Convert(TransformerExtensions.ConversionContext context)
+        public IMemberDefinition Convert(IConversionContext context)
         {
             return MemberDefinitionShared.Convert(Type,context, ReadOnly,Key);
         }
 
-        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context) {
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context) {
             return MemberDefinitionShared.GetBuildIntention(Type, context, ReadOnly, Key);
         }
         
@@ -62,7 +64,7 @@ namespace Tac.Semantic_Model
     // very tac-ian 
     internal static class MemberDefinitionShared {
 
-        public static IMemberDefinition Convert(IIsPossibly<IWeakTypeReference> Type,TransformerExtensions.ConversionContext context, bool ReadOnly, IKey Key)
+        public static IMemberDefinition Convert(IIsPossibly<IWeakTypeReference> Type,IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (def, builder) = MemberDefinition.Create();
 
@@ -71,7 +73,7 @@ namespace Tac.Semantic_Model
             builder.Build(Key, buildIntention.Tobuild, ReadOnly);
             return def;
         }
-        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IIsPossibly<IWeakTypeReference> Type, TransformerExtensions.ConversionContext context, bool ReadOnly, IKey Key)
+        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IIsPossibly<IWeakTypeReference> Type, IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (toBuild, maker) = MemberDefinition.Create();
             return new BuildIntention<IMemberDefinition>(toBuild, () =>
@@ -90,7 +92,7 @@ namespace Tac.Semantic_Model
         IIsPossibly<IWeakTypeReference> Type { get; }
         bool ReadOnly { get; }
         IKey Key { get; }
-        IMemberDefinition Convert(TransformerExtensions.ConversionContext context);
+        IMemberDefinition Convert(IConversionContext context);
     }
 
     // it is possible members are single instances with look up
@@ -110,12 +112,12 @@ namespace Tac.Semantic_Model
         public bool ReadOnly { get; }
         public IKey Key { get; }
 
-        public IMemberDefinition Convert(TransformerExtensions.ConversionContext context)
+        public IMemberDefinition Convert(IConversionContext context)
         {
             return MemberDefinitionShared.Convert(Type, context, ReadOnly, Key);
         }
 
-        public IBuildIntention<IMemberDefinition> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context)
         {
             return MemberDefinitionShared.GetBuildIntention(Type, context, ReadOnly, Key);
         }

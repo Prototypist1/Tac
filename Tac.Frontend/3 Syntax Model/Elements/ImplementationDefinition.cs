@@ -11,7 +11,6 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
-using static Tac.Frontend.TransformerExtensions;
 
 namespace Tac.Parser
 {
@@ -21,7 +20,9 @@ namespace Tac.Parser
         private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticImplementationDefinitionMaker = AddElementMakers(
             () => new ImplementationDefinitionMaker(),
             MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
+#pragma warning disable IDE0052 // Remove unread private members
     }
 }
 
@@ -75,7 +76,7 @@ namespace Tac.Semantic_Model
             return Possibly.Is(this);
         }
 
-        public IBuildIntention<IImplementationDefinition> GetBuildIntention(ConversionContext context)
+        public IBuildIntention<IImplementationDefinition> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = ImplementationDefinition.Create();
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>

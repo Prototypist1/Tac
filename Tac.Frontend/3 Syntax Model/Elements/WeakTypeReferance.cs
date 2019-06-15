@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
 
-        public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
         }
@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
 
-        public IBuildIntention<IVerifiableType> GetBuildIntention(TransformerExtensions.ConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
         }
@@ -76,7 +76,7 @@ namespace Tac.Semantic_Model
 
     internal static class TypeReferenceStatic
     {
-        public static IBuildIntention<IVerifiableType> GetBuildIntention(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition, TransformerExtensions.ConversionContext context)
+        public static IBuildIntention<IVerifiableType> GetBuildIntention(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition, IConversionContext context)
         {
             if (TypeDefinition.GetOrThrow().GetValue().GetOrThrow() is IConvertableFrontendType<IVerifiableType> convertableType)
             {
