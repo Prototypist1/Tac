@@ -342,6 +342,8 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
+        // TOOD I am not sure I need to create and build any of these types...
+        // good old constructors would do
         public static IMethodType CreateAndBuild(IVerifiableType inputType, IVerifiableType outputType) {
             var (x, y) = Create();
             y.Build(inputType, outputType);

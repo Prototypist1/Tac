@@ -22,7 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(rightReturned);
             }
 
-            return InterpetedResult.Create(TypeManager.Member(TypeManager.Bool(
+            return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(
                 leftValue.Value.Value <
                 rightValue.Value.Value)));
         }

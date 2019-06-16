@@ -32,7 +32,7 @@ namespace Tac.Backend
             {
                 throw new Exception("this should not really return");
             }
-            value.Value.Invoke(TypeManager.Member<IInterpedEmpty>(TypeManager.Empty()));
+            value.Value.Invoke(TypeManager.EmptyMember(TypeManager.Empty()));
 
         }
     }

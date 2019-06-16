@@ -15,7 +15,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public IInterpetedResult<IInterpetedMember<IBoxedString>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(TypeManager.Member(TypeManager.String(Value)));
+            return InterpetedResult.Create(TypeManager.StringMember(TypeManager.String(Value)));
         }
     }
 }

@@ -19,17 +19,19 @@ namespace Tac.Syntaz_Model_Interpeter
     internal class InterpetedMemberDefinition<T>: IInterpetedMemberDefinition<T>
         where T: IInterpetedAnyType
     {
-        public InterpetedMemberDefinition<T> Init(IKey key)
+        public InterpetedMemberDefinition<T> Init(IKey key, IVerifiableType type)
         {
+            Type = type ?? throw new ArgumentNullException(nameof(type));
             Key = key ?? throw new ArgumentNullException(nameof(key));
             return this;
         }
         
+        public IVerifiableType Type { get; private set; }
         public IKey Key { get; private set; }
 
         public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {
-            var member = TypeManager.Member<T>();
+            var member = TypeManager.Member<T>(Type);
 
             if (!interpetedContext.TryAddMember(Key, member)) {
                 throw new Exception("bad, shit");

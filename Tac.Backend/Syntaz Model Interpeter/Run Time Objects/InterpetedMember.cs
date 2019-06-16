@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Tac.Backend.Syntaz_Model_Interpeter;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -34,21 +35,53 @@ namespace Tac.Syntaz_Model_Interpeter
             return made.Invoke(null,new object[] { }).Cast<IInterpetedMember>();
         }
 
+        public static IInterpetedMember<IInterpetedAnyType> AnyMember()
+            => Member<IInterpetedAnyType>(new AnyType());
+
+        public static IInterpetedMember<IInterpetedAnyType> AnyMember(IInterpetedAnyType t)
+            => Member(new AnyType(), t);
+
+        public static IInterpetedMember<IInterpedEmpty> EmptyMember()
+            => Member<IInterpedEmpty>(new EmptyType());
+
+        public static IInterpetedMember<IInterpedEmpty> EmptyMember(IInterpedEmpty t)
+            => Member(new EmptyType(), t);
+
+        public static IInterpetedMember<IBoxedDouble> NumberMember(IBoxedDouble t)
+            => Member(new NumberType(), t);
+
+        public static IInterpetedMember<IBoxedDouble> NumberMember()
+            => Member<IBoxedDouble>(new NumberType());
+
+        public static IInterpetedMember<IBoxedString> StringMember(IBoxedString t)
+            => Member(new StringType(), t);
+
+        public static IInterpetedMember<IBoxedString> StringMember()
+            => Member<IBoxedString>(new StringType());
+
+        public static IInterpetedMember<IBoxedBool> BoolMember(IBoxedBool t)
+            => Member(new BooleanType(), t);
+
+        public static IInterpetedMember<IBoxedBool> BoolMember()
+            => Member<IBoxedBool>(new BooleanType());
+
         public static IInterpetedMember<T> Member<T>(IVerifiableType type,T t)
-            where T : IInterpetedAnyType 
-            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>(type,t) }).Has<IInterpetedMember<T>>();
+            where T : IInterpetedAnyType
+            => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { MemberIntention<T>(type,t) }).Has<IInterpetedMember<T>>();
 
         public static IInterpetedMember<T> Member<T>(IVerifiableType type)
             where T : IInterpetedAnyType
-            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { MemberIntention<T>(type) }).Has<IInterpetedMember<T>>();
+            => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { MemberIntention<T>(type) }).Has<IInterpetedMember<T>>();
 
-        public static Func<IRunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>(IVerifiableType type)
+        public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> MemberIntention<T>(IVerifiableType type)
             where T : IInterpetedAnyType
-            => root => new InterpetedMember<T>(type,root);
+            // TODO check that IVerifiableType is T
+            => root => new RunTimeAnyRootEntry(new InterpetedMember<T>(type,root), type);
 
-        public static Func<IRunTimeAnyRoot, IInterpetedMember<T>> MemberIntention<T>(IVerifiableType type,T t)
+        public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> MemberIntention<T>(IVerifiableType type,T t)
             where T : IInterpetedAnyType
-            => root => new InterpetedMember<T>(type,t, root);
+            // TODO check that IVerifiableType is T
+            => root => new RunTimeAnyRootEntry( new InterpetedMember<T>(type,t, root), type);
 
 
         // is this really a type?

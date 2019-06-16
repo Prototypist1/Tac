@@ -44,7 +44,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 var interpetedMemberDefinition = new InterpetedMemberDefinition<T>();
                 backing.Add(member, interpetedMemberDefinition);
-                return interpetedMemberDefinition.Init(member.Key);
+                return interpetedMemberDefinition.Init(member.Key, member.Type);
             }
         }
 
@@ -252,7 +252,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                     MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
                     MemberDefinition(codeElement.ContextDefinition).Cast<InterpetedMemberDefinition<TContext>>(),
                     codeElement.MethodBody.Select(x => x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope));
+                    new InterpetedScopeTemplate(codeElement.Scope),
+                    codeElement.Returns().Cast<IImplementationType>());
                 return op;
             }
         }

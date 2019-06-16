@@ -150,7 +150,7 @@ namespace Tac.Syntaz_Model_Interpeter
         
         public static IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Create()
         {
-            return new NotReturn<IInterpetedMember<IInterpedEmpty>>(TypeManager.Member<IInterpedEmpty>(TypeManager.Empty()));
+            return new NotReturn<IInterpetedMember<IInterpedEmpty>>(TypeManager.EmptyMember(TypeManager.Empty()));
         }
     }
 

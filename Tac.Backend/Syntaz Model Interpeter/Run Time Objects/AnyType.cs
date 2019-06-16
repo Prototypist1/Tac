@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -9,7 +12,7 @@ namespace Tac.Syntaz_Model_Interpeter
     public interface IInterpetedAnyType : IInterpeted {
 
         T Has<T>() where T : IInterpetedAnyType;
-
+        IVerifiableType Convert(IConversionContext conversionContext);
     }
 
     public interface IRunTimeAnyRoot: IInterpetedAnyType { }
@@ -36,22 +39,71 @@ namespace Tac.Syntaz_Model_Interpeter
                 this.root = root ?? throw new ArgumentNullException(nameof(root));
             }
 
+
+            public IVerifiableType Convert(IConversionContext conversionContext)
+            {
+                return root.Convert(conversionContext);
+            }
+
             public T Has<T>() where T : IInterpetedAnyType => root.Has<T>();
+
         }
 
-        public static IInterpetedAnyType AnyIntention(params Func<IRunTimeAnyRoot, IInterpetedAnyType>[] elements) => new RunTimeAnyRoot(elements);
+        public static IInterpetedAnyType AnyIntention(params Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] elements) => new RunTimeAnyRoot(elements);
 
-        public static IRunTimeAnyRoot Root(IEnumerable<Func<IRunTimeAnyRoot, IInterpetedAnyType>> items) => new RunTimeAnyRoot(items);
+        public static IRunTimeAnyRoot Root(IEnumerable<Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>> items) => new RunTimeAnyRoot(items);
+
+        public class RunTimeAnyRootEntry {
+            public RunTimeAnyRootEntry(IInterpetedAnyType interpetedType,IVerifiableType compileTimeType)
+            {
+                InterpetedType = interpetedType ?? throw new ArgumentNullException(nameof(interpetedType));
+                CompileTimeType = compileTimeType ?? throw new ArgumentNullException(nameof(compileTimeType));
+            }
+
+            public IInterpetedAnyType InterpetedType { get; }
+            public IVerifiableType CompileTimeType { get; }
+        }
 
         internal class RunTimeAnyRoot : IRunTimeAnyRoot
         {
             private readonly IReadOnlyList<IInterpetedAnyType> items;
+            private readonly Func<IConversionContext, IVerifiableType> convertType;
 
-            public RunTimeAnyRoot(IEnumerable<Func<IRunTimeAnyRoot, IInterpetedAnyType>> items)
+            public RunTimeAnyRoot(IEnumerable<Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>> items)
             {
-                this.items = items?.Select(x=>x(this)).ToList() ?? throw new ArgumentNullException(nameof(items));
+                var executedItems = items?.Select(x => x(this)).ToList() ?? throw new ArgumentNullException(nameof(items));
+
+                convertType = GetType(executedItems);
+
+                this.items = executedItems.Select(x => x.InterpetedType).ToList();
                 // todo assert that these are all of different types 
             }
+
+            private Func<IConversionContext, IVerifiableType> GetType(IReadOnlyList<RunTimeAnyRootEntry> executedItems) {
+                return (IConversionContext context) =>
+                {
+                    if (!executedItems.Any())
+                    {
+                        throw new Exception("should be something in here...");
+                    }
+                    else if (executedItems.Count() == 1)
+                    {
+                        return executedItems.Single().CompileTimeType(context);
+                    }
+                    else
+                    {
+                        var myType = new TypeAnd(executedItems[0].CompileTimeType(context), executedItems[1].CompileTimeType(context));
+                        var at = 2;
+                        for (; at < executedItems.Count; at++)
+                        {
+                            myType = new TypeAnd(myType, executedItems[at].CompileTimeType(context));
+                        }
+                        return myType;
+                    }
+                };
+            }
+
+            public IVerifiableType Convert(IConversionContext conversionContext) => convertType(conversionContext);
 
             public T Has<T>() where T : IInterpetedAnyType => items.OfType<T>().Single();
         

@@ -5,6 +5,7 @@ using Prototypist.LeftToRight;
 using System;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Model;
+using Tac.Model.Instantiated;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -30,12 +31,12 @@ namespace Tac.Syntaz_Model_Interpeter
                 line.Interpet(context);
             }
 
-            return InterpetedResult.Create(TypeManager.Member(scope));
+            return InterpetedResult.Create(TypeManager.Member(scope.Convert(TransformerExtensions.NewConversionContext()), scope));
         }
         
-        public IInterpetedScope GetDefault()
-        {
-            return TypeManager.InstanceScope();
-        }
+        //public IInterpetedScope GetDefault()
+        //{
+        //    return TypeManager.InstanceScope();
+        //}
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using Tac.Model.Instantiated;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -12,9 +13,9 @@ namespace Tac.Syntaz_Model_Interpeter
     public static partial class TypeManager
     {
 
-        public static IBoxedDouble Double(double value)  => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { DoubleIntention(value) }).Has<IBoxedDouble>();
+        public static IBoxedDouble Double(double value)  => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { DoubleIntention(value) }).Has<IBoxedDouble>();
         
-        public static Func<IRunTimeAnyRoot, IBoxedDouble> DoubleIntention(double value) => root => new BoxedDouble(value, root);
+        public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> DoubleIntention(double value) => root => new RunTimeAnyRootEntry( new BoxedDouble(value, root), new NumberType());
 
         private class BoxedDouble : RootedTypeAny, IBoxedDouble
         {

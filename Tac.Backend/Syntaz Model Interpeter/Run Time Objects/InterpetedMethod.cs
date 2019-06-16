@@ -1,5 +1,7 @@
 ﻿using Prototypist.LeftToRight;
 using System;
+using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -23,19 +25,24 @@ namespace Tac.Syntaz_Model_Interpeter
         internal static IInterpetedMethod<TIn, TOut> InternalMethod<TIn, TOut>(InterpetedMemberDefinition<TIn> parameterDefinition,
                 IInterpetedOperation<IInterpetedAnyType>[] body,
                 InterpetedContext context,
-                IInterpetedScopeTemplate scope)
+                IInterpetedScopeTemplate scope,
+                IMethodType methodType)
             where TIn : IInterpetedAnyType
             where TOut : IInterpetedAnyType
-            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { InterpetedMethodIntention<TIn, TOut>(parameterDefinition, body, context, scope) }).Has<IInterpetedMethod<TIn, TOut>>();
+            => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { InterpetedMethodIntention<TIn, TOut>(parameterDefinition, body, context, scope, methodType) }).Has<IInterpetedMethod<TIn, TOut>>();
 
-        internal static Func<IRunTimeAnyRoot, IInterpetedMethod<TIn, TOut>> InterpetedMethodIntention<TIn, TOut>(
+        internal static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> InterpetedMethodIntention<TIn, TOut>(
                 InterpetedMemberDefinition<TIn> parameterDefinition,
                 IInterpetedOperation<IInterpetedAnyType>[] body,
                 InterpetedContext context,
-                IInterpetedScopeTemplate scope)
+                IInterpetedScopeTemplate scope,
+                IMethodType methodType)
             where TIn : IInterpetedAnyType
-            where TOut : IInterpetedAnyType 
-            => root => new InterpetedMethod<TIn, TOut>(parameterDefinition, body, context, scope, root);
+            where TOut : IInterpetedAnyType
+            => root => {
+                var item = new InterpetedMethod<TIn, TOut>(parameterDefinition, body, context, scope, methodType,root);
+                return new RunTimeAnyRootEntry(item, methodType);
+            };
 
 
         private class InterpetedMethod<TIn, TOut> : RootedTypeAny, IInterpetedMethod<TIn, TOut>
@@ -47,18 +54,21 @@ namespace Tac.Syntaz_Model_Interpeter
                 IInterpetedOperation<IInterpetedAnyType>[] body,
                 InterpetedContext context,
                 IInterpetedScopeTemplate scope,
+                IMethodType methodType,
                 IRunTimeAnyRoot root) : base(root)
             {
                 ParameterDefinition = parameterDefinition ?? throw new System.ArgumentNullException(nameof(parameterDefinition));
                 Body = body ?? throw new System.ArgumentNullException(nameof(body));
                 Context = context ?? throw new System.ArgumentNullException(nameof(context));
                 Scope = scope ?? throw new System.ArgumentNullException(nameof(scope));
+                MethodType = methodType ?? throw new ArgumentNullException(nameof(methodType));
             }
 
             private InterpetedMemberDefinition<TIn> ParameterDefinition { get; }
             private IInterpetedOperation<IInterpetedAnyType>[] Body { get; }
             private InterpetedContext Context { get; }
             private IInterpetedScopeTemplate Scope { get; }
+            public IMethodType MethodType { get; }
             private IInterpetedStaticScope StaticScope { get; } = TypeManager.EmptyStaticScope();
 
             public IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input)
@@ -79,10 +89,16 @@ namespace Tac.Syntaz_Model_Interpeter
                     }
                 }
 
+                // does this work??
+                // wierd stuff around the way I am doing types
+                // life would be so much simpler if I just pulled it all out
+                // I should just pull it all out
+                // clearly I should
+                // 
                 if (typeof(IInterpedEmpty).IsAssignableFrom(typeof(TOut)))
                 {
                     var hack = TypeManager.Empty();
-                    return InterpetedResult.Create(Member(hack.Cast<TOut>()));
+                    return InterpetedResult.Create(Member<TOut>(hack.Convert(TransformerExtensions.NewConversionContext()), hack.Cast<TOut>()));
                 }
 
                 throw new System.Exception("method did not return!");

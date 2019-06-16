@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Tac.Model;
+using Tac.Model.Instantiated;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -28,12 +29,12 @@ namespace Tac.Syntaz_Model_Interpeter
                 line.Interpet(context);
             }
 
-            return InterpetedResult.Create(TypeManager.Member(scope));
+            return InterpetedResult.Create(TypeManager.Member(scope.Convert(TransformerExtensions.NewConversionContext()), scope));
         }
         
-        public IInterpetedScope GetDefault()
-        {
-            return TypeManager.EmptyStaticScope();
-        }
+        //public IInterpetedScope GetDefault()
+        //{
+        //    return TypeManager.EmptyStaticScope();
+        //}
     }
 }

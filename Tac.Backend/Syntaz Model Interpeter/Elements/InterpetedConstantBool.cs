@@ -15,7 +15,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public IInterpetedResult<IInterpetedMember<IBoxedBool>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(TypeManager.Member(TypeManager.Bool(Value)));
+            return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(Value)));
         }
     }
 }

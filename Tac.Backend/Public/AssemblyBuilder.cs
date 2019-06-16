@@ -20,7 +20,7 @@ namespace Tac.Backend.Public
     public class AssemblyBuilder
     {
         private readonly IKey key;
-        private readonly Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues = new Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>>();
+        private readonly Dictionary<IKey, (IInterpetedOperation<IInterpetedAnyType>,IVerifiableType)> memberValues = new Dictionary<IKey, (IInterpetedOperation<IInterpetedAnyType>, IVerifiableType)>();
         private readonly List<IsStatic> members = new List<IsStatic>();
 
         public AssemblyBuilder(IKey key)
@@ -28,25 +28,25 @@ namespace Tac.Backend.Public
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public AssemblyBuilder AddMethod<TIn,TOut>(IKey key, Func<TIn,TOut> func, IVerifiableType type)
+        public AssemblyBuilder AddMethod<TIn,TOut>(IKey key, Func<TIn,TOut> func, IMethodType type)
             where TIn: IInterpetedAnyType
             where TOut : IInterpetedAnyType
         {
             var memberDef = new InterpetedMemberDefinition<IInterpetedMethod<TIn, TOut>>();
-            memberDef.Init(key);
+            memberDef.Init(key, type);
             var method = new InterpetedExternalMethodDefinition<TIn,TOut>();
-            method.Init(func);
-            memberValues.Add(key, method);
+            method.Init(func, type);
+            memberValues.Add(key, (method,type));
             members.Add(new IsStatic(MemberDefinition.CreateAndBuild(key, type, true),false));
             return this;
         }
 
         public class  InterpetedAssemblyBacking : IBacking
         {
-            private readonly Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues;
+            private readonly Dictionary<IKey, (IInterpetedOperation<IInterpetedAnyType>, IVerifiableType)> memberValues;
             private readonly IFinalizedScope scope;
 
-            internal InterpetedAssemblyBacking(Dictionary<IKey, IInterpetedOperation<IInterpetedAnyType>> memberValues, IFinalizedScope scope)
+            internal InterpetedAssemblyBacking(Dictionary<IKey, (IInterpetedOperation<IInterpetedAnyType>, IVerifiableType)> memberValues, IFinalizedScope scope)
             {
                 this.memberValues = memberValues ?? throw new ArgumentNullException(nameof(memberValues));
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -57,27 +57,26 @@ namespace Tac.Backend.Public
                 var scopeTemplate = new InterpetedScopeTemplate(scope);
                 var objectDefinition = new InterpetedObjectDefinition();
                 objectDefinition.Init(scopeTemplate, memberValues.Select(memberValuePair => {
-                    var typeParameter = memberValuePair.Value.GetType().GetInterfaces().Where(x=>x.GetGenericTypeDefinition().Equals(typeof(IInterpetedOperation<>))).Single().GetGenericArguments().First();
+                    var typeParameter = memberValuePair.Value.Item1.GetType().GetInterfaces().Where(x=>x.GetGenericTypeDefinition().Equals(typeof(IInterpetedOperation<>))).Single().GetGenericArguments().First();
                         var method = typeof(InterpetedAssemblyBacking).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
                           x.Name == nameof(GetAssignemnt) && x.IsGenericMethod);
                         var madeMethod= method.MakeGenericMethod(new[] { typeParameter , typeParameter });
-                    return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value }).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>();
+                    return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2 }).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>();
                 }));
 
-                var member = TypeManager.Member<IInterpetedScope>();
                 if (objectDefinition.Interpet(interpetedContext).IsReturn(out var _, out var value)) {
                     throw new Exception("this should not throw");
                 }
-                member.Cast<IInterpetedMemberSet<IInterpetedScope>>().Set(value.Value);
-                return member;
+
+                return value;
             }
 
-            private IInterpetedAssignOperation<TLeft,TRight> GetAssignemnt<TLeft, TRight>(IKey key, IInterpetedOperation<TLeft> operation)
+            private IInterpetedAssignOperation<TLeft,TRight> GetAssignemnt<TLeft, TRight>(IKey key, IInterpetedOperation<TLeft> operation, IVerifiableType type)
                 where TLeft : TRight
                 where TRight : IInterpetedAnyType
             {
                 var memberDefinition = new InterpetedMemberDefinition<TRight>();
-                memberDefinition.Init(key);
+                memberDefinition.Init(key, type);
 
                 var memberReference = new InterpetedMemberReferance<TRight>();
                 memberReference.Init(memberDefinition);

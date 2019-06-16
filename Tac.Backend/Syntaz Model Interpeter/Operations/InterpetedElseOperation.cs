@@ -15,7 +15,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (leftValue.Value.Value)
             {
-                return InterpetedResult.Create(TypeManager.Member(TypeManager.Bool(false)));
+                return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(false)));
             }
 
             var rightResult = Right.Interpet(interpetedContext);
@@ -25,7 +25,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(rightReturned);
             }
             
-            return InterpetedResult.Create(TypeManager.Member<IBoxedBool>(TypeManager.Bool(true)));
+            return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(true)));
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -12,36 +14,44 @@ namespace Tac.Syntaz_Model_Interpeter
         public void Init(
             InterpetedMemberDefinition<TIn> parameterDefinition, 
             IInterpetedOperation<IInterpetedAnyType>[] methodBody,
-            IInterpetedScopeTemplate scope)
+            IInterpetedScopeTemplate scope,
+            IMethodType methodType )
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             Body = methodBody ?? throw new ArgumentNullException(nameof(methodBody));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            MethodType = methodType ?? throw new ArgumentNullException(nameof(methodType));
         }
 
         public InterpetedMemberDefinition<TIn> ParameterDefinition { get; private set; }
         public IInterpetedOperation<IInterpetedAnyType>[] Body { get; private set; }
         public IInterpetedScopeTemplate Scope { get; private set; }
-        
+        public IMethodType MethodType { get; private set; }
+
         public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn,TOut>>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(
-                TypeManager.Member<IInterpetedMethod<TIn, TOut>>(
-                    TypeManager.InternalMethod<TIn, TOut>(
+            var thing = TypeManager.InternalMethod<TIn, TOut>(
                         ParameterDefinition,
-                        Body, 
+                        Body,
                         interpetedContext,
-                        Scope)));
+                        Scope,
+                        MethodType);
+            return InterpetedResult.Create(
+                TypeManager.Member(
+                    thing.Convert(TransformerExtensions.NewConversionContext()), 
+                    thing));
         }
         
-        public IInterpeted GetDefault(InterpetedContext interpetedContext)
-        {
-            return TypeManager.InternalMethod<TIn, TOut>(
-                new InterpetedMemberDefinition<TIn> ().Init(new NameKey("input")),
-                new IInterpetedOperation<IInterpetedAnyType>[] { },
-                interpetedContext,
-                Scope);
-        }
+        //public IInterpeted GetDefault(InterpetedContext interpetedContext)
+        //{
+        //    // here I need to map TIn, TOut to real types
+        //    // not sure 
+        //    return TypeManager.InternalMethod<TIn, TOut>(
+        //        new InterpetedMemberDefinition<TIn> ().Init(new NameKey("input")),
+        //        new IInterpetedOperation<IInterpetedAnyType>[] { },
+        //        interpetedContext,
+        //        Scope);
+        //}
 
     }
 }

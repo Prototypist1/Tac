@@ -22,7 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<IBoxedDouble>>(rightReturned);
             }
 
-            return InterpetedResult.Create(TypeManager.Member<IBoxedDouble>(TypeManager.Double(
+            return InterpetedResult.Create(TypeManager.NumberMember(TypeManager.Double(
                 leftValue.Value.Value -
                 rightValue.Value.Value)));
         }

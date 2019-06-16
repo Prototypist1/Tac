@@ -14,7 +14,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public IInterpetedResult<IInterpetedMember<IBoxedDouble>> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(TypeManager.Member<IBoxedDouble>(TypeManager.Double(Value)));
+            return InterpetedResult.Create(TypeManager.NumberMember(TypeManager.Double(Value)));
         }
     }
 }
