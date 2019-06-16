@@ -88,15 +88,15 @@ namespace Tac.Syntaz_Model_Interpeter
                     }
                     else if (executedItems.Count() == 1)
                     {
-                        return executedItems.Single().CompileTimeType(context);
+                        return executedItems.Single().CompileTimeType;
                     }
                     else
                     {
-                        var myType = new TypeAnd(executedItems[0].CompileTimeType(context), executedItems[1].CompileTimeType(context));
+                        var myType = new TypeAnd(executedItems[0].CompileTimeType, executedItems[1].CompileTimeType);
                         var at = 2;
                         for (; at < executedItems.Count; at++)
                         {
-                            myType = new TypeAnd(myType, executedItems[at].CompileTimeType(context));
+                            myType = new TypeAnd(myType, executedItems[at].CompileTimeType);
                         }
                         return myType;
                     }
