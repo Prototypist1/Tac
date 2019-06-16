@@ -271,11 +271,11 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
-    5 =: ( bool | int ) x ;
+    5 =: (bool|int) x;
 
-    x ?=: int y > (out.write-bool) ;
-    y > (out.write-number) ;
-    x ?=: bool z > (out.write-bool) ;
+    x ?=: int y > (out.write-bool);
+    y > (out.write-number);
+    x ?=: bool z > (out.write-bool);
 };");
 
             verifyIntIn();
@@ -294,11 +294,11 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
-    true =: ( bool | int ) x ;
+    true =: (bool|int) x;
 
-    x ?=: int y > (out.write-bool) ;
-    x ?=: bool z > (out.write-bool) ;
-    z > (out.write-bool) ;
+    x ?=: int y > (out.write-bool);
+    x ?=: bool z > (out.write-bool);
+    z > (out.write-bool);
 };");
 
             verifyIntIn();
