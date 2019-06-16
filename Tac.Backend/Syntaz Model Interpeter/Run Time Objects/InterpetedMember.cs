@@ -32,9 +32,9 @@ namespace Tac.Syntaz_Model_Interpeter
         internal static IInterpetedMember MakeMember(IVerifiableType type)
         {
             var method = typeof(TypeManager).GetMethods(BindingFlags.Public | BindingFlags.Static).Single(x =>
-              x.Name == nameof(Member) && x.IsGenericMethod && x.GetParameters().Count() == 0);
+              x.Name == nameof(Member) && x.IsGenericMethod && x.GetParameters().Count() == 1);
             var made = method.MakeGenericMethod(new Type[] { TypeMap.MapType(type) });
-            return made.Invoke(null,new object[] { }).Cast<IInterpetedMember>();
+            return made.Invoke(null,new object[] { type }).Cast<IInterpetedMember>();
         }
 
         public static IInterpetedMember<IInterpetedAnyType> AnyMember()
