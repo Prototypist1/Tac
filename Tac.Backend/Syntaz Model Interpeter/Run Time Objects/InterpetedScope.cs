@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -16,8 +17,8 @@ namespace Tac.Syntaz_Model_Interpeter
         private readonly IInterpetedStaticScope staticScope;
         private readonly IFinalizedScope finalizedScope;
 
-        public InterpetedScopeTemplate(IFinalizedScope finalizedScope) {
-            this.staticScope = TypeManager.StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>());
+        public InterpetedScopeTemplate(IFinalizedScope finalizedScope, IInterfaceModuleType type) {
+            this.staticScope = TypeManager.StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>(), type);
             this.finalizedScope = finalizedScope ?? throw new ArgumentNullException(nameof(finalizedScope));
         }
 
@@ -34,13 +35,14 @@ namespace Tac.Syntaz_Model_Interpeter
             return StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>());
         }
 
+        // TODO, I think the type just passes through here
+        // like everywhere else 
+        public static IInterpetedStaticScope StaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing,IInterfaceModuleType type)
+            => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { StaticScopeIntention(backing, type) }).Has<IInterpetedStaticScope>();
 
-        public static IInterpetedStaticScope StaticScope(ConcurrentIndexed<IKey, IInterpetedMember> backing)
-            => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { StaticScopeIntention(backing) }).Has<IInterpetedStaticScope>();
 
-
-        public static Func<IRunTimeAnyRoot, IInterpetedStaticScope> StaticScopeIntention(ConcurrentIndexed<IKey, IInterpetedMember> backing)
-            => root => new InterpetedStaticScope(backing, root);
+        public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> StaticScopeIntention(ConcurrentIndexed<IKey, IInterpetedMember> backing, IInterfaceModuleType type)
+            => root => new RunTimeAnyRootEntry(new InterpetedStaticScope(backing, root), type);
 
         // TODO you are here
         // IInterpetedScope is a pretty big mess
@@ -84,13 +86,13 @@ namespace Tac.Syntaz_Model_Interpeter
 
         internal static IInterpetedScope InstanceScope(IInterpetedStaticScope staticBacking,
             IFinalizedScope scopeDefinition)
-            => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { InstanceScopeIntention(staticBacking, scopeDefinition) }).Has<IInterpetedScope>();
+            => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { InstanceScopeIntention(staticBacking, scopeDefinition) }).Has<IInterpetedScope>();
 
         internal static IInterpetedScope InstanceScope(params (IKey, IInterpetedMember)[] members)
-            => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { InstanceScopeIntention(members) }).Has<IInterpetedScope>();
+            => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { InstanceScopeIntention(members) }).Has<IInterpetedScope>();
 
 
-        public static Func<IRunTimeAnyRoot, IInterpetedScope> InstanceScopeIntention(
+        public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> InstanceScopeIntention(
             IInterpetedStaticScope staticBacking,
             IFinalizedScope scopeDefinition)
         {

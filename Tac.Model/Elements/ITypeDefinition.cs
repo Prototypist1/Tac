@@ -41,8 +41,8 @@ namespace Tac.Model.Elements
 
     public interface IAnyType : IVerifiableType { }
     public interface IEmptyType : IVerifiableType { }
-    
-    public interface IInterfaceType : IVerifiableType, ICodeElement
+
+    public interface IInterfaceModuleType : IVerifiableType, ICodeElement
     {
         // am I sure these need to be ordered?
         // is staticness important here?
@@ -50,9 +50,12 @@ namespace Tac.Model.Elements
         IReadOnlyList<IMemberDefinition> Members { get; }
     }
 
-    public interface IModuleType : IVerifiableType {
-        // am I sure these need to be ordered?
-        IReadOnlyList<IMemberDefinition> Members { get; }
+    public interface IInterfaceType : IInterfaceModuleType
+    {
+    }
+
+    public interface IModuleType : IInterfaceModuleType
+    {
     }
 
     public interface IMethodType : IVerifiableType {

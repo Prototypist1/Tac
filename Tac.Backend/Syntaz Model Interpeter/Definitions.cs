@@ -347,7 +347,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 op.Init(
                     MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope));
+                    new InterpetedScopeTemplate(codeElement.Scope),
+                    codeElement.Returns().Cast<IMethodType>());
                 if (codeElement.IsEntryPoint) {
                     // sloppy this should be on the prop
                     if (EntryPoint == null)

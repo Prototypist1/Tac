@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Tac.Model.Instantiated;
 
 namespace Tac.Syntaz_Model_Interpeter { 
 
@@ -11,10 +12,10 @@ namespace Tac.Syntaz_Model_Interpeter {
     public static partial class TypeManager
     {
 
-        public static IInterpedEmpty Empty() => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { EmptyIntention() }).Has<IInterpedEmpty>();
+        public static IInterpedEmpty Empty() => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { EmptyIntention() }).Has<IInterpedEmpty>();
 
 
-        public static Func<IRunTimeAnyRoot, IInterpedEmpty> EmptyIntention() => root => new RunTimeEmpty(root);
+        public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> EmptyIntention() => root => new RunTimeAnyRootEntry(new RunTimeEmpty(root), new EmptyType());
 
         private class RunTimeEmpty : RootedTypeAny, IInterpedEmpty
         {

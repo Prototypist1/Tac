@@ -1,4 +1,5 @@
 ﻿using System;
+using Tac.Model.Instantiated;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -11,9 +12,9 @@ namespace Tac.Syntaz_Model_Interpeter
     public static partial class TypeManager
     {
 
-        public static IBoxedBool Bool(bool value) => Root(new Func<IRunTimeAnyRoot, IInterpetedAnyType>[] { BoolIntention(value) }).Has<IBoxedBool>();
+        public static IBoxedBool Bool(bool value) => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { BoolIntention(value) }).Has<IBoxedBool>();
 
-        public static Func<IRunTimeAnyRoot, IBoxedBool> BoolIntention(bool value) => root => new BoxedBool(value,root);
+        public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> BoolIntention(bool value) => root => new RunTimeAnyRootEntry(new BoxedBool(value,root), new BooleanType());
 
         private class BoxedBool : RootedTypeAny, IBoxedBool
         {
