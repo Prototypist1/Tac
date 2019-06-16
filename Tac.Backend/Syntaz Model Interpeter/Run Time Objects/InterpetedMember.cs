@@ -140,12 +140,22 @@ namespace Tac.Syntaz_Model_Interpeter
 
             public void Set(T o)
             {
-                Value = o.Cast<T>();
+                Value = o;
             }
 
             public bool TrySet(IInterpetedAnyType o)
             {
-                throw new NotImplementedException();
+                //  having to find TransformerExtensions.NewConversionContext is cognative load
+                // and I always use TransformerExtensions.NewConversionContext
+                // what even is the point of passing it
+                var incommingType = o.Convert(TransformerExtensions.NewConversionContext());
+                // also don't like passing in false here
+                // forces me to know too much about that is going on under the hood 
+                if (VerifiableType.TheyAreUs(incommingType, false)) {
+                    Set(o.Cast<T>());
+                    return true;
+                }
+                return false;
             }
         }
 

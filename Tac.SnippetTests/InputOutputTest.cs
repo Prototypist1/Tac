@@ -258,5 +258,52 @@ entry-point {
             verifyStringIn();
             verifyBoolIn();
         }
+
+
+        [Fact]
+        public void OrType1()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 5 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true, false });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+ @"
+entry-point {
+    5 =: ( bool | int ) x ;
+
+    x ?=: int y > (out.write-bool) ;
+    y > (out.write-number) ;
+    x ?=: bool z > (out.write-bool) ;
+};");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+        [Fact]
+        public void OrType2()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { false, true , true });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+ @"
+entry-point {
+    true =: ( bool | int ) x ;
+
+    x ?=: int y > (out.write-bool) ;
+    x ?=: bool z > (out.write-bool) ;
+    z > (out.write-bool) ;
+};");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
     }
 }

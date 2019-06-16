@@ -34,7 +34,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(rightReturned);
             }
 
-            throw new NotImplementedException();
+            return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(rightValue.Cast<IInterpetedMemberSet<TRight>>().TrySet(leftValue.Value))));
         }
     }
 }

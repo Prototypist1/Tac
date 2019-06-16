@@ -98,7 +98,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         private IInterpetedOperation<IInterpetedAnyType> TryAssignOperation<TLeft, TRight>(ITryAssignOperation co)
             where TRight : class, IInterpetedAnyType
-            where TLeft : class, TRight
+            where TLeft : class, IInterpetedAnyType
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -535,6 +535,10 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         // this does not really live here
 
+
+        // grumble, reflection sucks
+        // I get a lot of bugs here
+        // need to fix this generics + refection thing
         private static MethodInfo GetMethod(Type[] types, string name)
         {
             var method = typeof(Definitions).GetMethods(BindingFlags.NonPublic|BindingFlags.Instance).Single(x => 
