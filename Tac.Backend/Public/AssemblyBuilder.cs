@@ -54,7 +54,7 @@ namespace Tac.Backend.Public
 
             internal IInterpetedMember<IInterpetedAnyType> CreateMember(InterpetedContext interpetedContext)
             {
-                var scopeTemplate = new InterpetedScopeTemplate(scope);
+                var scopeTemplate = new InterpetedScopeTemplate(scope, scope.ToVerifiableType());
                 var objectDefinition = new InterpetedObjectDefinition();
                 objectDefinition.Init(scopeTemplate, memberValues.Select(memberValuePair => {
                     var typeParameter = memberValuePair.Value.Item1.GetType().GetInterfaces().Where(x=>x.GetGenericTypeDefinition().Equals(typeof(IInterpetedOperation<>))).Single().GetGenericArguments().First();

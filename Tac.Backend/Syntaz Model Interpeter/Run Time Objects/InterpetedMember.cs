@@ -10,7 +10,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    public interface IInterpetedMember : IInterpetedAnyType { }
+    public interface IInterpetedMember : IInterpetedAnyType {
+        IVerifiableType VerifiableType { get; }
+    }
 
     public interface IInterpetedMember<out T> : IInterpetedMember
         where T: IInterpetedAnyType
@@ -94,13 +96,13 @@ namespace Tac.Syntaz_Model_Interpeter
             // you are here!
             // I don't think this is really a verifiable type!
             // it does have to be a type of some sort
-            private readonly IVerifiableType verifiableType;
+            public IVerifiableType VerifiableType { get; }
 
             private T _value;
 
             public InterpetedMember(IVerifiableType verifiableType,IRunTimeAnyRoot root) : base(root)
             {
-                this.verifiableType = verifiableType ?? throw new ArgumentNullException(nameof(verifiableType));
+                this.VerifiableType = verifiableType ?? throw new ArgumentNullException(nameof(verifiableType));
             }
 
             public InterpetedMember(IVerifiableType verifiableType, T value, IRunTimeAnyRoot root) : base(root)
@@ -111,7 +113,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 }
 
                 Value = value;
-                this.verifiableType = verifiableType ?? throw new ArgumentNullException(nameof(verifiableType));
+                this.VerifiableType = verifiableType ?? throw new ArgumentNullException(nameof(verifiableType));
             }
 
             public T Value

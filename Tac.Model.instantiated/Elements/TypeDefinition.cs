@@ -15,6 +15,17 @@ namespace Tac.Model.Instantiated
     //}
 
 
+    public static class FinalizedScopeExtensions
+    {
+        public static IInterfaceModuleType ToVerifiableType(this IFinalizedScope scope) => scope.Members.Select(x => (x.Key, x.Type)).ToArray().ToVerifiableType();
+
+
+        public static IInterfaceModuleType ToVerifiableType(this (IKey, IVerifiableType)[] scope)
+        {
+            return InterfaceType.CreateAndBuild(scope.Select(x => MemberDefinition.CreateAndBuild(x.Item1, x.Item2, false)).ToList());
+        }
+    }
+
     // 🤫 IInterfaceType and module are they same 
     public class InterfaceType : IInterfaceType, IModuleType, IInterfaceTypeBuilder
     {

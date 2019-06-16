@@ -128,7 +128,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 backing.Add(codeElement, op);
                 op.Init(
                     codeElement.Body.Select(x=>x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope));
+                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()));
                 return op;
             }
         }
@@ -252,7 +252,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                     MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
                     MemberDefinition(codeElement.ContextDefinition).Cast<InterpetedMemberDefinition<TContext>>(),
                     codeElement.MethodBody.Select(x => x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope),
+                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.Returns().Cast<IImplementationType>());
                 return op;
             }
@@ -347,7 +347,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 op.Init(
                     MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope),
+                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.Returns().Cast<IMethodType>());
                 if (codeElement.IsEntryPoint) {
                     // sloppy this should be on the prop
@@ -373,7 +373,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 var op = new InterpetedModuleDefinition();
                 backing.Add(codeElement, op);
-                op.Init(new InterpetedScopeTemplate(codeElement.Scope),
+                op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.StaticInitialization.Select(x => x.Convert(this)).ToArray()
                     );
                 return op;
@@ -434,7 +434,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 var op = new InterpetedObjectDefinition();
                 backing.Add(codeElement, op);
-                op.Init(new InterpetedScopeTemplate(codeElement.Scope),
+                op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.Assignments.Select(x => AssignOperation(x).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>()).ToArray()
                     );
                 return op;
