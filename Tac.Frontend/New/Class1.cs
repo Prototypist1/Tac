@@ -62,8 +62,6 @@ namespace Tac.New
         ITokenMatching<TCodeElement> TryMake(IMatchedTokenMatching elementToken);
     }
     
-
-
     // hmm the parsing is almost a step as well? 
 
     internal interface IPopulateScopeContext {

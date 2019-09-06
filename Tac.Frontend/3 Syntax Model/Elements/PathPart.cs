@@ -25,9 +25,9 @@ namespace Tac.Semantic_Model
                 Possibly.Is(
                     new DelegateBox<IIsPossibly<IWeakMemberDefinition>>(() =>
                         x.GetValue()
-                        .IfIs(z =>
-                            Possibly.Is(
-                                new OverlayMemberDefinition(z, overlay))))));
+                            .IfIs(z =>
+                                Possibly.Is(
+                                    new OverlayMemberDefinition(z, overlay))))));
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
@@ -213,6 +213,4 @@ namespace Tac.Semantic_Model
             }
         }
     }
-
-
 }

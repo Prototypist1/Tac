@@ -29,7 +29,6 @@ namespace Tac.Semantic_Model
 
     internal interface IResolvableScope: ISomeScope, IConvertable<IFinalizedScope>
     {
-
         IEnumerable<IKey> MemberKeys { get; }
         bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType>> type);
     }

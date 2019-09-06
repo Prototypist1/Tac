@@ -91,7 +91,5 @@ namespace Tac.Semantic_Model.Operations
             return TokenMatching<IPopulateScope<WeakAssignOperation>>.MakeNotMatch(
                     matching.Context);
         }
-
-
     }
 }

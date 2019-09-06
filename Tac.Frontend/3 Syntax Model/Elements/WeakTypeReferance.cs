@@ -66,8 +66,6 @@ namespace Tac.Semantic_Model
             return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
         }
 
-
-
         public IIsPossibly<IFrontendType> Returns()
         {
             return TypeDefinition.IfIs(x => x.GetValue());

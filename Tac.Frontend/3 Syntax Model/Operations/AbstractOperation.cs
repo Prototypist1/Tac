@@ -207,7 +207,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 // this is something I don't much like
                 // right runs first because of assign
                 // in assign you might have something like
-                // method [int;int] input { input < ? 2 if { 1 return; } else { input - 1 > fac * input return; } } =: fac
+                // method [int;int] input { input <? 2 if { 1 return; } else { input - 1 > fac * input return; } } =: fac
                 // if the left runs first than fac will not be found
                 // and so it will add it to the scope
                 // but if the right is run first 
@@ -217,6 +217,16 @@ namespace Tac.Semantic_Model.CodeStuff
 
                 // part of me just thinks 
                 // force 'var' on member definition 
+                // of this.
+                // or force all scopes to name themselves and use name.
+
+                // but.. this does not even work
+                // cuz now this does not work
+                // fac =: method [int;int] input { input <? 2 if { 1 return; } else { input - 1 > fac * input return; } }
+
+                // maybe we need a keywork
+                // var or new or make
+
                 var rightres = right.Run(context);
 
                 return new BinaryResolveReferance(
@@ -259,7 +269,6 @@ namespace Tac.Semantic_Model.CodeStuff
                     }
                     else
                     {
-
                         return Possibly.IsNot<IConvertableFrontendType<IVerifiableType>>(no);
                     }
                 });
@@ -403,7 +412,6 @@ namespace Tac.Semantic_Model.CodeStuff
                     }
                     else
                     {
-
                         return Possibly.IsNot<IConvertableFrontendType<IVerifiableType>>(no);
                     }
                 });
