@@ -75,9 +75,9 @@ namespace Tac.New
 
     internal class PopulateScopeContext : IPopulateScopeContext
     {
-        private readonly NewScope stack;
+        private readonly ResolvableScope stack;
 
-        public PopulateScopeContext(NewScope stack)
+        public PopulateScopeContext(ResolvableScope stack)
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
         }
@@ -90,7 +90,7 @@ namespace Tac.New
 
         public IPopulateScopeContext Child()
         {
-            return new PopulateScopeContext(new NewScope(stack));
+            return new PopulateScopeContext(new ResolvableScope(stack));
         }
 
         public IResolvableScope GetResolvableScope()

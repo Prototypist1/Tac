@@ -20,7 +20,7 @@ namespace Tac.Semantic_Model
         bool TryGetMember(IKey name, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> box);
     }
 
-    internal interface IPopulatableScope: ISomeScope
+    internal interface IPopulatableScope
     {
         bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition);
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);

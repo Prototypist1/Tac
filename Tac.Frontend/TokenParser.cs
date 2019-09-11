@@ -29,7 +29,7 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var dependendcyScope = new NewScope();
+            var dependendcyScope = new Semantic_Model.ResolvableScope();
 
             foreach (var dependency in dependencies)
             {
@@ -45,7 +45,7 @@ namespace Tac.Frontend
                 }
             }
 
-            var scope = new NewScope(dependendcyScope);
+            var scope = new Semantic_Model.ResolvableScope(dependendcyScope);
 
             var populateScopeContex = new PopulateScopeContext(scope);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();

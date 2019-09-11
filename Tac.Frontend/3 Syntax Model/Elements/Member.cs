@@ -76,8 +76,7 @@ namespace Tac.Semantic_Model
             public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
             {
                 var nameKey = new NameKey(memberName);
-                if (!context.Scope.TryGetMember(nameKey, false, out var memberDef) &&
-                    !context.Scope.TryAddMember(
+                if (!context.Scope.TryAddMember(
                         DefintionLifetime.Instance,
                         nameKey,
                         new Box<IIsPossibly<WeakMemberDefinition>>(

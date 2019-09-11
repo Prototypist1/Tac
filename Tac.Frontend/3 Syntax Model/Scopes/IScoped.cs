@@ -36,9 +36,9 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class ScopeTemplate : NewScope //, IFinalizedScopeTemplate
+    internal class ScopeTemplate : ResolvableScope
     {
-        public ScopeTemplate(IGenericTypeParameterPlacholder[] typeParameterDefinitions, NewScope parent) : base(parent)
+        public ScopeTemplate(IGenericTypeParameterPlacholder[] typeParameterDefinitions, ResolvableScope parent) : base(parent)
         {
             TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
             foreach (var item in typeParameterDefinitions)
@@ -54,14 +54,91 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal interface IPopulatableResolvableScope : IPopulatableScope, IResolvableScope
+    internal class PopulatableScope : IPopulatableScope
     {
+        private readonly ConcurrentDictionary<IKey,  ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>> members
+            = new ConcurrentDictionary<IKey,  ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>>();
+
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<IBox<IIsPossibly<IFrontendType>>>> types
+            = new ConcurrentDictionary<IKey, ConcurrentSet<IBox<IIsPossibly<IFrontendType>>>>();
+
+        private readonly ConcurrentDictionary<NameKey, ConcurrentSet<IBox<IIsPossibly<IFrontendGenericType>>>> genericTypes
+            = new ConcurrentDictionary<NameKey, ConcurrentSet<IBox<IIsPossibly<IFrontendGenericType>>>>();
+
+        public IIsPossibly<PopulatableScope> Parent { get; }
+
+        public PopulatableScope(PopulatableScope parent) {
+            if (parent == null)
+            {
+                throw new ArgumentNullException(nameof(parent));
+            }
+
+            Parent = Possibly.Is(parent);
+        }
+
+        public bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition)
+        {
+            var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<IBox<IIsPossibly<IFrontendGenericType>>>());
+            return list.TryAdd(definition);
+        }
+
+        public bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<IIsPossibly<WeakMemberDefinition>> definition)
+        {
+            var list = members.GetOrAdd(key, new ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>());
+            return list.TryAdd(new Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>(defintionLifetime,definition));
+        }
+
+        public bool TryAddType(IKey key, IBox<IIsPossibly<IFrontendType>> definition)
+        {
+            var list = types.GetOrAdd(key, new ConcurrentSet<IBox<IIsPossibly<IFrontendType>>>());
+            return list.TryAdd(definition);
+        }
+
+        public IResolvableScope CreateResolvable(IResolvableScope parent)
+        {
+            var resolvaleMembers = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
+            foreach (var memberCollection in members)
+            {
+                if (!parent.TryGetMember(memberCollection.Key, false, out var _))
+                {
+                    var list = resolvaleMembers.GetOrAdd(memberCollection.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
+                    foreach (var member in memberCollection.Value)
+                    {
+                        list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(member.Item1, member.Item2));
+                    }
+                }
+            }
+            
+            var resolvableTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>>();
+
+            foreach (var pair in types)
+            {
+                var list = resolvableTypes.GetOrAdd(pair.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>());
+                foreach (var item in pair.Value)
+                {
+                    list.TryAdd(new Visiblity<IBox<IIsPossibly<IFrontendType>>>(DefintionLifetime.Static, item));
+                }
+            }
+
+            var resolvableGenericTypes = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>>();
+
+            foreach (var pair in genericTypes)
+            {
+                var list = resolvableGenericTypes.GetOrAdd(pair.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>());
+                foreach (var item in pair.Value)
+                {
+                    list.TryAdd(new Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>(DefintionLifetime.Static, item));
+                }
+            }
+
+            return new ResolvableScope(parent, resolvaleMembers, resolvableTypes, resolvableGenericTypes);
+        }
     }
 
-    internal class NewScope : IPopulatableResolvableScope
+    internal class ResolvableScope : IResolvableScope
     {
 
-        public IPopulatableResolvableScope Parent { get; }
+        public  IIsPossibly<IResolvableScope> Parent { get; }
 
         public IEnumerable<IKey> MemberKeys
         {
@@ -70,19 +147,26 @@ namespace Tac.Semantic_Model
                 return members.Keys;
             }
         }
-        
-        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
 
-        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>> types
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members;
 
-        private readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>> genericTypes
-            = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>>();
+        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>> types;
 
-        public NewScope(IPopulatableResolvableScope parent)
+        private readonly ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>> genericTypes;
+
+        public ResolvableScope(IResolvableScope parent, ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>> members,
+             ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>> types,
+              ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>> genericTypes)
         {
-            Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            if (parent == null)
+            {
+                throw new ArgumentNullException(nameof(parent));
+            }
+
+            Parent = Possibly.Is( parent) ;
+            this.members = members ?? throw new ArgumentNullException(nameof(members));
+            this.types = types ?? throw new ArgumentNullException(nameof(types));
+            this.genericTypes = genericTypes ?? throw new ArgumentNullException(nameof(genericTypes));
         }
 
         // how do I add dependencies?
@@ -94,8 +178,13 @@ namespace Tac.Semantic_Model
         // yeah.. that is not right at all
         // the reference stuff have a name right? so they just exist in the base scope under their name
 
-        public NewScope()
-        {
+        public ResolvableScope() {
+
+            this.members = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
+            this.types = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>>();
+            this.genericTypes = new ConcurrentDictionary<NameKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>>();
+            this.Parent = Possibly.IsNot<IResolvableScope>();
+
             // do these really belong here or should they be defined in some sort of 'standard library'
             // here for now I think 
             TryAddType(new NameKey("int"), new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType())));
@@ -110,26 +199,21 @@ namespace Tac.Semantic_Model
                 new NameKey("implementation"), new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is<IFrontendGenericType>(PrimitiveTypes.CreateGenericImplementationType())));
         }
 
-        public IResolvableScope ToResolvable()
-        {
-            return this;
-        }
-
-        public bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition)
+        private bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition)
         {
             var list = genericTypes.GetOrAdd(new NameKey(key.Name), new ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>>());
             var visiblity = new Visiblity<IBox<IIsPossibly<IFrontendGenericType>>>(DefintionLifetime.Static, definition);
             return list.TryAdd(visiblity);
         }
-        
-        public bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<IIsPossibly<WeakMemberDefinition>> definition)
+
+        private bool TryAddMember(DefintionLifetime defintionLifetime, IKey key, IBox<IIsPossibly<WeakMemberDefinition>> definition)
         {
             var list = members.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
             var visiblity = new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(defintionLifetime, definition);
             return list.TryAdd(visiblity);
         }
 
-        public bool TryAddType(IKey key, IBox<IIsPossibly<IFrontendType>> definition)
+        private bool TryAddType(IKey key, IBox<IIsPossibly<IFrontendType>> definition)
         {
             var list = types.GetOrAdd(key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>());
             var visiblity = new Visiblity<IBox<IIsPossibly<IFrontendType>>>(DefintionLifetime.Static, definition);
@@ -155,9 +239,9 @@ namespace Tac.Semantic_Model
 
             checkParent:
             
-            if (Parent != null)
+            if (Parent is IIsDefinately<IResolvableScope> resolvbaleParent)
             {
-                return Parent.TryGetMember(name, staticOnly, out member);
+                return resolvbaleParent.Value.TryGetMember(name, staticOnly, out member);
             }
             else
             {
@@ -213,10 +297,10 @@ namespace Tac.Semantic_Model
 
             // goto 🤘
             exit:
-            
-            if (Parent != null)
+
+            if (Parent is IIsDefinately<IResolvableScope> resolvbaleParent)
             {
-                var res = Parent.TryGetType(name, out var theType);
+                var res = resolvbaleParent.Value.TryGetType(name, out var theType);
                 type = theType;
                 return res;
             }
