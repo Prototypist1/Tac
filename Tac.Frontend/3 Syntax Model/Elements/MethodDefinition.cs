@@ -173,8 +173,8 @@ namespace Tac.Semantic_Model
                 bool isEntryPoint)
         {
             return new MethodDefinitionResolveReferance(
-                parameter,
                 methodScope,
+                parameter,
                 resolveReferance2,
                 output,
                 box,
@@ -208,14 +208,52 @@ namespace Tac.Semantic_Model
                 return box;
             }
 
-            public IPopulateBoxes<WeakMethodDefinition> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakMethodDefinition> Run(IPopulateScopeContext context)
             {
 
                 var nextContext = context.Child();
-                return new MethodDefinitionResolveReferance(
+                return new MethodDefinitionFinalizeScope(
+                    nextContext.Scope.GetFinalizableScope(),
                     parameterDefinition.Run(nextContext),
-                    nextContext.GetResolvableScope(),
                     elements.Select(x => x.Run(nextContext)).ToArray(),
+                    output.Run(context),
+                    box,
+                    isEntryPoint);
+            }
+        }
+
+        private class MethodDefinitionFinalizeScope : IFinalizeScope<WeakMethodDefinition>
+        {
+            private readonly IFinalizableScope methodScope;
+            private readonly IFinalizeScope<WeakMemberReference> parameter;
+            private readonly IFinalizeScope<IFrontendCodeElement>[] lines;
+            private readonly IFinalizeScope<IWeakTypeReference> output;
+            private readonly Box<IIsPossibly<IFrontendType>> box;
+            private readonly bool isEntryPoint;
+
+            public MethodDefinitionFinalizeScope(
+                IFinalizableScope methodScope,
+                IFinalizeScope<WeakMemberReference> parameter,
+                IFinalizeScope<IFrontendCodeElement>[] resolveReferance2,
+                IFinalizeScope<IWeakTypeReference> output,
+                Box<IIsPossibly<IFrontendType>> box,
+                bool isEntryPoint)
+            {
+                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+                this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
+                lines = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+                this.output = output ?? throw new ArgumentNullException(nameof(output));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.isEntryPoint = isEntryPoint;
+            }
+
+            public IPopulateBoxes<WeakMethodDefinition> Run(IFinalizeScopeContext context)
+            {
+
+                return new MethodDefinitionResolveReferance(
+                    methodScope.FinalizeScope(),
+                    parameter.Run(context),
+                    lines.Select(x => x.Run(context)).ToArray(),
                     output.Run(context),
                     box,
                     isEntryPoint);
@@ -224,23 +262,23 @@ namespace Tac.Semantic_Model
 
         private class MethodDefinitionResolveReferance : IPopulateBoxes<WeakMethodDefinition>
         {
-            private readonly IPopulateBoxes<WeakMemberReference> parameter;
             private readonly IResolvableScope methodScope;
+            private readonly IPopulateBoxes<WeakMemberReference> parameter;
             private readonly IPopulateBoxes<IFrontendCodeElement>[] lines;
             private readonly IPopulateBoxes<IWeakTypeReference> output;
             private readonly Box<IIsPossibly<IFrontendType>> box;
             private readonly bool isEntryPoint;
 
             public MethodDefinitionResolveReferance(
-                IPopulateBoxes<WeakMemberReference> parameter,
                 IResolvableScope methodScope,
+                IPopulateBoxes<WeakMemberReference> parameter,
                 IPopulateBoxes<IFrontendCodeElement>[] resolveReferance2,
                 IPopulateBoxes<IWeakTypeReference> output,
                 Box<IIsPossibly<IFrontendType>> box,
                 bool isEntryPoint)
             {
-                this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
                 this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+                this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
                 lines = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));

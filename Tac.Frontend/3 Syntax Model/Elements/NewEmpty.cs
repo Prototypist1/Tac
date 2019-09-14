@@ -87,7 +87,23 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             public EmptyInstancePopulateScope() { }
 
-            public IPopulateBoxes<WeakEmptyInstance> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakEmptyInstance> Run(IPopulateScopeContext context)
+            {
+                return new EmptyInstanceFinalizeScope();
+            }
+
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+            {
+                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateEmptyType()));
+            }
+        }
+
+        private class EmptyInstanceFinalizeScope : IFinalizeScope<WeakEmptyInstance>
+        {
+
+            public EmptyInstanceFinalizeScope() { }
+
+            public IPopulateBoxes<WeakEmptyInstance> Run(IFinalizeScopeContext context)
             {
                 return new EmptyInstanceResolveReferance();
             }

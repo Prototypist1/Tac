@@ -91,7 +91,27 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IPopulateBoxes<WeakConstantNumber> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakConstantNumber> Run(IPopulateScopeContext context)
+            {
+                return new ConstantNumberFinalizeScope(dub);
+            }
+
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+            {
+                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType()));
+            }
+        }
+
+        private class ConstantNumberFinalizeScope : IFinalizeScope<WeakConstantNumber>
+        {
+            private readonly double dub;
+
+            public ConstantNumberFinalizeScope(double dub)
+            {
+                this.dub = dub;
+            }
+
+            public IPopulateBoxes<WeakConstantNumber> Run(IFinalizeScopeContext context)
             {
                 return new ConstantNumberResolveReferance(dub);
             }

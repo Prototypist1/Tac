@@ -112,7 +112,27 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IPopulateBoxes<WeakConstantBool> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakConstantBool> Run(IPopulateScopeContext context)
+            {
+                return new ConstantBoolFinalizeScope(dub);
+            }
+
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+            {
+                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType()));
+            }
+        }
+
+        private class ConstantBoolFinalizeScope : IFinalizeScope<WeakConstantBool>
+        {
+            private readonly bool dub;
+
+            public ConstantBoolFinalizeScope(bool dub)
+            {
+                this.dub = dub;
+            }
+
+            public IPopulateBoxes<WeakConstantBool> Run(IFinalizeScopeContext context)
             {
                 return new ConstantBoolResolveReferance(dub);
             }
@@ -122,6 +142,7 @@ namespace Tac.Semantic_Model.Operations
                 return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType()));
             }
         }
+
 
         private class ConstantBoolResolveReferance : IPopulateBoxes<WeakConstantBool>
         {

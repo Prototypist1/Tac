@@ -187,14 +187,14 @@ namespace Tac.Semantic_Model
                 typeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
             }
 
-            public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakMemberReference> Run(IPopulateScopeContext context)
             {
                 var key = new NameKey(memberName);
                 if (!context.Scope.TryAddMember(DefintionLifetime.Instance, key, memberDefinitionBox))
                 {
                     throw new Exception("bad bad bad!");
                 }
-                return new MemberDefinitionResolveReferance(
+                return new MemberDefinitionFinalizeScope(
                     memberName, 
                     box, 
                     isReadonly, 
@@ -205,6 +205,39 @@ namespace Tac.Semantic_Model
             public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
+            }
+        }
+
+        private class MemberDefinitionFinalizeScope : IFinalizeScope<WeakMemberReference>
+        {
+            private readonly string memberName;
+            private readonly Box<IIsPossibly<WeakMemberReference>> box;
+            private readonly bool isReadonly;
+            public readonly IFinalizeScope<IWeakTypeReference> type;
+            private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox;
+
+            public MemberDefinitionFinalizeScope(
+                string memberName,
+                Box<IIsPossibly<WeakMemberReference>> box,
+                bool isReadonly,
+                IFinalizeScope<IWeakTypeReference> type,
+                Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
+            {
+                this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.isReadonly = isReadonly;
+                this.type = type ?? throw new ArgumentNullException(nameof(type));
+                this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
+            }
+
+            public IPopulateBoxes<WeakMemberReference> Run(IFinalizeScopeContext context)
+            {
+                return new MemberDefinitionResolveReferance(
+                        memberName,
+                        box,
+                        isReadonly,
+                        type.Run(context),
+                        memberDefinitionBox);
             }
         }
 

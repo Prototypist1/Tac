@@ -114,7 +114,27 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IPopulateBoxes<WeakConstantString> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakConstantString> Run(IPopulateScopeContext context)
+            {
+                return new ConstantStringFinalizeScope(str);
+            }
+
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+            {
+                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType()));
+            }
+        }
+
+        private class ConstantStringFinalizeScope : IFinalizeScope<WeakConstantString>
+        {
+            private readonly string str;
+
+            public ConstantStringFinalizeScope(string str)
+            {
+                this.str = str;
+            }
+
+            public IPopulateBoxes<WeakConstantString> Run(IFinalizeScopeContext context)
             {
                 return new ConstantStringResolveReferance(str);
             }

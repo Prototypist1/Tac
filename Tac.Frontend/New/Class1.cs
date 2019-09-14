@@ -61,15 +61,16 @@ namespace Tac.New
     {
         ITokenMatching<TCodeElement> TryMake(IMatchedTokenMatching elementToken);
     }
-    
+
     // hmm the parsing is almost a step as well? 
 
-    internal interface IPopulateScopeContext {
+
+    internal interface IPopulateScopeContext
+    {
 
         IPopulatableScope Scope { get; }
         IPopulateScopeContext Child();
         IPopulateScopeContext TemplateChild(IGenericTypeParameterPlacholder[] parameters);
-        IResolvableScope GetResolvableScope();
 
     }
 
@@ -115,24 +116,21 @@ namespace Tac.New
     // TODO I think I should protect these!
     // you are only allowed to put things in scope during this step
 
-    internal interface IPopulateScope {
-        IBox<IIsPossibly<IFrontendType>> GetReturnType();
-    }
 
-    internal interface IPopulateScope<out TCodeElement> : IPopulateScope
+    internal interface IPopulateScope<out TCodeElement> 
     {
-        IPopulateBoxes<TCodeElement> Run(IPopulateScopeContext context);
+        IFinalizeScope<TCodeElement> Run(IPopulateScopeContext context);
     }
 
-    // TODO I think I should protect these!
-    // you should only pull things out of scope during this step
-    public interface IResolveReferance {
-    }
-    
-    // I think scopes have phases of production
-    //
+    internal interface IFinalizeScopeContext { }
 
-    public interface IPopulateBoxes<out TCodeElement> : IResolveReferance
+    internal interface IFinalizeScope<out TCodeElement>
+    {
+        IPopulateBoxes<TCodeElement> Run(IFinalizeScopeContext context);
+    }
+
+
+    internal interface IPopulateBoxes<out TCodeElement> 
     {
         IIsPossibly<TCodeElement> Run(IResolveReferenceContext context);
     }

@@ -100,11 +100,11 @@ namespace Tac.Semantic_Model
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IPopulateBoxes<WeakBlockDefinition> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakBlockDefinition> Run(IPopulateScopeContext context)
             {
                 var nextContext = context.Child();
-                return new ResolveReferanceBlockDefinition(
-                    nextContext.GetResolvableScope(),
+                return new FinalizeScopeBlockDefinition(
+                    nextContext.Scope.GetFinalizableScope(),
                     Elements.Select(x => x.Run(nextContext)).ToArray());
             }
 
@@ -113,6 +113,23 @@ namespace Tac.Semantic_Model
                 return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateBlockType()));
             }
 
+        }
+
+        private class FinalizeScopeBlockDefinition : IFinalizeScope<WeakBlockDefinition>
+        {
+            private IFinalizableScope finalizableScope;
+            private IFinalizeScope<IFrontendCodeElement>[] finalizeScope;
+
+            public FinalizeScopeBlockDefinition(IFinalizableScope finalizableScope, IFinalizeScope<IFrontendCodeElement>[] finalizeScope)
+            {
+                this.finalizableScope = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
+                this.finalizeScope = finalizeScope ?? throw new ArgumentNullException(nameof(finalizeScope));
+            }
+
+            public IPopulateBoxes<WeakBlockDefinition> Run(IFinalizeScopeContext context)
+            {
+                return new ResolveReferanceBlockDefinition(this.finalizableScope.FinalizeScope(), finalizeScope.Select(x => x.Run(context)).ToArray());
+            }
         }
 
         private class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>

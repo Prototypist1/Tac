@@ -25,9 +25,14 @@ namespace Tac.Semantic_Model
         bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition);
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
         bool TryAddType(IKey name, IBox<IIsPossibly<IFrontendType>> type);
+        IFinalizableScope GetFinalizableScope();
     }
 
-    internal interface IResolvableScope: ISomeScope, IConvertable<IFinalizedScope>
+    internal interface IFinalizableScope{
+        IResolvableScope FinalizeScope();
+    }
+
+    internal interface IResolvableScope: ISomeScope, IConvertable<IFinalizableScope>
     {
         IEnumerable<IKey> MemberKeys { get; }
         bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType>> type);

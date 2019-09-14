@@ -73,7 +73,7 @@ namespace Tac.Semantic_Model
                 return box;
             }
 
-            public IPopulateBoxes<WeakMemberReference> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakMemberReference> Run(IPopulateScopeContext context)
             {
                 var nameKey = new NameKey(memberName);
                 if (!context.Scope.TryAddMember(
@@ -94,9 +94,32 @@ namespace Tac.Semantic_Model
                     throw new Exception("uhh that is not right");
                 }
 
-                return new MemberResolveReferance(context.GetResolvableScope(), nameKey, box);
+                return new MemberFinalizeScope(context.Scope.GetFinalizableScope(), nameKey, box);
             }
 
+        }
+
+
+        private class MemberFinalizeScope : IFinalizeScope<WeakMemberReference>
+        {
+            private readonly IFinalizableScope finalizableScope;
+            private readonly NameKey key;
+            private readonly Box<IIsPossibly<IFrontendType>> box;
+
+            public MemberFinalizeScope(
+                IFinalizableScope finalizableScope,
+                NameKey key,
+                Box<IIsPossibly<IFrontendType>> box)
+            {
+                this.finalizableScope = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
+                this.key = key ?? throw new ArgumentNullException(nameof(key));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IPopulateBoxes<WeakMemberReference> Run(IFinalizeScopeContext context)
+            {
+                return new MemberResolveReferance(finalizableScope.FinalizeScope(), key, box);
+            }
         }
 
         private class MemberResolveReferance : IPopulateBoxes<WeakMemberReference>

@@ -95,7 +95,27 @@ namespace Tac.Semantic_Model
             return TokenMatching<IPopulateScope<WeakModuleDefinition>>.MakeNotMatch(
                     matching.Context);
         }
-        
+
+
+        public static IPopulateScope<WeakModuleDefinition> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
+                NameKey nameKey)
+        {
+            return new ModuleDefinitionPopulateScope(elements,
+                nameKey);
+        }
+        public static IPopulateBoxes<WeakModuleDefinition> PopulateBoxes(IResolvableScope scope,
+                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance,
+                NameKey nameKey,
+                Box<IIsPossibly<IFrontendType>> box)
+        {
+            return new ModuleDefinitionResolveReferance(scope,
+               resolveReferance,
+               nameKey,
+               box);
+        }
+
+
+
         private class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition>
         {
             private readonly IPopulateScope<IFrontendCodeElement>[] elements;
@@ -115,32 +135,44 @@ namespace Tac.Semantic_Model
                 return box;
             }
 
-            public IPopulateBoxes<WeakModuleDefinition> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakModuleDefinition> Run(IPopulateScopeContext context)
             {
                 var nextContext = context.Child();
-                return new ModuleDefinitionResolveReferance(
-                    nextContext.GetResolvableScope(),
+                return new ModuleDefinitionFinalizeScope(
+                    nextContext.Scope.GetFinalizableScope(),
                     elements.Select(x => x.Run(nextContext)).ToArray(),
                     nameKey,
                     box);
             }
         }
 
-        public static IPopulateScope<WeakModuleDefinition> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
-                NameKey nameKey)
+        private class ModuleDefinitionFinalizeScope : IFinalizeScope<WeakModuleDefinition>
         {
-            return new ModuleDefinitionPopulateScope(elements,
-                nameKey);
-        }
-        public static IPopulateBoxes<WeakModuleDefinition> PopulateBoxes(IResolvableScope scope,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance,
+            private readonly IFinalizableScope scope;
+            private readonly IFinalizeScope<IFrontendCodeElement>[] elements;
+            private readonly NameKey nameKey;
+            private readonly Box<IIsPossibly<IFrontendType>> box;
+
+            public ModuleDefinitionFinalizeScope(
+                IFinalizableScope scope,
+                IFinalizeScope<IFrontendCodeElement>[] elements,
                 NameKey nameKey,
                 Box<IIsPossibly<IFrontendType>> box)
-        {
-            return new ModuleDefinitionResolveReferance(scope,
-               resolveReferance,
-               nameKey,
-               box);
+            {
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IPopulateBoxes<WeakModuleDefinition> Run(IFinalizeScopeContext context)
+            {
+                return new ModuleDefinitionResolveReferance(
+                    scope.FinalizeScope(),
+                    elements.Select(x => x.Run(context)).ToArray(),
+                    nameKey,
+                    box);
+            }
         }
 
         private class ModuleDefinitionResolveReferance : IPopulateBoxes<WeakModuleDefinition>

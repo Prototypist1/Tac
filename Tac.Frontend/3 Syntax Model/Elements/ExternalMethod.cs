@@ -16,6 +16,8 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
         IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
     }
     
+
+    // 🤷‍
     //internal class ExternalMethod : 
     //    IMethodDefinition,
     //    IFrontendCodeElement<IExternalMethodDefinition>, IFrontendType<IVerifiableType>

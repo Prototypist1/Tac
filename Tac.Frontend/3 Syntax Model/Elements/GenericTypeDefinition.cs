@@ -188,13 +188,47 @@ namespace Tac.Semantic_Model
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             }
 
-            public IPopulateBoxes<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakGenericTypeDefinition> Run(IPopulateScopeContext context)
             {
                 var encolsing = context.Scope.TryAddGeneric(nameKey, box);
 
                 var nextContext = context.TemplateChild(genericParameters);
                 var nextLines = lines.Select(x => x.Run(nextContext)).ToArray();
-                return new GenericTypeDefinitionResolveReferance(nameKey, nextContext.GetResolvableScope(), box, genericParameters, nextLines);
+                return new GenericTypeDefinitionFinalizeScope(nameKey, nextContext.Scope.GetFinalizableScope(), box, genericParameters, nextLines);
+            }
+
+            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
+            {
+                return box;
+            }
+        }
+
+        private class GenericTypeDefinitionFinalizeScope : IFinalizeScope<WeakGenericTypeDefinition>
+        {
+            private readonly NameKey nameKey;
+            private readonly IFinalizableScope scope;
+            private readonly Box<IIsPossibly<IFrontendGenericType>> box;
+            private readonly IGenericTypeParameterPlacholder[] genericParameters;
+            private readonly IFinalizeScope<IFrontendCodeElement>[] lines;
+
+            public GenericTypeDefinitionFinalizeScope(
+                NameKey nameKey,
+                IFinalizableScope scope,
+                Box<IIsPossibly<IFrontendGenericType>> box,
+                IGenericTypeParameterPlacholder[] genericParameters,
+                IFinalizeScope<IFrontendCodeElement>[] lines)
+            {
+                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+                this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
+            }
+
+
+            public IPopulateBoxes<WeakGenericTypeDefinition> Run(IFinalizeScopeContext context)
+            {
+                return new GenericTypeDefinitionResolveReferance(nameKey, scope.FinalizeScope(), box, genericParameters, lines.Select(x=>x.Run(context)).ToArray());
             }
 
             public IBox<IIsPossibly<IFrontendType>> GetReturnType()

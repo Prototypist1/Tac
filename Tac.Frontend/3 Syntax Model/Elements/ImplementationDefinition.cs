@@ -171,9 +171,9 @@ namespace Tac.Semantic_Model
                 Box<IIsPossibly<IFrontendType>> box)
         {
             return new ImplementationDefinitionResolveReferance(
+                 methodScope,
                  contextDefinition,
                  parameterDefinition,
-                 methodScope,
                  elements,
                  output,
                  box);
@@ -199,14 +199,14 @@ namespace Tac.Semantic_Model
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
             }
 
-            public IPopulateBoxes<WeakImplementationDefinition> Run(IPopulateScopeContext context)
+            public IFinalizeScope<WeakImplementationDefinition> Run(IPopulateScopeContext context)
             {
 
                 var nextContext = context.Child();
-                return new ImplementationDefinitionResolveReferance(
+                return new ImplementationDefinitionFinalizeScope(
+                    nextContext.Scope.GetFinalizableScope(),
                     contextDefinition.Run(nextContext),
                     parameterDefinition.Run(nextContext),
-                    nextContext.GetResolvableScope(),
                     elements.Select(x => x.Run(nextContext)).ToArray(),
                     output.Run(context),
                     box);
@@ -219,26 +219,64 @@ namespace Tac.Semantic_Model
 
         }
 
+
+        private class ImplementationDefinitionFinalizeScope: IFinalizeScope<WeakImplementationDefinition>
+        {
+            private readonly IFinalizableScope finalizableScope;
+            private readonly IFinalizeScope<WeakMemberReference> contextDefinition;
+            private readonly IFinalizeScope<WeakMemberReference> parameterDefinition;
+            private readonly IFinalizeScope<IFrontendCodeElement>[] elements;
+            private readonly IFinalizeScope<IWeakTypeReference> output;
+            private readonly Box<IIsPossibly<IFrontendType>> box;
+
+            public ImplementationDefinitionFinalizeScope(
+                IFinalizableScope finalizableScope,
+                IFinalizeScope<WeakMemberReference> contextDefinition,
+                IFinalizeScope<WeakMemberReference> parameterDefinition,
+                IFinalizeScope<IFrontendCodeElement>[] elements,
+                IFinalizeScope<IWeakTypeReference> output,
+                Box<IIsPossibly<IFrontendType>> box)
+            {
+                this.finalizableScope = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
+                this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
+                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.output = output ?? throw new ArgumentNullException(nameof(output));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IPopulateBoxes<WeakImplementationDefinition> Run(IFinalizeScopeContext context)
+            {
+                return new ImplementationDefinitionResolveReferance(
+                    finalizableScope.FinalizeScope(),
+                    contextDefinition.Run(context),
+                    parameterDefinition.Run(context),
+                    elements.Select(x=>x.Run(context)).ToArray(),
+                    output.Run(context),
+                    box);
+            }
+        }
+
         private class ImplementationDefinitionResolveReferance : IPopulateBoxes<WeakImplementationDefinition>
         {
+            private readonly IResolvableScope methodScope;
             private readonly IPopulateBoxes<WeakMemberReference> contextDefinition;
             private readonly IPopulateBoxes<WeakMemberReference> parameterDefinition;
-            private readonly IResolvableScope methodScope;
             private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
             private readonly IPopulateBoxes<IWeakTypeReference> output;
             private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public ImplementationDefinitionResolveReferance(
+                IResolvableScope methodScope,
                 IPopulateBoxes<WeakMemberReference> contextDefinition,
                 IPopulateBoxes<WeakMemberReference> parameterDefinition,
-                IResolvableScope methodScope,
                 IPopulateBoxes<IFrontendCodeElement>[] elements,
                 IPopulateBoxes<IWeakTypeReference> output,
                 Box<IIsPossibly<IFrontendType>> box)
             {
+                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
                 this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));

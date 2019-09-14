@@ -311,10 +311,10 @@ namespace Tac.Semantic_Model
             }
         }
         
-        public IBuildIntention<IFinalizedScope> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IFinalizableScope> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = Model.Instantiated.Scope.Create();
-            return new BuildIntention<IFinalizedScope>(toBuild, () =>
+            return new BuildIntention<IFinalizableScope>(toBuild, () =>
             {
                 maker.Build(members.Select(x=>new Tac.Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)).ToArray());
             });
