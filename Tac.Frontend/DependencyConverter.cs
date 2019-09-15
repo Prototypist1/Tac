@@ -23,7 +23,7 @@ namespace Tac.Frontend
             // i mean it is not a pure data objet
             // what is the cost to passing it in?
 
-            var scope = new ResolvableScope();
+            var scope = new PopulatableScope();
             foreach (var member in assembly.Scope.Members)
             {
                 if (!scope.TryAddMember(DefintionLifetime.Instance,member.Key,new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is( MemberDefinition(member))))) {
@@ -50,7 +50,9 @@ namespace Tac.Frontend
             //        }
             //    }
             //}
-            return new WeakTypeDefinition(scope, Possibly.Is(new ImplicitKey()));
+            var resolvelizableScope = scope.GetResolvelizableScope();
+            var resolvableScope = resolvelizableScope.FinalizeScope();
+            return new WeakTypeDefinition(resolvableScope, Possibly.Is(new ImplicitKey()));
         }
 
 

@@ -208,34 +208,34 @@ namespace Tac.Semantic_Model
                 return box;
             }
 
-            public IFinalizeScope<WeakMethodDefinition> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakMethodDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
 
-                var nextContext = context.Child();
+                var myScope = scope.AddChild();
                 return new MethodDefinitionFinalizeScope(
-                    nextContext.Scope.GetFinalizableScope(),
-                    parameterDefinition.Run(nextContext),
-                    elements.Select(x => x.Run(nextContext)).ToArray(),
-                    output.Run(context),
+                    myScope.GetResolvelizableScope(),
+                    parameterDefinition.Run(myScope, context),
+                    elements.Select(x => x.Run(myScope, context)).ToArray(),
+                    output.Run(myScope,context),
                     box,
                     isEntryPoint);
             }
         }
 
-        private class MethodDefinitionFinalizeScope : IFinalizeScope<WeakMethodDefinition>
+        private class MethodDefinitionFinalizeScope : IResolvelizeScope<WeakMethodDefinition>
         {
-            private readonly IFinalizableScope methodScope;
-            private readonly IFinalizeScope<WeakMemberReference> parameter;
-            private readonly IFinalizeScope<IFrontendCodeElement>[] lines;
-            private readonly IFinalizeScope<IWeakTypeReference> output;
+            private readonly IResolvelizableScope methodScope;
+            private readonly IResolvelizeScope<WeakMemberReference> parameter;
+            private readonly IResolvelizeScope<IFrontendCodeElement>[] lines;
+            private readonly IResolvelizeScope<IWeakTypeReference> output;
             private readonly Box<IIsPossibly<IFrontendType>> box;
             private readonly bool isEntryPoint;
 
             public MethodDefinitionFinalizeScope(
-                IFinalizableScope methodScope,
-                IFinalizeScope<WeakMemberReference> parameter,
-                IFinalizeScope<IFrontendCodeElement>[] resolveReferance2,
-                IFinalizeScope<IWeakTypeReference> output,
+                IResolvelizableScope methodScope,
+                IResolvelizeScope<WeakMemberReference> parameter,
+                IResolvelizeScope<IFrontendCodeElement>[] resolveReferance2,
+                IResolvelizeScope<IWeakTypeReference> output,
                 Box<IIsPossibly<IFrontendType>> box,
                 bool isEntryPoint)
             {
@@ -247,14 +247,15 @@ namespace Tac.Semantic_Model
                 this.isEntryPoint = isEntryPoint;
             }
 
-            public IPopulateBoxes<WeakMethodDefinition> Run(IFinalizeScopeContext context)
+            public IPopulateBoxes<WeakMethodDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
+                var scope = methodScope.FinalizeScope(parent);
 
                 return new MethodDefinitionResolveReferance(
-                    methodScope.FinalizeScope(),
-                    parameter.Run(context),
-                    lines.Select(x => x.Run(context)).ToArray(),
-                    output.Run(context),
+                    scope,
+                    parameter.Run(scope,context),
+                    lines.Select(x => x.Run(scope,context)).ToArray(),
+                    output.Run(scope,context),
                     box,
                     isEntryPoint);
             }
@@ -285,14 +286,14 @@ namespace Tac.Semantic_Model
                 this.isEntryPoint = isEntryPoint;
             }
 
-            public IIsPossibly<WeakMethodDefinition> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakMethodDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
             {
                 return box.Fill(
                     Possibly.Is(
                         new WeakMethodDefinition(
-                            output.Run(context),
-                            parameter.Run(context).IfIs(x => x.MemberDefinition),
-                            lines.Select(x => x.Run(context)).ToArray(),
+                            output.Run(methodScope,context),
+                            parameter.Run(methodScope,context).IfIs(x => x.MemberDefinition),
+                            lines.Select(x => x.Run(methodScope,context)).ToArray(),
                             methodScope,
                             new IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[0], isEntryPoint)));
             }

@@ -21,10 +21,10 @@ namespace Tac.Semantic_Model
 
         public IEnumerable<IKey> MemberKeys => inner.MemberKeys;
 
-        public IBuildIntention<IFinalizableScope> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IFinalizedScope> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = Model.Instantiated.Scope.Create();
-            return new BuildIntention<IFinalizableScope>(toBuild, () =>
+            return new BuildIntention<IFinalizedScope>(toBuild, () =>
             {
                 maker.Build(inner.MemberKeys.Select(key => 
                 {

@@ -114,7 +114,7 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IFinalizeScope<WeakConstantString> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantString> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 return new ConstantStringFinalizeScope(str);
             }
@@ -125,7 +125,7 @@ namespace Tac.Semantic_Model.Operations
             }
         }
 
-        private class ConstantStringFinalizeScope : IFinalizeScope<WeakConstantString>
+        private class ConstantStringFinalizeScope : IResolvelizeScope<WeakConstantString>
         {
             private readonly string str;
 
@@ -134,7 +134,7 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IPopulateBoxes<WeakConstantString> Run(IFinalizeScopeContext context)
+            public IPopulateBoxes<WeakConstantString> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
                 return new ConstantStringResolveReferance(str);
             }
@@ -155,7 +155,7 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IIsPossibly<WeakConstantString> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakConstantString> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
                 return Possibly.Is(new WeakConstantString(Possibly.Is(str)));
             }

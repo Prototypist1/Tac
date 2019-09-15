@@ -91,7 +91,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IFinalizeScope<WeakConstantNumber> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantNumber> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 return new ConstantNumberFinalizeScope(dub);
             }
@@ -102,7 +102,7 @@ namespace Tac.Semantic_Model.Operations
             }
         }
 
-        private class ConstantNumberFinalizeScope : IFinalizeScope<WeakConstantNumber>
+        private class ConstantNumberFinalizeScope : IResolvelizeScope<WeakConstantNumber>
         {
             private readonly double dub;
 
@@ -111,7 +111,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IPopulateBoxes<WeakConstantNumber> Run(IFinalizeScopeContext context)
+            public IPopulateBoxes<WeakConstantNumber> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
                 return new ConstantNumberResolveReferance(dub);
             }
@@ -132,7 +132,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IIsPossibly<WeakConstantNumber> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakConstantNumber> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
                 return Possibly.Is(new WeakConstantNumber(Possibly.Is(dub)));
             }

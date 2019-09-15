@@ -8,6 +8,7 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Semantic_Model.CodeStuff;
+using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
 
 namespace Tac.Semantic_Model
 {
@@ -16,24 +17,27 @@ namespace Tac.Semantic_Model
     // I wish I had a brain big enough to model all of this
     // 😭
 
-    internal interface ISomeScope {
-        bool TryGetMember(IKey name, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> box);
-    }
 
     internal interface IPopulatableScope
     {
         bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition);
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
+        bool TryAddInferedMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
         bool TryAddType(IKey name, IBox<IIsPossibly<IFrontendType>> type);
-        IFinalizableScope GetFinalizableScope();
+        IResolvelizableScope GetResolvelizableScope();
+
+        IPopulatableScope AddChild();
+        IPopulatableScope AddGenericChild(IGenericTypeParameterPlacholder[] parameters);
     }
 
-    internal interface IFinalizableScope{
+    internal interface IResolvelizableScope{
+        IResolvableScope FinalizeScope(IResolvableScope parent);
         IResolvableScope FinalizeScope();
     }
 
-    internal interface IResolvableScope: ISomeScope, IConvertable<IFinalizableScope>
+    internal interface IResolvableScope: IConvertable<IFinalizedScope>
     {
+        bool TryGetMember(IKey name, bool staticOnly, out IBox<IIsPossibly<IWeakMemberDefinition>> box);
         IEnumerable<IKey> MemberKeys { get; }
         bool TryGetType(IKey name, out IBox<IIsPossibly<IFrontendType>> type);
     }
@@ -79,7 +83,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        internal static IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> PossiblyGetMember(this ISomeScope scope, bool staticOnly, IKey name)
+        internal static IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> PossiblyGetMember(this IResolvableScope scope, bool staticOnly, IKey name)
         {
             if (scope.TryGetMember(name, staticOnly, out var thing))
             {

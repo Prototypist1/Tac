@@ -57,6 +57,8 @@ namespace Tac.Semantic_Model
                 }
             }
 
+            // TODO
+
             // I need a more well-rounded approach to parenthesis 
             // I don't think this will work generally at all
 
@@ -78,7 +80,6 @@ namespace Tac.Semantic_Model
                 }
             }
             
-
             return TokenMatching<IPopulateScope<IWeakTypeReference>>.MakeNotMatch(
                     tokenMatching.Context);
         }

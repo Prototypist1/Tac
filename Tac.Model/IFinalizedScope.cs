@@ -58,6 +58,8 @@ namespace Tac.Model
     //    }
     //}
 
+    // TODO very confusing name
+
     // honestly this is a pretty bad interface
     // I was clearly adding what I needed as I went 
     public interface IFinalizedScope

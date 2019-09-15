@@ -68,50 +68,40 @@ namespace Tac.New
     internal interface IPopulateScopeContext
     {
 
-        IPopulatableScope Scope { get; }
-        IPopulateScopeContext Child();
-        IPopulateScopeContext TemplateChild(IGenericTypeParameterPlacholder[] parameters);
-
     }
 
     internal class PopulateScopeContext : IPopulateScopeContext
     {
-        private readonly ResolvableScope stack;
+        //private readonly ResolvableScope stack;
 
-        public PopulateScopeContext(ResolvableScope stack)
-        {
-            this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
-        }
+        //public PopulateScopeContext(ResolvableScope stack)
+        //{
+        //    this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
+        //}
 
-        public IPopulatableScope Scope
-        {
-            get { return stack; }
-        }
+        //public IPopulatableScope Scope
+        //{
+        //    get { return stack; }
+        //}
         
 
-        public IPopulateScopeContext Child()
-        {
-            return new PopulateScopeContext(new ResolvableScope(stack));
-        }
+        //public IPopulateScopeContext Child()
+        //{
+        //    return new PopulateScopeContext(new ResolvableScope(stack));
+        //}
 
-        public IResolvableScope GetResolvableScope()
-        {
-            return stack.ToResolvable();
-        }
+        //public IResolvableScope GetResolvableScope()
+        //{
+        //    return stack.ToResolvable();
+        //}
 
-        public IPopulateScopeContext TemplateChild(IGenericTypeParameterPlacholder[] parameters)
-        {
-            var template = new ScopeTemplate(parameters,stack);
-            return new PopulateScopeContext(template);
-        }
+        //public IPopulateScopeContext TemplateChild(IGenericTypeParameterPlacholder[] parameters)
+        //{
+        //    var template = new ScopeTemplate(parameters,stack);
+        //    return new PopulateScopeContext(template);
+        //}
     }
 
-    public interface IResolveReferenceContext  {
-    }
-
-    public class ResolveReferanceContext : IResolveReferenceContext
-    {
-    }
 
     // TODO I think I should protect these!
     // you are only allowed to put things in scope during this step
@@ -119,20 +109,33 @@ namespace Tac.New
 
     internal interface IPopulateScope<out TCodeElement> 
     {
-        IFinalizeScope<TCodeElement> Run(IPopulateScopeContext context);
+        IResolvelizeScope<TCodeElement> Run(IPopulatableScope scope, IPopulateScopeContext context);
     }
 
     internal interface IFinalizeScopeContext { }
+    internal class FinalizeScopeContext: IFinalizeScopeContext { }
 
-    internal interface IFinalizeScope<out TCodeElement>
+
+    internal interface IResolvelizeScope<out TCodeElement>
     {
-        IPopulateBoxes<TCodeElement> Run(IFinalizeScopeContext context);
+        // having this take a IResolvableScope is a little wierd
+        // I don't want anything resolved until next time
+        // I can't think of any thing that would break if you tried to resolve something here..
+        // maybe these last two steps (IFinalizeScope and IPopulateBoxes) are really one step??
+        IPopulateBoxes<TCodeElement> Run(IResolvableScope parent, IFinalizeScopeContext context);
     }
 
+    public interface IResolveReferenceContext
+    {
+    }
+
+    public class ResolveReferanceContext : IResolveReferenceContext
+    {
+    }
 
     internal interface IPopulateBoxes<out TCodeElement> 
     {
-        IIsPossibly<TCodeElement> Run(IResolveReferenceContext context);
+        IIsPossibly<TCodeElement> Run(IResolvableScope scope, IResolveReferenceContext context);
     }
     
 }

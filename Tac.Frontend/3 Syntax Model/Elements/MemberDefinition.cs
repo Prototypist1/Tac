@@ -187,10 +187,10 @@ namespace Tac.Semantic_Model
                 typeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
             }
 
-            public IFinalizeScope<WeakMemberReference> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakMemberReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 var key = new NameKey(memberName);
-                if (!context.Scope.TryAddMember(DefintionLifetime.Instance, key, memberDefinitionBox))
+                if (!scope.TryAddMember(DefintionLifetime.Instance, key, memberDefinitionBox))
                 {
                     throw new Exception("bad bad bad!");
                 }
@@ -198,7 +198,7 @@ namespace Tac.Semantic_Model
                     memberName, 
                     box, 
                     isReadonly, 
-                    typeName.Run(context), 
+                    typeName.Run(scope,context), 
                     memberDefinitionBox);
             }
 
@@ -208,19 +208,19 @@ namespace Tac.Semantic_Model
             }
         }
 
-        private class MemberDefinitionFinalizeScope : IFinalizeScope<WeakMemberReference>
+        private class MemberDefinitionFinalizeScope : IResolvelizeScope<WeakMemberReference>
         {
             private readonly string memberName;
             private readonly Box<IIsPossibly<WeakMemberReference>> box;
             private readonly bool isReadonly;
-            public readonly IFinalizeScope<IWeakTypeReference> type;
+            public readonly IResolvelizeScope<IWeakTypeReference> type;
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox;
 
             public MemberDefinitionFinalizeScope(
                 string memberName,
                 Box<IIsPossibly<WeakMemberReference>> box,
                 bool isReadonly,
-                IFinalizeScope<IWeakTypeReference> type,
+                IResolvelizeScope<IWeakTypeReference> type,
                 Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
             {
                 this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
@@ -230,13 +230,13 @@ namespace Tac.Semantic_Model
                 this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
             }
 
-            public IPopulateBoxes<WeakMemberReference> Run(IFinalizeScopeContext context)
+            public IPopulateBoxes<WeakMemberReference> Run(IResolvableScope scope ,IFinalizeScopeContext context)
             {
                 return new MemberDefinitionResolveReferance(
                         memberName,
                         box,
                         isReadonly,
-                        type.Run(context),
+                        type.Run(scope, context),
                         memberDefinitionBox);
             }
         }
@@ -263,14 +263,14 @@ namespace Tac.Semantic_Model
                 this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
             }
 
-            public IIsPossibly<WeakMemberReference> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakMemberReference> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
                 memberDefinitionBox.Fill(
                     Possibly.Is(
                     new WeakMemberDefinition(
                         isReadonly,
                         new NameKey(memberName),
-                        type.Run(context))));
+                        type.Run(scope,context))));
 
                 return box.Fill(Possibly.Is(new WeakMemberReference(Possibly.Is(memberDefinitionBox))));
             }

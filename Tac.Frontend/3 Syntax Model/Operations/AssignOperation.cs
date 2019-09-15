@@ -78,7 +78,7 @@ namespace Tac.Semantic_Model.Operations
                  is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(res.perface);
-                var right = matching.Context.AcceptImplicit(left.GetReturnType()).ParseParenthesisOrElement(res.rhs);
+                var right = matching.Context.ParseParenthesisOrElement(res.rhs);
 
                 return TokenMatching<IPopulateScope<WeakAssignOperation>>.MakeMatch(
                     matched.Tokens,

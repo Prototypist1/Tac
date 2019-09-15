@@ -87,7 +87,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             public EmptyInstancePopulateScope() { }
 
-            public IFinalizeScope<WeakEmptyInstance> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakEmptyInstance> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 return new EmptyInstanceFinalizeScope();
             }
@@ -98,12 +98,12 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             }
         }
 
-        private class EmptyInstanceFinalizeScope : IFinalizeScope<WeakEmptyInstance>
+        private class EmptyInstanceFinalizeScope : IResolvelizeScope<WeakEmptyInstance>
         {
 
             public EmptyInstanceFinalizeScope() { }
 
-            public IPopulateBoxes<WeakEmptyInstance> Run(IFinalizeScopeContext context)
+            public IPopulateBoxes<WeakEmptyInstance> Run(IResolvableScope scope, IFinalizeScopeContext context)
             {
                 return new EmptyInstanceResolveReferance();
             }
@@ -120,7 +120,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             {
             }
 
-            public IIsPossibly<WeakEmptyInstance> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakEmptyInstance> Run(IResolvableScope _, IResolveReferenceContext context)
             {
                 return Possibly.Is(new WeakEmptyInstance());
             }

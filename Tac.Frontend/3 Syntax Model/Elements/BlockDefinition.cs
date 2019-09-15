@@ -100,12 +100,12 @@ namespace Tac.Semantic_Model
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IFinalizeScope<WeakBlockDefinition> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakBlockDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
-                var nextContext = context.Child();
+                var myScope = scope.AddChild();
                 return new FinalizeScopeBlockDefinition(
-                    nextContext.Scope.GetFinalizableScope(),
-                    Elements.Select(x => x.Run(nextContext)).ToArray());
+                    myScope.GetResolvelizableScope(),
+                    Elements.Select(x => x.Run(myScope, context)).ToArray());
             }
 
             public IBox<IIsPossibly<IFrontendType>> GetReturnType()
@@ -115,43 +115,44 @@ namespace Tac.Semantic_Model
 
         }
 
-        private class FinalizeScopeBlockDefinition : IFinalizeScope<WeakBlockDefinition>
+        private class FinalizeScopeBlockDefinition : IResolvelizeScope<WeakBlockDefinition>
         {
-            private IFinalizableScope finalizableScope;
-            private IFinalizeScope<IFrontendCodeElement>[] finalizeScope;
+            private readonly IResolvelizableScope finalizableScope;
+            private readonly IResolvelizeScope<IFrontendCodeElement>[] finalizeScope;
 
-            public FinalizeScopeBlockDefinition(IFinalizableScope finalizableScope, IFinalizeScope<IFrontendCodeElement>[] finalizeScope)
+            public FinalizeScopeBlockDefinition(IResolvelizableScope finalizableScope, IResolvelizeScope<IFrontendCodeElement>[] finalizeScope)
             {
                 this.finalizableScope = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
                 this.finalizeScope = finalizeScope ?? throw new ArgumentNullException(nameof(finalizeScope));
             }
 
-            public IPopulateBoxes<WeakBlockDefinition> Run(IFinalizeScopeContext context)
+            public IPopulateBoxes<WeakBlockDefinition> Run(IResolvableScope parent,IFinalizeScopeContext context)
             {
-                return new ResolveReferanceBlockDefinition(this.finalizableScope.FinalizeScope(), finalizeScope.Select(x => x.Run(context)).ToArray());
+                var scope = this.finalizableScope.FinalizeScope(parent);
+                return new ResolveReferanceBlockDefinition(scope, finalizeScope.Select(x => x.Run(scope, context)).ToArray());
             }
         }
 
         private class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
         {
-            private IResolvableScope Scope { get; }
-            private IPopulateBoxes<IFrontendCodeElement>[] ResolveReferance { get; }
+            private readonly IResolvableScope scope;
+            private readonly IPopulateBoxes<IFrontendCodeElement>[] resolveReferance;
 
             public ResolveReferanceBlockDefinition(
                 IResolvableScope scope,
                 IPopulateBoxes<IFrontendCodeElement>[] resolveReferance)
             {
-                Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-                ResolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
             }
 
-            public IIsPossibly<WeakBlockDefinition> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakBlockDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
             {
                 return
                         Possibly.Is(
                             new WeakBlockDefinition(
-                                ResolveReferance.Select(x => x.Run(context)).ToArray(),
-                                Scope,
+                                resolveReferance.Select(x => x.Run(scope,context)).ToArray(),
+                                scope,
                                 new IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[0]));
             }
 

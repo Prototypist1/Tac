@@ -68,13 +68,20 @@ namespace Tac.Tests
 
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
-            var stack = new Semantic_Model.ResolvableScope();
+            var stack = new PopulatableScope();
             
-            var populateScopeContex = new PopulateScopeContext(stack);
-            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
+            var populateScopeContex = new PopulateScopeContext();
+            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(stack,populateScopeContex)).ToArray();
+
+
+            var resolvelizable = stack.GetResolvelizableScope();
+            var resolvalbe = resolvelizable.FinalizeScope();
+            var finalizeScopeContext = new FinalizeScopeContext();
+            var populateBoxes = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolvalbe, finalizeScopeContext)).ToArray();
+
 
             var resolveReferanceContext = new ResolveReferanceContext();
-            var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray().Single().GetOrThrow().Cast<WeakModuleDefinition>();
+            var result = populateBoxes.Select(reranceResolver => reranceResolver.Run(resolvalbe,resolveReferanceContext)).ToArray().Single().GetOrThrow().Cast<WeakModuleDefinition>();
             
             var target = sample.Module;
 

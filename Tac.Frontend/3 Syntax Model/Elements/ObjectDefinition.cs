@@ -36,24 +36,18 @@ namespace Tac.Semantic_Model
 
     internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType
     {
-        public WeakObjectDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns, ImplicitKey key) {
+        public WeakObjectDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
             }
 
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            Key = key ?? throw new ArgumentNullException(nameof(key));
             Assignments = assigns.ToArray();
         }
 
         public IResolvableScope Scope { get; }
         public IIsPossibly<WeakAssignOperation>[] Assignments { get; }
-
-        public IKey Key
-        {
-            get;
-        }
 
         public IBuildIntention<IObjectDefiniton> GetBuildIntention(IConversionContext context)
         {
@@ -102,13 +96,11 @@ namespace Tac.Semantic_Model
         }
         public static IPopulateBoxes<WeakObjectDefinition> PopulateBoxes(IResolvableScope scope,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
-                Box<IIsPossibly<IFrontendType>> box,
-                ImplicitKey key)
+                Box<IIsPossibly<IFrontendType>> box)
         {
-            return new ResolveReferanceObjectDefinition( scope,
-                 elements,
-                box,
-                key);
+            return new ResolveReferanceObjectDefinition(scope,
+                elements,
+                box);
         }
 
         private class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition>
@@ -121,21 +113,44 @@ namespace Tac.Semantic_Model
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
+            // TODO pretty sure I don't need this
             public IBox<IIsPossibly<IFrontendType>> GetReturnType()
             {
                 return box;
             }
 
-            public IPopulateBoxes<WeakObjectDefinition> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakObjectDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
-                var nextContext = context.Child();
-                var key = new ImplicitKey();
-                nextContext.Scope.TryAddType(key, box);
-                return new ResolveReferanceObjectDefinition(
-                    nextContext.GetResolvableScope(),
-                    elements.Select(x => x.Run(nextContext)).ToArray(),
-                    box,
-                    key);
+                var myScope = scope.AddChild();
+                return new FinalizeScopeObjectDefinition(
+                    myScope.GetResolvelizableScope(),
+                    elements.Select(x => x.Run(myScope, context)).ToArray(),
+                    box
+                    );
+            }
+        }
+
+        private class FinalizeScopeObjectDefinition : IResolvelizeScope<WeakObjectDefinition>
+        {
+            private readonly IResolvelizableScope scope;
+            private readonly IResolvelizeScope<IFrontendCodeElement>[] elements;
+            private readonly Box<IIsPossibly<IFrontendType>> box;
+
+            public FinalizeScopeObjectDefinition(
+                IResolvelizableScope scope,
+                IResolvelizeScope<IFrontendCodeElement>[] elements,
+                Box<IIsPossibly<IFrontendType>> box)
+            {
+                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IPopulateBoxes<WeakObjectDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
+            {
+                var finalScope = scope.FinalizeScope(parent);
+
+                return new ResolveReferanceObjectDefinition(finalScope, elements.Select(x => x.Run(finalScope,context)).ToArray(), box);
             }
         }
 
@@ -144,26 +159,22 @@ namespace Tac.Semantic_Model
             private readonly IResolvableScope scope;
             private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
             private readonly Box<IIsPossibly<IFrontendType>> box;
-            private readonly ImplicitKey key;
 
             public ResolveReferanceObjectDefinition(
                 IResolvableScope scope,
                 IPopulateBoxes<IFrontendCodeElement>[] elements,
-                Box<IIsPossibly<IFrontendType>> box,
-                ImplicitKey key)
+                Box<IIsPossibly<IFrontendType>> box)
             {
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
-                this.key = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public IIsPossibly<WeakObjectDefinition> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakObjectDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
             {
                 var innerRes = new WeakObjectDefinition(
                             scope,
-                            elements.Select(x => x.Run(context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray(),
-                            key);
+                            elements.Select(x => x.Run(scope,context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray());
                 var res = Possibly.Is(innerRes);
 
                 box.Fill(innerRes.Returns());
@@ -172,5 +183,4 @@ namespace Tac.Semantic_Model
             }
         }
     }
-
 }

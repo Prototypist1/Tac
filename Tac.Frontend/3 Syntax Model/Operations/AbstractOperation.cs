@@ -201,7 +201,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 return box;
             }
 
-            public IPopulateBoxes<TFrontendCodeElement> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<TFrontendCodeElement> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 // TODO
                 // this is something I don't much like
@@ -227,13 +227,38 @@ namespace Tac.Semantic_Model.CodeStuff
                 // maybe we need a keywork
                 // var or new or make
 
-                var rightres = right.Run(context);
-
-                return new BinaryResolveReferance(
-                    left.Run(context),
-                    rightres,
+                return new BinaryFinalizeScope(
+                    left.Run(scope,context),
+                    right.Run(scope, context),
                     make,
                     box);
+            }
+        }
+
+
+        private class BinaryFinalizeScope : IResolvelizeScope<TFrontendCodeElement>
+        {
+            public readonly IResolvelizeScope<IFrontendCodeElement> left;
+            public readonly IResolvelizeScope<IFrontendCodeElement> right;
+            private readonly BinaryOperation.Make<TFrontendCodeElement> make;
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
+
+            public BinaryFinalizeScope(
+                IResolvelizeScope<IFrontendCodeElement> resolveReferance1,
+                IResolvelizeScope<IFrontendCodeElement> resolveReferance2,
+                BinaryOperation.Make<TFrontendCodeElement> make,
+                DelegateBox<IIsPossibly<IFrontendType>> box)
+            {
+                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+
+            public IPopulateBoxes<TFrontendCodeElement> Run(IResolvableScope parent, IFinalizeScopeContext context)
+            {
+                return new BinaryResolveReferance(left.Run(parent,context), right.Run(parent,context), make, box);
             }
         }
 
@@ -257,11 +282,11 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<TFrontendCodeElement> Run(IResolveReferenceContext context)
+            public IIsPossibly<TFrontendCodeElement> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
                 var res = make(
-                    left.Run(context),
-                    right.Run(context));
+                    left.Run(scope,context),
+                    right.Run(scope, context));
                 box.Set(() => {
                     if (res.IsDefinately(out var yes, out var no))
                     {
@@ -353,7 +378,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 return box;
             }
 
-            public IPopulateBoxes<IWeakTypeReference> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<IWeakTypeReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 // TODO
                 // this is something I don't much like
@@ -369,13 +394,39 @@ namespace Tac.Semantic_Model.CodeStuff
 
                 // part of me just thinks 
                 // force 'var' on member definition 
-                var rightres = right.Run(context);
 
-                return new BinaryResolveReferance(
-                    left.Run(context),
-                    rightres,
+                return new BinaryFinalizeScope(
+                    left.Run(scope,context),
+                    right.Run(scope,context),
                     make,
                     box);
+            }
+        }
+
+
+        private class BinaryFinalizeScope : IResolvelizeScope<IWeakTypeReference>
+        {
+            public readonly IResolvelizeScope<IFrontendType> left;
+            public readonly IResolvelizeScope<IFrontendType> right;
+            private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
+
+            public BinaryFinalizeScope(
+                IResolvelizeScope<IFrontendType> resolveReferance1,
+                IResolvelizeScope<IFrontendType> resolveReferance2,
+                BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
+                DelegateBox<IIsPossibly<IFrontendType>> box)
+            {
+                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+
+            public IPopulateBoxes<IWeakTypeReference> Run(IResolvableScope parent,IFinalizeScopeContext context)
+            {
+                return new BinaryResolveReferance(left.Run(parent,context), right.Run(parent,context), make, box);
             }
         }
 
@@ -399,11 +450,11 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<IWeakTypeReference> Run(IResolveReferenceContext context)
+            public IIsPossibly<IWeakTypeReference> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
                 var res = make(
-                    left.Run(context),
-                    right.Run(context));
+                    left.Run(scope,context),
+                    right.Run(scope, context));
 
                 box.Set(() => {
                     if (res.IsDefinately(out var yes, out var no))

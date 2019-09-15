@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IFrontendType> Returns()
         {
-            return MemberDefinition.IfIs(x => x.GetValue());
+            return MemberDefinition.IfIs(x => x.GetValue()).IfIs(x => x.Type).IfIs(x => x.TypeDefinition).IfIs(x => x.GetValue());
         }
     }
 
@@ -97,10 +97,10 @@ namespace Tac.Semantic_Model
             return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeNotMatch(
                     matching.Context);
         }
-        
+
         public static IPopulateScope<IWeakMemberReference> PopulateScope(string item, IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> lhs)
         {
-            return new MemberReferancePopulateScope( item,  lhs);
+            return new MemberReferancePopulateScope(item, lhs);
         }
         public static IPopulateBoxes<IWeakMemberReference> PopulateBoxes(string memberName,
                 DelegateBox<IIsPossibly<IWeakMemberDefinition>> box,
@@ -110,7 +110,7 @@ namespace Tac.Semantic_Model
                 box,
                 lhs);
         }
-        
+
         private class MemberReferancePopulateScope : IPopulateScope<IWeakMemberReference>
         {
 
@@ -129,9 +129,31 @@ namespace Tac.Semantic_Model
                 return box;
             }
 
-            public IPopulateBoxes<IWeakMemberReference> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<IWeakMemberReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
+                return new MemberReferanceFinalizeScope(memberName, box, lhs);
+            }
+        }
 
+        private class MemberReferanceFinalizeScope : IResolvelizeScope<IWeakMemberReference>
+        {
+
+            private readonly string memberName;
+            private readonly IBox<IIsPossibly<IFrontendType>> lhs;
+            private readonly DelegateBox<IIsPossibly<IWeakMemberDefinition>> box;
+
+            public MemberReferanceFinalizeScope(
+                string memberName,
+                DelegateBox<IIsPossibly<IWeakMemberDefinition>> box,
+                IBox<IIsPossibly<IFrontendType>> lhs)
+            {
+                this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
+            }
+
+            public IPopulateBoxes<IWeakMemberReference> Run(IResolvableScope resolvableScope, IFinalizeScopeContext context)
+            {
                 return new MemberReferanceResolveReferance(memberName, box, lhs);
             }
         }
@@ -153,11 +175,12 @@ namespace Tac.Semantic_Model
                 this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
             }
 
-            public IIsPossibly<IWeakMemberReference> Run(IResolveReferenceContext context)
+            public IIsPossibly<IWeakMemberReference> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
                 box.Set(() =>
                 {
-                    // TODO a lot of this could be replaced by IfIs
+                    // 😨
+                    // TODO  a lot of this could be replaced by IfIs
 
                     var lshpossible = lhs.GetValue();
 
@@ -166,48 +189,66 @@ namespace Tac.Semantic_Model
                         return Possibly.IsNot<WeakMemberDefinition>(nope);
                     }
 
-                    if (!lshtype.Value.Is<WeakMemberReference>(out var memberReference))
+                    if (lshtype.Value.Is<WeakTypeDefinition>(out var weakTypeDefinition))
                     {
-                        return Possibly.IsNot<WeakMemberDefinition>(); // TODO
-                    }
-                    if (!memberReference.MemberDefinition.IsDefinately(out var hasMemberDef, out var noMemberDef))
-                    {
-                        return Possibly.IsNot<WeakMemberDefinition>(noMemberDef);
+                        if (!(weakTypeDefinition is IScoped interfaceType))
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(); // TODO
+                        }
+
+                        if (interfaceType.Scope.TryGetMember(new NameKey(memberName), false, out var res))
+                        {
+                            return res.GetValue();
+                        }
+                        else
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(); // TODO
+                        }
                     }
 
-                    if (!hasMemberDef.Value.GetValue().IsDefinately(out var has, out var hasNot))
+                    if (lshtype.Value.Is<WeakMemberReference>(out var memberReference))
                     {
-                        return Possibly.IsNot<WeakMemberDefinition>(hasNot);
+                        if (!memberReference.MemberDefinition.IsDefinately(out var hasMemberDef, out var noMemberDef))
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(noMemberDef);
+                        }
+
+                        if (!hasMemberDef.Value.GetValue().IsDefinately(out var has, out var hasNot))
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(hasNot);
+                        }
+
+                        if (!has.Value.Type.IsDefinately(out var has2, out var hasNot2))
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(hasNot2);
+                        }
+
+                        if (!has2.Value.TypeDefinition.IsDefinately(out var has3, out var hasNot3))
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(hasNot3);
+                        }
+
+                        if (!has3.Value.GetValue().IsDefinately(out var has4, out var hasNot4))
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(hasNot4);
+                        }
+
+                        if (!(has4.Value is IScoped interfaceType))
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(); // TODO
+                        }
+
+                        if (interfaceType.Scope.TryGetMember(new NameKey(memberName), false, out var res))
+                        {
+                            return res.GetValue();
+                        }
+                        else
+                        {
+                            return Possibly.IsNot<WeakMemberDefinition>(); // TODO
+                        }
                     }
 
-                    if (!has.Value.Type.IsDefinately(out var has2, out var hasNot2))
-                    {
-                        return Possibly.IsNot<WeakMemberDefinition>(hasNot2);
-                    }
-
-                    if (!has2.Value.TypeDefinition.IsDefinately(out var has3, out var hasNot3))
-                    {
-                        return Possibly.IsNot<WeakMemberDefinition>(hasNot3);
-                    }
-
-                    if (!has3.Value.GetValue().IsDefinately(out var has4, out var hasNot4))
-                    {
-                        return Possibly.IsNot<WeakMemberDefinition>(hasNot4);
-                    }
-
-                    if (!(has4.Value is IScoped interfaceType))
-                    {
-                        return Possibly.IsNot<WeakMemberDefinition>(); // TODO
-                    }
-
-                    if (interfaceType.Scope.TryGetMember(new NameKey(memberName), false, out var res))
-                    {
-                        return res.GetValue();
-                    }
-                    else
-                    {
-                        return Possibly.IsNot<WeakMemberDefinition>(); // TODO
-                    }
+                    return Possibly.IsNot<WeakMemberDefinition>(); // TODO
                 });
                 return Possibly.Is(new WeakMemberReference(Possibly.Is(box)));
             }

@@ -112,7 +112,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IFinalizeScope<WeakConstantBool> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantBool> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 return new ConstantBoolFinalizeScope(dub);
             }
@@ -123,7 +123,7 @@ namespace Tac.Semantic_Model.Operations
             }
         }
 
-        private class ConstantBoolFinalizeScope : IFinalizeScope<WeakConstantBool>
+        private class ConstantBoolFinalizeScope : IResolvelizeScope<WeakConstantBool>
         {
             private readonly bool dub;
 
@@ -132,7 +132,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IPopulateBoxes<WeakConstantBool> Run(IFinalizeScopeContext context)
+            public IPopulateBoxes<WeakConstantBool> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
                 return new ConstantBoolResolveReferance(dub);
             }
@@ -154,7 +154,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IIsPossibly<WeakConstantBool> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakConstantBool> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
                 return Possibly.Is(new WeakConstantBool(Possibly.Is(dub)));
             }

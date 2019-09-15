@@ -138,13 +138,31 @@ namespace Tac.Semantic_Model.Operations
                 return box;
             }
 
-            public IPopulateBoxes<TFrontendCodeElement> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<TFrontendCodeElement> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
-                return new TrailingResolveReferance(left.Run(context), make, box);
+                return new TrailingFinalizeScope(left.Run(scope,context), make, box);
             }
         }
 
 
+        private class TrailingFinalizeScope : IResolvelizeScope<TFrontendCodeElement>
+        {
+            public readonly IResolvelizeScope<IFrontendCodeElement> left;
+            private readonly TrailingOperation.Make<TFrontendCodeElement> make;
+            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
+
+            public TrailingFinalizeScope(IResolvelizeScope<IFrontendCodeElement> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, DelegateBox<IIsPossibly<IFrontendType>> box)
+            {
+                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+                this.make = make ?? throw new ArgumentNullException(nameof(make));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IPopulateBoxes<TFrontendCodeElement> Run(IResolvableScope parent, IFinalizeScopeContext context)
+            {
+                return new TrailingResolveReferance(left.Run(parent,context), make, box);
+            }
+        }
 
         private class TrailingResolveReferance: IPopulateBoxes<TFrontendCodeElement>
         {
@@ -159,9 +177,9 @@ namespace Tac.Semantic_Model.Operations
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
-            public IIsPossibly<TFrontendCodeElement> Run(IResolveReferenceContext context)
+            public IIsPossibly<TFrontendCodeElement> Run(IResolvableScope scope ,IResolveReferenceContext context)
             {
-                var res = make(left.Run(context));
+                var res = make(left.Run(scope,context));
                 box.Set(() => {
                     if (res.IsDefinately(out var yes, out var no))
                     {

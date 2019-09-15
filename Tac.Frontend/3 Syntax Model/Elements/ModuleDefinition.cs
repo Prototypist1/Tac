@@ -135,27 +135,27 @@ namespace Tac.Semantic_Model
                 return box;
             }
 
-            public IFinalizeScope<WeakModuleDefinition> Run(IPopulateScopeContext context)
+            public IResolvelizeScope<WeakModuleDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
-                var nextContext = context.Child();
+                var myScope = scope.AddChild();
                 return new ModuleDefinitionFinalizeScope(
-                    nextContext.Scope.GetFinalizableScope(),
-                    elements.Select(x => x.Run(nextContext)).ToArray(),
+                    myScope.GetResolvelizableScope(),
+                    elements.Select(x => x.Run(myScope, context)).ToArray(),
                     nameKey,
                     box);
             }
         }
 
-        private class ModuleDefinitionFinalizeScope : IFinalizeScope<WeakModuleDefinition>
+        private class ModuleDefinitionFinalizeScope : IResolvelizeScope<WeakModuleDefinition>
         {
-            private readonly IFinalizableScope scope;
-            private readonly IFinalizeScope<IFrontendCodeElement>[] elements;
+            private readonly IResolvelizableScope scope;
+            private readonly IResolvelizeScope<IFrontendCodeElement>[] elements;
             private readonly NameKey nameKey;
             private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public ModuleDefinitionFinalizeScope(
-                IFinalizableScope scope,
-                IFinalizeScope<IFrontendCodeElement>[] elements,
+                IResolvelizableScope scope,
+                IResolvelizeScope<IFrontendCodeElement>[] elements,
                 NameKey nameKey,
                 Box<IIsPossibly<IFrontendType>> box)
             {
@@ -165,11 +165,14 @@ namespace Tac.Semantic_Model
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
-            public IPopulateBoxes<WeakModuleDefinition> Run(IFinalizeScopeContext context)
+            public IPopulateBoxes<WeakModuleDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
+                var finalScope = scope.FinalizeScope(parent);
+                
+
                 return new ModuleDefinitionResolveReferance(
-                    scope.FinalizeScope(),
-                    elements.Select(x => x.Run(context)).ToArray(),
+                    finalScope,
+                    elements.Select(x => x.Run(finalScope,context)).ToArray(),
                     nameKey,
                     box);
             }
@@ -194,11 +197,11 @@ namespace Tac.Semantic_Model
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
-            public IIsPossibly<WeakModuleDefinition> Run(IResolveReferenceContext context)
+            public IIsPossibly<WeakModuleDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
             {
                 var innerRes = new WeakModuleDefinition(
                         scope,
-                        resolveReferance.Select(x => x.Run(context)).ToArray(),
+                        resolveReferance.Select(x => x.Run(scope,context)).ToArray(),
                         nameKey);
 
                 var res = Possibly.Is(innerRes);

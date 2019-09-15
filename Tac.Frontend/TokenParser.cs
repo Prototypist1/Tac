@@ -29,7 +29,7 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var dependendcyScope = new Semantic_Model.ResolvableScope();
+            var dependendcyScope = new PopulatableScope();
 
             foreach (var dependency in dependencies)
             {
@@ -45,19 +45,29 @@ namespace Tac.Frontend
                 }
             }
 
-            var scope = new Semantic_Model.ResolvableScope(dependendcyScope);
+            var scope = new PopulatableScope(dependendcyScope);
 
-            var populateScopeContex = new PopulateScopeContext(scope);
-            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(populateScopeContex)).ToArray();
+            var populateScopeContex = new PopulateScopeContext();
+            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(scope,populateScopeContex)).ToArray();
+
+            var resolvableDependencyScope = dependendcyScope.GetResolvelizableScope().FinalizeScope();
+
+            var resolvalbe = scope.GetResolvelizableScope().FinalizeScope(resolvableDependencyScope);
+            var finalizeScopeContext = new FinalizeScopeContext();
+            var populateBoxes = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolvalbe, finalizeScopeContext)).ToArray();
+
+             var resolveReferenceContext = new ResolveReferanceContext();
+
+            var module = new WeakModuleDefinition(
+                resolvalbe,
+                populateBoxes.Select(reranceResolver => reranceResolver.Run(resolvalbe, resolveReferenceContext)).ToArray(), 
+                new NameKey(name));
 
             var resolveReferanceContext = new ResolveReferanceContext();
 
+
             var context = TransformerExtensions.NewConversionContext();
 
-            var module = new WeakModuleDefinition(
-                scope, 
-                referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolveReferanceContext)).ToArray(), 
-                new NameKey(name));
 
             return new Project<TBacking>(module.Convert<IModuleDefinition>(context), dependencies);
         }
