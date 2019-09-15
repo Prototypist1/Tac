@@ -198,11 +198,6 @@ namespace Tac.Semantic_Model
                 var nextLines = lines.Select(x => x.Run(myScope, context)).ToArray();
                 return new GenericTypeDefinitionFinalizeScope(nameKey, myScope.GetResolvelizableScope(), box, genericParameters, nextLines);
             }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
-            }
         }
 
         private class GenericTypeDefinitionFinalizeScope : IResolvelizeScope<WeakGenericTypeDefinition>
@@ -232,11 +227,6 @@ namespace Tac.Semantic_Model
             {
                 var finalScope = scope.FinalizeScope(parent);
                 return new GenericTypeDefinitionResolveReferance(nameKey, finalScope, box, genericParameters, lines.Select(x=>x.Run(finalScope, context)).ToArray());
-            }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
             }
         }
 

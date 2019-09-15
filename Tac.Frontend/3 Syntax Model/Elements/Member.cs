@@ -48,27 +48,19 @@ namespace Tac.Semantic_Model
             return new MemberPopulateScope(item);
         }
         public static IPopulateBoxes<WeakMemberReference> PopulateBoxes(
-                NameKey key,
-                Box<IIsPossibly<IFrontendType>> box)
+                NameKey key)
         {
             return new MemberResolveReferance(
-                key,
-                box);
+                key);
         }
 
         private class MemberPopulateScope : IPopulateScope<WeakMemberReference>
         {
             private readonly string memberName;
-            private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
             public MemberPopulateScope(string item)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
-            }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
             }
 
             public IResolvelizeScope<WeakMemberReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
@@ -76,7 +68,7 @@ namespace Tac.Semantic_Model
                 var nameKey = new NameKey(memberName);
                 scope.TryAddInferedMember(nameKey);
 
-                return new MemberFinalizeScope( nameKey, box);
+                return new MemberFinalizeScope( nameKey);
             }
 
         }
@@ -85,38 +77,32 @@ namespace Tac.Semantic_Model
         private class MemberFinalizeScope : IResolvelizeScope<WeakMemberReference>
         {
             private readonly NameKey key;
-            private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public MemberFinalizeScope(
-                NameKey key,
-                Box<IIsPossibly<IFrontendType>> box)
+                NameKey key)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
             public IPopulateBoxes<WeakMemberReference> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
-                return new MemberResolveReferance(key, box);
+                return new MemberResolveReferance(key);
             }
         }
 
         private class MemberResolveReferance : IPopulateBoxes<WeakMemberReference>
         {
             private readonly NameKey key;
-            private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public MemberResolveReferance(
-                NameKey key,
-                Box<IIsPossibly<IFrontendType>> box)
+                NameKey key)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
             public IIsPossibly<WeakMemberReference> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
-                return box.Fill(Possibly.Is(new WeakMemberReference(scope.PossiblyGetMember(false, key))));
+                return Possibly.Is(new WeakMemberReference(scope.PossiblyGetMember(false, key)));
             }
         }
     }

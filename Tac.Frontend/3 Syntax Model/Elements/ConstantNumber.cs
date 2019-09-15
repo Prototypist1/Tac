@@ -95,11 +95,6 @@ namespace Tac.Semantic_Model.Operations
             {
                 return new ConstantNumberFinalizeScope(dub);
             }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType()));
-            }
         }
 
         private class ConstantNumberFinalizeScope : IResolvelizeScope<WeakConstantNumber>
@@ -114,11 +109,6 @@ namespace Tac.Semantic_Model.Operations
             public IPopulateBoxes<WeakConstantNumber> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
                 return new ConstantNumberResolveReferance(dub);
-            }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType()));
             }
         }
 

@@ -94,7 +94,6 @@ namespace Tac.Semantic_Model.Operations
             private readonly IPopulateScope<IFrontendCodeElement> left;
             private readonly IPopulateScope<IFrontendCodeElement> right;
             private readonly Box<IIsPossibly<IFrontendType>> leftType;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
             public WeakPathOperationPopulateScope(IPopulateScope<IFrontendCodeElement> left,
                 IPopulateScope<IFrontendCodeElement> right,
@@ -103,11 +102,6 @@ namespace Tac.Semantic_Model.Operations
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));
                 this.leftType = leftType ?? throw new ArgumentNullException(nameof(leftType));
-            }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
             }
 
             public IResolvelizeScope<WeakPathOperation> Run(IPopulatableScope scope, IPopulateScopeContext context)
@@ -139,7 +133,6 @@ namespace Tac.Semantic_Model.Operations
                 return new WeakPathOperationFinalizeScope(
                     left.Run(scope, context),
                     right.Run(scope, context),
-                    box,
                     leftType);
             }
         }
@@ -149,25 +142,22 @@ namespace Tac.Semantic_Model.Operations
         {
             public readonly IResolvelizeScope<IFrontendCodeElement> left;
             public readonly IResolvelizeScope<IFrontendCodeElement> right;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
             private readonly Box<IIsPossibly<IFrontendType>> leftType;
 
             public WeakPathOperationFinalizeScope(
                 IResolvelizeScope<IFrontendCodeElement> resolveReferance1,
                 IResolvelizeScope<IFrontendCodeElement> resolveReferance2,
-                DelegateBox<IIsPossibly<IFrontendType>> box,
                 Box<IIsPossibly<IFrontendType>> leftType)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
                 this.leftType = leftType ?? throw new ArgumentNullException(nameof(leftType));
             }
 
 
             public IPopulateBoxes<WeakPathOperation> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
-                return new WeakPathOperationResolveReferance(left.Run(parent, context), right.Run(parent, context), box, leftType);
+                return new WeakPathOperationResolveReferance(left.Run(parent, context), right.Run(parent, context),  leftType);
             }
         }
 
@@ -175,18 +165,15 @@ namespace Tac.Semantic_Model.Operations
         {
             public readonly IPopulateBoxes<IFrontendCodeElement> left;
             public readonly IPopulateBoxes<IFrontendCodeElement> right;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
             private readonly Box<IIsPossibly<IFrontendType>> leftType;
 
             public WeakPathOperationResolveReferance(
                 IPopulateBoxes<IFrontendCodeElement> resolveReferance1,
                 IPopulateBoxes<IFrontendCodeElement> resolveReferance2,
-                DelegateBox<IIsPossibly<IFrontendType>> box,
                 Box<IIsPossibly<IFrontendType>> leftType)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
                 this.leftType = leftType ?? throw new ArgumentNullException(nameof(leftType));
             }
 
@@ -198,41 +185,8 @@ namespace Tac.Semantic_Model.Operations
                 var res = Possibly.Is(new WeakPathOperation(
                     leftRes,
                     right.Run(scope, context)));
-                box.Set(() => {
-                    if (res.IsDefinately(out var yes, out var no))
-                    {
-                        return yes.Value.Returns();
-                    }
-                    else
-                    {
-                        return Possibly.IsNot<IConvertableFrontendType<IVerifiableType>>(no);
-                    }
-                });
                 return res;
             }
         }
     }
-
-
-    //internal class PathOperationMaker : IMaker<IPopulateScope<WeakPathOperation>>
-    //{
-    //    public ITokenMatching<IPopulateScope<WeakPathOperation>> TryMake(IMatchedTokenMatching tokenMatching)
-    //    {
-    //        var matching = tokenMatching
-    //            .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) res);
-    //        if (matching is IMatchedTokenMatching matched)
-    //        {
-    //            var left = matching.Context.ParseLine(res.perface);
-    //            var right = matching.Context.ExpectPathPart(left.GetReturnType()).ParseParenthesisOrElement(res.rhs);
-
-    //            return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeMatch(
-    //                matched.Tokens,
-    //                matched.Context,
-    //                BinaryOperationMaker<WeakPathOperation, IPathOperation >.PopulateScope(left, right, (l,r)=> Possibly.Is(new WeakPathOperation(l,r))));
-    //        }
-
-    //        return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeNotMatch(
-    //                matching.Context);
-    //    }
-    //}
 }

@@ -92,10 +92,6 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
                 return new EmptyInstanceFinalizeScope();
             }
 
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateEmptyType()));
-            }
         }
 
         private class EmptyInstanceFinalizeScope : IResolvelizeScope<WeakEmptyInstance>
@@ -108,10 +104,6 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
                 return new EmptyInstanceResolveReferance();
             }
 
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateEmptyType()));
-            }
         }
 
         private class EmptyInstanceResolveReferance : IPopulateBoxes<WeakEmptyInstance>

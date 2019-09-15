@@ -169,13 +169,11 @@ namespace Tac.Semantic_Model.CodeStuff
         }
         public static IPopulateBoxes<TFrontendCodeElement> PopulateBoxes(IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance1,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> resolveReferance2,
-                BinaryOperation.Make<TFrontendCodeElement> make,
-                DelegateBox<IIsPossibly<IFrontendType>> box)
+                BinaryOperation.Make<TFrontendCodeElement> make)
         {
             return new BinaryResolveReferance(resolveReferance1,
                 resolveReferance2,
-                make,
-                box);
+                make);
         }
 
 
@@ -185,7 +183,6 @@ namespace Tac.Semantic_Model.CodeStuff
             private readonly IPopulateScope<IFrontendCodeElement> left;
             private readonly IPopulateScope<IFrontendCodeElement> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
             public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement> left,
                 IPopulateScope<IFrontendCodeElement> right,
@@ -194,11 +191,6 @@ namespace Tac.Semantic_Model.CodeStuff
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
             }
 
             public IResolvelizeScope<TFrontendCodeElement> Run(IPopulatableScope scope, IPopulateScopeContext context)
@@ -230,8 +222,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 return new BinaryFinalizeScope(
                     left.Run(scope,context),
                     right.Run(scope, context),
-                    make,
-                    box);
+                    make);
             }
         }
 
@@ -241,24 +232,21 @@ namespace Tac.Semantic_Model.CodeStuff
             public readonly IResolvelizeScope<IFrontendCodeElement> left;
             public readonly IResolvelizeScope<IFrontendCodeElement> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
             public BinaryFinalizeScope(
                 IResolvelizeScope<IFrontendCodeElement> resolveReferance1,
                 IResolvelizeScope<IFrontendCodeElement> resolveReferance2,
-                BinaryOperation.Make<TFrontendCodeElement> make,
-                DelegateBox<IIsPossibly<IFrontendType>> box)
+                BinaryOperation.Make<TFrontendCodeElement> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
 
             public IPopulateBoxes<TFrontendCodeElement> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
-                return new BinaryResolveReferance(left.Run(parent,context), right.Run(parent,context), make, box);
+                return new BinaryResolveReferance(left.Run(parent,context), right.Run(parent,context), make);
             }
         }
 
@@ -267,18 +255,15 @@ namespace Tac.Semantic_Model.CodeStuff
             public readonly IPopulateBoxes<IFrontendCodeElement> left;
             public readonly IPopulateBoxes<IFrontendCodeElement> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
             public BinaryResolveReferance(
                 IPopulateBoxes<IFrontendCodeElement> resolveReferance1,
                 IPopulateBoxes<IFrontendCodeElement> resolveReferance2,
-                BinaryOperation.Make<TFrontendCodeElement> make,
-                DelegateBox<IIsPossibly<IFrontendType>> box)
+                BinaryOperation.Make<TFrontendCodeElement> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
 
@@ -287,16 +272,6 @@ namespace Tac.Semantic_Model.CodeStuff
                 var res = make(
                     left.Run(scope,context),
                     right.Run(scope, context));
-                box.Set(() => {
-                    if (res.IsDefinately(out var yes, out var no))
-                    {
-                        return yes.Value.Returns();
-                    }
-                    else
-                    {
-                        return Possibly.IsNot<IConvertableFrontendType<IVerifiableType>>(no);
-                    }
-                });
                 return res;
             }
         }
@@ -346,13 +321,11 @@ namespace Tac.Semantic_Model.CodeStuff
         }
         public static IPopulateBoxes<IWeakTypeReference> PopulateBoxes(IPopulateBoxes<IConvertableFrontendType<IVerifiableType>> resolveReferance1,
                 IPopulateBoxes<IConvertableFrontendType<IVerifiableType>> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
-                DelegateBox<IIsPossibly<IFrontendType>> box)
+                BinaryOperation.MakeBinaryType<IWeakTypeReference> make)
         {
             return new BinaryResolveReferance(resolveReferance1,
                 resolveReferance2,
-                make,
-                box);
+                make);
         }
 
 
@@ -362,7 +335,6 @@ namespace Tac.Semantic_Model.CodeStuff
             private readonly IPopulateScope<IFrontendType> left;
             private readonly IPopulateScope<IFrontendType> right;
             private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
             public BinaryPopulateScope(IPopulateScope<IFrontendType> left,
                 IPopulateScope<IFrontendType> right,
@@ -373,10 +345,6 @@ namespace Tac.Semantic_Model.CodeStuff
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
-            }
 
             public IResolvelizeScope<IWeakTypeReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
@@ -398,8 +366,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 return new BinaryFinalizeScope(
                     left.Run(scope,context),
                     right.Run(scope,context),
-                    make,
-                    box);
+                    make);
             }
         }
 
@@ -409,24 +376,21 @@ namespace Tac.Semantic_Model.CodeStuff
             public readonly IResolvelizeScope<IFrontendType> left;
             public readonly IResolvelizeScope<IFrontendType> right;
             private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
             public BinaryFinalizeScope(
                 IResolvelizeScope<IFrontendType> resolveReferance1,
                 IResolvelizeScope<IFrontendType> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
-                DelegateBox<IIsPossibly<IFrontendType>> box)
+                BinaryOperation.MakeBinaryType<IWeakTypeReference> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
 
             public IPopulateBoxes<IWeakTypeReference> Run(IResolvableScope parent,IFinalizeScopeContext context)
             {
-                return new BinaryResolveReferance(left.Run(parent,context), right.Run(parent,context), make, box);
+                return new BinaryResolveReferance(left.Run(parent,context), right.Run(parent,context), make);
             }
         }
 
@@ -435,18 +399,15 @@ namespace Tac.Semantic_Model.CodeStuff
             public readonly IPopulateBoxes<IFrontendType> left;
             public readonly IPopulateBoxes<IFrontendType> right;
             private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
             public BinaryResolveReferance(
                 IPopulateBoxes<IFrontendType> resolveReferance1,
                 IPopulateBoxes<IFrontendType> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
-                DelegateBox<IIsPossibly<IFrontendType>> box)
+                BinaryOperation.MakeBinaryType<IWeakTypeReference> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
 
@@ -455,17 +416,6 @@ namespace Tac.Semantic_Model.CodeStuff
                 var res = make(
                     left.Run(scope,context),
                     right.Run(scope, context));
-
-                box.Set(() => {
-                    if (res.IsDefinately(out var yes, out var no))
-                    {
-                        return yes.Value.Returns();
-                    }
-                    else
-                    {
-                        return Possibly.IsNot<IConvertableFrontendType<IVerifiableType>>(no);
-                    }
-                });
 
                 return res;
             }

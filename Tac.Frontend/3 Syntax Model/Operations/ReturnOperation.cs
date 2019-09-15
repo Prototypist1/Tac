@@ -112,12 +112,10 @@ namespace Tac.Semantic_Model.Operations
             return new TrailingPopulateScope(left, make);
         }
         public static IPopulateBoxes<TFrontendCodeElement> PopulateBoxes(IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>> left,
-                TrailingOperation.Make<TFrontendCodeElement> make,
-                DelegateBox<IIsPossibly<IFrontendType>> box)
+                TrailingOperation.Make<TFrontendCodeElement> make)
         {
             return new TrailingResolveReferance(left,
-                make,
-                box);
+                make);
         }
 
 
@@ -125,7 +123,6 @@ namespace Tac.Semantic_Model.Operations
         {
             private readonly IPopulateScope<IFrontendCodeElement> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box = new DelegateBox<IIsPossibly<IFrontendType>>();
 
             public TrailingPopulateScope(IPopulateScope<IFrontendCodeElement> left, TrailingOperation.Make<TFrontendCodeElement> make)
             {
@@ -133,14 +130,9 @@ namespace Tac.Semantic_Model.Operations
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
-            }
-
             public IResolvelizeScope<TFrontendCodeElement> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
-                return new TrailingFinalizeScope(left.Run(scope,context), make, box);
+                return new TrailingFinalizeScope(left.Run(scope,context), make);
             }
         }
 
@@ -149,18 +141,16 @@ namespace Tac.Semantic_Model.Operations
         {
             public readonly IResolvelizeScope<IFrontendCodeElement> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
-            public TrailingFinalizeScope(IResolvelizeScope<IFrontendCodeElement> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, DelegateBox<IIsPossibly<IFrontendType>> box)
+            public TrailingFinalizeScope(IResolvelizeScope<IFrontendCodeElement> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
             public IPopulateBoxes<TFrontendCodeElement> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
-                return new TrailingResolveReferance(left.Run(parent,context), make, box);
+                return new TrailingResolveReferance(left.Run(parent,context), make);
             }
         }
 
@@ -168,28 +158,16 @@ namespace Tac.Semantic_Model.Operations
         {
             public readonly IPopulateBoxes<IFrontendCodeElement> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
-            private readonly DelegateBox<IIsPossibly<IFrontendType>> box;
 
-            public TrailingResolveReferance(IPopulateBoxes<IFrontendCodeElement> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, DelegateBox<IIsPossibly<IFrontendType>> box)
+            public TrailingResolveReferance(IPopulateBoxes<IFrontendCodeElement> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
             public IIsPossibly<TFrontendCodeElement> Run(IResolvableScope scope ,IResolveReferenceContext context)
             {
                 var res = make(left.Run(scope,context));
-                box.Set(() => {
-                    if (res.IsDefinately(out var yes, out var no))
-                    {
-                        return yes.Value.Returns();
-                    }
-                    else
-                    {
-                        return Possibly.IsNot<IConvertableFrontendType<IVerifiableType>>(no);
-                    }
-                });
                 return res;
             }
         }

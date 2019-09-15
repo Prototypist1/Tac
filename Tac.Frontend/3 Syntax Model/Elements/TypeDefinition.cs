@@ -148,24 +148,17 @@ namespace Tac.Semantic_Model
             private readonly IKey key;
             private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
             private readonly WeakTypeReference typeReferance;
-            private readonly Box<IIsPossibly<WeakTypeReference>> box;
 
             public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements, IKey typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
                 typeReferance = new WeakTypeReference(Possibly.Is(definitionBox));
-                box = new Box<IIsPossibly<WeakTypeReference>>(Possibly.Is(typeReferance));
-            }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
             }
 
             public IResolvelizeScope<IWeakTypeReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
-                var encolsing = scope.TryAddType(key, box);
+                var encolsing = scope.TryAddType(key, new Box<IIsPossibly<WeakTypeReference>>(Possibly.Is(typeReferance)));
                 var nextScope = scope.AddChild();
                 elements.Select(x => x.Run(nextScope,context)).ToArray();
                 return new TypeDefinitionFinalizeScope(

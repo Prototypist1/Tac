@@ -105,13 +105,11 @@ namespace Tac.Semantic_Model
         }
         public static IPopulateBoxes<WeakModuleDefinition> PopulateBoxes(IResolvableScope scope,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance,
-                NameKey nameKey,
-                Box<IIsPossibly<IFrontendType>> box)
+                NameKey nameKey)
         {
             return new ModuleDefinitionResolveReferance(scope,
                resolveReferance,
-               nameKey,
-               box);
+               nameKey);
         }
 
 
@@ -120,7 +118,6 @@ namespace Tac.Semantic_Model
         {
             private readonly IPopulateScope<IFrontendCodeElement>[] elements;
             private readonly NameKey nameKey;
-            private readonly Box<IIsPossibly<IFrontendType>> box = new Box<IIsPossibly<IFrontendType>>();
 
             public ModuleDefinitionPopulateScope(
                 IPopulateScope<IFrontendCodeElement>[] elements,
@@ -130,19 +127,13 @@ namespace Tac.Semantic_Model
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return box;
-            }
-
             public IResolvelizeScope<WeakModuleDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 var myScope = scope.AddChild();
                 return new ModuleDefinitionFinalizeScope(
                     myScope.GetResolvelizableScope(),
                     elements.Select(x => x.Run(myScope, context)).ToArray(),
-                    nameKey,
-                    box);
+                    nameKey);
             }
         }
 
@@ -151,18 +142,15 @@ namespace Tac.Semantic_Model
             private readonly IResolvelizableScope scope;
             private readonly IResolvelizeScope<IFrontendCodeElement>[] elements;
             private readonly NameKey nameKey;
-            private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public ModuleDefinitionFinalizeScope(
                 IResolvelizableScope scope,
                 IResolvelizeScope<IFrontendCodeElement>[] elements,
-                NameKey nameKey,
-                Box<IIsPossibly<IFrontendType>> box)
+                NameKey nameKey)
             {
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
             public IPopulateBoxes<WeakModuleDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
@@ -173,8 +161,7 @@ namespace Tac.Semantic_Model
                 return new ModuleDefinitionResolveReferance(
                     finalScope,
                     elements.Select(x => x.Run(finalScope,context)).ToArray(),
-                    nameKey,
-                    box);
+                    nameKey);
             }
         }
 
@@ -183,18 +170,15 @@ namespace Tac.Semantic_Model
             private readonly IResolvableScope scope;
             private readonly IPopulateBoxes<IFrontendCodeElement>[] resolveReferance;
             private readonly NameKey nameKey;
-            private readonly Box<IIsPossibly<IFrontendType>> box;
 
             public ModuleDefinitionResolveReferance(
                 IResolvableScope scope,
                 IPopulateBoxes<IFrontendCodeElement>[] resolveReferance,
-                NameKey nameKey,
-                Box<IIsPossibly<IFrontendType>> box)
+                NameKey nameKey)
             {
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
             public IIsPossibly<WeakModuleDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
@@ -205,8 +189,6 @@ namespace Tac.Semantic_Model
                         nameKey);
 
                 var res = Possibly.Is(innerRes);
-
-                box.Fill(innerRes.Returns());
 
                 return res;
             }

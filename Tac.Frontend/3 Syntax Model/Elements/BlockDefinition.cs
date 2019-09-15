@@ -107,12 +107,6 @@ namespace Tac.Semantic_Model
                     myScope.GetResolvelizableScope(),
                     Elements.Select(x => x.Run(myScope, context)).ToArray());
             }
-
-            public IBox<IIsPossibly<IFrontendType>> GetReturnType()
-            {
-                return new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateBlockType()));
-            }
-
         }
 
         private class FinalizeScopeBlockDefinition : IResolvelizeScope<WeakBlockDefinition>
