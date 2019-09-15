@@ -76,8 +76,8 @@ namespace Tac.Semantic_Model
         private readonly ConcurrentDictionary<IKey,  ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>> members
             = new ConcurrentDictionary<IKey,  ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>>();
 
-        private readonly ConcurrentDictionary<IKey, ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>> inferedMembers
-            = new ConcurrentDictionary<IKey, ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>>();
+        private readonly ConcurrentDictionary<IKey, IBox<IIsPossibly<WeakMemberDefinition>>> inferedMembers
+            = new ConcurrentDictionary<IKey, IBox<IIsPossibly<WeakMemberDefinition>>>();
 
         private readonly ConcurrentDictionary<IKey, ConcurrentSet<IBox<IIsPossibly<IFrontendType>>>> types
             = new ConcurrentDictionary<IKey, ConcurrentSet<IBox<IIsPossibly<IFrontendType>>>>();
@@ -143,14 +143,26 @@ namespace Tac.Semantic_Model
         }
 
 
-        public bool TryAddInferedMember(DefintionLifetime defintionLifetime, IKey key, IBox<IIsPossibly<WeakMemberDefinition>> definition)
+        public bool TryAddInferedMember(IKey key)
         {
             if (finalizableScope.IsFinal)
             {
                 throw new ApplicationException("bug: don't add after finalize");
             }
-            var list = inferedMembers.GetOrAdd(key, new ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>());
-            return list.TryAdd(new Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>(defintionLifetime, definition));
+            var adding = new Box<IIsPossibly<WeakMemberDefinition>>(
+                            Possibly.Is(
+                                new WeakMemberDefinition(
+                                    false,
+                                    key,
+                                    Possibly.Is(
+                                        new WeakTypeReference(
+                                            Possibly.Is(
+                                                new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
+                                                    Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
+                                                        PrimitiveTypes.CreateAnyType()))))))));
+
+            var gotten = inferedMembers.GetOrAdd(key, adding);
+            return object.ReferenceEquals(gotten, adding);
         }
 
         public bool TryAddType(IKey key, IBox<IIsPossibly<IFrontendType>> definition)
@@ -171,7 +183,7 @@ namespace Tac.Semantic_Model
                 this.owner = owner;
             }
 
-
+            // these two methods are frustratingly similar 
             public IResolvableScope FinalizeScope()
             {
                 if (owner.Parent.IsDefinately(out var _, out var _)) {
@@ -188,12 +200,21 @@ namespace Tac.Semantic_Model
                 var resolvaleMembers = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>>();
                 foreach (var memberCollection in owner.members)
                 {
-                        var list = resolvaleMembers.GetOrAdd(memberCollection.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
-                        foreach (var member in memberCollection.Value)
-                        {
-                            list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(member.Item1, member.Item2));
-                        }
-                    
+                    // TOOD this is a whole project
+                    // we need to get the error to the right place if they tried to add more than one
+                    var list = resolvaleMembers.GetOrAdd(memberCollection.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
+
+                    var member = memberCollection.Value.First();
+                    list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(member.Item1, member.Item2));
+                }
+
+                foreach (var member in owner.inferedMembers)
+                {
+                    if (!resolvaleMembers.TryGetValue(member.Key, out var _))
+                    {
+                        var list = resolvaleMembers.GetOrAdd(member.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
+                        list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(DefintionLifetime.Instance, member.Value));
+                    }
                 }
 
                 var resolvableTypes = new ConcurrentDictionary<IKey, ConcurrentSet<Visiblity<IBox<IIsPossibly<IFrontendType>>>>>();
@@ -253,22 +274,12 @@ namespace Tac.Semantic_Model
                     }
                 }
 
-                foreach (var memberCollection in owner.inferedMembers)
+                foreach (var member in owner.inferedMembers)
                 {
-                    if (!resolvaleMembers.TryGetValue(memberCollection.Key, out var _) && ! parent.TryGetMember(memberCollection.Key,false, out var _))
+                    if (!resolvaleMembers.TryGetValue(member.Key, out var _) && !parent.TryGetMember(member.Key,false,out var _))
                     {
-                        var list = resolvaleMembers.GetOrAdd(memberCollection.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
-
-                        // TODO
-                        // we can't just take the first
-                        // most of these are probably the same varialbe
-                        // check if the types are compatible 
-                        var member = memberCollection.Value.First();
-                        list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(member.Item1, member.Item2));
-                    }
-                    else
-                    {
-                        // TODO validate the definitions are compatible 
+                        var list = resolvaleMembers.GetOrAdd(member.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
+                        list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(DefintionLifetime.Instance, member.Value));
                     }
                 }
 

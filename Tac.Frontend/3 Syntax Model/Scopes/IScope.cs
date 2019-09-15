@@ -22,7 +22,7 @@ namespace Tac.Semantic_Model
     {
         bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition);
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
-        bool TryAddInferedMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
+        bool TryAddInferedMember(IKey name);
         bool TryAddType(IKey name, IBox<IIsPossibly<IFrontendType>> type);
         IResolvelizableScope GetResolvelizableScope();
 

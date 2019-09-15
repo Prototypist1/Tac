@@ -74,23 +74,7 @@ namespace Tac.Semantic_Model
             public IResolvelizeScope<WeakMemberReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 var nameKey = new NameKey(memberName);
-                if (!scope.TryAddInferedMember(
-                        DefintionLifetime.Instance,
-                        nameKey,
-                        new Box<IIsPossibly<WeakMemberDefinition>>(
-                            Possibly.Is(
-                                new WeakMemberDefinition(
-                                    false,
-                                    nameKey,
-                                    Possibly.Is(
-                                        new WeakTypeReference(
-                                            Possibly.Is(
-                                                new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
-                                                    Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
-                                                        PrimitiveTypes.CreateAnyType()))))))))))
-                {
-                    throw new Exception("uhh that is not right");
-                }
+                scope.TryAddInferedMember(nameKey);
 
                 return new MemberFinalizeScope( nameKey, box);
             }
