@@ -66,22 +66,25 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public string Symbol { get; } = ".";
 
         public ITokenMatching<IPopulateScope<WeakPathOperation>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
-                var box = new Box<IIsPossibly<IFrontendType>>();
-                var left = matching.Context.ParseLine(match.perface);
-                var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);
+                var matching2 = matched.Has(new NameMaker(), out var first);
+                if (matching2 is IMatchedTokenMatching matched2)
+                {
+                    
+                    var left = matching.Context.ParseLine(match.perface);
+                    //var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);
 
-                return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context,
-                    new WeakPathOperationPopulateScope(left, right, box));
+                    return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeMatch(
+                        matched2.Tokens,
+                        matched2.Context,
+                        new WeakPathOperationPopulateScope(left, first.Item));
+                }
             }
 
             return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeNotMatch(
@@ -92,48 +95,22 @@ namespace Tac.Semantic_Model.Operations
         private class WeakPathOperationPopulateScope : IPopulateScope<WeakPathOperation>
         {
             private readonly IPopulateScope<IFrontendCodeElement> left;
-            private readonly IPopulateScope<IFrontendCodeElement> right;
-            private readonly Box<IIsPossibly<IFrontendType>> leftType;
+            private readonly string name;
 
             public WeakPathOperationPopulateScope(IPopulateScope<IFrontendCodeElement> left,
-                IPopulateScope<IFrontendCodeElement> right,
-                Box<IIsPossibly<IFrontendType>> leftType)
+                string name)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
-                this.right = right ?? throw new ArgumentNullException(nameof(right));
-                this.leftType = leftType ?? throw new ArgumentNullException(nameof(leftType));
+                this.name = name ?? throw new ArgumentNullException(nameof(name));
             }
 
             public IResolvelizeScope<WeakPathOperation> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
-                // TODO
-                // this is something I don't much like
-                // right runs first because of assign
-                // in assign you might have something like
-                // method [int;int] input { input <? 2 if { 1 return; } else { input - 1 > fac * input return; } } =: fac
-                // if the left runs first than fac will not be found
-                // and so it will add it to the scope
-                // but if the right is run first 
-                // fac works
-                // if I add an assign that goes the other way...
-                // this will break
-
-                // part of me just thinks 
-                // force 'var' on member definition 
-                // of this.
-                // or force all scopes to name themselves and use name.
-
-                // but.. this does not even work
-                // cuz now this does not work
-                // fac =: method [int;int] input { input <? 2 if { 1 return; } else { input - 1 > fac * input return; } }
-
-                // maybe we need a keywork
-                // var or new or make
+                left.GetReturnedType().HasMember(new NameKey(name));
 
                 return new WeakPathOperationFinalizeScope(
                     left.Run(scope, context),
-                    right.Run(scope, context),
-                    leftType);
+                    name);
             }
         }
 
@@ -141,50 +118,41 @@ namespace Tac.Semantic_Model.Operations
         private class WeakPathOperationFinalizeScope : IResolvelizeScope<WeakPathOperation>
         {
             public readonly IResolvelizeScope<IFrontendCodeElement> left;
-            public readonly IResolvelizeScope<IFrontendCodeElement> right;
-            private readonly Box<IIsPossibly<IFrontendType>> leftType;
+            private readonly string name;
 
             public WeakPathOperationFinalizeScope(
                 IResolvelizeScope<IFrontendCodeElement> resolveReferance1,
-                IResolvelizeScope<IFrontendCodeElement> resolveReferance2,
-                Box<IIsPossibly<IFrontendType>> leftType)
+                string name)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-                this.leftType = leftType ?? throw new ArgumentNullException(nameof(leftType));
+                this.name = name ?? throw new ArgumentNullException(nameof(name));
             }
-
 
             public IPopulateBoxes<WeakPathOperation> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {
-                return new WeakPathOperationResolveReferance(left.Run(parent, context), right.Run(parent, context),  leftType);
+                return new WeakPathOperationResolveReferance(left.Run(parent, context), name);
             }
         }
 
         private class WeakPathOperationResolveReferance : IPopulateBoxes<WeakPathOperation>
         {
             public readonly IPopulateBoxes<IFrontendCodeElement> left;
-            public readonly IPopulateBoxes<IFrontendCodeElement> right;
-            private readonly Box<IIsPossibly<IFrontendType>> leftType;
+            private readonly string name;
 
             public WeakPathOperationResolveReferance(
-                IPopulateBoxes<IFrontendCodeElement> resolveReferance1,
-                IPopulateBoxes<IFrontendCodeElement> resolveReferance2,
-                Box<IIsPossibly<IFrontendType>> leftType)
+                IPopulateBoxes<IFrontendCodeElement> resolveReferance1, 
+                string name)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-                this.leftType = leftType ?? throw new ArgumentNullException(nameof(leftType));
+                this.name = name ?? throw new ArgumentNullException(nameof(name));
             }
 
 
             public IIsPossibly<WeakPathOperation> Run(IResolvableScope scope, IResolveReferenceContext context)
             {
-                var leftRes = left.Run(scope, context);
-                leftType.Fill(leftRes.IfIs(x => x.Returns()));
                 var res = Possibly.Is(new WeakPathOperation(
-                    leftRes,
-                    right.Run(scope, context)));
+                    left.Run(scope, context),
+                    Possibly.Is(new WeakMemberReference(left.GetReturnedType().GetMemberDefinition(new NameKey(name))))));
                 return res;
             }
         }

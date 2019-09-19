@@ -7,6 +7,7 @@ using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
+using Tac.Semantic_Model.Operations;
 
 namespace Tac.Parser
 {
@@ -66,22 +67,30 @@ namespace Tac.Semantic_Model
             public IResolvelizeScope<WeakMemberReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
             {
                 var nameKey = new NameKey(memberName);
-                scope.TryAddInferedMember(nameKey);
+                var memberBuilder = scope.GetOrAddInferedMember(nameKey, new MemberBuilder());
 
-                return new MemberFinalizeScope( nameKey);
+                return new MemberFinalizeScope( nameKey, memberBuilder);
             }
 
         }
 
 
-        private class MemberFinalizeScope : IResolvelizeScope<WeakMemberReference>
+        private class MemberFinalizeScope : IResolvelizeScope<WeakMemberReference>, IMemberBuilder
         {
             private readonly NameKey key;
+            private readonly IMemberBuilder memberBuilder;
 
             public MemberFinalizeScope(
-                NameKey key)
+                NameKey key,
+                IMemberBuilder memberBuilder)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
+                this.memberBuilder = memberBuilder ?? throw new ArgumentNullException(nameof(memberBuilder));
+            }
+
+            public void AcceptsType(Box<IFrontendType> box)
+            {
+                memberBuilder.AcceptsType(box);
             }
 
             public IPopulateBoxes<WeakMemberReference> Run(IResolvableScope parent, IFinalizeScopeContext context)

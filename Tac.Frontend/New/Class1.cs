@@ -109,6 +109,9 @@ namespace Tac.New
 
     internal interface IPopulateScope<out TCodeElement> 
     {
+
+        IPopulatableTypeOutline GetReturnedType();
+
         IResolvelizeScope<TCodeElement> Run(IPopulatableScope scope, IPopulateScopeContext context);
     }
 
@@ -118,6 +121,8 @@ namespace Tac.New
 
     internal interface IResolvelizeScope<out TCodeElement>
     {
+        
+
         // having this take a IResolvableScope is a little wierd
         // I don't want anything resolved until next time
         // I can't think of any thing that would break if you tried to resolve something here..
@@ -136,6 +141,7 @@ namespace Tac.New
     internal interface IPopulateBoxes<out TCodeElement> 
     {
         IIsPossibly<TCodeElement> Run(IResolvableScope scope, IResolveReferenceContext context);
+        ITypeOutlinerResolveReference GetReturnedType();
     }
     
 }

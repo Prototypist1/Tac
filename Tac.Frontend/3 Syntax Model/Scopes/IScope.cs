@@ -8,6 +8,7 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Semantic_Model.CodeStuff;
+using Tac.Semantic_Model.Operations;
 using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
 
 namespace Tac.Semantic_Model
@@ -22,10 +23,9 @@ namespace Tac.Semantic_Model
     {
         bool TryAddGeneric(NameKey key, IBox<IIsPossibly<IFrontendGenericType>> definition);
         bool TryAddMember(DefintionLifetime lifeTime, IKey name, IBox<IIsPossibly<WeakMemberDefinition>> type);
-        bool TryAddInferedMember(IKey name);
+        IMemberBuilder GetOrAddInferedMember(IKey name, IMemberBuilder memberBuilder);
         bool TryAddType(IKey name, IBox<IIsPossibly<IFrontendType>> type);
         IResolvelizableScope GetResolvelizableScope();
-
         IPopulatableScope AddChild();
         IPopulatableScope AddGenericChild(IGenericTypeParameterPlacholder[] parameters);
     }

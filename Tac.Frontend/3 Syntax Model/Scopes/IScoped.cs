@@ -9,6 +9,7 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Parser;
+using Tac.Semantic_Model.Operations;
 using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
 
 namespace Tac.Semantic_Model
@@ -36,24 +37,6 @@ namespace Tac.Semantic_Model
         }
     }
 
-    //internal class ScopeTemplate : ResolvableScope
-    //{
-    //    public ScopeTemplate(IGenericTypeParameterPlacholder[] typeParameterDefinitions, ResolvableScope parent) : base(parent)
-    //    {
-    //        TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
-    //        foreach (var item in typeParameterDefinitions)
-    //        {
-    //            // for the sake of validation type parameters are types 
-    //            if (!TryAddType(item.Key, new Box<IIsPossibly<IFrontendType>>(Possibly.Is<IFrontendType>(PrimitiveTypes.CreateGenericTypeParameterPlacholder(item.Key))))) {
-    //                throw new Exception("that is not right!");
-    //            }
-    //        }
-    //    }
-
-    //    public IGenericTypeParameterPlacholder[] TypeParameterDefinitions { get; }
-
-    //}
-
     internal class PopulatableScopeTemplate : PopulatableScope {
         public PopulatableScopeTemplate(IGenericTypeParameterPlacholder[] typeParameterDefinitions, PopulatableScope parent) : base(parent)
         {
@@ -76,8 +59,8 @@ namespace Tac.Semantic_Model
         private readonly ConcurrentDictionary<IKey,  ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>> members
             = new ConcurrentDictionary<IKey,  ConcurrentSet<Tuple<DefintionLifetime, IBox<IIsPossibly<WeakMemberDefinition>>>>>();
 
-        private readonly ConcurrentDictionary<IKey, IBox<IIsPossibly<WeakMemberDefinition>>> inferedMembers
-            = new ConcurrentDictionary<IKey, IBox<IIsPossibly<WeakMemberDefinition>>>();
+        private readonly ConcurrentDictionary<IKey, IMemberBuilder> inferedMembers
+            = new ConcurrentDictionary<IKey, IMemberBuilder>();
 
         private readonly ConcurrentDictionary<IKey, ConcurrentSet<IBox<IIsPossibly<IFrontendType>>>> types
             = new ConcurrentDictionary<IKey, ConcurrentSet<IBox<IIsPossibly<IFrontendType>>>>();
@@ -143,26 +126,13 @@ namespace Tac.Semantic_Model
         }
 
 
-        public bool TryAddInferedMember(IKey key)
+        public IMemberBuilder GetOrAddInferedMember(IKey name, IMemberBuilder memberBuilder)
         {
             if (finalizableScope.IsFinal)
             {
                 throw new ApplicationException("bug: don't add after finalize");
             }
-            var adding = new Box<IIsPossibly<WeakMemberDefinition>>(
-                            Possibly.Is(
-                                new WeakMemberDefinition(
-                                    false,
-                                    key,
-                                    Possibly.Is(
-                                        new WeakTypeReference(
-                                            Possibly.Is(
-                                                new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
-                                                    Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
-                                                        PrimitiveTypes.CreateAnyType()))))))));
-
-            var gotten = inferedMembers.GetOrAdd(key, adding);
-            return object.ReferenceEquals(gotten, adding);
+            return inferedMembers.GetOrAdd(memberBuilder.Key, memberBuilder);
         }
 
         public bool TryAddType(IKey key, IBox<IIsPossibly<IFrontendType>> definition)
@@ -213,7 +183,7 @@ namespace Tac.Semantic_Model
                     if (!resolvaleMembers.TryGetValue(member.Key, out var _))
                     {
                         var list = resolvaleMembers.GetOrAdd(member.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
-                        list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(DefintionLifetime.Instance, member.Value));
+                        list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(DefintionLifetime.Instance, member.Value.Build()));
                     }
                 }
 
@@ -279,7 +249,7 @@ namespace Tac.Semantic_Model
                     if (!resolvaleMembers.TryGetValue(member.Key, out var _) && !parent.TryGetMember(member.Key,false,out var _))
                     {
                         var list = resolvaleMembers.GetOrAdd(member.Key, new ConcurrentSet<Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>>());
-                        list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(DefintionLifetime.Instance, member.Value));
+                        list.TryAdd(new Visiblity<IBox<IIsPossibly<WeakMemberDefinition>>>(DefintionLifetime.Instance, member.Value.Build()));
                     }
                 }
 

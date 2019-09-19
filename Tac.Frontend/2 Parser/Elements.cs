@@ -144,15 +144,15 @@ namespace Tac.Parser
     internal class ElementMatchingContext
     {
 
-        internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IFrontendType>> box) {
-            return new ElementMatchingContext(
-                operationMatchers, 
-                new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
-                    new MemberReferanceMaker(box)
-                },
-                typeOperationMatchers,
-                typeMakers);
-        }
+        //internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IFrontendType>> box) {
+        //    return new ElementMatchingContext(
+        //        operationMatchers, 
+        //        new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
+        //            new MemberReferanceMaker(box)
+        //        },
+        //        typeOperationMatchers,
+        //        typeMakers);
+        //}
         
         //internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IFrontendType>> box)
         //{
