@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Tac.Model;
 
-namespace Tac.Frontend.New
+namespace Tac.Frontend.New.Yuck
 {
 
     internal interface IAmWhat

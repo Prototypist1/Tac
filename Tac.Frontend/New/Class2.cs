@@ -4,7 +4,7 @@ using System.Text;
 using Tac.Model;
 using Tac.Semantic_Model;
 
-namespace Tac.Frontend.New
+namespace Tac.Frontend.New.Yucker
 {
 
 
