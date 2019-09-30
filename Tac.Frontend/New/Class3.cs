@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Model;
 
@@ -56,7 +57,7 @@ namespace Tac.Frontend.New
         // type x {a;b;}
         void Type(IType type);
         // x;
-        void MightHaveMember(IKey key);
+        void MightHaveMember(IMember member);
     }
 
     internal interface IMethod : IScope
@@ -80,10 +81,20 @@ namespace Tac.Frontend.New
 
     internal class TypeProblem : ITypeProblem
     {
-
-        public IValue CreateValue(IType type) => new Value(type);
-
-        public IMember CreateMember(IKey key, IType type) => new Member(key, type);
+        private readonly List<Value> values = new List<Value>();
+        public IValue CreateValue(IType type)
+        {
+            var res = new Value(type);
+            values.Add(res);
+            return res;
+        }
+        private readonly List<Member> members = new List<Member>();
+        public IMember CreateMember(IKey key, IType type)
+        {
+            var res = new Member(key, type);
+            members.Add(res);
+            return res;
+        }
 
         public IMember CreateMember(IKey key, IKey keyType) => new Member(key, keyType);
         public IMember CreateMember(IKey key) => new Member(key);
@@ -141,7 +152,6 @@ namespace Tac.Frontend.New
 
         private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
         public void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to) => assignments.Add((from, to));
-
 
 
 
@@ -281,11 +291,6 @@ namespace Tac.Frontend.New
         //    throw new NotImplementedException();
         //}
 
-
-
-
-
-
         private class TypeTracker
         {
             public readonly List<IType> types = new List<IType>();
@@ -318,10 +323,16 @@ namespace Tac.Frontend.New
         private class HopefullMemberTracker
         {
 
-            public readonly List<IMember> members = new List<IMember>();
+            public readonly List<Member> members = new List<Member>();
             public void HopefullyMember(IMember member)
             {
-                members.Add(member);
+                if (!(member is Member realMember))
+                {
+                    // we are having a hard time with the internal exteranl view here
+                    // 😡
+                    throw new Exception("this sucks");
+                }
+                members.Add(realMember);
             }
         }
 
@@ -340,7 +351,6 @@ namespace Tac.Frontend.New
                 hopefullMemberTracker.HopefullyMember(member);
             }
         }
-
         private class Member : IMember
         {
             public readonly IType type;
@@ -372,7 +382,6 @@ namespace Tac.Frontend.New
                 hopefullMemberTracker.HopefullyMember(member);
             }
         }
-
         private class Type : IType
         {
             public readonly MemberTracker memberTracker;
@@ -407,7 +416,7 @@ namespace Tac.Frontend.New
                 ParentOrNull = parent;
             }
 
-            private readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
+            public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
             public void HopefullyMember(IMember member)
             {
                 hopefullMemberTracker.HopefullyMember(member);
@@ -418,16 +427,15 @@ namespace Tac.Frontend.New
         }
         private class Scope : IScope
         {
-            public readonly MemberTracker memberTracker;
-            public readonly TypeTracker TypeTracker;
+            public readonly MemberTracker mightBeOnParentMemberTracker = new MemberTracker();
+            public readonly MemberTracker memberTracker = new MemberTracker();
+            public readonly TypeTracker TypeTracker = new TypeTracker();
             public readonly Scope parent;
 
             public IDefineMembers ParentOrNull { get; }
 
             public Scope()
             {
-                memberTracker = new MemberTracker();
-                TypeTracker = new TypeTracker();
             }
 
             public Scope(IDefineMembers parent) : this()
@@ -439,17 +447,16 @@ namespace Tac.Frontend.New
 
             public void Type(IType type) => TypeTracker.Type(type);
 
-            public void MightHaveMember(IKey key)
-            {
-                throw new NotImplementedException();
-            }
+            public void MightHaveMember(IMember member) => mightBeOnParentMemberTracker.Member(member);
         }
         private class Method : IMethod
         {
+            public readonly MemberTracker mightBeOnParentMemberTracker = new MemberTracker();
+            public readonly MemberTracker memberTracker = new MemberTracker();
+            private readonly TypeTracker TypeTracker = new TypeTracker();
+
             private readonly TypeProblem typeProblem;
             private readonly IMember input;
-            public readonly MemberTracker memberTracker;
-            private readonly TypeTracker TypeTracker;
             private readonly IMember output;
             public IDefineMembers ParentOrNull { get; }
 
@@ -459,8 +466,6 @@ namespace Tac.Frontend.New
                 this.input = input;
                 this.output = output;
                 ParentOrNull = parent;
-                memberTracker = new MemberTracker();
-                TypeTracker = new TypeTracker();
             }
 
 
@@ -474,10 +479,7 @@ namespace Tac.Frontend.New
 
             public ICanAssignFromMe Returns() => output;
 
-            public void MightHaveMember(IKey key)
-            {
-                throw new NotImplementedException();
-            }
+            public void MightHaveMember(IMember member) => mightBeOnParentMemberTracker.Member(member);
         }
 
 
@@ -500,13 +502,41 @@ namespace Tac.Frontend.New
             ConvertMembers();
 
             // then members that might be on parents
+            ConvertMembersThatMightBeOnParents();
 
             // then hopeful members
+            ConvertHopefulMembers();
+
+            // add the assignments 
+            foreach (var (from, to) in assignments)
+            {
+                cache[from].AddAssignedTo(cache[to]);
+                cache[to].AddAssignedFrom(cache[from]);
+            }
 
             // flow members upstream and merge them
+            foreach (var node in cache.Values)
+            {
+                foreach (var (key, value) in node.Members)
+                {
+                    foreach (var assignedFromNode in node.AssignedFrom)
+                    {
+                        assignedFromNode.FlowUpStream(key, value);
+                    }
+                }
+            }
 
             // flow members downstream but not pass confluences
-
+            foreach (var node in cache.Values)
+            {
+                foreach (var (key, value) in node.Members)
+                {
+                    foreach (var assignedFromNode in node.AssignedTo)
+                    {
+                        assignedFromNode.FlowDownStream(key, value);
+                    }
+                }
+            }
 
             void GenerateScopeTree()
             {
@@ -579,7 +609,7 @@ namespace Tac.Frontend.New
                         }
                     }
                     {
-                        var res = new SolveSideNode();
+                        var res = new SolveSideNode(true);
 
                         if (type.key != null)
                         {
@@ -598,7 +628,7 @@ namespace Tac.Frontend.New
                 {
                     foreach (var member in scope.memberTracker.members)
                     {
-                        ConvertMember(scope,member);
+                        ConvertMember(scope, member);
                     }
                 }
 
@@ -606,7 +636,7 @@ namespace Tac.Frontend.New
                 {
                     foreach (var member in @object.memberTracker.members)
                     {
-                        ConvertMember(@object,member);
+                        ConvertMember(@object, member);
                     }
                 }
 
@@ -615,7 +645,7 @@ namespace Tac.Frontend.New
                 {
                     foreach (var member in method.memberTracker.members)
                     {
-                        ConvertMember(method,member);
+                        ConvertMember(method, member);
                     }
                 }
 
@@ -623,29 +653,37 @@ namespace Tac.Frontend.New
                 {
                     foreach (var member in type.memberTracker.members)
                     {
-                        ConvertMember(type,member);
+                        ConvertMember(type, member);
                     }
                 }
 
-                SolveSideNode ConvertMember(IDefineMembers owner , Member member)
+                SolveSideNode ConvertMember(IDefineMembers owner, Member member)
                 {
                     {
-                        if (cache.TryGetValue(member, out var res)) {
+                        if (cache.TryGetValue(member, out var res))
+                        {
                             return res;
                         }
                     }
 
                     {
-                        var res = new SolveSideNode();
+                        var res = new SolveSideNode(false);
                         cache.Add(member, res);
 
-                        if (member.typeKey != null) {
-                            if (!(scopeCache[owner].TryGetType(member.typeKey,out SolveSideNode node))) {
+                        if (member.typeKey != null)
+                        {
+                            if (scopeCache[owner].TryGetType(member.typeKey, out var node))
+                            {
                                 res.DefersTo(node);
+                            }
+                            else
+                            {
+                                throw new Exception("uuhhh, we could not find the type..");
                             }
                         }
 
-                        if (member.type != null) {
+                        if (member.type != null)
+                        {
                             res.DefersTo(cache[member.type]);
                         }
 
@@ -656,12 +694,109 @@ namespace Tac.Frontend.New
 
                 }
             }
+
+            void ConvertMembersThatMightBeOnParents()
+            {
+
+                foreach (var scope in scopes)
+                {
+                    foreach (var member in scope.mightBeOnParentMemberTracker.members)
+                    {
+                        ConvertMemberThatMightBeOnParents(scope, member);
+                    }
+                }
+
+
+                foreach (var method in methods)
+                {
+                    foreach (var member in method.mightBeOnParentMemberTracker.members)
+                    {
+                        ConvertMemberThatMightBeOnParents(method, member);
+                    }
+                }
+
+
+                SolveSideNode ConvertMemberThatMightBeOnParents(IDefineMembers owner, Member member)
+                {
+                    {
+                        if (cache.TryGetValue(member, out var res))
+                        {
+                            return res;
+                        }
+                    }
+
+                    {
+                        var res = new SolveSideNode(false);
+                        cache.Add(member, res);
+
+                        if (!(scopeCache[owner].TryGetMember(member.Key, out SolveSideNode node)))
+                        {
+                            res.DefersTo(node);
+                        }
+                        else
+                        {
+                            // add it to owner
+                            cache[owner].AddMember(member.Key, res);
+                        }
+
+                        return res;
+                    }
+                }
+            }
+
+            void ConvertHopefulMembers()
+            {
+                foreach (var value in values)
+                {
+                    foreach (var hopefullMember in value.hopefullMemberTracker.members)
+                    {
+                        ConvertHopefulMember(value, hopefullMember);
+                    }
+                }
+
+
+                foreach (var member in members)
+                {
+                    foreach (var hopefullMember in member.hopefullMemberTracker.members)
+                    {
+                        ConvertHopefulMember(member, hopefullMember);
+                    }
+                }
+
+
+                foreach (var @object in objects)
+                {
+                    foreach (var hopefullMember in @object.hopefullMemberTracker.members)
+                    {
+                        ConvertHopefulMember(@object, hopefullMember);
+                    }
+                }
+
+                SolveSideNode ConvertHopefulMember(ITypeProblemNode node, Member hopefullMember)
+                {
+                    {
+                        if (cache.TryGetValue(hopefullMember, out var res))
+                        {
+                            return res;
+                        }
+                    }
+
+                    {
+                        var res = new SolveSideNode(false);
+                        cache.Add(hopefullMember, res);
+
+                        cache[node].AddHopefulMember(hopefullMember.Key, res);
+
+                        return res;
+                    }
+                }
+            }
         }
 
 
         private class SolveSideScope
         {
-            public readonly SolveSideNode node = new SolveSideNode();
+            private SolveSideNode.SolveSideNodeHolder node = new SolveSideNode.SolveSideNodeHolder(true);
             public readonly SolveSideScope parentOrNull;
 
             public SolveSideScope(SolveSideScope parentOrNull)
@@ -677,93 +812,121 @@ namespace Tac.Frontend.New
 
             internal bool TryGetType(IKey typeKey, out SolveSideNode node)
             {
-                if (types.TryGetValue(typeKey,out node))
+                if (types.TryGetValue(typeKey, out node))
                 {
                     return true;
                 }
-                if (parentOrNull == null) {
+                if (parentOrNull == null)
+                {
                     return false;
                 }
                 return parentOrNull.TryGetType(typeKey, out node);
             }
+
+            internal bool TryGetMember(IKey key, out SolveSideNode resNode)
+            {
+                if (node.Get().TryGetValue(key, out resNode))
+                {
+                    return true;
+                }
+                if (parentOrNull == null)
+                {
+                    return false;
+                }
+                return parentOrNull.TryGetMember(key, out resNode);
+            }
         }
 
-        private class SolveSideNode : IReadOnlyDictionary<IKey, SolveSideNode>
+        private class SolveSideNode
         {
+
+            public class SolveSideNodeHolder
+            {
+                private readonly SolveSideNode node;
+
+                public SolveSideNodeHolder(bool explictMembersOnly)
+                {
+                    node = new SolveSideNode(explictMembersOnly);
+                }
+
+                internal SolveSideNode Get()
+                {
+                    var at = node;
+                    while (at.inner != null) {
+                        at = at.inner;
+                    }
+                    return at;
+                }
+            }
+
             private SolveSideNode inner;
             private readonly Dictionary<IKey, SolveSideNode> members = new Dictionary<IKey, SolveSideNode>();
-            private readonly List<SolveSideNode> assignTo = new List<SolveSideNode>();
-            private readonly List<SolveSideNode> assignFrom = new List<SolveSideNode>();
-            // this is really, do we know the list of member this has...
-            private readonly bool isInfered;
+            private readonly List<SolveSideNode> assignTos = new List<SolveSideNode>();
+            private readonly List<SolveSideNode> assignFroms = new List<SolveSideNode>();
 
-            public SolveSideNode()
-            {
-            }
+            private readonly bool explictMembersOnly;
 
-            #region IReadOnlyDictionary<IKey, SolveSideNode>
 
-            public IEnumerable<IKey> Keys
+            public IEnumerable<(IKey, SolveSideNode)> Members => members.Select(x => (x.Key, x.Value));
+
+            public IEnumerable<SolveSideNode> AssignedFrom
             {
                 get
                 {
-                    return ((IReadOnlyDictionary<IKey, SolveSideNode>)inner ?? members).Keys;
+                    if (inner == null)
+                    {
+                        return assignFroms;
+                    }
+                    else
+                    {
+                        return inner.AssignedFrom;
+                    }
                 }
             }
-
-            public IEnumerable<SolveSideNode> Values
+            public IEnumerable<SolveSideNode> AssignedTo
             {
                 get
                 {
-                    return ((IReadOnlyDictionary<IKey, SolveSideNode>)inner ?? members).Values;
+
+                    if (inner == null)
+                    {
+                        return assignTos;
+                    }
+                    else
+                    {
+                        return inner.AssignedTo;
+                    }
+
                 }
             }
 
-            public int Count
+            public SolveSideNode(bool explictMembersOnly)
             {
-                get
-                {
-                    return ((IReadOnlyDictionary<IKey, SolveSideNode>)inner ?? members).Count;
-                }
-            }
-
-            public SolveSideNode this[IKey key]
-            {
-                get
-                {
-                    return ((IReadOnlyDictionary<IKey, SolveSideNode>)inner ?? members)[key];
-                }
-            }
-
-            public bool ContainsKey(IKey key)
-            {
-                return ((IReadOnlyDictionary<IKey, SolveSideNode>)inner ?? members).ContainsKey(key);
+                this.explictMembersOnly = explictMembersOnly;
             }
 
             public bool TryGetValue(IKey key, out SolveSideNode value)
             {
-                return ((IReadOnlyDictionary<IKey, SolveSideNode>)inner ?? members).TryGetValue(key, out value);
+                if (inner == null)
+                {
+                    return members.TryGetValue(key, out value);
+                }
+                else
+                {
+                    return inner.TryGetValue(key, out value);
+                }
             }
 
-            public IEnumerator<KeyValuePair<IKey, SolveSideNode>> GetEnumerator()
-            {
-                return ((IReadOnlyDictionary<IKey, SolveSideNode>)inner ?? members).GetEnumerator();
-            }
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((IReadOnlyDictionary<IKey, SolveSideNode>)inner ?? members).GetEnumerator();
-            }
-
-            #endregion
-
+            // what does this do if the member is already there?
+            // probably merge?
             internal void AddMember(IKey key, SolveSideNode solveSideNode)
             {
                 if (inner == null)
                 {
-                    if (inner.TryGetValue(key, out var current))
+                    if (members.TryGetValue(key, out var current))
                     {
-                        current.Merge(solveSideNode);
+                        solveSideNode.DefersTo(current);
                     }
                     else
                     {
@@ -776,18 +939,170 @@ namespace Tac.Frontend.New
                 }
             }
 
-            private void Merge(SolveSideNode solveSideNode)
+            
+
+            internal void DefersTo(SolveSideNode node)
             {
-                throw new NotImplementedException();
+                while (node.inner != null) {
+                    node = node.inner;
+                }
+
+                if (inner != null) {
+                    inner.DefersTo(node);
+                    return;
+                }
+
+                if (this == node) {
+                    return;
+                }
+
+                // add all the members
+                foreach (var member in node.members)
+                {
+                    AddMergeMember(member.Key,member.Value);
+                }
+                // do we need to clean house?
+                node.members.Clear();
+
+
+                // add all the assignFroms
+                foreach (var assignFrom in node.assignFroms)
+                {
+                    assignFroms.Add(assignFrom);
+                }
+                // do we need to clean house?
+                node.assignFroms.Clear();
+
+                // add all the assignTos
+                foreach (var assignTo in node.assignTos)
+                {
+                    assignTos.Add(assignTo);
+                }
+                // do we need to clean house?
+                node.assignTos.Clear();
             }
 
-            internal void DefersTo(SolveSideNode type)
+            internal void AddHopefulMember(IKey key, SolveSideNode solveSideNode)
             {
-                throw new NotImplementedException();
+                if (inner == null)
+                {
+                    if (members.TryGetValue(key, out var current))
+                    {
+                        solveSideNode.DefersTo(current);
+                    }
+                    else
+                    {
+                        if (explictMembersOnly)
+                        {
+                            throw new Exception("this does not accept hopeful members");
+                        }
+                        members.Add(key, solveSideNode);
+                    }
+                }
+                else
+                {
+                    inner.AddHopefulMember(key, solveSideNode);
+                }
+            }
+
+            internal void AddMergeMember(IKey key, SolveSideNode solveSideNode)
+            {
+                if (inner == null)
+                {
+                    if (members.TryGetValue(key, out var current))
+                    {
+                        solveSideNode.DefersTo(current);
+                    }
+                    else
+                    {
+                        if (explictMembersOnly)
+                        {
+                            throw new Exception("this does not accept hopeful members");
+                        }
+                        members.Add(key, solveSideNode);
+                    }
+                }
+                else
+                {
+                    inner.AddMergeMember(key, solveSideNode);
+                }
+            }
+
+
+            internal void AddAssignedTo(SolveSideNode solveSideNode)
+            {
+                if (inner == null)
+                {
+                    assignTos.Add(solveSideNode);
+                }
+                else
+                {
+                    inner.AddAssignedTo(solveSideNode);
+                }
+            }
+
+            internal void AddAssignedFrom(SolveSideNode solveSideNode)
+            {
+                if (inner == null)
+                {
+                    assignFroms.Add(solveSideNode);
+                }
+                else
+                {
+                    inner.AddAssignedFrom(solveSideNode);
+                }
+            }
+
+            internal void FlowUpStream(IKey key, SolveSideNode value)
+            {
+                
+                if (members.TryGetValue(key, out var current))
+                {
+                    value.DefersTo(current);
+                    return;
+                }
+
+                if (explictMembersOnly)
+                {
+                    return;
+                }
+
+                members.Add(key, value);
+                foreach (var node in AssignedFrom)
+                {
+                    node.FlowUpStream(key, value);
+                }
+
+            }
+
+            internal void FlowDownStream(IKey key, SolveSideNode value)
+            {
+                
+
+                // don't flow in to nodes that are assigned from more than one place 
+                if (AssignedFrom.Count() > 1)
+                {
+                    return;
+                }
+
+                if (members.TryGetValue(key, out var current))
+                {
+                    value.DefersTo(current);
+                    return;
+                }
+
+                if (explictMembersOnly)
+                {
+                    return;
+                }
+
+                members.Add(key, value);
+                foreach (var node in AssignedFrom)
+                {
+                    node.FlowUpStream(key, value);
+                }
             }
         }
-
-
 
         #endregion
     }
