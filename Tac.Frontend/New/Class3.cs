@@ -7,8 +7,6 @@ using Tac.Model;
 
 namespace Tac.Frontend.New
 {
-
-
     internal interface ITypeProblemNode
     {
     }
@@ -49,7 +47,6 @@ namespace Tac.Frontend.New
 
     internal interface IObject : IDefineMembers, ICanAssignFromMe
     {
-
     }
 
     internal interface IScope : IDefineMembers
@@ -69,8 +66,6 @@ namespace Tac.Frontend.New
         // 1 > f =: x
         ICanAssignFromMe Returns();
     }
-
-
 
     internal interface ITypeProblem
     {
@@ -1106,4 +1101,5 @@ namespace Tac.Frontend.New
 
         #endregion
     }
+
 }
