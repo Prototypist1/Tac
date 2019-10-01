@@ -52,6 +52,7 @@ namespace Tac.New
 
     }
 
+
     internal interface IMaker
     {
         ITokenMatching TryMake(ITokenMatching elementToken);
@@ -61,10 +62,7 @@ namespace Tac.New
     {
         ITokenMatching<TCodeElement> TryMake(IMatchedTokenMatching elementToken);
     }
-
-    // hmm the parsing is almost a step as well? 
-
-
+    
     internal interface IPopulateScopeContext
     {
 
@@ -72,45 +70,10 @@ namespace Tac.New
 
     internal class PopulateScopeContext : IPopulateScopeContext
     {
-        //private readonly ResolvableScope stack;
-
-        //public PopulateScopeContext(ResolvableScope stack)
-        //{
-        //    this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
-        //}
-
-        //public IPopulatableScope Scope
-        //{
-        //    get { return stack; }
-        //}
-        
-
-        //public IPopulateScopeContext Child()
-        //{
-        //    return new PopulateScopeContext(new ResolvableScope(stack));
-        //}
-
-        //public IResolvableScope GetResolvableScope()
-        //{
-        //    return stack.ToResolvable();
-        //}
-
-        //public IPopulateScopeContext TemplateChild(IGenericTypeParameterPlacholder[] parameters)
-        //{
-        //    var template = new ScopeTemplate(parameters,stack);
-        //    return new PopulateScopeContext(template);
-        //}
     }
-
-
-    // TODO I think I should protect these!
-    // you are only allowed to put things in scope during this step
-
 
     internal interface IPopulateScope<out TCodeElement> 
     {
-
-        IPopulatableTypeOutline GetReturnedType();
 
         IResolvelizeScope<TCodeElement> Run(IPopulatableScope scope, IPopulateScopeContext context);
     }
@@ -141,7 +104,6 @@ namespace Tac.New
     internal interface IPopulateBoxes<out TCodeElement> 
     {
         IIsPossibly<TCodeElement> Run(IResolvableScope scope, IResolveReferenceContext context);
-        ITypeOutlinerResolveReference GetReturnedType();
     }
     
 }

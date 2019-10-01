@@ -42,7 +42,10 @@ namespace Tac.Frontend.New
 
     internal interface IType : IDefineMembers
     {
+    }
 
+    internal interface IGenericType : IDefineMembers
+    {
     }
 
     internal interface IObject : IDefineMembers, ICanAssignFromMe
@@ -53,6 +56,9 @@ namespace Tac.Frontend.New
     {
         // type x {a;b;}
         void Type(IType type);
+
+        // type x {a;b;}
+        void GenericType(IGenericType type);
         // x;
         void MightHaveMember(IMember member);
     }
@@ -72,6 +78,9 @@ namespace Tac.Frontend.New
         // a =: x
         void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to);
 
+    }
+
+    internal interface ITypeSolution {
     }
 
     internal class TypeProblem : ITypeProblem
@@ -116,7 +125,7 @@ namespace Tac.Frontend.New
             types.Add(res);
             return res;
         }
-
+        // why?
         public IType CreateType()
         {
             var res = new Type();
@@ -397,6 +406,23 @@ namespace Tac.Frontend.New
 
             public void Member(IMember member) => memberTracker.Member(member);
         }
+        private class GenericType {
+
+            public readonly MemberTracker memberTracker;
+            public IDefineMembers ParentOrNull { get; }
+            public readonly IKey key;
+
+            public GenericType()
+            {
+                memberTracker = new MemberTracker();
+            }
+            public GenericType(IKey key, IDefineMembers definedIn) : this()
+            {
+                this.key = key;
+                this.ParentOrNull = definedIn;
+            }
+            public void Member(IMember member) => memberTracker.Member(member);
+        }
         private class Object : IObject
         {
             public readonly MemberTracker memberTracker;
@@ -480,7 +506,23 @@ namespace Tac.Frontend.New
 
         #region Solve Side
 
-        public void Solve()
+        private class TypeSolution : ITypeSolution { }
+
+        private class OverlayIntention
+        {
+            private readonly SolveSideNode copyFrom;
+            private readonly SolveSideNode copyTo;
+            private readonly List<SolveSideNode> list;
+
+            public OverlayIntention(SolveSideNode copyFrom, SolveSideNode copyTo, List<SolveSideNode> list)
+            {
+                this.copyFrom = copyFrom ?? throw new ArgumentNullException(nameof(copyFrom));
+                this.copyTo = copyTo ?? throw new ArgumentNullException(nameof(copyTo));
+                this.list = list ?? throw new ArgumentNullException(nameof(list));
+            }
+        }
+
+        public ITypeSolution Solve()
         {
             var cache = new Dictionary<ITypeProblemNode, SolveSideNode>();
             var scopeCache = new Dictionary<IDefineMembers, SolveSideScope>();
@@ -493,11 +535,18 @@ namespace Tac.Frontend.New
             // convert types
             ConvertTypes();
 
+            var toOverlay = new List<OverlayIntention>();
+
             // then members
             ConvertMembers();
 
+            // perferm generic overlays
+            OverlayGenerics();
+
             // then members that might be on parents
             ConvertMembersThatMightBeOnParents();
+
+            // do generic overlaying
 
             // then hopeful members
             ConvertHopefulMembers();
@@ -532,6 +581,8 @@ namespace Tac.Frontend.New
                     }
                 }
             }
+
+            return new TypeSolution();
 
             void GenerateScopeTree()
             {
@@ -667,7 +718,11 @@ namespace Tac.Frontend.New
 
                         if (member.typeKey != null)
                         {
-                            if (scopeCache[owner].TryGetType(member.typeKey, out var node))
+                            if (member.typeKey is GenericNameKey genericNameKey)
+                            {
+                                HandleGenericNameKey(genericNameKey);
+                            }
+                            else if (scopeCache[owner].TryGetType(member.typeKey, out var node))
                             {
                                 res.DefersTo(node);
                             }
@@ -686,6 +741,42 @@ namespace Tac.Frontend.New
 
                         return res;
                     }
+
+                    SolveSideNode HandleGenericNameKey(GenericNameKey genericNameKey) {
+                        if (scopeCache[owner].TryGetType(new NameKey(genericNameKey.Name), out var copyFrom))
+                        {
+                            // we need to recuse here...
+                            var list = new List<SolveSideNode>();
+                            foreach (var inner in genericNameKey.Types) {
+                                if (inner is GenericNameKey innerGernericNameKey)
+                                {
+                                    list.Add(HandleGenericNameKey(innerGernericNameKey));
+                                }
+                                else if (scopeCache[owner].TryGetType(new NameKey(genericNameKey.Name), out var innerNode))
+                                {
+                                    list.Add(innerNode);
+                                }
+                                else {
+                                    throw new Exception("uuhhh, we could not find the type..");
+                                }
+                            }
+                            var copyTo = new SolveSideNode(true);
+                            toOverlay.Add(new OverlayIntention(copyFrom, copyTo, list));
+                            return copyTo;
+                        }
+                        else
+                        {
+                            throw new Exception("uuhhh, we could not find the type..");
+                        }
+                    }
+
+                }
+            }
+
+            void OverlayGenerics() {
+                // 
+                foreach (var overlay in toOverlay)
+                {
 
                 }
             }
