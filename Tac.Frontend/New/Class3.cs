@@ -128,6 +128,17 @@ namespace Tac.Frontend.New
             types.Add(res);
             return res;
         }
+        public IType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders)
+        {
+            var res = new Type(key, parent);
+            foreach (var item in placeholders)
+            {
+                var placeholderType = CreateType(res, item);
+                res.AddPlaceHolder(placeholderType);
+            }
+            types.Add(res);
+            return res;
+        }
 
 
         private readonly List<Object> objects = new List<Object>();
@@ -242,6 +253,7 @@ namespace Tac.Frontend.New
             public readonly MemberTracker memberTracker;
             public IDefineMembers ParentOrNull { get; }
             public readonly IKey key;
+            public readonly List<Type> placeholders = new List<Type>();
 
             public Type()
             {
@@ -254,6 +266,9 @@ namespace Tac.Frontend.New
                 this.ParentOrNull = definedIn;
             }
 
+            public void AddPlaceHolder(Type placeholder) {
+                placeholders.Add(placeholder);
+            }
 
             public void Member(IMember member) => memberTracker.Member(member);
         }
@@ -364,13 +379,13 @@ namespace Tac.Frontend.New
         {
             public readonly SolveSideNode copyFrom;
             public readonly SolveSideNode copyTo;
-            public readonly List<SolveSideNode> list;
+            public readonly Dictionary<SolveSideNode, SolveSideNode> map;
 
-            public OverlayIntention(SolveSideNode copyFrom, SolveSideNode copyTo, List<SolveSideNode> list)
+            public OverlayIntention(SolveSideNode copyFrom, SolveSideNode copyTo, Dictionary<SolveSideNode, SolveSideNode> map)
             {
                 this.copyFrom = copyFrom ?? throw new ArgumentNullException(nameof(copyFrom));
                 this.copyTo = copyTo ?? throw new ArgumentNullException(nameof(copyTo));
-                this.list = list ?? throw new ArgumentNullException(nameof(list));
+                this.map = map ?? throw new ArgumentNullException(nameof(map));
             }
 
         }
@@ -389,7 +404,6 @@ namespace Tac.Frontend.New
             // convert types
             ConvertTypes();
 
-            var toOverlay = new List<OverlayIntention>();
 
             // then members
             ConvertMembers();
@@ -406,6 +420,8 @@ namespace Tac.Frontend.New
                 cache[from].AddAssignedTo(cache[to]);
                 cache[to].AddAssignedFrom(cache[from]);
             }
+
+            var toOverlay = new List<OverlayIntention>();
 
             // do generic overlaying
             OverlayGenerics();
@@ -543,6 +559,11 @@ namespace Tac.Frontend.New
                             cache[type.ParentOrNull].AddType(type.key, res);
                         }
 
+                        foreach (var placeholder in type.placeholders)
+                        {
+                            res.placeholderTypes.Add(ConvertType(placeholder));
+                        }
+
                         cache.Add(type, res);
                         return res;
                     }
@@ -629,7 +650,13 @@ namespace Tac.Frontend.New
                                 }
                             }
                             var copyTo = new SolveSideNode(true, copyFrom.parentOrNull,null);
-                            toOverlay.Add(new OverlayIntention(copyFrom, copyTo, list));
+                            var map = new Dictionary<SolveSideNode, SolveSideNode>();
+                            foreach (var (to,from) in list.Zip(copyFrom.placeholderTypes, (x, y) =>(x,y)))
+                            {
+                                map[from] = to;
+                            } 
+
+                            toOverlay.Add(new OverlayIntention(copyFrom, copyTo, map));
                             return copyTo;
                         }
                         else
@@ -648,7 +675,7 @@ namespace Tac.Frontend.New
                     var mapped = new Dictionary<SolveSideNode, SolveSideNode>();
                     // TODO we need to store members and the like
                     // in the list we 
-                    overlay.copyFrom.OverlayTo(overlay.copyTo, overlay.list, mapped);
+                    overlay.copyFrom.OverlayTo(overlay.copyTo, overlay.map, mapped);
                     overlay.copyFrom.OverlayToRelationshipsTo(overlay.copyTo, mapped);
                 }
             }
