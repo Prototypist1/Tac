@@ -44,9 +44,9 @@ namespace Tac.Frontend.New
     {
     }
 
-    internal interface IGenericType : IDefineMembers
-    {
-    }
+    //internal interface IGenericType : IDefineMembers
+    //{
+    //}
 
     internal interface IObject : IDefineMembers, ICanAssignFromMe
     {
@@ -57,8 +57,9 @@ namespace Tac.Frontend.New
         // type x {a;b;}
         void Type(IType type);
 
-        // type x {a;b;}
-        void GenericType(IGenericType type);
+        //// type<T> x {T a;}
+        //void GenericType(IGenericType type);
+
         // x;
         void MightHaveMember(IMember member);
     }
@@ -80,7 +81,8 @@ namespace Tac.Frontend.New
 
     }
 
-    internal interface ITypeSolution {
+    internal interface ITypeSolution
+    {
     }
 
     internal class TypeProblem : ITypeProblem
@@ -406,7 +408,8 @@ namespace Tac.Frontend.New
 
             public void Member(IMember member) => memberTracker.Member(member);
         }
-        private class GenericType {
+        private class GenericType
+        {
 
             public readonly MemberTracker memberTracker;
             public IDefineMembers ParentOrNull { get; }
@@ -510,9 +513,9 @@ namespace Tac.Frontend.New
 
         private class OverlayIntention
         {
-            private readonly SolveSideNode copyFrom;
-            private readonly SolveSideNode copyTo;
-            private readonly List<SolveSideNode> list;
+            public readonly SolveSideNode copyFrom;
+            public readonly SolveSideNode copyTo;
+            public readonly List<SolveSideNode> list;
 
             public OverlayIntention(SolveSideNode copyFrom, SolveSideNode copyTo, List<SolveSideNode> list)
             {
@@ -520,12 +523,14 @@ namespace Tac.Frontend.New
                 this.copyTo = copyTo ?? throw new ArgumentNullException(nameof(copyTo));
                 this.list = list ?? throw new ArgumentNullException(nameof(list));
             }
+
         }
+
+
 
         public ITypeSolution Solve()
         {
             var cache = new Dictionary<ITypeProblemNode, SolveSideNode>();
-            var scopeCache = new Dictionary<IDefineMembers, SolveSideScope>();
 
             // now the impossible part...
 
@@ -540,13 +545,13 @@ namespace Tac.Frontend.New
             // then members
             ConvertMembers();
 
-            // perferm generic overlays
-            OverlayGenerics();
+            ResolveTypes();
 
             // then members that might be on parents
             ConvertMembersThatMightBeOnParents();
 
             // do generic overlaying
+            OverlayGenerics();
 
             // then hopeful members
             ConvertHopefulMembers();
@@ -607,7 +612,7 @@ namespace Tac.Frontend.New
                     ConvertScope(type);
                 }
 
-                SolveSideScope ConvertScope(IDefineMembers scope)
+                SolveSideNode ConvertScope(IDefineMembers scope)
                 {
                     if (scope == null)
                     {
@@ -615,7 +620,7 @@ namespace Tac.Frontend.New
                     }
 
                     {
-                        if (scopeCache.TryGetValue(scope, out var res))
+                        if (cache.TryGetValue(scope, out var res))
                         {
                             return res;
                         }
@@ -623,20 +628,29 @@ namespace Tac.Frontend.New
 
                     if (scope.ParentOrNull == null)
                     {
-                        var res = new SolveSideScope(null);
-                        scopeCache.Add(scope, res);
+                        var res = new SolveSideNode(true, null);
+                        cache.Add(scope, res);
                         return res;
 
                     }
                     else
                     {
                         var parent = ConvertScope(scope.ParentOrNull);
-                        var res = new SolveSideScope(parent);
-                        scopeCache.Add(scope, res);
+                        var res = new SolveSideNode(true, parent);
+                        cache.Add(scope, res);
                         return res;
                     }
                 }
 
+            }
+
+            SolveSideNode GetParent(IDefineMembers defineMembers)
+            {
+                if (defineMembers.ParentOrNull == null)
+                {
+                    return null;
+                }
+                return cache[defineMembers.ParentOrNull];
             }
 
             void ConvertTypes()
@@ -655,11 +669,11 @@ namespace Tac.Frontend.New
                         }
                     }
                     {
-                        var res = new SolveSideNode(true);
+                        var res = new SolveSideNode(true, GetParent(type));
 
                         if (type.key != null)
                         {
-                            scopeCache[type.ParentOrNull].AddType(type.key, res);
+                            cache[type.ParentOrNull].AddType(type.key, res);
                         }
 
                         cache.Add(type, res);
@@ -713,28 +727,12 @@ namespace Tac.Frontend.New
                     }
 
                     {
-                        var res = new SolveSideNode(false);
+                        var res = new SolveSideNode(false, null);
                         cache.Add(member, res);
 
-                        if (member.typeKey != null)
+                        if (member.typeKey is GenericNameKey genericNameKey)
                         {
-                            if (member.typeKey is GenericNameKey genericNameKey)
-                            {
-                                HandleGenericNameKey(genericNameKey);
-                            }
-                            else if (scopeCache[owner].TryGetType(member.typeKey, out var node))
-                            {
-                                res.DefersTo(node);
-                            }
-                            else
-                            {
-                                throw new Exception("uuhhh, we could not find the type..");
-                            }
-                        }
-
-                        if (member.type != null)
-                        {
-                            res.DefersTo(cache[member.type]);
+                            HandleGenericNameKey(genericNameKey);
                         }
 
                         cache[owner].AddMember(member.Key, res);
@@ -742,25 +740,28 @@ namespace Tac.Frontend.New
                         return res;
                     }
 
-                    SolveSideNode HandleGenericNameKey(GenericNameKey genericNameKey) {
-                        if (scopeCache[owner].TryGetType(new NameKey(genericNameKey.Name), out var copyFrom))
+                    SolveSideNode HandleGenericNameKey(GenericNameKey genericNameKey)
+                    {
+                        if (cache[owner].TryGetType(new NameKey(genericNameKey.Name), out var copyFrom))
                         {
                             // we need to recuse here...
                             var list = new List<SolveSideNode>();
-                            foreach (var inner in genericNameKey.Types) {
+                            foreach (var inner in genericNameKey.Types)
+                            {
                                 if (inner is GenericNameKey innerGernericNameKey)
                                 {
                                     list.Add(HandleGenericNameKey(innerGernericNameKey));
                                 }
-                                else if (scopeCache[owner].TryGetType(new NameKey(genericNameKey.Name), out var innerNode))
+                                else if (cache[owner].TryGetType(new NameKey(genericNameKey.Name), out var innerNode))
                                 {
                                     list.Add(innerNode);
                                 }
-                                else {
+                                else
+                                {
                                     throw new Exception("uuhhh, we could not find the type..");
                                 }
                             }
-                            var copyTo = new SolveSideNode(true);
+                            var copyTo = new SolveSideNode(true, copyFrom.parentOrNull);
                             toOverlay.Add(new OverlayIntention(copyFrom, copyTo, list));
                             return copyTo;
                         }
@@ -773,12 +774,75 @@ namespace Tac.Frontend.New
                 }
             }
 
-            void OverlayGenerics() {
-                // 
+            void OverlayGenerics()
+            {
                 foreach (var overlay in toOverlay)
                 {
-
+                    var mapped = new Dictionary<SolveSideNode, SolveSideNode>();
+                    overlay.copyFrom.OverlayTo(overlay.copyTo, overlay.list, mapped);
+                    overlay.copyFrom.OverlayToRelationshipsTo(overlay.copyTo, mapped);
                 }
+            }
+
+            void ResolveTypes()
+            {
+
+                foreach (var scope in scopes)
+                {
+                    foreach (var member in scope.memberTracker.members)
+                    {
+                        ConvertMember(scope, member);
+                    }
+                }
+
+                foreach (var @object in objects)
+                {
+                    foreach (var member in @object.memberTracker.members)
+                    {
+                        ConvertMember(@object, member);
+                    }
+                }
+
+
+                foreach (var method in methods)
+                {
+                    foreach (var member in method.memberTracker.members)
+                    {
+                        ConvertMember(method, member);
+                    }
+                }
+
+                foreach (var type in types)
+                {
+                    foreach (var member in type.memberTracker.members)
+                    {
+                        ConvertMember(type, member);
+                    }
+                }
+
+                void ConvertMember(IDefineMembers owner, Member member)
+                {
+
+                    var res = cache[member];
+
+                    if (member.typeKey != null)
+                    {
+                        if (cache[owner].TryGetType(member.typeKey, out var node))
+                        {
+                            res.DefersTo(node);
+                        }
+                        else
+                        {
+                            throw new Exception("uuhhh, we could not find the type..");
+                        }
+                    }
+
+                    if (member.type != null)
+                    {
+                        res.DefersTo(cache[member.type]);
+                    }
+                }
+
             }
 
             void ConvertMembersThatMightBeOnParents()
@@ -812,10 +876,10 @@ namespace Tac.Frontend.New
                     }
 
                     {
-                        var res = new SolveSideNode(false);
+                        var res = new SolveSideNode(false, null);
                         cache.Add(member, res);
 
-                        if (!(scopeCache[owner].TryGetMember(member.Key, out SolveSideNode node)))
+                        if (!(cache[owner].TryGetMember(member.Key, out SolveSideNode node)))
                         {
                             res.DefersTo(node);
                         }
@@ -868,7 +932,7 @@ namespace Tac.Frontend.New
                     }
 
                     {
-                        var res = new SolveSideNode(false);
+                        var res = new SolveSideNode(false, null);
                         cache.Add(hopefullMember, res);
 
                         cache[node].AddHopefulMember(hopefullMember.Key, res);
@@ -880,76 +944,17 @@ namespace Tac.Frontend.New
         }
 
 
-        private class SolveSideScope
-        {
-            private SolveSideNode.SolveSideNodeHolder node = new SolveSideNode.SolveSideNodeHolder(true);
-            public readonly SolveSideScope parentOrNull;
-
-            public SolveSideScope(SolveSideScope parentOrNull)
-            {
-                this.parentOrNull = parentOrNull;
-            }
-
-            public readonly Dictionary<IKey, SolveSideNode> types = new Dictionary<IKey, SolveSideNode>();
-            internal void AddType(IKey key, SolveSideNode res)
-            {
-                types.Add(key, res);
-            }
-
-            internal bool TryGetType(IKey typeKey, out SolveSideNode node)
-            {
-                if (types.TryGetValue(typeKey, out node))
-                {
-                    return true;
-                }
-                if (parentOrNull == null)
-                {
-                    return false;
-                }
-                return parentOrNull.TryGetType(typeKey, out node);
-            }
-
-            internal bool TryGetMember(IKey key, out SolveSideNode resNode)
-            {
-                if (node.Get().TryGetValue(key, out resNode))
-                {
-                    return true;
-                }
-                if (parentOrNull == null)
-                {
-                    return false;
-                }
-                return parentOrNull.TryGetMember(key, out resNode);
-            }
-        }
-
         private class SolveSideNode
         {
-
-            public class SolveSideNodeHolder
-            {
-                private readonly SolveSideNode node;
-
-                public SolveSideNodeHolder(bool explictMembersOnly)
-                {
-                    node = new SolveSideNode(explictMembersOnly);
-                }
-
-                internal SolveSideNode Get()
-                {
-                    var at = node;
-                    while (at.inner != null) {
-                        at = at.inner;
-                    }
-                    return at;
-                }
-            }
-
             private SolveSideNode inner;
+            // placeholderTypes also appear in types
+            public readonly List<SolveSideNode> placeholderTypes = new List<SolveSideNode>();
+            public readonly Dictionary<IKey, SolveSideNode> types = new Dictionary<IKey, SolveSideNode>();
             private readonly Dictionary<IKey, SolveSideNode> members = new Dictionary<IKey, SolveSideNode>();
             private readonly List<SolveSideNode> assignTos = new List<SolveSideNode>();
             private readonly List<SolveSideNode> assignFroms = new List<SolveSideNode>();
 
+            public readonly SolveSideNode parentOrNull;
             private readonly bool explictMembersOnly;
 
 
@@ -986,9 +991,41 @@ namespace Tac.Frontend.New
                 }
             }
 
-            public SolveSideNode(bool explictMembersOnly)
+            internal void AddType(IKey key, SolveSideNode res)
+            {
+                types.Add(key, res);
+            }
+
+            internal bool TryGetType(IKey typeKey, out SolveSideNode node)
+            {
+                if (types.TryGetValue(typeKey, out node))
+                {
+                    return true;
+                }
+                if (parentOrNull == null)
+                {
+                    return false;
+                }
+                return parentOrNull.TryGetType(typeKey, out node);
+            }
+
+            internal bool TryGetMember(IKey key, out SolveSideNode resNode)
+            {
+                if (TryGetValue(key, out resNode))
+                {
+                    return true;
+                }
+                if (parentOrNull == null)
+                {
+                    return false;
+                }
+                return parentOrNull.TryGetMember(key, out resNode);
+            }
+
+            public SolveSideNode(bool explictMembersOnly, SolveSideNode parent)
             {
                 this.explictMembersOnly = explictMembersOnly;
+                this.parentOrNull = parent;
             }
 
             public bool TryGetValue(IKey key, out SolveSideNode value)
@@ -1002,7 +1039,6 @@ namespace Tac.Frontend.New
                     return inner.TryGetValue(key, out value);
                 }
             }
-
 
             // what does this do if the member is already there?
             // probably merge?
@@ -1025,27 +1061,28 @@ namespace Tac.Frontend.New
                 }
             }
 
-            
-
             internal void DefersTo(SolveSideNode node)
             {
-                while (node.inner != null) {
+                while (node.inner != null)
+                {
                     node = node.inner;
                 }
 
-                if (inner != null) {
+                if (inner != null)
+                {
                     inner.DefersTo(node);
                     return;
                 }
 
-                if (this == node) {
+                if (this == node)
+                {
                     return;
                 }
 
                 // add all the members
                 foreach (var member in node.members)
                 {
-                    AddMergeMember(member.Key,member.Value);
+                    AddMergeMember(member.Key, member.Value);
                 }
                 // do we need to clean house?
                 node.members.Clear();
@@ -1114,7 +1151,6 @@ namespace Tac.Frontend.New
                 }
             }
 
-
             internal void AddAssignedTo(SolveSideNode solveSideNode)
             {
                 if (inner == null)
@@ -1141,7 +1177,7 @@ namespace Tac.Frontend.New
 
             internal void FlowUpStream(IKey key, SolveSideNode value)
             {
-                
+
                 if (members.TryGetValue(key, out var current))
                 {
                     value.DefersTo(current);
@@ -1163,7 +1199,7 @@ namespace Tac.Frontend.New
 
             internal void FlowDownStream(IKey key, SolveSideNode value)
             {
-                
+
 
                 // don't flow in to nodes that are assigned from more than one place 
                 if (AssignedFrom.Count() > 1)
@@ -1186,6 +1222,113 @@ namespace Tac.Frontend.New
                 foreach (var node in AssignedFrom)
                 {
                     node.FlowUpStream(key, value);
+                }
+            }
+
+            // ok so you are here
+            // I think this get's a lot simpiler 
+            // if we change the flow
+            // one step to populate members, but not to resolve them to types
+            // next step duplicate trees for generics 
+            // next step is resolve member types
+            // member types resolve differently on different sides 
+
+            // TODO 
+            // hopeful members
+            internal SolveSideNode OverlayTo(SolveSideNode copyTo, Dictionary<SolveSideNode, SolveSideNode> map, Dictionary<SolveSideNode, SolveSideNode> alreadyMapped)
+            {
+                if (inner != null)
+                {
+                    throw new Exception("at the time when this is called inner should be null");
+                }
+
+                if (alreadyMapped.TryGetValue(this, out var res))
+                {
+                    return res;
+                }
+
+                alreadyMapped[this] = copyTo;
+
+                foreach (var memberKey in members.Keys)
+                {
+                    var member = members[memberKey];
+                    while (member.inner != null)
+                    {
+                        member = member.inner;
+                    }
+
+                    if (map.TryGetValue(member, out var newValue))
+                    {
+                        copyTo.AddMember(memberKey, newValue);
+                    }
+                    else
+                    {
+                        copyTo.AddMember(memberKey, OverlayTo(new SolveSideNode(true, OverlayParent(parentOrNull)), map, alreadyMapped));
+                    }
+                }
+
+                foreach (var typeKey in types.Keys)
+                {
+                    var type = types[typeKey];
+                    while (type.inner != null)
+                    {
+                        type = type.inner;
+                    }
+
+                    if (map.TryGetValue(type, out var newValue))
+                    {
+                        copyTo.AddType(typeKey, newValue);
+                    }
+                    else
+                    {
+                        copyTo.AddType(typeKey, OverlayTo(new SolveSideNode(true, OverlayParent(parentOrNull)), map, alreadyMapped));
+                    }
+                }
+
+                foreach (var placeholder in placeholderTypes)
+                {
+                    copyTo.placeholderTypes.Add(map[placeholder]);
+                }
+
+                return copyTo;
+
+                SolveSideNode OverlayParent(SolveSideNode parentOrNull)
+                {
+                    if (parentOrNull == null)
+                    {
+                        return null;
+                    }
+                    if (alreadyMapped.TryGetValue(parentOrNull, out var parent))
+                    {
+                        return parent;
+                    }
+
+                    return parentOrNull;
+                }
+            }
+
+            internal void OverlayToRelationshipsTo(SolveSideNode copyTo, Dictionary<SolveSideNode, SolveSideNode> alreadyMapped)
+            {
+                foreach (var assignTo in assignTos) {
+                    if (alreadyMapped.TryGetValue(assignTo, out var resplace))
+                    {
+                        copyTo.AddAssignedTo(resplace);
+                    }
+                    else {
+                        copyTo.AddAssignedTo(assignTo);
+                    }
+                }
+
+                foreach (var assignFrom in assignFroms)
+                {
+                    if (alreadyMapped.TryGetValue(assignFrom, out var resplace))
+                    {
+                        copyTo.AddAssignedFrom(resplace);
+                    }
+                    else
+                    {
+                        copyTo.AddAssignedFrom(assignFrom);
+                    }
                 }
             }
         }
