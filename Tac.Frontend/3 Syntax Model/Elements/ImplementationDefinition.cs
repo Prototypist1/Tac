@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -196,10 +197,11 @@ namespace Tac.Semantic_Model
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
             }
 
-            public IResolvelizeScope<WeakImplementationDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakImplementationDefinition> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-
-                var myScope = scope.AddChild();
+                // to do you are here,
+                // I need to get members out of my children 
+                var myScope = context.TypeProblem.CreateImplementation();
                 return new ImplementationDefinitionFinalizeScope(
                     myScope.GetResolvelizableScope(),
                     contextDefinition.Run(myScope, context),

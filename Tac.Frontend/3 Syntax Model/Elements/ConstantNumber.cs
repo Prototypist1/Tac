@@ -2,6 +2,7 @@
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -91,7 +92,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IResolvelizeScope<WeakConstantNumber> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantNumber> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
                 return new ConstantNumberFinalizeScope(dub);
             }

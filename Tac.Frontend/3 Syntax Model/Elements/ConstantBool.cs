@@ -2,6 +2,7 @@
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -112,7 +113,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IResolvelizeScope<WeakConstantBool> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantBool> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
                 return new ConstantBoolFinalizeScope(dub);
             }

@@ -7,64 +7,60 @@ using Tac.Model;
 
 namespace Tac.Frontend.New
 {
-    internal interface ITypeProblemNode
+    internal interface ISetUpSideNode
     {
     }
 
 
-    internal interface IDefineMembers : ITypeProblemNode
+    internal interface IDefineMembers : ISetUpSideNode
     {
         // int key; or type {a;b;} x;
-        void Member(IMember member);
+        void Member(ISetUpMember member);
 
         IDefineMembers ParentOrNull { get; }
+
+        // type x {a;b;}
+        void Type(ISetUpType type);
     }
 
-    internal interface ICanBeAssignedTo : ITypeProblemNode
+    internal interface ICanBeAssignedTo : ISetUpSideNode
     {
 
     }
 
-    internal interface ICanAssignFromMe : ITypeProblemNode
+    internal interface ICanAssignFromMe : ISetUpSideNode
     {
         // z =: (a.x);
-        void HopefullyMember(IMember member);
+        void HopefullyMember(ISetUpMember member);
     }
 
     internal interface IValue : ICanAssignFromMe
     {
     }
 
-    internal interface IMember : ICanAssignFromMe, ICanBeAssignedTo
+    internal interface ISetUpMember : ICanAssignFromMe, ICanBeAssignedTo
     {
         IKey Key { get; }
     }
 
-    internal interface IType : IDefineMembers
+    internal interface ISetUpType : IDefineMembers
     {
     }
 
-    //internal interface IGenericType : IDefineMembers
-    //{
-    //}
 
-    internal interface IObject : IDefineMembers, ICanAssignFromMe
+    internal interface ISetUpObject : IDefineMembers, ICanAssignFromMe
     {
     }
 
-    internal interface IScope : IDefineMembers
+    internal interface ISetUpScope : IDefineMembers
     {
-        // type x {a;b;}
-        void Type(IType type);
 
-        //// type<T> x {T a;}
-        //void GenericType(IGenericType type);
 
         // x;
-        void MightHaveMember(IMember member);
+        void MightHaveMember(ISetUpMember member);
     }
 
-    internal interface IMethod : IScope
+    internal interface ISetUpMethod : ISetUpScope, ICanAssignFromMe
     {
         // 1 > f
         void AssignToInput(ICanAssignFromMe value);
@@ -74,66 +70,93 @@ namespace Tac.Frontend.New
         ICanAssignFromMe Returns();
     }
 
-    internal interface ITypeProblem
+    internal interface ISetUpTypeProblem
     {
         // a =: x
         void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to);
-
+        IValue CreateValue(ISetUpType type);
+        ISetUpMember CreateMember(IKey key, IKey keyType);
+        ISetUpMember CreateMember(IKey key);
+        ISetUpScope CreateScope();
+        ISetUpScope CreateScope(IDefineMembers parent);
+        ISetUpType CreateType(IDefineMembers parent, IKey key);
+        // why?
+        ISetUpType CreateType();
+        ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders);
+        ISetUpObject CreateObject(IDefineMembers parent);
+        ISetUpMethod CreateMethod(ISetUpMember input, ISetUpMember output, IDefineMembers parent);
     }
 
     internal interface ITypeSolution
     {
     }
 
-    internal class TypeProblem : ITypeProblem
+    internal class TypeProblem : ISetUpTypeProblem
     {
         private readonly List<Value> values = new List<Value>();
-        public IValue CreateValue(IType type)
+        private readonly List<Member> members = new List<Member>();
+        private readonly List<Scope> scopes = new List<Scope>();
+        private readonly List<Object> objects = new List<Object>();
+        private readonly List<Method> methods = new List<Method>();
+        private readonly List<Type> types = new List<Type>();
+        private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+
+        private IEnumerable<T> Get<T>() {
+            foreach (var list in new IEnumerable<object>[] { values , members, scopes, objects, methods, types })
+            {
+                foreach (var value in list.OfType<T>())
+                {
+                    yield return value;
+                }
+            }
+        }
+
+        public IValue CreateValue(ISetUpType type)
         {
             var res = new Value(type);
             values.Add(res);
             return res;
         }
-        private readonly List<Member> members = new List<Member>();
         
-        public IMember CreateMember(IKey key, IKey keyType) => new Member(key, keyType);
-        public IMember CreateMember(IKey key) => new Member(key);
+        public ISetUpMember CreateMember(IKey key, IKey keyType) => new Member(key, keyType);
 
-        private readonly List<Scope> scopes = new List<Scope>();
-        public IScope CreateScope()
+        public ISetUpMember CreateMember(IKey key) => new Member(key);
+
+        public ISetUpScope CreateScope()
         {
             var res = new Scope();
             scopes.Add(res);
             return res;
         }
-        public IScope CreateScope(IDefineMembers parent)
+        public ISetUpScope CreateScope(IDefineMembers parent)
         {
             var res = new Scope(parent);
             scopes.Add(res);
             return res;
         }
 
-        private readonly List<Type> types = new List<Type>();
 
-        public IType CreateType(IDefineMembers parent, IKey key)
+        public ISetUpType CreateType(IDefineMembers parent, IKey key)
         {
             var res = new Type(key, parent);
             types.Add(res);
             return res;
         }
         // why?
-        public IType CreateType()
+        public ISetUpType CreateType()
         {
             var res = new Type();
             types.Add(res);
             return res;
         }
-        public IType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders)
+
+        public ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders)
         {
             var res = new Type(key, parent);
             foreach (var item in placeholders)
             {
-                var placeholderType = CreateType(res, item);
+                var placeholderType = new Type(key, parent);
+                types.Add(placeholderType);
                 res.AddPlaceHolder(placeholderType);
             }
             types.Add(res);
@@ -141,9 +164,7 @@ namespace Tac.Frontend.New
         }
 
 
-        private readonly List<Object> objects = new List<Object>();
-
-        public IObject CreateObject(IDefineMembers parent)
+        public ISetUpObject CreateObject(IDefineMembers parent)
         {
             var res = new Object(this, parent);
             objects.Add(res);
@@ -151,9 +172,8 @@ namespace Tac.Frontend.New
         }
 
 
-        private readonly List<Method> methods = new List<Method>();
 
-        public IMethod CreateMethod(IMember input, IMember output, IDefineMembers parent)
+        public ISetUpMethod CreateMethod(ISetUpMember input, ISetUpMember output, IDefineMembers parent)
         {
             var method = new Method(this, input, output, parent);
             methods.Add(method);
@@ -161,14 +181,26 @@ namespace Tac.Frontend.New
         }
 
 
-        private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+        public ISetUpMethod CreateImplementation<T>(T context, ISetUpMember input, ISetUpMember output, IDefineMembers parent)
+           where T:ICanAssignFromMe,IDefineMembers
+        {
+            var contextMember = CreateMember(new ImplicitKey());
+            IsAssignedTo(context, contextMember);
+            var inner = CreateMethod(input, output, context);
+            var returnsMember = CreateMember(new ImplicitKey());
+            var outer = new Method(this, contextMember, returnsMember, parent);
+            outer.AssignToReturns(inner);
+            methods.Add(outer);
+            return inner;
+        }
+
         public void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to) => assignments.Add((from, to));
 
         private class TypeTracker
         {
-            public readonly List<IType> types = new List<IType>();
+            public readonly List<ISetUpType> types = new List<ISetUpType>();
 
-            public void Type(IType type)
+            public void Type(ISetUpType type)
             {
                 types.Add(type);
             }
@@ -179,7 +211,7 @@ namespace Tac.Frontend.New
 
             public readonly List<Member> members = new List<Member>();
 
-            public void Member(IMember member)
+            public void Member(ISetUpMember member)
             {
 
                 if (!(member is Member realMember))
@@ -197,7 +229,7 @@ namespace Tac.Frontend.New
         {
 
             public readonly List<Member> members = new List<Member>();
-            public void HopefullyMember(IMember member)
+            public void HopefullyMember(ISetUpMember member)
             {
                 if (!(member is Member realMember))
                 {
@@ -211,20 +243,20 @@ namespace Tac.Frontend.New
 
         private class Value : IValue
         {
-            private IType type;
+            private ISetUpType type;
 
-            public Value(IType type)
+            public Value(ISetUpType type)
             {
                 this.type = type;
             }
 
             public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
-            public void HopefullyMember(IMember member)
+            public void HopefullyMember(ISetUpMember member)
             {
                 hopefullMemberTracker.HopefullyMember(member);
             }
         }
-        private class Member : IMember
+        private class Member : ISetUpMember
         {
             public readonly IKey typeKey;
             public IKey Key { get; }
@@ -243,21 +275,22 @@ namespace Tac.Frontend.New
 
 
             public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
-            public void HopefullyMember(IMember member)
+            public void HopefullyMember(ISetUpMember member)
             {
                 hopefullMemberTracker.HopefullyMember(member);
             }
         }
-        private class Type : IType
+        private class Type : ISetUpType
         {
-            public readonly MemberTracker memberTracker;
+            public readonly TypeTracker TypeTracker = new TypeTracker();
+            public readonly MemberTracker memberTracker = new MemberTracker();
             public IDefineMembers ParentOrNull { get; }
             public readonly IKey key;
             public readonly List<Type> placeholders = new List<Type>();
 
             public Type()
             {
-                memberTracker = new MemberTracker();
+                
             }
 
             public Type(IKey key, IDefineMembers definedIn) : this()
@@ -270,29 +303,14 @@ namespace Tac.Frontend.New
                 placeholders.Add(placeholder);
             }
 
-            public void Member(IMember member) => memberTracker.Member(member);
+            public void Member(ISetUpMember member) => memberTracker.Member(member);
+            void IDefineMembers.Type(ISetUpType type) => TypeTracker.Type(type);
         }
-        private class GenericType
+        private class Object : ISetUpObject
         {
-
-            public readonly MemberTracker memberTracker;
-            public IDefineMembers ParentOrNull { get; }
-            public readonly IKey key;
-
-            public GenericType()
-            {
-                memberTracker = new MemberTracker();
-            }
-            public GenericType(IKey key, IDefineMembers definedIn) : this()
-            {
-                this.key = key;
-                this.ParentOrNull = definedIn;
-            }
-            public void Member(IMember member) => memberTracker.Member(member);
-        }
-        private class Object : IObject
-        {
-            public readonly MemberTracker memberTracker;
+            public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
+            public readonly TypeTracker TypeTracker = new TypeTracker();
+            public readonly MemberTracker memberTracker = new MemberTracker();
             private readonly TypeProblem typeProblem;
             public IDefineMembers ParentOrNull { get; }
 
@@ -300,20 +318,20 @@ namespace Tac.Frontend.New
             public Object(TypeProblem typeProblem, IDefineMembers parent)
             {
                 this.typeProblem = typeProblem;
-                memberTracker = new MemberTracker();
+                
                 ParentOrNull = parent;
             }
 
-            public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
-            public void HopefullyMember(IMember member)
+            public void HopefullyMember(ISetUpMember member)
             {
                 hopefullMemberTracker.HopefullyMember(member);
             }
 
 
-            public void Member(IMember member) => memberTracker.Member(member);
+            public void Member(ISetUpMember member) => memberTracker.Member(member);
+            public void Type(ISetUpType type) => TypeTracker.Type(type);
         }
-        private class Scope : IScope
+        private class Scope : ISetUpScope
         {
             public readonly MemberTracker mightBeOnParentMemberTracker = new MemberTracker();
             public readonly MemberTracker memberTracker = new MemberTracker();
@@ -331,35 +349,38 @@ namespace Tac.Frontend.New
                 this.ParentOrNull = parent;
             }
 
-            public void Member(IMember member) => memberTracker.Member(member);
+            public void Member(ISetUpMember member) => memberTracker.Member(member);
 
-            public void Type(IType type) => TypeTracker.Type(type);
+            public void Type(ISetUpType type) => TypeTracker.Type(type);
 
-            public void MightHaveMember(IMember member) => mightBeOnParentMemberTracker.Member(member);
+            public void MightHaveMember(ISetUpMember member) => mightBeOnParentMemberTracker.Member(member);
         }
-        private class Method : IMethod
+        private class Method : ISetUpMethod
         {
+            public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
+
             public readonly MemberTracker mightBeOnParentMemberTracker = new MemberTracker();
             public readonly MemberTracker memberTracker = new MemberTracker();
             private readonly TypeTracker TypeTracker = new TypeTracker();
 
             private readonly TypeProblem typeProblem;
-            private readonly IMember input;
-            private readonly IMember output;
+            private readonly ISetUpMember input;
+            private readonly ISetUpMember output;
             public IDefineMembers ParentOrNull { get; }
 
-            public Method(TypeProblem typeProblem, IMember input, IMember output, IDefineMembers parent)
+            public Method(TypeProblem typeProblem, ISetUpMember input, ISetUpMember output, IDefineMembers parent)
             {
                 this.typeProblem = typeProblem;
                 this.input = input;
                 this.output = output;
                 ParentOrNull = parent;
+                Member(input);
             }
 
 
-            public void Member(IMember member) => memberTracker.Member(member);
+            public void Member(ISetUpMember member) => memberTracker.Member(member);
 
-            public void Type(IType type) => TypeTracker.Type(type);
+            public void Type(ISetUpType type) => TypeTracker.Type(type);
 
             public void AssignToInput(ICanAssignFromMe value) => typeProblem.IsAssignedTo(value, input);
 
@@ -367,7 +388,12 @@ namespace Tac.Frontend.New
 
             public ICanAssignFromMe Returns() => output;
 
-            public void MightHaveMember(IMember member) => mightBeOnParentMemberTracker.Member(member);
+            public void MightHaveMember(ISetUpMember member) => mightBeOnParentMemberTracker.Member(member);
+
+            public void HopefullyMember(ISetUpMember member)
+            {
+                hopefullMemberTracker.HopefullyMember(member);
+            }
         }
 
 
@@ -390,11 +416,9 @@ namespace Tac.Frontend.New
 
         }
 
-
-
         public ITypeSolution Solve()
         {
-            var cache = new Dictionary<ITypeProblemNode, SolveSideNode>();
+            var cache = new Dictionary<ISetUpSideNode, SolveSideNode>();
 
             // now the impossible part...
 
@@ -404,6 +428,7 @@ namespace Tac.Frontend.New
             // convert types
             ConvertTypes();
 
+            var toOverlay = new List<OverlayIntention>();
 
             // then members
             ConvertMembers();
@@ -420,8 +445,6 @@ namespace Tac.Frontend.New
                 cache[from].AddAssignedTo(cache[to]);
                 cache[to].AddAssignedFrom(cache[from]);
             }
-
-            var toOverlay = new List<OverlayIntention>();
 
             // do generic overlaying
             OverlayGenerics();
@@ -785,7 +808,16 @@ namespace Tac.Frontend.New
                     }
                 }
 
-                SolveSideNode ConvertHopefulMember(ITypeProblemNode node, Member hopefullMember)
+
+                foreach (var method in methods)
+                {
+                    foreach (var hopefullMember in method.hopefullMemberTracker.members)
+                    {
+                        ConvertHopefulMember(method, hopefullMember);
+                    }
+                }
+
+                SolveSideNode ConvertHopefulMember(ISetUpSideNode node, Member hopefullMember)
                 {
                     {
                         if (cache.TryGetValue(hopefullMember, out var res))

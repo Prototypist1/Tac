@@ -6,6 +6,7 @@ using System.Linq;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -188,13 +189,9 @@ namespace Tac.Semantic_Model
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             }
 
-            public IResolvelizeScope<WeakGenericTypeDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakGenericTypeDefinition> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                if (!scope.TryAddGeneric(nameKey, box)) {
-                    throw new NotImplementedException("🤷‍");
-                }
-
-                var myScope = scope.AddGenericChild(genericParameters);
+                var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>x.Key).ToArray());
                 var nextLines = lines.Select(x => x.Run(myScope, context)).ToArray();
                 return new GenericTypeDefinitionFinalizeScope(nameKey, myScope.GetResolvelizableScope(), box, genericParameters, nextLines);
             }
