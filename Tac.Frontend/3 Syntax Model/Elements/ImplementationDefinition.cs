@@ -101,7 +101,7 @@ namespace Tac.Semantic_Model
         
         public ITokenMatching<IPopulateScope<WeakImplementationDefinition,ISetUpMethod>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            IPopulateScope<IWeakTypeReference,ISetUpMember> context= null, input = null, output = null;
+            IPopulateScope<IWeakTypeReference, ISetUpType> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -125,18 +125,25 @@ namespace Tac.Semantic_Model
                 
                 var contextNameString = contextName?.Item ?? "context";
                 var contextDefinition = MemberDefinitionMaker.PopulateScope(
-                        contextNameString,
+                        new NameKey( contextNameString),
                         false,
                         context
                         );
                 
                 var parameterNameString = parameterName?.Item ?? "input";
                 var parameterDefinition = MemberDefinitionMaker.PopulateScope(
-                        parameterNameString,
+                        new NameKey( parameterNameString),
                         false,
                         input
                         );
-                
+
+
+                var resultDefinition = MemberDefinitionMaker.PopulateScope(
+                        new ImplicitKey(),
+                        false,
+                        output
+                        );
+
                 return TokenMatching<IPopulateScope<WeakImplementationDefinition,ISetUpMethod>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
@@ -144,7 +151,7 @@ namespace Tac.Semantic_Model
                         contextDefinition, 
                         parameterDefinition, 
                         elements,
-                        output));
+                        resultDefinition));
             }
 
 
@@ -155,7 +162,7 @@ namespace Tac.Semantic_Model
                                 IPopulateScope<WeakMemberReference,ISetUpMember> contextDefinition,
                 IPopulateScope<WeakMemberReference,ISetUpMember> parameterDefinition,
                 IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ISetUpSideNode>[] elements,
-                IPopulateScope<WeakTypeReference,ISetUpMember> output)
+                IPopulateScope<WeakMemberReference, ISetUpMember> output)
         {
             return new PopulateScopeImplementationDefinition(
                                  contextDefinition,
@@ -183,13 +190,13 @@ namespace Tac.Semantic_Model
             private readonly IPopulateScope<WeakMemberReference,ISetUpMember> contextDefinition;
             private readonly IPopulateScope<WeakMemberReference, ISetUpMember> parameterDefinition;
             private readonly IPopulateScope<IFrontendCodeElement, ISetUpSideNode>[] elements;
-            private readonly IPopulateScope<IWeakTypeReference, ISetUpMember> output;
+            private readonly IPopulateScope<WeakMemberReference, ISetUpMember> output;
 
             public PopulateScopeImplementationDefinition(
                 IPopulateScope<WeakMemberReference, ISetUpMember> contextDefinition,
                 IPopulateScope<WeakMemberReference, ISetUpMember> parameterDefinition,
                 IPopulateScope<IFrontendCodeElement, ISetUpSideNode>[] elements,
-                IPopulateScope<IWeakTypeReference, ISetUpMember> output)
+                IPopulateScope<WeakMemberReference, ISetUpMember> output)
             {
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
                 this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -199,34 +206,27 @@ namespace Tac.Semantic_Model
 
             public IResolvelizeScope<WeakImplementationDefinition,ISetUpMethod> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                IResolvelizeScope<WeakMemberReference, ISetUpMember> parameterMember = default,  contextMember = default;
-                IResolvelizeScope<IWeakTypeReference, ISetUpMember> outputMember = default;
+                var outer = context.TypeProblem.CreateMethod(scope);
 
+                var inner = context.TypeProblem.CreateMethod(outer);
 
-                // to do you are here,
-                // I need to get members out of my children 
-                var myScope = context.TypeProblem.CreateImplementation(
-                    (IDefineMembers x) => {
-                        contextMember = contextDefinition.Run(x, context);
-                        return contextMember.SetUpSideNode;
-                        },
-                  (IDefineMembers x) =>
-                    {
-                        parameterMember = parameterDefinition.Run(x, context);
-                        return parameterMember.SetUpSideNode;
-                    },
-                    (IDefineMembers x) =>
-                    {
-                        outputMember = output.Run(x, context);
-                        return outputMember.SetUpSideNode;
-                    } ,
-                    scope);
+                var realizeContext = contextDefinition.Run(outer, context);
+                var outerResultMember = context.TypeProblem.CreateMember(new ImplicitKey());
+                var outerMethod = outer.SetInputOutput(realizeContext.SetUpSideNode, outerResultMember);
+
+                var parameter = parameterDefinition.Run(scope, context);
+                var outputResolves = output.Run(scope, context);
+
+                var innerMethod = inner.SetInputOutput(parameter.SetUpSideNode, outputResolves.SetUpSideNode);
+
+                outerMethod.AssignToReturns(innerMethod);
+
                 return new ImplementationDefinitionFinalizeScope(
-                    myScope,
-                    contextMember,
-                    parameterMember,
-                    elements.Select(x => x.Run(myScope, context)).ToArray(),
-                    outputMember
+                    outerMethod,
+                    realizeContext,
+                    parameter,
+                    elements.Select(y => y.Run(innerMethod, context)).ToArray(),
+                    outputResolves
                     );
             }
         }
@@ -237,14 +237,14 @@ namespace Tac.Semantic_Model
             private readonly IResolvelizeScope<WeakMemberReference, ISetUpMember> contextDefinition;
             private readonly IResolvelizeScope<WeakMemberReference, ISetUpMember> parameterDefinition;
             private readonly IResolvelizeScope<IFrontendCodeElement, ISetUpSideNode>[] elements;
-            private readonly IResolvelizeScope<IWeakTypeReference, ISetUpMember> output;
+            private readonly IResolvelizeScope<WeakMemberReference, ISetUpMember> output;
 
             public ImplementationDefinitionFinalizeScope(
                 ISetUpMethod finalizableScope,
                 IResolvelizeScope<WeakMemberReference, ISetUpMember> contextDefinition,
                 IResolvelizeScope<WeakMemberReference, ISetUpMember> parameterDefinition,
                 IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] elements,
-                IResolvelizeScope<IWeakTypeReference, ISetUpMember> output)
+                IResolvelizeScope<WeakMemberReference, ISetUpMember> output)
             {
                 SetUpSideNode = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));

@@ -61,8 +61,14 @@ namespace Tac.Frontend.New
         void MightHaveMember(ISetUpMember member);
     }
 
+    internal interface ISetUpMethodBuilder: ISetUpScope, ICanAssignFromMe
+    {
+        ISetUpMethod SetInputOutput(ISetUpMember input, ISetUpMember output);
+    }
+
     internal interface ISetUpMethod : ISetUpScope, ICanAssignFromMe
     {
+
         // 1 > f
         void AssignToInput(ICanAssignFromMe value);
         // 2 return
@@ -84,14 +90,8 @@ namespace Tac.Frontend.New
         
         ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders);
         ISetUpObject CreateObject(IDefineMembers parent);
-        ISetUpMethod CreateMethod(Func<IDefineMembers, ISetUpMember> input,
-            Func<IDefineMembers, ISetUpMember> output, 
-            IDefineMembers parent);
-        ISetUpMethod CreateImplementation(
-            Func<IDefineMembers, ISetUpMember> context,
-            Func<IDefineMembers, ISetUpMember> input,
-            Func<IDefineMembers, ISetUpMember> output,
-            IDefineMembers parent);
+        ISetUpMethodBuilder CreateMethod(IDefineMembers parent);
+        
     }
 
     internal interface ITypeSolution
@@ -173,33 +173,11 @@ namespace Tac.Frontend.New
 
 
 
-        public ISetUpMethod CreateMethod(
-            Func<IDefineMembers, ISetUpMember> input,
-            Func<IDefineMembers, ISetUpMember> output, 
-            IDefineMembers parent)
+        public ISetUpMethodBuilder CreateMethod(IDefineMembers parent)
         {
-            var method = new Method(this, input, output, parent);
+            var method = new Method(this, parent);
             methods.Add(method);
             return method;
-        }
-
-        //
-        // for now we enforce context.x
-        public ISetUpMethod CreateImplementation(
-            Func<IDefineMembers, ISetUpMember> context, 
-            Func<IDefineMembers, ISetUpMember> input, 
-            Func<IDefineMembers, ISetUpMember> output, 
-            IDefineMembers parent)
-        {
-            var outer = new Method(
-                this, 
-                x=> context(x), 
-                x=> CreateMember(new ImplicitKey()), 
-                parent);
-            var inner = CreateMethod(input, output, outer);
-            outer.AssignToReturns(inner);
-            methods.Add(outer);
-            return inner;
         }
 
         public void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to) => assignments.Add((from, to));
@@ -358,7 +336,7 @@ namespace Tac.Frontend.New
 
             public void MightHaveMember(ISetUpMember member) => mightBeOnParentMemberTracker.Member(member);
         }
-        private class Method : ISetUpMethod
+        private class Method : ISetUpMethod, ISetUpMethodBuilder
         {
             public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
 
@@ -367,22 +345,32 @@ namespace Tac.Frontend.New
             private readonly TypeTracker TypeTracker = new TypeTracker();
 
             private readonly TypeProblem typeProblem;
-            private readonly ISetUpMember input;
-            private readonly ISetUpMember output;
+            private ISetUpMember input;
+            private ISetUpMember output;
             public IDefineMembers ParentOrNull { get; }
 
             public Method(TypeProblem typeProblem,
-            Func<ISetUpScope, ISetUpMember> input,
-            Func<ISetUpScope, ISetUpMember> output,
             IDefineMembers parent)
             {
                 this.typeProblem = typeProblem;
-                this.input = input(this);
-                this.output = output(this);
                 ParentOrNull = parent;
-                Member(this.input);
             }
 
+
+            public ISetUpMethod SetInputOutput(ISetUpMember input, ISetUpMember output) {
+                if (this.input != null) {
+                    throw new Exception("this should not be called more than once");
+                }
+                if (this.output != null)
+                {
+                    throw new Exception("this should not be called more than once");
+                }
+
+                this.input = input ?? throw new ArgumentNullException(nameof(input));
+                this.output = output ?? throw new ArgumentNullException(nameof(output));
+
+                return this;
+            }
 
             public void Member(ISetUpMember member) => memberTracker.Member(member);
 
@@ -583,9 +571,9 @@ namespace Tac.Frontend.New
                     {
                         var res = new SolveSideNode(true, GetParent(type),null);
 
-                        if (type.key != null)
+                        if (type.Key != null)
                         {
-                            cache[type.ParentOrNull].AddType(type.key, res);
+                            cache[type.ParentOrNull].AddType(type.Key, res);
                         }
 
                         foreach (var placeholder in type.placeholders)

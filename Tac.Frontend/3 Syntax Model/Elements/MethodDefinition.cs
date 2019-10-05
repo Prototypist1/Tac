@@ -87,15 +87,15 @@ namespace Tac.Semantic_Model
 
             
             {
-                IPopulateScope<IWeakTypeReference, ISetUpMember> input = null, output = null;
+                IPopulateScope<IWeakTypeReference, ISetUpType> inputType = null, outputType = null;
                 var matching = tokenMatching
                     .Has(new KeyWordMaker("method"), out var _)
                     .HasSquare(x => x
                         .HasLine(y => y
-                            .HasElement(z => z.Has(new TypeMaker(), out input))
+                            .HasElement(z => z.Has(new TypeMaker(), out inputType))
                             .Has(new DoneMaker()))
                         .HasLine(y => y
-                            .HasElement(z => z.Has(new TypeMaker(), out output))
+                            .HasElement(z => z.Has(new TypeMaker(), out outputType))
                             .Has(new DoneMaker()))
                         .Has(new DoneMaker()))
                     .OptionalHas(new NameMaker(), out var parameterName)
@@ -107,9 +107,15 @@ namespace Tac.Semantic_Model
                     var elements = matching.Context.ParseBlock(body);
 
                     var parameterDefinition = MemberDefinitionMaker.PopulateScope(
-                            parameterName?.Item ?? "input",
+                            new NameKey(parameterName?.Item ?? "input"),
                             false,
-                            input
+                            inputType
+                            );
+
+                    var resultDefinition = MemberDefinitionMaker.PopulateScope(
+                            new ImplicitKey(),
+                            false,
+                            outputType
                             );
 
                     return TokenMatching<IPopulateScope<WeakMethodDefinition,ISetUpMethod>>.MakeMatch(
@@ -118,7 +124,7 @@ namespace Tac.Semantic_Model
                         new MethodDefinitionPopulateScope(
                             parameterDefinition,
                             elements,
-                            output,
+                            resultDefinition,
                             false)
                         );
                 }
@@ -133,7 +139,14 @@ namespace Tac.Semantic_Model
                     var elements = matching.Context.ParseBlock(body);
 
                     var parameterDefinition = MemberDefinitionMaker.PopulateScope(
-                            "input",
+                            new NameKey("input"),
+                            false,
+                            TypeReferanceMaker.PopulateScope(new NameKey("empty"))
+                            );
+
+
+                    var resultDefinition = MemberDefinitionMaker.PopulateScope(
+                            new ImplicitKey(),
                             false,
                             TypeReferanceMaker.PopulateScope(new NameKey("empty"))
                             );
@@ -144,7 +157,7 @@ namespace Tac.Semantic_Model
                         new MethodDefinitionPopulateScope(
                             parameterDefinition,
                             elements,
-                            TypeReferanceMaker.PopulateScope(new NameKey("empty")),
+                            resultDefinition,
                             true)
                         );
                 }
@@ -155,9 +168,10 @@ namespace Tac.Semantic_Model
 
         }
 
-        public static IPopulateScope<WeakMethodDefinition,ISetUpMethod> PopulateScope(IPopulateScope<WeakMemberReference,ISetUpMember> parameterDefinition,
+        public static IPopulateScope<WeakMethodDefinition,ISetUpMethod> PopulateScope(
+                IPopulateScope<WeakMemberReference,ISetUpMember> parameterDefinition,
                 IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ISetUpSideNode>[] elements,
-                IPopulateScope<WeakTypeReference,ISetUpMember> output,
+                IPopulateScope<WeakMemberReference, ISetUpMember> output,
                 bool isEntryPoint)
         {
             return new MethodDefinitionPopulateScope( parameterDefinition,
@@ -185,13 +199,13 @@ namespace Tac.Semantic_Model
         {
             private readonly IPopulateScope<WeakMemberReference,ISetUpMember> parameterDefinition;
             private readonly IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] elements;
-            private readonly IPopulateScope<IWeakTypeReference,ISetUpMember> output;
+            private readonly IPopulateScope<WeakMemberReference, ISetUpMember> output;
             private readonly bool isEntryPoint;
 
             public MethodDefinitionPopulateScope(
                 IPopulateScope<WeakMemberReference,ISetUpMember> parameterDefinition,
                 IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] elements,
-                IPopulateScope<IWeakTypeReference,ISetUpMember> output,
+                IPopulateScope<WeakMemberReference, ISetUpMember> output,
                 bool isEntryPoint
                 )
             {
@@ -203,22 +217,15 @@ namespace Tac.Semantic_Model
 
             public IResolvelizeScope<WeakMethodDefinition,ISetUpMethod> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                IResolvelizeScope<WeakMemberReference, ISetUpMember> parameterResolve = default;
-                IResolvelizeScope<IWeakTypeReference, ISetUpMember> outputResolve = default;
 
-                var method= context.TypeProblem.CreateMethod(x =>
-                {
-                    parameterResolve = parameterDefinition.Run(x, context);
-                    return parameterResolve.SetUpSideNode;
-                },
-                x =>
-                {
-                    outputResolve = output.Run(x, context);
-                    return outputResolve.SetUpSideNode;
-                }, scope);
+                var methodBuilder= context.TypeProblem.CreateMethod(scope);
 
+                var parameterResolve = parameterDefinition.Run(methodBuilder, context);
+                methodBuilder.Member(parameterResolve.SetUpSideNode);
+                var outputResolve = parameterDefinition.Run(methodBuilder, context);
+                methodBuilder.Member(outputResolve.SetUpSideNode);
+                var method = methodBuilder.SetInputOutput(parameterResolve.SetUpSideNode, outputResolve.SetUpSideNode);
 
-                var myScope = scope.AddChild();
                 return new MethodDefinitionFinalizeScope(
                     method,
                     parameterResolve,
@@ -232,14 +239,14 @@ namespace Tac.Semantic_Model
         {
             private readonly IResolvelizeScope<WeakMemberReference,ISetUpMember> parameter;
             private readonly IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] lines;
-            private readonly IResolvelizeScope<IWeakTypeReference,ISetUpMember> output;
+            private readonly IResolvelizeScope<WeakMemberReference, ISetUpMember> output;
             private readonly bool isEntryPoint;
 
             public MethodDefinitionFinalizeScope(
                 ISetUpMethod methodScope,
                 IResolvelizeScope<WeakMemberReference,ISetUpMember> parameter,
                 IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] resolveReferance2,
-                IResolvelizeScope<IWeakTypeReference,ISetUpMember> output,
+                IResolvelizeScope<WeakMemberReference, ISetUpMember> output,
                 bool isEntryPoint)
             {
                 SetUpSideNode = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
