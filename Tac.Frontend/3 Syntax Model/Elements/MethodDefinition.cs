@@ -6,6 +6,7 @@ using System.Text;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Elements;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -20,11 +21,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMethodDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement,ISetUpSideNode>> StaticMethodDefinitionMaker = AddElementMakers(
             () => new MethodDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MethodDefinitionMaker = StaticMethodDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> MethodDefinitionMaker = StaticMethodDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -74,19 +75,19 @@ namespace Tac.Semantic_Model
         public override IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
     }
     
-    internal class MethodDefinitionMaker : IMaker<IPopulateScope<WeakMethodDefinition>>
+    internal class MethodDefinitionMaker : IMaker<IPopulateScope<WeakMethodDefinition,ISetUpMethod>>
     {
         public MethodDefinitionMaker()
         {
         }
 
 
-        public ITokenMatching<IPopulateScope<WeakMethodDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMethodDefinition, ISetUpMethod>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
             
             {
-                IPopulateScope<IWeakTypeReference> input = null, output = null;
+                IPopulateScope<IWeakTypeReference, ISetUpMember> input = null, output = null;
                 var matching = tokenMatching
                     .Has(new KeyWordMaker("method"), out var _)
                     .HasSquare(x => x
@@ -111,7 +112,7 @@ namespace Tac.Semantic_Model
                             input
                             );
 
-                    return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<WeakMethodDefinition,ISetUpMethod>>.MakeMatch(
                         matched.Tokens,
                         matched.Context,
                         new MethodDefinitionPopulateScope(
@@ -137,7 +138,7 @@ namespace Tac.Semantic_Model
                             TypeReferanceMaker.PopulateScope(new NameKey("empty"))
                             );
 
-                    return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<WeakMethodDefinition,ISetUpMethod>>.MakeMatch(
                         matched.Tokens,
                         matched.Context,
                         new MethodDefinitionPopulateScope(
@@ -148,15 +149,15 @@ namespace Tac.Semantic_Model
                         );
                 }
 
-                return TokenMatching<IPopulateScope<WeakMethodDefinition>>.MakeNotMatch(
+                return TokenMatching<IPopulateScope<WeakMethodDefinition,ISetUpMethod>>.MakeNotMatch(
                         matching.Context);
             }
 
         }
 
-        public static IPopulateScope<WeakMethodDefinition> PopulateScope(IPopulateScope<WeakMemberReference> parameterDefinition,
-                IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
-                IPopulateScope<WeakTypeReference> output,
+        public static IPopulateScope<WeakMethodDefinition,ISetUpMethod> PopulateScope(IPopulateScope<WeakMemberReference,ISetUpMember> parameterDefinition,
+                IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ISetUpSideNode>[] elements,
+                IPopulateScope<WeakTypeReference,ISetUpMember> output,
                 bool isEntryPoint)
         {
             return new MethodDefinitionPopulateScope( parameterDefinition,
@@ -180,17 +181,17 @@ namespace Tac.Semantic_Model
         }
 
 
-        private class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition>
+        private class MethodDefinitionPopulateScope : IPopulateScope<WeakMethodDefinition,ISetUpMethod>
         {
-            private readonly IPopulateScope<WeakMemberReference> parameterDefinition;
-            private readonly IPopulateScope<IFrontendCodeElement>[] elements;
-            private readonly IPopulateScope<IWeakTypeReference> output;
+            private readonly IPopulateScope<WeakMemberReference,ISetUpMember> parameterDefinition;
+            private readonly IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] elements;
+            private readonly IPopulateScope<IWeakTypeReference,ISetUpMember> output;
             private readonly bool isEntryPoint;
 
             public MethodDefinitionPopulateScope(
-                IPopulateScope<WeakMemberReference> parameterDefinition,
-                IPopulateScope<IFrontendCodeElement>[] elements,
-                IPopulateScope<IWeakTypeReference> output,
+                IPopulateScope<WeakMemberReference,ISetUpMember> parameterDefinition,
+                IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] elements,
+                IPopulateScope<IWeakTypeReference,ISetUpMember> output,
                 bool isEntryPoint
                 )
             {
@@ -200,39 +201,57 @@ namespace Tac.Semantic_Model
                 this.isEntryPoint = isEntryPoint;
             }
 
-            public IResolvelizeScope<WeakMethodDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakMethodDefinition,ISetUpMethod> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
+                IResolvelizeScope<WeakMemberReference, ISetUpMember> parameterResolve = default;
+                IResolvelizeScope<IWeakTypeReference, ISetUpMember> outputResolve = default;
+
+                var method= context.TypeProblem.CreateMethod(x =>
+                {
+                    parameterResolve = parameterDefinition.Run(x, context);
+                    return parameterResolve.SetUpSideNode;
+                },
+                x =>
+                {
+                    outputResolve = output.Run(x, context);
+                    return outputResolve.SetUpSideNode;
+                }, scope);
+
 
                 var myScope = scope.AddChild();
                 return new MethodDefinitionFinalizeScope(
-                    myScope.GetResolvelizableScope(),
-                    parameterDefinition.Run(myScope, context),
-                    elements.Select(x => x.Run(myScope, context)).ToArray(),
-                    output.Run(myScope,context),
+                    method,
+                    parameterResolve,
+                    elements.Select(x => x.Run(method, context)).ToArray(),
+                    outputResolve,
                     isEntryPoint);
             }
         }
 
-        private class MethodDefinitionFinalizeScope : IResolvelizeScope<WeakMethodDefinition>
+        private class MethodDefinitionFinalizeScope : IResolvelizeScope<WeakMethodDefinition, ISetUpMethod>
         {
-            private readonly IResolvelizableScope methodScope;
-            private readonly IResolvelizeScope<WeakMemberReference> parameter;
-            private readonly IResolvelizeScope<IFrontendCodeElement>[] lines;
-            private readonly IResolvelizeScope<IWeakTypeReference> output;
+            private readonly IResolvelizeScope<WeakMemberReference,ISetUpMember> parameter;
+            private readonly IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] lines;
+            private readonly IResolvelizeScope<IWeakTypeReference,ISetUpMember> output;
             private readonly bool isEntryPoint;
 
             public MethodDefinitionFinalizeScope(
-                IResolvelizableScope methodScope,
-                IResolvelizeScope<WeakMemberReference> parameter,
-                IResolvelizeScope<IFrontendCodeElement>[] resolveReferance2,
-                IResolvelizeScope<IWeakTypeReference> output,
+                ISetUpMethod methodScope,
+                IResolvelizeScope<WeakMemberReference,ISetUpMember> parameter,
+                IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] resolveReferance2,
+                IResolvelizeScope<IWeakTypeReference,ISetUpMember> output,
                 bool isEntryPoint)
             {
-                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
+                SetUpSideNode = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
                 this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
                 lines = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
                 this.isEntryPoint = isEntryPoint;
+            }
+
+            public ISetUpMethod SetUpSideNode
+            {
+                get;
             }
 
             public IPopulateBoxes<WeakMethodDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.LeftToRight;
+using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
@@ -69,9 +70,10 @@ namespace Tac.Semantic_Model
             {
                 var nameKey = new NameKey(memberName);
                 var member = context.TypeProblem.CreateMember(nameKey);
-                scope.Member(member);
+                
+                scope.Cast<ISetUpScope>().MightHaveMember(member);
 
-                return new MemberFinalizeScope( nameKey);
+                return new MemberFinalizeScope( nameKey, member);
             }
 
         }
@@ -82,9 +84,15 @@ namespace Tac.Semantic_Model
             private readonly NameKey key;
 
             public MemberFinalizeScope(
-                NameKey key)
+                NameKey key, ISetUpMember setUpSideNode)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
+                SetUpSideNode = setUpSideNode ?? throw new ArgumentNullException(nameof(setUpSideNode));
+            }
+
+            public ISetUpMember SetUpSideNode
+            {
+                get;
             }
 
             public IPopulateBoxes<WeakMemberReference> Run(IResolvableScope parent, IFinalizeScopeContext context)

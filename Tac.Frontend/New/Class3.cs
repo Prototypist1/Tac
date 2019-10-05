@@ -45,6 +45,7 @@ namespace Tac.Frontend.New
 
     internal interface ISetUpType : IDefineMembers
     {
+        IKey Key { get; }
     }
 
 
@@ -80,8 +81,7 @@ namespace Tac.Frontend.New
         ISetUpScope CreateScope();
         ISetUpScope CreateScope(IDefineMembers parent);
         ISetUpType CreateType(IDefineMembers parent, IKey key);
-        // why?
-        ISetUpType CreateType();
+        
         ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders);
         ISetUpObject CreateObject(IDefineMembers parent);
         ISetUpMethod CreateMethod(Func<IDefineMembers, ISetUpMember> input,
@@ -146,13 +146,6 @@ namespace Tac.Frontend.New
         public ISetUpType CreateType(IDefineMembers parent, IKey key)
         {
             var res = new Type(key, parent);
-            types.Add(res);
-            return res;
-        }
-        // why?
-        public ISetUpType CreateType()
-        {
-            var res = new Type();
             types.Add(res);
             return res;
         }
@@ -300,17 +293,12 @@ namespace Tac.Frontend.New
             public readonly TypeTracker TypeTracker = new TypeTracker();
             public readonly MemberTracker memberTracker = new MemberTracker();
             public IDefineMembers ParentOrNull { get; }
-            public readonly IKey key;
+            public IKey Key { get; }
             public readonly List<Type> placeholders = new List<Type>();
 
-            public Type()
+            public Type(IKey key, IDefineMembers definedIn) 
             {
-                
-            }
-
-            public Type(IKey key, IDefineMembers definedIn) : this()
-            {
-                this.key = key;
+                this.Key = key ?? throw new ArgumentNullException(nameof(key));
                 this.ParentOrNull = definedIn;
             }
 

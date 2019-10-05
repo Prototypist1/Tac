@@ -175,31 +175,29 @@ namespace Tac.Semantic_Model
         {
             private readonly string memberName;
             private readonly bool isReadonly;
-            private readonly IPopulateScope<IWeakTypeReference, ISetUpType> typeName;
+            private readonly IPopulateScope<IWeakTypeReference, ISetUpType> type;
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox = new Box<IIsPossibly<WeakMemberDefinition>>();
 
             public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<IWeakTypeReference, ISetUpType> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;
-                typeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
+                type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
             }
 
             public IResolvelizeScope<WeakMemberReference, ISetUpMember> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
                 var key = new NameKey(memberName);
-                var type = typeName.Run(scope, context);
-                var member = context.TypeProblem.CreateMember(key,type.);
+
+                var type = this.type.Run(scope, context);
+                var member = context.TypeProblem.CreateMember(key,type.SetUpSideNode.Key);
 
 
-                if (!scope.TryAddMember(DefintionLifetime.Instance, key, memberDefinitionBox))
-                {
-                    throw new Exception("bad bad bad!");
-                }
                 return new MemberDefinitionFinalizeScope(
                     memberName, 
-                    isReadonly, , 
-                    memberDefinitionBox);
+                    isReadonly,
+                    type, 
+                    memberDefinitionBox, member);
             }
 
         }
@@ -211,16 +209,22 @@ namespace Tac.Semantic_Model
             public readonly IResolvelizeScope<IWeakTypeReference, ISetUpType> type;
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox;
 
+            public ISetUpMember SetUpSideNode
+            {
+                get;
+            }
+
             public MemberDefinitionFinalizeScope(
                 string memberName,
                 bool isReadonly,
                 IResolvelizeScope<IWeakTypeReference, ISetUpType> type,
-                Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
+                Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox, ISetUpMember member)
             {
                 this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
                 this.isReadonly = isReadonly;
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
                 this.memberDefinitionBox = memberDefinitionBox ?? throw new ArgumentNullException(nameof(memberDefinitionBox));
+                this.SetUpSideNode = member ?? throw new ArgumentNullException(nameof(member));
             }
 
             public IPopulateBoxes<WeakMemberReference> Run(IResolvableScope scope ,IFinalizeScopeContext context)
