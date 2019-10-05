@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -124,7 +125,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
 
-    internal class BinaryOperationMaker<TFrontendCodeElement, TCodeElement> : IMaker<IPopulateScope<TFrontendCodeElement>>
+    internal class BinaryOperationMaker<TFrontendCodeElement, TCodeElement> : IMaker<IPopulateScope<TFrontendCodeElement, ISetUpValue>>
         where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
@@ -139,7 +140,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public string Symbol { get; }
         private BinaryOperation.Make<TFrontendCodeElement> Make { get; }
 
-        public ITokenMatching<IPopulateScope<TFrontendCodeElement>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<TFrontendCodeElement, ISetUpValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -148,18 +149,18 @@ namespace Tac.Semantic_Model.CodeStuff
                 var left = matching.Context.ParseLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElement(match.rhs);
 
-                return TokenMatching<IPopulateScope<TFrontendCodeElement>>.MakeMatch(
+                return TokenMatching<IPopulateScope<TFrontendCodeElement, ISetUpValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new BinaryPopulateScope(left, right, Make));
             }
 
-            return TokenMatching<IPopulateScope<TFrontendCodeElement>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<TFrontendCodeElement, ISetUpValue>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        public static IPopulateScope<TFrontendCodeElement> PopulateScope(IPopulateScope<IFrontendCodeElement> left,
+        public static IPopulateScope<TFrontendCodeElement, ISetUpValue> PopulateScope(IPopulateScope<IFrontendCodeElement> left,
                 IPopulateScope<IFrontendCodeElement> right,
                 BinaryOperation.Make<TFrontendCodeElement> make)
         {
@@ -178,14 +179,14 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
 
-        private class BinaryPopulateScope : IPopulateScope<TFrontendCodeElement>
+        private class BinaryPopulateScope : IPopulateScope<TFrontendCodeElement, ISetUpValue>
         {
-            private readonly IPopulateScope<IFrontendCodeElement> left;
-            private readonly IPopulateScope<IFrontendCodeElement> right;
+            private readonly IPopulateScope<IFrontendCodeElement, ISetUpValue> left;
+            private readonly IPopulateScope<IFrontendCodeElement, ISetUpValue> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
 
-            public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement> left,
-                IPopulateScope<IFrontendCodeElement> right,
+            public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement, ISetUpValue> left,
+                IPopulateScope<IFrontendCodeElement, ISetUpValue> right,
                 BinaryOperation.Make<TFrontendCodeElement> make)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -193,8 +194,9 @@ namespace Tac.Semantic_Model.CodeStuff
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IResolvelizeScope<TFrontendCodeElement> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<TFrontendCodeElement, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
+                context.TypeProblem.CreateValue();
                 return new BinaryFinalizeScope(
                     left.Run(scope,context),
                     right.Run(scope, context),
@@ -203,22 +205,28 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
 
-        private class BinaryFinalizeScope : IResolvelizeScope<TFrontendCodeElement>
+        private class BinaryFinalizeScope : IResolvelizeScope<TFrontendCodeElement, ISetUpValue>
         {
-            public readonly IResolvelizeScope<IFrontendCodeElement> left;
-            public readonly IResolvelizeScope<IFrontendCodeElement> right;
+            public readonly IResolvelizeScope<IFrontendCodeElement, ISetUpValue> left;
+            public readonly IResolvelizeScope<IFrontendCodeElement, ISetUpValue> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
 
             public BinaryFinalizeScope(
-                IResolvelizeScope<IFrontendCodeElement> resolveReferance1,
-                IResolvelizeScope<IFrontendCodeElement> resolveReferance2,
+                ISetUpValue setUpSideNode,
+                IResolvelizeScope<IFrontendCodeElement, ISetUpValue> resolveReferance1,
+                IResolvelizeScope<IFrontendCodeElement, ISetUpValue> resolveReferance2,
                 BinaryOperation.Make<TFrontendCodeElement> make)
             {
+                SetUpSideNode = setUpSideNode ?? throw new ArgumentNullException(nameof(setUpSideNode));
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
+            public ISetUpValue SetUpSideNode
+            {
+                get;
+            }
 
             public IPopulateBoxes<TFrontendCodeElement> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {

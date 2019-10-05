@@ -152,7 +152,7 @@ namespace Tac.Semantic_Model
         public static IPopulateScope<WeakMemberReference, ISetUpMember> PopulateScope(
             IKey item, 
             bool v, 
-            IPopulateScope<IWeakTypeReference, ISetUpType> typeToken)
+            IPopulateScope<IWeakTypeReference, ISetUpTypeReference> typeToken)
         {
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
@@ -175,10 +175,10 @@ namespace Tac.Semantic_Model
         {
             private readonly IKey memberName;
             private readonly bool isReadonly;
-            private readonly IPopulateScope<IWeakTypeReference, ISetUpType> type;
+            private readonly IPopulateScope<IWeakTypeReference, ISetUpTypeReference> type;
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox = new Box<IIsPossibly<WeakMemberDefinition>>();
 
-            public MemberDefinitionPopulateScope(IKey item, bool v, IPopulateScope<IWeakTypeReference, ISetUpType> typeToken)
+            public MemberDefinitionPopulateScope(IKey item, bool v, IPopulateScope<IWeakTypeReference, ISetUpTypeReference> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;

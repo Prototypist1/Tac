@@ -95,7 +95,7 @@ namespace Tac.Semantic_Model.Operations
             public IResolvelizeScope<WeakConstantNumber, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
 
-                var numberType = context.TypeProblem.CreateType(scope, new NameKey("number"));
+                var numberType = context.TypeProblem.CreateTypeReference(new NameKey("number"));
                 var value = context.TypeProblem.CreateValue(numberType);
                 return new ConstantNumberFinalizeScope(dub, value);
             }

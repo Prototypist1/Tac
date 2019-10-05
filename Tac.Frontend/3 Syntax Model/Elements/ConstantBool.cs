@@ -115,7 +115,7 @@ namespace Tac.Semantic_Model.Operations
 
             public IResolvelizeScope<WeakConstantBool, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                var boolType= context.TypeProblem.CreateType(scope, new NameKey("bool"));
+                var boolType= context.TypeProblem.CreateTypeReference(new NameKey("bool"));
                 var value = context.TypeProblem.CreateValue(boolType);
                 return new ConstantBoolFinalizeScope(dub,value);
             }

@@ -28,20 +28,19 @@ namespace Tac.Semantic_Model
     /// make general types
     /// contains several type makers 
     /// </summary>
-    internal class TypeMaker : IMaker<IPopulateScope<IWeakTypeReference,ISetUpType>>
+    internal class TypeMaker : IMaker<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>
     {
-        public ITokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             {
 
                 if (tokenMatching.Has(new TypeDefinitionMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
                             type);
-
                 }
             }
 
@@ -50,11 +49,10 @@ namespace Tac.Semantic_Model
                 if (tokenMatching.Has(new TypeReferanceMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
                             type);
-
                 }
             }
 
@@ -73,7 +71,7 @@ namespace Tac.Semantic_Model
                 if (TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeStart(parenthesisToken.Tokens.ToArray(), tokenMatching.Context).Has(new TypeOrOperationMaker(), out var type)
                         is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeMatch(
                             tokenMatching.Tokens.Skip(1).ToArray(),
                             matched.Context,
                             type);
@@ -81,7 +79,7 @@ namespace Tac.Semantic_Model
                 }
             }
             
-            return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeNotMatch(
                     tokenMatching.Context);
         }
     }

@@ -103,7 +103,7 @@ namespace Tac.Semantic_Model
                     while (true)
                     {
                         // colin, why! w x y z
-                        // you are an adult arn'y you?
+                        // you are an adult arn't you?
                         var item = default(IKey);
                         var y = x.HasLine(z => z.Has(new KeyMatcher(), out item));
                         if (y is IMatchedTokenMatching w)
@@ -136,26 +136,26 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<IPopulateScope<IWeakTypeReference, ISetUpType>>
+    internal class TypeReferanceMaker : IMaker<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>
     {
-        public ITokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new TypeNameMaker(), out var name);
 
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeMatch(
+                return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new TypeReferancePopulateScope(name));
             }
 
-            return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeNotMatch(matching.Context);
+            return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeNotMatch(matching.Context);
         }
 
 
-        public static IPopulateScope<WeakTypeReference, ISetUpType> PopulateScope(IKey typeName)
+        public static IPopulateScope<WeakTypeReference, ISetUpTypeReference> PopulateScope(IKey typeName)
         {
             return new TypeReferancePopulateScope(typeName);
         }
@@ -165,7 +165,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        private class TypeReferancePopulateScope : IPopulateScope<WeakTypeReference, ISetUpType>
+        private class TypeReferancePopulateScope : IPopulateScope<WeakTypeReference, ISetUpTypeReference>
         {
             private readonly IKey key;
 
@@ -174,20 +174,20 @@ namespace Tac.Semantic_Model
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public IResolvelizeScope<WeakTypeReference, ISetUpType> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakTypeReference, ISetUpTypeReference> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                var type = context.TypeProblem.CreateType(scope,key);
+                var type = context.TypeProblem.CreateTypeReference(key);
                 return new TypeReferanceFinalizeScope(
                     key, type);
             }
         }
 
-        private class TypeReferanceFinalizeScope : IResolvelizeScope<WeakTypeReference, ISetUpType>
+        private class TypeReferanceFinalizeScope : IResolvelizeScope<WeakTypeReference, ISetUpTypeReference>
         {
-            public ISetUpType SetUpSideNode { get; }
+            public ISetUpTypeReference SetUpSideNode { get; }
             private readonly IKey key;
 
-            public TypeReferanceFinalizeScope(IKey key, ISetUpType type)
+            public TypeReferanceFinalizeScope(IKey key, ISetUpTypeReference type)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
                 SetUpSideNode = type ?? throw new ArgumentNullException(nameof(type));

@@ -101,7 +101,7 @@ namespace Tac.Semantic_Model
         
         public ITokenMatching<IPopulateScope<WeakImplementationDefinition,ISetUpMethod>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            IPopulateScope<IWeakTypeReference, ISetUpType> context= null, input = null, output = null;
+            IPopulateScope<IWeakTypeReference, ISetUpTypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)

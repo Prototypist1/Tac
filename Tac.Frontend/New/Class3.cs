@@ -10,7 +10,10 @@ namespace Tac.Frontend.New
     internal interface ISetUpSideNode
     {
     }
-
+    internal interface IHasTypeKey: ISetUpSideNode
+    {
+        IKey Key { get; }
+    }
 
     internal interface IDefineMembers : ISetUpSideNode
     {
@@ -43,11 +46,14 @@ namespace Tac.Frontend.New
         IKey Key { get; }
     }
 
-    internal interface ISetUpType : IDefineMembers
+    internal interface ISetUpTypeReference : IHasTypeKey
     {
-        IKey Key { get; }
     }
 
+
+    internal interface ISetUpType : IDefineMembers, ISetUpTypeReference
+    {
+    }
 
     internal interface ISetUpObject : IDefineMembers, ICanAssignFromMe
     {
@@ -81,13 +87,14 @@ namespace Tac.Frontend.New
     {
         // a =: x
         void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to);
-        ISetUpValue CreateValue(ISetUpType type);
+        ISetUpValue CreateValue(ISetUpTypeReference type);
         ISetUpMember CreateMember(IKey key, IKey keyType);
         ISetUpMember CreateMember(IKey key);
         ISetUpScope CreateScope();
         ISetUpScope CreateScope(IDefineMembers parent);
         ISetUpType CreateType(IDefineMembers parent, IKey key);
-        
+        ISetUpTypeReference CreateTypeReference(IDefineMembers context, IKey key);
+
         ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders);
         ISetUpObject CreateObject(IDefineMembers parent);
         ISetUpMethodBuilder CreateMethod(IDefineMembers parent);
@@ -106,25 +113,15 @@ namespace Tac.Frontend.New
         private readonly List<Object> objects = new List<Object>();
         private readonly List<Method> methods = new List<Method>();
         private readonly List<Type> types = new List<Type>();
+        private readonly List<TypeReference> typeReferences = new List<TypeReference>();
         private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
 
-        private IEnumerable<T> Get<T>() {
-            foreach (var list in new IEnumerable<object>[] { values , members, scopes, objects, methods, types })
-            {
-                foreach (var value in list.OfType<T>())
-                {
-                    yield return value;
-                }
-            }
-        }
-
-        public ISetUpValue CreateValue(ISetUpType type)
-        {
+        public ISetUpValue CreateValue(ISetUpTypeReference type) {
             var res = new Value(type);
             values.Add(res);
             return res;
         }
-        
+
         public ISetUpMember CreateMember(IKey key, IKey keyType) => new Member(key, keyType);
 
         public ISetUpMember CreateMember(IKey key) => new Member(key);
@@ -171,7 +168,12 @@ namespace Tac.Frontend.New
             return res;
         }
 
-
+        public ISetUpTypeReference CreateTypeReference(IDefineMembers context, IKey key)
+        {
+            var res = new TypeReference(context,key);
+            typeReferences.Add(res);
+            return res;
+        }
 
         public ISetUpMethodBuilder CreateMethod(IDefineMembers parent)
         {
@@ -229,11 +231,17 @@ namespace Tac.Frontend.New
 
         private class Value : ISetUpValue
         {
-            private ISetUpType type;
+            public TypeReference Type { get; }
 
-            public Value(ISetUpType type)
+            public Value(ISetUpTypeReference type)
             {
-                this.type = type;
+                if (!(type is TypeReference realType))
+                {
+                    // we are having a hard time with the internal exteranl view here
+                    // 😡
+                    throw new Exception("this sucks");
+                }
+                this.Type = realType;
             }
 
             public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
@@ -242,6 +250,19 @@ namespace Tac.Frontend.New
                 hopefullMemberTracker.HopefullyMember(member);
             }
         }
+
+        private class TypeReference : ISetUpTypeReference
+        {
+            public TypeReference(IDefineMembers context,IKey key)
+            {
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+                this.Key = key;
+            }
+
+            public IDefineMembers Context { get; }
+            public IKey Key {get;}
+        }
+
         private class Member : ISetUpMember
         {
             public readonly IKey typeKey;
@@ -425,7 +446,7 @@ namespace Tac.Frontend.New
             var toOverlay = new List<OverlayIntention>();
 
             // then members
-            ConvertMembers();
+            ConvertMembersAndValues();
 
             // then members that might be on parents
             ConvertMembersThatMightBeOnParents();
@@ -588,7 +609,7 @@ namespace Tac.Frontend.New
             }
 
 
-            void ConvertMembers()
+            void ConvertMembersAndValues()
             {
                 foreach (var scope in scopes)
                 {
@@ -623,6 +644,18 @@ namespace Tac.Frontend.New
                     }
                 }
 
+
+                foreach (var typeReference in typeReferences)
+                {
+                    ConvertTypeReference(typeReference);
+                }
+
+                foreach (var value in values)
+                {
+                    ConvertValue(value);
+                }
+
+
                 SolveSideNode ConvertMember(IDefineMembers owner, Member member)
                 {
                     {
@@ -638,7 +671,7 @@ namespace Tac.Frontend.New
 
                         if (member.typeKey is GenericNameKey genericNameKey)
                         {
-                            HandleGenericNameKey(genericNameKey);
+                            HandleGenericNameKey(owner,genericNameKey);
                         }
 
                         cache[owner].AddMember(member.Key, res);
@@ -646,42 +679,88 @@ namespace Tac.Frontend.New
                         return res;
                     }
 
-                    SolveSideNode HandleGenericNameKey(GenericNameKey genericNameKey)
-                    {
-                        if (cache[owner].TryGetType(new NameKey(genericNameKey.Name), out var copyFrom))
-                        {
-                            var list = new List<SolveSideNode>();
-                            foreach (var inner in genericNameKey.Types)
-                            {
-                                if (inner is GenericNameKey innerGernericNameKey)
-                                {
-                                    list.Add(HandleGenericNameKey(innerGernericNameKey));
-                                }
-                                else if (cache[owner].TryGetType(new NameKey(genericNameKey.Name), out var innerNode))
-                                {
-                                    list.Add(innerNode);
-                                }
-                                else
-                                {
-                                    throw new Exception("uuhhh, we could not find the type..");
-                                }
-                            }
-                            var copyTo = new SolveSideNode(true, copyFrom.parentOrNull,null);
-                            var map = new Dictionary<SolveSideNode, SolveSideNode>();
-                            foreach (var (to,from) in list.Zip(copyFrom.placeholderTypes, (x, y) =>(x,y)))
-                            {
-                                map[from] = to;
-                            } 
 
-                            toOverlay.Add(new OverlayIntention(copyFrom, copyTo, map));
-                            return copyTo;
-                        }
-                        else
+                }
+
+                SolveSideNode ConvertValue(Value value)
+                {
+                    {
+                        if (cache.TryGetValue(value, out var res))
                         {
-                            throw new Exception("uuhhh, we could not find the type..");
+                            return res;
                         }
                     }
 
+                    {
+                        var res = new SolveSideNode(false, null, value.Type.Key);
+                        cache.Add(value, res);
+
+                        if (value.Type.Key is GenericNameKey genericNameKey)
+                        {
+                            HandleGenericNameKey(value.Type.Context, genericNameKey);
+                        }
+
+                        return res;
+                    }
+                }
+
+
+                SolveSideNode ConvertTypeReference(TypeReference typeRef)
+                {
+                    {
+                        if (cache.TryGetValue(typeRef, out var res))
+                        {
+                            return res;
+                        }
+                    }
+
+                    {
+                        var res = new SolveSideNode(false, null, typeRef.Key);
+                        cache.Add(typeRef, res);
+
+                        if (typeRef.Key is GenericNameKey genericNameKey)
+                        {
+                            HandleGenericNameKey(typeRef.Context, genericNameKey);
+                        }
+
+                        return res;
+                    }
+                }
+
+                SolveSideNode HandleGenericNameKey(IDefineMembers owner, GenericNameKey genericNameKey)
+                {
+                    if (cache[owner].TryGetType(new NameKey(genericNameKey.Name), out var copyFrom))
+                    {
+                        var list = new List<SolveSideNode>();
+                        foreach (var inner in genericNameKey.Types)
+                        {
+                            if (inner is GenericNameKey innerGernericNameKey)
+                            {
+                                list.Add(HandleGenericNameKey(owner,innerGernericNameKey));
+                            }
+                            else if (cache[owner].TryGetType(new NameKey(genericNameKey.Name), out var innerNode))
+                            {
+                                list.Add(innerNode);
+                            }
+                            else
+                            {
+                                throw new Exception("uuhhh, we could not find the type..");
+                            }
+                        }
+                        var copyTo = new SolveSideNode(true, copyFrom.parentOrNull, null);
+                        var map = new Dictionary<SolveSideNode, SolveSideNode>();
+                        foreach (var (to, from) in list.Zip(copyFrom.placeholderTypes, (x, y) => (x, y)))
+                        {
+                            map[from] = to;
+                        }
+
+                        toOverlay.Add(new OverlayIntention(copyFrom, copyTo, map));
+                        return copyTo;
+                    }
+                    else
+                    {
+                        throw new Exception("uuhhh, we could not find the type..");
+                    }
                 }
             }
 
@@ -689,9 +768,8 @@ namespace Tac.Frontend.New
             {
                 foreach (var overlay in toOverlay)
                 {
+                    // TODO ahhh! do I  need to overlay values and type reference as well?
                     var mapped = new Dictionary<SolveSideNode, SolveSideNode>();
-                    // TODO we need to store members and the like
-                    // in the list we 
                     overlay.copyFrom.OverlayTo(overlay.copyTo, overlay.map, mapped);
                     overlay.copyFrom.OverlayToRelationshipsTo(overlay.copyTo, mapped);
                 }
@@ -707,6 +785,10 @@ namespace Tac.Frontend.New
                         ConvertMember(node, member);
                     }
                 }
+
+                // TODO 
+                // type reference
+                // values
 
                 void ConvertMember(SolveSideNode owner, SolveSideNode member)
                 {

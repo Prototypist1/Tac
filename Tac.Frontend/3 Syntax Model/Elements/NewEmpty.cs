@@ -90,11 +90,10 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             public IResolvelizeScope<WeakEmptyInstance, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                var boolType = context.TypeProblem.CreateType(scope, new NameKey("empty"));
-                var value = context.TypeProblem.CreateValue(boolType);
+                var emptyType = context.TypeProblem.CreateTypeReference(new NameKey("empty"));
+                var value = context.TypeProblem.CreateValue(emptyType);
                 return new EmptyInstanceFinalizeScope(value);
             }
-
         }
 
         private class EmptyInstanceFinalizeScope : IResolvelizeScope<WeakEmptyInstance, ISetUpValue>
