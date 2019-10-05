@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -15,11 +16,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticModuleDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticModuleDefinitionMaker = AddElementMakers(
             () => new ModuleDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -68,14 +69,17 @@ namespace Tac.Semantic_Model
         }
     }
     
-    internal class ModuleDefinitionMaker : IMaker<IPopulateScope<WeakModuleDefinition>>
+    // modules are not really objects tho
+    // they have very constrained syntax
+    // they only can contain constants, methods and implementations 
+    internal class ModuleDefinitionMaker : IMaker<IPopulateScope<WeakModuleDefinition, ISetUpObject>>
     {
         public ModuleDefinitionMaker()
         {
         }
         
 
-        public ITokenMatching<IPopulateScope<WeakModuleDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakModuleDefinition, ISetUpObject>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("module"), out _)
@@ -86,18 +90,18 @@ namespace Tac.Semantic_Model
                 var elements = matching.Context.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
 
-                return TokenMatching<IPopulateScope<WeakModuleDefinition>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakModuleDefinition, ISetUpObject>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new ModuleDefinitionPopulateScope(elements, nameKey));
 
             }
-            return TokenMatching<IPopulateScope<WeakModuleDefinition>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakModuleDefinition, ISetUpObject>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        public static IPopulateScope<WeakModuleDefinition> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
+        public static IPopulateScope<WeakModuleDefinition, ISetUpObject> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ISetUpSideNode>[] elements,
                 NameKey nameKey)
         {
             return new ModuleDefinitionPopulateScope(elements,
@@ -114,43 +118,48 @@ namespace Tac.Semantic_Model
 
 
 
-        private class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition>
+        private class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition, ISetUpObject>
         {
-            private readonly IPopulateScope<IFrontendCodeElement>[] elements;
+            private readonly IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionPopulateScope(
-                IPopulateScope<IFrontendCodeElement>[] elements,
+                IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public IResolvelizeScope<WeakModuleDefinition> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakModuleDefinition, ISetUpObject> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                var myScope = scope.AddChild();
+                var myScope= context.TypeProblem.CreateObject(scope);
+
                 return new ModuleDefinitionFinalizeScope(
-                    myScope.GetResolvelizableScope(),
+                    myScope,
                     elements.Select(x => x.Run(myScope, context)).ToArray(),
                     nameKey);
             }
         }
 
-        private class ModuleDefinitionFinalizeScope : IResolvelizeScope<WeakModuleDefinition>
+        private class ModuleDefinitionFinalizeScope : IResolvelizeScope<WeakModuleDefinition, ISetUpObject>
         {
-            private readonly IResolvelizableScope scope;
-            private readonly IResolvelizeScope<IFrontendCodeElement>[] elements;
+            private readonly IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionFinalizeScope(
-                IResolvelizableScope scope,
-                IResolvelizeScope<IFrontendCodeElement>[] elements,
+                ISetUpObject scope,
+                IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] elements,
                 NameKey nameKey)
             {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                SetUpSideNode = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+            }
+
+            public ISetUpObject SetUpSideNode
+            {
+                get;
             }
 
             public IPopulateBoxes<WeakModuleDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
