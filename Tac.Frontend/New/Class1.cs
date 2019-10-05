@@ -24,18 +24,20 @@ namespace Tac.New
         public ISetUpTypeProblem TypeProblem { get; }
     }
 
-    internal interface IPopulateScope<out TCodeElement> 
+    internal interface IPopulateScope<out TCodeElement, out TSetUpSideNode>
+        where TSetUpSideNode: ISetUpSideNode
     {
-        IResolvelizeScope<TCodeElement> Run(IDefineMembers scope, IPopulateScopeContext context);
+        IResolvelizeScope<TCodeElement, TSetUpSideNode> Run(IDefineMembers scope, IPopulateScopeContext context);
     }
 
     internal interface IFinalizeScopeContext { }
     internal class FinalizeScopeContext: IFinalizeScopeContext { }
 
 
-    internal interface IResolvelizeScope<out TCodeElement>
+    internal interface IResolvelizeScope<out TCodeElement, out TSetUpSideNode>
+        where TSetUpSideNode: ISetUpSideNode
     {
-        
+        TSetUpSideNode SetUpSideNode { get; }
 
         // having this take a IResolvableScope is a little wierd
         // I don't want anything resolved until next time

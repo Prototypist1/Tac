@@ -6,6 +6,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -39,12 +40,12 @@ namespace Tac.Parser
 
         private static Condition<T> MustBeAfter<T>(Type type) => list => list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
 
-        private static readonly List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>>> implicitElementMakers = new List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>>>();
-        private static readonly List<WithConditions<IPopulateScope<IFrontendCodeElement>>> operationMatchers = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
-        private static readonly List<WithConditions<IPopulateScope<IFrontendCodeElement>>> elementMakers = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
-        private static readonly List<WithConditions<IPopulateScope<IFrontendType>>> typeOperationMatchers = new List<WithConditions<IPopulateScope<IFrontendType>>>();
-        private static readonly List<WithConditions<IPopulateScope<IFrontendType>>> typeMakers = new List<WithConditions<IPopulateScope<IFrontendType>>>();
-        public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> OperationMatchers => Process(operationMatchers);
+        private static readonly List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>>> implicitElementMakers = new List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement,ISetUpSideNode>>>>();
+        private static readonly List<WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>> operationMatchers = new List<WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>>();
+        private static readonly List<WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>> elementMakers = new List<WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>>();
+        private static readonly List<WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>>> typeOperationMatchers = new List<WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>>>();
+        private static readonly List<WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>>> typeMakers = new List<WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>>>();
+        public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>> OperationMatchers => Process(operationMatchers);
         //public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> ImplicitOperationMatchers(IBox<IIsPossibly<IFrontendType>> box) {
         //    var list = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
         //    list.AddRange(elementMakers);
@@ -53,9 +54,9 @@ namespace Tac.Parser
         //    return Process(list);
         //}
 
-        public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> ElementMakers => Process(elementMakers);
-        public IEnumerable<IMaker<IPopulateScope<IFrontendType>>> TypeOperationMatchers => Process(typeOperationMatchers);
-        public IEnumerable<IMaker<IPopulateScope<IFrontendType>>> TypeMakers => Process(typeMakers);
+        public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement,ISetUpSideNode>>> ElementMakers => Process(elementMakers);
+        public IEnumerable<IMaker<IPopulateScope<IFrontendType, ISetUpSideNode>>> TypeOperationMatchers => Process(typeOperationMatchers);
+        public IEnumerable<IMaker<IPopulateScope<IFrontendType, ISetUpSideNode>>> TypeMakers => Process(typeMakers);
 
         private IEnumerable<IMaker<T>> Process<T>(List<WithConditions<T>> withConditionss) {
             var lastCount = -1;
@@ -95,34 +96,34 @@ namespace Tac.Parser
             throw new Exception("could not order");
         }
 
-        private static Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>> AddImplicitOperationMatcher(
-            Func<IBox<IIsPossibly<IFrontendType>>, IMaker<IPopulateScope<IFrontendCodeElement>>> func, 
-            params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions)
+        private static Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>> AddImplicitOperationMatcher(
+            Func<IBox<IIsPossibly<IFrontendType>>, IMaker<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>> func, 
+            params Condition<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>[] conditions)
         {
-            Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement>>> res = (x) => new WithConditions<IPopulateScope<IFrontendCodeElement>>(() => func(x), conditions.ToList());
+            Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>> res = (x) => new WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(() => func(x), conditions.ToList());
             implicitElementMakers.Add(res);
             return res;
         }
-        private static WithConditions<IPopulateScope<IFrontendCodeElement>> AddOperationMatcher(Func<IMaker<IPopulateScope<IFrontendCodeElement>>> item, params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions) {
-            var res = new WithConditions<IPopulateScope<IFrontendCodeElement>>(item, conditions.ToList());
+        private static WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> AddOperationMatcher(Func<IMaker<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>> item, params Condition<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>[] conditions) {
+            var res = new WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(item, conditions.ToList());
             operationMatchers.Add(res);
             return res;
         }
-        private static WithConditions<IPopulateScope<IFrontendCodeElement>> AddElementMakers(Func<IMaker<IPopulateScope<IFrontendCodeElement>>> item, params Condition<IPopulateScope<IFrontendCodeElement>>[] conditions)
+        private static WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> AddElementMakers(Func<IMaker<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>> item, params Condition<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>[] conditions)
         {
-            var res = new WithConditions<IPopulateScope<IFrontendCodeElement>>(item, conditions.ToList());
+            var res = new WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(item, conditions.ToList());
             elementMakers.Add(res);
             return res;
         }
-        private static WithConditions<IPopulateScope<IFrontendType>> AddTypeOperationMatcher(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
+        private static WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>> AddTypeOperationMatcher(Func<IMaker<IPopulateScope<IFrontendType, ISetUpSideNode>>> item, params Condition<IPopulateScope<IFrontendType, ISetUpSideNode>>[] conditions)
         {
-            var res = new WithConditions<IPopulateScope<IFrontendType>>(item, conditions.ToList());
+            var res = new WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>>(item, conditions.ToList());
             typeOperationMatchers.Add(res);
             return res;
         }
-        private static WithConditions<IPopulateScope<IFrontendType>> AddTypeMaker(Func<IMaker<IPopulateScope<IFrontendType>>> item, params Condition<IPopulateScope<IFrontendType>>[] conditions)
+        private static WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>> AddTypeMaker(Func<IMaker<IPopulateScope<IFrontendType, ISetUpSideNode>>> item, params Condition<IPopulateScope<IFrontendType, ISetUpSideNode>>[] conditions)
         {
-            var res = new WithConditions<IPopulateScope<IFrontendType>>(item, conditions.ToList());
+            var res = new WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>>(item, conditions.ToList());
             typeMakers.Add(res);
             return res;
         }
@@ -178,10 +179,10 @@ namespace Tac.Parser
         {}
         
         public ElementMatchingContext(
-            IMaker<IPopulateScope<IFrontendCodeElement>>[] operationMatchers, 
-            IMaker<IPopulateScope<IFrontendCodeElement>>[] elementMakers,
-            IMaker<IPopulateScope<IFrontendType>>[] typeOperationMatchers,
-            IMaker<IPopulateScope<IFrontendType>>[] typeMakers
+            IMaker<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>[] operationMatchers, 
+            IMaker<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>[] elementMakers,
+            IMaker<IPopulateScope<IFrontendType, ISetUpSideNode>>[] typeOperationMatchers,
+            IMaker<IPopulateScope<IFrontendType, ISetUpSideNode>>[] typeMakers
             )
         {
             this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
@@ -190,14 +191,14 @@ namespace Tac.Parser
             this.typeMakers = typeMakers ?? throw new ArgumentNullException(nameof(typeMakers));
         }
 
-        private readonly IMaker<IPopulateScope<IFrontendCodeElement>>[] elementMakers;
-        private readonly IMaker<IPopulateScope<IFrontendCodeElement>>[] operationMatchers;
-        private readonly IMaker<IPopulateScope<IFrontendType>>[] typeOperationMatchers;
-        private readonly IMaker<IPopulateScope<IFrontendType>>[] typeMakers;
+        private readonly IMaker<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>[] elementMakers;
+        private readonly IMaker<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>[] operationMatchers;
+        private readonly IMaker<IPopulateScope<IFrontendType, ISetUpSideNode>>[] typeOperationMatchers;
+        private readonly IMaker<IPopulateScope<IFrontendType, ISetUpSideNode>>[] typeMakers;
 
         #region Parse
 
-        public IPopulateScope<IFrontendType> ParseParenthesisOrElementType(IToken token) {
+        public IPopulateScope<IFrontendType, ISetUpSideNode> ParseParenthesisOrElementType(IToken token) {
             if (token is ElementToken elementToken)
             {
                 // smells
@@ -212,7 +213,7 @@ namespace Tac.Parser
 
                 foreach (var tryMatch in typeMakers)
                 {
-                    if (TokenMatching<IPopulateScope<IFrontendType>>.MakeStart(elementToken.Tokens, this)
+                    if (TokenMatching<IPopulateScope<IFrontendType, ISetUpSideNode>>.MakeStart(elementToken.Tokens, this)
                         .Has(tryMatch, out var res)
                         .Has(new DoneMaker())
                         is IMatchedTokenMatching)
@@ -229,7 +230,7 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<IFrontendCodeElement> ParseParenthesisOrElement(IToken token)
+        public IPopulateScope<IFrontendCodeElement, ISetUpSideNode> ParseParenthesisOrElement(IToken token)
         {
             if (token is ElementToken elementToken)
             {
@@ -245,7 +246,7 @@ namespace Tac.Parser
 
                 foreach (var tryMatch in elementMakers)
                 {
-                    if (TokenMatching<IPopulateScope<IFrontendCodeElement>>.MakeStart(elementToken.Tokens,this)
+                    if (TokenMatching<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>.MakeStart(elementToken.Tokens,this)
                         .Has(tryMatch, out var res)
                         .Has(new DoneMaker())
                         is IMatchedTokenMatching)
@@ -262,11 +263,11 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<IFrontendCodeElement> ParseLine(IEnumerable<IToken> tokens)
+        public IPopulateScope<IFrontendCodeElement, ISetUpSideNode> ParseLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in operationMatchers)
             {
-                if (TokenMatching<IPopulateScope<ICodeElement>>.MakeStart(tokens.ToArray(), this)
+                if (TokenMatching<IPopulateScope<ICodeElement, ISetUpSideNode>>.MakeStart(tokens.ToArray(), this)
                         .Has(operationMatcher, out var res)
                          is IMatchedTokenMatching)
                 {
@@ -282,11 +283,11 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<IFrontendType> ParseTypeLine(IEnumerable<IToken> tokens)
+        public IPopulateScope<IFrontendType, ISetUpSideNode> ParseTypeLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in typeOperationMatchers)
             {
-                if (TokenMatching<IPopulateScope<ICodeElement>>.MakeStart(tokens.ToArray(), this)
+                if (TokenMatching<IPopulateScope<ICodeElement, ISetUpSideNode>>.MakeStart(tokens.ToArray(), this)
                         .Has(operationMatcher, out var res)
                          is IMatchedTokenMatching)
                 {
@@ -302,12 +303,12 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public IPopulateScope<IFrontendCodeElement>[] ParseFile(FileToken file)
+        public IPopulateScope<IFrontendCodeElement, ISetUpSideNode>[] ParseFile(FileToken file)
         {
             return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
         }
 
-        public IPopulateScope<IFrontendCodeElement>[] ParseBlock(CurleyBracketToken block)
+        public IPopulateScope<IFrontendCodeElement, ISetUpSideNode>[] ParseBlock(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {

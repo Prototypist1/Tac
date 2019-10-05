@@ -34,7 +34,7 @@ namespace Tac.Frontend.New
         void HopefullyMember(ISetUpMember member);
     }
 
-    internal interface IValue : ICanAssignFromMe
+    internal interface ISetUpValue : ICanAssignFromMe
     {
     }
 
@@ -74,7 +74,7 @@ namespace Tac.Frontend.New
     {
         // a =: x
         void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to);
-        IValue CreateValue(ISetUpType type);
+        ISetUpValue CreateValue(ISetUpType type);
         ISetUpMember CreateMember(IKey key, IKey keyType);
         ISetUpMember CreateMember(IKey key);
         ISetUpScope CreateScope();
@@ -84,7 +84,14 @@ namespace Tac.Frontend.New
         ISetUpType CreateType();
         ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders);
         ISetUpObject CreateObject(IDefineMembers parent);
-        ISetUpMethod CreateMethod(ISetUpMember input, ISetUpMember output, IDefineMembers parent);
+        ISetUpMethod CreateMethod(Func<IDefineMembers, ISetUpMember> input,
+            Func<IDefineMembers, ISetUpMember> output, 
+            IDefineMembers parent);
+        ISetUpMethod CreateImplementation(
+            Func<IDefineMembers, ISetUpMember> context,
+            Func<IDefineMembers, ISetUpMember> input,
+            Func<IDefineMembers, ISetUpMember> output,
+            IDefineMembers parent);
     }
 
     internal interface ITypeSolution
@@ -111,7 +118,7 @@ namespace Tac.Frontend.New
             }
         }
 
-        public IValue CreateValue(ISetUpType type)
+        public ISetUpValue CreateValue(ISetUpType type)
         {
             var res = new Value(type);
             values.Add(res);
@@ -173,22 +180,30 @@ namespace Tac.Frontend.New
 
 
 
-        public ISetUpMethod CreateMethod(ISetUpMember input, ISetUpMember output, IDefineMembers parent)
+        public ISetUpMethod CreateMethod(
+            Func<IDefineMembers, ISetUpMember> input,
+            Func<IDefineMembers, ISetUpMember> output, 
+            IDefineMembers parent)
         {
             var method = new Method(this, input, output, parent);
             methods.Add(method);
             return method;
         }
 
-
-        public ISetUpMethod CreateImplementation<T>(T context, ISetUpMember input, ISetUpMember output, IDefineMembers parent)
-           where T:ICanAssignFromMe,IDefineMembers
+        //
+        // for now we enforce context.x
+        public ISetUpMethod CreateImplementation(
+            Func<IDefineMembers, ISetUpMember> context, 
+            Func<IDefineMembers, ISetUpMember> input, 
+            Func<IDefineMembers, ISetUpMember> output, 
+            IDefineMembers parent)
         {
-            var contextMember = CreateMember(new ImplicitKey());
-            IsAssignedTo(context, contextMember);
-            var inner = CreateMethod(input, output, context);
-            var returnsMember = CreateMember(new ImplicitKey());
-            var outer = new Method(this, contextMember, returnsMember, parent);
+            var outer = new Method(
+                this, 
+                x=> context(x), 
+                x=> CreateMember(new ImplicitKey()), 
+                parent);
+            var inner = CreateMethod(input, output, outer);
             outer.AssignToReturns(inner);
             methods.Add(outer);
             return inner;
@@ -241,7 +256,7 @@ namespace Tac.Frontend.New
             }
         }
 
-        private class Value : IValue
+        private class Value : ISetUpValue
         {
             private ISetUpType type;
 
@@ -368,13 +383,16 @@ namespace Tac.Frontend.New
             private readonly ISetUpMember output;
             public IDefineMembers ParentOrNull { get; }
 
-            public Method(TypeProblem typeProblem, ISetUpMember input, ISetUpMember output, IDefineMembers parent)
+            public Method(TypeProblem typeProblem,
+            Func<ISetUpScope, ISetUpMember> input,
+            Func<ISetUpScope, ISetUpMember> output,
+            IDefineMembers parent)
             {
                 this.typeProblem = typeProblem;
-                this.input = input;
-                this.output = output;
+                this.input = input(this);
+                this.output = output(this);
                 ParentOrNull = parent;
-                Member(input);
+                Member(this.input);
             }
 
 

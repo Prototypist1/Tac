@@ -16,11 +16,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticConstantStringMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticConstantStringMaker = AddElementMakers(
             () => new ConstantStringMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ConstantStringMaker = StaticConstantStringMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> ConstantStringMaker = StaticConstantStringMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -62,7 +62,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantStringMaker : IMaker<IPopulateScope<WeakConstantString>>
+    internal class ConstantStringMaker : IMaker<IPopulateScope<WeakConstantString, ISetUpValue>>
     {
         public ConstantStringMaker() { }
 
@@ -84,7 +84,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public ITokenMatching<IPopulateScope<WeakConstantString>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakConstantString, ISetUpValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .Has(new StringMaker(), out var str);
@@ -92,12 +92,12 @@ namespace Tac.Semantic_Model.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakConstantString>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantStringPopulateScope(str));
+                return TokenMatching<IPopulateScope<WeakConstantString, ISetUpValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantStringPopulateScope(str));
             }
-            return TokenMatching<IPopulateScope<WeakConstantString>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakConstantString, ISetUpValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakConstantString> PopulateScope(string str)
+        public static IPopulateScope<WeakConstantString, ISetUpValue> PopulateScope(string str)
         {
             return new ConstantStringPopulateScope(str);
         }
@@ -106,7 +106,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantStringResolveReferance(str);
         }
 
-        private class ConstantStringPopulateScope : IPopulateScope<WeakConstantString>
+        private class ConstantStringPopulateScope : IPopulateScope<WeakConstantString, ISetUpValue>
         {
             private readonly string str;
 
@@ -115,20 +115,26 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IResolvelizeScope<WeakConstantString> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantString, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                return new ConstantStringFinalizeScope(str);
+                var stringType = context.TypeProblem.CreateType(scope, new NameKey("string"));
+                var value = context.TypeProblem.CreateValue(stringType);
+                return new ConstantStringFinalizeScope(str, value);
             }
         }
 
-        private class ConstantStringFinalizeScope : IResolvelizeScope<WeakConstantString>
+        private class ConstantStringFinalizeScope : IResolvelizeScope<WeakConstantString, ISetUpValue>
         {
             private readonly string str;
 
-            public ConstantStringFinalizeScope(string str)
+            public ConstantStringFinalizeScope(string str, ISetUpValue setUpSideNode)
             {
                 this.str = str;
+                SetUpSideNode = setUpSideNode ?? throw new System.ArgumentNullException(nameof(setUpSideNode));
             }
+
+            public ISetUpValue SetUpSideNode  {get;}
+
 
             public IPopulateBoxes<WeakConstantString> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -19,11 +20,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMemberDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement,ISetUpSideNode>> StaticMemberDefinitionMaker = AddElementMakers(
             () => new MemberDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MemberDefinitionMaker = StaticMemberDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> MemberDefinitionMaker = StaticMemberDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -124,13 +125,13 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal class MemberDefinitionMaker : IMaker<IPopulateScope<WeakMemberReference>>
+    internal class MemberDefinitionMaker : IMaker<IPopulateScope<WeakMemberReference,ISetUpMember>>
     {
         public MemberDefinitionMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMemberReference, ISetUpMember>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
@@ -138,20 +139,20 @@ namespace Tac.Semantic_Model
                 .Has(new NameMaker(), out var nameToken);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakMemberReference, ISetUpMember>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new MemberDefinitionPopulateScope(nameToken.Item, readonlyToken != default, type));
             }
-            return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakMemberReference, ISetUpMember>>.MakeNotMatch(
                                matching.Context);
         }
 
 
-        public static IPopulateScope<WeakMemberReference> PopulateScope(
+        public static IPopulateScope<WeakMemberReference, ISetUpMember> PopulateScope(
             string item, 
             bool v, 
-            IPopulateScope<IWeakTypeReference> typeToken)
+            IPopulateScope<IWeakTypeReference, ISetUpType> typeToken)
         {
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
@@ -170,47 +171,50 @@ namespace Tac.Semantic_Model
         }
 
 
-        private class MemberDefinitionPopulateScope : IPopulateScope<WeakMemberReference>
+        private class MemberDefinitionPopulateScope : IPopulateScope<WeakMemberReference, ISetUpMember>
         {
             private readonly string memberName;
             private readonly bool isReadonly;
-            private readonly IPopulateScope<IWeakTypeReference> typeName;
+            private readonly IPopulateScope<IWeakTypeReference, ISetUpType> typeName;
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox = new Box<IIsPossibly<WeakMemberDefinition>>();
 
-            public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<IWeakTypeReference> typeToken)
+            public MemberDefinitionPopulateScope(string item, bool v, IPopulateScope<IWeakTypeReference, ISetUpType> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;
                 typeName = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
             }
 
-            public IResolvelizeScope<WeakMemberReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakMemberReference, ISetUpMember> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
                 var key = new NameKey(memberName);
+                var type = typeName.Run(scope, context);
+                var member = context.TypeProblem.CreateMember(key,type.);
+
+
                 if (!scope.TryAddMember(DefintionLifetime.Instance, key, memberDefinitionBox))
                 {
                     throw new Exception("bad bad bad!");
                 }
                 return new MemberDefinitionFinalizeScope(
                     memberName, 
-                    isReadonly, 
-                    typeName.Run(scope,context), 
+                    isReadonly, , 
                     memberDefinitionBox);
             }
 
         }
 
-        private class MemberDefinitionFinalizeScope : IResolvelizeScope<WeakMemberReference>
+        private class MemberDefinitionFinalizeScope : IResolvelizeScope<WeakMemberReference, ISetUpMember>
         {
             private readonly string memberName;
             private readonly bool isReadonly;
-            public readonly IResolvelizeScope<IWeakTypeReference> type;
+            public readonly IResolvelizeScope<IWeakTypeReference, ISetUpType> type;
             private readonly Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox;
 
             public MemberDefinitionFinalizeScope(
                 string memberName,
                 bool isReadonly,
-                IResolvelizeScope<IWeakTypeReference> type,
+                IResolvelizeScope<IWeakTypeReference, ISetUpType> type,
                 Box<IIsPossibly<WeakMemberDefinition>> memberDefinitionBox)
             {
                 this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));

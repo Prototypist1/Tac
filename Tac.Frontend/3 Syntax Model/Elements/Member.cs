@@ -2,6 +2,7 @@
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
@@ -14,37 +15,37 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMemberMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement,ISetUpSideNode>> StaticMemberMaker = AddElementMakers(
             () => new MemberMaker());
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MemberMaker = StaticMemberMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> MemberMaker = StaticMemberMaker;
     }
 }
 
 
 namespace Tac.Semantic_Model
 {
-    internal class MemberMaker : IMaker<IPopulateScope<WeakMemberReference>>
+    internal class MemberMaker : IMaker<IPopulateScope<WeakMemberReference,ISetUpMember>>
     {
         public MemberMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakMemberReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakMemberReference, ISetUpMember>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new NameMaker(), out var first);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakMemberReference, ISetUpMember>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new MemberPopulateScope(first.Item)); ;
             }
-            return TokenMatching<IPopulateScope<WeakMemberReference>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakMemberReference, ISetUpMember>>.MakeNotMatch(
                     matching.Context);
         }
 
-        public static IPopulateScope<WeakMemberReference> PopulateScope(string item)
+        public static IPopulateScope<WeakMemberReference, ISetUpMember> PopulateScope(string item)
         {
             return new MemberPopulateScope(item);
         }
@@ -55,7 +56,7 @@ namespace Tac.Semantic_Model
                 key);
         }
 
-        private class MemberPopulateScope : IPopulateScope<WeakMemberReference>
+        private class MemberPopulateScope : IPopulateScope<WeakMemberReference, ISetUpMember>
         {
             private readonly string memberName;
 
@@ -64,33 +65,26 @@ namespace Tac.Semantic_Model
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
             }
 
-            public IResolvelizeScope<WeakMemberReference> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakMemberReference, ISetUpMember> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
                 var nameKey = new NameKey(memberName);
-                var memberBuilder = scope.GetOrAddInferedMember(nameKey, new MemberBuilder());
+                var member = context.TypeProblem.CreateMember(nameKey);
+                scope.Member(member);
 
-                return new MemberFinalizeScope( nameKey, memberBuilder);
+                return new MemberFinalizeScope( nameKey);
             }
 
         }
 
 
-        private class MemberFinalizeScope : IResolvelizeScope<WeakMemberReference>, IMemberBuilder
+        private class MemberFinalizeScope : IResolvelizeScope<WeakMemberReference, ISetUpMember>
         {
             private readonly NameKey key;
-            private readonly IMemberBuilder memberBuilder;
 
             public MemberFinalizeScope(
-                NameKey key,
-                IMemberBuilder memberBuilder)
+                NameKey key)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
-                this.memberBuilder = memberBuilder ?? throw new ArgumentNullException(nameof(memberBuilder));
-            }
-
-            public void AcceptsType(Box<IFrontendType> box)
-            {
-                memberBuilder.AcceptsType(box);
             }
 
             public IPopulateBoxes<WeakMemberReference> Run(IResolvableScope parent, IFinalizeScopeContext context)

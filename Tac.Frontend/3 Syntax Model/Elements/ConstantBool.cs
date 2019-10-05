@@ -16,11 +16,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticConstantBoolMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticConstantBoolMaker = AddElementMakers(
             () => new ConstantBoolMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ConstantBoolMaker = StaticConstantBoolMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> ConstantBoolMaker = StaticConstantBoolMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -54,7 +54,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantBoolMaker : IMaker<IPopulateScope<WeakConstantBool>>
+    internal class ConstantBoolMaker : IMaker<IPopulateScope<WeakConstantBool, ISetUpValue>>
     {
         public ConstantBoolMaker() { }
 
@@ -82,7 +82,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public ITokenMatching<IPopulateScope<WeakConstantBool>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakConstantBool, ISetUpValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .Has(new BoolMaker(), out var dub);
@@ -90,12 +90,12 @@ namespace Tac.Semantic_Model.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakConstantBool>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
+                return TokenMatching<IPopulateScope<WeakConstantBool, ISetUpValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
             }
-            return TokenMatching<IPopulateScope<WeakConstantBool>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakConstantBool, ISetUpValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakConstantBool> PopulateScope(bool dub)
+        public static IPopulateScope<WeakConstantBool, ISetUpValue> PopulateScope(bool dub)
         {
             return new ConstantBoolPopulateScope(dub);
         }
@@ -104,7 +104,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantBoolResolveReferance(dub);
         }
 
-        private class ConstantBoolPopulateScope : IPopulateScope<WeakConstantBool>
+        private class ConstantBoolPopulateScope : IPopulateScope<WeakConstantBool, ISetUpValue>
         {
             private readonly bool dub;
 
@@ -113,20 +113,25 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IResolvelizeScope<WeakConstantBool> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantBool, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
-                return new ConstantBoolFinalizeScope(dub);
+                var boolType= context.TypeProblem.CreateType(scope, new NameKey("bool"));
+                var value = context.TypeProblem.CreateValue(boolType);
+                return new ConstantBoolFinalizeScope(dub,value);
             }
         }
 
-        private class ConstantBoolFinalizeScope : IResolvelizeScope<WeakConstantBool>
+        private class ConstantBoolFinalizeScope : IResolvelizeScope<WeakConstantBool, ISetUpValue>
         {
             private readonly bool dub;
 
-            public ConstantBoolFinalizeScope(bool dub)
+            public ConstantBoolFinalizeScope(bool dub, ISetUpValue setUpSideNode)
             {
                 this.dub = dub;
+                SetUpSideNode = setUpSideNode ?? throw new System.ArgumentNullException(nameof(setUpSideNode));
             }
+
+            public ISetUpValue SetUpSideNode  {get;}
 
             public IPopulateBoxes<WeakConstantBool> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {

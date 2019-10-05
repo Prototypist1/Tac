@@ -21,11 +21,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticGenericTypeDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
             () => new GenericTypeDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -119,14 +119,14 @@ namespace Tac.Semantic_Model
         }
     }
     
-    internal class GenericTypeDefinitionMaker : IMaker<IPopulateScope<WeakGenericTypeDefinition>>
+    internal class GenericTypeDefinitionMaker : IMaker<IPopulateScope<WeakGenericTypeDefinition,ISetUpType>>
     {
 
         public GenericTypeDefinitionMaker()
         {
         }
 
-        public ITokenMatching<IPopulateScope<WeakGenericTypeDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakGenericTypeDefinition, ISetUpType>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -135,7 +135,7 @@ namespace Tac.Semantic_Model
                 .Has(new BodyMaker(), out var body);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakGenericTypeDefinition, ISetUpType>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new GenericTypeDefinitionPopulateScope(
@@ -145,13 +145,13 @@ namespace Tac.Semantic_Model
                         PrimitiveTypes.CreateGenericTypeParameterPlacholder(new NameKey(x))).ToArray()));
             }
 
-            return TokenMatching<IPopulateScope<WeakGenericTypeDefinition>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakGenericTypeDefinition, ISetUpType>>.MakeNotMatch(
                     matching.Context);
         }
 
-        public static IPopulateScope<WeakGenericTypeDefinition> PopulateScope(
+        public static IPopulateScope<WeakGenericTypeDefinition, ISetUpType> PopulateScope(
                 NameKey nameKey,
-                IEnumerable<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>> lines,
+                IEnumerable<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ISetUpSideNode>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
@@ -172,16 +172,16 @@ namespace Tac.Semantic_Model
                 lines);
         }
 
-        private class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition>
+        private class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition, ISetUpType>
         {
             private readonly NameKey nameKey;
-            private readonly IEnumerable<IPopulateScope<IFrontendCodeElement>> lines;
+            private readonly IEnumerable<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IEnumerable<IPopulateScope<IFrontendCodeElement>> lines,
+                IEnumerable<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -189,36 +189,36 @@ namespace Tac.Semantic_Model
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             }
 
-            public IResolvelizeScope<WeakGenericTypeDefinition> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakGenericTypeDefinition, ISetUpType> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
                 var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>x.Key).ToArray());
                 var nextLines = lines.Select(x => x.Run(myScope, context)).ToArray();
-                return new GenericTypeDefinitionFinalizeScope(nameKey, myScope.GetResolvelizableScope(), box, genericParameters, nextLines);
+                return new GenericTypeDefinitionFinalizeScope(nameKey, myScope, box, genericParameters, nextLines);
             }
         }
 
-        private class GenericTypeDefinitionFinalizeScope : IResolvelizeScope<WeakGenericTypeDefinition>
+        private class GenericTypeDefinitionFinalizeScope : IResolvelizeScope<WeakGenericTypeDefinition, ISetUpType>
         {
             private readonly NameKey nameKey;
-            private readonly IResolvelizableScope scope;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
-            private readonly IResolvelizeScope<IFrontendCodeElement>[] lines;
+            private readonly IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] lines;
 
             public GenericTypeDefinitionFinalizeScope(
                 NameKey nameKey,
-                IResolvelizableScope scope,
+                ISetUpType scope,
                 Box<IIsPossibly<IFrontendGenericType>> box,
                 IGenericTypeParameterPlacholder[] genericParameters,
-                IResolvelizeScope<IFrontendCodeElement>[] lines)
+                IResolvelizeScope<IFrontendCodeElement, ISetUpSideNode>[] lines)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+                this.SetUpSideNode = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
                 this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
             }
 
+            public ISetUpType SetUpSideNode { get; }
 
             public IPopulateBoxes<WeakGenericTypeDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {

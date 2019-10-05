@@ -18,11 +18,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticBlockDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticBlockDefinitionMaker = AddElementMakers(
             () => new BlockDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -56,13 +56,13 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class BlockDefinitionMaker : IMaker<IPopulateScope<WeakBlockDefinition>>
+    internal class BlockDefinitionMaker : IMaker<IPopulateScope<WeakBlockDefinition, ISetUpScope>>
     {
         public BlockDefinitionMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakBlockDefinition>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakBlockDefinition, ISetUpScope>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                .Has(new BodyMaker(), out var body);
@@ -72,14 +72,14 @@ namespace Tac.Semantic_Model
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
 
-                return TokenMatching<IPopulateScope<WeakBlockDefinition>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, 
+                return TokenMatching<IPopulateScope<WeakBlockDefinition, ISetUpScope>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, 
                     new BlockDefinitionPopulateScope(elements));
             }
 
-            return TokenMatching<IPopulateScope<WeakBlockDefinition>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakBlockDefinition, ISetUpScope>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakBlockDefinition> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>>[] elements)
+        public static IPopulateScope<WeakBlockDefinition, ISetUpScope> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ISetUpSideNode>[] elements)
         {
             return new BlockDefinitionPopulateScope(elements);
         }
@@ -89,35 +89,35 @@ namespace Tac.Semantic_Model
             return new ResolveReferanceBlockDefinition(scope, resolveReferance);
         }
 
-        private class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition>
+        private class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition, ISetUpScope>
         {
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private IPopulateScope<IFrontendCodeElement>[] Elements { get; }
+            private IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] Elements { get; }
 
-            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement>[] elements)
+            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement, ISetUpSideNode>[] elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IResolvelizeScope<WeakBlockDefinition> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakBlockDefinition,ISetUpScope> Run(IDefineMembers scope, IPopulateScopeContext context)
             {
                 var myScope = context.TypeProblem.CreateScope(scope);
                 return new FinalizeScopeBlockDefinition(
-                    myScope.GetResolvelizableScope(),
+                    myScope,
                     Elements.Select(x => x.Run(myScope, context)).ToArray());
             }
         }
 
-        private class FinalizeScopeBlockDefinition : IResolvelizeScope<WeakBlockDefinition>
+        private class FinalizeScopeBlockDefinition : IResolvelizeScope<WeakBlockDefinition, ISetUpScope>
         {
-            private readonly IResolvelizableScope finalizableScope;
-            private readonly IResolvelizeScope<IFrontendCodeElement>[] finalizeScope;
+            public ISetUpScope SetUpSideNode { get; }
+            private readonly IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] finalizeScope;
 
-            public FinalizeScopeBlockDefinition(IResolvelizableScope finalizableScope, IResolvelizeScope<IFrontendCodeElement>[] finalizeScope)
+            public FinalizeScopeBlockDefinition(ISetUpScope setUpSideNode, IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] finalizeScope)
             {
-                this.finalizableScope = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
+                SetUpSideNode = setUpSideNode ?? throw new ArgumentNullException(nameof(setUpSideNode));
                 this.finalizeScope = finalizeScope ?? throw new ArgumentNullException(nameof(finalizeScope));
             }
 
