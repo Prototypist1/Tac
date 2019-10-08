@@ -1,123 +1,114 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Tac.Model;
 
-namespace Tac.Frontend.New
+namespace Tac.Frontend.New.CrzayNamespace
 {
-    internal interface ISetUpSideNode
+
+    internal interface IHasParent { }
+    internal interface IHaveValues { }
+    internal interface IHaveRefs { }
+    internal interface IHaveTypes { }
+    internal interface IHaveMembers { }
+    internal interface IHaveMembersPossiblyOnParent { }
+    internal interface IHaveHopefulMembers { }
+    internal interface ILookUpType { }
+
+    public class Yo
     {
-    }
-
-    internal interface IHasTypeKey: ISetUpSideNode
-    {
-        IKey Key { get; }
-    }
-
-    internal interface IDefineMembers : ISetUpSideNode
-    {
-        // int key; or type {a;b;} x;
-        void Member(ISetUpMember member);
-
-        IDefineMembers ParentOrNull { get; }
-
-        // type x {a;b;}
-        void Type(ISetUpType type);
-    }
-
-    internal interface ICanBeAssignedTo : ISetUpSideNode
-    {
+        internal class TypeReference : ILookUpType { }
+        internal class Value : ILookUpType, IHaveHopefulMembers { }
+        internal class Member : ILookUpType, IHaveHopefulMembers { }
+        internal class Type : IHaveMembers, IHaveTypes, IHaveRefs, IHaveValues, IHasParent { }
+        internal class Scope : IHaveMembersPossiblyOnParent, IHaveMembers, IHaveTypes, IHaveRefs, IHaveValues, IHasParent { }
+        internal class Object : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IHaveMembers, IHaveTypes, IHaveRefs, IHaveValues, IHasParent { }
+        internal class Method : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IHaveMembers, IHaveTypes, IHaveRefs, IHaveValues, IHasParent { }
 
     }
-
-    internal interface ICanAssignFromMe : ISetUpSideNode
+    internal class TypeProblem2 : ISetUpTypeProblem
     {
-        // z =: (a.x);
-        void HopefullyMember(ISetUpMember member);
-    }
-
-    internal interface ISetUpValue : ICanAssignFromMe
-    {
-    }
-
-    internal interface ISetUpMember : ICanAssignFromMe, ICanBeAssignedTo
-    {
-        IKey Key { get; }
-    }
-
-    internal interface ISetUpTypeReference : IHasTypeKey
-    {
-    }
-
-
-    internal interface ISetUpType : IDefineMembers, ISetUpTypeReference
-    {
-    }
-
-    internal interface ISetUpObject : IDefineMembers, ICanAssignFromMe
-    {
-    }
-
-    internal interface ISetUpScope : IDefineMembers
-    {
-
-
-        // x;
-        void MightHaveMember(ISetUpMember member);
-    }
-
-    internal interface ISetUpMethodBuilder: ISetUpScope, ICanAssignFromMe
-    {
-        ISetUpMethod SetInputOutput(ISetUpMember input, ISetUpMember output);
-    }
-
-    internal interface ISetUpMethod : ISetUpScope, ICanAssignFromMe
-    {
-
-        // 1 > f
-        void AssignToInput(ICanAssignFromMe value);
-        // 2 return
-        void AssignToReturns(ICanAssignFromMe value);
-        // 1 > f =: x
-        ICanAssignFromMe Returns();
-    }
-
-    internal interface ISetUpTypeProblem
-    {
-        // a =: x
-        void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to);
-        ISetUpValue CreateValue(ISetUpTypeReference type);
-        ISetUpMember CreateMember(IKey key, IKey keyType);
-        ISetUpMember CreateMember(IKey key);
-        ISetUpScope CreateScope();
-        ISetUpScope CreateScope(IDefineMembers parent);
-        ISetUpType CreateType(IDefineMembers parent, IKey key);
-        ISetUpTypeReference CreateTypeReference(IDefineMembers context, IKey key);
-
-        ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders);
-        ISetUpObject CreateObject(IDefineMembers parent);
-        ISetUpMethodBuilder CreateMethod(IDefineMembers parent);
-        
-    }
-
-    internal interface ITypeSolution
-    {
-    }
-
-    internal class TypeProblem : ISetUpTypeProblem
-    {
-        private readonly List<Value> values = new List<Value>();
-        private readonly List<Member> members = new List<Member>();
-        private readonly List<Scope> scopes = new List<Scope>();
-        private readonly List<Object> objects = new List<Object>();
-        private readonly List<Method> methods = new List<Method>();
-        private readonly List<Type> types = new List<Type>();
-        private readonly List<TypeReference> typeReferences = new List<TypeReference>();
+        private IHasParent root;
+        private readonly Dictionary<IHasParent, List<IHasParent>> parentKids = new Dictionary<IHasParent, List<IHasParent>>();
+        private readonly Dictionary<IHaveValues, List<Yo.Value>> values = new Dictionary<IHaveValues, List<Yo.Value>>();
+        private readonly Dictionary<IHaveRefs, List<Yo.TypeReference>> refs = new Dictionary<IHaveRefs, List<Yo.TypeReference>>();
+        private readonly Dictionary<IHaveTypes, Dictionary<IKey, Yo.Type>> types = new Dictionary<IHaveTypes, Dictionary<IKey, Yo.Type>>();
+        private readonly Dictionary<IHaveMembers, Dictionary<IKey, Yo.Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Yo.Member>>();
+        private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Yo.Member>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Yo.Member>>();
+        private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Yo.Member>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Yo.Member>>();
         private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
 
-        public ISetUpValue CreateValue(ISetUpTypeReference type) {
+
+        public void IsChildOf(IHasParent parent, IHasParent kid)
+        {
+            if (!parentKids.ContainsKey(parent))
+            {
+                parentKids.Add(parent, new List<IHasParent>());
+            }
+            parentKids[parent].Add(kid);
+        }
+        public void HasValue(IHaveValues parent, Yo.Value value)
+        {
+            if (!values.ContainsKey(parent))
+            {
+                values.Add(parent, new List<Yo.Value>());
+            }
+            values[parent].Add(value);
+        }
+        public void HasReference(IHaveRefs parent, Yo.TypeReference reference)
+        {
+            if (!refs.ContainsKey(parent))
+            {
+                refs.Add(parent, new List<Yo.TypeReference>());
+            }
+            refs[parent].Add(reference);
+        }
+        public void HasType(IHaveTypes parent, IKey key, Yo.Type type)
+        {
+            if (!types.ContainsKey(parent))
+            {
+                types.Add(parent, new Dictionary<IKey, Yo.Type>());
+            }
+            types[parent].Add(key, type);
+        }
+        public void HasMember(IHaveMembers parent, IKey key, Yo.Member member)
+        {
+            if (!members.ContainsKey(parent))
+            {
+                members.Add(parent, new Dictionary<IKey, Yo.Member>());
+            }
+            members[parent].Add(key, member);
+        }
+        public void HasMembersPossiblyOnParent(IHaveMembersPossiblyOnParent parent, IKey key, Yo.Member member)
+        {
+            if (!possibleMembers.ContainsKey(parent))
+            {
+                possibleMembers.Add(parent, new Dictionary<IKey, Yo.Member>());
+            }
+            possibleMembers[parent].Add(key, member);
+        }
+        public void HasHopefulMember(IHaveHopefulMembers parent, IKey key, Yo.Member member) {
+
+            if (!hopefulMembers.ContainsKey(parent))
+            {
+                hopefulMembers.Add(parent, new Dictionary<IKey, Yo.Member>());
+            }
+            hopefulMembers[parent].Add(key, member);
+        }
+        public void AssignType(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo) {
+            assignments.Add((assignedFrom, assignedTo));
+        }
+
+        // more to do 
+        // returns
+        // accepts
+        // is of type
+        // what about modules?
+
+        #region Stuff I want to hide right now
+
+        public ISetUpValue CreateValue(ISetUpTypeReference type)
+        {
             var res = new Value(type);
             values.Add(res);
             return res;
@@ -171,7 +162,7 @@ namespace Tac.Frontend.New
 
         public ISetUpTypeReference CreateTypeReference(IDefineMembers context, IKey key)
         {
-            var res = new TypeReference(context,key);
+            var res = new TypeReference(context, key);
             typeReferences.Add(res);
             return res;
         }
@@ -254,14 +245,14 @@ namespace Tac.Frontend.New
 
         private class TypeReference : ISetUpTypeReference
         {
-            public TypeReference(IDefineMembers context,IKey key)
+            public TypeReference(IDefineMembers context, IKey key)
             {
                 Context = context ?? throw new ArgumentNullException(nameof(context));
                 this.Key = key;
             }
 
             public IDefineMembers Context { get; }
-            public IKey Key {get;}
+            public IKey Key { get; }
         }
 
         private class Member : ISetUpMember
@@ -296,13 +287,14 @@ namespace Tac.Frontend.New
             public IKey Key { get; }
             public readonly List<Type> placeholders = new List<Type>();
 
-            public Type(IKey key, IDefineMembers definedIn) 
+            public Type(IKey key, IDefineMembers definedIn)
             {
                 this.Key = key ?? throw new ArgumentNullException(nameof(key));
                 this.ParentOrNull = definedIn;
             }
 
-            public void AddPlaceHolder(Type placeholder) {
+            public void AddPlaceHolder(Type placeholder)
+            {
                 placeholders.Add(placeholder);
             }
 
@@ -321,7 +313,7 @@ namespace Tac.Frontend.New
             public Object(TypeProblem typeProblem, IDefineMembers parent)
             {
                 this.typeProblem = typeProblem;
-                
+
                 ParentOrNull = parent;
             }
 
@@ -379,8 +371,10 @@ namespace Tac.Frontend.New
             }
 
 
-            public ISetUpMethod SetInputOutput(ISetUpMember input, ISetUpMember output) {
-                if (this.input != null) {
+            public ISetUpMethod SetInputOutput(ISetUpMember input, ISetUpMember output)
+            {
+                if (this.input != null)
+                {
                     throw new Exception("this should not be called more than once");
                 }
                 if (this.output != null)
@@ -411,6 +405,12 @@ namespace Tac.Frontend.New
                 hopefullMemberTracker.HopefullyMember(member);
             }
         }
+
+
+
+        #endregion
+
+        public void Solve2() { }
 
 
         #region Solve Side
@@ -549,7 +549,7 @@ namespace Tac.Frontend.New
 
                     if (scope.ParentOrNull == null)
                     {
-                        var res = new SolveSideNode(true, null,null);
+                        var res = new SolveSideNode(true, null, null);
                         cache.Add(scope, res);
                         return res;
 
@@ -557,7 +557,7 @@ namespace Tac.Frontend.New
                     else
                     {
                         var parent = ConvertScope(scope.ParentOrNull);
-                        var res = new SolveSideNode(true, parent,null);
+                        var res = new SolveSideNode(true, parent, null);
                         cache.Add(scope, res);
                         return res;
                     }
@@ -591,7 +591,7 @@ namespace Tac.Frontend.New
                         }
                     }
                     {
-                        var res = new SolveSideNode(true, GetParent(type),null);
+                        var res = new SolveSideNode(true, GetParent(type), null);
 
                         if (type.Key != null)
                         {
@@ -667,12 +667,12 @@ namespace Tac.Frontend.New
                     }
 
                     {
-                        var res = new SolveSideNode(false, null,member.typeKey);
+                        var res = new SolveSideNode(false, null, member.typeKey);
                         cache.Add(member, res);
 
                         if (member.typeKey is GenericNameKey genericNameKey)
                         {
-                            HandleGenericNameKey(owner,genericNameKey);
+                            HandleGenericNameKey(owner, genericNameKey);
                         }
 
                         cache[owner].AddMember(member.Key, res);
@@ -737,7 +737,7 @@ namespace Tac.Frontend.New
                         {
                             if (inner is GenericNameKey innerGernericNameKey)
                             {
-                                list.Add(HandleGenericNameKey(owner,innerGernericNameKey));
+                                list.Add(HandleGenericNameKey(owner, innerGernericNameKey));
                             }
                             else if (cache[owner].TryGetType(new NameKey(genericNameKey.Name), out var innerNode))
                             {
@@ -781,7 +781,7 @@ namespace Tac.Frontend.New
 
                 foreach (var node in cache.Values)
                 {
-                    foreach (var member in node.Members.Select(x=>x.Item2))
+                    foreach (var member in node.Members.Select(x => x.Item2))
                     {
                         Resolve(node, member);
                     }
@@ -789,10 +789,12 @@ namespace Tac.Frontend.New
 
                 foreach (var key in cache.Keys)
                 {
-                    if (key is Value value) {
+                    if (key is Value value)
+                    {
                         Resolve(cache[value.Type.Context], cache[value]);
                     }
-                    if (key is TypeReference typeReference) {
+                    if (key is TypeReference typeReference)
+                    {
                         Resolve(cache[typeReference.Context], cache[typeReference]);
                     }
                 }
@@ -1092,9 +1094,10 @@ namespace Tac.Frontend.New
                 hopefulMembers.Add((key, solveSideNode));
             }
 
-            internal void RealizeHopefulMembers() {
+            internal void RealizeHopefulMembers()
+            {
 
-                foreach (var (key,solveSideNode) in hopefulMembers)
+                foreach (var (key, solveSideNode) in hopefulMembers)
                 {
                     if (inner == null)
                     {
@@ -1292,12 +1295,14 @@ namespace Tac.Frontend.New
 
             internal void OverlayToRelationshipsTo(SolveSideNode copyTo, Dictionary<SolveSideNode, SolveSideNode> alreadyMapped)
             {
-                foreach (var assignTo in assignTos) {
+                foreach (var assignTo in assignTos)
+                {
                     if (alreadyMapped.TryGetValue(assignTo, out var resplace))
                     {
                         copyTo.AddAssignedTo(resplace);
                     }
-                    else {
+                    else
+                    {
                         copyTo.AddAssignedTo(assignTo);
                     }
                 }
