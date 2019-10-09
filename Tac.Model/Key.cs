@@ -11,10 +11,12 @@ namespace Tac.Model
 
     }
 
-    public class GenericNameKey : NameKey
+    public class GenericNameKey : IKey
     {
-        public GenericNameKey(NameKey name, IKey[] types) : base(name.Name)
+        public readonly  NameKey name;
+        public GenericNameKey(NameKey name, IKey[] types)
         {
+            this.name = name ?? throw new System.ArgumentNullException(nameof(name));
             Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
 
