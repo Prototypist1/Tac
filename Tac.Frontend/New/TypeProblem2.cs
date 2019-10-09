@@ -439,7 +439,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         // TODO you are here
         // you only want to overlay when you can do so completely 
-        
+        // just take the GenericNameKey and look up all the members recursively
+        // make sure thye all exist
+
         private bool TryLookUpOrOverlay(IScope from, IKey key,out Yo.Type res) {
             
             if (TryLookUp(from, key, out res)) {
