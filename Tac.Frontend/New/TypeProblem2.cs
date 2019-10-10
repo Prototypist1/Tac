@@ -426,7 +426,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // overlay generics
             foreach (var node in typeProblemNodes.OfType<ILookUpType>().Where(x=> lookUpTypeKey[x] is GenericKeyDefinition).ToArray())
             {
-                LookUpOrOverlay(lookUpTypeContext[node],lookUpTypeKey[node]);
+                LookUpOrOverlayOrThrow(lookUpTypeContext[node],lookUpTypeKey[node]);
             }
         }
 
@@ -441,6 +441,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         // you only want to overlay when you can do so completely 
         // just take the GenericNameKey and look up all the members recursively
         // make sure thye all exist
+
+        // or maybe I just need to make we get the same outcome requardless of what order references are processed in'
 
         private bool TryLookUpOrOverlay(IScope from, IKey key,out Yo.Type res) {
             
