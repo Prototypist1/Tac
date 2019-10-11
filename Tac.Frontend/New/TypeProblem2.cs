@@ -32,6 +32,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<IScope, List<Yo.Value>> values = new Dictionary<IScope, List<Yo.Value>>();
         private readonly Dictionary<IScope, List<Yo.TypeReference>> refs = new Dictionary<IScope, List<Yo.TypeReference>>();
         private readonly Dictionary<IScope, Dictionary<IKey, Yo.Type>> types = new Dictionary<IScope, Dictionary<IKey, Yo.Type>>();
+        private readonly HashSet<Yo.Type> placeholders = new HashSet<Yo.Type>();
         private readonly Dictionary<IScope, Dictionary<IKey, Yo.Member>> members = new Dictionary<IScope, Dictionary<IKey, Yo.Member>>();
         private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Yo.Member>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Yo.Member>>();
         private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Yo.Member>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Yo.Member>>();
@@ -67,6 +68,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 types.Add(parent, new Dictionary<IKey, Yo.Type>());
             }
             types[parent].Add(key, type);
+        }
+
+        public void HasPlaceholderType(IScope parent, IKey key, Yo.Type type)
+        {
+            if (!types.ContainsKey(parent))
+            {
+                types.Add(parent, new Dictionary<IKey, Yo.Type>());
+            }
+            types[parent].Add(key, type);
+            placeholders.Add(type);
         }
         public void HasMember(IScope parent, IKey key, Yo.Member member)
         {
@@ -421,32 +432,59 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             // resolve members that might be on parents
 
-            // 
+            // resolve hopeful members?
 
             // overlay generics
-            foreach (var node in typeProblemNodes.OfType<ILookUpType>().Where(x=> lookUpTypeKey[x] is GenericKeyDefinition).ToArray())
+            var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
+            while (toLookUp.Any())
             {
-                LookUpOrOverlayOrThrow(lookUpTypeContext[node],lookUpTypeKey[node]);
+                foreach (var node in toLookUp)
+                {
+                    LookUpOrOverlayOrThrow(lookUpTypeContext[node], lookUpTypeKey[node]);
+                }
+                toLookUp = typeProblemNodes.OfType<ILookUpType>().Except(lookUps.Keys).ToArray();
             }
         }
 
-        private Yo.Type LookUpOrOverlayOrThrow(IScope from, IKey key) {
-            if (!TryLookUpOrOverlay(from, key, out var res)) {
+        private Yo.Type LookUpOrOverlayOrThrow(IScope from, ILookUpType lookUp) {
+            if (!TryLookUpOrOverlay(from, lookUp, out var res)) {
                 throw new Exception("could not find type");
             }
             return res;
         }
 
-        // TODO you are here
-        // you only want to overlay when you can do so completely 
-        // just take the GenericNameKey and look up all the members recursively
-        // make sure thye all exist
+        private Yo.Type LookUpOrOverlayOrThrow(IScope from, IKey key)
+        {
+            if (!TryLookUpOrOverlay(from, key, out var res))
+            {
+                throw new Exception("could not find type");
+            }
+            return res;
+        }
 
         // or maybe I just need to make we get the same outcome requardless of what order references are processed in'
+        private Dictionary<ILookUpType, Yo.Type> lookUps = new Dictionary<ILookUpType, Yo.Type>();
+        private bool TryLookUpOrOverlay(IScope from, ILookUpType lookUp,out Yo.Type res)
+        {
 
-        private bool TryLookUpOrOverlay(IScope from, IKey key,out Yo.Type res) {
-            
-            if (TryLookUp(from, key, out res)) {
+            if (lookUps.TryGetValue(lookUp, out res))
+            {
+                return true;
+            }
+
+            var key = lookUpTypeKey[lookUp];
+            if(TryLookUpOrOverlay(from, key, out res)){
+
+                lookUps[lookUp] = res;
+                return true;
+            }
+            return false;
+        }
+
+        private bool TryLookUpOrOverlay(IScope from, IKey key, out Yo.Type res)
+        {
+            if (TryLookUp(from, key, out res))
+            {
                 return true;
             }
             if (key is GenericNameKey genericNameKey)
@@ -454,16 +492,33 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var to = Register(new Yo.Type());
                 foreach (var typeKey in genericNameKey.Types)
                 {
-                    if (TryLookUpOrOverlay(from, typeKey, out var innerRes)) {
-                        HasType(to, typeKey, innerRes);
-                    }
+                    // everything should exist
+                    // things like T should appear as types on F<T>
+                    HasType(to, typeKey, LookUpOrOverlayOrThrow(from, typeKey));
                 }
-                res = Copy(LookUpOrOverlayOrThrow(from, genericNameKey.name), to);
-                HasType(from, key, res);
+                var lookedUp = LookUpOrOverlayOrThrow(from, genericNameKey.name);
+                res = Copy(lookedUp, to);
+                HasType(DefinedOn(from, genericNameKey.name), key, res);
                 return true;
             }
-            else {
+            else
+            {
                 return false;
+            }
+        }
+
+        private IScope DefinedOn(IScope haveTypes, IKey key)
+        {
+            while (true)
+            {
+                if (types[haveTypes].TryGetValue(key, out var _))
+                {
+                    return haveTypes;
+                }
+                if (!kidParent.TryGetValue(haveTypes, out haveTypes))
+                {
+                    throw new Exception("uhh, should have found that");
+                }
             }
         }
 
@@ -491,26 +546,17 @@ namespace Tac.Frontend.New.CrzayNamespace
             var fromMap = new Dictionary<ICanAssignFromMe, ICanAssignFromMe>();
             var toMap = new Dictionary<ICanBeAssignedTo, ICanBeAssignedTo>();
 
-            foreach (var type in types[from])
-            {
-                var newValue = Register(new Yo.Type());
-                Copy(type.Value, newValue);
-                HasType(to, type.Key, newValue);
-            }
-
             foreach (var item in values[from])
             {
                 var newValue = Register(new Yo.Value());
                 HasValue(to, newValue);
                 fromMap[item] = newValue;
-                LookUpOrOverlayOrThrow(to, lookUpTypeKey[item]);
             }
 
             foreach (var item in refs[from])
             {
                 var newValue = Register(new Yo.TypeReference());
                 HasReference(to, newValue);
-                LookUpOrOverlayOrThrow(to, lookUpTypeKey[item]);
             }
 
             foreach (var member in members[from])
@@ -519,9 +565,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                 HasMember(to, member.Key, newValue);
                 fromMap[member.Value] = newValue;
                 toMap[member.Value] = newValue;
-                LookUpOrOverlayOrThrow(to, lookUpTypeKey[member.Value]);
             }
 
+
+            foreach (var type in types[from])
+            {
+                if (!placeholders.Contains(type.Value))
+                {
+                    var newValue = Register(new Yo.Type());
+                    Copy(type.Value, newValue);
+                    HasType(to, type.Key, newValue);
+                }
+            }
 
             foreach (var item in assignments)
             {
@@ -543,6 +598,27 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             return to;
+        }
+
+
+        private Yo.Type Ensure(Yo.Type from)
+        {
+            foreach (var item in values[from])
+            {
+                LookUpOrOverlayOrThrow(from, item);
+            }
+
+            foreach (var item in refs[from])
+            {
+                LookUpOrOverlayOrThrow(from, item);
+            }
+
+            foreach (var member in members[from])
+            {
+                LookUpOrOverlayOrThrow(from, member.Value);
+            }
+
+            return from;
         }
 
 
