@@ -47,6 +47,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<ILookUpType, IKey> lookUpTypeKey = new Dictionary<ILookUpType, IKey>();
         private readonly Dictionary<ILookUpType, IScope> lookUpTypeContext = new Dictionary<ILookUpType, IScope>();
 
+        #region Building APIs
+
         public void IsChildOf(IScope parent, IScope kid)
         {
             kidParent.Add(kid, parent);
@@ -122,324 +124,16 @@ namespace Tac.Frontend.New.CrzayNamespace
             return typeProblemNode;
         }
 
+        #endregion
+
         // more to do 
         // returns
         // accepts
         // is of type
         // what about modules?
 
-        #region Stuff I want to hide right now
-
-        public ISetUpValue CreateValue(ISetUpTypeReference type)
-        {
-            var res = new Value(type);
-            values.Add(res);
-            return res;
-        }
-
-        public ISetUpMember CreateMember(IKey key, IKey keyType) => new Member(key, keyType);
-
-        public ISetUpMember CreateMember(IKey key) => new Member(key);
-
-        public ISetUpScope CreateScope()
-        {
-            var res = new Scope();
-            scopes.Add(res);
-            return res;
-        }
-        public ISetUpScope CreateScope(IDefineMembers parent)
-        {
-            var res = new Scope(parent);
-            scopes.Add(res);
-            return res;
-        }
-
-
-        public ISetUpType CreateType(IDefineMembers parent, IKey key)
-        {
-            var res = new Type(key, parent);
-            types.Add(res);
-            return res;
-        }
-
-        public ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders)
-        {
-            var res = new Type(key, parent);
-            foreach (var item in placeholders)
-            {
-                var placeholderType = new Type(key, parent);
-                types.Add(placeholderType);
-                res.AddPlaceHolder(placeholderType);
-            }
-            types.Add(res);
-            return res;
-        }
-
-
-        public ISetUpObject CreateObject(IDefineMembers parent)
-        {
-            var res = new Object(this, parent);
-            objects.Add(res);
-            return res;
-        }
-
-        public ISetUpTypeReference CreateTypeReference(IDefineMembers context, IKey key)
-        {
-            var res = new TypeReference(context, key);
-            typeReferences.Add(res);
-            return res;
-        }
-
-        public ISetUpMethodBuilder CreateMethod(IDefineMembers parent)
-        {
-            var method = new Method(this, parent);
-            methods.Add(method);
-            return method;
-        }
-
-        public void IsAssignedTo(ICanAssignFromMe from, ICanBeAssignedTo to) => assignments.Add((from, to));
-
-        private class TypeTracker
-        {
-            public readonly List<ISetUpType> types = new List<ISetUpType>();
-
-            public void Type(ISetUpType type)
-            {
-                types.Add(type);
-            }
-        }
-
-        private class MemberTracker
-        {
-
-            public readonly List<Member> members = new List<Member>();
-
-            public void Member(ISetUpMember member)
-            {
-
-                if (!(member is Member realMember))
-                {
-                    // we are having a hard time with the internal exteranl view here
-                    // 😡
-                    throw new Exception("this sucks");
-                }
-
-                members.Add(realMember);
-            }
-        }
-
-        private class HopefullMemberTracker
-        {
-
-            public readonly List<Member> members = new List<Member>();
-            public void HopefullyMember(ISetUpMember member)
-            {
-                if (!(member is Member realMember))
-                {
-                    // we are having a hard time with the internal exteranl view here
-                    // 😡
-                    throw new Exception("this sucks");
-                }
-                members.Add(realMember);
-            }
-        }
-
-        private class Value : ISetUpValue
-        {
-            public TypeReference Type { get; }
-
-            public Value(ISetUpTypeReference type)
-            {
-                if (!(type is TypeReference realType))
-                {
-                    // we are having a hard time with the internal exteranl view here
-                    // 😡
-                    throw new Exception("this sucks");
-                }
-                this.Type = realType;
-            }
-
-            public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
-            public void HopefullyMember(ISetUpMember member)
-            {
-                hopefullMemberTracker.HopefullyMember(member);
-            }
-        }
-
-        private class TypeReference : ISetUpTypeReference
-        {
-            public TypeReference(IDefineMembers context, IKey key)
-            {
-                Context = context ?? throw new ArgumentNullException(nameof(context));
-                this.Key = key;
-            }
-
-            public IDefineMembers Context { get; }
-            public IKey Key { get; }
-        }
-
-        private class Member : ISetUpMember
-        {
-            public readonly IKey typeKey;
-            public IKey Key { get; }
-
-            public Member(IKey key)
-            {
-                Key = key;
-            }
-
-
-            public Member(IKey key, IKey typeKey)
-            {
-                Key = key;
-                this.typeKey = typeKey;
-            }
-
-
-            public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
-            public void HopefullyMember(ISetUpMember member)
-            {
-                hopefullMemberTracker.HopefullyMember(member);
-            }
-        }
-        private class Type : ISetUpType
-        {
-            public readonly TypeTracker TypeTracker = new TypeTracker();
-            public readonly MemberTracker memberTracker = new MemberTracker();
-            public IDefineMembers ParentOrNull { get; }
-            public IKey Key { get; }
-            public readonly List<Type> placeholders = new List<Type>();
-
-            public Type(IKey key, IDefineMembers definedIn)
-            {
-                this.Key = key ?? throw new ArgumentNullException(nameof(key));
-                this.ParentOrNull = definedIn;
-            }
-
-            public void AddPlaceHolder(Type placeholder)
-            {
-                placeholders.Add(placeholder);
-            }
-
-            public void Member(ISetUpMember member) => memberTracker.Member(member);
-            void IDefineMembers.Type(ISetUpType type) => TypeTracker.Type(type);
-        }
-        private class Object : ISetUpObject
-        {
-            public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
-            public readonly TypeTracker TypeTracker = new TypeTracker();
-            public readonly MemberTracker memberTracker = new MemberTracker();
-            private readonly TypeProblem typeProblem;
-            public IDefineMembers ParentOrNull { get; }
-
-
-            public Object(TypeProblem typeProblem, IDefineMembers parent)
-            {
-                this.typeProblem = typeProblem;
-
-                ParentOrNull = parent;
-            }
-
-            public void HopefullyMember(ISetUpMember member)
-            {
-                hopefullMemberTracker.HopefullyMember(member);
-            }
-
-
-            public void Member(ISetUpMember member) => memberTracker.Member(member);
-            public void Type(ISetUpType type) => TypeTracker.Type(type);
-        }
-        private class Scope : ISetUpScope
-        {
-            public readonly MemberTracker mightBeOnParentMemberTracker = new MemberTracker();
-            public readonly MemberTracker memberTracker = new MemberTracker();
-            public readonly TypeTracker TypeTracker = new TypeTracker();
-            public readonly Scope parent;
-
-            public IDefineMembers ParentOrNull { get; }
-
-            public Scope()
-            {
-            }
-
-            public Scope(IDefineMembers parent) : this()
-            {
-                this.ParentOrNull = parent;
-            }
-
-            public void Member(ISetUpMember member) => memberTracker.Member(member);
-
-            public void Type(ISetUpType type) => TypeTracker.Type(type);
-
-            public void MightHaveMember(ISetUpMember member) => mightBeOnParentMemberTracker.Member(member);
-        }
-        private class Method : ISetUpMethod, ISetUpMethodBuilder
-        {
-            public readonly HopefullMemberTracker hopefullMemberTracker = new HopefullMemberTracker();
-
-            public readonly MemberTracker mightBeOnParentMemberTracker = new MemberTracker();
-            public readonly MemberTracker memberTracker = new MemberTracker();
-            private readonly TypeTracker TypeTracker = new TypeTracker();
-
-            private readonly TypeProblem typeProblem;
-            private ISetUpMember input;
-            private ISetUpMember output;
-            public IDefineMembers ParentOrNull { get; }
-
-            public Method(TypeProblem typeProblem,
-            IDefineMembers parent)
-            {
-                this.typeProblem = typeProblem;
-                ParentOrNull = parent;
-            }
-
-
-            public ISetUpMethod SetInputOutput(ISetUpMember input, ISetUpMember output)
-            {
-                if (this.input != null)
-                {
-                    throw new Exception("this should not be called more than once");
-                }
-                if (this.output != null)
-                {
-                    throw new Exception("this should not be called more than once");
-                }
-
-                this.input = input ?? throw new ArgumentNullException(nameof(input));
-                this.output = output ?? throw new ArgumentNullException(nameof(output));
-
-                return this;
-            }
-
-            public void Member(ISetUpMember member) => memberTracker.Member(member);
-
-            public void Type(ISetUpType type) => TypeTracker.Type(type);
-
-            public void AssignToInput(ICanAssignFromMe value) => typeProblem.IsAssignedTo(value, input);
-
-            public void AssignToReturns(ICanAssignFromMe value) => typeProblem.IsAssignedTo(value, output);
-
-            public ICanAssignFromMe Returns() => output;
-
-            public void MightHaveMember(ISetUpMember member) => mightBeOnParentMemberTracker.Member(member);
-
-            public void HopefullyMember(ISetUpMember member)
-            {
-                hopefullMemberTracker.HopefullyMember(member);
-            }
-        }
-
-
-
-        #endregion
-
         public void Solve2()
         {
-
-            // resolve members that might be on parents
-
-            // resolve hopeful members?
-
             // overlay generics
             var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
             while (toLookUp.Any())
@@ -495,15 +189,25 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             if (key is GenericNameKey genericNameKey)
             {
+
+                var types = genericNameKey.Types.Select(x => (x,LookUpOrOverlayOrThrow(from, x))).ToArray();
+
+                // ok you are here
+                // generics do exact look up Type+Type[] -> Type
+
+                // placeholder replacements can't just be types
+                // because we need them to be treated differently on a copy
+                // we don't want to copy the type
+                // we can replace the type if we are overlaying it or if it is defined in the tree being copied 
+
                 var to = Register(new Yo.Type());
-                foreach (var typeKey in genericNameKey.Types)
+                foreach (var type in types)
                 {
-                    // everything should exist
-                    // things like T should appear as types on F<T>
-                    HasType(to, typeKey, LookUpOrOverlayOrThrow(from, typeKey));
+
                 }
+
                 var lookedUp = LookUpOrOverlayOrThrow(from, genericNameKey.name);
-                res = Copy(lookedUp, to);
+                res = CopyTree(lookedUp, to);
                 HasType(DefinedOn(from, genericNameKey.name), key, res);
                 return true;
             }
