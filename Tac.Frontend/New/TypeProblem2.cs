@@ -5,11 +5,14 @@ using Tac.Model;
 
 namespace Tac.Frontend.New.CrzayNamespace
 {
-    internal interface IScope { }
     internal interface ITypeProblemNode { }
-    internal interface IHaveMembersPossiblyOnParent { }
-    internal interface IHaveHopefulMembers { }
-    internal interface ILookUpType { }
+    internal interface IScope : ITypeProblemNode { }
+
+    internal interface IHaveMembersPossiblyOnParent: ITypeProblemNode { }
+    internal interface IHaveHopefulMembers : ITypeProblemNode { }
+    internal interface ILookUpType : ITypeProblemNode { }
+    internal interface ICanAssignFromMe : ITypeProblemNode { }
+    internal interface ICanBeAssignedTo : ITypeProblemNode { }
 
     public class Yo
     {
@@ -29,11 +32,14 @@ namespace Tac.Frontend.New.CrzayNamespace
         private IScope root;
         // relationships
         private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
+
         private readonly Dictionary<IScope, List<Yo.Value>> values = new Dictionary<IScope, List<Yo.Value>>();
         private readonly Dictionary<IScope, List<Yo.TypeReference>> refs = new Dictionary<IScope, List<Yo.TypeReference>>();
         private readonly Dictionary<IScope, Dictionary<IKey, Yo.Type>> types = new Dictionary<IScope, Dictionary<IKey, Yo.Type>>();
-        private readonly HashSet<Yo.Type> placeholders = new HashSet<Yo.Type>();
         private readonly Dictionary<IScope, Dictionary<IKey, Yo.Member>> members = new Dictionary<IScope, Dictionary<IKey, Yo.Member>>();
+
+        private readonly HashSet<Yo.Type> placeholders = new HashSet<Yo.Type>();
+
         private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Yo.Member>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Yo.Member>>();
         private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Yo.Member>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Yo.Member>>();
         private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
@@ -539,67 +545,126 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private Yo.Type Copy(Yo.Type from, Yo.Type to)
-        {
-            kidParent[to] = kidParent[from];
+        private Yo.Type CopyTree(Yo.Type from, Yo.Type to) {
 
-            var fromMap = new Dictionary<ICanAssignFromMe, ICanAssignFromMe>();
-            var toMap = new Dictionary<ICanBeAssignedTo, ICanBeAssignedTo>();
+            var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();
+            Copy(from, to);
 
-            foreach (var item in values[from])
+            foreach (var pair in map)
             {
-                var newValue = Register(new Yo.Value());
-                HasValue(to, newValue);
-                fromMap[item] = newValue;
-            }
-
-            foreach (var item in refs[from])
-            {
-                var newValue = Register(new Yo.TypeReference());
-                HasReference(to, newValue);
-            }
-
-            foreach (var member in members[from])
-            {
-                var newValue = Register(new Yo.Member());
-                HasMember(to, member.Key, newValue);
-                fromMap[member.Value] = newValue;
-                toMap[member.Value] = newValue;
-            }
-
-
-            foreach (var type in types[from])
-            {
-                if (!placeholders.Contains(type.Value))
+                if (pair.Key is IScope fromScope && to is IScope toScope)
                 {
-                    var newValue = Register(new Yo.Type());
-                    Copy(type.Value, newValue);
-                    HasType(to, type.Key, newValue);
+                    kidParent[toScope] = kidParent[CopiedToOrSelf(fromScope)];
                 }
             }
 
-            foreach (var item in assignments)
+            var oldAssignments = assignments.ToArray();
+            foreach (var pair in map)
             {
-                if (fromMap.TryGetValue(item.Item1, out var lhs))
-                {
-                    if (toMap.TryGetValue(item.Item2, out var rhs))
+                if (pair.Key is ICanBeAssignedTo assignedToFrom && pair.Value is ICanBeAssignedTo assignedToTo) { 
+                    foreach (var item in oldAssignments)
                     {
-                        IsAssignedTo(lhs, rhs);
-                    }
-                    else
-                    {
-                        IsAssignedTo(lhs, item.Item2);
+                        if (item.Item2 == assignedToFrom) {
+                            assignments.Add((CopiedToOrSelf(item.Item1),assignedToTo));
+                        }
                     }
                 }
-                else if (toMap.TryGetValue(item.Item2, out var rhs))
+
+                if (pair.Value is ICanAssignFromMe assignFromFrom && pair.Value is ICanAssignFromMe assignFromTo)
                 {
-                    IsAssignedTo(item.Item1, rhs);
+                    foreach (var item in oldAssignments)
+                    {
+                        if (item.Item1 == assignFromFrom)
+                        {
+                            assignments.Add((assignFromTo, CopiedToOrSelf(item.Item2)));
+                        }
+                    }
+                }
+            }
+
+            foreach (var pair in map)
+            {
+                if (pair.Key is ILookUpType lookUpFrom && pair.Value is ILookUpType lookUpTo)
+                {
+                    if (lookUpTypeKey.TryGetValue(lookUpFrom, out var key)) {
+                        lookUpTypeKey.Add(lookUpTo, key);
+                    }
+
+                    if (lookUpTypeContext.TryGetValue(lookUpFrom, out var context))
+                    {
+                        lookUpTypeContext.Add(lookUpTo, CopiedToOrSelf(context));
+                    }
                 }
             }
 
             return to;
-        }
 
+            T CopiedToOrSelf<T>(T item)
+                where T: ITypeProblemNode
+            {
+                if (map.TryGetValue(item, out var res)) {
+                    return (T)res;
+                }
+                return item;
+            }
+
+            T Copy<T>(T innerFrom, T innerTo)
+                where T : ITypeProblemNode
+            {
+                map.Add(innerFrom, innerTo);
+
+                if (innerFrom is IScope innerFromScope && innerTo is IScope innerFromTo)
+                {
+
+                    foreach (var item in values[innerFromScope])
+                    {
+                        var newValue = Copy(item, Register(new Yo.Value()));
+                        HasValue(innerFromTo, newValue);
+                    }
+
+                    foreach (var item in refs[innerFromScope])
+                    {
+                        var newValue = Copy(item, Register(new Yo.TypeReference()));
+                        HasReference(innerFromTo, newValue);
+                    }
+
+                    foreach (var member in members[innerFromScope])
+                    {
+                        var newValue = Copy(member.Value, Register(new Yo.Member()));
+                        HasMember(innerFromTo, member.Key, newValue);
+                    }
+
+                    foreach (var type in types[innerFromScope])
+                    {
+                        if (!placeholders.Contains(type.Value))
+                        {
+                            var newValue = Copy(type.Value, Register(new Yo.Type()));
+                            HasType(innerFromTo, type.Key, newValue);
+                        }
+                    }
+                }
+
+                if (innerFrom is IHaveMembersPossiblyOnParent innerFromPossible && innerTo is IHaveMembersPossiblyOnParent innerToPossible) {
+
+                    foreach (var possible in possibleMembers[innerFromPossible])
+                    {
+                        var newValue = Copy(possible.Value, Register(new Yo.Member()));
+                        HasMembersPossiblyOnParent(innerToPossible, possible.Key, newValue);
+                    }
+                }
+
+                if (innerFrom is IHaveHopefulMembers innerFromHopeful && innerTo is IHaveHopefulMembers innerToHopeful)
+                {
+                    foreach (var possible in hopefulMembers[innerFromHopeful])
+                    {
+                        var newValue = Copy(possible.Value, Register(new Yo.Member()));
+                        HasHopefulMember(innerToHopeful, possible.Key, newValue);
+                    }
+                }
+
+                return innerTo;
+            }
+        }
 
         private Yo.Type Ensure(Yo.Type from)
         {
