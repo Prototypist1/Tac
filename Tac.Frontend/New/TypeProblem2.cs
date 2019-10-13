@@ -8,7 +8,7 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal interface ITypeProblemNode { }
     internal interface IScope : ITypeProblemNode { }
 
-    internal interface IHaveMembersPossiblyOnParent: ITypeProblemNode { }
+    internal interface IHaveMembersPossiblyOnParent : ITypeProblemNode { }
     internal interface IHaveHopefulMembers : ITypeProblemNode { }
     internal interface ILookUpType : ITypeProblemNode { }
     internal interface ICanAssignFromMe : ITypeProblemNode { }
@@ -37,8 +37,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<IScope, List<Yo.TypeReference>> refs = new Dictionary<IScope, List<Yo.TypeReference>>();
         private readonly Dictionary<IScope, Dictionary<IKey, Yo.Type>> types = new Dictionary<IScope, Dictionary<IKey, Yo.Type>>();
         private readonly Dictionary<IScope, Dictionary<IKey, Yo.Member>> members = new Dictionary<IScope, Dictionary<IKey, Yo.Member>>();
+        private readonly Dictionary<IScope, Dictionary<IKey, Yo.Type>> genericOverlays = new Dictionary<IScope, Dictionary<IKey, Yo.Type>>();
 
-        private readonly HashSet<Yo.Type> placeholders = new HashSet<Yo.Type>();
 
         private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Yo.Member>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Yo.Member>>();
         private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Yo.Member>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Yo.Member>>();
@@ -46,6 +46,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         // members
         private readonly Dictionary<ILookUpType, IKey> lookUpTypeKey = new Dictionary<ILookUpType, IKey>();
         private readonly Dictionary<ILookUpType, IScope> lookUpTypeContext = new Dictionary<ILookUpType, IScope>();
+
+        private readonly Dictionary<GenericTypeKey, Yo.Type> realizedGeneric = new Dictionary<GenericTypeKey, Yo.Type>();
 
         #region Building APIs
 
@@ -80,12 +82,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public void HasPlaceholderType(IScope parent, IKey key, Yo.Type type)
         {
-            if (!types.ContainsKey(parent))
+            if (!genericOverlays.ContainsKey(parent))
             {
-                types.Add(parent, new Dictionary<IKey, Yo.Type>());
+                genericOverlays.Add(parent, new Dictionary<IKey, Yo.Type>());
             }
-            types[parent].Add(key, type);
-            placeholders.Add(type);
+            genericOverlays[parent].Add(key, type);
         }
         public void HasMember(IScope parent, IKey key, Yo.Member member)
         {
@@ -146,8 +147,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private Yo.Type LookUpOrOverlayOrThrow(IScope from, ILookUpType lookUp) {
-            if (!TryLookUpOrOverlay(from, lookUp, out var res)) {
+        private Yo.Type LookUpOrOverlayOrThrow(IScope from, ILookUpType lookUp)
+        {
+            if (!TryLookUpOrOverlay(from, lookUp, out var res))
+            {
                 throw new Exception("could not find type");
             }
             return res;
@@ -164,7 +167,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         // or maybe I just need to make we get the same outcome requardless of what order references are processed in'
         private Dictionary<ILookUpType, Yo.Type> lookUps = new Dictionary<ILookUpType, Yo.Type>();
-        private bool TryLookUpOrOverlay(IScope from, ILookUpType lookUp,out Yo.Type res)
+        private bool TryLookUpOrOverlay(IScope from, ILookUpType lookUp, out Yo.Type res)
         {
 
             if (lookUps.TryGetValue(lookUp, out res))
@@ -173,7 +176,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             var key = lookUpTypeKey[lookUp];
-            if(TryLookUpOrOverlay(from, key, out res)){
+            if (TryLookUpOrOverlay(from, key, out res))
+            {
 
                 lookUps[lookUp] = res;
                 return true;
@@ -183,32 +187,32 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         private bool TryLookUpOrOverlay(IScope from, IKey key, out Yo.Type res)
         {
-            if (TryLookUp(from, key, out res))
-            {
-                return true;
-            }
+
             if (key is GenericNameKey genericNameKey)
             {
 
-                var types = genericNameKey.Types.Select(x => (x,LookUpOrOverlayOrThrow(from, x))).ToArray();
+                var types = genericNameKey.Types.Select(typeKey => (typeKey, LookUpOrOverlayOrThrow(from, typeKey))).ToArray();
+                var lookedUp = LookUpOrOverlayOrThrow(from, genericNameKey.name);
+                var genericTypeKey = new GenericTypeKey(lookedUp, types.Select(x => x.Item2).ToArray());
 
-                // ok you are here
-                // generics do exact look up Type+Type[] -> Type
-
-                // placeholder replacements can't just be types
-                // because we need them to be treated differently on a copy
-                // we don't want to copy the type
-                // we can replace the type if we are overlaying it or if it is defined in the tree being copied 
+                if (realizedGeneric.TryGetValue(genericTypeKey, out res))
+                {
+                    return true;
+                }
 
                 var to = Register(new Yo.Type());
                 foreach (var type in types)
                 {
-
+                    HasPlaceholderType(to, type.typeKey, type.Item2);
                 }
 
-                var lookedUp = LookUpOrOverlayOrThrow(from, genericNameKey.name);
                 res = CopyTree(lookedUp, to);
-                HasType(DefinedOn(from, genericNameKey.name), key, res);
+                realizedGeneric.Add(genericTypeKey, res);
+                return true;
+            }
+            else
+            if (TryLookUp(from, key, out res))
+            {
                 return true;
             }
             else
@@ -249,7 +253,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private Yo.Type CopyTree(Yo.Type from, Yo.Type to) {
+        private Yo.Type CopyTree(Yo.Type from, Yo.Type to)
+        {
 
             var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();
             Copy(from, to);
@@ -265,11 +270,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             var oldAssignments = assignments.ToArray();
             foreach (var pair in map)
             {
-                if (pair.Key is ICanBeAssignedTo assignedToFrom && pair.Value is ICanBeAssignedTo assignedToTo) { 
+                if (pair.Key is ICanBeAssignedTo assignedToFrom && pair.Value is ICanBeAssignedTo assignedToTo)
+                {
                     foreach (var item in oldAssignments)
                     {
-                        if (item.Item2 == assignedToFrom) {
-                            assignments.Add((CopiedToOrSelf(item.Item1),assignedToTo));
+                        if (item.Item2 == assignedToFrom)
+                        {
+                            assignments.Add((CopiedToOrSelf(item.Item1), assignedToTo));
                         }
                     }
                 }
@@ -290,7 +297,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (pair.Key is ILookUpType lookUpFrom && pair.Value is ILookUpType lookUpTo)
                 {
-                    if (lookUpTypeKey.TryGetValue(lookUpFrom, out var key)) {
+                    if (lookUpTypeKey.TryGetValue(lookUpFrom, out var key))
+                    {
                         lookUpTypeKey.Add(lookUpTo, key);
                     }
 
@@ -304,9 +312,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             return to;
 
             T CopiedToOrSelf<T>(T item)
-                where T: ITypeProblemNode
+                where T : ITypeProblemNode
             {
-                if (map.TryGetValue(item, out var res)) {
+                if (map.TryGetValue(item, out var res))
+                {
                     return (T)res;
                 }
                 return item;
@@ -340,15 +349,21 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var type in types[innerFromScope])
                     {
-                        if (!placeholders.Contains(type.Value))
+                        var newValue = Copy(type.Value, Register(new Yo.Type()));
+                        HasType(innerFromTo, type.Key, newValue);
+                    }
+
+                    foreach (var type in genericOverlays[innerFromScope])
+                    {
+                        if (!genericOverlays[innerFromTo].ContainsKey(type.Key))
                         {
-                            var newValue = Copy(type.Value, Register(new Yo.Type()));
-                            HasType(innerFromTo, type.Key, newValue);
+                            HasPlaceholderType(innerFromTo, type.Key, type.Value);
                         }
                     }
                 }
 
-                if (innerFrom is IHaveMembersPossiblyOnParent innerFromPossible && innerTo is IHaveMembersPossiblyOnParent innerToPossible) {
+                if (innerFrom is IHaveMembersPossiblyOnParent innerFromPossible && innerTo is IHaveMembersPossiblyOnParent innerToPossible)
+                {
 
                     foreach (var possible in possibleMembers[innerFromPossible])
                     {
@@ -370,27 +385,34 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private Yo.Type Ensure(Yo.Type from)
+        private class GenericTypeKey : IEquatable<GenericTypeKey>
         {
-            foreach (var item in values[from])
+            private readonly Yo.Type primary;
+            private readonly Yo.Type[] parameters;
+
+            public GenericTypeKey(Yo.Type primary, Yo.Type[] parameters)
             {
-                LookUpOrOverlayOrThrow(from, item);
+                this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
+                this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
             }
 
-            foreach (var item in refs[from])
+            public override bool Equals(object obj)
             {
-                LookUpOrOverlayOrThrow(from, item);
+                return Equals(obj as GenericTypeKey);
             }
 
-            foreach (var member in members[from])
+            public bool Equals(GenericTypeKey other)
             {
-                LookUpOrOverlayOrThrow(from, member.Value);
+                return other != null &&
+                       EqualityComparer<Yo.Type>.Default.Equals(primary, other.primary) &&
+                       EqualityComparer<Yo.Type[]>.Default.Equals(parameters, other.parameters);
             }
 
-            return from;
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(primary, parameters);
+            }
         }
-
-
 
         #region Solve Side
 
