@@ -11,8 +11,8 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal interface IHaveMembersPossiblyOnParent : IScope { }
     internal interface IHaveHopefulMembers : ILookUpType { }
     internal interface ILookUpType : ITypeProblemNode { }
-    internal interface ICanAssignFromMe : ITypeProblemNode { }
-    internal interface ICanBeAssignedTo : ITypeProblemNode { }
+    internal interface ICanAssignFromMe : ILookUpType, ITypeProblemNode { }
+    internal interface ICanBeAssignedTo : ILookUpType, ITypeProblemNode { }
 
     public class Yo
     {
@@ -20,6 +20,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal class Value : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe { }
         internal class Member : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe, ICanBeAssignedTo { }
         internal class Type : ITypeProblemNode, IScope { }
+        internal class InferedType : Type { }
         internal class Scope : ITypeProblemNode, IHaveMembersPossiblyOnParent, IScope { }
         internal class Object : ITypeProblemNode, IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }
         internal class Method : ITypeProblemNode, IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }
@@ -140,7 +141,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             foreach (var node in toLookUp.Where(x => !lookUpTypeKey.ContainsKey(x)))
             {
                 var key = new ImplicitKey();
-                var type = Register(new Yo.Type());
+                var type = Register(new Yo.InferedType());
                 lookUps[node] = type;
                 lookUpTypeKey[node] = key;
                 HasType(lookUpTypeContext[node], key, type);
@@ -192,9 +193,17 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // flow upstream
+            foreach (var (from,to) in assignments)
+            {
+                Flow(GetType(from), GetType(to));
+            }
 
             // flow downstream
-
+            // we can't flow through convergences, since it might be an or-type
+            foreach (var (from, to) in assignments.GroupBy(x => x.Item2).Where(x => x.Count() == 1).SelectMany(x => x))
+            {
+                Flow(GetType(to), GetType(from));
+            }
 
             #region Helpers
 
@@ -210,6 +219,37 @@ namespace Tac.Frontend.New.CrzayNamespace
                     else
                     {
                         return res;
+                    }
+                }
+            }
+
+            void Flow(Yo.Type from, Yo.Type to)
+            {
+                // I think the only thing that "flow" are members
+                // but not all types will accept new members
+                if (to is Yo.InferedType) {
+                    foreach (var memberPair in members[from])
+                    {
+                        if (members[to].TryGetValue(memberPair.Key, out var upstreamMember))
+                        {
+                            var one = GetType(upstreamMember);
+                            var two = GetType(memberPair.Value);
+                            if (one is Yo.InferedType oneInfered)
+                            {
+                                Flow(two, oneInfered);
+                            }
+                            else if (two is Yo.InferedType twoInfered)
+                            {
+                                Flow(one, twoInfered);
+                            }
+                            else {
+                                throw new Exception("these types are not compatible... right?");
+                            }
+
+                        }
+                        else {
+                            members[to].Add(memberPair.Key, memberPair.Value);
+                        }
                     }
                 }
             }
@@ -499,5 +539,4 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
     }
-
 }
