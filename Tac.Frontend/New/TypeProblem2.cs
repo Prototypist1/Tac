@@ -12,13 +12,24 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal interface ITypeProblemNode {
         TypeProblem2 Problem {get;}
     }
-    internal interface IScope : ITypeProblemNode { }
 
-    internal interface IHaveMembersPossiblyOnParent : IScope { }
+    internal interface IHaveMembersPossiblyOnParent : Tpn.IScope { }
     internal interface IHaveHopefulMembers : ILookUpType { }
     internal interface ILookUpType : ITypeProblemNode { }
     internal interface ICanAssignFromMe : ILookUpType, ITypeProblemNode { }
     internal interface ICanBeAssignedTo : ILookUpType, ITypeProblemNode { }
+
+    public static class Tpn
+    {
+
+        internal interface ITypeReference : ITypeProblemNode, ILookUpType { }
+        internal interface IValue : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe { }
+        internal interface IMember : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe, ICanBeAssignedTo { }
+        internal interface IType : ITypeProblemNode, IScope { }
+        internal interface IScope : ITypeProblemNode { }
+        internal interface IObject : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }
+        internal interface IMethod : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }
+    }
 
     internal class TypeProblem2 : ISetUpTypeProblem
     {
@@ -31,25 +42,25 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public TypeProblem2 Problem { get; }
         }
-        private class TypeReference : TypeProblemNode, ILookUpType
+        private class TypeReference : TypeProblemNode, Tpn.ITypeReference
         {
             public TypeReference(TypeProblem2 problem) : base(problem)
             {
             }
         }
-        private class Value : TypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe
+        private class Value : TypeProblemNode, Tpn.IValue
         {
             public Value(TypeProblem2 problem) : base(problem)
             {
             }
         }
-        private class Member : TypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe, ICanBeAssignedTo
+        private class Member : TypeProblemNode, Tpn.IMember
         {
             public Member(TypeProblem2 problem) : base(problem)
             {
             }
         }
-        private class Type : TypeProblemNode, IScope
+        private class Type : TypeProblemNode, Tpn.IType
         {
             public Type(TypeProblem2 problem) : base(problem)
             {
@@ -61,19 +72,19 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
             }
         }
-        private class Scope : TypeProblemNode, IHaveMembersPossiblyOnParent, IScope
+        private class Scope : TypeProblemNode, Tpn.IScope
         {
             public Scope(TypeProblem2 problem) : base(problem)
             {
             }
         }
-        private class Object : TypeProblemNode, IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe
+        private class Object : TypeProblemNode, Tpn.IObject
         {
             public Object(TypeProblem2 problem) : base(problem)
             {
             }
         }
-        private class Method : TypeProblemNode, IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe
+        private class Method : TypeProblemNode, Tpn.IMethod
         {
             public Method(TypeProblem2 problem) : base(problem)
             {
@@ -82,87 +93,87 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         // basic stuff
         private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
-        private IScope root;
+        private Scope root;
         // relationships
-        private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
+        private readonly Dictionary<Tpn.IScope, Tpn.IScope> kidParent = new Dictionary<Tpn.IScope, Tpn.IScope>();
 
-        private readonly Dictionary<IScope, List<Value>> values = new Dictionary<IScope, List<Value>>();
-        private readonly Dictionary<IScope, List<TypeReference>> refs = new Dictionary<IScope, List<TypeReference>>();
-        private readonly Dictionary<IScope, Dictionary<IKey, Type>> types = new Dictionary<IScope, Dictionary<IKey, Type>>();
-        private readonly Dictionary<IScope, Dictionary<IKey, Member>> members = new Dictionary<IScope, Dictionary<IKey, Member>>();
-        private readonly Dictionary<IScope, Dictionary<IKey, Type>> genericOverlays = new Dictionary<IScope, Dictionary<IKey, Type>>();
+        private readonly Dictionary<Tpn.IScope, List<Tpn.IValue>> values = new Dictionary<Tpn.IScope, List<Tpn.IValue>>();
+        private readonly Dictionary<Tpn.IScope, List<Tpn.ITypeReference>> refs = new Dictionary<Tpn.IScope, List<Tpn.ITypeReference>>();
+        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>> types = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>>();
+        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>> members = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>>();
+        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>> genericOverlays = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>>();
 
 
-        private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Member>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Member>>();
-        private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Member>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Member>>();
+        private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.IMember>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.IMember>>();
+        private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Tpn.IMember>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Tpn.IMember>>();
         private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
         // members
         private readonly Dictionary<ILookUpType, IKey> lookUpTypeKey = new Dictionary<ILookUpType, IKey>();
-        private readonly Dictionary<ILookUpType, IScope> lookUpTypeContext = new Dictionary<ILookUpType, IScope>();
+        private readonly Dictionary<ILookUpType, Tpn.IScope> lookUpTypeContext = new Dictionary<ILookUpType, Tpn.IScope>();
 
-        private readonly Dictionary<GenericTypeKey, Type> realizedGeneric = new Dictionary<GenericTypeKey, Type>();
+        private readonly Dictionary<GenericTypeKey, Tpn.IType> realizedGeneric = new Dictionary<GenericTypeKey, Tpn.IType>();
 
         #region Building APIs
 
-        public void IsChildOf(IScope parent, IScope kid)
+        public void IsChildOf(Tpn.IScope parent, Tpn.IScope kid)
         {
             kidParent.Add(kid, parent);
         }
-        public void HasValue(IScope parent, Value value)
+        public void HasValue(Tpn.IScope parent, Tpn.IValue value)
         {
             if (!values.ContainsKey(parent))
             {
-                values.Add(parent, new List<Value>());
+                values.Add(parent, new List<Tpn.IValue>());
             }
             values[parent].Add(value);
         }
-        public void HasReference(IScope parent, TypeReference reference)
+        public void HasReference(Tpn.IScope parent, Tpn.ITypeReference reference)
         {
             if (!refs.ContainsKey(parent))
             {
-                refs.Add(parent, new List<TypeReference>());
+                refs.Add(parent, new List<Tpn.ITypeReference>());
             }
             refs[parent].Add(reference);
         }
-        public void HasType(IScope parent, IKey key, Type type)
+        public void HasType(Tpn.IScope parent, IKey key, Tpn.IType type)
         {
             if (!types.ContainsKey(parent))
             {
-                types.Add(parent, new Dictionary<IKey, Type>());
+                types.Add(parent, new Dictionary<IKey, Tpn.IType>());
             }
             types[parent].Add(key, type);
         }
 
-        public void HasPlaceholderType(IScope parent, IKey key, Type type)
+        public void HasPlaceholderType(Tpn.IScope parent, IKey key, Tpn.IType type)
         {
             if (!genericOverlays.ContainsKey(parent))
             {
-                genericOverlays.Add(parent, new Dictionary<IKey, Type>());
+                genericOverlays.Add(parent, new Dictionary<IKey, Tpn.IType>());
             }
             genericOverlays[parent].Add(key, type);
         }
-        public void HasMember(IScope parent, IKey key, Member member)
+        public void HasMember(Tpn.IScope parent, IKey key, Tpn.IMember member)
         {
             if (!members.ContainsKey(parent))
             {
-                members.Add(parent, new Dictionary<IKey, Member>());
+                members.Add(parent, new Dictionary<IKey, Tpn.IMember>());
             }
             members[parent].Add(key, member);
         }
-        public void HasMembersPossiblyOnParent(IHaveMembersPossiblyOnParent parent, IKey key, Member member)
+        public void HasMembersPossiblyOnParent(IHaveMembersPossiblyOnParent parent, IKey key, Tpn.IMember member)
         {
             if (!possibleMembers.ContainsKey(parent))
             {
-                possibleMembers.Add(parent, new Dictionary<IKey, Member>());
+                possibleMembers.Add(parent, new Dictionary<IKey, Tpn.IMember>());
             }
             possibleMembers[parent].Add(key, member);
         }
-        public void HasHopefulMember(IHaveHopefulMembers parent, IKey key, Member member)
+        public void HasHopefulMember(IHaveHopefulMembers parent, IKey key, Tpn.IMember member)
         {
 
             if (!hopefulMembers.ContainsKey(parent))
             {
-                hopefulMembers.Add(parent, new Dictionary<IKey, Member>());
+                hopefulMembers.Add(parent, new Dictionary<IKey, Tpn.IMember>());
             }
             hopefulMembers[parent].Add(key, member);
         }
@@ -211,7 +222,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // members that might be on parents 
-            var defersTo = new Dictionary<Type, Type>();
+            var defersTo = new Dictionary<Tpn.IType, Tpn.IType>();
 
             foreach (var item in possibleMembers)
             {
@@ -219,7 +230,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (TryGetMember(item.Key, pair.Key, out var member))
                     {
-                        // TODO is there more to defering ??
                         defersTo[GetType(pair.Value)] = GetType(member);
                     }
                     else {
@@ -259,7 +269,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             #region Helpers
 
-            Type GetType(ILookUpType value)
+            Tpn.IType GetType(ILookUpType value)
             {
                 var res = lookUps[value];
                 while (true)
@@ -275,7 +285,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            void Flow(Type from, Type to)
+            void Flow(Tpn.IType from, Tpn.IType to)
             {
                 // I think the only thing that "flow" are members
                 // but not all types will accept new members
@@ -310,7 +320,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         }
 
-        private bool TryGetMember(IScope context, IKey key, out Member member)
+        private bool TryGetMember(Tpn.IScope context, IKey key, out Tpn.IMember member)
         {
             while (true)
             {
@@ -324,7 +334,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private Type LookUpOrOverlayOrThrow(IScope from, ILookUpType lookUp)
+        private Tpn.IType LookUpOrOverlayOrThrow(Tpn.IScope from, ILookUpType lookUp)
         {
             if (!TryLookUpOrOverlay(from, lookUp, out var res))
             {
@@ -333,7 +343,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return res;
         }
 
-        private Type LookUpOrOverlayOrThrow(IScope from, IKey key)
+        private Tpn.IType LookUpOrOverlayOrThrow(Tpn.IScope from, IKey key)
         {
             if (!TryLookUpOrOverlay(from, key, out var res))
             {
@@ -343,8 +353,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
         // or maybe I just need to make we get the same outcome requardless of what order references are processed in'
-        private Dictionary<ILookUpType, Type> lookUps = new Dictionary<ILookUpType, Type>();
-        private bool TryLookUpOrOverlay(IScope from, ILookUpType lookUp, out Type res)
+        private Dictionary<ILookUpType, Tpn.IType> lookUps = new Dictionary<ILookUpType, Tpn.IType>();
+        private bool TryLookUpOrOverlay(Tpn.IScope from, ILookUpType lookUp, out Tpn.IType res)
         {
 
             if (lookUps.TryGetValue(lookUp, out res))
@@ -361,7 +371,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return false;
         }
 
-        private bool TryLookUpOrOverlay(IScope from, IKey key, out Type res)
+        private bool TryLookUpOrOverlay(Tpn.IScope from, IKey key, out Tpn.IType res)
         {
 
             if (key is GenericNameKey genericNameKey)
@@ -376,7 +386,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return true;
                 }
 
-                var to = Register(new Type());
+                var to = Register(new Type(this));
                 foreach (var type in types)
                 {
                     HasPlaceholderType(to, type.typeKey, type.Item2);
@@ -397,7 +407,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private IScope DefinedOn(IScope haveTypes, IKey key)
+        private Tpn.IScope DefinedOn(Tpn.IScope haveTypes, IKey key)
         {
             while (true)
             {
@@ -412,7 +422,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private bool TryLookUp(IScope haveTypes, IKey key, out Type result)
+        private bool TryLookUp(Tpn.IScope haveTypes, IKey key, out Tpn.IType result)
         {
             while (true)
             {
@@ -429,7 +439,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private Type CopyTree(Type from, Type to)
+        private Tpn.IType CopyTree(Tpn.IType from, Tpn.IType to)
         {
 
             var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();
@@ -437,7 +447,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             foreach (var pair in map)
             {
-                if (pair.Key is IScope fromScope && to is IScope toScope)
+                if (pair.Key is Tpn.IScope fromScope && to is Tpn.IScope toScope)
                 {
                     kidParent[toScope] = kidParent[CopiedToOrSelf(fromScope)];
                 }
@@ -502,7 +512,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 map.Add(innerFrom, innerTo);
 
-                if (innerFrom is IScope innerFromScope && innerTo is IScope innerFromTo)
+                if (innerFrom is Tpn.IScope innerFromScope && innerTo is Tpn.IScope innerFromTo)
                 {
 
                     foreach (var item in values[innerFromScope])
@@ -563,10 +573,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         private class GenericTypeKey : IEquatable<GenericTypeKey>
         {
-            private readonly Type primary;
-            private readonly Type[] parameters;
+            private readonly Tpn.IType primary;
+            private readonly Tpn.IType[] parameters;
 
-            public GenericTypeKey(Type primary, Type[] parameters)
+            public GenericTypeKey(Tpn.IType primary, Tpn.IType[] parameters)
             {
                 this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
                 this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
@@ -580,8 +590,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             public bool Equals(GenericTypeKey other)
             {
                 return other != null &&
-                       EqualityComparer<Type>.Default.Equals(primary, other.primary) &&
-                       EqualityComparer<Type[]>.Default.Equals(parameters, other.parameters);
+                       EqualityComparer<Tpn.IType>.Default.Equals(primary, other.primary) &&
+                       EqualityComparer<Tpn.IType[]>.Default.Equals(parameters, other.parameters);
             }
 
             public override int GetHashCode()
