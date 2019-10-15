@@ -38,6 +38,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             public TypeProblemNode(TypeProblem2 problem) {
                 Problem = problem ?? throw new ArgumentNullException(nameof(problem));
+                problem.Register(this);
             }
 
             public TypeProblem2 Problem { get; }
@@ -204,7 +205,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             foreach (var node in toLookUp.Where(x => !lookUpTypeKey.ContainsKey(x)))
             {
                 var key = new ImplicitKey();
-                var type = Register(new InferedType(this));
+                var type = new InferedType(this);
                 lookUps[node] = type;
                 lookUpTypeKey[node] = key;
                 HasType(lookUpTypeContext[node], key, type);
@@ -386,7 +387,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return true;
                 }
 
-                var to = Register(new Type(this));
+                var to = new Type(this);
                 foreach (var type in types)
                 {
                     HasPlaceholderType(to, type.typeKey, type.Item2);
@@ -517,25 +518,25 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var item in values[innerFromScope])
                     {
-                        var newValue = Copy(item, Register(new Value(this)));
+                        var newValue = Copy(item, new Value(this));
                         HasValue(innerFromTo, newValue);
                     }
 
                     foreach (var item in refs[innerFromScope])
                     {
-                        var newValue = Copy(item, Register(new TypeReference(this)));
+                        var newValue = Copy(item, new TypeReference(this));
                         HasReference(innerFromTo, newValue);
                     }
 
                     foreach (var member in members[innerFromScope])
                     {
-                        var newValue = Copy(member.Value, Register(new Member(this)));
+                        var newValue = Copy(member.Value, new Member(this));
                         HasMember(innerFromTo, member.Key, newValue);
                     }
 
                     foreach (var type in types[innerFromScope])
                     {
-                        var newValue = Copy(type.Value, Register(new Type(this)));
+                        var newValue = Copy(type.Value, new Type(this));
                         HasType(innerFromTo, type.Key, newValue);
                     }
 
@@ -553,7 +554,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var possible in possibleMembers[innerFromPossible])
                     {
-                        var newValue = Copy(possible.Value, Register(new Member(this)));
+                        var newValue = Copy(possible.Value, new Member(this));
                         HasMembersPossiblyOnParent(innerToPossible, possible.Key, newValue);
                     }
                 }
@@ -562,7 +563,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     foreach (var possible in hopefulMembers[innerFromHopeful])
                     {
-                        var newValue = Copy(possible.Value, Register(new Member(this)));
+                        var newValue = Copy(possible.Value, new Member(this));
                         HasHopefulMember(innerToHopeful, possible.Key, newValue);
                     }
                 }
