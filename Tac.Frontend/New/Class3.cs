@@ -99,7 +99,7 @@ namespace Tac.Frontend.New
         ISetUpType CreateGenericType(IDefineMembers parent, IKey key, IReadOnlyList<IKey> placeholders);
         ISetUpObject CreateObject(IDefineMembers parent);
         ISetUpMethodBuilder CreateMethod(IDefineMembers parent);
-        
+
     }
 
     internal interface ITypeSolution

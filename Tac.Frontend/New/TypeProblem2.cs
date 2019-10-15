@@ -5,8 +5,7 @@ using Tac.Model;
 
 namespace Tac.Frontend.New.CrzayNamespace
 {
-    public static class TypeProblemNodeExtensions {
-
+    internal static class TypeProblemNodeExtensions {
     }
 
     internal interface ITypeProblemNode {
@@ -94,7 +93,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         // basic stuff
         private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
-        private Scope root;
+
+        public Tpn.IScope Root { get; }
         // relationships
         private readonly Dictionary<Tpn.IScope, Tpn.IScope> kidParent = new Dictionary<Tpn.IScope, Tpn.IScope>();
 
@@ -103,7 +103,6 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>> types = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>> members = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>> genericOverlays = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>>();
-
 
         private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.IMember>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.IMember>>();
         private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Tpn.IMember>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Tpn.IMember>>();
@@ -178,17 +177,96 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             hopefulMembers[parent].Add(key, member);
         }
-        public void AssignType(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo)
+        public void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo)
         {
             assignments.Add((assignedFrom, assignedTo));
         }
 
-        public T Register<T>(T typeProblemNode)
+        private T Register<T>(T typeProblemNode)
             where T : ITypeProblemNode
         {
             typeProblemNodes.Add(typeProblemNode);
             return typeProblemNode;
         }
+
+        public Tpn.IValue CreateValue(Tpn.IScope scope, IKey typeKey )
+        {
+            var res = new Value(this);
+            HasValue(scope, res);
+            lookUpTypeContext[res] = scope;
+            lookUpTypeKey[res] = typeKey;
+            return res;
+        }
+
+        public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey)
+        {
+            var res = new Member(this);
+            HasMember(scope, key,res);
+            lookUpTypeContext[res] = scope;
+            lookUpTypeKey[res] = typeKey;
+            return res;
+        }
+
+        public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key)
+        {
+            var res = new Member(this);
+            HasMember(scope, key,res);
+            lookUpTypeContext[res] = scope;
+            return res;
+        }
+
+
+        public Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey key, IKey typeKey)
+        {
+            var res = new TypeReference(this);
+            HasReference(context, res);
+            lookUpTypeContext[res] = context;
+            lookUpTypeKey[res] = typeKey;
+            return res;
+        }
+
+        public Tpn.IScope CreateScope(Tpn.IScope parent)
+        {
+            var res = new Scope(this);
+            IsChildOf(parent, res);
+            return res;
+        }
+
+        public Tpn.IType CreateType(Tpn.IScope parent, IKey key)
+        {
+            var res = new Type(this);
+            IsChildOf(parent, res);
+            HasType(parent, key,res);
+            return res;
+        }
+
+        public Tpn.IType CreateGenericType(Tpn.IScope parent, IKey key, IReadOnlyList<IKey> placeholders)
+        {
+            var res = new Type(this);
+            IsChildOf(parent, res);
+            HasType(parent, key, res);
+            foreach (var placeholder in placeholders)
+            {
+                var placeholderType = new Type(this);
+                HasPlaceholderType(res, placeholder, placeholderType);
+            }
+            return res;
+        }
+
+        public Tpn.IObject CreateObject(Tpn.IScope parent)
+        {
+            var res= new Object(this);
+            IsChildOf(parent, res);
+            return res;
+        }
+
+        public Tpn.IMethod CreateMethod(Tpn.IScope parent)
+        {
+            var res = new Method(this);
+            IsChildOf(parent, res);
+            return res;
+        }
+
 
         #endregion
 
@@ -355,6 +433,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         // or maybe I just need to make we get the same outcome requardless of what order references are processed in'
         private Dictionary<ILookUpType, Tpn.IType> lookUps = new Dictionary<ILookUpType, Tpn.IType>();
+
+        public TypeProblem2()
+        {
+            Root = new Scope(this);
+        }
+
         private bool TryLookUpOrOverlay(Tpn.IScope from, ILookUpType lookUp, out Tpn.IType res)
         {
 
