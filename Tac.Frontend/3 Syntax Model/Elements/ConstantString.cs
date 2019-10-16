@@ -118,8 +118,7 @@ namespace Tac.Semantic_Model.Operations
 
             public IResolvelizeScope<WeakConstantString, Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
-                var stringType = context.TypeProblem.CreateTypeReference(new NameKey("string"));
-                var value = context.TypeProblem.CreateValue(stringType);
+                var value = context.TypeProblem.CreateValue(scope, new NameKey("string"));
                 return new ConstantStringFinalizeScope(str, value);
             }
         }

@@ -91,8 +91,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             public IResolvelizeScope<WeakEmptyInstance, Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
-                var emptyType = context.TypeProblem.CreateTypeReference(new NameKey("empty"));
-                var value = context.TypeProblem.CreateValue(emptyType);
+                var value = context.TypeProblem.CreateValue(scope,new NameKey("empty"));
                 return new EmptyInstanceFinalizeScope(value);
             }
         }

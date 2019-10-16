@@ -212,7 +212,7 @@ namespace Tac.Semantic_Model
                 var inner = context.TypeProblem.CreateMethod(outer);
 
                 var realizeContext = contextDefinition.Run(outer, context);
-                var outerResultMember = context.TypeProblem.CreateMember(new ImplicitKey());
+                var outerResultMember = context.TypeProblem.CreateMember(scope,new ImplicitKey());
                 var outerMethod = outer.SetInputOutput(realizeContext.SetUpSideNode, outerResultMember);
 
                 var parameter = parameterDefinition.Run(scope, context);

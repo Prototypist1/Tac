@@ -177,7 +177,7 @@ namespace Tac.Semantic_Model
 
             public IResolvelizeScope<WeakTypeReference, Tpn.ITypeReference> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
-                var type = context.TypeProblem.CreateTypeReference(key);
+                var type = context.TypeProblem.CreateTypeReference(scope,key);
                 return new TypeReferanceFinalizeScope(
                     key, type);
             }
