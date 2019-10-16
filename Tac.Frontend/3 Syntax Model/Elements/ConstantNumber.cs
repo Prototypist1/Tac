@@ -3,6 +3,7 @@ using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend.New;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -17,12 +18,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticConstantNumberMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticConstantNumberMaker = AddElementMakers(
             () => new ConstantNumberMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
 
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> ConstantNumberMaker = StaticConstantNumberMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> ConstantNumberMaker = StaticConstantNumberMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -57,11 +58,11 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantNumberMaker : IMaker<IPopulateScope<WeakConstantNumber, ISetUpValue>>
+    internal class ConstantNumberMaker : IMaker<IPopulateScope<WeakConstantNumber, Tpn.IValue>>
     {
         public ConstantNumberMaker() {}
 
-        public ITokenMatching<IPopulateScope<WeakConstantNumber, ISetUpValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakConstantNumber, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .Has(new NumberMaker(), out var dub);
@@ -69,12 +70,12 @@ namespace Tac.Semantic_Model.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakConstantNumber, ISetUpValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantNumberPopulateScope(dub));
+                return TokenMatching<IPopulateScope<WeakConstantNumber, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantNumberPopulateScope(dub));
             }
-            return TokenMatching<IPopulateScope<WeakConstantNumber, ISetUpValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakConstantNumber, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakConstantNumber, ISetUpValue> PopulateScope(double dub)
+        public static IPopulateScope<WeakConstantNumber, Tpn.IValue> PopulateScope(double dub)
         {
             return new ConstantNumberPopulateScope(dub);
         }
@@ -83,7 +84,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantNumberResolveReferance(dub);
         }
 
-        private class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber, ISetUpValue>
+        private class ConstantNumberPopulateScope : IPopulateScope<WeakConstantNumber, Tpn.IValue>
         {
             private readonly double dub;
 
@@ -92,7 +93,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IResolvelizeScope<WeakConstantNumber, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantNumber, Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
 
                 var numberType = context.TypeProblem.CreateTypeReference(new NameKey("number"));
@@ -101,14 +102,14 @@ namespace Tac.Semantic_Model.Operations
             }
         }
 
-        private class ConstantNumberFinalizeScope : IResolvelizeScope<WeakConstantNumber, ISetUpValue>
+        private class ConstantNumberFinalizeScope : IResolvelizeScope<WeakConstantNumber, Tpn.IValue>
         {
             private readonly double dub;
 
-            public ISetUpValue SetUpSideNode { get; }
+            public Tpn.IValue SetUpSideNode { get; }
 
 
-            public ConstantNumberFinalizeScope(double dub, ISetUpValue setUpValue)
+            public ConstantNumberFinalizeScope(double dub, Tpn.IValue setUpValue)
             {
                 this.dub = dub;
                 this.SetUpSideNode = setUpValue ?? throw new System.ArgumentNullException(nameof(setUpValue));

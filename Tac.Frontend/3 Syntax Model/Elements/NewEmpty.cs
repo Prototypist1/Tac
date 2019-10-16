@@ -13,16 +13,17 @@ using Tac.Frontend;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Model;
 using Tac.Frontend.New;
+using Tac.Frontend.New.CrzayNamespace;
 
 namespace Tac.Parser
 {
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticEmptyInstanceMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticEmptyInstanceMaker = AddElementMakers(
             () => new EmptyInstanceMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
     }
 }
 
@@ -56,11 +57,11 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
         }
     }
 
-    internal class EmptyInstanceMaker : IMaker<IPopulateScope<WeakEmptyInstance,ISetUpValue>>
+    internal class EmptyInstanceMaker : IMaker<IPopulateScope<WeakEmptyInstance,Tpn.IValue>>
     {
         public EmptyInstanceMaker() { }
 
-        public ITokenMatching<IPopulateScope<WeakEmptyInstance, ISetUpValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakEmptyInstance, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             // change key word to nothing?
             var match = tokenMatching
@@ -69,12 +70,12 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakEmptyInstance, ISetUpValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new EmptyInstancePopulateScope());
+                return TokenMatching<IPopulateScope<WeakEmptyInstance, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new EmptyInstancePopulateScope());
             }
-            return TokenMatching<IPopulateScope<WeakEmptyInstance, ISetUpValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakEmptyInstance, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakEmptyInstance, ISetUpValue> PopulateScope()
+        public static IPopulateScope<WeakEmptyInstance, Tpn.IValue> PopulateScope()
         {
             return new EmptyInstancePopulateScope();
         }
@@ -83,12 +84,12 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             return new EmptyInstanceResolveReferance();
         }
 
-        private class EmptyInstancePopulateScope : IPopulateScope<WeakEmptyInstance, ISetUpValue>
+        private class EmptyInstancePopulateScope : IPopulateScope<WeakEmptyInstance, Tpn.IValue>
         {
 
             public EmptyInstancePopulateScope() { }
 
-            public IResolvelizeScope<WeakEmptyInstance, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakEmptyInstance, Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
                 var emptyType = context.TypeProblem.CreateTypeReference(new NameKey("empty"));
                 var value = context.TypeProblem.CreateValue(emptyType);
@@ -96,12 +97,12 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             }
         }
 
-        private class EmptyInstanceFinalizeScope : IResolvelizeScope<WeakEmptyInstance, ISetUpValue>
+        private class EmptyInstanceFinalizeScope : IResolvelizeScope<WeakEmptyInstance, Tpn.IValue>
         {
 
-            public EmptyInstanceFinalizeScope(ISetUpValue value) { SetUpSideNode = value ?? throw new ArgumentNullException(nameof(value)); }
+            public EmptyInstanceFinalizeScope(Tpn.IValue value) { SetUpSideNode = value ?? throw new ArgumentNullException(nameof(value)); }
 
-            public ISetUpValue SetUpSideNode
+            public Tpn.IValue SetUpSideNode
             {
                 get;
             }

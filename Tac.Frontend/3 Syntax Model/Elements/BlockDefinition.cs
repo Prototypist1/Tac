@@ -5,6 +5,7 @@ using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend.New;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -18,11 +19,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticBlockDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticBlockDefinitionMaker = AddElementMakers(
             () => new BlockDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -56,13 +57,13 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class BlockDefinitionMaker : IMaker<IPopulateScope<WeakBlockDefinition, ISetUpScope>>
+    internal class BlockDefinitionMaker : IMaker<IPopulateScope<WeakBlockDefinition, Tpn.IScope>>
     {
         public BlockDefinitionMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakBlockDefinition, ISetUpScope>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakBlockDefinition, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                .Has(new BodyMaker(), out var body);
@@ -72,14 +73,14 @@ namespace Tac.Semantic_Model
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
 
-                return TokenMatching<IPopulateScope<WeakBlockDefinition, ISetUpScope>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, 
+                return TokenMatching<IPopulateScope<WeakBlockDefinition, Tpn.IScope>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, 
                     new BlockDefinitionPopulateScope(elements));
             }
 
-            return TokenMatching<IPopulateScope<WeakBlockDefinition, ISetUpScope>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakBlockDefinition, Tpn.IScope>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakBlockDefinition, ISetUpScope> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ISetUpSideNode>[] elements)
+        public static IPopulateScope<WeakBlockDefinition, Tpn.IScope> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ITypeProblemNode>[] elements)
         {
             return new BlockDefinitionPopulateScope(elements);
         }
@@ -89,19 +90,19 @@ namespace Tac.Semantic_Model
             return new ResolveReferanceBlockDefinition(scope, resolveReferance);
         }
 
-        private class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition, ISetUpScope>
+        private class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition, Tpn.IScope>
         {
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] Elements { get; }
+            private IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] Elements { get; }
 
-            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement, ISetUpSideNode>[] elements)
+            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement, ITypeProblemNode>[] elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IResolvelizeScope<WeakBlockDefinition,ISetUpScope> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakBlockDefinition,Tpn.IScope> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
                 var myScope = context.TypeProblem.CreateScope(scope);
                 return new FinalizeScopeBlockDefinition(
@@ -110,12 +111,12 @@ namespace Tac.Semantic_Model
             }
         }
 
-        private class FinalizeScopeBlockDefinition : IResolvelizeScope<WeakBlockDefinition, ISetUpScope>
+        private class FinalizeScopeBlockDefinition : IResolvelizeScope<WeakBlockDefinition, Tpn.IScope>
         {
-            public ISetUpScope SetUpSideNode { get; }
-            private readonly IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] finalizeScope;
+            public Tpn.IScope SetUpSideNode { get; }
+            private readonly IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] finalizeScope;
 
-            public FinalizeScopeBlockDefinition(ISetUpScope setUpSideNode, IResolvelizeScope<IFrontendCodeElement,ISetUpSideNode>[] finalizeScope)
+            public FinalizeScopeBlockDefinition(Tpn.IScope setUpSideNode, IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] finalizeScope)
             {
                 SetUpSideNode = setUpSideNode ?? throw new ArgumentNullException(nameof(setUpSideNode));
                 this.finalizeScope = finalizeScope ?? throw new ArgumentNullException(nameof(finalizeScope));

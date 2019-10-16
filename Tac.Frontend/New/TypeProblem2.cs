@@ -5,6 +5,24 @@ using Tac.Model;
 
 namespace Tac.Frontend.New.CrzayNamespace
 {
+
+    internal interface ISetUpTypeProblem
+    {
+        // a =: x
+
+        void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
+        Tpn.IValue CreateValue(Tpn.IScope scope, IKey typeKey);
+        Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey);
+        Tpn.IMember CreateMember(Tpn.IScope scope, IKey key);
+        Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey typeKey);
+        Tpn.IScope CreateScope(Tpn.IScope parent);
+        Tpn.IType CreateType(Tpn.IScope parent, IKey key);
+        Tpn.IType CreateGenericType(Tpn.IScope parent, IKey key, IReadOnlyList<IKey> placeholders);
+        Tpn.IObject CreateObject(Tpn.IScope parent);
+        Tpn.IMethod CreateMethod(Tpn.IScope parent);
+
+    }
+
     internal static class TypeProblemNodeExtensions {
     }
 
@@ -177,16 +195,17 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             hopefulMembers[parent].Add(key, member);
         }
-        public void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo)
-        {
-            assignments.Add((assignedFrom, assignedTo));
-        }
-
+       
         private T Register<T>(T typeProblemNode)
             where T : ITypeProblemNode
         {
             typeProblemNodes.Add(typeProblemNode);
             return typeProblemNode;
+        }
+
+        public void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo)
+        {
+            assignments.Add((assignedFrom, assignedTo));
         }
 
         public Tpn.IValue CreateValue(Tpn.IScope scope, IKey typeKey )
@@ -216,7 +235,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
 
-        public Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey key, IKey typeKey)
+        public Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey typeKey)
         {
             var res = new TypeReference(this);
             HasReference(context, res);

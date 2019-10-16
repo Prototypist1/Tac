@@ -3,6 +3,7 @@ using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend.New;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -16,11 +17,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticConstantBoolMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticConstantBoolMaker = AddElementMakers(
             () => new ConstantBoolMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> ConstantBoolMaker = StaticConstantBoolMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> ConstantBoolMaker = StaticConstantBoolMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -54,7 +55,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantBoolMaker : IMaker<IPopulateScope<WeakConstantBool, ISetUpValue>>
+    internal class ConstantBoolMaker : IMaker<IPopulateScope<WeakConstantBool, Tpn.IValue>>
     {
         public ConstantBoolMaker() { }
 
@@ -82,7 +83,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public ITokenMatching<IPopulateScope<WeakConstantBool, ISetUpValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakConstantBool, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .Has(new BoolMaker(), out var dub);
@@ -90,12 +91,12 @@ namespace Tac.Semantic_Model.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakConstantBool, ISetUpValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
+                return TokenMatching<IPopulateScope<WeakConstantBool, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
             }
-            return TokenMatching<IPopulateScope<WeakConstantBool, ISetUpValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<IPopulateScope<WeakConstantBool, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakConstantBool, ISetUpValue> PopulateScope(bool dub)
+        public static IPopulateScope<WeakConstantBool, Tpn.IValue> PopulateScope(bool dub)
         {
             return new ConstantBoolPopulateScope(dub);
         }
@@ -104,7 +105,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantBoolResolveReferance(dub);
         }
 
-        private class ConstantBoolPopulateScope : IPopulateScope<WeakConstantBool, ISetUpValue>
+        private class ConstantBoolPopulateScope : IPopulateScope<WeakConstantBool, Tpn.IValue>
         {
             private readonly bool dub;
 
@@ -113,25 +114,24 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IResolvelizeScope<WeakConstantBool, ISetUpValue> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakConstantBool, Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
-                var boolType= context.TypeProblem.CreateTypeReference(new NameKey("bool"));
-                var value = context.TypeProblem.CreateValue(boolType);
+                var value = context.TypeProblem.CreateValue(scope, new NameKey("bool"));
                 return new ConstantBoolFinalizeScope(dub,value);
             }
         }
 
-        private class ConstantBoolFinalizeScope : IResolvelizeScope<WeakConstantBool, ISetUpValue>
+        private class ConstantBoolFinalizeScope : IResolvelizeScope<WeakConstantBool, Tpn.IValue>
         {
             private readonly bool dub;
 
-            public ConstantBoolFinalizeScope(bool dub, ISetUpValue setUpSideNode)
+            public ConstantBoolFinalizeScope(bool dub, Tpn.IValue setUpSideNode)
             {
                 this.dub = dub;
                 SetUpSideNode = setUpSideNode ?? throw new System.ArgumentNullException(nameof(setUpSideNode));
             }
 
-            public ISetUpValue SetUpSideNode  {get;}
+            public Tpn.IValue SetUpSideNode  {get;}
 
             public IPopulateBoxes<WeakConstantBool> Run(IResolvableScope parent, IFinalizeScopeContext context)
             {

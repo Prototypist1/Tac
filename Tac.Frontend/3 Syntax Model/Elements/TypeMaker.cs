@@ -4,6 +4,7 @@ using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.New;
 using Tac.Parser;
@@ -14,9 +15,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>> StaticTypeMaker = AddTypeMaker(() => new TypeMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendType, ITypeProblemNode>> StaticTypeMaker = AddTypeMaker(() => new TypeMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendType, ISetUpSideNode>> TypeMaker = StaticTypeMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendType, ITypeProblemNode>> TypeMaker = StaticTypeMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -28,16 +29,16 @@ namespace Tac.Semantic_Model
     /// make general types
     /// contains several type makers 
     /// </summary>
-    internal class TypeMaker : IMaker<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>
+    internal class TypeMaker : IMaker<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>
     {
-        public ITokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             {
 
                 if (tokenMatching.Has(new TypeDefinitionMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
                             type);
@@ -49,7 +50,7 @@ namespace Tac.Semantic_Model
                 if (tokenMatching.Has(new TypeReferanceMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
                             type);
@@ -68,10 +69,10 @@ namespace Tac.Semantic_Model
             // maybe that is ok
             
             if (tokenMatching.Tokens.First() is ParenthesisToken parenthesisToken) {
-                if (TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeStart(parenthesisToken.Tokens.ToArray(), tokenMatching.Context).Has(new TypeOrOperationMaker(), out var type)
+                if (TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.IType>>.MakeStart(parenthesisToken.Tokens.ToArray(), tokenMatching.Context).Has(new TypeOrOperationMaker(), out var type)
                         is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
                             tokenMatching.Tokens.Skip(1).ToArray(),
                             matched.Context,
                             type);
@@ -79,7 +80,7 @@ namespace Tac.Semantic_Model
                 }
             }
             
-            return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpTypeReference>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>.MakeNotMatch(
                     tokenMatching.Context);
         }
     }

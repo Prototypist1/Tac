@@ -6,6 +6,7 @@ using System.Text;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend.New;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -20,11 +21,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> StaticTypeDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticTypeDefinitionMaker = AddElementMakers(
             () => new TypeDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ISetUpSideNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -99,13 +100,13 @@ namespace Tac.Semantic_Model
     }
 
 
-    internal class TypeDefinitionMaker : IMaker<IPopulateScope<IWeakTypeReference, ISetUpType>>
+    internal class TypeDefinitionMaker : IMaker<IPopulateScope<IWeakTypeReference, Tpn.IType>>
     {
         public TypeDefinitionMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<IWeakTypeReference, Tpn.IType>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -116,7 +117,7 @@ namespace Tac.Semantic_Model
             {
                var elements = tokenMatching.Context.ParseBlock(body);
                 
-               return TokenMatching<IPopulateScope<IWeakTypeReference, ISetUpType>>.MakeMatch(
+               return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.IType>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new TypeDefinitionPopulateScope(
@@ -124,11 +125,11 @@ namespace Tac.Semantic_Model
                        typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey()));
             }
 
-            return TokenMatching<IPopulateScope<WeakTypeReference, ISetUpType>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakTypeReference, Tpn.IType>>.MakeNotMatch(
                     matching.Context);
         }
         
-        public static IPopulateScope<IWeakTypeReference,ISetUpType> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ISetUpSideNode>[] elements, IKey typeName)
+        public static IPopulateScope<IWeakTypeReference,Tpn.IType> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ITypeProblemNode>[] elements, IKey typeName)
         {
             return new TypeDefinitionPopulateScope(elements, typeName);
         }
@@ -143,21 +144,21 @@ namespace Tac.Semantic_Model
                 key);
         }
         
-        private class TypeDefinitionPopulateScope : IPopulateScope<IWeakTypeReference, ISetUpType>
+        private class TypeDefinitionPopulateScope : IPopulateScope<IWeakTypeReference, Tpn.IType>
         {
-            private readonly IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] elements;
+            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements;
             private readonly IKey key;
             private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
             private readonly WeakTypeReference typeReferance;
 
-            public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement,ISetUpSideNode>[] elements, IKey typeName)
+            public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements, IKey typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
                 typeReferance = new WeakTypeReference(Possibly.Is(definitionBox));
             }
 
-            public IResolvelizeScope<IWeakTypeReference, ISetUpType> Run(IDefineMembers scope, IPopulateScopeContext context)
+            public IResolvelizeScope<IWeakTypeReference, Tpn.IType> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
                 var type= context.TypeProblem.CreateType(scope, key);
                 scope.Type(type);
@@ -171,7 +172,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        private class TypeDefinitionFinalizeScope : IResolvelizeScope<IWeakTypeReference, ISetUpType>
+        private class TypeDefinitionFinalizeScope : IResolvelizeScope<IWeakTypeReference, Tpn.IType>
         {
             private readonly IResolvelizableScope finalizableScope;
             private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox;
@@ -179,7 +180,7 @@ namespace Tac.Semantic_Model
             private readonly IKey key;
 
             public TypeDefinitionFinalizeScope(
-                ISetUpType finalizableScope,
+                Tpn.IType finalizableScope,
                 Box<IIsPossibly<WeakTypeDefinition>> definitionBox,
                 WeakTypeReference typeReferance,
                 IKey key)
@@ -190,7 +191,7 @@ namespace Tac.Semantic_Model
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public ISetUpType SetUpSideNode
+            public Tpn.IType SetUpSideNode
             {
                 get;
             }

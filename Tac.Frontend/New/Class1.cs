@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Tac.Frontend;
 using Tac.Frontend.New;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model.Elements;
 using Tac.Parser;
 using Tac.Semantic_Model;
@@ -25,9 +26,9 @@ namespace Tac.New
     }
 
     internal interface IPopulateScope<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode: ISetUpSideNode
+        where TSetUpSideNode: ITypeProblemNode
     {
-        IResolvelizeScope<TCodeElement, TSetUpSideNode> Run(IDefineMembers scope, IPopulateScopeContext context);
+        IResolvelizeScope<TCodeElement, TSetUpSideNode> Run(Tpn.IScope scope, IPopulateScopeContext context);
     }
 
     internal interface IFinalizeScopeContext { }
@@ -35,7 +36,7 @@ namespace Tac.New
 
 
     internal interface IResolvelizeScope<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode: ISetUpSideNode
+        where TSetUpSideNode: ITypeProblemNode
     {
         TSetUpSideNode SetUpSideNode { get; }
 
