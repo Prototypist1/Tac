@@ -132,7 +132,9 @@ namespace Tac.Semantic_Model
                         context,
                         input, 
                         elements,
-                        output));
+                        output,
+                        contextName?.Item ?? "context",
+                        parameterName?.Item ?? "input"));
             }
 
 
@@ -143,13 +145,17 @@ namespace Tac.Semantic_Model
                                 IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> contextDefinition,
                 IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> parameterDefinition,
                 IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ITypeProblemNode>[] elements,
-                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output)
+                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output,
+                string contextName,
+                string parameterName)
         {
             return new PopulateScopeImplementationDefinition(
                                  contextDefinition,
                  parameterDefinition,
                  elements,
-                 output);
+                 output,
+                 contextName,
+                 parameterName);
         }
         public static IPopulateBoxes<WeakImplementationDefinition> PopulateBoxes(
                 IPopulateBoxes<IWeakTypeReference> contextDefinition,
@@ -172,17 +178,23 @@ namespace Tac.Semantic_Model
             private readonly IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition;
             private readonly IPopulateScope<IFrontendCodeElement, ITypeProblemNode>[] elements;
             private readonly IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output;
+            private readonly string contextName;
+            private readonly string parameterName;
 
             public PopulateScopeImplementationDefinition(
                 IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> contextDefinition,
                 IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition,
                 IPopulateScope<IFrontendCodeElement, ITypeProblemNode>[] elements,
-                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output)
+                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output,
+                string contextName,
+                string parameterName)
             {
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
                 this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
+                this.contextName = contextName ?? throw new ArgumentNullException(nameof(contextName));
+                this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
             }
 
             public IResolvelizeScope<WeakImplementationDefinition,Tpn.IMethod> Run(Tpn.IScope scope, IPopulateScopeContext context)
@@ -195,9 +207,9 @@ namespace Tac.Semantic_Model
                     realizedOutput.SetUpSideNode.Key(),
                 }));
 
-                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef);
+                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName);
 
-                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode);
+                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName);
 
                 inner.AssignTo(outer.Returns());
 

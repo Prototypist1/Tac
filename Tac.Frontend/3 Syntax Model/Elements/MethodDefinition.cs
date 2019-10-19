@@ -114,7 +114,8 @@ namespace Tac.Semantic_Model
                             inputType,
                             elements,
                             outputType,
-                            false)
+                            false,
+                            parameterName)
                         );
                 }
             }
@@ -167,18 +168,21 @@ namespace Tac.Semantic_Model
             private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements;
             private readonly IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output;
             private readonly bool isEntryPoint;
+            private readonly string parameterName;
 
             public MethodDefinitionPopulateScope(
                 IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> parameterDefinition,
                 IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements,
                 IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output,
-                bool isEntryPoint
+                bool isEntryPoint,
+                string parameterName
                 )
             {
                 this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
                 this.isEntryPoint = isEntryPoint;
+                this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
             }
 
             public IResolvelizeScope<WeakMethodDefinition,Tpn.IMethod> Run(Tpn.IScope scope, IPopulateScopeContext context)
@@ -187,7 +191,7 @@ namespace Tac.Semantic_Model
                 var realizedOutput = output.Run(scope, context);
 
 
-                var method= context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode);
+                var method= context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName);
 
                 return new MethodDefinitionFinalizeScope(
                     method,
