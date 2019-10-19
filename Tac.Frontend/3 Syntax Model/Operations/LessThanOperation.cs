@@ -57,7 +57,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation, ILessThanOperation>
     {
-        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)),new NameKey("bool"))
+        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)), (l, r) => new NameKey("bool"))
         {
         }
     }

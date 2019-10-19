@@ -63,6 +63,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class BinaryOperation
     {
+        public delegate IKey GetValueTypeKey(IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left, IPopulateScope<IFrontendCodeElement, ITypeProblemNode> right);
         public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right);
         public delegate IIsPossibly<T> MakeBinaryType<out T>(IIsPossibly<IFrontendType> left, IIsPossibly<IFrontendType> right);
     }
@@ -130,10 +131,10 @@ namespace Tac.Semantic_Model.CodeStuff
         where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
-        private readonly IKey key;
+        private readonly BinaryOperation.GetValueTypeKey key;
 
         public BinaryOperationMaker(string symbol, BinaryOperation.Make<TFrontendCodeElement> make,
-                IKey key
+                BinaryOperation.GetValueTypeKey keyMaker
             )
         {
             Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
@@ -168,7 +169,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left,
                 IPopulateScope<IFrontendCodeElement, ITypeProblemNode> right,
                 BinaryOperation.Make<TFrontendCodeElement> make,
-                IKey key)
+                BinaryOperation.GetValueTypeKey key)
         {
             return new BinaryPopulateScope(left,
                  right,
@@ -191,25 +192,29 @@ namespace Tac.Semantic_Model.CodeStuff
             private readonly IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left;
             private readonly IPopulateScope<IFrontendCodeElement, ITypeProblemNode> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-            private readonly IKey key;
+            private readonly BinaryOperation.GetValueTypeKey keyMaker;
 
             public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left,
                 IPopulateScope<IFrontendCodeElement, ITypeProblemNode> right,
                 BinaryOperation.Make<TFrontendCodeElement> make,
-                IKey key)
+                BinaryOperation.GetValueTypeKey key)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.key = key ?? throw new ArgumentNullException(nameof(key));
+                this.keyMaker = key ?? throw new ArgumentNullException(nameof(key));
             }
 
             public IResolvelizeScope<TFrontendCodeElement, Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
-                var value = context.TypeProblem.CreateValue(scope, key);
+                var nextLeft = left.Run(scope, context);
+                var nextRight = right.Run(scope, context);
+                var typeKey = keyMaker(left, right);
+
+                var value = context.TypeProblem.CreateValue(scope, typeKey);
                 return new BinaryFinalizeScope(value,
-                    left.Run(scope,context),
-                    right.Run(scope, context),
+                    nextLeft,
+                    nextRight,
                     make);
             }
         }
