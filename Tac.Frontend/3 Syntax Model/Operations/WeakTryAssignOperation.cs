@@ -34,13 +34,13 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class TryAssignOperationMaker : IMaker<IPopulateScope<WeakTryAssignOperation>>
+    internal class TryAssignOperationMaker : IMaker<IPopulateScope<WeakTryAssignOperation,Tpn.IValue>>
     {
         public TryAssignOperationMaker()
         {
         }
 
-        public ITokenMatching<IPopulateScope<WeakTryAssignOperation>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakTryAssignOperation, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
             var matching = tokenMatching
@@ -52,15 +52,16 @@ namespace Tac.Semantic_Model.Operations
                 var left = matching.Context.ParseLine(res.perface);
                 var right = matching.Context.ParseParenthesisOrElement(res.rhs);
 
-                return TokenMatching<IPopulateScope<WeakTryAssignOperation>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakTryAssignOperation, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     BinaryOperationMaker<WeakTryAssignOperation, ITryAssignOperation>.PopulateScope(left, right, (l, r) =>
                         Possibly.Is(
-                            new WeakTryAssignOperation(l, r))));
+                            new WeakTryAssignOperation(l, r)),
+                    (s,c,l,r)=> c.TypeProblem.CreateValue(s,new NameKey("bool"))));
             }
 
-            return TokenMatching<IPopulateScope<WeakTryAssignOperation>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakTryAssignOperation, Tpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 

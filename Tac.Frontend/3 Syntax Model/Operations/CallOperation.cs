@@ -105,7 +105,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation, ILastCallOperation>
     {
-        public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>Possibly.Is( new WeakLastCallOperation(l,r)))
+        public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>Possibly.Is( new WeakLastCallOperation(l,r)), (s, c, l, r) => (l.SetUpSideNode as Tpn.IMethod).Returns())
         {
         }
     }

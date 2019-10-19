@@ -60,7 +60,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
 
-    internal class PathOperationMaker : IMaker<IPopulateScope<WeakPathOperation>>
+    internal class PathOperationMaker : IMaker<IPopulateScope<WeakPathOperation,Tpn.IMember>>
     {
 
         public PathOperationMaker()
@@ -68,7 +68,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public ITokenMatching<IPopulateScope<WeakPathOperation>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakPathOperation, Tpn.IMember>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -81,52 +81,60 @@ namespace Tac.Semantic_Model.Operations
                     var left = matching.Context.ParseLine(match.perface);
                     //var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);
 
-                    return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeMatch(
+                    return TokenMatching<IPopulateScope<WeakPathOperation, Tpn.IMember>>.MakeMatch(
                         matched2.Tokens,
                         matched2.Context,
                         new WeakPathOperationPopulateScope(left, first.Item));
                 }
             }
 
-            return TokenMatching<IPopulateScope<WeakPathOperation>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakPathOperation, Tpn.IMember>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        private class WeakPathOperationPopulateScope : IPopulateScope<WeakPathOperation>
+        private class WeakPathOperationPopulateScope : IPopulateScope<WeakPathOperation, Tpn.IMember>
         {
-            private readonly IPopulateScope<IFrontendCodeElement> left;
+            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode> left;
             private readonly string name;
 
-            public WeakPathOperationPopulateScope(IPopulateScope<IFrontendCodeElement> left,
+            public WeakPathOperationPopulateScope(IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left,
                 string name)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.name = name ?? throw new ArgumentNullException(nameof(name));
             }
 
-            public IResolvelizeScope<WeakPathOperation> Run(IPopulatableScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakPathOperation, Tpn.IMember> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
-                left.GetReturnedType().HasMember(new NameKey(name));
+                var nextLeft = left.Run(scope, context);
+                var member = context.TypeProblem.CreateHopefulMember((IHaveHopefulMembers)nextLeft, new NameKey(name));
 
                 return new WeakPathOperationFinalizeScope(
                     left.Run(scope, context),
-                    name);
+                    name, member);
             }
         }
 
 
-        private class WeakPathOperationFinalizeScope : IResolvelizeScope<WeakPathOperation>
+        private class WeakPathOperationFinalizeScope : IResolvelizeScope<WeakPathOperation, Tpn.IMember>
         {
-            public readonly IResolvelizeScope<IFrontendCodeElement> left;
+            public readonly IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> left;
             private readonly string name;
 
             public WeakPathOperationFinalizeScope(
-                IResolvelizeScope<IFrontendCodeElement> resolveReferance1,
-                string name)
+                IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> resolveReferance1,
+                string name,
+                Tpn.IMember setUpSideNode)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 this.name = name ?? throw new ArgumentNullException(nameof(name));
+                SetUpSideNode = setUpSideNode ?? throw new ArgumentNullException(nameof(setUpSideNode));
+            }
+
+            public Tpn.IMember SetUpSideNode
+            {
+                get;
             }
 
             public IPopulateBoxes<WeakPathOperation> Run(IResolvableScope parent, IFinalizeScopeContext context)

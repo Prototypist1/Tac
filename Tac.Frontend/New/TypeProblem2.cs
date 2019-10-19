@@ -21,7 +21,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         Tpn.IObject CreateObject(Tpn.IScope parent);
         Tpn.IMethod CreateMethod(Tpn.IScope parent, string inputName);
         Tpn.IMethod CreateMethod(Tpn.IScope parent, Tpn.ITypeReference inputType, Tpn.ITypeReference outputType, string inputName);
-
+        Tpn.IMember GetReturns(Tpn.IScope s);
+        Tpn.IMember CreateHopefulMember(IHaveHopefulMembers scope, IKey key);
     }
 
     internal static class TypeProblemNodeExtensions {
@@ -254,6 +255,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
 
+
         public Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey typeKey)
         {
             var res = new TypeReference(this);
@@ -320,7 +322,29 @@ namespace Tac.Frontend.New.CrzayNamespace
             return res;
         }
 
+
+        public Tpn.IMember CreateHopefulMember(IHaveHopefulMembers scope, IKey key)
+        {
+            var res = new Member(this);
+            HasHopefulMember(scope, key, res);
+            return res;
+        }
+
+
         #endregion
+
+
+        public Tpn.IMember GetReturns(Tpn.IScope s)
+        {
+            if (s is Tpn.IMethod method)
+            {
+                return GetReturns(method);
+            }
+            else {
+                return GetReturns(kidParent[s]);
+            }
+        }
+
 
         internal Tpn.IMember GetReturns(Tpn.IMethod method)
         {
