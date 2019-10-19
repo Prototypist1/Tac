@@ -135,7 +135,8 @@ namespace Tac.Semantic_Model.Operations
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
             }
 
-            // this will crash!
+            // this will not handle bad code well,
+            //need to take care of it when I do a pass to make error handling graceful
             public Tpn.IValue SetUpSideNode => left.SetUpSideNode as Tpn.IValue;
 
             public IPopulateBoxes<WeakAssignOperation> Run(IResolvableScope parent, IFinalizeScopeContext context)

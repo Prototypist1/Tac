@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class BinaryOperation
     {
-        public delegate IKey GetValueTypeKey(IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left, IPopulateScope<IFrontendCodeElement, ITypeProblemNode> right);
+        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, IPopulateScopeContext context, IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> left, IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> right);
         public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right);
         public delegate IIsPossibly<T> MakeBinaryType<out T>(IIsPossibly<IFrontendType> left, IIsPossibly<IFrontendType> right);
     }
@@ -131,15 +131,15 @@ namespace Tac.Semantic_Model.CodeStuff
         where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
-        private readonly BinaryOperation.GetValueTypeKey key;
+        private readonly BinaryOperation.GetReturnedValue keyMaker;
 
         public BinaryOperationMaker(string symbol, BinaryOperation.Make<TFrontendCodeElement> make,
-                BinaryOperation.GetValueTypeKey keyMaker
+                BinaryOperation.GetReturnedValue keyMaker
             )
         {
             Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
             Make = make ?? throw new ArgumentNullException(nameof(make));
-            this.key = key;
+            this.keyMaker = keyMaker ?? throw new ArgumentNullException(nameof(keyMaker));
         }
 
         public string Symbol { get; }
@@ -157,7 +157,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 return TokenMatching<IPopulateScope<TFrontendCodeElement, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
-                    new BinaryPopulateScope(left, right, Make, key));
+                    new BinaryPopulateScope(left, right, Make, keyMaker));
             }
 
             return TokenMatching<IPopulateScope<TFrontendCodeElement, Tpn.IValue>>.MakeNotMatch(
@@ -169,7 +169,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left,
                 IPopulateScope<IFrontendCodeElement, ITypeProblemNode> right,
                 BinaryOperation.Make<TFrontendCodeElement> make,
-                BinaryOperation.GetValueTypeKey key)
+                BinaryOperation.GetReturnedValue key)
         {
             return new BinaryPopulateScope(left,
                  right,
@@ -192,12 +192,12 @@ namespace Tac.Semantic_Model.CodeStuff
             private readonly IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left;
             private readonly IPopulateScope<IFrontendCodeElement, ITypeProblemNode> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-            private readonly BinaryOperation.GetValueTypeKey keyMaker;
+            private readonly BinaryOperation.GetReturnedValue keyMaker;
 
             public BinaryPopulateScope(IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left,
                 IPopulateScope<IFrontendCodeElement, ITypeProblemNode> right,
                 BinaryOperation.Make<TFrontendCodeElement> make,
-                BinaryOperation.GetValueTypeKey key)
+                BinaryOperation.GetReturnedValue key)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));
@@ -209,9 +209,8 @@ namespace Tac.Semantic_Model.CodeStuff
             {
                 var nextLeft = left.Run(scope, context);
                 var nextRight = right.Run(scope, context);
-                var typeKey = keyMaker(left, right);
+                var value = keyMaker(scope, context,nextLeft, nextRight);
 
-                var value = context.TypeProblem.CreateValue(scope, typeKey);
                 return new BinaryFinalizeScope(value,
                     nextLeft,
                     nextRight,

@@ -62,7 +62,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation, IMultiplyOperation>
     {
-        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>Possibly.Is(new WeakMultiplyOperation(l,r)), (l, r) => new NameKey("number"))
+        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>Possibly.Is(new WeakMultiplyOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("number")))
         {
         }
     }

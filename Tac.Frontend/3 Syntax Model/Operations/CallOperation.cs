@@ -73,7 +73,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation,INextCallOperation>
     {
-        public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> Possibly.Is( new WeakNextCallOperation(l,r)))
+        public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> Possibly.Is( new WeakNextCallOperation(l,r)),(s,c,l,r)=> (r.SetUpSideNode as Tpn.IMethod).Returns())
         {
         }
     }

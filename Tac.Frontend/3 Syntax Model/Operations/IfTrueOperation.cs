@@ -61,7 +61,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation,IIfOperation>
     {
-        public IfTrueOperationMaker() : base(SymbolsRegistry.StaticIfSymbol, (l,r)=> Possibly.Is(new WeakIfTrueOperation(l,r)), (l, r) => new NameKey("bool"))
+        public IfTrueOperationMaker() : base(SymbolsRegistry.StaticIfSymbol, (l,r)=> Possibly.Is(new WeakIfTrueOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("bool")))
         {
         }
     }

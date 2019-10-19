@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation,IElseOperation>
     {
-        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>Possibly.Is(new WeakElseOperation(l,r)), (l, r) => new NameKey("bool"))
+        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>Possibly.Is(new WeakElseOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("bool")))
         {
         }
     }

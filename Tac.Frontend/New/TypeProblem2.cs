@@ -57,7 +57,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface ITypeReference : ITypeProblemNode, ILookUpType { }
         internal interface IValue : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe { }
-        internal interface IMember : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe, ICanBeAssignedTo { }
+        internal interface IMember : IValue, ICanBeAssignedTo { }
         internal interface IType : ITypeProblemNode, IScope { }
         internal interface IScope : ITypeProblemNode { }
         internal interface IObject : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }

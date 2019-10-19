@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation, IAddOperation>
     {
-        public AddOperationMaker() : base(SymbolsRegistry.StaticAddSymbol, (l,r)=>Possibly.Is(new WeakAddOperation(l,r)),(l,r)=>new NameKey("number"))
+        public AddOperationMaker() : base(SymbolsRegistry.StaticAddSymbol, (l,r)=>Possibly.Is(new WeakAddOperation(l,r)),(s,c,l,r)=>c.TypeProblem.CreateValue(s, new NameKey("number")))
         {
         }
     }
