@@ -1,6 +1,7 @@
 ﻿using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -25,9 +26,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticSubtractMaker = AddOperationMatcher(() => new SubtractOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticSubtractMaker = AddOperationMatcher(() => new SubtractOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> SubtractMaker = StaticSubtractMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> SubtractMaker = StaticSubtractMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -60,6 +61,7 @@ namespace Tac.Semantic_Model.Operations
     {
         public SubtractOperationMaker() : base(SymbolsRegistry.StaticSubtractSymbol, (l,r)=>
             Possibly.Is(
-                new WeakSubtractOperation(l,r))){}
+                new WeakSubtractOperation(l,r)), new NameKey("number"))
+        {}
     }
 }

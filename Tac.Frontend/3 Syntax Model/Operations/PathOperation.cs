@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -27,9 +28,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticPathMaker = AddOperationMatcher(() => new PathOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticPathMaker = AddOperationMatcher(() => new PathOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> PathMaker = StaticPathMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> PathMaker = StaticPathMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }

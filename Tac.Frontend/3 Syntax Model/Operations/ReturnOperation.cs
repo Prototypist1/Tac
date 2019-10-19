@@ -4,6 +4,7 @@ using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -29,9 +30,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticReturnMaker = AddOperationMatcher(() => new ReturnOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticReturnMaker = AddOperationMatcher(() => new ReturnOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ReturnMaker = StaticReturnMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> ReturnMaker = StaticReturnMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }

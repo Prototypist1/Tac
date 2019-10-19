@@ -1,6 +1,7 @@
 ﻿using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -25,9 +26,9 @@ namespace Tac.Parser
 {
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticMultiplyMaker = AddOperationMatcher(() => new MultiplyOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticMultiplyMaker = AddOperationMatcher(() => new MultiplyOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> MultiplyMaker = StaticMultiplyMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> MultiplyMaker = StaticMultiplyMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -61,7 +62,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation, IMultiplyOperation>
     {
-        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>Possibly.Is(new WeakMultiplyOperation(l,r)))
+        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>Possibly.Is(new WeakMultiplyOperation(l,r)), new NameKey("number"))
         {
         }
     }

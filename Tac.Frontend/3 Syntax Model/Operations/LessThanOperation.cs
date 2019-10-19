@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -16,9 +17,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticLessThanMaker = AddOperationMatcher(() => new LessThanOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticLessThanMaker = AddOperationMatcher(() => new LessThanOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> LessThanMaker = StaticLessThanMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> LessThanMaker = StaticLessThanMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -56,7 +57,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation, ILessThanOperation>
     {
-        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)))
+        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)),new NameKey("bool"))
         {
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Instantiated;
 using Tac.Model.Operations;
@@ -74,9 +75,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticTryAssignMaker = AddOperationMatcher(() => new TryAssignOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticTryAssignMaker = AddOperationMatcher(() => new TryAssignOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> TryAssignMaker = StaticTryAssignMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> TryAssignMaker = StaticTryAssignMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }

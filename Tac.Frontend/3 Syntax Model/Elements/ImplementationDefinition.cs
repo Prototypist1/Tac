@@ -102,7 +102,7 @@ namespace Tac.Semantic_Model
         
         public ITokenMatching<IPopulateScope<WeakImplementationDefinition,Tpn.IMethod>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            IPopulateScope<IWeakTypeReference, ISetUpTypeReference> context= null, input = null, output = null;
+            IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -124,35 +124,15 @@ namespace Tac.Semantic_Model
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
                 
-                var contextNameString = contextName?.Item ?? "context";
-                var contextDefinition = MemberDefinitionMaker.PopulateScope(
-                        new NameKey( contextNameString),
-                        false,
-                        context
-                        );
-                
-                var parameterNameString = parameterName?.Item ?? "input";
-                var parameterDefinition = MemberDefinitionMaker.PopulateScope(
-                        new NameKey( parameterNameString),
-                        false,
-                        input
-                        );
-
-
-                var resultDefinition = MemberDefinitionMaker.PopulateScope(
-                        new ImplicitKey(),
-                        false,
-                        output
-                        );
 
                 return TokenMatching<IPopulateScope<WeakImplementationDefinition,Tpn.IMethod>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new PopulateScopeImplementationDefinition(
-                        contextDefinition, 
-                        parameterDefinition, 
+                        context,
+                        input, 
                         elements,
-                        resultDefinition));
+                        output));
             }
 
 
@@ -160,10 +140,10 @@ namespace Tac.Semantic_Model
         }
         
         public static IPopulateScope<WeakImplementationDefinition,Tpn.IMethod> PopulateScope(
-                                IPopulateScope<WeakMemberReference,Tpn.IMember> contextDefinition,
-                IPopulateScope<WeakMemberReference,Tpn.IMember> parameterDefinition,
+                                IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> contextDefinition,
+                IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> parameterDefinition,
                 IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ITypeProblemNode>[] elements,
-                IPopulateScope<WeakMemberReference, Tpn.IMember> output)
+                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output)
         {
             return new PopulateScopeImplementationDefinition(
                                  contextDefinition,
@@ -172,8 +152,8 @@ namespace Tac.Semantic_Model
                  output);
         }
         public static IPopulateBoxes<WeakImplementationDefinition> PopulateBoxes(
-                IPopulateBoxes<WeakMemberReference> contextDefinition,
-                IPopulateBoxes<WeakMemberReference> parameterDefinition,
+                IPopulateBoxes<IWeakTypeReference> contextDefinition,
+                IPopulateBoxes<IWeakTypeReference> parameterDefinition,
                 IResolvableScope methodScope,
                 IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
                 IPopulateBoxes<WeakTypeReference> output)
@@ -188,16 +168,16 @@ namespace Tac.Semantic_Model
         
         private class PopulateScopeImplementationDefinition : IPopulateScope<WeakImplementationDefinition,Tpn.IMethod>
         {
-            private readonly IPopulateScope<WeakMemberReference,Tpn.IMember> contextDefinition;
-            private readonly IPopulateScope<WeakMemberReference, Tpn.IMember> parameterDefinition;
+            private readonly IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> contextDefinition;
+            private readonly IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition;
             private readonly IPopulateScope<IFrontendCodeElement, ITypeProblemNode>[] elements;
-            private readonly IPopulateScope<WeakMemberReference, Tpn.IMember> output;
+            private readonly IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output;
 
             public PopulateScopeImplementationDefinition(
-                IPopulateScope<WeakMemberReference, Tpn.IMember> contextDefinition,
-                IPopulateScope<WeakMemberReference, Tpn.IMember> parameterDefinition,
+                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> contextDefinition,
+                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition,
                 IPopulateScope<IFrontendCodeElement, ITypeProblemNode>[] elements,
-                IPopulateScope<WeakMemberReference, Tpn.IMember> output)
+                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output)
             {
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
                 this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -207,27 +187,26 @@ namespace Tac.Semantic_Model
 
             public IResolvelizeScope<WeakImplementationDefinition,Tpn.IMethod> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
-                var outer = context.TypeProblem.CreateMethod(scope);
+                var realizeContext = contextDefinition.Run(scope, context);
+                var realizedInput = parameterDefinition.Run(scope, context);
+                var realizedOutput = output.Run(scope, context);
+                var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"),new[] {
+                    realizedInput.SetUpSideNode.Key(),
+                    realizedOutput.SetUpSideNode.Key(),
+                }));
 
-                var inner = context.TypeProblem.CreateMethod(outer);
+                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef);
 
-                var realizeContext = contextDefinition.Run(outer, context);
-                var outerResultMember = context.TypeProblem.CreateMember(scope,new ImplicitKey());
-                var outerMethod = outer.SetInputOutput(realizeContext.SetUpSideNode, outerResultMember);
+                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode);
 
-                var parameter = parameterDefinition.Run(scope, context);
-                var outputResolves = output.Run(scope, context);
-
-                var innerMethod = inner.SetInputOutput(parameter.SetUpSideNode, outputResolves.SetUpSideNode);
-
-                outerMethod.AssignToReturns(innerMethod);
+                inner.AssignTo(outer.Returns());
 
                 return new ImplementationDefinitionFinalizeScope(
-                    outerMethod,
+                    outer,
                     realizeContext,
-                    parameter,
-                    elements.Select(y => y.Run(innerMethod, context)).ToArray(),
-                    outputResolves
+                    realizedInput,
+                    elements.Select(y => y.Run(inner, context)).ToArray(),
+                    realizedOutput
                     );
             }
         }
@@ -235,17 +214,17 @@ namespace Tac.Semantic_Model
 
         private class ImplementationDefinitionFinalizeScope: IResolvelizeScope<WeakImplementationDefinition,Tpn.IMethod>
         {
-            private readonly IResolvelizeScope<WeakMemberReference, Tpn.IMember> contextDefinition;
-            private readonly IResolvelizeScope<WeakMemberReference, Tpn.IMember> parameterDefinition;
+            private readonly IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> contextDefinition;
+            private readonly IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition;
             private readonly IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode>[] elements;
-            private readonly IResolvelizeScope<WeakMemberReference, Tpn.IMember> output;
+            private readonly IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> output;
 
             public ImplementationDefinitionFinalizeScope(
                 Tpn.IMethod finalizableScope,
-                IResolvelizeScope<WeakMemberReference, Tpn.IMember> contextDefinition,
-                IResolvelizeScope<WeakMemberReference, Tpn.IMember> parameterDefinition,
+                IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> contextDefinition,
+                IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition,
                 IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] elements,
-                IResolvelizeScope<WeakMemberReference, Tpn.IMember> output)
+                IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> output)
             {
                 SetUpSideNode = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
@@ -274,15 +253,15 @@ namespace Tac.Semantic_Model
         private class ImplementationDefinitionResolveReferance : IPopulateBoxes<WeakImplementationDefinition>
         {
             private readonly IResolvableScope methodScope;
-            private readonly IPopulateBoxes<WeakMemberReference> contextDefinition;
-            private readonly IPopulateBoxes<WeakMemberReference> parameterDefinition;
+            private readonly IPopulateBoxes<IWeakTypeReference> contextDefinition;
+            private readonly IPopulateBoxes<IWeakTypeReference> parameterDefinition;
             private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
             private readonly IPopulateBoxes<IWeakTypeReference> output;
 
             public ImplementationDefinitionResolveReferance(
                 IResolvableScope methodScope,
-                IPopulateBoxes<WeakMemberReference> contextDefinition,
-                IPopulateBoxes<WeakMemberReference> parameterDefinition,
+                IPopulateBoxes<IWeakTypeReference> contextDefinition,
+                IPopulateBoxes<IWeakTypeReference> parameterDefinition,
                 IPopulateBoxes<IFrontendCodeElement>[] elements,
                 IPopulateBoxes<IWeakTypeReference> output)
             {

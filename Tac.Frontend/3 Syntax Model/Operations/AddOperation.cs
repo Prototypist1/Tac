@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -29,9 +30,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticAddMaker = AddOperationMatcher(()=> new AddOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticAddMaker = AddOperationMatcher(()=> new AddOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> AddMaker = StaticAddMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> AddMaker = StaticAddMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -62,7 +63,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation, IAddOperation>
     {
-        public AddOperationMaker() : base(SymbolsRegistry.StaticAddSymbol, (l,r)=>Possibly.Is(new WeakAddOperation(l,r)))
+        public AddOperationMaker() : base(SymbolsRegistry.StaticAddSymbol, (l,r)=>Possibly.Is(new WeakAddOperation(l,r)),new NameKey("number"))
         {
         }
     }

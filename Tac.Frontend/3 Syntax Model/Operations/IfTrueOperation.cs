@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -27,9 +28,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticIfMaker = AddOperationMatcher(() => new IfTrueOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticIfMaker = AddOperationMatcher(() => new IfTrueOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> IfMaker = StaticIfMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> IfMaker = StaticIfMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -60,7 +61,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation,IIfOperation>
     {
-        public IfTrueOperationMaker() : base(SymbolsRegistry.StaticIfSymbol, (l,r)=> Possibly.Is(new WeakIfTrueOperation(l,r)))
+        public IfTrueOperationMaker() : base(SymbolsRegistry.StaticIfSymbol, (l,r)=> Possibly.Is(new WeakIfTrueOperation(l,r)), new NameKey("bool"))
         {
         }
     }

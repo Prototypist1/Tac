@@ -1,6 +1,7 @@
 ﻿using System;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -25,9 +26,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement>> StaticElseMaker = AddOperationMatcher(() => new ElseOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticElseMaker = AddOperationMatcher(() => new ElseOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement>> ElseMaker = StaticElseMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> ElseMaker = StaticElseMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -62,7 +63,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation,IElseOperation>
     {
-        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>Possibly.Is(new WeakElseOperation(l,r)))
+        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>Possibly.Is(new WeakElseOperation(l,r)),new NameKey("bool"))
         {
         }
     }

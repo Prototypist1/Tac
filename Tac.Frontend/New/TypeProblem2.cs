@@ -12,18 +12,34 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
         Tpn.IValue CreateValue(Tpn.IScope scope, IKey typeKey);
-        Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey);
-        Tpn.IMember CreateMember(Tpn.IScope scope, IKey key);
+        Tpn.ITypeReference CreateMember(Tpn.IScope scope, IKey key, IKey typeKey);
+        Tpn.ITypeReference CreateMember(Tpn.IScope scope, IKey key);
         Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey typeKey);
         Tpn.IScope CreateScope(Tpn.IScope parent);
         Tpn.IType CreateType(Tpn.IScope parent, IKey key);
         Tpn.IType CreateGenericType(Tpn.IScope parent, IKey key, IReadOnlyList<IKey> placeholders);
         Tpn.IObject CreateObject(Tpn.IScope parent);
         Tpn.IMethod CreateMethod(Tpn.IScope parent);
+        Tpn.IMethod CreateMethod(Tpn.IScope parent, Tpn.ITypeReference inputType, Tpn.ITypeReference outputType);
 
     }
 
     internal static class TypeProblemNodeExtensions {
+
+        public static IKey Key(this Tpn.ITypeReference type)
+        {
+
+        }
+
+        public static Tpn.IMember Returns(this Tpn.IMethod method)
+        {
+
+        }
+
+        public static void AssignTo(this ICanAssignFromMe from, ICanBeAssignedTo to)
+        {
+
+        }
     }
 
     internal interface ITypeProblemNode {
@@ -46,6 +62,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface IScope : ITypeProblemNode { }
         internal interface IObject : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }
         internal interface IMethod : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }
+
     }
 
     internal class TypeProblem2 : ISetUpTypeProblem
@@ -72,7 +89,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
             }
         }
-        private class Member : TypeProblemNode, Tpn.IMember
+        private class Member : TypeProblemNode, Tpn.ITypeReference
         {
             public Member(TypeProblem2 problem) : base(problem)
             {
@@ -119,11 +136,11 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<Tpn.IScope, List<Tpn.IValue>> values = new Dictionary<Tpn.IScope, List<Tpn.IValue>>();
         private readonly Dictionary<Tpn.IScope, List<Tpn.ITypeReference>> refs = new Dictionary<Tpn.IScope, List<Tpn.ITypeReference>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>> types = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>>();
-        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>> members = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>>();
+        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.ITypeReference>> members = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.ITypeReference>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>> genericOverlays = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>>();
 
-        private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.IMember>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.IMember>>();
-        private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Tpn.IMember>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Tpn.IMember>>();
+        private readonly Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.ITypeReference>> possibleMembers = new Dictionary<IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.ITypeReference>>();
+        private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Tpn.ITypeReference>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Tpn.ITypeReference>>();
         private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
         // members
         private readonly Dictionary<ILookUpType, IKey> lookUpTypeKey = new Dictionary<ILookUpType, IKey>();
@@ -170,28 +187,28 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             genericOverlays[parent].Add(key, type);
         }
-        public void HasMember(Tpn.IScope parent, IKey key, Tpn.IMember member)
+        public void HasMember(Tpn.IScope parent, IKey key, Tpn.ITypeReference member)
         {
             if (!members.ContainsKey(parent))
             {
-                members.Add(parent, new Dictionary<IKey, Tpn.IMember>());
+                members.Add(parent, new Dictionary<IKey, Tpn.ITypeReference>());
             }
             members[parent].Add(key, member);
         }
-        public void HasMembersPossiblyOnParent(IHaveMembersPossiblyOnParent parent, IKey key, Tpn.IMember member)
+        public void HasMembersPossiblyOnParent(IHaveMembersPossiblyOnParent parent, IKey key, Tpn.ITypeReference member)
         {
             if (!possibleMembers.ContainsKey(parent))
             {
-                possibleMembers.Add(parent, new Dictionary<IKey, Tpn.IMember>());
+                possibleMembers.Add(parent, new Dictionary<IKey, Tpn.ITypeReference>());
             }
             possibleMembers[parent].Add(key, member);
         }
-        public void HasHopefulMember(IHaveHopefulMembers parent, IKey key, Tpn.IMember member)
+        public void HasHopefulMember(IHaveHopefulMembers parent, IKey key, Tpn.ITypeReference member)
         {
 
             if (!hopefulMembers.ContainsKey(parent))
             {
-                hopefulMembers.Add(parent, new Dictionary<IKey, Tpn.IMember>());
+                hopefulMembers.Add(parent, new Dictionary<IKey, Tpn.ITypeReference>());
             }
             hopefulMembers[parent].Add(key, member);
         }
@@ -217,7 +234,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return res;
         }
 
-        public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey)
+        public Tpn.ITypeReference CreateMember(Tpn.IScope scope, IKey key, IKey typeKey)
         {
             var res = new Member(this);
             HasMember(scope, key,res);
@@ -226,7 +243,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return res;
         }
 
-        public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key)
+        public Tpn.ITypeReference CreateMember(Tpn.IScope scope, IKey key)
         {
             var res = new Member(this);
             HasMember(scope, key,res);
@@ -418,7 +435,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         }
 
-        private bool TryGetMember(Tpn.IScope context, IKey key, out Tpn.IMember member)
+        private bool TryGetMember(Tpn.IScope context, IKey key, out Tpn.ITypeReference member)
         {
             while (true)
             {

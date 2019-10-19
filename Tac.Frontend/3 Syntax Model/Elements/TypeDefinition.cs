@@ -100,13 +100,13 @@ namespace Tac.Semantic_Model
     }
 
 
-    internal class TypeDefinitionMaker : IMaker<IPopulateScope<IWeakTypeReference, Tpn.IType>>
+    internal class TypeDefinitionMaker : IMaker<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>
     {
         public TypeDefinitionMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<IWeakTypeReference, Tpn.IType>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -117,7 +117,7 @@ namespace Tac.Semantic_Model
             {
                var elements = tokenMatching.Context.ParseBlock(body);
                 
-               return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.IType>>.MakeMatch(
+               return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new TypeDefinitionPopulateScope(
@@ -125,11 +125,11 @@ namespace Tac.Semantic_Model
                        typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey()));
             }
 
-            return TokenMatching<IPopulateScope<WeakTypeReference, Tpn.IType>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakTypeReference, Tpn.ITypeReference>>.MakeNotMatch(
                     matching.Context);
         }
         
-        public static IPopulateScope<IWeakTypeReference,Tpn.IType> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ITypeProblemNode>[] elements, IKey typeName)
+        public static IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ITypeProblemNode>[] elements, IKey typeName)
         {
             return new TypeDefinitionPopulateScope(elements, typeName);
         }
@@ -144,54 +144,49 @@ namespace Tac.Semantic_Model
                 key);
         }
         
-        private class TypeDefinitionPopulateScope : IPopulateScope<IWeakTypeReference, Tpn.IType>
+        private class TypeDefinitionPopulateScope : IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>
         {
             private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements;
             private readonly IKey key;
             private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
-            private readonly WeakTypeReference typeReferance;
 
             public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements, IKey typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
-                typeReferance = new WeakTypeReference(Possibly.Is(definitionBox));
             }
 
-            public IResolvelizeScope<IWeakTypeReference, Tpn.IType> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
                 var type= context.TypeProblem.CreateType(scope, key);
-                scope.Type(type);
-                // what the heck? these are not passed anywhere?
+                var typeReference = context.TypeProblem.CreateTypeReference(scope, key);
                 elements.Select(x => x.Run(type, context)).ToArray();
                 return new TypeDefinitionFinalizeScope(
                     type,
                     definitionBox,
-                    typeReferance,
+                    typeReference,
                     key);
             }
         }
 
-        private class TypeDefinitionFinalizeScope : IResolvelizeScope<IWeakTypeReference, Tpn.IType>
+        private class TypeDefinitionFinalizeScope : IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference>
         {
             private readonly IResolvelizableScope finalizableScope;
             private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox;
-            private readonly WeakTypeReference typeReferance;
             private readonly IKey key;
 
             public TypeDefinitionFinalizeScope(
                 Tpn.IType finalizableScope,
                 Box<IIsPossibly<WeakTypeDefinition>> definitionBox,
-                WeakTypeReference typeReferance,
+                Tpn.ITypeReference typeReferance,
                 IKey key)
             {
-                SetUpSideNode = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
+                SetUpSideNode = typeReferance;
                 this.definitionBox = definitionBox ?? throw new ArgumentNullException(nameof(definitionBox));
-                this.typeReferance = typeReferance ?? throw new ArgumentNullException(nameof(typeReferance));
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public Tpn.IType SetUpSideNode
+            public Tpn.ITypeReference SetUpSideNode
             {
                 get;
             }
