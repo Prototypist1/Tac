@@ -109,7 +109,7 @@ namespace Tac.Semantic_Model.Operations
                 var nextLeft = left.Run(scope, context);
                 var nextRight = right.Run(scope, context);
 
-                if (left is ICanAssignFromMe from && right is ICanBeAssignedTo to) {
+                if (left is Tpn.ICanAssignFromMe from && right is Tpn.ICanBeAssignedTo to) {
                     from.AssignTo(to);
                 }
                 else {

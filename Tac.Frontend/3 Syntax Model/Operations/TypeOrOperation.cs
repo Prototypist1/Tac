@@ -5,6 +5,7 @@ using System.Text;
 using Tac._3_Syntax_Model.Elements.Atomic_Types;
 using Tac.Frontend;
 using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -20,9 +21,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendType>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendType, ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendType>> TypeOrMaker = StaticTypeOrMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendType, ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -66,7 +67,9 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
                     Possibly.Is<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>>(
                         new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
                             Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
-                                new WeakTypeOrOperation(l, r)))))))
+                                new WeakTypeOrOperation(l, r)))))),(s,c,l,r)=> {
+                                    return c.TypeProblem.CreateOrType(s, (Tpn.ITypeReference)l.SetUpSideNode, (Tpn.ITypeReference)r.SetUpSideNode);
+                                })
         {
         }
     }

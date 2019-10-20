@@ -69,7 +69,7 @@ namespace Tac.Semantic_Model
             // maybe that is ok
             
             if (tokenMatching.Tokens.First() is ParenthesisToken parenthesisToken) {
-                if (TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.IType>>.MakeStart(parenthesisToken.Tokens.ToArray(), tokenMatching.Context).Has(new TypeOrOperationMaker(), out var type)
+                if (TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.IExplicitType>>.MakeStart(parenthesisToken.Tokens.ToArray(), tokenMatching.Context).Has(new TypeOrOperationMaker(), out var type)
                         is IMatchedTokenMatching matched)
                 {
                     return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(

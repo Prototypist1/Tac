@@ -176,7 +176,7 @@ namespace Tac.Semantic_Model
             private readonly IKey key;
 
             public TypeDefinitionFinalizeScope(
-                Tpn.IType finalizableScope,
+                Tpn.IExplicitType finalizableScope,
                 Box<IIsPossibly<WeakTypeDefinition>> definitionBox,
                 Tpn.ITypeReference typeReferance,
                 IKey key)

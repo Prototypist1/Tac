@@ -73,7 +73,10 @@ namespace Tac.Semantic_Model.Operations
 
     internal class NextCallOperationMaker : BinaryOperationMaker<WeakNextCallOperation,INextCallOperation>
     {
-        public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> Possibly.Is( new WeakNextCallOperation(l,r)),(s,c,l,r)=> (r.SetUpSideNode as Tpn.IMethod).Returns())
+        public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> Possibly.Is( new WeakNextCallOperation(l,r)),(s,c,l,r)=> {
+
+            (l.SetUpSideNode as Tpn.IValue).AssignTo((r.SetUpSideNode as Tpn.IMethod).Input());
+            return (r.SetUpSideNode as Tpn.IMethod).Returns(); })
         {
         }
     }
@@ -105,7 +108,11 @@ namespace Tac.Semantic_Model.Operations
 
     internal class LastCallOperationMaker : BinaryOperationMaker<WeakLastCallOperation, ILastCallOperation>
     {
-        public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>Possibly.Is( new WeakLastCallOperation(l,r)), (s, c, l, r) => (l.SetUpSideNode as Tpn.IMethod).Returns())
+        public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>Possibly.Is( new WeakLastCallOperation(l,r)), (s, c, l, r) =>
+        {
+            (r.SetUpSideNode as Tpn.IValue).AssignTo((l.SetUpSideNode as Tpn.IMethod).Input()) ;
+            return (l.SetUpSideNode as Tpn.IMethod).Returns();
+        })
         {
         }
     }

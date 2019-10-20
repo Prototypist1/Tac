@@ -108,7 +108,7 @@ namespace Tac.Semantic_Model.Operations
             public IResolvelizeScope<WeakPathOperation, Tpn.IMember> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
                 var nextLeft = left.Run(scope, context);
-                var member = context.TypeProblem.CreateHopefulMember((IHaveHopefulMembers)nextLeft, new NameKey(name));
+                var member = context.TypeProblem.CreateHopefulMember((Tpn.IHaveHopefulMembers)nextLeft, new NameKey(name));
 
                 return new WeakPathOperationFinalizeScope(
                     left.Run(scope, context),
