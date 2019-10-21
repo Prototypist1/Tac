@@ -1,5 +1,4 @@
-﻿using Prototypist.LeftToRight;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Model;
@@ -65,17 +64,15 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
     }
 
-    // TODO: this goes in Tpn
-    internal interface ITypeProblemNode
-    {
-        TypeProblem2 Problem { get; }
-    }
-
 
     public static class Tpn
     {
         internal interface IType { }
 
+        internal interface ITypeProblemNode
+        {
+            TypeProblem2 Problem { get; }
+        }
         internal interface IHaveMembersPossiblyOnParent : IScope { }
         internal interface IHaveHopefulMembers : ILookUpType { }
         internal interface ILookUpType : ITypeProblemNode { }
@@ -96,7 +93,7 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal class TypeProblem2 : ISetUpTypeProblem
     {
 
-        private abstract class TypeProblemNode : ITypeProblemNode
+        private abstract class TypeProblemNode : Tpn.ITypeProblemNode
         {
             public TypeProblemNode(TypeProblem2 problem)
             {
@@ -163,7 +160,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
         // basic stuff
-        private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
+        private readonly HashSet<Tpn.ITypeProblemNode> typeProblemNodes = new HashSet<Tpn.ITypeProblemNode>();
 
         public Tpn.IScope Root { get; }
         // relationships
@@ -257,7 +254,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
         private T Register<T>(T typeProblemNode)
-            where T : ITypeProblemNode
+            where T : Tpn.ITypeProblemNode
         {
             typeProblemNodes.Add(typeProblemNode);
             return typeProblemNode;
@@ -709,7 +706,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         private Tpn.IExplicitType CopyTree(Tpn.IExplicitType from, Tpn.IExplicitType to)
         {
 
-            var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();
+            var map = new Dictionary<Tpn.ITypeProblemNode, Tpn.ITypeProblemNode>();
             Copy(from, to);
 
             foreach (var pair in map)
@@ -777,7 +774,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return to;
 
             T CopiedToOrSelf<T>(T item)
-                where T : ITypeProblemNode
+                where T : Tpn.ITypeProblemNode
             {
                 if (map.TryGetValue(item, out var res))
                 {
@@ -787,7 +784,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             T Copy<T>(T innerFrom, T innerTo)
-                where T : ITypeProblemNode
+                where T : Tpn.ITypeProblemNode
             {
                 map.Add(innerFrom, innerTo);
 

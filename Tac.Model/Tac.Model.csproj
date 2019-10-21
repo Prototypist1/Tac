@@ -10,4 +10,8 @@
     <PackageReference Include="Prototypist.TaskChain" Version="1.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Tac.Frontend.Common\Tac.Frontend.Common.csproj" />
+  </ItemGroup>
+
 </Project>
