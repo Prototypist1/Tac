@@ -75,10 +75,9 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             ISetUpTypeProblem Problem { get; }
         }
-        public interface IHaveMembersPossiblyOnParent : IScope { }
+        public interface IHaveMembers : ITypeProblemNode { }
         public interface IHaveHopefulMembers : ITypeProblemNode { }
         public interface ILookUpType : ITypeProblemNode { }
-        public interface IHaveMembers : ITypeProblemNode { }
 
         public interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }
         public interface ICanBeAssignedTo : ITypeProblemNode, ILookUpType { }
@@ -88,13 +87,11 @@ namespace Tac.Frontend.New.CrzayNamespace
         public interface IValue : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe { }
         public interface IMember : IValue, ILookUpType, ICanBeAssignedTo { }
 
-
-
         public interface IExplicitType : IHaveMembers, IScope, IType { }
-        public interface IOrType : IHaveMembers, IHaveHopefulMembers, IType { }
+        public interface IOrType : IHaveMembers, IType { }
         public interface IScope : IHaveMembers { }
-        public interface IObject : IExplicitType, IHaveHopefulMembers { }
-        public interface IMethod : IHaveMembers,IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope { }
+        public interface IObject : IExplicitType { }
+        public interface IMethod : IHaveMembers, IScope { }
 
     }
 
@@ -187,7 +184,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         private readonly Dictionary<Tpn.IOrType, (Tpn.ITypeReference, Tpn.ITypeReference)> orTypeComponets = new Dictionary<Tpn.IOrType, (Tpn.ITypeReference, Tpn.ITypeReference)>();
 
-        private readonly Dictionary<Tpn.IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.IMember>> possibleMembers = new Dictionary<Tpn.IHaveMembersPossiblyOnParent, Dictionary<IKey, Tpn.IMember>>();
+        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>> possibleMembers = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>>();
         private readonly Dictionary<Tpn.IHaveHopefulMembers, Dictionary<IKey, Tpn.IMember>> hopefulMembers = new Dictionary<Tpn.IHaveHopefulMembers, Dictionary<IKey, Tpn.IMember>>();
         private readonly List<(Tpn.ICanAssignFromMe, Tpn.ICanBeAssignedTo)> assignments = new List<(Tpn.ICanAssignFromMe, Tpn.ICanBeAssignedTo)>();
         // members
@@ -243,7 +240,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             members[parent].Add(key, member);
         }
-        public void HasMembersPossiblyOnParent(Tpn.IHaveMembersPossiblyOnParent parent, IKey key, Tpn.IMember member)
+        public void HasMembersPossiblyOnParent(Tpn.IScope parent, IKey key, Tpn.IMember member)
         {
             if (!possibleMembers.ContainsKey(parent))
             {
@@ -521,7 +518,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             #region Helpers
 
 
-            Tpn.IHaveMembers GetType(Tpn.ILookUpType value)
+            Tpn.IHaveMembers GetType2(Tpn.ILookUpType value)
             {
                 var res = lookUps[value];
                 while (true)
@@ -539,7 +536,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             Tpn.IHaveMembers GetType(Tpn.ITypeProblemNode value) {
                 if (value is Tpn.ILookUpType lookup) {
-                    return GetType(lookup);
+                    return GetType2(lookup);
                 }
                 if (value is Tpn.IHaveMembers haveMembers) {
                     return haveMembers;
@@ -823,55 +820,51 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 map.Add(innerFrom, innerTo);
 
-                if (innerFrom is Tpn.IScope innerFromScope && innerTo is Tpn.IScope innerFromTo)
+                if (innerFrom is Tpn.IScope innerFromScope && innerTo is Tpn.IScope innerScopeTo)
                 {
 
                     foreach (var item in values[innerFromScope])
                     {
                         var newValue = Copy(item, new Value(this));
-                        HasValue(innerFromTo, newValue);
+                        HasValue(innerScopeTo, newValue);
                     }
 
                     foreach (var item in refs[innerFromScope])
                     {
                         var newValue = Copy(item, new TypeReference(this));
-                        HasReference(innerFromTo, newValue);
+                        HasReference(innerScopeTo, newValue);
                     }
 
                     foreach (var member in members[innerFromScope])
                     {
                         var newValue = Copy(member.Value, new Member(this));
-                        HasMember(innerFromTo, member.Key, newValue);
+                        HasMember(innerScopeTo, member.Key, newValue);
                     }
 
                     foreach (var type in types[innerFromScope])
                     {
                         var newValue = Copy(type.Value, new Type(this));
-                        HasType(innerFromTo, type.Key, newValue);
+                        HasType(innerScopeTo, type.Key, newValue);
                     }
 
                     foreach (var type in orTypes[innerFromScope])
                     {
                         var newValue = Copy(type.Value, new OrType(this));
-                        HasOrType(innerFromTo, type.Key, newValue);
+                        HasOrType(innerScopeTo, type.Key, newValue);
                     }
 
                     foreach (var type in genericOverlays[innerFromScope])
                     {
-                        if (!genericOverlays[innerFromTo].ContainsKey(type.Key))
+                        if (!genericOverlays[innerScopeTo].ContainsKey(type.Key))
                         {
-                            HasPlaceholderType(innerFromTo, type.Key, type.Value);
+                            HasPlaceholderType(innerScopeTo, type.Key, type.Value);
                         }
                     }
-                }
                 
-                if (innerFrom is Tpn.IHaveMembersPossiblyOnParent innerFromPossible && innerTo is Tpn.IHaveMembersPossiblyOnParent innerToPossible)
-                {
-
-                    foreach (var possible in possibleMembers[innerFromPossible])
+                    foreach (var possible in possibleMembers[innerFromScope])
                     {
                         var newValue = Copy(possible.Value, new Member(this));
-                        HasMembersPossiblyOnParent(innerToPossible, possible.Key, newValue);
+                        HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
                     }
                 }
 
