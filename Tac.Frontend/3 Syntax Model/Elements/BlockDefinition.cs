@@ -19,11 +19,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticBlockDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticBlockDefinitionMaker = AddElementMakers(
             () => new BlockDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model
             return TokenMatching<IPopulateScope<WeakBlockDefinition, Tpn.IScope>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakBlockDefinition, Tpn.IScope> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ITypeProblemNode>[] elements)
+        public static IPopulateScope<WeakBlockDefinition, Tpn.IScope> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
         {
             return new BlockDefinitionPopulateScope(elements);
         }
@@ -95,9 +95,9 @@ namespace Tac.Semantic_Model
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] Elements { get; }
+            private IPopulateScope<IFrontendCodeElement,Tpn.ITypeProblemNode>[] Elements { get; }
 
-            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement, ITypeProblemNode>[] elements)
+            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
@@ -114,9 +114,9 @@ namespace Tac.Semantic_Model
         private class FinalizeScopeBlockDefinition : IResolvelizeScope<WeakBlockDefinition, Tpn.IScope>
         {
             public Tpn.IScope SetUpSideNode { get; }
-            private readonly IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] finalizeScope;
+            private readonly IResolvelizeScope<IFrontendCodeElement,Tpn.ITypeProblemNode>[] finalizeScope;
 
-            public FinalizeScopeBlockDefinition(Tpn.IScope setUpSideNode, IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] finalizeScope)
+            public FinalizeScopeBlockDefinition(Tpn.IScope setUpSideNode, IResolvelizeScope<IFrontendCodeElement,Tpn.ITypeProblemNode>[] finalizeScope)
             {
                 SetUpSideNode = setUpSideNode ?? throw new ArgumentNullException(nameof(setUpSideNode));
                 this.finalizeScope = finalizeScope ?? throw new ArgumentNullException(nameof(finalizeScope));

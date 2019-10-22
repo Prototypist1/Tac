@@ -18,12 +18,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticConstantNumberMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticConstantNumberMaker = AddElementMakers(
             () => new ConstantNumberMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> ConstantNumberMaker = StaticConstantNumberMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> ConstantNumberMaker = StaticConstantNumberMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }

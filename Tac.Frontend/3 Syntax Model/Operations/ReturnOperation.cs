@@ -30,9 +30,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticReturnMaker = AddOperationMatcher(() => new ReturnOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticReturnMaker = AddOperationMatcher(() => new ReturnOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> ReturnMaker = StaticReturnMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> ReturnMaker = StaticReturnMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -72,7 +72,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal class TrailingOperation {
-        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, IPopulateScopeContext context, IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> parm);
+        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, IPopulateScopeContext context, IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> parm);
 
         public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> codeElement);
     }
@@ -128,11 +128,11 @@ namespace Tac.Semantic_Model.Operations
 
         private class TrailingPopulateScope : IPopulateScope<TFrontendCodeElement, Tpn.IValue>
         {
-            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode> left;
+            private readonly IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
             private readonly TrailingOperation.GetReturnedValue getReturnedValue;
 
-            public TrailingPopulateScope(IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
+            public TrailingPopulateScope(IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -149,10 +149,10 @@ namespace Tac.Semantic_Model.Operations
 
         private class TrailingFinalizeScope : IResolvelizeScope<TFrontendCodeElement,Tpn.IValue>
         {
-            public readonly IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> left;
+            public readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
 
-            public TrailingFinalizeScope(IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, Tpn.IValue setUpSideNode)
+            public TrailingFinalizeScope(IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make, Tpn.IValue setUpSideNode)
             {
                 SetUpSideNode = setUpSideNode ?? throw new ArgumentNullException(nameof(setUpSideNode));
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));

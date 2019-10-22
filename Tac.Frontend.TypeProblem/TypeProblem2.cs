@@ -6,7 +6,7 @@ using Tac.Model;
 namespace Tac.Frontend.New.CrzayNamespace
 {
 
-    internal interface ISetUpTypeProblem
+    public interface ISetUpTypeProblem
     {
         // a =: x
 
@@ -18,12 +18,14 @@ namespace Tac.Frontend.New.CrzayNamespace
         Tpn.IScope CreateScope(Tpn.IScope parent);
         Tpn.IExplicitType CreateType(Tpn.IScope parent, IKey key);
         Tpn.IExplicitType CreateGenericType(Tpn.IScope parent, IKey key, IReadOnlyList<IKey> placeholders);
-        Tpn.IObject CreateObject(Tpn.IScope parent);
+        Tpn.IObject CreateObject(Tpn.IScope parent, IKey key);
         Tpn.IMethod CreateMethod(Tpn.IScope parent, string inputName);
         Tpn.IMethod CreateMethod(Tpn.IScope parent, Tpn.ITypeReference inputType, Tpn.ITypeReference outputType, string inputName);
         Tpn.IMember GetReturns(Tpn.IScope s);
         Tpn.IMember CreateHopefulMember(Tpn.IHaveHopefulMembers scope, IKey key);
-        Tpn.IOrType CreateOrType(Tpn.IScope s, Tpn.ITypeReference setUpSideNode1, Tpn.ITypeReference setUpSideNode2);
+        Tpn.IOrType CreateOrType(Tpn.IScope s, IKey key, Tpn.ITypeReference setUpSideNode1, Tpn.ITypeReference setUpSideNode2);
+        IKey GetKey(Tpn.ITypeReference type);
+        Tpn.IMember GetInput(Tpn.IMethod method);
     }
 
     // the simple model of or-types:
@@ -39,7 +41,7 @@ namespace Tac.Frontend.New.CrzayNamespace
     // to the type system they almost just look like an empty user defined type
     // 
 
-    internal static class TypeProblemNodeExtensions
+    public static class TypeProblemNodeExtensions
     {
 
         public static IKey Key(this Tpn.ITypeReference type)
@@ -67,26 +69,32 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     public static class Tpn
     {
-        internal interface IType { }
+        public interface IType { }
 
-        internal interface ITypeProblemNode
+        public interface ITypeProblemNode
         {
-            TypeProblem2 Problem { get; }
+            ISetUpTypeProblem Problem { get; }
         }
-        internal interface IHaveMembersPossiblyOnParent : IScope { }
-        internal interface IHaveHopefulMembers : ILookUpType { }
-        internal interface ILookUpType : ITypeProblemNode { }
-        internal interface ICanAssignFromMe : ILookUpType, ITypeProblemNode { }
-        internal interface ICanBeAssignedTo : ILookUpType, ITypeProblemNode { }
+        public interface IHaveMembersPossiblyOnParent : IScope { }
+        public interface IHaveHopefulMembers : ITypeProblemNode { }
+        public interface ILookUpType : ITypeProblemNode { }
+        public interface IHaveMembers : ITypeProblemNode { }
 
-        internal interface ITypeReference : ITypeProblemNode, ILookUpType { }
-        internal interface IValue : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe { }
-        internal interface IMember : IValue, ICanBeAssignedTo { }
-        internal interface IOrType : ITypeProblemNode, IHaveHopefulMembers, IType { }
-        internal interface IExplicitType : ITypeProblemNode, IScope, IType { }
-        internal interface IScope : ITypeProblemNode { }
-        internal interface IObject : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }
-        internal interface IMethod : IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope, ICanAssignFromMe { }
+        public interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }
+        public interface ICanBeAssignedTo : ITypeProblemNode, ILookUpType { }
+
+
+        public interface ITypeReference : ITypeProblemNode, ILookUpType { }
+        public interface IValue : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe { }
+        public interface IMember : IValue, ILookUpType, ICanBeAssignedTo { }
+
+
+
+        public interface IExplicitType : IHaveMembers, IScope, IType { }
+        public interface IOrType : IHaveMembers, IHaveHopefulMembers, IType { }
+        public interface IScope : IHaveMembers { }
+        public interface IObject : IExplicitType, IHaveHopefulMembers { }
+        public interface IMethod : IHaveMembers,IHaveHopefulMembers, IHaveMembersPossiblyOnParent, IScope { }
 
     }
 
@@ -101,7 +109,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 problem.Register(this);
             }
 
-            public TypeProblem2 Problem { get; }
+            public ISetUpTypeProblem Problem { get; }
         }
         private class TypeReference : TypeProblemNode, Tpn.ITypeReference
         {
@@ -174,7 +182,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<Tpn.IScope, List<Tpn.ITypeReference>> refs = new Dictionary<Tpn.IScope, List<Tpn.ITypeReference>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IOrType>> orTypes = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IOrType>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IExplicitType>> types = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IExplicitType>>();
-        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>> genericOverlays = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IType>>();
+        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IHaveMembers>> genericOverlays = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IHaveMembers>>();
 
 
         private readonly Dictionary<Tpn.IOrType, (Tpn.ITypeReference, Tpn.ITypeReference)> orTypeComponets = new Dictionary<Tpn.IOrType, (Tpn.ITypeReference, Tpn.ITypeReference)>();
@@ -219,11 +227,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             types[parent].Add(key, type);
         }
 
-        public void HasPlaceholderType(Tpn.IScope parent, IKey key, Tpn.IType type)
+        public void HasPlaceholderType(Tpn.IScope parent, IKey key, Tpn.IHaveMembers type)
         {
             if (!genericOverlays.ContainsKey(parent))
             {
-                genericOverlays.Add(parent, new Dictionary<IKey, Tpn.IType>());
+                genericOverlays.Add(parent, new Dictionary<IKey, Tpn.IHaveMembers>());
             }
             genericOverlays[parent].Add(key, type);
         }
@@ -330,10 +338,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             return res;
         }
 
-        public Tpn.IObject CreateObject(Tpn.IScope parent)
+        public Tpn.IObject CreateObject(Tpn.IScope parent, IKey key)
         {
             var res = new Object(this);
             IsChildOf(parent, res);
+            HasType(parent, key, res);
             return res;
         }
 
@@ -373,9 +382,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
 
-        public Tpn.IOrType CreateOrType(Tpn.IScope s, Tpn.ITypeReference setUpSideNode1, Tpn.ITypeReference setUpSideNode2)
+        public Tpn.IOrType CreateOrType(Tpn.IScope s, IKey key, Tpn.ITypeReference setUpSideNode1, Tpn.ITypeReference setUpSideNode2)
         {
-            var key = new ImplicitKey();
             var res = new OrType(this);
             Ors(res, setUpSideNode1, setUpSideNode2);
             HasOrType(s, key, res);
@@ -415,23 +423,23 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-
-
-        internal Tpn.IMember GetInput(Tpn.IMethod method)
-        {
-            return methodInputs[method];
-        }
-
-
         internal Tpn.IMember GetReturns(Tpn.IMethod method)
         {
             return methodReturns[method];
         }
 
-        internal IKey GetKey(Tpn.ITypeReference type)
+
+        public Tpn.IMember GetInput(Tpn.IMethod method)
+        {
+            return methodInputs[method];
+        }
+
+        public IKey GetKey(Tpn.ITypeReference type)
         {
             return lookUpTypeKey[type];
         }
+
+
 
         public void Solve()
         {
@@ -458,7 +466,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // members that might be on parents 
-            var defersTo = new Dictionary<Tpn.IType, Tpn.IType>();
+            var defersTo = new Dictionary<Tpn.IHaveMembers, Tpn.IHaveMembers>();
 
             foreach (var item in possibleMembers)
             {
@@ -512,7 +520,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             #region Helpers
 
-            Tpn.IType GetType(Tpn.ILookUpType value)
+
+            Tpn.IHaveMembers GetType(Tpn.ILookUpType value)
             {
                 var res = lookUps[value];
                 while (true)
@@ -528,7 +537,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            void Flow(Tpn.IType from, Tpn.IType to)
+            Tpn.IHaveMembers GetType(Tpn.ITypeProblemNode value) {
+                if (value is Tpn.ILookUpType lookup) {
+                    return GetType(lookup);
+                }
+                if (value is Tpn.IHaveMembers haveMembers) {
+                    return haveMembers;
+                }
+
+                throw new Exception("flaming pile of piss");
+                // well, I guess I now know that we have a duality
+                // you either are a type, or you have a type
+                // 
+            }
+
+
+            void Flow(Tpn.IHaveMembers from, Tpn.IHaveMembers to)
             {
                 // I think the only thing that "flow" are members
                 // but not all types will accept new members
@@ -562,14 +586,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            IReadOnlyDictionary<IKey, Tpn.IMember> GetMembers(Tpn.IType type)
+            IReadOnlyDictionary<IKey, Tpn.IMember> GetMembers(Tpn.IHaveMembers type)
             {
                 if (type is Tpn.IExplicitType explictType)
                 {
                     return members[explictType];
                 }
-
-                
 
                 if (type is Tpn.IOrType orType)
                 {
@@ -622,7 +644,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private Tpn.IType LookUpOrOverlayOrThrow(Tpn.IScope from, IKey key)
+        private Tpn.IHaveMembers LookUpOrOverlayOrThrow(Tpn.IScope from, IKey key)
         {
             if (!TryLookUpOrOverlay(from, key, out var res))
             {
@@ -632,15 +654,28 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
         // or maybe I just need to make we get the same outcome requardless of what order references are processed in'
-        private Dictionary<Tpn.ILookUpType, Tpn.IType> lookUps = new Dictionary<Tpn.ILookUpType, Tpn.IType>();
+        private Dictionary<Tpn.ILookUpType, Tpn.IHaveMembers> lookUps = new Dictionary<Tpn.ILookUpType, Tpn.IHaveMembers>();
 
         public TypeProblem2()
         {
             Root = new Scope(this);
+            //CreateGenericType(Root, new NameKey("method"), new IKey[] {
+            //    new NameKey("input"),
+            //    new NameKey("output")
+            //});
+
+            //CreateGenericType(Root, new NameKey("implementation"), new IKey[] {
+            //    new NameKey("context"),
+            //    new NameKey("input"),
+            //    new NameKey("output")
+            //});
+            //CreateType(Root, new NameKey("number"));
+            //CreateType(Root, new NameKey("string"));
+            //CreateType(Root, new NameKey("bool"));
+            //CreateType(Root, new NameKey("empty"));
         }
 
-
-        private bool TryLookUpOrOverlay(Tpn.IScope from, IKey key, out Tpn.IType res)
+        private bool TryLookUpOrOverlay(Tpn.IScope from, IKey key, out Tpn.IHaveMembers res)
         {
 
             if (key is GenericNameKey genericNameKey)
@@ -681,7 +716,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        private bool TryLookUp(Tpn.IScope haveTypes, IKey key, out Tpn.IType result)
+        private bool TryLookUp(Tpn.IScope haveTypes, IKey key, out Tpn.IHaveMembers result)
         {
             while (true)
             {
@@ -856,9 +891,9 @@ namespace Tac.Frontend.New.CrzayNamespace
         private class GenericTypeKey 
         {
             private readonly Tpn.IExplicitType primary;
-            private readonly Tpn.IType[] parameters;
+            private readonly Tpn.IHaveMembers[] parameters;
 
-            public GenericTypeKey(Tpn.IExplicitType primary, Tpn.IType[] parameters)
+            public GenericTypeKey(Tpn.IExplicitType primary, Tpn.IHaveMembers[] parameters)
             {
                 this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
                 this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));

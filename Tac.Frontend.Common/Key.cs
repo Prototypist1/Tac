@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Tac.Model;
-using Tac.Model.Elements;
+﻿using System.Linq;
 
 namespace Tac.Model
 {
@@ -37,5 +33,4 @@ namespace Tac.Model
             return hashCode;
         }
     }
-
 }

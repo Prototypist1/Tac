@@ -20,10 +20,10 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticEmptyInstanceMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticEmptyInstanceMaker = AddElementMakers(
             () => new EmptyInstanceMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
     }
 }
 

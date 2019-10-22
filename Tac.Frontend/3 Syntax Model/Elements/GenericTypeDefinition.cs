@@ -22,11 +22,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
             () => new GenericTypeDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -152,7 +152,7 @@ namespace Tac.Semantic_Model
 
         public static IPopulateScope<WeakGenericTypeDefinition, Tpn.IExplicitType> PopulateScope(
                 NameKey nameKey,
-                IEnumerable<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, ITypeProblemNode>> lines,
+                IEnumerable<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
@@ -176,13 +176,13 @@ namespace Tac.Semantic_Model
         private class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition, Tpn.IExplicitType>
         {
             private readonly NameKey nameKey;
-            private readonly IEnumerable<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> lines;
+            private readonly IEnumerable<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IEnumerable<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> lines,
+                IEnumerable<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -203,14 +203,14 @@ namespace Tac.Semantic_Model
             private readonly NameKey nameKey;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
-            private readonly IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] lines;
+            private readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] lines;
 
             public GenericTypeDefinitionFinalizeScope(
                 NameKey nameKey,
                 Tpn.IExplicitType scope,
                 Box<IIsPossibly<IFrontendGenericType>> box,
                 IGenericTypeParameterPlacholder[] genericParameters,
-                IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode>[] lines)
+                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] lines)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
                 this.SetUpSideNode = scope ?? throw new ArgumentNullException(nameof(scope));

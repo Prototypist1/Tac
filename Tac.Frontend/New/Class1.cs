@@ -26,7 +26,7 @@ namespace Tac.New
     }
 
     internal interface IPopulateScope<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode: ITypeProblemNode
+        where TSetUpSideNode: Tpn.ITypeProblemNode
     {
         IResolvelizeScope<TCodeElement, TSetUpSideNode> Run(Tpn.IScope scope, IPopulateScopeContext context);
     }
@@ -36,7 +36,7 @@ namespace Tac.New
 
 
     internal interface IResolvelizeScope<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode: ITypeProblemNode
+        where TSetUpSideNode: Tpn.ITypeProblemNode
     {
         TSetUpSideNode SetUpSideNode { get; }
 

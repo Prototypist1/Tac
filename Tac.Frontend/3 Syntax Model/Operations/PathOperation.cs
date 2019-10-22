@@ -28,9 +28,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticPathMaker = AddOperationMatcher(() => new PathOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticPathMaker = AddOperationMatcher(() => new PathOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> PathMaker = StaticPathMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> PathMaker = StaticPathMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -95,10 +95,10 @@ namespace Tac.Semantic_Model.Operations
 
         private class WeakPathOperationPopulateScope : IPopulateScope<WeakPathOperation, Tpn.IMember>
         {
-            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode> left;
+            private readonly IPopulateScope<IFrontendCodeElement,Tpn.ITypeProblemNode> left;
             private readonly string name;
 
-            public WeakPathOperationPopulateScope(IPopulateScope<IFrontendCodeElement, ITypeProblemNode> left,
+            public WeakPathOperationPopulateScope(IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
                 string name)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -119,11 +119,11 @@ namespace Tac.Semantic_Model.Operations
 
         private class WeakPathOperationFinalizeScope : IResolvelizeScope<WeakPathOperation, Tpn.IMember>
         {
-            public readonly IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> left;
+            public readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
             private readonly string name;
 
             public WeakPathOperationFinalizeScope(
-                IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> resolveReferance1,
+                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> resolveReferance1,
                 string name,
                 Tpn.IMember setUpSideNode)
             {

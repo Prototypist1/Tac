@@ -23,11 +23,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticObjectDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticObjectDefinitionMaker = AddElementMakers(
             () => new ObjectDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> ObjectDefinitionMaker = StaticObjectDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> ObjectDefinitionMaker = StaticObjectDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -67,13 +67,13 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class ObjectDefinitionMaker : IMaker<IPopulateScope<WeakObjectDefinition, Tpn.IObject>>
+    internal class ObjectDefinitionMaker : IMaker<IPopulateScope<WeakObjectDefinition, Tpn.IValue>>
     {
         public ObjectDefinitionMaker()
         {
         }
 
-        public ITokenMatching<IPopulateScope<WeakObjectDefinition, Tpn.IObject>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<IPopulateScope<WeakObjectDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("object"), out var _)
@@ -83,16 +83,16 @@ namespace Tac.Semantic_Model
 
                 var elements = tokenMatching.Context.ParseBlock(block);
                 
-                return TokenMatching<IPopulateScope<WeakObjectDefinition, Tpn.IObject>>.MakeMatch(
+                return TokenMatching<IPopulateScope<WeakObjectDefinition, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new ObjectDefinitionPopulateScope(elements));
             }
-            return TokenMatching<IPopulateScope<WeakObjectDefinition, Tpn.IObject>>.MakeNotMatch(
+            return TokenMatching<IPopulateScope<WeakObjectDefinition, Tpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 
-        public static IPopulateScope<WeakObjectDefinition, Tpn.IObject> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ITypeProblemNode>[] elements)
+        public static IPopulateScope<WeakObjectDefinition, Tpn.IValue> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
         {
             return new ObjectDefinitionPopulateScope(elements);
         }
@@ -103,39 +103,45 @@ namespace Tac.Semantic_Model
                 elements);
         }
 
-        private class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition,Tpn.IObject>
+        private class ObjectDefinitionPopulateScope : IPopulateScope<WeakObjectDefinition,Tpn.IValue>
         {
-            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements;
+            private readonly IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
 
-            public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements)
+            public ObjectDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IResolvelizeScope<WeakObjectDefinition,Tpn.IObject> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public IResolvelizeScope<WeakObjectDefinition,Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
+                var key = new ImplicitKey();
 
-                var myScope = context.TypeProblem.CreateObject(scope);
+                var myScope = context.TypeProblem.CreateObject(scope, key);
+
+                var value = context.TypeProblem.CreateValue(scope, key);
+                // ugh! an object is a type
+                //
+
                 return new FinalizeScopeObjectDefinition(
-                    myScope,
+                    value,
                     elements.Select(x => x.Run(myScope, context)).ToArray()
                     );
             }
         }
 
-        private class FinalizeScopeObjectDefinition : IResolvelizeScope<WeakObjectDefinition,Tpn.IObject>
+        private class FinalizeScopeObjectDefinition : IResolvelizeScope<WeakObjectDefinition,Tpn.IValue>
         {
-            private readonly IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] elements;
+            private readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
 
             public FinalizeScopeObjectDefinition(
-                Tpn.IObject scope,
-                IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] elements)
+                Tpn.IValue scope,
+                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
             {
                 SetUpSideNode = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public Tpn.IObject SetUpSideNode
+            public Tpn.IValue SetUpSideNode
             {
                 get;
             }

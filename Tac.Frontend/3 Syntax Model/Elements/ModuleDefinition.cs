@@ -17,11 +17,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticModuleDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticModuleDefinitionMaker = AddElementMakers(
             () => new ModuleDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -121,11 +121,11 @@ namespace Tac.Semantic_Model
 
         private class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition, Tpn.IObject>
         {
-            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements;
+            private readonly IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionPopulateScope(
-                IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements,
+                IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -145,12 +145,12 @@ namespace Tac.Semantic_Model
 
         private class ModuleDefinitionFinalizeScope : IResolvelizeScope<WeakModuleDefinition, Tpn.IObject>
         {
-            private readonly IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] elements;
+            private readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionFinalizeScope(
                 Tpn.IObject scope,
-                IResolvelizeScope<IFrontendCodeElement,ITypeProblemNode>[] elements,
+                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
                 NameKey nameKey)
             {
                 SetUpSideNode = scope ?? throw new ArgumentNullException(nameof(scope));

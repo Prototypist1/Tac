@@ -17,9 +17,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticMemberMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticMemberMaker = AddElementMakers(
             () => new MemberMaker());
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> MemberMaker = StaticMemberMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> MemberMaker = StaticMemberMaker;
     }
 }
 

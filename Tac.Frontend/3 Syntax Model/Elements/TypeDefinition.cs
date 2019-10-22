@@ -21,11 +21,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> StaticTypeDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticTypeDefinitionMaker = AddElementMakers(
             () => new TypeDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -129,7 +129,7 @@ namespace Tac.Semantic_Model
                     matching.Context);
         }
         
-        public static IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ITypeProblemNode>[] elements, IKey typeName)
+        public static IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements, IKey typeName)
         {
             return new TypeDefinitionPopulateScope(elements, typeName);
         }
@@ -146,11 +146,11 @@ namespace Tac.Semantic_Model
         
         private class TypeDefinitionPopulateScope : IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>
         {
-            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements;
+            private readonly IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
             private readonly IKey key;
             private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
 
-            public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement,ITypeProblemNode>[] elements, IKey typeName)
+            public TypeDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements, IKey typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));

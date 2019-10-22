@@ -28,9 +28,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement,ITypeProblemNode>> StaticAssertAssignMaker = AddOperationMatcher(() => new AssertAssignOperationMaker());
+        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticAssertAssignMaker = AddOperationMatcher(() => new AssertAssignOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, ITypeProblemNode>> AssertAssignMaker = StaticAssertAssignMaker;
+        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> AssertAssignMaker = StaticAssertAssignMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -93,11 +93,11 @@ namespace Tac.Semantic_Model.Operations
 
         private class WeakAssignOperationPopulateScope : IPopulateScope<WeakAssignOperation, Tpn.IValue>
         {
-            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode> left;
-            private readonly IPopulateScope<IFrontendCodeElement,ITypeProblemNode> right;
+            private readonly IPopulateScope<IFrontendCodeElement,Tpn.ITypeProblemNode> left;
+            private readonly IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> right;
 
-            public WeakAssignOperationPopulateScope(IPopulateScope<IFrontendCodeElement,ITypeProblemNode> left,
-                IPopulateScope<IFrontendCodeElement,ITypeProblemNode> right)
+            public WeakAssignOperationPopulateScope(IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
+                IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> right)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));;
@@ -124,12 +124,12 @@ namespace Tac.Semantic_Model.Operations
 
         private class WeakAssignOperationFinalizeScope : IResolvelizeScope<WeakAssignOperation,Tpn.IValue>
         {
-            public readonly IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> left;
-            public readonly IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> right;
+            public readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
+            public readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> right;
 
             public WeakAssignOperationFinalizeScope(
-                IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> resolveReferance1,
-                IResolvelizeScope<IFrontendCodeElement, ITypeProblemNode> resolveReferance2)
+                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> resolveReferance1,
+                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> resolveReferance2)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
