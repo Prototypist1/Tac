@@ -32,5 +32,10 @@ namespace Tac.Model
             hashCode = (hashCode * -1521134295) + Types.Sum(x=>x.GetHashCode());
             return hashCode;
         }
+
+        public override string ToString()
+        {
+            return $"{nameof(GenericNameKey)}-{name.ToString()}-{Types.Aggregate("",(x,y)=> x +""+ y.ToString())}";
+        }
     }
 }

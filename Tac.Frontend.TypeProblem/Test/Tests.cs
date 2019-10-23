@@ -33,7 +33,7 @@ namespace Tac.Frontend.TypeProblem.Test
         {
             var x = new TypeProblem2();
 
-            var hello = x.CreateType(x.Root, new NameKey("Hello"));
+            var hello = x.CreateType(x.Root, new NameKey("hello"));
             var hello_x = x.CreateMember(hello, new NameKey("x"));
             var hello_y = x.CreateMember(hello, new NameKey("y"));
 

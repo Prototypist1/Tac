@@ -100,9 +100,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         private abstract class TypeProblemNode : Tpn.ITypeProblemNode
         {
-            public TypeProblemNode(TypeProblem2 problem)
+            public readonly string debugName;
+
+            public TypeProblemNode(TypeProblem2 problem, string debugName)
             {
                 Problem = problem ?? throw new ArgumentNullException(nameof(problem));
+                this.debugName = debugName;
                 problem.Register(this);
             }
 
@@ -110,56 +113,56 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
         private class TypeReference : TypeProblemNode, Tpn.ITypeReference
         {
-            public TypeReference(TypeProblem2 problem) : base(problem)
+            public TypeReference(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
         private class Value : TypeProblemNode, Tpn.IValue
         {
-            public Value(TypeProblem2 problem) : base(problem)
+            public Value(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
         private class Member : TypeProblemNode, Tpn.IMember
         {
-            public Member(TypeProblem2 problem) : base(problem)
+            public Member(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
         private class Type : TypeProblemNode, Tpn.IExplicitType
         {
-            public Type(TypeProblem2 problem) : base(problem)
+            public Type(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
 
         private class OrType : TypeProblemNode, Tpn.IOrType
         {
-            public OrType(TypeProblem2 problem) : base(problem)
+            public OrType(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
         private class InferedType : Type
         {
-            public InferedType(TypeProblem2 problem) : base(problem)
+            public InferedType(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
         private class Scope : TypeProblemNode, Tpn.IScope
         {
-            public Scope(TypeProblem2 problem) : base(problem)
+            public Scope(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
         private class Object : TypeProblemNode, Tpn.IObject
         {
-            public Object(TypeProblem2 problem) : base(problem)
+            public Object(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
         private class Method : TypeProblemNode, Tpn.IMethod
         {
-            public Method(TypeProblem2 problem) : base(problem)
+            public Method(TypeProblem2 problem, string debugName) : base(problem, debugName)
             {
             }
         }
@@ -272,7 +275,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IValue CreateValue(Tpn.IScope scope, IKey typeKey)
         {
-            var res = new Value(this);
+            var res = new Value(this, typeKey.ToString());
             HasValue(scope, res);
             lookUpTypeContext[res] = scope;
             lookUpTypeKey[res] = typeKey;
@@ -281,7 +284,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey)
         {
-            var res = new Member(this);
+            var res = new Member(this, key.ToString());
             HasMember(scope, key, res);
             lookUpTypeContext[res] = scope;
             lookUpTypeKey[res] = typeKey;
@@ -290,7 +293,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key)
         {
-            var res = new Member(this);
+            var res = new Member(this, key.ToString());
             HasMember(scope, key, res);
             lookUpTypeContext[res] = scope;
             return res;
@@ -300,7 +303,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey typeKey)
         {
-            var res = new TypeReference(this);
+            var res = new TypeReference(this, typeKey.ToString());
             HasReference(context, res);
             lookUpTypeContext[res] = context;
             lookUpTypeKey[res] = typeKey;
@@ -309,14 +312,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IScope CreateScope(Tpn.IScope parent)
         {
-            var res = new Scope(this);
+            var res = new Scope(this,$"child-of-{((TypeProblemNode)parent).debugName}");
             IsChildOf(parent, res);
             return res;
         }
 
         public Tpn.IExplicitType CreateType(Tpn.IScope parent, IKey key)
         {
-            var res = new Type(this);
+            var res = new Type(this,key.ToString());
             IsChildOf(parent, res);
             HasType(parent, key, res);
             return res;
@@ -324,12 +327,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IExplicitType CreateGenericType(Tpn.IScope parent, IKey key, IReadOnlyList<IKey> placeholders)
         {
-            var res = new Type(this);
+            var res = new Type(this,$"generic-{key.ToString()}-{placeholders.Aggregate("",(x,y)=>x+"-"+y.ToString())}");
             IsChildOf(parent, res);
             HasType(parent, key, res);
             foreach (var placeholder in placeholders)
             {
-                var placeholderType = new Type(this);
+                var placeholderType = new Type(this,$"generic-parameter-{placeholder.ToString()}");
                 HasPlaceholderType(res, placeholder, placeholderType);
             }
             return res;
@@ -337,7 +340,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IObject CreateObject(Tpn.IScope parent, IKey key)
         {
-            var res = new Object(this);
+            var res = new Object(this, key.ToString());
             IsChildOf(parent, res);
             HasType(parent, key, res);
             return res;
@@ -345,7 +348,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IMethod CreateMethod(Tpn.IScope parent, string inputName)
         {
-            var res = new Method(this);
+            var res = new Method(this, $"method{{inputName:{inputName}}}");
             IsChildOf(parent, res);
             var returns = CreateMember(res, new ImplicitKey());
             methodReturns[res] = returns;
@@ -358,7 +361,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         public Tpn.IMethod CreateMethod(Tpn.IScope parent, Tpn.ITypeReference inputType, Tpn.ITypeReference outputType, string inputName)
         {
 
-            var res = new Method(this);
+            var res = new Method(this, $"method{{inputName:{inputName},inputType:{((TypeProblemNode)inputType).debugName},outputType:{((TypeProblemNode)outputType).debugName}}}");
             IsChildOf(parent, res);
             var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(), outkey) : CreateMember(res, new ImplicitKey());
             methodReturns[res] = returns;
@@ -373,7 +376,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IMember CreateHopefulMember(Tpn.IHaveHopefulMembers scope, IKey key)
         {
-            var res = new Member(this);
+            var res = new Member(this,key.ToString());
             HasHopefulMember(scope, key, res);
             return res;
         }
@@ -381,7 +384,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IOrType CreateOrType(Tpn.IScope s, IKey key, Tpn.ITypeReference setUpSideNode1, Tpn.ITypeReference setUpSideNode2)
         {
-            var res = new OrType(this);
+            var res = new OrType(this,$"{((TypeProblemNode)setUpSideNode1).debugName} || {((TypeProblemNode)setUpSideNode2).debugName}");
             Ors(res, setUpSideNode1, setUpSideNode2);
             HasOrType(s, key, res);
 
@@ -437,19 +440,19 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
 
-
         public void Solve()
         {
+            var lookUps =  new Dictionary<Tpn.ILookUpType, Tpn.IHaveMembers>();
+
             // create types for everything 
             var toLookUp = typeProblemNodes.OfType<Tpn.ILookUpType>().ToArray();
             foreach (var node in toLookUp.Where(x => !lookUpTypeKey.ContainsKey(x)))
             {
                 var key = new ImplicitKey();
-                var type = new InferedType(this);
+                var type = new InferedType(this,$"for {((TypeProblemNode)node).debugName}");
                 lookUps[node] = type;
-                lookUpTypeKey[node] = key;
-                HasType(lookUpTypeContext[node], key, type);
             }
+
             toLookUp = typeProblemNodes.OfType<Tpn.ILookUpType>().Except(lookUps.Keys).ToArray();
 
             // overlay generics
@@ -605,7 +608,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (rightMembers.TryGetValue(leftMember.Key, out var rightMember)) {
                             // if they are the same type
                             if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value))) {
-                                var member = new Member(this);
+                                var member = new Member(this,$"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}");
                                 lookUps[member] = GetType(rightMember);
                                 res[leftMember.Key] = member;
                             }
@@ -650,12 +653,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             return res;
         }
 
-        // or maybe I just need to make we get the same outcome requardless of what order references are processed in'
-        private Dictionary<Tpn.ILookUpType, Tpn.IHaveMembers> lookUps = new Dictionary<Tpn.ILookUpType, Tpn.IHaveMembers>();
 
         public TypeProblem2()
         {
-            Root = new Scope(this);
+            Root = new Scope(this,"root");
             //CreateGenericType(Root, new NameKey("method"), new IKey[] {
             //    new NameKey("input"),
             //    new NameKey("output")
@@ -691,7 +692,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return true;
                 }
 
-                var to = new Type(this);
+                var to = new Type(this,"generated-generic");
                 foreach (var type in types)
                 {
                     HasPlaceholderType(to, type.typeKey, type.Item2);
@@ -717,12 +718,12 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             while (true)
             {
-                if (types[haveTypes].TryGetValue(key, out var res))
+                if (types.TryGetValue(haveTypes, out var dict1) && dict1.TryGetValue(key, out var res))
                 {
                     result = res;
                     return true;
                 }
-                if (orTypes[haveTypes].TryGetValue(key, out var res2))
+                if (orTypes.TryGetValue(haveTypes, out var dict2) && dict2.TryGetValue(key, out var res2))
                 {
                     result = res2;
                     return true;
@@ -825,31 +826,31 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var item in values[innerFromScope])
                     {
-                        var newValue = Copy(item, new Value(this));
+                        var newValue = Copy(item, new Value(this,$"copied from {((TypeProblemNode)item).debugName}"));
                         HasValue(innerScopeTo, newValue);
                     }
 
                     foreach (var item in refs[innerFromScope])
                     {
-                        var newValue = Copy(item, new TypeReference(this));
+                        var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}"));
                         HasReference(innerScopeTo, newValue);
                     }
 
                     foreach (var member in members[innerFromScope])
                     {
-                        var newValue = Copy(member.Value, new Member(this));
+                        var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}"));
                         HasMember(innerScopeTo, member.Key, newValue);
                     }
 
                     foreach (var type in types[innerFromScope])
                     {
-                        var newValue = Copy(type.Value, new Type(this));
+                        var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
                         HasType(innerScopeTo, type.Key, newValue);
                     }
 
                     foreach (var type in orTypes[innerFromScope])
                     {
-                        var newValue = Copy(type.Value, new OrType(this));
+                        var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
                         HasOrType(innerScopeTo, type.Key, newValue);
                     }
 
@@ -863,7 +864,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 
                     foreach (var possible in possibleMembers[innerFromScope])
                     {
-                        var newValue = Copy(possible.Value, new Member(this));
+                        var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
                         HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
                     }
                 }
@@ -872,7 +873,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     foreach (var possible in hopefulMembers[innerFromHopeful])
                     {
-                        var newValue = Copy(possible.Value, new Member(this));
+                        var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
                         HasHopefulMember(innerToHopeful, possible.Key, newValue);
                     }
                 }

@@ -22,6 +22,11 @@ namespace Tac.Model
         {
             return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
         }
+
+        public override string ToString()
+        {
+            return $"{nameof(NameKey)}-{Name}";
+        }
     }
 
 }
