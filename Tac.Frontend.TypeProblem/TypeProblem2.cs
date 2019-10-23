@@ -560,26 +560,29 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     foreach (var memberPair in GetMembers(from))
                     {
-                        if (members[infered].TryGetValue(memberPair.Key, out var upstreamMember))
+                        if (members.TryGetValue(infered, out var dict))
                         {
-                            var one = GetType(upstreamMember);
-                            var two = GetType(memberPair.Value);
-                            if (one is InferedType oneInfered)
+                            if (dict.TryGetValue(memberPair.Key, out var upstreamMember))
                             {
-                                Flow(two, oneInfered);
-                            }
-                            else if (two is InferedType twoInfered)
-                            {
-                                Flow(one, twoInfered);
+                                var one = GetType(upstreamMember);
+                                var two = GetType(memberPair.Value);
+                                if (one is InferedType oneInfered)
+                                {
+                                    Flow(two, oneInfered);
+                                }
+                                else if (two is InferedType twoInfered)
+                                {
+                                    Flow(one, twoInfered);
+                                }
+                                else
+                                {
+                                    throw new Exception("these types are not compatible... right?");
+                                }
                             }
                             else
                             {
-                                throw new Exception("these types are not compatible... right?");
+                                dict.Add(memberPair.Key, memberPair.Value);
                             }
-                        }
-                        else
-                        {
-                            members[infered].Add(memberPair.Key, memberPair.Value);
                         }
                     }
                 }
@@ -590,7 +593,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (type is Tpn.IExplicitType explictType)
                 {
-                    return members[explictType];
+                    if (members.TryGetValue(explictType, out var res)) {
+                        return res;
+                    }
+                    return new Dictionary<IKey,Tpn.IMember>();
                 }
 
                 if (type is Tpn.IOrType orType)
