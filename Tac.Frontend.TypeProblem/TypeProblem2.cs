@@ -460,7 +460,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 foreach (var node in toLookUp)
                 {
-                    lookUps[node] = LookUpOrOverlayOrThrow(lookUpTypeContext[node], lookUpTypeKey[node]);
+                    lookUps[node] = LookUpOrOverlayOrThrow(node);
                 }
                 toLookUp = typeProblemNodes.OfType<Tpn.ILookUpType>().Except(lookUps.Keys).ToArray();
             }
@@ -519,6 +519,297 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             #region Helpers
+
+            Tpn.IHaveMembers LookUpOrOverlayOrThrow(Tpn.ILookUpType node)
+            {
+                {
+                    if (lookUps.TryGetValue(node, out var res))
+                    {
+                        return res;
+                    }
+                }
+
+                {
+                    var from = lookUpTypeContext[node];
+                    var key = lookUpTypeKey[node];
+                    if (!TryLookUpOrOverlay(from, key, out var res))
+                    {
+                        throw new Exception("could not find type");
+                    }
+                    return res;
+                }
+            }
+
+
+
+            Tpn.IHaveMembers LookUpOrOverlayOrThrow2(Tpn.IScope from ,IKey key)
+            {
+                if (!TryLookUpOrOverlay(from, key, out var res))
+                {
+                    throw new Exception("could not find type");
+                }
+                return res;
+            }
+
+            bool TryLookUpOrOverlay(Tpn.IScope from, IKey key, out Tpn.IHaveMembers res)
+            {
+
+                if (key is GenericNameKey genericNameKey)
+                {
+
+                    var types = genericNameKey.Types.Select(typeKey => (typeKey, LookUpOrOverlayOrThrow2(from, typeKey))).ToArray();
+
+                    if (!(LookUpOrOverlayOrThrow2(from, genericNameKey.name) is Tpn.IExplicitType lookedUp))
+                    {
+                        throw new Exception();
+                    }
+                    var genericTypeKey = new GenericTypeKey(lookedUp, types.Select(x => x.Item2).ToArray());
+
+                    if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                    {
+                        res = res2;
+                        return true;
+                    }
+
+                    var to = new Type(this, "generated-generic");
+                    foreach (var type in types)
+                    {
+                        HasPlaceholderType(to, type.typeKey, type.Item2);
+                    }
+
+                    var explict = CopyTree(lookedUp, to);
+                    realizedGeneric.Add(genericTypeKey, explict);
+                    res = explict;
+                    return true;
+                }
+                else
+                if (TryLookUp(from, key, out res))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            bool TryLookUp(Tpn.IScope haveTypes, IKey key, out Tpn.IHaveMembers result)
+            {
+                while (true)
+                {
+                    {
+                        if (types.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                        {
+                            result = res;
+                            return true;
+                        }
+                    }
+                    {
+                        if (orTypes.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                        {
+                            result = res;
+                            return true;
+                        }
+                    }
+                    {
+                        if (genericOverlays.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                        {
+                            result = res;
+                            return true;
+                        }
+                    }
+                    if (!kidParent.TryGetValue(haveTypes, out haveTypes))
+                    {
+                        result = null;
+                        return false;
+                    }
+                }
+            }
+
+            Tpn.IExplicitType CopyTree(Tpn.IExplicitType from, Tpn.IExplicitType to)
+            {
+
+                var map = new Dictionary<Tpn.ITypeProblemNode, Tpn.ITypeProblemNode>();
+                Copy(from, to, true);
+
+                foreach (var pair in map)
+                {
+                    if (pair.Key is Tpn.IScope fromScope && to is Tpn.IScope toScope)
+                    {
+                        kidParent[toScope] = CopiedToOrSelf(kidParent[fromScope]);
+                    }
+                }
+
+                var oldAssignments = assignments.ToArray();
+                foreach (var pair in map)
+                {
+                    if (pair.Key is Tpn.ICanBeAssignedTo assignedToFrom && pair.Value is Tpn.ICanBeAssignedTo assignedToTo)
+                    {
+                        foreach (var item in oldAssignments)
+                        {
+                            if (item.Item2 == assignedToFrom)
+                            {
+                                assignments.Add((CopiedToOrSelf(item.Item1), assignedToTo));
+                            }
+                        }
+                    }
+
+                    if (pair.Value is Tpn.ICanAssignFromMe assignFromFrom && pair.Value is Tpn.ICanAssignFromMe assignFromTo)
+                    {
+                        foreach (var item in oldAssignments)
+                        {
+                            if (item.Item1 == assignFromFrom)
+                            {
+                                assignments.Add((assignFromTo, CopiedToOrSelf(item.Item2)));
+                            }
+                        }
+                    }
+                }
+
+                foreach (var pair in map)
+                {
+                    if (pair.Key is Tpn.ILookUpType lookUpFrom && pair.Value is Tpn.ILookUpType lookUpTo)
+                    {
+                        if (lookUpTypeKey.TryGetValue(lookUpFrom, out var key))
+                        {
+                            lookUpTypeKey.Add(lookUpTo, key);
+                        }
+
+                        if (lookUpTypeContext.TryGetValue(lookUpFrom, out var context))
+                        {
+                            lookUpTypeContext.Add(lookUpTo, CopiedToOrSelf(context));
+                        }
+                    }
+
+                    if (pair.Key is Tpn.IOrType orFrom && pair.Value is Tpn.IOrType orTo)
+                    {
+                        Ors(orTo, CopiedToOrSelf(orTypeComponets[orFrom].Item1), CopiedToOrSelf(orTypeComponets[orFrom].Item2));
+                    }
+
+
+                    if (pair.Key is Tpn.IMethod methodFrom && pair.Value is Tpn.IMethod methodTo)
+                    {
+                        methodInputs[methodTo] = CopiedToOrSelf(methodInputs[methodFrom]);
+                        methodReturns[methodTo] = CopiedToOrSelf(methodReturns[methodFrom]);
+                    }
+                }
+
+                return to;
+
+                T CopiedToOrSelf<T>(T item)
+                    where T : Tpn.ITypeProblemNode
+                {
+                    if (map.TryGetValue(item, out var res))
+                    {
+                        return (T)res;
+                    }
+                    return item;
+                }
+
+                // hasGenerics -- the root of the root will have had its generics replaced
+                // for the rest of the tree the generics will need to be copied
+                T Copy<T>(T innerFrom, T innerTo, bool hasGenerics)
+                    where T : Tpn.ITypeProblemNode
+                {
+                    map.Add(innerFrom, innerTo);
+
+                    if (innerFrom is Tpn.IScope innerFromScope && innerTo is Tpn.IScope innerScopeTo)
+                    {
+
+                        {
+                            if (values.TryGetValue(innerFromScope, out var dict))
+                            {
+                                foreach (var item in dict)
+                                {
+                                    var newValue = Copy(item, new Value(this, $"copied from {((TypeProblemNode)item).debugName}"), false);
+                                    HasValue(innerScopeTo, newValue);
+                                }
+                            }
+                        }
+
+                        {
+                            if (refs.TryGetValue(innerFromScope, out var dict))
+                            {
+                                foreach (var item in dict)
+                                {
+                                    var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}"), false);
+                                    HasReference(innerScopeTo, newValue);
+                                }
+                            }
+                        }
+
+                        {
+                            if (members.TryGetValue(innerFromScope, out var dict))
+                            {
+                                foreach (var member in dict)
+                                {
+                                    var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}"), false);
+                                    HasMember(innerScopeTo, member.Key, newValue);
+                                }
+                            }
+                        }
+
+
+                        {
+                            if (types.TryGetValue(innerFromScope, out var dict))
+                            {
+                                foreach (var type in dict)
+                                {
+                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}"), false);
+                                    HasType(innerScopeTo, type.Key, newValue);
+                                }
+                            }
+                        }
+
+                        {
+                            if (orTypes.TryGetValue(innerFromScope, out var dict))
+                            {
+                                foreach (var type in dict)
+                                {
+                                    var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}"), false);
+                                    HasOrType(innerScopeTo, type.Key, newValue);
+                                }
+                            }
+                        }
+
+
+                        {
+                            if (!hasGenerics && genericOverlays.TryGetValue(innerFromScope, out var dict))
+                            {
+                                foreach (var type in dict)
+                                {
+                                    HasPlaceholderType(innerScopeTo, type.Key, type.Value);
+                                }
+                            }
+                        }
+
+                        {
+                            if (possibleMembers.TryGetValue(innerFromScope, out var dict))
+                            {
+                                foreach (var possible in dict)
+                                {
+                                    var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"), false);
+                                    HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
+                                }
+                            }
+                        }
+                    }
+
+                    if (innerFrom is Tpn.IHaveHopefulMembers innerFromHopeful && innerTo is Tpn.IHaveHopefulMembers innerToHopeful)
+                    {
+                        if (hopefulMembers.TryGetValue(innerFromHopeful, out var dict))
+                        {
+                            foreach (var possible in dict)
+                            {
+                                var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"), false);
+                                HasHopefulMember(innerToHopeful, possible.Key, newValue);
+                            }
+                        }
+                    }
+
+                    return innerTo;
+                }
+            }
 
 
             Tpn.IHaveMembers GetType2(Tpn.ILookUpType value)
@@ -649,17 +940,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
         }
-
-        private Tpn.IHaveMembers LookUpOrOverlayOrThrow(Tpn.IScope from, IKey key)
-        {
-            if (!TryLookUpOrOverlay(from, key, out var res))
-            {
-                throw new Exception("could not find type");
-            }
-            return res;
-        }
-
-
+               
         public TypeProblem2()
         {
             Root = new Scope(this,"root");
@@ -677,215 +958,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             //CreateType(Root, new NameKey("string"));
             //CreateType(Root, new NameKey("bool"));
             //CreateType(Root, new NameKey("empty"));
-        }
-
-        private bool TryLookUpOrOverlay(Tpn.IScope from, IKey key, out Tpn.IHaveMembers res)
-        {
-
-            if (key is GenericNameKey genericNameKey)
-            {
-
-                var types = genericNameKey.Types.Select(typeKey => (typeKey, LookUpOrOverlayOrThrow(from, typeKey))).ToArray();
-
-                if (!(LookUpOrOverlayOrThrow(from, genericNameKey.name) is Tpn.IExplicitType lookedUp)){
-                    throw new Exception();
-                }
-                var genericTypeKey = new GenericTypeKey(lookedUp, types.Select(x => x.Item2).ToArray());
-
-                if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
-                {
-                    res = res2;
-                    return true;
-                }
-
-                var to = new Type(this,"generated-generic");
-                foreach (var type in types)
-                {
-                    HasPlaceholderType(to, type.typeKey, type.Item2);
-                }
-
-                var explict  = CopyTree(lookedUp, to);
-                realizedGeneric.Add(genericTypeKey, explict);
-                res = explict;
-                return true;
-            }
-            else
-            if (TryLookUp(from, key, out res))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private bool TryLookUp(Tpn.IScope haveTypes, IKey key, out Tpn.IHaveMembers result)
-        {
-            while (true)
-            {
-                if (types.TryGetValue(haveTypes, out var dict1) && dict1.TryGetValue(key, out var res))
-                {
-                    result = res;
-                    return true;
-                }
-                if (orTypes.TryGetValue(haveTypes, out var dict2) && dict2.TryGetValue(key, out var res2))
-                {
-                    result = res2;
-                    return true;
-                }
-                if (!kidParent.TryGetValue(haveTypes, out haveTypes))
-                {
-                    result = null;
-                    return false;
-                }
-            }
-        }
-
-        private Tpn.IExplicitType CopyTree(Tpn.IExplicitType from, Tpn.IExplicitType to)
-        {
-
-            var map = new Dictionary<Tpn.ITypeProblemNode, Tpn.ITypeProblemNode>();
-            Copy(from, to);
-
-            foreach (var pair in map)
-            {
-                if (pair.Key is Tpn.IScope fromScope && to is Tpn.IScope toScope)
-                {
-                    kidParent[toScope] = kidParent[CopiedToOrSelf(fromScope)];
-                }
-            }
-
-            var oldAssignments = assignments.ToArray();
-            foreach (var pair in map)
-            {
-                if (pair.Key is Tpn.ICanBeAssignedTo assignedToFrom && pair.Value is Tpn.ICanBeAssignedTo assignedToTo)
-                {
-                    foreach (var item in oldAssignments)
-                    {
-                        if (item.Item2 == assignedToFrom)
-                        {
-                            assignments.Add((CopiedToOrSelf(item.Item1), assignedToTo));
-                        }
-                    }
-                }
-
-                if (pair.Value is Tpn.ICanAssignFromMe assignFromFrom && pair.Value is Tpn.ICanAssignFromMe assignFromTo)
-                {
-                    foreach (var item in oldAssignments)
-                    {
-                        if (item.Item1 == assignFromFrom)
-                        {
-                            assignments.Add((assignFromTo, CopiedToOrSelf(item.Item2)));
-                        }
-                    }
-                }
-            }
-
-            foreach (var pair in map)
-            {
-                if (pair.Key is Tpn.ILookUpType lookUpFrom && pair.Value is Tpn.ILookUpType lookUpTo)
-                {
-                    if (lookUpTypeKey.TryGetValue(lookUpFrom, out var key))
-                    {
-                        lookUpTypeKey.Add(lookUpTo, key);
-                    }
-
-                    if (lookUpTypeContext.TryGetValue(lookUpFrom, out var context))
-                    {
-                        lookUpTypeContext.Add(lookUpTo, CopiedToOrSelf(context));
-                    }
-                }
-            
-                if (pair.Key is Tpn.IOrType orFrom && pair.Value is Tpn.IOrType orTo)
-                {
-                    Ors(orTo, CopiedToOrSelf(orTypeComponets[orFrom].Item1), CopiedToOrSelf(orTypeComponets[orFrom].Item2));
-                }
-            
-
-                if (pair.Key is Tpn.IMethod methodFrom && pair.Value is Tpn.IMethod methodTo)
-                {
-                    methodInputs[methodTo] = CopiedToOrSelf(methodInputs[methodFrom]);
-                    methodReturns[methodTo] = CopiedToOrSelf(methodReturns[methodFrom]);
-                }
-            }
-
-            return to;
-
-            T CopiedToOrSelf<T>(T item)
-                where T : Tpn.ITypeProblemNode
-            {
-                if (map.TryGetValue(item, out var res))
-                {
-                    return (T)res;
-                }
-                return item;
-            }
-
-            T Copy<T>(T innerFrom, T innerTo)
-                where T : Tpn.ITypeProblemNode
-            {
-                map.Add(innerFrom, innerTo);
-
-                if (innerFrom is Tpn.IScope innerFromScope && innerTo is Tpn.IScope innerScopeTo)
-                {
-
-                    foreach (var item in values[innerFromScope])
-                    {
-                        var newValue = Copy(item, new Value(this,$"copied from {((TypeProblemNode)item).debugName}"));
-                        HasValue(innerScopeTo, newValue);
-                    }
-
-                    foreach (var item in refs[innerFromScope])
-                    {
-                        var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}"));
-                        HasReference(innerScopeTo, newValue);
-                    }
-
-                    foreach (var member in members[innerFromScope])
-                    {
-                        var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}"));
-                        HasMember(innerScopeTo, member.Key, newValue);
-                    }
-
-                    foreach (var type in types[innerFromScope])
-                    {
-                        var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
-                        HasType(innerScopeTo, type.Key, newValue);
-                    }
-
-                    foreach (var type in orTypes[innerFromScope])
-                    {
-                        var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
-                        HasOrType(innerScopeTo, type.Key, newValue);
-                    }
-
-                    foreach (var type in genericOverlays[innerFromScope])
-                    {
-                        if (!genericOverlays[innerScopeTo].ContainsKey(type.Key))
-                        {
-                            HasPlaceholderType(innerScopeTo, type.Key, type.Value);
-                        }
-                    }
-                
-                    foreach (var possible in possibleMembers[innerFromScope])
-                    {
-                        var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
-                        HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
-                    }
-                }
-
-                if (innerFrom is Tpn.IHaveHopefulMembers innerFromHopeful && innerTo is Tpn.IHaveHopefulMembers innerToHopeful)
-                {
-                    foreach (var possible in hopefulMembers[innerFromHopeful])
-                    {
-                        var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
-                        HasHopefulMember(innerToHopeful, possible.Key, newValue);
-                    }
-                }
-
-                return innerTo;
-            }
         }
 
         private class GenericTypeKey 

@@ -55,5 +55,112 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.Solve();
         }
+
+        [Fact]
+        public void AssignmentX() {
+
+            var x = new TypeProblem2();
+
+            var m1 = x.CreateMember(x.Root, new NameKey("m1"));
+            x.CreateHopefulMember(m1, new NameKey("x"));
+            var m2 = x.CreateMember(x.Root, new NameKey("m2"));
+            x.CreateHopefulMember(m2, new NameKey("y"));
+            var m3 = x.CreateMember(x.Root, new NameKey("m3"));
+            var m4 = x.CreateMember(x.Root, new NameKey("m4"));
+            var m5 = x.CreateMember(x.Root, new NameKey("m5"));
+
+            m1.AssignTo(m3);
+            m2.AssignTo(m3);
+            m3.AssignTo(m4);
+            m3.AssignTo(m5);
+
+            x.Solve();
+        }
+
+
+        [Fact]
+        public void AssignmentMutual()
+        {
+
+            var x = new TypeProblem2();
+
+            var m1 = x.CreateMember(x.Root, new NameKey("m1"));
+            x.CreateHopefulMember(m1, new NameKey("x"));
+            var m2 = x.CreateMember(x.Root, new NameKey("m2"));
+            x.CreateHopefulMember(m2, new NameKey("y"));
+
+            m1.AssignTo(m2);
+            m2.AssignTo(m1);
+
+            x.Solve();
+        }
+
+
+        [Fact]
+        public void Generic() {
+
+            var x = new TypeProblem2();
+
+            x.CreateGenericType(x.Root, new NameKey("pair"), new IKey[] {
+                new NameKey("T")
+            });
+
+            x.CreateType(x.Root, new NameKey("chicken"));
+
+            x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }));
+
+            x.Solve();
+        }
+
+
+
+        [Fact]
+        public void GenericCircular()
+        {
+
+            var x = new TypeProblem2();
+
+            var left = x.CreateGenericType(x.Root, new NameKey("left"), new IKey[] {
+                new NameKey("left-t")
+            });
+
+            x.CreateMember(left,new NameKey("thing"), new GenericNameKey(new NameKey("right"), new IKey[] {
+                new NameKey("left-t")
+            }));
+
+            var right = x.CreateGenericType(x.Root, new NameKey("right"), new IKey[] {
+                new NameKey("right-t")
+            });
+
+            x.CreateMember(right, new NameKey("thing"), new GenericNameKey(new NameKey("left"), new IKey[] {
+                new NameKey("right-t")
+            }));
+
+            x.CreateType(x.Root, new NameKey("chicken"));
+
+            x.CreateMember(x.Root, new NameKey("left-member"), new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") }));
+
+            x.CreateMember(x.Root, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }));
+
+            x.Solve();
+        }
+
+
+        [Fact]
+        public void NestedGeneric()
+        {
+
+            var x = new TypeProblem2();
+
+            x.CreateGenericType(x.Root, new NameKey("pair"), new IKey[] {
+                new NameKey("T")
+            });
+
+            x.CreateType(x.Root, new NameKey("chicken"));
+
+            x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }));
+
+            x.Solve();
+        }
     }
 }
