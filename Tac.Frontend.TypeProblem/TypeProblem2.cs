@@ -194,7 +194,6 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<Tpn.ILookUpType, IKey> lookUpTypeKey = new Dictionary<Tpn.ILookUpType, IKey>();
         private readonly Dictionary<Tpn.ILookUpType, Tpn.IScope> lookUpTypeContext = new Dictionary<Tpn.ILookUpType, Tpn.IScope>();
 
-        private readonly Dictionary<GenericTypeKey, Tpn.IExplicitType> realizedGeneric = new Dictionary<GenericTypeKey, Tpn.IExplicitType>();
 
         #region Building APIs
 
@@ -442,6 +441,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public void Solve()
         {
+            var realizedGeneric = new Dictionary<GenericTypeKey, Tpn.IExplicitType>();
             var lookUps =  new Dictionary<Tpn.ILookUpType, Tpn.IHaveMembers>();
 
             // create types for everything 
@@ -460,7 +460,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 foreach (var node in toLookUp)
                 {
-                    lookUps[node] = LookUpOrOverlayOrThrow(node);
+                    LookUpOrOverlayOrThrow(node);
                 }
                 toLookUp = typeProblemNodes.OfType<Tpn.ILookUpType>().Except(lookUps.Keys).ToArray();
             }
@@ -536,6 +536,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         throw new Exception("could not find type");
                     }
+                    lookUps[node] = res;
                     return res;
                 }
             }
@@ -557,13 +558,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (key is GenericNameKey genericNameKey)
                 {
 
-                    var types = genericNameKey.Types.Select(typeKey => (typeKey, LookUpOrOverlayOrThrow2(from, typeKey))).ToArray();
+                    var types = genericNameKey.Types.Select(typeKey =>  LookUpOrOverlayOrThrow2(from, typeKey)).ToArray();
 
                     if (!(LookUpOrOverlayOrThrow2(from, genericNameKey.name) is Tpn.IExplicitType lookedUp))
                     {
                         throw new Exception();
                     }
-                    var genericTypeKey = new GenericTypeKey(lookedUp, types.Select(x => x.Item2).ToArray());
+                    var genericTypeKey = new GenericTypeKey(lookedUp, types.ToArray());
 
                     if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
                     {
@@ -571,13 +572,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return true;
                     }
 
-                    var to = new Type(this, "generated-generic");
-                    foreach (var type in types)
+                    var map = new Dictionary<Tpn.IHaveMembers, Tpn.IHaveMembers>();
+                    foreach (var (oldType,newType) in types.Zip(genericOverlays[lookedUp],(x,y)=>(y.Value, x)))
                     {
-                        HasPlaceholderType(to, type.typeKey, type.Item2);
+                        map[oldType]= newType;
                     }
 
-                    var explict = CopyTree(lookedUp, to);
+                    var explict = CopyTree(lookedUp, new Type(this, $"generated-generic-{((TypeProblemNode)lookedUp).debugName}"), map);
                     realizedGeneric.Add(genericTypeKey, explict);
                     res = explict;
                     return true;
@@ -626,11 +627,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            Tpn.IExplicitType CopyTree(Tpn.IExplicitType from, Tpn.IExplicitType to)
+            Tpn.IExplicitType CopyTree(Tpn.IExplicitType from, Tpn.IExplicitType to, IReadOnlyDictionary<Tpn.IHaveMembers,Tpn.IHaveMembers> overlayed)
             {
 
                 var map = new Dictionary<Tpn.ITypeProblemNode, Tpn.ITypeProblemNode>();
-                Copy(from, to, true);
+                Copy(from, to);
 
                 foreach (var pair in map)
                 {
@@ -670,6 +671,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (pair.Key is Tpn.ILookUpType lookUpFrom && pair.Value is Tpn.ILookUpType lookUpTo)
                     {
+
                         if (lookUpTypeKey.TryGetValue(lookUpFrom, out var key))
                         {
                             lookUpTypeKey.Add(lookUpTo, key);
@@ -708,7 +710,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // hasGenerics -- the root of the root will have had its generics replaced
                 // for the rest of the tree the generics will need to be copied
-                T Copy<T>(T innerFrom, T innerTo, bool hasGenerics)
+                T Copy<T>(T innerFrom, T innerTo)
                     where T : Tpn.ITypeProblemNode
                 {
                     map.Add(innerFrom, innerTo);
@@ -721,7 +723,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var item in dict)
                                 {
-                                    var newValue = Copy(item, new Value(this, $"copied from {((TypeProblemNode)item).debugName}"), false);
+                                    var newValue = Copy(item, new Value(this, $"copied from {((TypeProblemNode)item).debugName}"));
                                     HasValue(innerScopeTo, newValue);
                                 }
                             }
@@ -732,7 +734,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var item in dict)
                                 {
-                                    var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}"), false);
+                                    var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}"));
                                     HasReference(innerScopeTo, newValue);
                                 }
                             }
@@ -743,7 +745,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var member in dict)
                                 {
-                                    var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}"), false);
+                                    var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}"));
                                     HasMember(innerScopeTo, member.Key, newValue);
                                 }
                             }
@@ -755,7 +757,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var type in dict)
                                 {
-                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}"), false);
+                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
                                     HasType(innerScopeTo, type.Key, newValue);
                                 }
                             }
@@ -766,7 +768,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var type in dict)
                                 {
-                                    var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}"), false);
+                                    var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
                                     HasOrType(innerScopeTo, type.Key, newValue);
                                 }
                             }
@@ -774,11 +776,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                         {
-                            if (!hasGenerics && genericOverlays.TryGetValue(innerFromScope, out var dict))
+                            if (genericOverlays.TryGetValue(innerFromScope, out var dict))
                             {
                                 foreach (var type in dict)
                                 {
-                                    HasPlaceholderType(innerScopeTo, type.Key, type.Value);
+                                    if (overlayed.TryGetValue(type.Value, out var toType))
+                                    {
+                                        HasPlaceholderType(innerScopeTo, type.Key, toType);
+                                    }
+                                    else {
+                                        HasPlaceholderType(innerScopeTo, type.Key, type.Value);
+                                    }
                                 }
                             }
                         }
@@ -788,7 +796,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var possible in dict)
                                 {
-                                    var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"), false);
+                                    var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
                                     HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
                                 }
                             }
@@ -801,7 +809,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var possible in dict)
                             {
-                                var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"), false);
+                                var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
                                 HasHopefulMember(innerToHopeful, possible.Key, newValue);
                             }
                         }
@@ -981,12 +989,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return other != null &&
                     primary.Equals(other.primary) &&
                     parameters.Count() == other.parameters.Count() &&
-                    parameters.Zip(other.parameters,(x,y)=> !x.Equals(y)).Where(x=>x).Any();
+                    parameters.Zip(other.parameters,(x,y)=> x.Equals(y)).All(x =>x);
             }
 
             public override int GetHashCode()
             {
-                return HashCode.Combine(primary, parameters);
+                return primary.GetHashCode() + parameters.Sum(x=>x.GetHashCode());
             }
         }
 

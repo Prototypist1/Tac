@@ -112,6 +112,29 @@ namespace Tac.Frontend.TypeProblem.Test
             x.Solve();
         }
 
+        [Fact]
+        public void GenericContainsSelf()
+        {
+
+            var x = new TypeProblem2();
+
+            var type = x.CreateGenericType(x.Root, new NameKey("node"), new IKey[] {
+                new NameKey("node-t")
+            });
+
+            x.CreateMember(type, new NameKey("next"), new GenericNameKey(new NameKey("node"), new IKey[] {
+                new NameKey("node-t")
+            }));
+
+            x.CreateType(x.Root, new NameKey("chicken"));
+
+
+            x.CreateMember(type, new NameKey("thing"), new GenericNameKey(new NameKey("node"), new IKey[] {
+                new NameKey("chicken")
+            }));
+
+            x.Solve();
+        }
 
 
         [Fact]
