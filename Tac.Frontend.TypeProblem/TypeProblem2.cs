@@ -453,6 +453,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 lookUps[node] = type;
             }
 
+            // generics register themsleves 
+            foreach (var node in typeProblemNodes.OfType<Tpn.IExplicitType>().Where(x=>genericOverlays.TryGetValue(x,out var dict) && dict.Any()))
+            {
+                var key = new GenericTypeKey(node, genericOverlays[node].Values.ToArray());
+                realizedGeneric[key] = node;
+            }
+
             toLookUp = typeProblemNodes.OfType<Tpn.ILookUpType>().Except(lookUps.Keys).ToArray();
 
             // overlay generics
