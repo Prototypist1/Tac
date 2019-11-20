@@ -14,6 +14,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         Tpn.IValue CreateValue(Tpn.IScope scope, IKey typeKey);
         Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey);
         Tpn.IMember CreateMember(Tpn.IScope scope, IKey key);
+        Tpn.IMember CreateMemberPossiblyOnParent(Tpn.IScope scope, IKey key);
         Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey typeKey);
         Tpn.IScope CreateScope(Tpn.IScope parent);
         Tpn.IExplicitType CreateType(Tpn.IScope parent, IKey key);
@@ -81,7 +82,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }
         public interface ICanBeAssignedTo : ITypeProblemNode, ILookUpType { }
-
 
         public interface ITypeReference : ITypeProblemNode, ILookUpType { }
         public interface IValue : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe { }
@@ -298,7 +298,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             return res;
         }
 
-
+        public Tpn.IMember CreateMemberPossiblyOnParent(Tpn.IScope scope, IKey key)
+        {
+            var res = new Member(this, key.ToString());
+            HasMembersPossiblyOnParent(scope, key, res);
+            lookUpTypeContext[res] = scope;
+            return res;
+        }
 
         public Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey typeKey)
         {
@@ -955,7 +961,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
         }
-               
+
+
         public TypeProblem2()
         {
             Root = new Scope(this,"root");

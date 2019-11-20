@@ -70,9 +70,7 @@ namespace Tac.Semantic_Model
             public IResolvelizeScope<WeakMemberReference, Tpn.IMember> Run(Tpn.IScope scope, IPopulateScopeContext context)
             {
                 var nameKey = new NameKey(memberName);
-                var member = context.TypeProblem.CreateMember(scope, nameKey);
-                
-                scope.Cast<ISetUpScope>().MightHaveMember(member);
+                var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, nameKey);
 
                 return new MemberFinalizeScope( nameKey, member);
             }
