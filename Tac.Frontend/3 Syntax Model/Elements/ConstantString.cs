@@ -17,11 +17,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticConstantStringMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticConstantStringMaker = AddElementMakers(
             () => new ConstantStringMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> ConstantStringMaker = StaticConstantStringMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ConstantStringMaker = StaticConstantStringMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantStringMaker : IMaker<IPopulateScope<WeakConstantString, Tpn.IValue>>
+    internal class ConstantStringMaker : IMaker<ISetUp<WeakConstantString, Tpn.IValue>>
     {
         public ConstantStringMaker() { }
 
@@ -85,7 +85,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public ITokenMatching<IPopulateScope<WeakConstantString, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakConstantString, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .Has(new StringMaker(), out var str);
@@ -93,21 +93,21 @@ namespace Tac.Semantic_Model.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakConstantString, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantStringPopulateScope(str));
+                return TokenMatching<ISetUp<WeakConstantString, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantStringPopulateScope(str));
             }
-            return TokenMatching<IPopulateScope<WeakConstantString, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<WeakConstantString, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakConstantString, Tpn.IValue> PopulateScope(string str)
+        public static ISetUp<WeakConstantString, Tpn.IValue> PopulateScope(string str)
         {
             return new ConstantStringPopulateScope(str);
         }
-        public static IPopulateBoxes<WeakConstantString> PopulateBoxes(string str)
+        public static IResolve<WeakConstantString> PopulateBoxes(string str)
         {
             return new ConstantStringResolveReferance(str);
         }
 
-        private class ConstantStringPopulateScope : IPopulateScope<WeakConstantString, Tpn.IValue>
+        private class ConstantStringPopulateScope : ISetUp<WeakConstantString, Tpn.IValue>
         {
             private readonly string str;
 
@@ -116,33 +116,14 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IResolvelizeScope<WeakConstantString, Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public ISetUpResult<WeakConstantString, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope, new NameKey("string"));
-                return new ConstantStringFinalizeScope(str, value);
+                return new SetUpResult<WeakConstantString, Tpn.IValue>(new ConstantStringResolveReferance(str),value);
             }
         }
 
-        private class ConstantStringFinalizeScope : IResolvelizeScope<WeakConstantString, Tpn.IValue>
-        {
-            private readonly string str;
-
-            public ConstantStringFinalizeScope(string str, Tpn.IValue setUpSideNode)
-            {
-                this.str = str;
-                SetUpSideNode = setUpSideNode ?? throw new System.ArgumentNullException(nameof(setUpSideNode));
-            }
-
-            public Tpn.IValue SetUpSideNode  {get;}
-
-
-            public IPopulateBoxes<WeakConstantString> Run(IResolvableScope parent, IFinalizeScopeContext context)
-            {
-                return new ConstantStringResolveReferance(str);
-            }
-        }
-
-        private class ConstantStringResolveReferance : IPopulateBoxes<WeakConstantString>
+        private class ConstantStringResolveReferance : IResolve<WeakConstantString>
         {
             private readonly string str;
 
@@ -152,7 +133,7 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IIsPossibly<WeakConstantString> Run(IResolvableScope scope, IResolveReferenceContext context)
+            public IIsPossibly<WeakConstantString> Run(IResolvableScope scope, IResolveContext context)
             {
                 return Possibly.Is(new WeakConstantString(Possibly.Is(str)));
             }

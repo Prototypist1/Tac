@@ -137,36 +137,36 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>
+    internal class TypeReferanceMaker : IMaker<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>
     {
-        public ITokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new TypeNameMaker(), out var name);
 
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new TypeReferancePopulateScope(name));
             }
 
-            return TokenMatching<IPopulateScope<IWeakTypeReference, Tpn.ITypeReference>>.MakeNotMatch(matching.Context);
+            return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeNotMatch(matching.Context);
         }
 
 
-        public static IPopulateScope<WeakTypeReference, Tpn.ITypeReference> PopulateScope(IKey typeName)
+        public static ISetUp<WeakTypeReference, Tpn.ITypeReference> PopulateScope(IKey typeName)
         {
             return new TypeReferancePopulateScope(typeName);
         }
-        public static IPopulateBoxes<WeakTypeReference> PopulateBoxes(IKey key)
+        public static IResolve<WeakTypeReference> PopulateBoxes(IKey key)
         {
             return new TypeReferanceResolveReference(key);
         }
 
 
-        private class TypeReferancePopulateScope : IPopulateScope<WeakTypeReference, Tpn.ITypeReference>
+        private class TypeReferancePopulateScope : ISetUp<WeakTypeReference, Tpn.ITypeReference>
         {
             private readonly IKey key;
 
@@ -175,33 +175,15 @@ namespace Tac.Semantic_Model
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public IResolvelizeScope<WeakTypeReference, Tpn.ITypeReference> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public ISetUpResult<WeakTypeReference, Tpn.ITypeReference> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var type = context.TypeProblem.CreateTypeReference(scope,key);
-                return new TypeReferanceFinalizeScope(
-                    key, type);
+                return new SetUpResult<WeakTypeReference, Tpn.ITypeReference>(new TypeReferanceResolveReference(
+                    key), type);
             }
         }
 
-        private class TypeReferanceFinalizeScope : IResolvelizeScope<WeakTypeReference, Tpn.ITypeReference>
-        {
-            public Tpn.ITypeReference SetUpSideNode { get; }
-            private readonly IKey key;
-
-            public TypeReferanceFinalizeScope(IKey key, Tpn.ITypeReference type)
-            {
-                this.key = key ?? throw new ArgumentNullException(nameof(key));
-                SetUpSideNode = type ?? throw new ArgumentNullException(nameof(type));
-            }
-
-
-            public IPopulateBoxes<WeakTypeReference> Run(IResolvableScope parent, IFinalizeScopeContext context)
-            {
-                return new TypeReferanceResolveReference( key);
-            }
-        }
-
-        private class TypeReferanceResolveReference : IPopulateBoxes<WeakTypeReference>
+        private class TypeReferanceResolveReference : IResolve<WeakTypeReference>
         {
             private readonly IKey key;
 
@@ -210,7 +192,7 @@ namespace Tac.Semantic_Model
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public IIsPossibly<WeakTypeReference> Run(IResolvableScope scope, IResolveReferenceContext context)
+            public IIsPossibly<WeakTypeReference> Run(IResolvableScope scope, IResolveContext context)
             {
                 return Possibly.Is(new WeakTypeReference(scope.PossiblyGetType(key)));
             }

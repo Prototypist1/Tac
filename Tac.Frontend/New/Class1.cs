@@ -15,49 +15,53 @@ namespace Tac.New
 {
 
     
-    internal interface IPopulateScopeContext
+    internal interface ISetUpContext
     {
         ISetUpTypeProblem TypeProblem { get; }
     }
 
-    internal class PopulateScopeContext : IPopulateScopeContext
+    internal class SetUpContext : ISetUpContext
     {
         public ISetUpTypeProblem TypeProblem { get; }
     }
 
-    internal interface IPopulateScope<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode: Tpn.ITypeProblemNode
+    internal interface ISetUpResult<out TCodeElement, out TSetUpSideNode>
+        where TSetUpSideNode : Tpn.ITypeProblemNode
     {
-        IResolvelizeScope<TCodeElement, TSetUpSideNode> Run(Tpn.IScope scope, IPopulateScopeContext context);
-    }
-
-    internal interface IFinalizeScopeContext { }
-    internal class FinalizeScopeContext: IFinalizeScopeContext { }
-
-
-    internal interface IResolvelizeScope<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode: Tpn.ITypeProblemNode
-    {
+        IResolve<TCodeElement> Resolve { get; }
         TSetUpSideNode SetUpSideNode { get; }
-
-        // having this take a IResolvableScope is a little wierd
-        // I don't want anything resolved until next time
-        // I can't think of any thing that would break if you tried to resolve something here..
-        // maybe these last two steps (IFinalizeScope and IPopulateBoxes) are really one step??
-        IPopulateBoxes<TCodeElement> Run(IResolvableScope parent, IFinalizeScopeContext context);
     }
 
-    public interface IResolveReferenceContext
+    internal struct SetUpResult<TCodeElement, TSetUpSideNode>: ISetUpResult<TCodeElement, TSetUpSideNode>
+        where TSetUpSideNode : Tpn.ITypeProblemNode
+    {
+        public SetUpResult(IResolve<TCodeElement> populateBoxes, TSetUpSideNode setUpSideNode)
+        {
+            Resolve = populateBoxes ?? throw new ArgumentNullException(nameof(populateBoxes));
+            SetUpSideNode = setUpSideNode;
+        }
+
+        public IResolve<TCodeElement> Resolve { get; }
+        public TSetUpSideNode SetUpSideNode { get; }
+    }
+
+    internal interface ISetUp<out TCodeElement, out TSetUpSideNode>
+        where TSetUpSideNode: Tpn.ITypeProblemNode
+    {
+        ISetUpResult<TCodeElement, TSetUpSideNode> Run(Tpn.IScope scope, ISetUpContext context);
+    }
+
+    public interface IResolveContext
     {
     }
 
-    public class ResolveReferanceContext : IResolveReferenceContext
+    public class ResolveContext : IResolveContext
     {
     }
 
-    internal interface IPopulateBoxes<out TCodeElement> 
+    internal interface IResolve<out TCodeElement> 
     {
-        IIsPossibly<TCodeElement> Run(IResolvableScope scope, IResolveReferenceContext context);
+        IIsPossibly<TCodeElement> Run(IResolvableScope scope, IResolveContext context);
     }
     
 }

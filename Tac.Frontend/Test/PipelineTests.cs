@@ -70,7 +70,7 @@ namespace Tac.Tests
 
             var stack = new PopulatableScope();
             
-            var populateScopeContex = new PopulateScopeContext();
+            var populateScopeContex = new SetUpContext();
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(stack,populateScopeContex)).ToArray();
 
 
@@ -80,7 +80,7 @@ namespace Tac.Tests
             var populateBoxes = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolvalbe, finalizeScopeContext)).ToArray();
 
 
-            var resolveReferanceContext = new ResolveReferanceContext();
+            var resolveReferanceContext = new ResolveContext();
             var result = populateBoxes.Select(reranceResolver => reranceResolver.Run(resolvalbe,resolveReferanceContext)).ToArray().Single().GetOrThrow().Cast<WeakModuleDefinition>();
             
             var target = sample.Module;

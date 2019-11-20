@@ -28,9 +28,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticAssertAssignMaker = AddOperationMatcher(() => new AssertAssignOperationMaker());
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticAssertAssignMaker = AddOperationMatcher(() => new AssertAssignOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> AssertAssignMaker = StaticAssertAssignMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> AssertAssignMaker = StaticAssertAssignMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -64,14 +64,14 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class AssertAssignOperationMaker : IMaker<IPopulateScope<WeakAssignOperation, Tpn.IValue>>
+    internal class AssertAssignOperationMaker : IMaker<ISetUp<WeakAssignOperation, Tpn.IValue>>
     {
 
         public AssertAssignOperationMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakAssignOperation, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -80,30 +80,30 @@ namespace Tac.Semantic_Model.Operations
                 var left = matching.Context.ParseLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElement(match.rhs);
 
-                return TokenMatching<IPopulateScope<WeakAssignOperation, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new WeakAssignOperationPopulateScope(left, right));
             }
 
-            return TokenMatching<IPopulateScope<WeakAssignOperation, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        private class WeakAssignOperationPopulateScope : IPopulateScope<WeakAssignOperation, Tpn.IValue>
+        private class WeakAssignOperationPopulateScope : ISetUp<WeakAssignOperation, Tpn.IValue>
         {
-            private readonly IPopulateScope<IFrontendCodeElement,Tpn.ITypeProblemNode> left;
-            private readonly IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> right;
+            private readonly ISetUp<IFrontendCodeElement,Tpn.ITypeProblemNode> left;
+            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right;
 
-            public WeakAssignOperationPopulateScope(IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
-                IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode> right)
+            public WeakAssignOperationPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
+                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));;
             }
 
-            public IResolvelizeScope<WeakAssignOperation,Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public ISetUpResult<WeakAssignOperation,Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
 
                 var nextLeft = left.Run(scope, context);
@@ -116,50 +116,28 @@ namespace Tac.Semantic_Model.Operations
                     throw new Exception("I need real error handling");
                 }
 
-                return new WeakAssignOperationFinalizeScope(
-                    nextLeft,
-                    nextRight);
+                return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(
+                    nextLeft.Resolve,
+                    nextRight.Resolve),
+                    nextLeft.SetUpSideNode as Tpn.IValue);
             }
         }
 
-        private class WeakAssignOperationFinalizeScope : IResolvelizeScope<WeakAssignOperation,Tpn.IValue>
+        private class WeakAssignOperationResolveReferance : IResolve<WeakAssignOperation>
         {
-            public readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
-            public readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> right;
-
-            public WeakAssignOperationFinalizeScope(
-                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> resolveReferance1,
-                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode> resolveReferance2)
-            {
-                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-            }
-
-            // this will not handle bad code well,
-            //need to take care of it when I do a pass to make error handling graceful
-            public Tpn.IValue SetUpSideNode => left.SetUpSideNode as Tpn.IValue;
-
-            public IPopulateBoxes<WeakAssignOperation> Run(IResolvableScope parent, IFinalizeScopeContext context)
-            {
-                return new WeakAssignOperationResolveReferance(left.Run(parent, context), right.Run(parent, context));
-            }
-        }
-
-        private class WeakAssignOperationResolveReferance : IPopulateBoxes<WeakAssignOperation>
-        {
-            public readonly IPopulateBoxes<IFrontendCodeElement> left;
-            public readonly IPopulateBoxes<IFrontendCodeElement> right;
+            public readonly IResolve<IFrontendCodeElement> left;
+            public readonly IResolve<IFrontendCodeElement> right;
 
             public WeakAssignOperationResolveReferance(
-                IPopulateBoxes<IFrontendCodeElement> resolveReferance1,
-                IPopulateBoxes<IFrontendCodeElement> resolveReferance2)
+                IResolve<IFrontendCodeElement> resolveReferance1,
+                IResolve<IFrontendCodeElement> resolveReferance2)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
             }
 
 
-            public IIsPossibly<WeakAssignOperation> Run(IResolvableScope scope, IResolveReferenceContext context)
+            public IIsPossibly<WeakAssignOperation> Run(IResolvableScope scope, IResolveContext context)
             {
                 var leftRes = left.Run(scope, context);
                 var res = Possibly.Is(new WeakAssignOperation(

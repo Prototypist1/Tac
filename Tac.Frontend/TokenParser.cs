@@ -47,7 +47,7 @@ namespace Tac.Frontend
 
             var scope = new PopulatableScope(dependendcyScope);
 
-            var populateScopeContex = new PopulateScopeContext();
+            var populateScopeContex = new SetUpContext();
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(scope,populateScopeContex)).ToArray();
 
             var resolvableDependencyScope = dependendcyScope.GetResolvelizableScope().FinalizeScope();
@@ -56,14 +56,14 @@ namespace Tac.Frontend
             var finalizeScopeContext = new FinalizeScopeContext();
             var populateBoxes = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolvalbe, finalizeScopeContext)).ToArray();
 
-             var resolveReferenceContext = new ResolveReferanceContext();
+             var resolveReferenceContext = new ResolveContext();
 
             var module = new WeakModuleDefinition(
                 resolvalbe,
                 populateBoxes.Select(reranceResolver => reranceResolver.Run(resolvalbe, resolveReferenceContext)).ToArray(), 
                 new NameKey(name));
 
-            var resolveReferanceContext = new ResolveReferanceContext();
+            var resolveReferanceContext = new ResolveContext();
 
 
             var context = TransformerExtensions.NewConversionContext();

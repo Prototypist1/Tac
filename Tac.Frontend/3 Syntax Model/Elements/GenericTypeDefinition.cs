@@ -22,11 +22,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
             () => new GenericTypeDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -120,14 +120,14 @@ namespace Tac.Semantic_Model
         }
     }
     
-    internal class GenericTypeDefinitionMaker : IMaker<IPopulateScope<WeakGenericTypeDefinition,Tpn.IExplicitType>>
+    internal class GenericTypeDefinitionMaker : IMaker<ISetUp<WeakGenericTypeDefinition,Tpn.IExplicitType>>
     {
 
         public GenericTypeDefinitionMaker()
         {
         }
 
-        public ITokenMatching<IPopulateScope<WeakGenericTypeDefinition, Tpn.IExplicitType>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -136,7 +136,7 @@ namespace Tac.Semantic_Model
                 .Has(new BodyMaker(), out var body);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IPopulateScope<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new GenericTypeDefinitionPopulateScope(
@@ -146,13 +146,13 @@ namespace Tac.Semantic_Model
                         PrimitiveTypes.CreateGenericTypeParameterPlacholder(new NameKey(x))).ToArray()));
             }
 
-            return TokenMatching<IPopulateScope<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeNotMatch(
                     matching.Context);
         }
 
-        public static IPopulateScope<WeakGenericTypeDefinition, Tpn.IExplicitType> PopulateScope(
+        public static ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType> PopulateScope(
                 NameKey nameKey,
-                IEnumerable<IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>> lines,
+                IEnumerable<ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
@@ -160,29 +160,17 @@ namespace Tac.Semantic_Model
                 lines,
                 genericParameters);
         }
-        public static IPopulateBoxes<WeakGenericTypeDefinition> PopulateBoxes(NameKey nameKey,
-                IResolvableScope scope,
-                Box<IIsPossibly<IFrontendGenericType>> box,
-                IGenericTypeParameterPlacholder[] genericParameters,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] lines)
-        {
-            return new GenericTypeDefinitionResolveReferance(nameKey,
-                scope,
-                box,
-                genericParameters,
-                lines);
-        }
 
-        private class GenericTypeDefinitionPopulateScope : IPopulateScope<WeakGenericTypeDefinition, Tpn.IExplicitType>
+        private class GenericTypeDefinitionPopulateScope : ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>
         {
             private readonly NameKey nameKey;
-            private readonly IEnumerable<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines;
+            private readonly IEnumerable<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IEnumerable<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines,
+                IEnumerable<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -190,67 +178,34 @@ namespace Tac.Semantic_Model
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             }
 
-            public IResolvelizeScope<WeakGenericTypeDefinition, Tpn.IExplicitType> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public ISetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>x.Key).ToArray());
-                var nextLines = lines.Select(x => x.Run(myScope, context)).ToArray();
-                return new GenericTypeDefinitionFinalizeScope(nameKey, myScope, box, genericParameters, nextLines);
+                var nextLines = lines.Select(x => x.Run(myScope, context).Resolve).ToArray();
+                return new SetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(nameKey, box, genericParameters, nextLines), myScope);
             }
         }
 
-        private class GenericTypeDefinitionFinalizeScope : IResolvelizeScope<WeakGenericTypeDefinition, Tpn.IExplicitType>
+        private class GenericTypeDefinitionResolveReferance : IResolve<WeakGenericTypeDefinition>
         {
             private readonly NameKey nameKey;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
-            private readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] lines;
-
-            public GenericTypeDefinitionFinalizeScope(
-                NameKey nameKey,
-                Tpn.IExplicitType scope,
-                Box<IIsPossibly<IFrontendGenericType>> box,
-                IGenericTypeParameterPlacholder[] genericParameters,
-                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] lines)
-            {
-                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-                this.SetUpSideNode = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
-                this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
-                this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
-            }
-
-            public Tpn.IExplicitType SetUpSideNode { get; }
-
-            public IPopulateBoxes<WeakGenericTypeDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
-            {
-                var finalScope = scope.FinalizeScope(parent);
-                return new GenericTypeDefinitionResolveReferance(nameKey, finalScope, box, genericParameters, lines.Select(x=>x.Run(finalScope, context)).ToArray());
-            }
-        }
-
-        private class GenericTypeDefinitionResolveReferance : IPopulateBoxes<WeakGenericTypeDefinition>
-        {
-            private readonly NameKey nameKey;
-            private readonly IResolvableScope scope;
-            private readonly Box<IIsPossibly<IFrontendGenericType>> box;
-            private readonly IGenericTypeParameterPlacholder[] genericParameters;
-            private readonly IPopulateBoxes<IFrontendCodeElement>[] lines;
+            private readonly IResolve<IFrontendCodeElement>[] lines;
 
             public GenericTypeDefinitionResolveReferance(
                 NameKey nameKey,
-                IResolvableScope scope,
                 Box<IIsPossibly<IFrontendGenericType>> box,
                 IGenericTypeParameterPlacholder[] genericParameters,
-                IPopulateBoxes<IFrontendCodeElement>[] lines)
+                IResolve<IFrontendCodeElement>[] lines)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
                 this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
             }
 
-            public IIsPossibly<WeakGenericTypeDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
+            public IIsPossibly<WeakGenericTypeDefinition> Run(IResolvableScope _, IResolveContext context)
             {
                 // hmm getting the template down here is hard
                 // scope mostly comes from context

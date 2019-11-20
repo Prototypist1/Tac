@@ -19,11 +19,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticImplementationDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticImplementationDefinitionMaker = AddElementMakers(
             () => new ImplementationDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
 #pragma warning disable IDE0052 // Remove unread private members
     }
 }
@@ -94,15 +94,15 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class ImplementationDefinitionMaker : IMaker<IPopulateScope<WeakImplementationDefinition,Tpn.IValue>>
+    internal class ImplementationDefinitionMaker : IMaker<ISetUp<WeakImplementationDefinition,Tpn.IValue>>
     {
         public ImplementationDefinitionMaker()
         {
         }
         
-        public ITokenMatching<IPopulateScope<WeakImplementationDefinition,Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakImplementationDefinition,Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> context= null, input = null, output = null;
+            ISetUp<IWeakTypeReference, Tpn.ITypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -125,7 +125,7 @@ namespace Tac.Semantic_Model
                 var elements = tokenMatching.Context.ParseBlock(body);
                 
 
-                return TokenMatching<IPopulateScope<WeakImplementationDefinition,Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakImplementationDefinition,Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new PopulateScopeImplementationDefinition(
@@ -138,14 +138,14 @@ namespace Tac.Semantic_Model
             }
 
 
-            return TokenMatching<IPopulateScope<WeakImplementationDefinition,Tpn.IValue>>.MakeNotMatch(match.Context);
+            return TokenMatching<ISetUp<WeakImplementationDefinition,Tpn.IValue>>.MakeNotMatch(match.Context);
         }
         
-        public static IPopulateScope<WeakImplementationDefinition,Tpn.IValue> PopulateScope(
-                                IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> contextDefinition,
-                IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> parameterDefinition,
-                IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
-                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output,
+        public static ISetUp<WeakImplementationDefinition,Tpn.IValue> PopulateScope(
+                                ISetUp<IWeakTypeReference,Tpn.ITypeReference> contextDefinition,
+                ISetUp<IWeakTypeReference,Tpn.ITypeReference> parameterDefinition,
+                ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
+                ISetUp<IWeakTypeReference, Tpn.ITypeReference> output,
                 string contextName,
                 string parameterName)
         {
@@ -157,35 +157,21 @@ namespace Tac.Semantic_Model
                  contextName,
                  parameterName);
         }
-        public static IPopulateBoxes<WeakImplementationDefinition> PopulateBoxes(
-                IPopulateBoxes<IWeakTypeReference> contextDefinition,
-                IPopulateBoxes<IWeakTypeReference> parameterDefinition,
-                IResolvableScope methodScope,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] elements,
-                IPopulateBoxes<WeakTypeReference> output)
-        {
-            return new ImplementationDefinitionResolveReferance(
-                 methodScope,
-                 contextDefinition,
-                 parameterDefinition,
-                 elements,
-                 output);
-        }
         
-        private class PopulateScopeImplementationDefinition : IPopulateScope<WeakImplementationDefinition,Tpn.IValue>
+        private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition,Tpn.IValue>
         {
-            private readonly IPopulateScope<IWeakTypeReference,Tpn.ITypeReference> contextDefinition;
-            private readonly IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition;
-            private readonly IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
-            private readonly IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output;
+            private readonly ISetUp<IWeakTypeReference,Tpn.ITypeReference> contextDefinition;
+            private readonly ISetUp<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition;
+            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly ISetUp<IWeakTypeReference, Tpn.ITypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
 
             public PopulateScopeImplementationDefinition(
-                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> contextDefinition,
-                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition,
-                IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
-                IPopulateScope<IWeakTypeReference, Tpn.ITypeReference> output,
+                ISetUp<IWeakTypeReference, Tpn.ITypeReference> contextDefinition,
+                ISetUp<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition,
+                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
+                ISetUp<IWeakTypeReference, Tpn.ITypeReference> output,
                 string contextName,
                 string parameterName)
             {
@@ -197,7 +183,7 @@ namespace Tac.Semantic_Model
                 this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
             }
 
-            public IResolvelizeScope<WeakImplementationDefinition,Tpn.IValue> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public ISetUpResult<WeakImplementationDefinition,Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var realizeContext = contextDefinition.Run(scope, context);
                 var realizedInput = parameterDefinition.Run(scope, context);
@@ -227,78 +213,36 @@ namespace Tac.Semantic_Model
                     }),
                 }));
 
-                return new ImplementationDefinitionFinalizeScope(
-                    value,
-                    realizeContext,
-                    realizedInput,
-                    elements.Select(y => y.Run(inner, context)).ToArray(),
-                    realizedOutput
-                    );
+                return new SetUpResult<WeakImplementationDefinition, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
+                    realizeContext.Resolve,
+                    realizedInput.Resolve,
+                    elements.Select(y => y.Run(inner, context).Resolve).ToArray(),
+                    realizedOutput.Resolve
+                    ), value);
             }
         }
 
 
-        private class ImplementationDefinitionFinalizeScope: IResolvelizeScope<WeakImplementationDefinition,Tpn.IValue>
+        private class ImplementationDefinitionResolveReferance : IResolve<WeakImplementationDefinition>
         {
-            private readonly IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> contextDefinition;
-            private readonly IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition;
-            private readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
-            private readonly IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> output;
-
-            public ImplementationDefinitionFinalizeScope(
-                Tpn.IValue finalizableScope,
-                IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> contextDefinition,
-                IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition,
-                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
-                IResolvelizeScope<IWeakTypeReference, Tpn.ITypeReference> output)
-            {
-                SetUpSideNode = finalizableScope ?? throw new ArgumentNullException(nameof(finalizableScope));
-                this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
-                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.output = output ?? throw new ArgumentNullException(nameof(output));
-            }
-
-            public Tpn.IValue SetUpSideNode
-            {
-                get;
-            }
-
-            public IPopulateBoxes<WeakImplementationDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
-            {
-                var scope = finalizableScope.FinalizeScope(parent);
-                return new ImplementationDefinitionResolveReferance(
-                    scope,
-                    contextDefinition.Run(scope,context),
-                    parameterDefinition.Run(scope,context),
-                    elements.Select(x=>x.Run(scope,context)).ToArray(),
-                    output.Run(scope,context));
-            }
-        }
-
-        private class ImplementationDefinitionResolveReferance : IPopulateBoxes<WeakImplementationDefinition>
-        {
-            private readonly IResolvableScope methodScope;
-            private readonly IPopulateBoxes<IWeakTypeReference> contextDefinition;
-            private readonly IPopulateBoxes<IWeakTypeReference> parameterDefinition;
-            private readonly IPopulateBoxes<IFrontendCodeElement>[] elements;
-            private readonly IPopulateBoxes<IWeakTypeReference> output;
+            private readonly IResolve<IWeakTypeReference> contextDefinition;
+            private readonly IResolve<IWeakTypeReference> parameterDefinition;
+            private readonly IResolve<IFrontendCodeElement>[] elements;
+            private readonly IResolve<IWeakTypeReference> output;
 
             public ImplementationDefinitionResolveReferance(
-                IResolvableScope methodScope,
-                IPopulateBoxes<IWeakTypeReference> contextDefinition,
-                IPopulateBoxes<IWeakTypeReference> parameterDefinition,
-                IPopulateBoxes<IFrontendCodeElement>[] elements,
-                IPopulateBoxes<IWeakTypeReference> output)
+                IResolve<IWeakTypeReference> contextDefinition,
+                IResolve<IWeakTypeReference> parameterDefinition,
+                IResolve<IFrontendCodeElement>[] elements,
+                IResolve<IWeakTypeReference> output)
             {
-                this.methodScope = methodScope ?? throw new ArgumentNullException(nameof(methodScope));
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
                 this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
             }
 
-            public IIsPossibly<WeakImplementationDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
+            public IIsPossibly<WeakImplementationDefinition> Run(IResolvableScope _, IResolveContext context)
             {
                 var innerRes = new WeakImplementationDefinition(
                         contextDefinition.Run(methodScope,context).IfIs(x => x.MemberDefinition),

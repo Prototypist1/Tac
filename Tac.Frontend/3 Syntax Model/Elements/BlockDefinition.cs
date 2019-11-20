@@ -19,11 +19,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticBlockDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticBlockDefinitionMaker = AddElementMakers(
             () => new BlockDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -36,8 +36,9 @@ namespace Tac.Semantic_Model
         public WeakBlockDefinition(
             IIsPossibly<IFrontendCodeElement>[] body,
             IResolvableScope scope,
-            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) : 
-            base(scope, body, staticInitailizers) { }
+            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) :
+            base(scope, body, staticInitailizers)
+        { }
 
         public override IBuildIntention<IBlockDefinition> GetBuildIntention(IConversionContext context)
         {
@@ -57,13 +58,13 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class BlockDefinitionMaker : IMaker<IPopulateScope<WeakBlockDefinition, Tpn.IScope>>
+    internal class BlockDefinitionMaker : IMaker<ISetUp<WeakBlockDefinition, Tpn.IScope>>
     {
         public BlockDefinitionMaker()
         {
         }
-        
-        public ITokenMatching<IPopulateScope<WeakBlockDefinition, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
+
+        public ITokenMatching<ISetUp<WeakBlockDefinition, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                .Has(new BodyMaker(), out var body);
@@ -73,87 +74,56 @@ namespace Tac.Semantic_Model
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
 
-                return TokenMatching<IPopulateScope<WeakBlockDefinition, Tpn.IScope>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, 
+                return TokenMatching<ISetUp<WeakBlockDefinition, Tpn.IScope>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context,
                     new BlockDefinitionPopulateScope(elements));
             }
 
-            return TokenMatching<IPopulateScope<WeakBlockDefinition, Tpn.IScope>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<WeakBlockDefinition, Tpn.IScope>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static IPopulateScope<WeakBlockDefinition, Tpn.IScope> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
+        public static ISetUp<WeakBlockDefinition, Tpn.IScope> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
         {
             return new BlockDefinitionPopulateScope(elements);
         }
-        public static IPopulateBoxes<WeakBlockDefinition> PopulateBoxes(IResolvableScope scope,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance)
-        {
-            return new ResolveReferanceBlockDefinition(scope, resolveReferance);
-        }
-
-        private class BlockDefinitionPopulateScope : IPopulateScope<WeakBlockDefinition, Tpn.IScope>
+        private class BlockDefinitionPopulateScope : ISetUp<WeakBlockDefinition, Tpn.IScope>
         {
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private IPopulateScope<IFrontendCodeElement,Tpn.ITypeProblemNode>[] Elements { get; }
+            private ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] Elements { get; }
 
-            public BlockDefinitionPopulateScope(IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
+            public BlockDefinitionPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IResolvelizeScope<WeakBlockDefinition,Tpn.IScope> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public ISetUpResult<WeakBlockDefinition, Tpn.IScope> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var myScope = context.TypeProblem.CreateScope(scope);
-                return new FinalizeScopeBlockDefinition(
-                    myScope,
-                    Elements.Select(x => x.Run(myScope, context)).ToArray());
+                return new SetUpResult<WeakBlockDefinition, Tpn.IScope>(new ResolveReferanceBlockDefinition(
+                    Elements.Select(x => x.Run(myScope, context).Resolve).ToArray()), myScope);
             }
         }
 
-        private class FinalizeScopeBlockDefinition : IResolvelizeScope<WeakBlockDefinition, Tpn.IScope>
+        private class ResolveReferanceBlockDefinition : IResolve<WeakBlockDefinition>
         {
-            public Tpn.IScope SetUpSideNode { get; }
-            private readonly IResolvelizeScope<IFrontendCodeElement,Tpn.ITypeProblemNode>[] finalizeScope;
-
-            public FinalizeScopeBlockDefinition(Tpn.IScope setUpSideNode, IResolvelizeScope<IFrontendCodeElement,Tpn.ITypeProblemNode>[] finalizeScope)
-            {
-                SetUpSideNode = setUpSideNode ?? throw new ArgumentNullException(nameof(setUpSideNode));
-                this.finalizeScope = finalizeScope ?? throw new ArgumentNullException(nameof(finalizeScope));
-            }
-
-            public IPopulateBoxes<WeakBlockDefinition> Run(IResolvableScope parent,IFinalizeScopeContext context)
-            {
-                var scope = this.finalizableScope.FinalizeScope(parent);
-                return new ResolveReferanceBlockDefinition(scope, finalizeScope.Select(x => x.Run(scope, context)).ToArray());
-            }
-        }
-
-        private class ResolveReferanceBlockDefinition : IPopulateBoxes<WeakBlockDefinition>
-        {
-            private readonly IResolvableScope scope;
-            private readonly IPopulateBoxes<IFrontendCodeElement>[] resolveReferance;
+            private readonly IResolve<IFrontendCodeElement>[] resolveReferance;
 
             public ResolveReferanceBlockDefinition(
-                IResolvableScope scope,
-                IPopulateBoxes<IFrontendCodeElement>[] resolveReferance)
+                IResolve<IFrontendCodeElement>[] resolveReferance)
             {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
             }
 
-            public IIsPossibly<WeakBlockDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
+            public IIsPossibly<WeakBlockDefinition> Run(IResolvableScope _, IResolveContext context)
             {
                 return
                         Possibly.Is(
                             new WeakBlockDefinition(
-                                resolveReferance.Select(x => x.Run(scope,context)).ToArray(),
+                                resolveReferance.Select(x => x.Run(scope, context)).ToArray(),
                                 scope,
                                 new IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[0]));
             }
-
         }
-
     }
-
 }

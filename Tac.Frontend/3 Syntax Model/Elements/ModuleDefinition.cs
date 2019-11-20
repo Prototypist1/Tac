@@ -17,11 +17,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticModuleDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticModuleDefinitionMaker = AddElementMakers(
             () => new ModuleDefinitionMaker(),
-            MustBeBefore<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -73,14 +73,14 @@ namespace Tac.Semantic_Model
     // modules are not really objects tho
     // they have very constrained syntax
     // they only can contain constants, methods and implementations 
-    internal class ModuleDefinitionMaker : IMaker<IPopulateScope<WeakModuleDefinition, Tpn.IObject>>
+    internal class ModuleDefinitionMaker : IMaker<ISetUp<WeakModuleDefinition, Tpn.IObject>>
     {
         public ModuleDefinitionMaker()
         {
         }
         
 
-        public ITokenMatching<IPopulateScope<WeakModuleDefinition, Tpn.IObject>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakModuleDefinition, Tpn.IObject>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("module"), out _)
@@ -91,107 +91,62 @@ namespace Tac.Semantic_Model
                 var elements = matching.Context.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
 
-                return TokenMatching<IPopulateScope<WeakModuleDefinition, Tpn.IObject>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakModuleDefinition, Tpn.IObject>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new ModuleDefinitionPopulateScope(elements, nameKey));
 
             }
-            return TokenMatching<IPopulateScope<WeakModuleDefinition, Tpn.IObject>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakModuleDefinition, Tpn.IObject>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        public static IPopulateScope<WeakModuleDefinition, Tpn.IObject> PopulateScope(IPopulateScope<IConvertableFrontendCodeElement<ICodeElement>,ITypeProblemNode>[] elements,
+        public static ISetUp<WeakModuleDefinition, Tpn.IObject> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
                 NameKey nameKey)
         {
             return new ModuleDefinitionPopulateScope(elements,
                 nameKey);
         }
-        public static IPopulateBoxes<WeakModuleDefinition> PopulateBoxes(IResolvableScope scope,
-                IPopulateBoxes<IConvertableFrontendCodeElement<ICodeElement>>[] resolveReferance,
-                NameKey nameKey)
+
+
+        private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, Tpn.IObject>
         {
-            return new ModuleDefinitionResolveReferance(scope,
-               resolveReferance,
-               nameKey);
-        }
-
-
-
-        private class ModuleDefinitionPopulateScope : IPopulateScope<WeakModuleDefinition, Tpn.IObject>
-        {
-            private readonly IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionPopulateScope(
-                IPopulateScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
+                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public IResolvelizeScope<WeakModuleDefinition, Tpn.IObject> Run(Tpn.IScope scope, IPopulateScopeContext context)
+            public ISetUpResult<WeakModuleDefinition, Tpn.IObject> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var myScope= context.TypeProblem.CreateObject(scope);
+                var myScope= context.TypeProblem.CreateObject(scope, nameKey);
 
-                return new ModuleDefinitionFinalizeScope(
-                    myScope,
-                    elements.Select(x => x.Run(myScope, context)).ToArray(),
-                    nameKey);
+                return new SetUpResult<WeakModuleDefinition, Tpn.IObject>(new ModuleDefinitionResolveReferance(
+                    elements.Select(x => x.Run(myScope, context).Resolve).ToArray(),
+                    nameKey),myScope);
             }
         }
 
-        private class ModuleDefinitionFinalizeScope : IResolvelizeScope<WeakModuleDefinition, Tpn.IObject>
+        private class ModuleDefinitionResolveReferance : IResolve<WeakModuleDefinition>
         {
-            private readonly IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
-            private readonly NameKey nameKey;
-
-            public ModuleDefinitionFinalizeScope(
-                Tpn.IObject scope,
-                IResolvelizeScope<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
-                NameKey nameKey)
-            {
-                SetUpSideNode = scope ?? throw new ArgumentNullException(nameof(scope));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-            }
-
-            public Tpn.IObject SetUpSideNode
-            {
-                get;
-            }
-
-            public IPopulateBoxes<WeakModuleDefinition> Run(IResolvableScope parent, IFinalizeScopeContext context)
-            {
-                var finalScope = scope.FinalizeScope(parent);
-                
-
-                return new ModuleDefinitionResolveReferance(
-                    finalScope,
-                    elements.Select(x => x.Run(finalScope,context)).ToArray(),
-                    nameKey);
-            }
-        }
-
-        private class ModuleDefinitionResolveReferance : IPopulateBoxes<WeakModuleDefinition>
-        {
-            private readonly IResolvableScope scope;
-            private readonly IPopulateBoxes<IFrontendCodeElement>[] resolveReferance;
+            private readonly IResolve<IFrontendCodeElement>[] resolveReferance;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionResolveReferance(
-                IResolvableScope scope,
-                IPopulateBoxes<IFrontendCodeElement>[] resolveReferance,
+                IResolve<IFrontendCodeElement>[] resolveReferance,
                 NameKey nameKey)
             {
-                this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
                 this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public IIsPossibly<WeakModuleDefinition> Run(IResolvableScope _, IResolveReferenceContext context)
+            public IIsPossibly<WeakModuleDefinition> Run(IResolvableScope _, IResolveContext context)
             {
                 var innerRes = new WeakModuleDefinition(
                         scope,
