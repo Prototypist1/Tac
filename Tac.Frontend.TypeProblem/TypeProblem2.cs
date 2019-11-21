@@ -29,6 +29,51 @@ namespace Tac.Frontend.New.CrzayNamespace
         Tpn.IMember GetInput(Tpn.IMethod method);
     }
 
+    public interface ITypeSolution {
+        ISolutionType GetValueType(Tpn.IValue value);
+        ISolutionType GetMemberType(Tpn.IMember member);
+        ISolutionType GetTypeReferenceType(Tpn.ITypeReference typeReference);
+        ISolutionType GetScopeType(Tpn.IScope scope);
+        ISolutionType GetExplicitTypeType(Tpn.IExplicitType explicitType);
+        ISolutionType GetObjectType(Tpn.IObject @object);
+        ISolutionType GetOrType(Tpn.IOrType orType);
+        ISolutionType GetMethodScopeType(Tpn.IMethod method);
+    }
+
+    public interface ISolutionType 
+    { 
+    
+    }
+
+    internal class TypeSolution : ITypeSolution
+    {
+        private readonly IReadOnlyDictionary<Tpn.ILookUpType, ISolutionType> lookups;
+        private readonly IReadOnlyDictionary<Tpn.IExplicitType, ISolutionType> explicitTypes;
+        private readonly IReadOnlyDictionary<Tpn.IOrType, ISolutionType> orTypes;
+        private readonly IReadOnlyDictionary<Tpn.IScope, ISolutionType> scopes;
+
+        public TypeSolution(
+            IReadOnlyDictionary<Tpn.ILookUpType, ISolutionType> lookups, 
+            IReadOnlyDictionary<Tpn.IExplicitType, ISolutionType> explicitTypes, 
+            IReadOnlyDictionary<Tpn.IOrType, ISolutionType> orTypes, 
+            IReadOnlyDictionary<Tpn.IScope, ISolutionType> scopes)
+        {
+            this.lookups = lookups ?? throw new ArgumentNullException(nameof(lookups));
+            this.explicitTypes = explicitTypes ?? throw new ArgumentNullException(nameof(explicitTypes));
+            this.orTypes = orTypes ?? throw new ArgumentNullException(nameof(orTypes));
+            this.scopes = scopes ?? throw new ArgumentNullException(nameof(scopes));
+        }
+
+        public ISolutionType GetExplicitTypeType(Tpn.IExplicitType explicitType) => explicitTypes[explicitType];
+        public ISolutionType GetMemberType(Tpn.IMember member) => lookups[member];
+        public ISolutionType GetMethodScopeType(Tpn.IMethod method) => scopes[method];
+        public ISolutionType GetObjectType(Tpn.IObject @object) => explicitTypes[@object];
+        public ISolutionType GetOrType(Tpn.IOrType orType) => orTypes[orType];
+        public ISolutionType GetScopeType(Tpn.IScope scope) => scopes[scope];
+        public ISolutionType GetTypeReferenceType(Tpn.ITypeReference member) => lookups[member];
+        public ISolutionType GetValueType(Tpn.IValue value) => lookups[value];
+    }
+
     // the simple model of or-types:
     // they don't have any members
     // they don't have any types
@@ -94,6 +139,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         public interface IMethod : IHaveMembers, IScope { }
 
     }
+
 
     internal class TypeProblem2 : ISetUpTypeProblem
     {
@@ -444,8 +490,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             return lookUpTypeKey[type];
         }
 
-
-        public void Solve()
+        // pretty sure it is not safe to solve more than once 
+        public ITypeSolution Solve()
         {
             var realizedGeneric = new Dictionary<GenericTypeKey, Tpn.IExplicitType>();
             var lookUps =  new Dictionary<Tpn.ILookUpType, Tpn.IHaveMembers>();
@@ -530,6 +576,59 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 Flow(GetType(to), GetType(from));
             }
+
+            #region Result
+
+
+            /// ok now build the result 
+            var resultLookups = new Dictionary<Tpn.ILookUpType, ISolutionType>();
+
+            foreach (var item in lookUps)
+            {
+                resultLookups.Add(item.Key, Convert(item.Value));
+            }
+
+            var resultExplicitTypes = new Dictionary<Tpn.IExplicitType, ISolutionType>();
+
+            foreach (var values in types.Values)
+            {
+                foreach (var item in values)
+                {
+                    resultExplicitTypes.Add(item.Value, Convert(item.Value));
+                }
+            }
+
+            var resultOrTypes = new Dictionary<Tpn.IOrType, ISolutionType>();
+
+            foreach (var item in orTypeComponets)
+            {
+                resultOrTypes.Add(item.Key, Convert2(item.Value.Item1, item.Value.Item2));
+            }
+
+            var resultScopes = new Dictionary<Tpn.IScope, ISolutionType>();
+
+            foreach (var item in kidParent.Keys)
+            {
+                resultScopes.Add(item, Convert(item));
+            }
+            resultScopes.Add(Root, Convert(Root));
+            // method is a scope
+            // var resultMethods = new Dictionary<Tpn.IMethod, ISolutionType>();
+
+
+            ISolutionType Convert(Tpn.IHaveMembers haveMembers) { 
+            
+            }
+
+            ISolutionType Convert2(Tpn.ITypeReference left, Tpn.ITypeReference right)
+            {
+
+            }
+
+            return new TypeSolution(resultLookups, resultExplicitTypes, resultOrTypes, resultScopes);
+
+            #endregion
+
 
             #region Helpers
 
