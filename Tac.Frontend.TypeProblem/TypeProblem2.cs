@@ -248,7 +248,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<Tpn.IMethod, Tpn.IMember> methodInputs = new Dictionary<Tpn.IMethod, Tpn.IMember>();
 
         private readonly Dictionary<Tpn.IScope, List<Tpn.IValue>> values = new Dictionary<Tpn.IScope, List<Tpn.IValue>>();
-        private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>> members = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IMember>>();
+        private readonly Dictionary<Tpn.IHaveMembers, Dictionary<IKey, Tpn.IMember>> members = new Dictionary<Tpn.IHaveMembers, Dictionary<IKey, Tpn.IMember>>();
         private readonly Dictionary<Tpn.IScope, List<Tpn.ITypeReference>> refs = new Dictionary<Tpn.IScope, List<Tpn.ITypeReference>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IOrType>> orTypes = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IOrType>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IExplicitType>> types = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IExplicitType>>();
@@ -603,6 +603,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             #region Result
 
+            var convetCache = new Dictionary<Tpn.IHaveMembers, OrType<OrSolutionType, ConcreteSolutionType>>();
+            var convetCache2 = new Dictionary<(Tpn.ITypeReference, Tpn.ITypeReference), OrType<OrSolutionType, ConcreteSolutionType>>();
+
 
             /// ok now build the result 
             var resultLookups = new Dictionary<Tpn.ILookUpType, OrType<OrSolutionType,ConcreteSolutionType>>();
@@ -640,10 +643,35 @@ namespace Tac.Frontend.New.CrzayNamespace
             // var resultMethods = new Dictionary<Tpn.IMethod, OrType<OrSolutionType,ConcreteSolutionType>>();
 
             OrType<OrSolutionType,ConcreteSolutionType> Convert(Tpn.IHaveMembers haveMembers) {
+
+                if (convetCache.TryGetValue(haveMembers, out var res)) {
+                    return res;
+                }
+
+                var diction = new Dictionary<IKey, OrType<OrSolutionType, ConcreteSolutionType>>();
+                var conveted = new ConcreteSolutionType(diction);
+                res = new OrType<OrSolutionType, ConcreteSolutionType>(conveted);
+                convetCache[haveMembers] = res;
+                if (members.ContainsKey(haveMembers))
+                {
+                    foreach (var member in members[haveMembers])
+                    {
+                        diction[member.Key] = Convert(lookUps[member.Value]);
+                    }
+                }
+                return res;
             }
 
             OrType<OrSolutionType,ConcreteSolutionType> Convert2(Tpn.ITypeReference left, Tpn.ITypeReference right)
             {
+                if (convetCache2.TryGetValue((left,right), out var res))
+                {
+                    return res;
+                }
+
+                res = new OrType<OrSolutionType, ConcreteSolutionType>(new OrSolutionType(Convert(lookUps[left]), Convert(lookUps[right])));
+                convetCache2[(left, right)] = res;
+                return res;
             }
 
             return new TypeSolution(resultLookups, resultExplicitTypes, resultOrTypes, resultScopes);
