@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Prototypist.LeftToRight" Version="1.0.0.1" />
-    <PackageReference Include="Prototypist.TaskChain" Version="1.0.3" />
+    <PackageReference Include="Prototypist.TaskChain" Version="1.0.8" />
   </ItemGroup>
 
   <ItemGroup>

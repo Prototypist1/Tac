@@ -7,8 +7,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Tac.Frontend.Common\Tac.Frontend.Common.csproj" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.1" />
-    <PackageReference Include="Prototypist.Fluent" Version="1.0.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+    <PackageReference Include="Prototypist.Fluent" Version="1.0.0.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
       <PrivateAssets>all</PrivateAssets>

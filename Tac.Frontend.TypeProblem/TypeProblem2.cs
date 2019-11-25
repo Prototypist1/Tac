@@ -43,9 +43,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     
 
-    public interface OrType<OrSolutionType,ConcreteSolutionType> 
-    {
-    }
+    //public interface OrType<OrSolutionType,ConcreteSolutionType> 
+    //{
+    //}
 
     public class ConcreteSolutionType 
     {
@@ -530,7 +530,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // generics register themsleves 
-            foreach (var node in typeProblemNodes.OfType<Tpn.IExplicitType>().Where(x=>genericOverlays.TryGetValue(x,out var dict) && dict.Any()))
+            foreach (var node in typeProblemNodes.OfType<Tpn.IExplicitType>().Where(x => genericOverlays.TryGetValue(x, out var dict) && dict.Any()))
             {
                 var key = new GenericTypeKey(node, genericOverlays[node].Values.ToArray());
                 realizedGeneric[key] = node;
@@ -639,13 +639,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             // method is a scope
             // var resultMethods = new Dictionary<Tpn.IMethod, OrType<OrSolutionType,ConcreteSolutionType>>();
 
-            OrType<OrSolutionType,ConcreteSolutionType> Convert(Tpn.IHaveMembers haveMembers) { 
-            
+            OrType<OrSolutionType,ConcreteSolutionType> Convert(Tpn.IHaveMembers haveMembers) {
             }
 
             OrType<OrSolutionType,ConcreteSolutionType> Convert2(Tpn.ITypeReference left, Tpn.ITypeReference right)
             {
-
             }
 
             return new TypeSolution(resultLookups, resultExplicitTypes, resultOrTypes, resultScopes);
@@ -699,7 +697,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         throw new Exception();
                     }
-                    var genericTypeKey = new GenericTypeKey(lookedUp, types.ToArray());
+                    var genericTypeKey = new GenericTypeKey(lookedUp, types);
 
                     if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
                     {
