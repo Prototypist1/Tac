@@ -210,13 +210,13 @@ namespace Tac.Frontend.TypeProblem.Test
             });
 
             x.CreateMember(pairType, new NameKey("x"),
-                new NameKey("T"));
+                new NameKey("T"),false);
 
             var chickenType = x.CreateType(x.Root, new NameKey("chicken"));
 
             x.CreateMember(chickenType, new NameKey("eggs"));
 
-            var chickenPair = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }));
+            var chickenPair = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }), false);
 
             var solution = x.Solve();
 
@@ -241,14 +241,14 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(type, new NameKey("next"), new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("node-t")
-            }));
+            }), false);
 
             x.CreateType(x.Root, new NameKey("chicken"));
 
 
             var thing = x.CreateMember(x.Root, new NameKey("thing"), new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("chicken")
-            }));
+            }), false);
 
             var solution = x.Solve();
 
@@ -273,7 +273,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(left,new NameKey("thing"), new GenericNameKey(new NameKey("right"), new IKey[] {
                 new NameKey("left-t")
-            }));
+            }), false);
 
             var right = x.CreateGenericType(x.Root, new NameKey("right"), new IKey[] {
                 new NameKey("right-t")
@@ -281,13 +281,13 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(right, new NameKey("thing"), new GenericNameKey(new NameKey("left"), new IKey[] {
                 new NameKey("right-t")
-            }));
+            }), false);
 
             x.CreateType(x.Root, new NameKey("chicken"));
 
-            var leftMember =  x.CreateMember(x.Root, new NameKey("left-member"), new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") }));
+            var leftMember =  x.CreateMember(x.Root, new NameKey("left-member"), new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") }), false);
 
-            var rightMember = x.CreateMember(x.Root, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }));
+            var rightMember = x.CreateMember(x.Root, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }), false);
 
             var solution = x.Solve();
 
@@ -319,13 +319,13 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
             x.CreateMember(pairType, new NameKey("x"),
-                new NameKey("T"));
+                new NameKey("T"), false);
 
             var chickenType = x.CreateType(x.Root, new NameKey("chicken"));
 
             x.CreateMember(chickenType, new NameKey("eggs"));
 
-            var xMember = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }));
+            var xMember = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }), false);
 
 
             var solution = x.Solve();

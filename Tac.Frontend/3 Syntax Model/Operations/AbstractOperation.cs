@@ -251,11 +251,11 @@ namespace Tac.Semantic_Model.CodeStuff
     }
 
 
-    internal class BinaryTypeMaker : IMaker<ISetUp<IWeakTypeReference,Tpn.ITypeReference>>
+    internal class BinaryTypeMaker : IMaker<ISetUp<IFrontendType, Tpn.ITypeReference>>
     {
         private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
-        public BinaryTypeMaker(string symbol, BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
+        public BinaryTypeMaker(string symbol, BinaryOperation.MakeBinaryType<IFrontendType> make,
             BinaryOperation.ToTypeProblemThings toTypeProblemThings
             )
         {
@@ -265,9 +265,9 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
         public string Symbol { get; }
-        private BinaryOperation.MakeBinaryType<IWeakTypeReference> Make { get; }
+        private BinaryOperation.MakeBinaryType<IFrontendType> Make { get; }
 
-        public ITokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -276,21 +276,21 @@ namespace Tac.Semantic_Model.CodeStuff
                 var left = matching.Context.ParseTypeLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElementType(match.rhs);
 
-                return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new BinaryPopulateScope(left, right, Make, toTypeProblemThings));
             }
 
-            return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        public static ISetUp<IWeakTypeReference, Tpn.ITypeReference> PopulateScope(
+        public static ISetUp<IFrontendType, Tpn.ITypeReference> PopulateScope(
             ISetUp<IConvertableFrontendType<IVerifiableType>, Tpn.ITypeProblemNode> left,
             ISetUp<IConvertableFrontendType<IVerifiableType>, Tpn.ITypeProblemNode> right,
-            BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
+            BinaryOperation.MakeBinaryType<IFrontendType> make,
             BinaryOperation.ToTypeProblemThings toTypeProblemThings)
         {
             return new BinaryPopulateScope( left,
@@ -298,9 +298,9 @@ namespace Tac.Semantic_Model.CodeStuff
                  make,
                  toTypeProblemThings);
         }
-        public static IResolve<IWeakTypeReference> PopulateBoxes(IResolve<IConvertableFrontendType<IVerifiableType>> resolveReferance1,
+        public static IResolve<IFrontendType> PopulateBoxes(IResolve<IConvertableFrontendType<IVerifiableType>> resolveReferance1,
                 IResolve<IConvertableFrontendType<IVerifiableType>> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IWeakTypeReference> make)
+                BinaryOperation.MakeBinaryType<IFrontendType> make)
         {
             return new BinaryResolveReferance(resolveReferance1,
                 resolveReferance2,
@@ -309,16 +309,16 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
 
-        private class BinaryPopulateScope : ISetUp<IWeakTypeReference, Tpn.ITypeReference>
+        private class BinaryPopulateScope : ISetUp<IFrontendType, Tpn.ITypeReference>
         {
             private readonly ISetUp<IFrontendType, Tpn.ITypeProblemNode> left;
             private readonly ISetUp<IFrontendType, Tpn.ITypeProblemNode> right;
-            private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
+            private readonly BinaryOperation.MakeBinaryType<IFrontendType> make;
             private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
             public BinaryPopulateScope(ISetUp<IFrontendType, Tpn.ITypeProblemNode> left,
                 ISetUp<IFrontendType, Tpn.ITypeProblemNode> right,
-                BinaryOperation.MakeBinaryType<IWeakTypeReference> make,
+                BinaryOperation.MakeBinaryType<IFrontendType> make,
                 BinaryOperation.ToTypeProblemThings toTypeProblemThings)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -328,7 +328,7 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public ISetUpResult<IWeakTypeReference, Tpn.ITypeReference> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IFrontendType, Tpn.ITypeReference> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 // TODO
                 // this is something I don't much like
@@ -348,7 +348,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 var nextRight = right.Run(scope, context);
                 var type = toTypeProblemThings(scope, context, nextLeft, nextRight);
 
-                return new SetUpResult<IWeakTypeReference, Tpn.ITypeReference>(new BinaryResolveReferance(
+                return new SetUpResult<IFrontendType, Tpn.ITypeReference>(new BinaryResolveReferance(
                     nextLeft.Resolve,
                     nextRight.Resolve,
                     make
@@ -357,16 +357,16 @@ namespace Tac.Semantic_Model.CodeStuff
         }
 
 
-        private class BinaryResolveReferance : IResolve<IWeakTypeReference>
+        private class BinaryResolveReferance : IResolve<IFrontendType>
         {
             public readonly IResolve<IFrontendType> left;
             public readonly IResolve<IFrontendType> right;
-            private readonly BinaryOperation.MakeBinaryType<IWeakTypeReference> make;
+            private readonly BinaryOperation.MakeBinaryType<IFrontendType> make;
 
             public BinaryResolveReferance(
                 IResolve<IFrontendType> resolveReferance1,
                 IResolve<IFrontendType> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IWeakTypeReference> make)
+                BinaryOperation.MakeBinaryType<IFrontendType> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
@@ -374,7 +374,7 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<IWeakTypeReference> Run(IResolvableScope scope, IResolveContext context)
+            public IIsPossibly<IFrontendType> Run(IResolvableScope scope, IResolveContext context)
             {
                 var res = make(
                     left.Run(scope,context),

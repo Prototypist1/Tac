@@ -14,7 +14,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         void IsAssignedTo(Tpn.ICanAssignFromMe assignedFrom, Tpn.ICanBeAssignedTo assignedTo);
         Tpn.IValue CreateValue(Tpn.IScope scope, IKey typeKey);
-        Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey);
+        Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey, bool isReadonly);
         Tpn.IMember CreateMember(Tpn.IScope scope, IKey key);
         Tpn.IMember CreateMemberPossiblyOnParent(Tpn.IScope scope, IKey key);
         Tpn.ITypeReference CreateTypeReference(Tpn.IScope context, IKey typeKey);
@@ -33,6 +33,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     public interface ITypeSolution
     {
+        IEnumerable<OrType<OrSolutionType, ConcreteSolutionType>> Types();
         OrType<OrSolutionType, ConcreteSolutionType> GetValueType(Tpn.IValue value);
         OrType<OrSolutionType, ConcreteSolutionType> GetMemberType(Tpn.IMember member);
         OrType<OrSolutionType, ConcreteSolutionType> GetTypeReferenceType(Tpn.ITypeReference typeReference);
@@ -42,12 +43,6 @@ namespace Tac.Frontend.New.CrzayNamespace
         OrType<OrSolutionType, ConcreteSolutionType> GetOrType(Tpn.IOrType orType);
         OrType<OrSolutionType, ConcreteSolutionType> GetMethodScopeType(Tpn.IMethod method);
     }
-
-
-
-    //public interface OrType<OrSolutionType,ConcreteSolutionType> 
-    //{
-    //}
 
     public class ConcreteSolutionType : IReadOnlyDictionary<IKey, OrType<OrSolutionType, ConcreteSolutionType>>
     {
@@ -150,6 +145,26 @@ namespace Tac.Frontend.New.CrzayNamespace
         public OrType<OrSolutionType, ConcreteSolutionType> GetScopeType(Tpn.IScope scope) => scopes[scope];
         public OrType<OrSolutionType, ConcreteSolutionType> GetTypeReferenceType(Tpn.ITypeReference member) => lookups[member];
         public OrType<OrSolutionType, ConcreteSolutionType> GetValueType(Tpn.IValue value) => lookups[value];
+
+        public IEnumerable<OrType<OrSolutionType, ConcreteSolutionType>> Types()
+        {
+            foreach (var lookup in lookups)
+            {
+                yield return lookup.Value;
+            }
+            foreach (var explicitType in explicitTypes)
+            {
+                yield return explicitType.Value;
+            }
+            foreach (var orType in orTypes)
+            {
+                yield return orType.Value;
+            }
+            foreach (var scope in scopes)
+            {
+                yield return scope.Value;
+            }
+        }
     }
 
     // the simple model of or-types:
@@ -208,7 +223,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public interface ITypeReference : ITypeProblemNode, ILookUpType { }
         public interface IValue : ITypeProblemNode, ILookUpType, IHaveHopefulMembers, ICanAssignFromMe { }
-        public interface IMember : IValue, ILookUpType, ICanBeAssignedTo { }
+        public interface IMember : IValue, ILookUpType, ICanBeAssignedTo {
+            bool IsReadonly { get; }
+        }
 
         public interface IExplicitType : IHaveMembers, IScope, IType { }
         public interface IOrType : IHaveMembers, IType { }
@@ -249,8 +266,14 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
         private class Member : TypeProblemNode, Tpn.IMember
         {
-            public Member(TypeProblem2 problem, string debugName) : base(problem, debugName)
+            public Member(TypeProblem2 problem, bool isReadonly, string debugName) : base(problem, debugName)
             {
+                IsReadonly = isReadonly;
+            }
+
+            public bool IsReadonly
+            {
+                get;
             }
         }
         private class Type : TypeProblemNode, Tpn.IExplicitType
@@ -307,7 +330,6 @@ namespace Tac.Frontend.New.CrzayNamespace
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IOrType>> orTypes = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IOrType>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IExplicitType>> types = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IExplicitType>>();
         private readonly Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IHaveMembers>> genericOverlays = new Dictionary<Tpn.IScope, Dictionary<IKey, Tpn.IHaveMembers>>();
-
 
         private readonly Dictionary<Tpn.IOrType, (Tpn.ITypeReference, Tpn.ITypeReference)> orTypeComponets = new Dictionary<Tpn.IOrType, (Tpn.ITypeReference, Tpn.ITypeReference)>();
 
@@ -405,9 +427,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             return res;
         }
 
-        public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey)
+        public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key, IKey typeKey, bool isReadonly)
         {
-            var res = new Member(this, key.ToString());
+            var res = new Member(this, isReadonly, key.ToString());
             HasMember(scope, key, res);
             lookUpTypeContext[res] = scope;
             lookUpTypeKey[res] = typeKey;
@@ -416,7 +438,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IMember CreateMember(Tpn.IScope scope, IKey key)
         {
-            var res = new Member(this, key.ToString());
+            var res = new Member(this, false, key.ToString());
             HasMember(scope, key, res);
             lookUpTypeContext[res] = scope;
             return res;
@@ -424,7 +446,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IMember CreateMemberPossiblyOnParent(Tpn.IScope scope, IKey key)
         {
-            var res = new Member(this, key.ToString());
+            var res = new Member(this,  false,key.ToString());
             HasMembersPossiblyOnParent(scope, key, res);
             lookUpTypeContext[res] = scope;
             return res;
@@ -479,9 +501,9 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             var res = new Method(this, $"method{{inputName:{inputName}}}");
             IsChildOf(parent, res);
-            var returns = CreateMember(res, new ImplicitKey());
+            var returns = CreateMember(res,  new ImplicitKey());
             methodReturns[res] = returns;
-            var input = CreateMember(res, new NameKey(inputName));
+            var input = CreateMember(res,  new NameKey(inputName));
             methodInputs[res] = input;
             return res;
         }
@@ -492,11 +514,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             var res = new Method(this, $"method{{inputName:{inputName},inputType:{((TypeProblemNode)inputType).debugName},outputType:{((TypeProblemNode)outputType).debugName}}}");
             IsChildOf(parent, res);
-            var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(), outkey) : CreateMember(res, new ImplicitKey());
+            var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(), outkey,false) : CreateMember(res, new ImplicitKey());
             methodReturns[res] = returns;
             if (lookUpTypeKey.TryGetValue(inputType, out var inkey))
             {
-                methodInputs[res] = CreateMember(res, new NameKey(inputName), inkey);
+                methodInputs[res] = CreateMember(res, new NameKey(inputName), inkey, false);
             }
             else
             {
@@ -508,7 +530,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public Tpn.IMember CreateHopefulMember(Tpn.IHaveHopefulMembers scope, IKey key)
         {
-            var res = new Member(this, key.ToString());
+            var res = new Member(this, false, key.ToString());
             HasHopefulMember(scope, key, res);
             return res;
         }
@@ -691,8 +713,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             } while (go);
 
 
-
-
+            // we dont flow downstream
             // flow downstream
             // we can't flow through convergences, since it might be an or-type
             //foreach (var (from, to) in assignments.GroupBy(x => x.Item2).Where(x => x.Count() == 1).SelectMany(x => x))
@@ -738,8 +759,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 resultScopes.Add(item, Convert(item));
             }
             resultScopes.Add(Root, Convert(Root));
-            // method is a scope
-            // var resultMethods = new Dictionary<Tpn.IMethod, OrType<OrSolutionType,ConcreteSolutionType>>();
 
             OrType<OrSolutionType, ConcreteSolutionType> Convert(Tpn.IHaveMembers haveMembers)
             {
@@ -1007,7 +1026,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var member in dict)
                                 {
-                                    var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}"));
+                                    var newValue = Copy(member.Value, new Member(this,member.Value.IsReadonly , $"copied from {((TypeProblemNode)member.Value).debugName}"));
                                     HasMember(innerScopeTo, member.Key, newValue);
                                 }
                             }
@@ -1059,7 +1078,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var possible in dict)
                                 {
-                                    var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
+                                    var newValue = Copy(possible.Value, new Member(this, possible.Value.IsReadonly, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
                                     HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
                                 }
                             }
@@ -1072,7 +1091,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var possible in dict)
                             {
-                                var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
+                                var newValue = Copy(possible.Value, new Member(this, possible.Value.IsReadonly, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
                                 HasHopefulMember(innerToHopeful, possible.Key, newValue);
                             }
                         }
@@ -1188,7 +1207,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             // if they are the same type
                             if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value)))
                             {
-                                var member = new Member(this, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}");
+                                var member = new Member(this, leftMember.Value.IsReadonly, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}");
                                 lookUps[member] = GetType(rightMember);
                                 res[leftMember.Key] = member;
                             }

@@ -29,16 +29,16 @@ namespace Tac.Semantic_Model
     /// make general types
     /// contains several type makers 
     /// </summary>
-    internal class TypeMaker : IMaker<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>
+    internal class TypeMaker : IMaker<ISetUp<IFrontendType, Tpn.ITypeReference>>
     {
-        public ITokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             {
 
                 if (tokenMatching.Has(new TypeDefinitionMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
+                    return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
                             type);
@@ -50,7 +50,7 @@ namespace Tac.Semantic_Model
                 if (tokenMatching.Has(new TypeReferanceMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
+                    return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
                             type);
@@ -69,10 +69,10 @@ namespace Tac.Semantic_Model
             // maybe that is ok
             
             if (tokenMatching.Tokens.First() is ParenthesisToken parenthesisToken) {
-                if (TokenMatching<ISetUp<IWeakTypeReference, Tpn.IExplicitType>>.MakeStart(parenthesisToken.Tokens.ToArray(), tokenMatching.Context).Has(new TypeOrOperationMaker(), out var type)
+                if (TokenMatching<ISetUp<IFrontendType, Tpn.IExplicitType>>.MakeStart(parenthesisToken.Tokens.ToArray(), tokenMatching.Context).Has(new TypeOrOperationMaker(), out var type)
                         is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
+                    return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeMatch(
                             tokenMatching.Tokens.Skip(1).ToArray(),
                             matched.Context,
                             type);
@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model
                 }
             }
             
-            return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeNotMatch(
                     tokenMatching.Context);
         }
     }

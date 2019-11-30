@@ -40,7 +40,7 @@ namespace Tac.Semantic_Model
         IValueDefinition
     {
         public WeakMethodDefinition(
-            IIsPossibly<IWeakTypeReference> outputType, 
+            IIsPossibly<IFrontendType> outputType, 
             IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
             IIsPossibly<IFrontendCodeElement>[] body,
             IResolvableScope scope,
@@ -52,8 +52,8 @@ namespace Tac.Semantic_Model
             IsEntryPoint = isEntryPoint;
         }
         
-        public IIsPossibly<IWeakTypeReference> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
-        public IIsPossibly<IWeakTypeReference> OutputType { get; }
+        public IIsPossibly<IFrontendType> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
+        public IIsPossibly<IFrontendType> OutputType { get; }
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
         public bool IsEntryPoint { get; }
 
@@ -63,8 +63,8 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    InputType.GetOrThrow().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().ConvertTypeOrThrow(context),
-                    OutputType.GetOrThrow().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().ConvertTypeOrThrow(context),
+                    InputType.GetOrThrow().ConvertTypeOrThrow(context),
+                    OutputType.GetOrThrow().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context),
                     Scope.Convert(context),
                     Body.Select(x=>x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
@@ -88,7 +88,7 @@ namespace Tac.Semantic_Model
 
             
             {
-                ISetUp<IWeakTypeReference, Tpn.ITypeReference> inputType = null, outputType = null;
+                ISetUp<IFrontendType, Tpn.ITypeReference> inputType = null, outputType = null;
                 var matching = tokenMatching
                     .Has(new KeyWordMaker("method"), out var _)
                     .HasSquare(x => x
@@ -149,16 +149,16 @@ namespace Tac.Semantic_Model
 
         private class MethodDefinitionPopulateScope : ISetUp<WeakMethodDefinition,Tpn.IValue>
         {
-            private readonly ISetUp<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition;
+            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> parameterDefinition;
             private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
-            private readonly ISetUp<IWeakTypeReference, Tpn.ITypeReference> output;
+            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> output;
             private readonly bool isEntryPoint;
             private readonly string parameterName;
 
             public MethodDefinitionPopulateScope(
-                ISetUp<IWeakTypeReference,Tpn.ITypeReference> parameterDefinition,
+                ISetUp<IFrontendType, Tpn.ITypeReference> parameterDefinition,
                 ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
-                ISetUp<IWeakTypeReference, Tpn.ITypeReference> output,
+                ISetUp<IFrontendType, Tpn.ITypeReference> output,
                 bool isEntryPoint,
                 string parameterName
                 )
@@ -195,13 +195,13 @@ namespace Tac.Semantic_Model
         {
             private readonly IResolve<WeakMemberReference> parameter;
             private readonly IResolve<IFrontendCodeElement>[] lines;
-            private readonly IResolve<IWeakTypeReference> output;
+            private readonly IResolve<IFrontendType> output;
             private readonly bool isEntryPoint;
 
             public MethodDefinitionResolveReferance(
                 IResolve<WeakMemberReference> parameter,
                 IResolve<IFrontendCodeElement>[] resolveReferance2,
-                IResolve<IWeakTypeReference> output,
+                IResolve<IFrontendType> output,
                 bool isEntryPoint)
             {
                 this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));

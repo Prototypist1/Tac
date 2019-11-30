@@ -37,7 +37,7 @@ namespace Tac.Semantic_Model
         public WeakImplementationDefinition(
             IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> contextDefinition,
             IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
-            IIsPossibly<IWeakTypeReference> outputType, 
+            IIsPossibly<IFrontendType> outputType, 
             IEnumerable<IIsPossibly<IFrontendCodeElement>> metohdBody,
             IResolvableScope scope, 
             IEnumerable<IFrontendCodeElement> staticInitializers)
@@ -51,21 +51,21 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public IIsPossibly<IWeakTypeReference> ContextTypeBox
+        public IIsPossibly<IFrontendType> ContextTypeBox
         {
             get
             {
                 return ContextDefinition.IfIs(x=>x.GetValue()).IfIs(x=> x.Type);
             }
         }
-        public IIsPossibly<IWeakTypeReference> InputTypeBox
+        public IIsPossibly<IFrontendType> InputTypeBox
         {
             get
             {
                 return ParameterDefinition.IfIs(x => x.GetValue()).IfIs(x => x.Type);
             }
         }
-        public IIsPossibly<IWeakTypeReference> OutputType { get; }
+        public IIsPossibly<IFrontendType> OutputType { get; }
         // are these really boxes
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ContextDefinition { get; }
         public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
@@ -102,7 +102,7 @@ namespace Tac.Semantic_Model
         
         public ITokenMatching<ISetUp<WeakImplementationDefinition,Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            ISetUp<IWeakTypeReference, Tpn.ITypeReference> context= null, input = null, output = null;
+            ISetUp<IFrontendType, Tpn.ITypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -142,10 +142,10 @@ namespace Tac.Semantic_Model
         }
         
         public static ISetUp<WeakImplementationDefinition,Tpn.IValue> PopulateScope(
-                                ISetUp<IWeakTypeReference,Tpn.ITypeReference> contextDefinition,
-                ISetUp<IWeakTypeReference,Tpn.ITypeReference> parameterDefinition,
+                                ISetUp<IFrontendType, Tpn.ITypeReference> contextDefinition,
+                ISetUp<IFrontendType, Tpn.ITypeReference> parameterDefinition,
                 ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
-                ISetUp<IWeakTypeReference, Tpn.ITypeReference> output,
+                ISetUp<IFrontendType, Tpn.ITypeReference> output,
                 string contextName,
                 string parameterName)
         {
@@ -160,18 +160,18 @@ namespace Tac.Semantic_Model
         
         private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition,Tpn.IValue>
         {
-            private readonly ISetUp<IWeakTypeReference,Tpn.ITypeReference> contextDefinition;
-            private readonly ISetUp<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition;
+            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> contextDefinition;
+            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> parameterDefinition;
             private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
-            private readonly ISetUp<IWeakTypeReference, Tpn.ITypeReference> output;
+            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
 
             public PopulateScopeImplementationDefinition(
-                ISetUp<IWeakTypeReference, Tpn.ITypeReference> contextDefinition,
-                ISetUp<IWeakTypeReference, Tpn.ITypeReference> parameterDefinition,
+                ISetUp<IFrontendType, Tpn.ITypeReference> contextDefinition,
+                ISetUp<IFrontendType, Tpn.ITypeReference> parameterDefinition,
                 ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
-                ISetUp<IWeakTypeReference, Tpn.ITypeReference> output,
+                ISetUp<IFrontendType, Tpn.ITypeReference> output,
                 string contextName,
                 string parameterName)
             {
@@ -225,16 +225,16 @@ namespace Tac.Semantic_Model
 
         private class ImplementationDefinitionResolveReferance : IResolve<WeakImplementationDefinition>
         {
-            private readonly IResolve<IWeakTypeReference> contextDefinition;
-            private readonly IResolve<IWeakTypeReference> parameterDefinition;
+            private readonly IResolve<IFrontendType> contextDefinition;
+            private readonly IResolve<IFrontendType> parameterDefinition;
             private readonly IResolve<IFrontendCodeElement>[] elements;
-            private readonly IResolve<IWeakTypeReference> output;
+            private readonly IResolve<IFrontendType> output;
 
             public ImplementationDefinitionResolveReferance(
-                IResolve<IWeakTypeReference> contextDefinition,
-                IResolve<IWeakTypeReference> parameterDefinition,
+                IResolve<IFrontendType> contextDefinition,
+                IResolve<IFrontendType> parameterDefinition,
                 IResolve<IFrontendCodeElement>[] elements,
-                IResolve<IWeakTypeReference> output)
+                IResolve<IFrontendType> output)
             {
                 this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
                 this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));

@@ -48,7 +48,7 @@ namespace Tac.Semantic_Model
             this.Type = backing.Type.IfIs(x => Possibly.Is(new OverlayTypeReference(x,overlay)));
         }
 
-        public IIsPossibly<IWeakTypeReference> Type { get; }
+        public IIsPossibly<IFrontendType> Type { get; }
         public bool ReadOnly => backing.ReadOnly;
         public IKey Key=> backing.Key;
 
@@ -66,7 +66,7 @@ namespace Tac.Semantic_Model
     // very tac-ian 
     internal static class MemberDefinitionShared {
 
-        public static IMemberDefinition Convert(IIsPossibly<IWeakTypeReference> Type,IConversionContext context, bool ReadOnly, IKey Key)
+        public static IMemberDefinition Convert(IIsPossibly<IFrontendType> Type,IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (def, builder) = MemberDefinition.Create();
 
@@ -75,7 +75,7 @@ namespace Tac.Semantic_Model
             builder.Build(Key, buildIntention.Tobuild, ReadOnly);
             return def;
         }
-        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IIsPossibly<IWeakTypeReference> Type, IConversionContext context, bool ReadOnly, IKey Key)
+        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IIsPossibly<IFrontendType> Type, IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (toBuild, maker) = MemberDefinition.Create();
             return new BuildIntention<IMemberDefinition>(toBuild, () =>
@@ -91,7 +91,7 @@ namespace Tac.Semantic_Model
 
     internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>, IFrontendType
     {
-        IIsPossibly<IWeakTypeReference> Type { get; }
+        IIsPossibly<IFrontendType> Type { get; }
         bool ReadOnly { get; }
         IKey Key { get; }
         IMemberDefinition Convert(IConversionContext context);
@@ -103,14 +103,14 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition:  IWeakMemberDefinition
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<IWeakTypeReference> type)
+        public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<IFrontendType> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IIsPossibly<IWeakTypeReference> Type { get; }
+        public IIsPossibly<IFrontendType> Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
 
@@ -153,7 +153,7 @@ namespace Tac.Semantic_Model
         public static ISetUp<WeakMemberReference, Tpn.IMember> PopulateScope(
             IKey item, 
             bool v, 
-            ISetUp<IWeakTypeReference, Tpn.ITypeReference> typeToken)
+            ISetUp<IFrontendType, Tpn.ITypeReference> typeToken)
         {
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
@@ -174,9 +174,9 @@ namespace Tac.Semantic_Model
         {
             private readonly IKey memberName;
             private readonly bool isReadonly;
-            private readonly ISetUp<IWeakTypeReference, Tpn.ITypeReference> type;
+            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> type;
             
-            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IWeakTypeReference, Tpn.ITypeReference> typeToken)
+            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IFrontendType, Tpn.ITypeReference> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;
@@ -187,7 +187,7 @@ namespace Tac.Semantic_Model
             {
 
                 var type = this.type.Run(scope, context);
-                var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.Key());
+                var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.Key(),isReadonly);
 
 
                 return new SetUpResult<WeakMemberReference, Tpn.IMember>(new MemberDefinitionResolveReferance(
@@ -202,12 +202,12 @@ namespace Tac.Semantic_Model
         {
             private readonly IKey memberName;
             private readonly bool isReadonly;
-            public readonly IResolve<IWeakTypeReference> type;
+            public readonly IResolve<IFrontendType> type;
 
             public MemberDefinitionResolveReferance(
                 IKey memberName,
                 bool isReadonly,
-                IResolve<IWeakTypeReference> type)
+                IResolve<IFrontendType> type)
             {
                 this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
                 this.isReadonly = isReadonly;

@@ -14,9 +14,9 @@ using Tac.Parser;
 
 namespace Tac.Semantic_Model
 {
-    internal class OverlayTypeReference : IWeakTypeReference
+    internal class OverlayTypeReference //: IFrontendType
     {
-        public OverlayTypeReference(IWeakTypeReference weakTypeReferance, Overlay overlay)
+        public OverlayTypeReference(IFrontendType weakTypeReferance, Overlay overlay)
         {
             if (weakTypeReferance == null)
             {
@@ -49,12 +49,12 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal interface IWeakTypeReference : IConvertableFrontendType<IVerifiableType>, IFrontendCodeElement
-    {
-        IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
-    }
+    //internal interface IWeakTypeReference : IConvertableFrontendType<IVerifiableType>, IFrontendCodeElement
+    //{
+    //    IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
+    //}
 
-    internal class WeakTypeReference : IWeakTypeReference
+    internal class WeakTypeReference //: IFrontendType
     {
         public WeakTypeReference(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> typeDefinition)
         {
@@ -137,22 +137,22 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>
+    internal class TypeReferanceMaker : IMaker<ISetUp<IFrontendType, Tpn.ITypeReference>>
     {
-        public ITokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new TypeNameMaker(), out var name);
 
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new TypeReferancePopulateScope(name));
             }
 
-            return TokenMatching<ISetUp<IWeakTypeReference, Tpn.ITypeReference>>.MakeNotMatch(matching.Context);
+            return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeNotMatch(matching.Context);
         }
 
 

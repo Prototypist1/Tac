@@ -11,7 +11,7 @@ namespace Tac.Frontend._3_Syntax_Model.Scopes
     interface IScope { }
 
     class Scope {
-        private readonly Dictionary<IKey, IWeakTypeReference> members = new Dictionary<IKey, IWeakTypeReference>();
+        private readonly Dictionary<IKey, IBox<IWeakMemberDefinition>> members = new Dictionary<IKey, IBox<IWeakMemberDefinition>>();
     }
 
     // hmmm maybe I need to simplify my model
@@ -20,19 +20,50 @@ namespace Tac.Frontend._3_Syntax_Model.Scopes
     {
         private readonly ITypeSolution typeSolution;
 
-        private readonly Dictionary<OrSolutionType, IScope> orMap = new Dictionary<OrSolutionType, IScope>();
-        private readonly Dictionary<ConcreteSolutionType, IScope> concreteMap = new Dictionary<ConcreteSolutionType, IScope>();
+        private readonly IReadOnlyDictionary<OrSolutionType, IScope> orMap;
+        private readonly IReadOnlyDictionary<ConcreteSolutionType, IScope> concreteMap;
+
+        public TypeSolutionOverlay(ITypeSolution typeSolution)
+        {
+            this.typeSolution = typeSolution ?? throw new ArgumentNullException(nameof(typeSolution));
+            var orMapToBe = new Dictionary<OrSolutionType, IScope>();
+            var concreteMapToBe = new  Dictionary<ConcreteSolutionType, IScope>();
+
+            foreach (var item in typeSolution.Types())
+            {
+                if (item.Is1(out var orSolutionType))
+                {
+                    orMapToBe[orSolutionType] = Convert(orSolutionType);
+                }
+                else if (item.Is2(out var concreteType))
+                {
+                    concreteMapToBe[concreteType] = Convert(concreteType);
+                }
+            }
+
+            orMap = orMapToBe;
+            concreteMap = concreteMapToBe;
+        }
+
+        private IScope Convert(OrSolutionType concreteType)
+        {
+            throw new NotImplementedException();
+        }
 
 
-        private IScope Overlay(OrType<OrSolutionType, ConcreteSolutionType> orType) {
+        private IScope Convert(ConcreteSolutionType orSolutionType)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IScope LookUp(OrType<OrSolutionType, ConcreteSolutionType> orType) {
             if (orType.Is1(out var orSolutionType))
             {
                 if (orMap.TryGetValue(orSolutionType, out var res))
                 {
                     return res;
                 }
-
-                ... 
+                throw new Bug("bug!!");
             }
             else if (orType.Is2(out var concreteType))
             {
@@ -40,8 +71,7 @@ namespace Tac.Frontend._3_Syntax_Model.Scopes
                 {
                     return res;
                 }
-
-                ... 
+                throw new Bug("bug!!");
             }
             else {
                 throw new Bug("bug!!");
@@ -50,42 +80,42 @@ namespace Tac.Frontend._3_Syntax_Model.Scopes
 
         public IScope GetExplicitTypeType(Tpn.IExplicitType explicitType)
         {
-            return Overlay(typeSolution.GetExplicitTypeType(explicitType));
+            return LookUp(typeSolution.GetExplicitTypeType(explicitType));
         }
 
         public IScope GetMemberType(Tpn.IMember member)
         {
-            return Overlay(typeSolution.GetMemberType(member));
+            return LookUp(typeSolution.GetMemberType(member));
         }
 
         public IScope GetMethodScopeType(Tpn.IMethod method)
         {
-            return Overlay(typeSolution.GetMethodScopeType(method));
+            return LookUp(typeSolution.GetMethodScopeType(method));
         }
 
         public IScope GetObjectType(Tpn.IObject @object)
         {
-            return Overlay(typeSolution.GetObjectType(@object));
+            return LookUp(typeSolution.GetObjectType(@object));
         }
 
         public IScope GetOrType(Tpn.IOrType orType)
         {
-            return Overlay(typeSolution.GetOrType(orType));
+            return LookUp(typeSolution.GetOrType(orType));
         }
 
         public IScope GetScopeType(Tpn.IScope scope)
         {
-            return Overlay(typeSolution.GetScopeType(scope));
+            return LookUp(typeSolution.GetScopeType(scope));
         }
 
         public IScope GetTypeReferenceType(Tpn.ITypeReference typeReference)
         {
-            return Overlay(typeSolution.GetTypeReferenceType(typeReference));
+            return LookUp(typeSolution.GetTypeReferenceType(typeReference));
         }
 
         public IScope GetValueType(Tpn.IValue value)
         {
-            return Overlay(typeSolution.GetValueType(value));
+            return LookUp(typeSolution.GetValueType(value));
         }
     }
 }
