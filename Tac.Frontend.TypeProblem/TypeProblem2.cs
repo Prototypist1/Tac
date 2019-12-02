@@ -380,7 +380,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             genericOverlays[parent].Add(key, type);
         }
-        public void HasMember(Tpn.IScope parent, IKey key, Tpn.IMember member)
+        public void HasMember(Tpn.IHaveMembers parent, IKey key, Tpn.IMember member)
         {
             if (!members.ContainsKey(parent))
             {
@@ -1169,7 +1169,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                         else
                         {
-                            dict.Add(memberPair.Key, memberPair.Value);
+
+                            var newValue = new Member(this, memberPair.Value.IsReadonly, $"copied from {((TypeProblemNode)memberPair.Value).debugName}");
+                            HasMember(infered, memberPair.Key, newValue);
+                            lookUps[newValue] = lookUps[memberPair.Value];
                             res = true;
                         }
                     }
