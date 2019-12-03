@@ -165,20 +165,28 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public class TypeProblem2 : ISetUpTypeProblem
         {
-
-            public abstract class TypeProblemNode<T> : ITypeProblemNode, IConvertable<T>
+            public abstract class TypeProblemNode : ITypeProblemNode
             {
                 public readonly string debugName;
 
-                public TypeProblemNode(TypeProblem2 problem, string debugName, IConvertTo<T> converter)
+                public TypeProblemNode(TypeProblem2 problem, string debugName)
                 {
                     Problem = problem ?? throw new ArgumentNullException(nameof(problem));
                     this.debugName = debugName;
-                    Converter = converter;
                     problem.Register(this);
                 }
 
                 public ISetUpTypeProblem Problem { get; }
+            }
+
+            public abstract class TypeProblemNode<T> : TypeProblemNode, IConvertable<T>
+            {
+
+                public TypeProblemNode(TypeProblem2 problem, string debugName, IConvertTo<T> converter): base(problem,debugName)
+                {
+                    Converter = converter;
+                }
+
                 public IConvertTo<T> Converter { get; }
             }
             public class TypeReference : TypeProblemNode<TType>, ITypeReference
@@ -596,17 +604,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
                 }
-
-                //// flow upstream
-                //var flowMap = new Dictionary<ICanAssignFromMe, List<ICanBeAssignedTo>>();
-
-                //foreach (var (from, to) in assignments)
-                //{
-                //    if (!flowMap.ContainsKey(from)) {
-                //        flowMap[from] = new List<ICanBeAssignedTo>();
-                //    }
-                //    flowMap[from].Add(to);
-                //}
 
                 //var flowFroms = assignments.Select(x => x.Item1).ToList();
                 //var nextFlowFroms = flowFroms;
