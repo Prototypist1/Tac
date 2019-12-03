@@ -44,16 +44,16 @@ namespace Tac.Frontend.New.CrzayNamespace
         OrType<OrSolutionType, ConcreteSolutionType> GetMethodScopeType(Tpn.IMethod method);
     }
 
-    public class ConcreteSolutionType : IReadOnlyDictionary<IKey, OrType<OrSolutionType, ConcreteSolutionType>>
+    public class ConcreteSolutionType : IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>
     {
-        private readonly IReadOnlyDictionary<IKey, OrType<OrSolutionType, ConcreteSolutionType>> members;
+        private readonly IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)> members;
 
-        public ConcreteSolutionType(IReadOnlyDictionary<IKey, OrType<OrSolutionType, ConcreteSolutionType>> members)
+        public ConcreteSolutionType(IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)> members)
         {
             this.members = members ?? throw new ArgumentNullException(nameof(members));
         }
 
-        public OrType<OrSolutionType, ConcreteSolutionType> this[IKey key]
+        public (bool, OrType<OrSolutionType, ConcreteSolutionType>) this[IKey key]
         {
             get
             {
@@ -69,7 +69,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        public IEnumerable<OrType<OrSolutionType, ConcreteSolutionType>> Values
+        public IEnumerable<(bool, OrType<OrSolutionType, ConcreteSolutionType>)> Values
         {
             get
             {
@@ -90,12 +90,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             return members.ContainsKey(key);
         }
 
-        public IEnumerator<KeyValuePair<IKey, OrType<OrSolutionType, ConcreteSolutionType>>> GetEnumerator()
+        public IEnumerator<KeyValuePair<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>> GetEnumerator()
         {
             return members.GetEnumerator();
         }
 
-        public bool TryGetValue(IKey key, out OrType<OrSolutionType, ConcreteSolutionType> value)
+        public bool TryGetValue(IKey key, out (bool, OrType<OrSolutionType, ConcreteSolutionType>) value)
         {
             return members.TryGetValue(key, out value);
         }
@@ -768,7 +768,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                var diction = new Dictionary<IKey, OrType<OrSolutionType, ConcreteSolutionType>>();
+                var diction = new Dictionary<IKey, (bool,OrType<OrSolutionType, ConcreteSolutionType>)>();
                 var conveted = new ConcreteSolutionType(diction);
                 res = new OrType<OrSolutionType, ConcreteSolutionType>(conveted);
                 convetCache[haveMembers] = res;
@@ -776,7 +776,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     foreach (var member in members[haveMembers])
                     {
-                        diction[member.Key] = Convert(lookUps[member.Value]);
+                        diction[member.Key] = (member.Value.IsReadonly, Convert(lookUps[member.Value]));
                     }
                 }
                 return res;

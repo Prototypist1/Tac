@@ -91,7 +91,7 @@ namespace Tac.Semantic_Model
 
     internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>, IFrontendType
     {
-        IIsPossibly<IFrontendType> Type { get; }
+        IBox<IFrontendType> Type { get; }
         bool ReadOnly { get; }
         IKey Key { get; }
         IMemberDefinition Convert(IConversionContext context);
@@ -103,14 +103,14 @@ namespace Tac.Semantic_Model
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition:  IWeakMemberDefinition
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, IIsPossibly<IFrontendType> type)
+        public WeakMemberDefinition(bool readOnly, IKey key, IBox<IFrontendType> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IIsPossibly<IFrontendType> Type { get; }
+        public IBox<IFrontendType> Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
 

@@ -49,6 +49,8 @@ namespace Tac.Semantic_Model
         IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
     }
 
+    // TODO I don't think I want this...
+    // just use member definition 
     internal class WeakMemberReference : IWeakMemberReference
     {
         public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> memberDefinition)
