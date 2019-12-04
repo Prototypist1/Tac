@@ -22,16 +22,16 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TType> converter);
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TType> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TScope> converter);
-            TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TType> converter);
-            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<IKey> placeholders, IConvertTo<TType> converter);
+            TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TExplictType> converter);
+            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<TExplictType>)> placeholders, IConvertTo<TExplictType> converter);
             TypeProblem2.Object CreateObject(IScope parent, IKey key, IConvertTo<TObject> converter);
-            TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TMethod> converter);
-            TypeProblem2.Method CreateMethod(IScope parent, ITypeReference inputType, ITypeReference outputType, string inputName, IConvertTo<TMethod> converter);
+            TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TMethod> converter, IConvertTo<TType> inputConverter, IConvertTo<TType> outputConverter);
+            TypeProblem2.Method CreateMethod(IScope parent, ITypeReference inputType, ITypeReference outputType, string inputName, IConvertTo<TMethod> converter, IConvertTo<TType> inputConverter, IConvertTo<TType> outputConverter);
             TypeProblem2.Member GetReturns(IScope s);
             TypeProblem2.Member CreateHopefulMember(IHaveHopefulMembers scope, IKey key, IConvertTo<TType> converter);
             TypeProblem2.OrType CreateOrType(IScope s, IKey key, ITypeReference setUpSideNode1, ITypeReference setUpSideNode2, IConvertTo<TOrType> converter);
             IKey GetKey(ITypeReference type);
-            TypeProblem2.Member GetInput(IMethod method);
+            TypeProblem2.Member GetInput(TypeProblem2.Method method);
         }
 
         public interface ITypeSolution
@@ -120,8 +120,17 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
+        // 🤫 the power was in you all along
         internal class TypeSolution : ITypeSolution
         {
+            public TExplictType GetExplicitTypeType(TypeProblem2.Type explicitType)=>explicitType.Converter.Convert();
+            public TType GetMemberType(TypeProblem2.Member member) => member.Converter.Convert();
+            public TMethod GetMethodScopeType(TypeProblem2.Method method) => method.Converter.Convert();
+            public TObject GetObjectType(TypeProblem2.Object @object) => @object.Converter.Convert();
+            public TOrType GetOrType(TypeProblem2.OrType orType) => orType.Converter.Convert();
+            public TScope GetScope(TypeProblem2.Scope scope) => scope.Converter.Convert();
+            public TType GetTypeReferenceType(TypeProblem2.TypeReference typeReference) => typeReference.Converter.Convert();
+            public TType GetValueType(TypeProblem2.Value value) => value.Converter.Convert();
         }
 
         // the simple model of or-types:
@@ -179,7 +188,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public ISetUpTypeProblem Problem { get; }
             }
 
-            public abstract class TypeProblemNode<T> : TypeProblemNode, IConvertable<T>
+            public abstract class TypeProblemNode<T> : TypeProblemNode//, IConvertable<T>
             {
 
                 public TypeProblemNode(TypeProblem2 problem, string debugName, IConvertTo<T> converter): base(problem,debugName)
@@ -187,7 +196,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     Converter = converter;
                 }
 
-                public IConvertTo<T> Converter { get; }
+                internal IConvertTo<T> Converter { get; }
             }
             public class TypeReference : TypeProblemNode<TType>, ITypeReference
             {
@@ -422,15 +431,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<IKey> placeholders, IConvertTo<TExplictType> converter)
+            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<TExplictType>)> placeholders, IConvertTo<TExplictType> converter)
             {
                 var res = new Type(this, $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", converter);
                 IsChildOf(parent, res);
                 HasType(parent, key, res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.ToString()}");
-                    HasPlaceholderType(res, placeholder, placeholderType);
+                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.Item1.ToString()}",placeholder.Item2);
+                    HasPlaceholderType(res, placeholder.Item1, placeholderType);
                 }
                 return res;
             }
@@ -439,36 +448,36 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new Object(this, key.ToString(), converter);
                 IsChildOf(parent, res);
-                HasType(parent, key, res);
+                HasObject(parent, key, res);
                 return res;
             }
 
-            public Method CreateMethod(IScope parent, string inputName, IConvertTo<TMethod> converter)
+            public Method CreateMethod(IScope parent, string inputName, IConvertTo<TMethod> converter, IConvertTo<TType> inputConverter, IConvertTo<TType> outputConverter)
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
-                var returns = CreateMember(res, new ImplicitKey());
+                var returns = CreateMember(res, new ImplicitKey(), outputConverter);
                 methodReturns[res] = returns;
-                var input = CreateMember(res, new NameKey(inputName));
+                var input = CreateMember(res, new NameKey(inputName), inputConverter);
                 methodInputs[res] = input;
                 return res;
             }
 
 
-            public Method CreateMethod(IScope parent, ITypeReference inputType, ITypeReference outputType, string inputName, IConvertTo<TMethod> converter)
+            public Method CreateMethod(IScope parent, ITypeReference inputType, ITypeReference outputType, string inputName, IConvertTo<TMethod> converter, IConvertTo<TType> inputConverter, IConvertTo<TType> outputConverter)
             {
 
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{((TypeProblemNode)inputType).debugName},outputType:{((TypeProblemNode)outputType).debugName}}}", converter);
                 IsChildOf(parent, res);
-                var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(), outkey, false) : CreateMember(res, new ImplicitKey());
+                var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(), outkey, false, outputConverter) : CreateMember(res, new ImplicitKey(), outputConverter);
                 methodReturns[res] = returns;
                 if (lookUpTypeKey.TryGetValue(inputType, out var inkey))
                 {
-                    methodInputs[res] = CreateMember(res, new NameKey(inputName), inkey, false);
+                    methodInputs[res] = CreateMember(res, new NameKey(inputName), inkey, false, inputConverter);
                 }
                 else
                 {
-                    methodInputs[res] = CreateMember(res, new NameKey(inputName));
+                    methodInputs[res] = CreateMember(res, new NameKey(inputName), inputConverter);
                 }
                 return res;
             }
@@ -540,7 +549,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // pretty sure it is not safe to solve more than once 
-            public ITypeSolution Solve()
+            public ITypeSolution Solve(IConvertTo<TExplictType> inferedTypeConvert)
             {
                 var realizedGeneric = new Dictionary<GenericTypeKey, IExplicitType>();
                 var lookUps = new Dictionary<ILookUpType, IHaveMembers>();
@@ -550,7 +559,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var node in toLookUp.Where(x => !lookUpTypeKey.ContainsKey(x)))
                 {
                     var key = new ImplicitKey();
-                    var type = new InferedType(this, $"for {((TypeProblemNode)node).debugName}");
+                    var type = new InferedType(this, $"for {((TypeProblemNode)node).debugName}", inferedTypeConvert);
                     lookUps[node] = type;
                 }
 
@@ -658,86 +667,86 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 #region Result
 
-                var convetCache = new Dictionary<IHaveMembers, OrType<OrSolutionType, ConcreteSolutionType>>();
-                var convetCache2 = new Dictionary<(ITypeReference, ITypeReference), OrType<OrSolutionType, ConcreteSolutionType>>();
+                //var convetCache = new Dictionary<IHaveMembers, OrType<OrSolutionType, ConcreteSolutionType>>();
+                //var convetCache2 = new Dictionary<(ITypeReference, ITypeReference), OrType<OrSolutionType, ConcreteSolutionType>>();
 
 
-                /// ok now build the result 
-                var resultLookups = new Dictionary<ILookUpType, OrType<OrSolutionType, ConcreteSolutionType>>();
+                ///// ok now build the result 
+                //var resultLookups = new Dictionary<ILookUpType, OrType<OrSolutionType, ConcreteSolutionType>>();
 
-                foreach (var item in lookUps)
-                {
-                    resultLookups.Add(item.Key, Convert(item.Value));
-                }
+                //foreach (var item in lookUps)
+                //{
+                //    resultLookups.Add(item.Key, Convert(item.Value));
+                //}
 
-                var resultExplicitTypes = new Dictionary<IExplicitType, OrType<OrSolutionType, ConcreteSolutionType>>();
+                //var resultExplicitTypes = new Dictionary<IExplicitType, OrType<OrSolutionType, ConcreteSolutionType>>();
 
-                foreach (var values in types.Values)
-                {
-                    foreach (var item in values)
-                    {
-                        resultExplicitTypes.Add(item.Value, Convert(item.Value));
-                    }
-                }
+                //foreach (var values in types.Values)
+                //{
+                //    foreach (var item in values)
+                //    {
+                //        resultExplicitTypes.Add(item.Value, Convert(item.Value));
+                //    }
+                //}
 
-                foreach (var values in objects.Values)
-                {
-                    foreach (var item in values)
-                    {
-                        resultExplicitTypes.Add(item.Value, Convert(item.Value));
-                    }
-                }
+                //foreach (var values in objects.Values)
+                //{
+                //    foreach (var item in values)
+                //    {
+                //        resultExplicitTypes.Add(item.Value, Convert(item.Value));
+                //    }
+                //}
 
-                var resultOrTypes = new Dictionary<OrType, OrType<OrSolutionType, ConcreteSolutionType>>();
+                //var resultOrTypes = new Dictionary<OrType, OrType<OrSolutionType, ConcreteSolutionType>>();
 
-                foreach (var item in orTypeComponets)
-                {
-                    resultOrTypes.Add(item.Key, Convert2(item.Value.Item1, item.Value.Item2));
-                }
+                //foreach (var item in orTypeComponets)
+                //{
+                //    resultOrTypes.Add(item.Key, Convert2(item.Value.Item1, item.Value.Item2));
+                //}
 
-                var resultScopes = new Dictionary<IScope, OrType<OrSolutionType, ConcreteSolutionType>>();
+                //var resultScopes = new Dictionary<IScope, OrType<OrSolutionType, ConcreteSolutionType>>();
 
-                foreach (var item in kidParent.Keys)
-                {
-                    resultScopes.Add(item, Convert(item));
-                }
-                resultScopes.Add(Root, Convert(Root));
+                //foreach (var item in kidParent.Keys)
+                //{
+                //    resultScopes.Add(item, Convert(item));
+                //}
+                //resultScopes.Add(Root, Convert(Root));
 
-                OrType<OrSolutionType, ConcreteSolutionType> Convert(IHaveMembers haveMembers)
-                {
+                //OrType<OrSolutionType, ConcreteSolutionType> Convert(IHaveMembers haveMembers)
+                //{
 
-                    if (convetCache.TryGetValue(haveMembers, out var res))
-                    {
-                        return res;
-                    }
+                //    if (convetCache.TryGetValue(haveMembers, out var res))
+                //    {
+                //        return res;
+                //    }
 
-                    var diction = new Dictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>();
-                    var conveted = new ConcreteSolutionType(diction);
-                    res = new OrType<OrSolutionType, ConcreteSolutionType>(conveted);
-                    convetCache[haveMembers] = res;
-                    if (members.ContainsKey(haveMembers))
-                    {
-                        foreach (var member in members[haveMembers])
-                        {
-                            diction[member.Key] = (member.Value.IsReadonly, Convert(lookUps[member.Value]));
-                        }
-                    }
-                    return res;
-                }
+                //    var diction = new Dictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>();
+                //    var conveted = new ConcreteSolutionType(diction);
+                //    res = new OrType<OrSolutionType, ConcreteSolutionType>(conveted);
+                //    convetCache[haveMembers] = res;
+                //    if (members.ContainsKey(haveMembers))
+                //    {
+                //        foreach (var member in members[haveMembers])
+                //        {
+                //            diction[member.Key] = (member.Value.IsReadonly, Convert(lookUps[member.Value]));
+                //        }
+                //    }
+                //    return res;
+                //}
 
-                OrType<OrSolutionType, ConcreteSolutionType> Convert2(ITypeReference left, ITypeReference right)
-                {
-                    if (convetCache2.TryGetValue((left, right), out var res))
-                    {
-                        return res;
-                    }
+                //OrType<OrSolutionType, ConcreteSolutionType> Convert2(ITypeReference left, ITypeReference right)
+                //{
+                //    if (convetCache2.TryGetValue((left, right), out var res))
+                //    {
+                //        return res;
+                //    }
 
-                    res = new OrType<OrSolutionType, ConcreteSolutionType>(new OrSolutionType(Convert(lookUps[left]), Convert(lookUps[right])));
-                    convetCache2[(left, right)] = res;
-                    return res;
-                }
+                //    res = new OrType<OrSolutionType, ConcreteSolutionType>(new OrSolutionType(Convert(lookUps[left]), Convert(lookUps[right])));
+                //    convetCache2[(left, right)] = res;
+                //    return res;
+                //}
 
-                return new TypeSolution(resultLookups, resultExplicitTypes, resultOrTypes, resultScopes);
+                return new TypeSolution();
 
                 #endregion
 
@@ -784,7 +793,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         var types = genericNameKey.Types.Select(typeKey => LookUpOrOverlayOrThrow2(from, typeKey)).ToArray();
 
-                        if (!(LookUpOrOverlayOrThrow2(from, genericNameKey.name) is IExplicitType lookedUp))
+                        // I think this could be expanded down the road
+                        // given intest in generic methods and objects
+                        if (!(LookUpOrOverlayOrThrow2(from, genericNameKey.name) is Type lookedUp))
                         {
                             throw new Exception();
                         }
@@ -802,7 +813,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             map[oldType] = newType;
                         }
 
-                        var explict = CopyTree(lookedUp, new Type(this, $"generated-generic-{((TypeProblemNode)lookedUp).debugName}"), map);
+                        var explict = CopyTree(lookedUp, new Type(this, $"generated-generic-{lookedUp.debugName}", lookedUp.Converter), map);
                         realizedGeneric.Add(genericTypeKey, explict);
                         res = explict;
                         return true;
@@ -1274,8 +1285,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return method.Problem.GetReturns(method);
         }
 
-
-        public static Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.TypeProblem2.Member Input<TType, TScope, TExplictType, TObject, TOrType, TMethod>(this Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.IMethod method)
+        public static Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.TypeProblem2.Member Input<TType, TScope, TExplictType, TObject, TOrType, TMethod>(this Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.TypeProblem2.Method method)
         {
             return method.Problem.GetInput(method);
         }

@@ -2,5 +2,6 @@
 {
     public interface IConvertTo<out TConvertsTo>
     {
+        TConvertsTo Convert();
     }
 }
