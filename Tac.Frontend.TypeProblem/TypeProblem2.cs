@@ -261,11 +261,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly Dictionary<Method, Member> methodReturns = new Dictionary<Method, Member>();
             private readonly Dictionary<Method, Member> methodInputs = new Dictionary<Method, Member>();
 
-            private readonly Dictionary<IScope, List<IValue>> values = new Dictionary<IScope, List<IValue>>();
+            private readonly Dictionary<IScope, List<Value>> values = new Dictionary<IScope, List<Value>>();
             private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
-            private readonly Dictionary<IScope, List<ITypeReference>> refs = new Dictionary<IScope, List<ITypeReference>>();
+            private readonly Dictionary<IScope, List<TypeReference>> refs = new Dictionary<IScope, List<TypeReference>>();
             private readonly Dictionary<IScope, Dictionary<IKey, OrType>> orTypes = new Dictionary<IScope, Dictionary<IKey, OrType>>();
-            private readonly Dictionary<IScope, Dictionary<IKey, IExplicitType>> types = new Dictionary<IScope, Dictionary<IKey, IExplicitType>>();
+            private readonly Dictionary<IScope, Dictionary<IKey, Type>> types = new Dictionary<IScope, Dictionary<IKey, Type>>();
+            private readonly Dictionary<IScope, Dictionary<IKey, Object>> objects = new Dictionary<IScope, Dictionary<IKey, Object>>();
             private readonly Dictionary<IScope, Dictionary<IKey, IHaveMembers>> genericOverlays = new Dictionary<IScope, Dictionary<IKey, IHaveMembers>>();
 
             private readonly Dictionary<OrType, (ITypeReference, ITypeReference)> orTypeComponets = new Dictionary<OrType, (ITypeReference, ITypeReference)>();
@@ -284,29 +285,37 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 kidParent.Add(kid, parent);
             }
-            public void HasValue(IScope parent, IValue value)
+            public void HasValue(IScope parent, Value value)
             {
                 if (!values.ContainsKey(parent))
                 {
-                    values.Add(parent, new List<IValue>());
+                    values.Add(parent, new List<Value>());
                 }
                 values[parent].Add(value);
             }
-            public void HasReference(IScope parent, ITypeReference reference)
+            public void HasReference(IScope parent, TypeReference reference)
             {
                 if (!refs.ContainsKey(parent))
                 {
-                    refs.Add(parent, new List<ITypeReference>());
+                    refs.Add(parent, new List<TypeReference>());
                 }
                 refs[parent].Add(reference);
             }
-            public void HasType(IScope parent, IKey key, IExplicitType type)
+            public void HasType(IScope parent, IKey key, Type type)
             {
                 if (!types.ContainsKey(parent))
                 {
-                    types.Add(parent, new Dictionary<IKey, IExplicitType>());
+                    types.Add(parent, new Dictionary<IKey, Type>());
                 }
                 types[parent].Add(key, type);
+            }
+            public void HasObject(IScope parent, IKey key, Object @object)
+            {
+                if (!objects.ContainsKey(parent))
+                {
+                    objects.Add(parent, new Dictionary<IKey, Object>());
+                }
+                objects[parent].Add(key, @object);
             }
 
             public void HasPlaceholderType(IScope parent, IKey key, IHaveMembers type)
@@ -671,6 +680,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
+                foreach (var values in objects.Values)
+                {
+                    foreach (var item in values)
+                    {
+                        resultExplicitTypes.Add(item.Value, Convert(item.Value));
+                    }
+                }
+
                 var resultOrTypes = new Dictionary<OrType, OrType<OrSolutionType, ConcreteSolutionType>>();
 
                 foreach (var item in orTypeComponets)
@@ -813,6 +830,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
                         {
+                            if (objects.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                            {
+                                result = res;
+                                return true;
+                            }
+                        }
+                        {
                             if (orTypes.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
                             {
                                 result = res;
@@ -930,7 +954,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     foreach (var item in dict)
                                     {
-                                        var newValue = Copy(item, new Value(this, $"copied from {((TypeProblemNode)item).debugName}"));
+                                        var newValue = Copy(item, new Value(this, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
                                         HasValue(innerScopeTo, newValue);
                                     }
                                 }
@@ -941,7 +965,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     foreach (var item in dict)
                                     {
-                                        var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}"));
+                                        var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}",item.Converter));
                                         HasReference(innerScopeTo, newValue);
                                     }
                                 }
@@ -952,7 +976,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     foreach (var member in dict)
                                     {
-                                        var newValue = Copy(member.Value, new Member(this, member.Value.IsReadonly, $"copied from {((TypeProblemNode)member.Value).debugName}"));
+                                        var newValue = Copy(member.Value, new Member(this, member.Value.IsReadonly, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
                                         HasMember(innerScopeTo, member.Key, newValue);
                                     }
                                 }
@@ -960,11 +984,22 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                             {
+                                if (objects.TryGetValue(innerFromScope, out var dict))
+                                {
+                                    foreach (var @object in dict)
+                                    {
+                                        var newValue = Copy(@object.Value, new Object(this, $"copied from {((TypeProblemNode)@object.Value).debugName}", @object.Value.Converter));
+                                        HasObject(innerScopeTo, @object.Key, newValue);
+                                    }
+                                }
+                            }
+
+                            {
                                 if (types.TryGetValue(innerFromScope, out var dict))
                                 {
                                     foreach (var type in dict)
                                     {
-                                        var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
+                                        var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
                                         HasType(innerScopeTo, type.Key, newValue);
                                     }
                                 }
@@ -975,7 +1010,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     foreach (var type in dict)
                                     {
-                                        var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
+                                        var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}",type.Value.Converter));
                                         HasOrType(innerScopeTo, type.Key, newValue);
                                     }
                                 }
@@ -1004,7 +1039,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     foreach (var possible in dict)
                                     {
-                                        var newValue = Copy(possible.Value, new Member(this, possible.Value.IsReadonly, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
+                                        var newValue = Copy(possible.Value, new Member(this, possible.Value.IsReadonly, $"copied from {((TypeProblemNode)possible.Value).debugName}",possible.Value.Converter));
                                         HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
                                     }
                                 }
@@ -1017,7 +1052,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var possible in dict)
                                 {
-                                    var newValue = Copy(possible.Value, new Member(this, possible.Value.IsReadonly, $"copied from {((TypeProblemNode)possible.Value).debugName}"));
+                                    var newValue = Copy(possible.Value, new Member(this, possible.Value.IsReadonly, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
                                     HasHopefulMember(innerToHopeful, possible.Key, newValue);
                                 }
                             }
@@ -1096,7 +1131,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             else
                             {
 
-                                var newValue = new Member(this, memberPair.Value.IsReadonly, $"copied from {((TypeProblemNode)memberPair.Value).debugName}");
+                                var newValue = new Member(this, memberPair.Value.IsReadonly, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
                                 HasMember(infered, memberPair.Key, newValue);
                                 lookUps[newValue] = lookUps[memberPair.Value];
                                 res = true;
@@ -1136,7 +1171,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 // if they are the same type
                                 if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value)))
                                 {
-                                    var member = new Member(this, leftMember.Value.IsReadonly, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}");
+                                    var member = new Member(this, leftMember.Value.IsReadonly, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}", leftMember.Value.Converter);
                                     lookUps[member] = GetType(rightMember);
                                     res[leftMember.Key] = member;
                                 }
@@ -1173,9 +1208,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public TypeProblem2()
+            public TypeProblem2(IConvertTo<TScope> rootConverter)
             {
-                Root = new Scope(this, "root");
+                Root = new Scope(this, "root", rootConverter);
                 //CreateGenericType(Root, new NameKey("method"), new IKey[] {
                 //    new NameKey("input"),
                 //    new NameKey("output")
