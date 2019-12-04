@@ -8,8 +8,16 @@ using Tac.Model;
 namespace Tac.Frontend.New.CrzayNamespace
 {
 
+    public class Ref<T>
+    {
+        internal void Fill(T explictType)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     // this static class is here just to make us all think in terms of these bros
-    public static class Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>
+    public class Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>
     {
         public interface ISetUpTypeProblem
         {
@@ -36,14 +44,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public interface ITypeSolution
         {
-            TType GetValueType(TypeProblem2.Value value);
-            TType GetMemberType(TypeProblem2.Member member);
-            TType GetTypeReferenceType(TypeProblem2.TypeReference typeReference);
-            TScope GetScope(TypeProblem2.Scope scope);
-            TExplictType GetExplicitTypeType(TypeProblem2.Type explicitType);
-            TObject GetObjectType(TypeProblem2.Object @object);
-            TOrType GetOrType(TypeProblem2.OrType orType);
-            TMethod GetMethodScopeType(TypeProblem2.Method method);
+            Ref<TType> GetValueType(TypeProblem2.Value value);
+            Ref<TType> GetMemberType(TypeProblem2.Member member);
+            Ref<TType> GetTypeReferenceType(TypeProblem2.TypeReference typeReference);
+            Ref<TScope> GetScope(TypeProblem2.Scope scope);
+            Ref<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType);
+            Ref<TObject> GetObjectType(TypeProblem2.Object @object);
+            Ref<TOrType> GetOrType(TypeProblem2.OrType orType);
+            Ref<TMethod> GetMethodScopeType(TypeProblem2.Method method);
         }
 
         public class ConcreteSolutionType : IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>
@@ -123,14 +131,98 @@ namespace Tac.Frontend.New.CrzayNamespace
         // 🤫 the power was in you all along
         internal class TypeSolution : ITypeSolution
         {
-            public TExplictType GetExplicitTypeType(TypeProblem2.Type explicitType)=>explicitType.Converter.Convert();
-            public TType GetMemberType(TypeProblem2.Member member) => member.Converter.Convert();
-            public TMethod GetMethodScopeType(TypeProblem2.Method method) => method.Converter.Convert();
-            public TObject GetObjectType(TypeProblem2.Object @object) => @object.Converter.Convert();
-            public TOrType GetOrType(TypeProblem2.OrType orType) => orType.Converter.Convert();
-            public TScope GetScope(TypeProblem2.Scope scope) => scope.Converter.Convert();
-            public TType GetTypeReferenceType(TypeProblem2.TypeReference typeReference) => typeReference.Converter.Convert();
-            public TType GetValueType(TypeProblem2.Value value) => value.Converter.Convert();
+
+
+            private Dictionary<TypeProblem2.Type, Ref<TExplictType>> cacheType = new Dictionary<TypeProblem2.Type, Ref<TExplictType>>();
+            public Ref<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType)
+            {
+                if (!cacheType.ContainsKey(explicitType))
+                {
+                    cacheType[explicitType] = new Ref<TExplictType>();
+                    cacheType[explicitType].Fill(explicitType.Converter.Convert());
+                }
+                return cacheType[explicitType];
+            }
+
+            private Dictionary<TypeProblem2.Member, Ref<TType>> cacheMember = new Dictionary<TypeProblem2.Member, Ref<TType>>();
+            public Ref<TType> GetMemberType(TypeProblem2.Member member)
+            {
+                if (!cacheMember.ContainsKey(member))
+                {
+                    cacheMember[member] = new Ref<TType>();
+                    cacheMember[member].Fill(member.Converter.Convert());
+                }
+                return cacheMember[member];
+            }
+
+            private Dictionary<TypeProblem2.Method, Ref<TMethod>> cacheMethod = new Dictionary<TypeProblem2.Method, Ref<TMethod>>();
+            public Ref<TMethod> GetMethodScopeType(TypeProblem2.Method method)
+            {
+                if (!cacheMethod.ContainsKey(method))
+                {
+                    cacheMethod[method] = new Ref<TMethod>();
+                    cacheMethod[method].Fill(method.Converter.Convert());
+                }
+                return cacheMethod[method];
+            }
+
+            private Dictionary<TypeProblem2.Object, Ref<TObject>> cacheObject = new Dictionary<TypeProblem2.Object, Ref<TObject>>();
+            public Ref<TObject> GetObjectType(TypeProblem2.Object @object)
+            {
+                if (!cacheObject.ContainsKey(@object))
+                {
+                    cacheObject[@object] = new Ref<TObject>();
+                    cacheObject[@object].Fill(@object.Converter.Convert());
+                }
+                return cacheObject[@object];
+            }
+
+            private Dictionary<TypeProblem2.OrType, Ref<TOrType>> cacheOrType = new Dictionary<TypeProblem2.OrType, Ref<TOrType>>();
+            public Ref<TOrType> GetOrType(TypeProblem2.OrType orType)
+            {
+                if (!cacheOrType.ContainsKey(orType))
+                {
+                    cacheOrType[orType] = new Ref<TOrType>();
+                    cacheOrType[orType].Fill(orType.Converter.Convert());
+                }
+                return cacheOrType[orType];
+            }
+
+            private Dictionary<TypeProblem2.Scope, Ref<TScope>> cacheScope = new Dictionary<TypeProblem2.Scope, Ref<TScope>>();
+            public Ref<TScope> GetScope(TypeProblem2.Scope scope)
+            {
+                if (!cacheScope.ContainsKey(scope))
+                {
+                    cacheScope[scope] = new Ref<TScope>();
+                    cacheScope[scope].Fill(scope.Converter.Convert());
+                }
+                return cacheScope[scope];
+            }
+
+            private Dictionary<TypeProblem2.TypeReference, Ref<TType>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, Ref<TType>>();
+            public Ref<TType> GetTypeReferenceType(TypeProblem2.TypeReference typeReference)
+            {
+                if (!cacheTypeReference.ContainsKey(typeReference))
+                {
+                    cacheTypeReference[typeReference] = new Ref<TType>();
+                    cacheTypeReference[typeReference].Fill(typeReference.Converter.Convert());
+                }
+                return cacheTypeReference[typeReference];
+            }
+
+            private Dictionary<TypeProblem2.Value, Ref<TType>> cacheValue = new Dictionary<TypeProblem2.Value, Ref<TType>>();
+            public Ref<TType> GetValueType(TypeProblem2.Value value)
+            {
+                if (!cacheValue.ContainsKey(value))
+                {
+                    cacheValue[value] = new Ref<TType>();
+                    cacheValue[value].Fill(value.Converter.Convert());
+                }
+                return cacheValue[value];
+            }
+
+
+
         }
 
         // the simple model of or-types:
