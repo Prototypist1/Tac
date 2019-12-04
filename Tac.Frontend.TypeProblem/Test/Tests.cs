@@ -16,16 +16,16 @@ namespace Tac.Frontend.TypeProblem.Test
     public class TestMethod { }
 
 
-    public class TestTypeConverter: IConvertTo<TestType> { }
-    public class TestScopeConverter : IConvertTo<TestScope> { }
-    public class TestExplictTypeConverter : IConvertTo<TestExplictType> { }
-    public class TestObjectConverter : IConvertTo<TestObject> { }
-    public class TestOrTypeConverter : IConvertTo<TestOrType> { }
-    public class TestMethodConverter : IConvertTo<TestMethod> { }
+    public class TestValueConverter : WTF.IConvertTo<WTF.TypeProblem2.Value, TestType> { }
+    public class TestTypeConverter: WTF.IConvertTo<WTF.TypeProblem2.Member,TestType> { }
+    public class TestScopeConverter : WTF.IConvertTo<WTF.TypeProblem2.Scope,TestScope> { }
+    public class TestExplictTypeConverter : WTF.IConvertTo<WTF.TypeProblem2.Type,TestExplictType> { }
+    public class TestMethodConverter : WTF.IConvertTo<WTF.TypeProblem2.Method, TestMethod> { }
 
     public class WTF : Tpn<TestType, TestScope, TestExplictType, TestObject, TestOrType, TestMethod> { 
     }
 
+    // TODO test or types
     public class Tests
     {
 
@@ -63,7 +63,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var hello_x = x.CreateMember(hello, new NameKey("x"), new TestTypeConverter());
             var hello_y = x.CreateMember(hello, new NameKey("y"), new TestTypeConverter());
 
-            var input = x.CreateValue(x.Root,new NameKey("hello"), new TestTypeConverter());
+            var input = x.CreateValue(x.Root,new NameKey("hello"), new TestValueConverter());
             var method = x.CreateMethod(x.Root, "input", new TestMethodConverter(), new TestTypeConverter(),new TestTypeConverter());
 
             var input_x = x.CreateHopefulMember(method.Input(), new NameKey("x"), new TestTypeConverter());
@@ -224,7 +224,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new WTF.TypeProblem2(new TestScopeConverter());
 
-            var pairType = x.CreateGenericType(x.Root, new NameKey("pair"), new (IKey,IConvertTo<TestExplictType>)[] {
+            var pairType = x.CreateGenericType(x.Root, new NameKey("pair"), new (IKey,WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("T"), new TestExplictTypeConverter())
             },new TestExplictTypeConverter());
 
@@ -254,7 +254,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new WTF.TypeProblem2(new TestScopeConverter());
 
-            var type = x.CreateGenericType(x.Root, new NameKey("node"), new (IKey, IConvertTo<TestExplictType>)[] {
+            var type = x.CreateGenericType(x.Root, new NameKey("node"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("node-t"), new TestExplictTypeConverter())
             }, new TestExplictTypeConverter());
 
@@ -286,7 +286,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new WTF.TypeProblem2(new TestScopeConverter());
 
-            var left = x.CreateGenericType(x.Root, new NameKey("left"), new (IKey, IConvertTo<TestExplictType>)[] {
+            var left = x.CreateGenericType(x.Root, new NameKey("left"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("left-t"), new TestExplictTypeConverter())
             }, new TestExplictTypeConverter());
 
@@ -294,7 +294,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 new NameKey("left-t")
             }), false, new TestTypeConverter());
 
-            var right = x.CreateGenericType(x.Root, new NameKey("right"), new (IKey, IConvertTo<TestExplictType>)[] {
+            var right = x.CreateGenericType(x.Root, new NameKey("right"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("right-t"), new TestExplictTypeConverter())
             }, new TestExplictTypeConverter());
 
@@ -332,7 +332,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new WTF.TypeProblem2(new TestScopeConverter());
 
-            var pairType = x.CreateGenericType(x.Root, new NameKey("pair"), new (IKey, IConvertTo<TestExplictType>)[] {
+            var pairType = x.CreateGenericType(x.Root, new NameKey("pair"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("T"), new TestExplictTypeConverter())
             }, new TestExplictTypeConverter());
 
