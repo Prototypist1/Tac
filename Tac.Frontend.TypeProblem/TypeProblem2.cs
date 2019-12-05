@@ -17,26 +17,26 @@ namespace Tac.Frontend.New.CrzayNamespace
     }
 
     // this static class is here just to make us all think in terms of these bros
-    public class Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>
+    public class Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>
     {
         public interface ISetUpTypeProblem
         {
             // a =: x
 
             void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
-            TypeProblem2.Value CreateValue(IScope scope, IKey typeKey,IConvertTo<TypeProblem2.Value,TType> converter);
-            TypeProblem2.Member CreateMember(IScope scope, IKey key, IKey typeKey, bool isReadonly, IConvertTo<TypeProblem2.Member,TType> converter);
-            TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member,TType> converter);
-            TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member,TType> converter);
-            TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference,TType> converter);
+            TypeProblem2.Value CreateValue(IScope scope, IKey typeKey,IConvertTo<TypeProblem2.Value,TValue> converter);
+            TypeProblem2.Member CreateMember(IScope scope, IKey key, IKey typeKey, bool isReadonly, IConvertTo<TypeProblem2.Member,TMember> converter);
+            TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member,TMember> converter);
+            TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, TMember> converter);
+            TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, TTypeReference> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope,TScope> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type,TExplictType> converter);
             TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<TypeProblem2.Type ,TExplictType>)> placeholders, IConvertTo<TypeProblem2.Type, TExplictType> converter);
             TypeProblem2.Object CreateObject(IScope parent, IKey key, IConvertTo<TypeProblem2.Object,TObject> converter);
-            TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method ,TMethod> converter, IConvertTo<TypeProblem2.Member,TType> inputConverter, IConvertTo<TypeProblem2.Member,TType> outputConverter);
-            TypeProblem2.Method CreateMethod(IScope parent, ITypeReference inputType, ITypeReference outputType, string inputName, IConvertTo<TypeProblem2.Method,TMethod> converter, IConvertTo<TypeProblem2.Member,TType> inputConverter, IConvertTo<TypeProblem2.Member,TType> outputConverter);
+            TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method ,TMethod> converter, IConvertTo<TypeProblem2.Member,TMember> inputConverter, IConvertTo<TypeProblem2.Member, TMember> outputConverter);
+            TypeProblem2.Method CreateMethod(IScope parent, ITypeReference inputType, ITypeReference outputType, string inputName, IConvertTo<TypeProblem2.Method,TMethod> converter, IConvertTo<TypeProblem2.Member, TMember> inputConverter, IConvertTo<TypeProblem2.Member, TMember> outputConverter);
             TypeProblem2.Member GetReturns(IScope s);
-            TypeProblem2.Member CreateHopefulMember(IHaveHopefulMembers scope, IKey key, IConvertTo<TypeProblem2.Member,TType> converter);
+            TypeProblem2.Member CreateHopefulMember(IHaveHopefulMembers scope, IKey key, IConvertTo<TypeProblem2.Member, TMember> converter);
             TypeProblem2.OrType CreateOrType(IScope s, IKey key, ITypeReference setUpSideNode1, ITypeReference setUpSideNode2, IConvertTo<TypeProblem2.OrType,TOrType> converter);
             IKey GetKey(ITypeReference type);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
@@ -44,9 +44,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public interface ITypeSolution
         {
-            Ref<TType> GetValueType(TypeProblem2.Value value);
-            Ref<TType> GetMemberType(TypeProblem2.Member member);
-            Ref<TType> GetTypeReferenceType(TypeProblem2.TypeReference typeReference);
+            Ref<TValue> GetValueType(TypeProblem2.Value value);
+            Ref<TMember> GetMemberType(TypeProblem2.Member member);
+            Ref<TTypeReference> GetTypeReferenceType(TypeProblem2.TypeReference typeReference);
             Ref<TScope> GetScope(TypeProblem2.Scope scope);
             Ref<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType);
             Ref<TObject> GetObjectType(TypeProblem2.Object @object);
@@ -149,12 +149,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheType[explicitType];
             }
 
-            private Dictionary<TypeProblem2.Member, Ref<TType>> cacheMember = new Dictionary<TypeProblem2.Member, Ref<TType>>();
-            public Ref<TType> GetMemberType(TypeProblem2.Member member)
+            private Dictionary<TypeProblem2.Member, Ref<TMember>> cacheMember = new Dictionary<TypeProblem2.Member, Ref<TMember>>();
+            public Ref<TMember> GetMemberType(TypeProblem2.Member member)
             {
                 if (!cacheMember.ContainsKey(member))
                 {
-                    cacheMember[member] = new Ref<TType>();
+                    cacheMember[member] = new Ref<TMember>();
                     cacheMember[member].Fill(member.Converter.Convert(this, member));
                 }
                 return cacheMember[member];
@@ -204,23 +204,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheScope[scope];
             }
 
-            private Dictionary<TypeProblem2.TypeReference, Ref<TType>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, Ref<TType>>();
-            public Ref<TType> GetTypeReferenceType(TypeProblem2.TypeReference typeReference)
+            private Dictionary<TypeProblem2.TypeReference, Ref<TTypeReference>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, Ref<TTypeReference>>();
+            public Ref<TTypeReference> GetTypeReferenceType(TypeProblem2.TypeReference typeReference)
             {
                 if (!cacheTypeReference.ContainsKey(typeReference))
                 {
-                    cacheTypeReference[typeReference] = new Ref<TType>();
+                    cacheTypeReference[typeReference] = new Ref<TTypeReference>();
                     cacheTypeReference[typeReference].Fill(typeReference.Converter.Convert(this, typeReference));
                 }
                 return cacheTypeReference[typeReference];
             }
 
-            private Dictionary<TypeProblem2.Value, Ref<TType>> cacheValue = new Dictionary<TypeProblem2.Value, Ref<TType>>();
-            public Ref<TType> GetValueType(TypeProblem2.Value value)
+            private Dictionary<TypeProblem2.Value, Ref<TValue>> cacheValue = new Dictionary<TypeProblem2.Value, Ref<TValue>>();
+            public Ref<TValue> GetValueType(TypeProblem2.Value value)
             {
                 if (!cacheValue.ContainsKey(value))
                 {
-                    cacheValue[value] = new Ref<TType>();
+                    cacheValue[value] = new Ref<TValue>();
                     cacheValue[value].Fill(value.Converter.Convert(this, value));
                 }
                 return cacheValue[value];
@@ -287,21 +287,21 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 internal IConvertTo<Tin, Tout> Converter { get; }
             }
-            public class TypeReference : TypeProblemNode<TypeReference,TType>, ITypeReference
+            public class TypeReference : TypeProblemNode<TypeReference, TTypeReference>, ITypeReference
             {
-                public TypeReference(TypeProblem2 problem, string debugName, IConvertTo<TypeReference,TType> converter) : base(problem, debugName, converter)
+                public TypeReference(TypeProblem2 problem, string debugName, IConvertTo<TypeReference, TTypeReference> converter) : base(problem, debugName, converter)
                 {
                 }
             }
-            public class Value : TypeProblemNode<Value,TType>, IValue
+            public class Value : TypeProblemNode<Value,TValue>, IValue
             {
-                public Value(TypeProblem2 problem, string debugName, IConvertTo<Value,TType> converter) : base(problem, debugName, converter)
+                public Value(TypeProblem2 problem, string debugName, IConvertTo<Value, TValue> converter) : base(problem, debugName, converter)
                 {
                 }
             }
-            public class Member : TypeProblemNode<Member,TType>, IValue, ILookUpType, ICanBeAssignedTo
+            public class Member : TypeProblemNode<Member,TMember>, IValue, ILookUpType, ICanBeAssignedTo
             {
-                public Member(TypeProblem2 problem, bool isReadonly, string debugName, IConvertTo<Member,TType> converter) : base(problem, debugName, converter)
+                public Member(TypeProblem2 problem, bool isReadonly, string debugName, IConvertTo<Member, TMember> converter) : base(problem, debugName, converter)
                 {
                     IsReadonly = isReadonly;
                 }
@@ -462,7 +462,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 assignments.Add((assignedFrom, assignedTo));
             }
 
-            public Value CreateValue(IScope scope, IKey typeKey, IConvertTo<Value,TType> converter)
+            public Value CreateValue(IScope scope, IKey typeKey, IConvertTo<Value,TValue> converter)
             {
                 var res = new Value(this, typeKey.ToString(), converter);
                 HasValue(scope, res);
@@ -471,7 +471,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMember(IScope scope, IKey key, IKey typeKey, bool isReadonly, IConvertTo<Member,TType> converter)
+            public Member CreateMember(IScope scope, IKey key, IKey typeKey, bool isReadonly, IConvertTo<Member, TMember> converter)
             {
                 var res = new Member(this, isReadonly, key.ToString(), converter);
                 HasMember(scope, key, res);
@@ -480,7 +480,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMember(IScope scope, IKey key, IConvertTo<Member,TType> converter)
+            public Member CreateMember(IScope scope, IKey key, IConvertTo<Member, TMember> converter)
             {
                 var res = new Member(this, false, key.ToString(), converter);
                 HasMember(scope, key, res);
@@ -488,7 +488,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<Member,TType> converter)
+            public Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<Member,TMember> converter)
             {
                 var res = new Member(this, false, key.ToString(),converter);
                 HasMembersPossiblyOnParent(scope, key, res);
@@ -496,7 +496,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeReference,TType> converter)
+            public TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeReference, TTypeReference> converter)
             {
                 var res = new TypeReference(this, typeKey.ToString(),converter);
                 HasReference(context, res);
@@ -541,7 +541,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Method CreateMethod(IScope parent, string inputName, IConvertTo<Method,TMethod> converter, IConvertTo<Member,TType> inputConverter, IConvertTo<Member,TType> outputConverter)
+            public Method CreateMethod(IScope parent, string inputName, IConvertTo<Method,TMethod> converter, IConvertTo<Member,TMember> inputConverter, IConvertTo<Member,TMember> outputConverter)
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
@@ -553,7 +553,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Method CreateMethod(IScope parent, ITypeReference inputType, ITypeReference outputType, string inputName, IConvertTo<Method,TMethod> converter, IConvertTo<Member,TType> inputConverter, IConvertTo<Member, TType> outputConverter)
+            public Method CreateMethod(IScope parent, ITypeReference inputType, ITypeReference outputType, string inputName, IConvertTo<Method,TMethod> converter, IConvertTo<Member,TMember> inputConverter, IConvertTo<Member, TMember> outputConverter)
             {
 
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{((TypeProblemNode)inputType).debugName},outputType:{((TypeProblemNode)outputType).debugName}}}", converter);
@@ -572,7 +572,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Member CreateHopefulMember(IHaveHopefulMembers scope, IKey key, IConvertTo<Member,TType> converter)
+            public Member CreateHopefulMember(IHaveHopefulMembers scope, IKey key, IConvertTo<Member,TMember> converter)
             {
                 var res = new Member(this, false, key.ToString(), converter);
                 HasHopefulMember(scope, key, res);
@@ -1364,22 +1364,22 @@ namespace Tac.Frontend.New.CrzayNamespace
     public static class TpnExtensions
     {
         //extensions
-        public static IKey Key<TType, TScope, TExplictType, TObject, TOrType, TMethod>(this Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.ITypeReference type)
+        public static IKey Key<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.ITypeReference type)
         {
             return type.Problem.GetKey(type);
         }
 
-        public static Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.TypeProblem2.Member Returns<TType, TScope, TExplictType, TObject, TOrType, TMethod>(this Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.IMethod method)
+        public static Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.TypeProblem2.Member Returns<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.IMethod method)
         {
             return method.Problem.GetReturns(method);
         }
 
-        public static Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.TypeProblem2.Member Input<TType, TScope, TExplictType, TObject, TOrType, TMethod>(this Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.TypeProblem2.Method method)
+        public static Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.TypeProblem2.Member Input<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.TypeProblem2.Method method)
         {
             return method.Problem.GetInput(method);
         }
 
-        public static void AssignTo<TType, TScope, TExplictType, TObject, TOrType, TMethod>(this Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.ICanAssignFromMe from, Tpn<TType, TScope, TExplictType, TObject, TOrType, TMethod>.ICanBeAssignedTo to)
+        public static void AssignTo<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.ICanAssignFromMe from, Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.ICanBeAssignedTo to)
         {
             from.Problem.IsAssignedTo(from, to);
         }
