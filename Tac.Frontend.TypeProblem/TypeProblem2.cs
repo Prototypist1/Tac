@@ -3,18 +3,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend.TypeProblem.Test;
 using Tac.Model;
+using Tac.Semantic_Model;
 
 namespace Tac.Frontend.New.CrzayNamespace
 {
 
-    public class Ref<T>
-    {
-        internal void Fill(T explictType)
-        {
-            throw new NotImplementedException();
-        }
-    }
 
     // this static class is here just to make us all think in terms of these bros
     public class Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>
@@ -44,14 +39,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public interface ITypeSolution
         {
-            Ref<TValue> GetValueType(TypeProblem2.Value value);
-            Ref<TMember> GetMemberType(TypeProblem2.Member member);
-            Ref<TTypeReference> GetTypeReferenceType(TypeProblem2.TypeReference typeReference);
-            Ref<TScope> GetScope(TypeProblem2.Scope scope);
-            Ref<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType);
-            Ref<TObject> GetObjectType(TypeProblem2.Object @object);
-            Ref<TOrType> GetOrType(TypeProblem2.OrType orType);
-            Ref<TMethod> GetMethodScopeType(TypeProblem2.Method method);
+            IBox<TValue> GetValueType(TypeProblem2.Value value);
+            IBox<TMember> GetMemberType(TypeProblem2.Member member);
+            IBox<TTypeReference> GetTypeReferenceType(TypeProblem2.TypeReference typeReference);
+            IBox<TScope> GetScope(TypeProblem2.Scope scope);
+            IBox<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType);
+            IBox<TObject> GetObjectType(TypeProblem2.Object @object);
+            IBox<TOrType> GetOrType(TypeProblem2.OrType orType);
+            IBox<TMethod> GetMethodScopeType(TypeProblem2.Method method);
+            IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
+            OrType<TypeProblem2.Type, TypeProblem2.OrType> GetType(ILookUpType from);
         }
 
         public class ConcreteSolutionType : IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>
@@ -136,92 +133,91 @@ namespace Tac.Frontend.New.CrzayNamespace
         // 🤫 the power was in you all along
         internal class TypeSolution : ITypeSolution
         {
+            private readonly IReadOnlyDictionary<ILookUpType, IHaveMembers> map;
+
+            public TypeSolution(IReadOnlyDictionary<ILookUpType, IHaveMembers> map)
+            {
+                this.map = map ?? throw new ArgumentNullException(nameof(map));
+            }
 
 
-            private Dictionary<TypeProblem2.Type, Ref<TExplictType>> cacheType = new Dictionary<TypeProblem2.Type, Ref<TExplictType>>();
-            public Ref<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType)
+            private Dictionary<TypeProblem2.Type, IBox<TExplictType>> cacheType = new Dictionary<TypeProblem2.Type, IBox<TExplictType>>();
+            public IBox<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType)
             {
                 if (!cacheType.ContainsKey(explicitType))
                 {
-                    cacheType[explicitType] = new Ref<TExplictType>();
-                    cacheType[explicitType].Fill(explicitType.Converter.Convert(this, explicitType));
+                    cacheType[explicitType] = new Box<TExplictType>(explicitType.Converter.Convert(this, explicitType));
                 }
                 return cacheType[explicitType];
             }
 
-            private Dictionary<TypeProblem2.Member, Ref<TMember>> cacheMember = new Dictionary<TypeProblem2.Member, Ref<TMember>>();
-            public Ref<TMember> GetMemberType(TypeProblem2.Member member)
+            private Dictionary<TypeProblem2.Member, IBox<TMember>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<TMember>>();
+            public IBox<TMember> GetMemberType(TypeProblem2.Member member)
             {
                 if (!cacheMember.ContainsKey(member))
                 {
-                    cacheMember[member] = new Ref<TMember>();
-                    cacheMember[member].Fill(member.Converter.Convert(this, member));
+                    cacheMember[member] = new Box<TMember>(member.Converter.Convert(this, member));
                 }
                 return cacheMember[member];
             }
 
-            private Dictionary<TypeProblem2.Method, Ref<TMethod>> cacheMethod = new Dictionary<TypeProblem2.Method, Ref<TMethod>>();
-            public Ref<TMethod> GetMethodScopeType(TypeProblem2.Method method)
+            private Dictionary<TypeProblem2.Method, IBox<TMethod>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<TMethod>>();
+            public IBox<TMethod> GetMethodScopeType(TypeProblem2.Method method)
             {
                 if (!cacheMethod.ContainsKey(method))
                 {
-                    cacheMethod[method] = new Ref<TMethod>();
-                    cacheMethod[method].Fill(method.Converter.Convert(this, method));
+                    cacheMethod[method] = new Box<TMethod>(method.Converter.Convert(this, method));
                 }
                 return cacheMethod[method];
             }
 
-            private Dictionary<TypeProblem2.Object, Ref<TObject>> cacheObject = new Dictionary<TypeProblem2.Object, Ref<TObject>>();
-            public Ref<TObject> GetObjectType(TypeProblem2.Object @object)
+            private Dictionary<TypeProblem2.Object, IBox<TObject>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<TObject>>();
+            public IBox<TObject> GetObjectType(TypeProblem2.Object @object)
             {
                 if (!cacheObject.ContainsKey(@object))
                 {
-                    cacheObject[@object] = new Ref<TObject>();
-                    cacheObject[@object].Fill(@object.Converter.Convert(this, @object));
+                    cacheObject[@object] = new Box<TObject>(@object.Converter.Convert(this, @object));
                 }
                 return cacheObject[@object];
             }
 
-            private Dictionary<TypeProblem2.OrType, Ref<TOrType>> cacheOrType = new Dictionary<TypeProblem2.OrType, Ref<TOrType>>();
-            public Ref<TOrType> GetOrType(TypeProblem2.OrType orType)
+            private Dictionary<TypeProblem2.OrType, IBox<TOrType>> cacheOrType = new Dictionary<TypeProblem2.OrType, IBox<TOrType>>();
+            public IBox<TOrType> GetOrType(TypeProblem2.OrType orType)
             {
                 if (!cacheOrType.ContainsKey(orType))
                 {
-                    cacheOrType[orType] = new Ref<TOrType>();
-                    cacheOrType[orType].Fill(orType.Converter.Convert(this, orType));
+                    cacheOrType[orType] = new Box<TOrType>(orType.Converter.Convert(this, orType));
                 }
                 return cacheOrType[orType];
             }
 
-            private Dictionary<TypeProblem2.Scope, Ref<TScope>> cacheScope = new Dictionary<TypeProblem2.Scope, Ref<TScope>>();
-            public Ref<TScope> GetScope(TypeProblem2.Scope scope)
+            private Dictionary<TypeProblem2.Scope, IBox<TScope>> cacheScope = new Dictionary<TypeProblem2.Scope, IBox<TScope>>();
+            public IBox<TScope> GetScope(TypeProblem2.Scope scope)
             {
                 if (!cacheScope.ContainsKey(scope))
                 {
-                    cacheScope[scope] = new Ref<TScope>();
-                    cacheScope[scope].Fill(scope.Converter.Convert(this, scope));
+                    cacheScope[scope] = new Box<TScope>(scope.Converter.Convert(this, scope));
                 }
                 return cacheScope[scope];
             }
 
-            private Dictionary<TypeProblem2.TypeReference, Ref<TTypeReference>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, Ref<TTypeReference>>();
-            public Ref<TTypeReference> GetTypeReferenceType(TypeProblem2.TypeReference typeReference)
+            private Dictionary<TypeProblem2.TypeReference, IBox<TTypeReference>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, IBox<TTypeReference>>();
+            public IBox<TTypeReference> GetTypeReferenceType(TypeProblem2.TypeReference typeReference)
             {
                 if (!cacheTypeReference.ContainsKey(typeReference))
                 {
-                    cacheTypeReference[typeReference] = new Ref<TTypeReference>();
-                    cacheTypeReference[typeReference].Fill(typeReference.Converter.Convert(this, typeReference));
+                    cacheTypeReference[typeReference] = new Box<TTypeReference>(typeReference.Converter.Convert(this, typeReference));
                 }
                 return cacheTypeReference[typeReference];
             }
 
-            private Dictionary<TypeProblem2.Value, Ref<TValue>> cacheValue = new Dictionary<TypeProblem2.Value, Ref<TValue>>();
-            public Ref<TValue> GetValueType(TypeProblem2.Value value)
+            private Dictionary<TypeProblem2.Value, IBox<TValue>> cacheValue = new Dictionary<TypeProblem2.Value, IBox<TValue>>();
+
+            public IBox<TValue> GetValueType(TypeProblem2.Value value)
             {
                 if (!cacheValue.ContainsKey(value))
                 {
-                    cacheValue[value] = new Ref<TValue>();
-                    cacheValue[value].Fill(value.Converter.Convert(this, value));
+                    cacheValue[value] = new Box<TValue>(value.Converter.Convert(this, value));
                 }
                 return cacheValue[value];
             }
@@ -835,7 +831,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    return res;
                 //}
 
-                return new TypeSolution();
+                return new TypeSolution(lookUps);
 
                 #endregion
 

@@ -3,30 +3,180 @@ using System.Collections.Generic;
 using System.Text;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
+using Tac.Semantic_Model;
 using Xunit;
 
 namespace Tac.Frontend.TypeProblem.Test
 {
 
-    public class TestType { }
-    public class TestScope { }
-    public class TestExplictType { }
-    public class TestObject { }
-    public class TestOrType { }
-    public class TestMethod { }
-    public class TestMember { }
-    public class TestTypeReference { }
-    public class TestValue { }
+    // Colin! you shit! why don't you just use real stuff!?
+    public interface ITestType { 
+    
+    }
+
+    public class TestScope {
+        public readonly List<IBox<TestMember>> members = new List<IBox<TestMember>>();
+    }
+    public class TestExplictType : ITestType {
+        public readonly IBox<TestScope> MemberCollection;
+
+        public TestExplictType(IBox<TestScope> memberCollection)
+        {
+            MemberCollection = memberCollection ?? throw new ArgumentNullException(nameof(memberCollection));
+        }
+    }
+    public class TestObject {
+        public readonly IBox<TestScope> MemberCollection;
+    }
+    public class TestOrType : ITestType {
+        public readonly IBox<ITestType> Type1;
+        public readonly IBox<ITestType> Type2;
+    }
+    public class TestMethod {
+        public readonly IBox<TestScope> Scope;
+
+        public TestMethod(IBox<TestScope> @ref)
+        {
+            this.Scope = @ref ?? throw new ArgumentNullException(nameof(@ref));
+        }
+    }
+    public class TestMember {
+        public readonly IBox<ITestType> Type;
+
+        public TestMember(IBox<ITestType> testType)
+        {
+            Type = testType ?? throw new ArgumentNullException(nameof(testType));
+        }
+    }
+    public class TestTypeReference {
+        public readonly IBox<ITestType> Type;
+
+        public TestTypeReference(IBox<ITestType> testType)
+        {
+            Type = testType ?? throw new ArgumentNullException(nameof(testType));
+        }
+    }
+    public class TestValue {
+        public readonly IBox<ITestType> Type;
+
+        public TestValue(IBox<ITestType> testType)
+        {
+            Type = testType ?? throw new ArgumentNullException(nameof(testType));
+        }
+    }
 
 
-    public class TestTypeConverter: WTF.IConvertTo<WTF.TypeProblem2.Member,TestType> { }
-    public class TestScopeConverter : WTF.IConvertTo<WTF.TypeProblem2.Scope,TestScope> { }
-    public class TestExplictTypeConverter : WTF.IConvertTo<WTF.TypeProblem2.Type,TestExplictType> { }
-    public class TestMethodConverter : WTF.IConvertTo<WTF.TypeProblem2.Method, TestMethod> { }
+    public class TestScopeConverter : WTF.IConvertTo<WTF.TypeProblem2.Scope, TestScope>
+    {
+        public TestScope Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Scope from)
+        {
+            var members = typeSolution.GetMembers(from);
+            var res = new TestScope();
+            foreach (var member in members)
+            {
+                res.members.Add(typeSolution.GetMemberType(member));
+            }
+            return res;
+        }
+    }
+    public class TestExplictTypeConverter : WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>
+    {
+        public TestExplictType Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Type from)
+        {
+            var members = typeSolution.GetMembers(from);
+            var scope = new TestScope();
+            foreach (var member in members)
+            {
+                scope.members.Add(typeSolution.GetMemberType(member));
+            }
+            var @ref = new Box<TestScope>();
+            @ref.Fill(scope);
+            return new TestExplictType(@ref);
+        }
+    }
+    public class TestMethodConverter : WTF.IConvertTo<WTF.TypeProblem2.Method, TestMethod>
+    {
+        public TestMethod Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Method from)
+        {
+            var members = typeSolution.GetMembers(from);
+            var scope = new TestScope();
+            foreach (var member in members)
+            {
+                scope.members.Add(typeSolution.GetMemberType(member));
+            }
+            var @ref = new Box<TestScope>();
+            @ref.Fill(scope);
+            return new TestMethod(@ref);
+        }
+    }
+    public class TestMemberConverter : WTF.IConvertTo<WTF.TypeProblem2.Member, TestMember>
+    {
+        public TestMember Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Member from)
+        {
+            var orType = typeSolution.GetType(from);
 
-    public class TestMemberConverter : WTF.IConvertTo<WTF.TypeProblem2.Member, TestMember> { }
-    public class TestTypeReferenceConverter : WTF.IConvertTo<WTF.TypeProblem2.Member, TestTypeReference> { }
-    public class TestValueConverter: WTF.IConvertTo<WTF.TypeProblem2.Value, TestValue> { }
+            IBox<ITestType> testType;
+            if (orType.Is1(out var v1))
+            {
+                testType = typeSolution.GetExplicitTypeType(v1);
+            }
+            else if (orType.Is2(out var v2))
+            {
+
+                testType = typeSolution.GetOrType(v2);
+            }
+            else {
+                throw new Exception("well, should have been one of those");
+            }
+            return new TestMember(testType);
+        }
+    }
+    public class TestTypeReferenceConverter : WTF.IConvertTo<WTF.TypeProblem2.Member, TestTypeReference>
+    {
+        public TestTypeReference Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Member from)
+        {
+            var orType = typeSolution.GetType(from);
+
+            IBox<ITestType> testType;
+            if (orType.Is1(out var v1))
+            {
+                testType = typeSolution.GetExplicitTypeType(v1);
+            }
+            else if (orType.Is2(out var v2))
+            {
+
+                testType = typeSolution.GetOrType(v2);
+            }
+            else
+            {
+                throw new Exception("well, should have been one of those");
+            }
+            return new TestTypeReference(testType);
+        }
+    }
+    public class TestValueConverter : WTF.IConvertTo<WTF.TypeProblem2.Value, TestValue>
+    {
+        public TestValue Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Value from)
+        {
+            var orType = typeSolution.GetType(from);
+
+            IBox<ITestType> testType;
+            if (orType.Is1(out var v1))
+            {
+                testType = typeSolution.GetExplicitTypeType(v1);
+            }
+            else if (orType.Is2(out var v2))
+            {
+
+                testType = typeSolution.GetOrType(v2);
+            }
+            else
+            {
+                throw new Exception("well, should have been one of those");
+            }
+            return new TestValue(testType);
+        }
+    }
 
     public class WTF : Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference> { 
     }
@@ -40,8 +190,6 @@ namespace Tac.Frontend.TypeProblem.Test
             var x = new WTF.TypeProblem2(new TestScopeConverter());
             x.Solve(new TestExplictTypeConverter());
         }
-
-
 
         [Fact]
         public void AddType()
