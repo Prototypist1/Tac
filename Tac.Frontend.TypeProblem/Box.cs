@@ -24,8 +24,10 @@ namespace Tac.Semantic_Model
             }
 
             InnerType = innerType;
+            HasThing = true;
         }
 
+        private bool HasThing = false;
         private T InnerType { get; set; }
 
         public T GetValue()
@@ -34,13 +36,14 @@ namespace Tac.Semantic_Model
         }
 
         public TT Fill<TT>(TT t)
-            where TT : class, T
+            where TT : T
         {
-            if (InnerType != null)
+            if (HasThing)
             {
                 throw new Exception();
             }
             InnerType = t ?? throw new ArgumentNullException(nameof(t));
+            HasThing = true;
             return t;
         }
     }

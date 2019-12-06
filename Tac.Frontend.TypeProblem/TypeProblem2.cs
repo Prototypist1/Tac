@@ -133,11 +133,13 @@ namespace Tac.Frontend.New.CrzayNamespace
         // 🤫 the power was in you all along
         internal class TypeSolution : ITypeSolution
         {
+            private readonly IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members;
             private readonly IReadOnlyDictionary<ILookUpType, IHaveMembers> map;
 
-            public TypeSolution(IReadOnlyDictionary<ILookUpType, IHaveMembers> map)
+            public TypeSolution(IReadOnlyDictionary<ILookUpType, IHaveMembers> map, IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
+                this.members = members ?? throw new ArgumentNullException(nameof(members));
             }
 
 
@@ -146,7 +148,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!cacheType.ContainsKey(explicitType))
                 {
-                    cacheType[explicitType] = new Box<TExplictType>(explicitType.Converter.Convert(this, explicitType));
+                    var box = new Box<TExplictType>();
+                    cacheType[explicitType] = box;
+                    box.Fill(explicitType.Converter.Convert(this, explicitType));
                 }
                 return cacheType[explicitType];
             }
@@ -156,7 +160,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!cacheMember.ContainsKey(member))
                 {
-                    cacheMember[member] = new Box<TMember>(member.Converter.Convert(this, member));
+                    var box = new Box<TMember>();
+                    cacheMember[member] = box;
+                    box.Fill(member.Converter.Convert(this, member));
                 }
                 return cacheMember[member];
             }
@@ -166,7 +172,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!cacheMethod.ContainsKey(method))
                 {
-                    cacheMethod[method] = new Box<TMethod>(method.Converter.Convert(this, method));
+                    var box = new Box<TMethod>();
+                    cacheMethod[method] = box;
+                    box.Fill(method.Converter.Convert(this, method));
                 }
                 return cacheMethod[method];
             }
@@ -176,7 +184,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!cacheObject.ContainsKey(@object))
                 {
-                    cacheObject[@object] = new Box<TObject>(@object.Converter.Convert(this, @object));
+                    var box = new Box<TObject>();
+                    cacheObject[@object] = box;
+                    box.Fill(@object.Converter.Convert(this, @object));
                 }
                 return cacheObject[@object];
             }
@@ -186,7 +196,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!cacheOrType.ContainsKey(orType))
                 {
-                    cacheOrType[orType] = new Box<TOrType>(orType.Converter.Convert(this, orType));
+                    var box = new Box<TOrType>();
+                    cacheOrType[orType] = box;
+                    box.Fill(orType.Converter.Convert(this, orType));
                 }
                 return cacheOrType[orType];
             }
@@ -196,7 +208,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!cacheScope.ContainsKey(scope))
                 {
-                    cacheScope[scope] = new Box<TScope>(scope.Converter.Convert(this, scope));
+                    var box = new Box<TScope>();
+                    cacheScope[scope] = box;
+                    box.Fill(scope.Converter.Convert(this, scope));
                 }
                 return cacheScope[scope];
             }
@@ -206,7 +220,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!cacheTypeReference.ContainsKey(typeReference))
                 {
-                    cacheTypeReference[typeReference] = new Box<TTypeReference>(typeReference.Converter.Convert(this, typeReference));
+                    var box = new Box<TTypeReference>();
+                    cacheTypeReference[typeReference] = box;
+                    box.Fill(typeReference.Converter.Convert(this, typeReference));
                 }
                 return cacheTypeReference[typeReference];
             }
@@ -217,9 +233,37 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!cacheValue.ContainsKey(value))
                 {
-                    cacheValue[value] = new Box<TValue>(value.Converter.Convert(this, value));
+                    var box = new Box<TValue>();
+                    cacheValue[value] = box;
+                    box.Fill(value.Converter.Convert(this, value));
                 }
                 return cacheValue[value];
+            }
+
+            public IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from)
+            {
+                if (!members.ContainsKey(from)) {
+                    return new List<TypeProblem2.Member>();
+                }
+                return members[from];
+            }
+
+            public OrType<TypeProblem2.Type, TypeProblem2.OrType> GetType(ILookUpType from)
+            {
+                var res = map[from];
+
+                if (res is TypeProblem2.Type type)
+                {
+                    return new OrType<TypeProblem2.Type, TypeProblem2.OrType>(type);
+                }
+                else if (res is TypeProblem2.OrType orType)
+                {
+
+                    return new OrType<TypeProblem2.Type, TypeProblem2.OrType>(orType);
+                }
+                else {
+                    throw new Exception("bug");
+                }
             }
         }
 
@@ -831,7 +875,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    return res;
                 //}
 
-                return new TypeSolution(lookUps);
+                var dict = members.ToDictionary(x => x.Key, x => (IReadOnlyList<Member>)(x.Value.Select(y => y.Value).ToArray()));
+
+                return new TypeSolution(lookUps, dict);
 
                 #endregion
 

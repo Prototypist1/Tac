@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Prototypist.Fluent;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
@@ -14,38 +16,47 @@ namespace Tac.Frontend.TypeProblem.Test
     
     }
 
+    public interface IHasScope {
+        IBox<TestScope> MemberCollection { get; }
+    }
+
     public class TestScope {
         public readonly List<IBox<TestMember>> members = new List<IBox<TestMember>>();
     }
-    public class TestExplictType : ITestType {
-        public readonly IBox<TestScope> MemberCollection;
+    public class TestExplictType : ITestType, IHasScope
+    {
+        public IBox<TestScope> MemberCollection { get; }
 
         public TestExplictType(IBox<TestScope> memberCollection)
         {
             MemberCollection = memberCollection ?? throw new ArgumentNullException(nameof(memberCollection));
         }
     }
-    public class TestObject {
-        public readonly IBox<TestScope> MemberCollection;
+    public class TestObject: IHasScope
+    {
+        public  IBox<TestScope> MemberCollection { get; }
     }
     public class TestOrType : ITestType {
         public readonly IBox<ITestType> Type1;
         public readonly IBox<ITestType> Type2;
     }
-    public class TestMethod {
-        public readonly IBox<TestScope> Scope;
+    public class TestMethod: IHasScope
+    {
+        public IBox<TestScope> MemberCollection { get; }
 
         public TestMethod(IBox<TestScope> @ref)
         {
-            this.Scope = @ref ?? throw new ArgumentNullException(nameof(@ref));
+            this.MemberCollection = @ref ?? throw new ArgumentNullException(nameof(@ref));
         }
     }
     public class TestMember {
         public readonly IBox<ITestType> Type;
+        public readonly IKey key;
 
-        public TestMember(IBox<ITestType> testType)
+        public TestMember(IBox<ITestType> testType, IKey key)
         {
             Type = testType ?? throw new ArgumentNullException(nameof(testType));
+            this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
     }
     public class TestTypeReference {
@@ -111,6 +122,13 @@ namespace Tac.Frontend.TypeProblem.Test
     }
     public class TestMemberConverter : WTF.IConvertTo<WTF.TypeProblem2.Member, TestMember>
     {
+        private IKey nameKey;
+
+        public TestMemberConverter(IKey nameKey)
+        {
+            this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+        }
+
         public TestMember Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Member from)
         {
             var orType = typeSolution.GetType(from);
@@ -128,7 +146,7 @@ namespace Tac.Frontend.TypeProblem.Test
             else {
                 throw new Exception("well, should have been one of those");
             }
-            return new TestMember(testType);
+            return new TestMember(testType, nameKey);
         }
     }
     public class TestTypeReferenceConverter : WTF.IConvertTo<WTF.TypeProblem2.Member, TestTypeReference>
@@ -184,6 +202,26 @@ namespace Tac.Frontend.TypeProblem.Test
     // TODO test or types
     public class Tests
     {
+        #region Help
+
+        private static void HasCount(int count, IHasScope result)
+        {
+            Assert.Equal(count, result.MemberCollection.GetValue().members.Count);
+        }
+
+        private static TestMember HasMember(IHasScope result, IKey key)
+        {
+            var single = result.MemberCollection.GetValue().members.Where(x => key.Equals(x.GetValue().key));
+            Assert.Single(single);
+            return single.First().GetValue();
+        }
+
+        private static TestExplictType MemberToType(TestMember member) {
+            return (TestExplictType)member.Type.GetValue();
+        }
+
+        #endregion
+
 
         [Fact]
         public void Simplest() {
@@ -195,18 +233,18 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AddType()
         {
             var x = new WTF.TypeProblem2(new TestScopeConverter());
-            var hello = x.CreateType(x.Root, new NameKey("Hello"),new TestExplictTypeConverter());
-            var hello_x = x.CreateMember(hello, new NameKey("x"), new TestMemberConverter());
-            var hello_y = x.CreateMember(hello, new NameKey("y"), new TestMemberConverter());
+            var hello = x.CreateType(x.Root, new NameKey("Hello"), new TestExplictTypeConverter());
+            var hello_x = x.CreateMember(hello, new NameKey("x"), new TestMemberConverter(new NameKey("x")));
+            var hello_y = x.CreateMember(hello, new NameKey("y"), new TestMemberConverter(new NameKey("y")));
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var resultHello = solution.GetExplicitTypeType(hello);
+            var resultHello = solution.GetExplicitTypeType(hello).GetValue();
 
-            Assert.True(resultHello.Is2(out var concreteSolution));
-            Assert.Equal(2, concreteSolution.Count);
-            Assert.True(concreteSolution.ContainsKey(new NameKey("x")));
-            Assert.True(concreteSolution.ContainsKey(new NameKey("y")));
+            HasCount(2, resultHello);
+            HasMember(resultHello, new NameKey("x"));
+            HasMember(resultHello, new NameKey("y"));
         }
+
 
         [Fact]
         public void AddMethod()
@@ -214,17 +252,17 @@ namespace Tac.Frontend.TypeProblem.Test
             var x = new WTF.TypeProblem2(new TestScopeConverter());
 
             var hello = x.CreateType(x.Root, new NameKey("hello"), new TestExplictTypeConverter());
-            var hello_x = x.CreateMember(hello, new NameKey("x"), new TestMemberConverter());
-            var hello_y = x.CreateMember(hello, new NameKey("y"), new TestMemberConverter());
+            var hello_x = x.CreateMember(hello, new NameKey("x"), new TestMemberConverter(new NameKey("x")));
+            var hello_y = x.CreateMember(hello, new NameKey("y"), new TestMemberConverter(new NameKey("y")));
 
             var input = x.CreateValue(x.Root,new NameKey("hello"), new TestValueConverter());
-            var method = x.CreateMethod(x.Root, "input", new TestMethodConverter(), new TestMemberConverter(),new TestMemberConverter());
+            var method = x.CreateMethod(x.Root, "input", new TestMethodConverter(), new TestMemberConverter(new NameKey("input")),new TestMemberConverter(new NameKey("result")));
 
-            var input_x = x.CreateHopefulMember(method.Input(), new NameKey("x"), new TestMemberConverter());
-            var input_y = x.CreateHopefulMember(method.Input(), new NameKey("y"), new TestMemberConverter());
+            var input_x = x.CreateHopefulMember(method.Input(), new NameKey("x"), new TestMemberConverter(new NameKey("x")));
+            var input_y = x.CreateHopefulMember(method.Input(), new NameKey("y"), new TestMemberConverter(new NameKey("y")));
 
-            var method_x = x.CreateMember(method, new NameKey("x"), new TestMemberConverter());
-            var method_y = x.CreateMember(method, new NameKey("y"), new TestMemberConverter());
+            var method_x = x.CreateMember(method, new NameKey("x"), new TestMemberConverter(new NameKey("x")));
+            var method_y = x.CreateMember(method, new NameKey("y"), new TestMemberConverter(new NameKey("y")));
 
             input_x.AssignTo(method_x);
             input_y.AssignTo(method_y);
@@ -235,28 +273,25 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var result = x.Solve(new TestExplictTypeConverter());
 
-            var methodResultOr = result.GetMethodScopeType(method);
+            var methodResult = result.GetMethodScopeType(method).GetValue();
 
-            Assert.True(methodResultOr.Is2(out var concertMethod));
-            Assert.True(concertMethod.TryGetValue(new NameKey("input"), out var inputOr));
-            Assert.True(concertMethod.ContainsKey(new NameKey("x")));
-            Assert.True(concertMethod.ContainsKey(new NameKey("y")));
-            Assert.Equal(4, concertMethod.Count);
-            Assert.True(inputOr.Is2(out var concertInput));
-            Assert.True(concertInput.ContainsKey(new NameKey("x")));
-            Assert.True(concertInput.ContainsKey(new NameKey("y")));
-            Assert.Equal(2, concertInput.Count);
+            HasCount(4, methodResult);
+            HasMember(methodResult,new NameKey("x"));
+            HasMember(methodResult,new NameKey("y"));
+            var inputResult = MemberToType(HasMember(methodResult, new NameKey("input")));
 
-            var resultHello = result.GetExplicitTypeType(hello);
-            Assert.True(resultHello.Is2(out var concreteSolution));
-            Assert.Equal(2, concreteSolution.Count);
-            Assert.True(concreteSolution.ContainsKey(new NameKey("x")));
-            Assert.True(concreteSolution.ContainsKey(new NameKey("y")));
+            HasCount(2, inputResult);
+            HasMember(inputResult, new NameKey("x"));
+            HasMember(inputResult, new NameKey("y"));
+
+            var helloResult = result.GetExplicitTypeType(hello).GetValue();
+            HasCount(2, helloResult);
+            HasMember(helloResult, new NameKey("x"));
+            HasMember(helloResult, new NameKey("y"));
 
             // things don't flow downstream 
-            var methodReturns = result.GetMemberType(method.Returns());
-            Assert.True(methodReturns.Is2(out var concertReturns));
-            Assert.Empty(concertReturns);
+            var methodReturns = MemberToType(result.GetMemberType(method.Returns()).GetValue());
+            HasCount(0, methodReturns);
 
         }
 
@@ -265,13 +300,13 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new WTF.TypeProblem2(new TestScopeConverter());
 
-            var m1 = x.CreateMember(x.Root, new NameKey("m1"), new TestMemberConverter());
-            x.CreateHopefulMember(m1, new NameKey("x"), new TestMemberConverter());
-            var m2 = x.CreateMember(x.Root, new NameKey("m2"), new TestMemberConverter());
-            x.CreateHopefulMember(m2, new NameKey("y"), new TestMemberConverter());
-            var m3 = x.CreateMember(x.Root, new NameKey("m3"), new TestMemberConverter());
-            var m4 = x.CreateMember(x.Root, new NameKey("m4"), new TestMemberConverter());
-            var m5 = x.CreateMember(x.Root, new NameKey("m5"), new TestMemberConverter());
+            var m1 = x.CreateMember(x.Root, new NameKey("m1"), new TestMemberConverter(new NameKey("m1")));
+            x.CreateHopefulMember(m1, new NameKey("x"), new TestMemberConverter(new NameKey("x")));
+            var m2 = x.CreateMember(x.Root, new NameKey("m2"), new TestMemberConverter(new NameKey("m2")));
+            x.CreateHopefulMember(m2, new NameKey("y"), new TestMemberConverter(new NameKey("y")));
+            var m3 = x.CreateMember(x.Root, new NameKey("m3"), new TestMemberConverter(new NameKey("m3")));
+            var m4 = x.CreateMember(x.Root, new NameKey("m4"), new TestMemberConverter(new NameKey("m4")));
+            var m5 = x.CreateMember(x.Root, new NameKey("m5"), new TestMemberConverter(new NameKey("m5")));
 
             m1.AssignTo(m3);
             m2.AssignTo(m3);
@@ -280,25 +315,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var m1Or = solution.GetMemberType(m1);
-            Assert.True(m1Or.Is2(out var m1concrete));
-            Assert.Single(m1concrete);
-
-            var m2Or = solution.GetMemberType(m2);
-            Assert.True(m2Or.Is2(out var m2concrete));
-            Assert.Single(m2concrete);
-
-            var m3Or = solution.GetMemberType(m3);
-            Assert.True(m3Or.Is2(out var m3concrete));
-            Assert.Empty(m3concrete);
-
-            var m4Or = solution.GetMemberType(m4);
-            Assert.True(m4Or.Is2(out var m4concrete));
-            Assert.Empty(m4concrete);
-
-            var m5Or = solution.GetMemberType(m5);
-            Assert.True(m5Or.Is2(out var m5concrete));
-            Assert.Empty(m5concrete);
+            HasCount(1, MemberToType(solution.GetMemberType(m1).GetValue()));
+            HasCount(1, MemberToType(solution.GetMemberType(m2).GetValue()));
+            HasCount(0, MemberToType(solution.GetMemberType(m3).GetValue()));
+            HasCount(0, MemberToType(solution.GetMemberType(m4).GetValue()));
+            HasCount(0, MemberToType(solution.GetMemberType(m5).GetValue()));
 
         }
 
@@ -310,13 +331,13 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new WTF.TypeProblem2(new TestScopeConverter());
 
-            var m1 = x.CreateMember(x.Root, new NameKey("m1"), new TestMemberConverter());
-            var m2 = x.CreateMember(x.Root, new NameKey("m2"), new TestMemberConverter());
-            var m3 = x.CreateMember(x.Root, new NameKey("m3"), new TestMemberConverter());
-            var m4 = x.CreateMember(x.Root, new NameKey("m4"), new TestMemberConverter());
-            x.CreateHopefulMember(m4, new NameKey("x"), new TestMemberConverter());
-            var m5 = x.CreateMember(x.Root, new NameKey("m5"), new TestMemberConverter());
-            x.CreateHopefulMember(m5, new NameKey("y"), new TestMemberConverter());
+            var m1 = x.CreateMember(x.Root, new NameKey("m1"), new TestMemberConverter(new NameKey("m1")));
+            var m2 = x.CreateMember(x.Root, new NameKey("m2"), new TestMemberConverter(new NameKey("m2")));
+            var m3 = x.CreateMember(x.Root, new NameKey("m3"), new TestMemberConverter(new NameKey("m3")));
+            var m4 = x.CreateMember(x.Root, new NameKey("m4"), new TestMemberConverter(new NameKey("m4")));
+            x.CreateHopefulMember(m4, new NameKey("x"), new TestMemberConverter(new NameKey("x")));
+            var m5 = x.CreateMember(x.Root, new NameKey("m5"), new TestMemberConverter(new NameKey("m5")));
+            x.CreateHopefulMember(m5, new NameKey("y"), new TestMemberConverter(new NameKey("y")));
 
             m1.AssignTo(m3);
             m2.AssignTo(m3);
@@ -325,25 +346,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var m1Or = solution.GetMemberType(m1);
-            Assert.True(m1Or.Is2(out var m1concrete));
-            Assert.Equal(2,m1concrete.Count);
-
-            var m2Or = solution.GetMemberType(m2);
-            Assert.True(m2Or.Is2(out var m2concrete));
-            Assert.Equal(2, m2concrete.Count);
-
-            var m3Or = solution.GetMemberType(m3);
-            Assert.True(m3Or.Is2(out var m3concrete));
-            Assert.Equal(2, m3concrete.Count);
-
-            var m4Or = solution.GetMemberType(m4);
-            Assert.True(m4Or.Is2(out var m4concrete));
-            Assert.Single(m4concrete);
-
-            var m5Or = solution.GetMemberType(m5);
-            Assert.True(m5Or.Is2(out var m5concrete));
-            Assert.Single(m5concrete);
+            HasCount(2, MemberToType(solution.GetMemberType(m1).GetValue()));
+            HasCount(2, MemberToType(solution.GetMemberType(m2).GetValue()));
+            HasCount(2, MemberToType(solution.GetMemberType(m3).GetValue()));
+            HasCount(1, MemberToType(solution.GetMemberType(m4).GetValue()));
+            HasCount(1, MemberToType(solution.GetMemberType(m5).GetValue()));
 
         }
 
@@ -353,23 +360,18 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new WTF.TypeProblem2(new TestScopeConverter());
 
-            var m1 = x.CreateMember(x.Root, new NameKey("m1"), new TestMemberConverter());
-            x.CreateHopefulMember(m1, new NameKey("x"), new TestMemberConverter());
-            var m2 = x.CreateMember(x.Root, new NameKey("m2"), new TestMemberConverter());
-            x.CreateHopefulMember(m2, new NameKey("y"), new TestMemberConverter());
+            var m1 = x.CreateMember(x.Root, new NameKey("m1"), new TestMemberConverter(new NameKey("m1")));
+            x.CreateHopefulMember(m1, new NameKey("x"), new TestMemberConverter(new NameKey("x")));
+            var m2 = x.CreateMember(x.Root, new NameKey("m2"), new TestMemberConverter(new NameKey("m2")));
+            x.CreateHopefulMember(m2, new NameKey("y"), new TestMemberConverter(new NameKey("y")));
 
             m1.AssignTo(m2);
             m2.AssignTo(m1);
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var m1Or = solution.GetMemberType(m1);
-            Assert.True(m1Or.Is2(out var m1concrete));
-            Assert.Equal(2, m1concrete.Count);
-
-            var m2Or = solution.GetMemberType(m2);
-            Assert.True(m2Or.Is2(out var m2concrete));
-            Assert.Equal(2, m2concrete.Count);
+            HasCount(2, MemberToType(solution.GetMemberType(m1).GetValue()));
+            HasCount(2, MemberToType(solution.GetMemberType(m2).GetValue()));
         }
 
 
@@ -383,22 +385,25 @@ namespace Tac.Frontend.TypeProblem.Test
             },new TestExplictTypeConverter());
 
             x.CreateMember(pairType, new NameKey("x"),
-                new NameKey("T"),false, new TestMemberConverter());
+                new NameKey("T"),false, new TestMemberConverter(new NameKey("x")));
 
             var chickenType = x.CreateType(x.Root, new NameKey("chicken"), new TestExplictTypeConverter());
 
-            x.CreateMember(chickenType, new NameKey("eggs"), new TestMemberConverter());
+            x.CreateMember(chickenType, new NameKey("eggs"), new TestMemberConverter(new NameKey("eggs")));
 
-            var chickenPair = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter());
+            var chickenPair = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter(new NameKey("x")));
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var chickenPairOr = solution.GetMemberType(chickenPair);
+            var chickenPairResult = solution.GetMemberType(chickenPair).GetValue();
 
-            Assert.True(chickenPairOr.Is2(out var chickPairConcrete));
-            var pair = Assert.Single(chickPairConcrete);
-            Assert.True(pair.Value.Is2(out var chickenMemberConcrete));
-            Assert.True(chickenMemberConcrete.ContainsKey(new NameKey("eggs")));
+            var chickePairResultType = MemberToType(chickenPairResult);
+
+            HasCount(1, chickePairResultType);
+            var xResult = HasMember(chickePairResultType, new NameKey("x"));
+            var xResultType = MemberToType(xResult);
+            HasCount(1, xResultType);
+            HasMember(xResultType, new NameKey("eggs"));
 
         }
 
@@ -414,23 +419,26 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(type, new NameKey("next"), new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("node-t")
-            }), false, new TestMemberConverter());
+            }), false, new TestMemberConverter(new NameKey("next")));
 
             x.CreateType(x.Root, new NameKey("chicken"), new TestExplictTypeConverter());
 
 
             var thing = x.CreateMember(x.Root, new NameKey("thing"), new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("chicken")
-            }), false, new TestMemberConverter());
+            }), false, new TestMemberConverter(new NameKey("thing")));
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var thingOr = solution.GetMemberType(thing);
+            var thingResult = solution.GetMemberType(thing).GetValue();
+            var thingResultType = MemberToType(thingResult);
 
-            Assert.True(thingOr.Is2(out var thingConcrete));
-            var pair = Assert.Single(thingConcrete);
-            Assert.True(pair.Value.Is2(out var pairConcrete));
-            Assert.Equal(pairConcrete, thingConcrete);
+            HasCount(1, thingResultType);
+            var nextResult = HasMember(thingResultType, new NameKey("next"));
+            var nextResultType = MemberToType(nextResult);
+            HasCount(1, nextResultType);
+
+            Assert.Equal(thingResultType, nextResultType);
         }
 
 
@@ -446,7 +454,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(left,new NameKey("thing"), new GenericNameKey(new NameKey("right"), new IKey[] {
                 new NameKey("left-t")
-            }), false, new TestMemberConverter());
+            }), false, new TestMemberConverter(new NameKey("thing")));
 
             var right = x.CreateGenericType(x.Root, new NameKey("right"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("right-t"), new TestExplictTypeConverter())
@@ -454,29 +462,33 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(right, new NameKey("thing"), new GenericNameKey(new NameKey("left"), new IKey[] {
                 new NameKey("right-t")
-            }), false, new TestMemberConverter());
+            }), false, new TestMemberConverter(new NameKey("thing")));
 
             x.CreateType(x.Root, new NameKey("chicken"), new TestExplictTypeConverter());
 
-            var leftMember =  x.CreateMember(x.Root, new NameKey("left-member"), new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter());
+            var leftMember =  x.CreateMember(x.Root, new NameKey("left-member"), new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter(new NameKey("left-member")));
 
-            var rightMember = x.CreateMember(x.Root, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter());
+            var rightMember = x.CreateMember(x.Root, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter(new NameKey("right-member")));
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var leftMemberOr = solution.GetMemberType(leftMember);
-            var rightMemberOr = solution.GetMemberType(rightMember);
+            var leftResult = solution.GetMemberType(leftMember).GetValue();
+            var rightResult = solution.GetMemberType(rightMember).GetValue();
 
-            Assert.True(leftMemberOr.Is2(out var leftMemberConcrete));
-            Assert.True(rightMemberOr.Is2(out var rightMemberConcrete));
+            var leftResultType = MemberToType(leftResult);
+            var rightResultType = MemberToType(rightResult);
 
-            var leftMemberConcreteMemberPair = Assert.Single(leftMemberConcrete);
-            Assert.True(leftMemberConcreteMemberPair.Value.Is2(out var leftMemberConcreteMemberConcrete));
-            var rightMemberConcreteMemberPair = Assert.Single(rightMemberConcrete);
-            Assert.True(rightMemberConcreteMemberPair.Value.Is2(out var rightMemberConcreteMemberConcrete));
+            HasCount(1, leftResultType);
+            HasCount(1, rightResultType);
 
-            Assert.Equal(leftMemberConcreteMemberConcrete, rightMemberConcrete);
-            Assert.Equal(rightMemberConcreteMemberConcrete, leftMemberConcrete);
+            var leftThing = HasMember(leftResultType, new NameKey("thing"));
+            var rightThing = HasMember(rightResultType, new NameKey("thing"));
+
+            var leftThingType = MemberToType(leftThing);
+            var rightThingType = MemberToType(rightThing);
+
+            Assert.Equal(leftResultType, rightThingType);
+            Assert.Equal(rightResultType, leftThingType);
         }
 
 
@@ -492,25 +504,26 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
             x.CreateMember(pairType, new NameKey("x"),
-                new NameKey("T"), false, new TestMemberConverter());
+                new NameKey("T"), false, new TestMemberConverter(new NameKey("x")));
 
             var chickenType = x.CreateType(x.Root, new NameKey("chicken"), new TestExplictTypeConverter());
 
-            x.CreateMember(chickenType, new NameKey("eggs"), new TestMemberConverter());
+            x.CreateMember(chickenType, new NameKey("eggs"), new TestMemberConverter(new NameKey("eggs")));
 
-            var xMember = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }), false, new TestMemberConverter());
-
+            var xMember = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }), false, new TestMemberConverter(new NameKey("x")));
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var chickenPairOr = solution.GetMemberType(xMember);
-
-            Assert.True(chickenPairOr.Is2(out var chickenPairPairConcrete));
-            var chickenPairPairConcreteMember = Assert.Single(chickenPairPairConcrete);
-            Assert.True(chickenPairPairConcreteMember.Value.Is2(out var chickenPairConcrete));
-            var chickenPairConcreteMember = Assert.Single(chickenPairConcrete);
-            Assert.True(chickenPairConcreteMember.Value.Is2(out var chickenConcrete));
-            Assert.True(chickenConcrete.ContainsKey(new NameKey("eggs")));
+            var xMemberResult = solution.GetMemberType(xMember).GetValue();
+            var xMemberResultType = MemberToType(xMemberResult);
+            HasCount(1, xMemberResultType);
+            var xMemberResultX = HasMember(xMemberResultType, new NameKey("x"));
+            var xMemberResultXType = MemberToType(xMemberResultX);
+            HasCount(1, xMemberResultXType);
+            var xMemberResultXTypeX = HasMember(xMemberResultXType, new NameKey("x"));
+            var xMemberResultXTypeXType = MemberToType(xMemberResultXTypeX);
+            HasCount(1, xMemberResultXTypeXType);
+            HasMember(xMemberResultXTypeXType, new NameKey("eggs"));
         }
     }
 }
