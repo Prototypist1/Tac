@@ -10,6 +10,9 @@ using Tac.Semantic_Model;
 namespace Tac.Frontend.New.CrzayNamespace
 {
 
+    // having this be it's own project was a bad idea!
+    // these are very expensive abstractions
+
 
     // this static class is here just to make us all think in terms of these bros
     public class Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>
