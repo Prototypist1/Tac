@@ -73,7 +73,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakTypeDefinition : IWeakTypeDefinition
     {
-        public WeakTypeDefinition(IResolvableScope scope, IIsPossibly<IKey> key)
+        public WeakTypeDefinition(WeakScope scope, IIsPossibly<IKey> key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -82,7 +82,7 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IKey> Key { get; }
         // I am not sure I agree with this
         // it is an ordered set of types, names and acccessablity modifiers
-        public IResolvableScope Scope { get; }
+        public WeakScope Scope { get; }
         
         public IIsPossibly<IFrontendType> Returns()
         {

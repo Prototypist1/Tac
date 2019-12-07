@@ -54,14 +54,17 @@ namespace Tac.Semantic_Model
     //    IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
     //}
 
+
+    // now sure why this needs to be a thing
+    // can't I just use the type?
     internal class WeakTypeReference //: IFrontendType
     {
-        public WeakTypeReference(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> typeDefinition)
+        public WeakTypeReference(IBox<IFrontendType> typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
 
-        public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
+        public IBox<IFrontendType> TypeDefinition { get; }
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
@@ -76,9 +79,9 @@ namespace Tac.Semantic_Model
 
     internal static class TypeReferenceStatic
     {
-        public static IBuildIntention<IVerifiableType> GetBuildIntention(IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition, IConversionContext context)
+        public static IBuildIntention<IVerifiableType> GetBuildIntention(IBox<IFrontendType> TypeDefinition, IConversionContext context)
         {
-            if (TypeDefinition.GetOrThrow().GetValue().GetOrThrow() is IConvertableFrontendType<IVerifiableType> convertableType)
+            if (TypeDefinition.GetValue() is IConvertableFrontendType<IVerifiableType> convertableType)
             {
                 return convertableType.GetBuildIntention(context);
             }

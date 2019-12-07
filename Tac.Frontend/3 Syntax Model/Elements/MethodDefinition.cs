@@ -40,10 +40,10 @@ namespace Tac.Semantic_Model
         IValueDefinition
     {
         public WeakMethodDefinition(
-            IIsPossibly<IFrontendType> outputType, 
-            IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
+            IBox<IFrontendType> outputType, 
+            IBox<IWeakMemberDefinition> parameterDefinition,
             IIsPossibly<IFrontendCodeElement>[] body,
-            IResolvableScope scope,
+            WeakScope scope,
             IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers,
             bool isEntryPoint) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
@@ -52,9 +52,9 @@ namespace Tac.Semantic_Model
             IsEntryPoint = isEntryPoint;
         }
         
-        public IIsPossibly<IFrontendType> InputType => ParameterDefinition.IfIs(x=> x.GetValue()).IfIs(x=>x.Type);
-        public IIsPossibly<IFrontendType> OutputType { get; }
-        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
+        public IBox<IFrontendType> InputType => ParameterDefinition.GetValue().Type;
+        public IBox<IFrontendType> OutputType { get; }
+        public IBox<IWeakMemberDefinition> ParameterDefinition { get; }
         public bool IsEntryPoint { get; }
 
         public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(IConversionContext context)
@@ -63,9 +63,9 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    InputType.GetOrThrow().ConvertTypeOrThrow(context),
-                    OutputType.GetOrThrow().ConvertTypeOrThrow(context),
-                    ParameterDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context),
+                    InputType.GetValue().ConvertTypeOrThrow(context),
+                    OutputType.GetValue().ConvertTypeOrThrow(context),
+                    ParameterDefinition.GetValue().Convert(context),
                     Scope.Convert(context),
                     Body.Select(x=>x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x=>x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),

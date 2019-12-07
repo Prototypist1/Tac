@@ -85,7 +85,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var res = new TestScope();
             foreach (var member in members)
             {
-                res.members.Add(typeSolution.GetMemberType(member));
+                res.members.Add(typeSolution.GetMember(member));
             }
             return res;
         }
@@ -98,7 +98,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var scope = new TestScope();
             foreach (var member in members)
             {
-                scope.members.Add(typeSolution.GetMemberType(member));
+                scope.members.Add(typeSolution.GetMember(member));
             }
             var @ref = new Box<TestScope>();
             @ref.Fill(scope);
@@ -113,7 +113,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var scope = new TestScope();
             foreach (var member in members)
             {
-                scope.members.Add(typeSolution.GetMemberType(member));
+                scope.members.Add(typeSolution.GetMember(member));
             }
             var @ref = new Box<TestScope>();
             @ref.Fill(scope);
@@ -136,7 +136,7 @@ namespace Tac.Frontend.TypeProblem.Test
             IBox<ITestType> testType;
             if (orType.Is1(out var v1))
             {
-                testType = typeSolution.GetExplicitTypeType(v1);
+                testType = typeSolution.GetExplicitType(v1);
             }
             else if (orType.Is2(out var v2))
             {
@@ -158,7 +158,7 @@ namespace Tac.Frontend.TypeProblem.Test
             IBox<ITestType> testType;
             if (orType.Is1(out var v1))
             {
-                testType = typeSolution.GetExplicitTypeType(v1);
+                testType = typeSolution.GetExplicitType(v1);
             }
             else if (orType.Is2(out var v2))
             {
@@ -181,7 +181,7 @@ namespace Tac.Frontend.TypeProblem.Test
             IBox<ITestType> testType;
             if (orType.Is1(out var v1))
             {
-                testType = typeSolution.GetExplicitTypeType(v1);
+                testType = typeSolution.GetExplicitType(v1);
             }
             else if (orType.Is2(out var v2))
             {
@@ -238,7 +238,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var hello_y = x.CreateMember(hello, new NameKey("y"), new TestMemberConverter(new NameKey("y")));
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var resultHello = solution.GetExplicitTypeType(hello).GetValue();
+            var resultHello = solution.GetExplicitType(hello).GetValue();
 
             HasCount(2, resultHello);
             HasMember(resultHello, new NameKey("x"));
@@ -273,7 +273,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var result = x.Solve(new TestExplictTypeConverter());
 
-            var methodResult = result.GetMethodScopeType(method).GetValue();
+            var methodResult = result.GetMethod(method).GetValue();
 
             HasCount(4, methodResult);
             HasMember(methodResult,new NameKey("x"));
@@ -284,13 +284,13 @@ namespace Tac.Frontend.TypeProblem.Test
             HasMember(inputResult, new NameKey("x"));
             HasMember(inputResult, new NameKey("y"));
 
-            var helloResult = result.GetExplicitTypeType(hello).GetValue();
+            var helloResult = result.GetExplicitType(hello).GetValue();
             HasCount(2, helloResult);
             HasMember(helloResult, new NameKey("x"));
             HasMember(helloResult, new NameKey("y"));
 
             // things don't flow downstream 
-            var methodReturns = MemberToType(result.GetMemberType(method.Returns()).GetValue());
+            var methodReturns = MemberToType(result.GetMember(method.Returns()).GetValue());
             HasCount(0, methodReturns);
 
         }
@@ -315,11 +315,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            HasCount(1, MemberToType(solution.GetMemberType(m1).GetValue()));
-            HasCount(1, MemberToType(solution.GetMemberType(m2).GetValue()));
-            HasCount(0, MemberToType(solution.GetMemberType(m3).GetValue()));
-            HasCount(0, MemberToType(solution.GetMemberType(m4).GetValue()));
-            HasCount(0, MemberToType(solution.GetMemberType(m5).GetValue()));
+            HasCount(1, MemberToType(solution.GetMember(m1).GetValue()));
+            HasCount(1, MemberToType(solution.GetMember(m2).GetValue()));
+            HasCount(0, MemberToType(solution.GetMember(m3).GetValue()));
+            HasCount(0, MemberToType(solution.GetMember(m4).GetValue()));
+            HasCount(0, MemberToType(solution.GetMember(m5).GetValue()));
 
         }
 
@@ -346,11 +346,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            HasCount(2, MemberToType(solution.GetMemberType(m1).GetValue()));
-            HasCount(2, MemberToType(solution.GetMemberType(m2).GetValue()));
-            HasCount(2, MemberToType(solution.GetMemberType(m3).GetValue()));
-            HasCount(1, MemberToType(solution.GetMemberType(m4).GetValue()));
-            HasCount(1, MemberToType(solution.GetMemberType(m5).GetValue()));
+            HasCount(2, MemberToType(solution.GetMember(m1).GetValue()));
+            HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
+            HasCount(2, MemberToType(solution.GetMember(m3).GetValue()));
+            HasCount(1, MemberToType(solution.GetMember(m4).GetValue()));
+            HasCount(1, MemberToType(solution.GetMember(m5).GetValue()));
 
         }
 
@@ -370,8 +370,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            HasCount(2, MemberToType(solution.GetMemberType(m1).GetValue()));
-            HasCount(2, MemberToType(solution.GetMemberType(m2).GetValue()));
+            HasCount(2, MemberToType(solution.GetMember(m1).GetValue()));
+            HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
         }
 
 
@@ -395,7 +395,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var chickenPairResult = solution.GetMemberType(chickenPair).GetValue();
+            var chickenPairResult = solution.GetMember(chickenPair).GetValue();
 
             var chickePairResultType = MemberToType(chickenPairResult);
 
@@ -430,7 +430,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var thingResult = solution.GetMemberType(thing).GetValue();
+            var thingResult = solution.GetMember(thing).GetValue();
             var thingResultType = MemberToType(thingResult);
 
             HasCount(1, thingResultType);
@@ -472,8 +472,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var leftResult = solution.GetMemberType(leftMember).GetValue();
-            var rightResult = solution.GetMemberType(rightMember).GetValue();
+            var leftResult = solution.GetMember(leftMember).GetValue();
+            var rightResult = solution.GetMember(rightMember).GetValue();
 
             var leftResultType = MemberToType(leftResult);
             var rightResultType = MemberToType(rightResult);
@@ -514,7 +514,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
-            var xMemberResult = solution.GetMemberType(xMember).GetValue();
+            var xMemberResult = solution.GetMember(xMember).GetValue();
             var xMemberResultType = MemberToType(xMemberResult);
             HasCount(1, xMemberResultType);
             var xMemberResultX = HasMember(xMemberResultType, new NameKey("x"));

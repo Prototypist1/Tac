@@ -42,14 +42,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public interface ITypeSolution
         {
-            IBox<TValue> GetValueType(TypeProblem2.Value value);
-            IBox<TMember> GetMemberType(TypeProblem2.Member member);
-            IBox<TTypeReference> GetTypeReferenceType(TypeProblem2.TypeReference typeReference);
+            IBox<TValue> GetValue(TypeProblem2.Value value);
+            IBox<TMember> GetMember(TypeProblem2.Member member);
+            IBox<TTypeReference> GetTypeReference(TypeProblem2.TypeReference typeReference);
             IBox<TScope> GetScope(TypeProblem2.Scope scope);
-            IBox<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType);
-            IBox<TObject> GetObjectType(TypeProblem2.Object @object);
+            IBox<TExplictType> GetExplicitType(TypeProblem2.Type explicitType);
+            IBox<TObject> GetObject(TypeProblem2.Object @object);
             IBox<TOrType> GetOrType(TypeProblem2.OrType orType);
-            IBox<TMethod> GetMethodScopeType(TypeProblem2.Method method);
+            IBox<TMethod> GetMethod(TypeProblem2.Method method);
             IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
             OrType<TypeProblem2.Type, TypeProblem2.OrType> GetType(ILookUpType from);
         }
@@ -147,7 +147,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             private Dictionary<TypeProblem2.Type, IBox<TExplictType>> cacheType = new Dictionary<TypeProblem2.Type, IBox<TExplictType>>();
-            public IBox<TExplictType> GetExplicitTypeType(TypeProblem2.Type explicitType)
+            public IBox<TExplictType> GetExplicitType(TypeProblem2.Type explicitType)
             {
                 if (!cacheType.ContainsKey(explicitType))
                 {
@@ -159,7 +159,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private Dictionary<TypeProblem2.Member, IBox<TMember>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<TMember>>();
-            public IBox<TMember> GetMemberType(TypeProblem2.Member member)
+            public IBox<TMember> GetMember(TypeProblem2.Member member)
             {
                 if (!cacheMember.ContainsKey(member))
                 {
@@ -171,7 +171,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private Dictionary<TypeProblem2.Method, IBox<TMethod>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<TMethod>>();
-            public IBox<TMethod> GetMethodScopeType(TypeProblem2.Method method)
+            public IBox<TMethod> GetMethod(TypeProblem2.Method method)
             {
                 if (!cacheMethod.ContainsKey(method))
                 {
@@ -183,7 +183,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private Dictionary<TypeProblem2.Object, IBox<TObject>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<TObject>>();
-            public IBox<TObject> GetObjectType(TypeProblem2.Object @object)
+            public IBox<TObject> GetObject(TypeProblem2.Object @object)
             {
                 if (!cacheObject.ContainsKey(@object))
                 {
@@ -219,7 +219,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private Dictionary<TypeProblem2.TypeReference, IBox<TTypeReference>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, IBox<TTypeReference>>();
-            public IBox<TTypeReference> GetTypeReferenceType(TypeProblem2.TypeReference typeReference)
+            public IBox<TTypeReference> GetTypeReference(TypeProblem2.TypeReference typeReference)
             {
                 if (!cacheTypeReference.ContainsKey(typeReference))
                 {
@@ -232,7 +232,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private Dictionary<TypeProblem2.Value, IBox<TValue>> cacheValue = new Dictionary<TypeProblem2.Value, IBox<TValue>>();
 
-            public IBox<TValue> GetValueType(TypeProblem2.Value value)
+            public IBox<TValue> GetValue(TypeProblem2.Value value)
             {
                 if (!cacheValue.ContainsKey(value))
                 {
