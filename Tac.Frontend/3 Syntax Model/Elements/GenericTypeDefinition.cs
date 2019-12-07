@@ -3,7 +3,7 @@ using Prototypist.TaskChain.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend.New;
@@ -14,7 +14,7 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
-using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
+using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
 
 
 namespace Tac.Parser

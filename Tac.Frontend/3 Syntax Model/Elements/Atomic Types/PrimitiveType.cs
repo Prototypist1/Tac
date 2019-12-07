@@ -1,5 +1,4 @@
 ﻿using Prototypist.LeftToRight;
-using Prototypist.TaskChain.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Semantic_Model;
 
-namespace Tac._3_Syntax_Model.Elements.Atomic_Types
+namespace Tac.SyntaxModel.Elements.AtomicTypes
 {
     internal static class PrimitiveTypes
     {

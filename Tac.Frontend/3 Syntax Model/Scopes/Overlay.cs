@@ -2,10 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Frontend;
 using Tac.Model.Elements;
-using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
+using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
 
 namespace Tac.Semantic_Model
 {

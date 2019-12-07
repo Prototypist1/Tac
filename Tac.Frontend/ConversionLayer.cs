@@ -29,9 +29,9 @@ namespace Tac.Frontend
     
     internal class PlaceholderValue
     {
-        public readonly IBox<ITestType> Type;
+        public readonly IBox<IFrontendType> Type;
 
-        public PlaceholderValue(IBox<ITestType> testType)
+        public PlaceholderValue(IBox<IFrontendType> testType)
         {
             Type = testType ?? throw new ArgumentNullException(nameof(testType));
         }
@@ -165,7 +165,6 @@ namespace Tac.Frontend
             return new WeakTypeOrOperation(Help.GetType(typeSolution,left), Help.GetType(typeSolution,right));
         }
     }
-
 
     internal class TestValueConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Value, PlaceholderValue>
     {

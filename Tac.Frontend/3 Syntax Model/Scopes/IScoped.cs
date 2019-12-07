@@ -5,13 +5,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Parser;
 using Tac.Semantic_Model.Operations;
-using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
+using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
 
 namespace Tac.Semantic_Model
 {

@@ -9,7 +9,7 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
-using static Tac._3_Syntax_Model.Elements.Atomic_Types.PrimitiveTypes;
+using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
 
 namespace Tac.Semantic_Model
 {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Tac._3_Syntax_Model.Elements.Atomic_Types;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Frontend._2_Parser;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated.Elements;
