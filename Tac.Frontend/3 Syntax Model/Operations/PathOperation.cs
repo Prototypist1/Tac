@@ -60,7 +60,7 @@ namespace Tac.Semantic_Model.Operations
     }
 
 
-    internal class PathOperationMaker : IMaker<ISetUp<WeakPathOperation, LocalTpn.IMember>>
+    internal class PathOperationMaker : IMaker<ISetUp<WeakPathOperation, LocalTpn.TypeProblem2.Member>>
     {
 
         public PathOperationMaker()
@@ -68,7 +68,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public ITokenMatching<ISetUp<WeakPathOperation, LocalTpn.IMember>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakPathOperation, LocalTpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -81,19 +81,19 @@ namespace Tac.Semantic_Model.Operations
                     var left = matching.Context.ParseLine(match.perface);
                     //var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);
 
-                    return TokenMatching<ISetUp<WeakPathOperation, LocalTpn.IMember>>.MakeMatch(
+                    return TokenMatching<ISetUp<WeakPathOperation, LocalTpn.TypeProblem2.Member>>.MakeMatch(
                         matched2.Tokens,
                         matched2.Context,
                         new WeakPathOperationPopulateScope(left, first.Item));
                 }
             }
 
-            return TokenMatching<ISetUp<WeakPathOperation, LocalTpn.IMember>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakPathOperation, LocalTpn.TypeProblem2.Member>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        private class WeakPathOperationPopulateScope : ISetUp<WeakPathOperation, LocalTpn.IMember>
+        private class WeakPathOperationPopulateScope : ISetUp<WeakPathOperation, LocalTpn.TypeProblem2.Member>
         {
             private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left;
             private readonly string name;
@@ -105,12 +105,12 @@ namespace Tac.Semantic_Model.Operations
                 this.name = name ?? throw new ArgumentNullException(nameof(name));
             }
 
-            public ISetUpResult<WeakPathOperation, LocalTpn.IMember> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakPathOperation, LocalTpn.TypeProblem2.Member> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var nextLeft = left.Run(scope, context);
                 var member = context.TypeProblem.CreateHopefulMember((LocalTpn.IHaveHopefulMembers)nextLeft, new NameKey(name));
 
-                return new SetUpResult<WeakPathOperation, LocalTpn.IMember>(new WeakPathOperationResolveReferance(
+                return new SetUpResult<WeakPathOperation, LocalTpn.TypeProblem2.Member>(new WeakPathOperationResolveReferance(
                     left.Run(scope, context).Resolve,
                     name),member);
             }

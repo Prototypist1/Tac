@@ -73,7 +73,7 @@ namespace Tac.Semantic_Model.Operations
             public ITokenMatching<string> TryMake(IMatchedTokenMatching self)
             {
                 if (self.Tokens.Any() &&
-                    self.Tokens.First() is AtomicToken first &&
+                    self.Tokens[0] is AtomicToken first &&
                     first.Item.StartsWith('"') && first.Item.EndsWith('"'))
                 {
                     var res = first.Item.Substring(1, first.Item.Length - 2);

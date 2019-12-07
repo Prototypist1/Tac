@@ -126,13 +126,13 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal class MemberDefinitionMaker : IMaker<ISetUp<WeakMemberReference, LocalTpn.IMember>>
+    internal class MemberDefinitionMaker : IMaker<ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>>
     {
         public MemberDefinitionMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<WeakMemberReference, LocalTpn.IMember>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
@@ -140,20 +140,20 @@ namespace Tac.Semantic_Model
                 .Has(new NameMaker(), out var nameToken);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakMemberReference, LocalTpn.IMember>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type));
             }
-            return TokenMatching<ISetUp<WeakMemberReference, LocalTpn.IMember>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>>.MakeNotMatch(
                                matching.Context);
         }
 
 
-        public static ISetUp<WeakMemberReference, LocalTpn.IMember> PopulateScope(
+        public static ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member> PopulateScope(
             IKey item, 
             bool v, 
-            ISetUp<IFrontendType, LocalTpn.ITypeReference> typeToken)
+            ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> typeToken)
         {
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
@@ -170,27 +170,27 @@ namespace Tac.Semantic_Model
         }
 
 
-        private class MemberDefinitionPopulateScope : ISetUp<WeakMemberReference, LocalTpn.IMember>
+        private class MemberDefinitionPopulateScope : ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>
         {
             private readonly IKey memberName;
             private readonly bool isReadonly;
-            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> type;
+            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> type;
             
-            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IFrontendType, LocalTpn.ITypeReference> typeToken)
+            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;
                 type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
             }
 
-            public ISetUpResult<WeakMemberReference, LocalTpn.IMember> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakMemberReference, LocalTpn.TypeProblem2.Member> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
 
                 var type = this.type.Run(scope, context);
                 var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.Key(),isReadonly);
 
 
-                return new SetUpResult<WeakMemberReference, LocalTpn.IMember>(new MemberDefinitionResolveReferance(
+                return new SetUpResult<WeakMemberReference, LocalTpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
                     memberName, 
                     isReadonly,
                     type.Resolve),member);

@@ -112,7 +112,7 @@ namespace Tac.Semantic_Model.Operations
                     matching.Context);
         }
         
-        public static ISetUp<TFrontendCodeElement, LocalTpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.IValue> left,
+        public static ISetUp<TFrontendCodeElement, LocalTpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.IValue> left,
                 TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
         {
             return new TrailingPopulateScope(left, make, getReturnedValue);
@@ -179,7 +179,7 @@ namespace Tac.Semantic_Model.Operations
             
             // this is shit, with good code this is fine, but with bad code this will throw
             // I will need to change this when I do a pass to communitcate error better
-            (x.SetUpSideNode as Tpn.IValue).AssignTo(mem);
+            (x.SetUpSideNode as LocalTpn.IValue).AssignTo(mem);
 
             return c.TypeProblem.CreateValue(s, new NameKey("empty"));
         })

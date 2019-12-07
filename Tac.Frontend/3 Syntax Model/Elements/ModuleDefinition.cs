@@ -40,7 +40,7 @@ namespace Tac.Semantic_Model
             this.Key = Key ?? throw new ArgumentNullException(nameof(Key));
         }
         
-        public IResolvableScope Scope { get; }
+        public WeakScope Scope { get; }
         public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitialization { get; }
 
         public IKey Key
@@ -73,14 +73,14 @@ namespace Tac.Semantic_Model
     // modules are not really objects tho
     // they have very constrained syntax
     // they only can contain constants, methods and implementations 
-    internal class ModuleDefinitionMaker : IMaker<ISetUp<WeakModuleDefinition, LocalTpn.IObject>>
+    internal class ModuleDefinitionMaker : IMaker<ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>>
     {
         public ModuleDefinitionMaker()
         {
         }
         
 
-        public ITokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.IObject>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("module"), out _)
@@ -91,18 +91,18 @@ namespace Tac.Semantic_Model
                 var elements = matching.Context.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
 
-                return TokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.IObject>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new ModuleDefinitionPopulateScope(elements, nameKey));
 
             }
-            return TokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.IObject>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        public static ISetUp<WeakModuleDefinition, LocalTpn.IObject> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements,
+        public static ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements,
                 NameKey nameKey)
         {
             return new ModuleDefinitionPopulateScope(elements,
@@ -110,7 +110,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, LocalTpn.IObject>
+        private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>
         {
             private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
             private readonly NameKey nameKey;
@@ -123,11 +123,11 @@ namespace Tac.Semantic_Model
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public ISetUpResult<WeakModuleDefinition, LocalTpn.IObject> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakModuleDefinition, LocalTpn.TypeProblem2.Object> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var myScope= context.TypeProblem.CreateObject(scope, nameKey);
 
-                return new SetUpResult<WeakModuleDefinition, LocalTpn.IObject>(new ModuleDefinitionResolveReferance(
+                return new SetUpResult<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(
                     elements.Select(x => x.Run(myScope, context).Resolve).ToArray(),
                     nameKey),myScope);
             }

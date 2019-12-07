@@ -34,7 +34,7 @@ namespace Tac.Semantic_Model.CodeStuff
     public partial class SymbolsRegistry
     {
 
-        public static string StaticTypeOrSymbol = StaticSymbolsRegistry.AddOrThrow("|");
+        public readonly static string StaticTypeOrSymbol = StaticSymbolsRegistry.AddOrThrow("|");
         public readonly string TypeOrSymbol = StaticTypeOrSymbol;
     }
 }
@@ -69,7 +69,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
                             Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
                                 new WeakTypeOrOperation(l, r)))))),(s,c,l,r)=> {
                                     var key = new ImplicitKey();
-                                    c.TypeProblem.CreateOrType(s, key,(LocalTpn.ITypeReference)l.SetUpSideNode, (LocalTpn.ITypeReference)r.SetUpSideNode);
+                                    c.TypeProblem.CreateOrType(s, key,(LocalTpn.TypeProblem2.TypeReference)l.SetUpSideNode, (LocalTpn.TypeProblem2.TypeReference)r.SetUpSideNode);
                                     var reference = c.TypeProblem.CreateTypeReference(s, key);
                                     return reference;
                                 })

@@ -140,26 +140,26 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<ISetUp<IFrontendType, LocalTpn.ITypeReference>>
+    internal class TypeReferanceMaker : IMaker<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>
     {
-        public ITokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new TypeNameMaker(), out var name);
 
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new TypeReferancePopulateScope(name));
             }
 
-            return TokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>>.MakeNotMatch(matching.Context);
+            return TokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);
         }
 
 
-        public static ISetUp<WeakTypeReference, LocalTpn.ITypeReference> PopulateScope(IKey typeName)
+        public static ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference> PopulateScope(IKey typeName)
         {
             return new TypeReferancePopulateScope(typeName);
         }
@@ -169,7 +169,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        private class TypeReferancePopulateScope : ISetUp<WeakTypeReference, LocalTpn.ITypeReference>
+        private class TypeReferancePopulateScope : ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>
         {
             private readonly IKey key;
 
@@ -178,10 +178,10 @@ namespace Tac.Semantic_Model
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public ISetUpResult<WeakTypeReference, LocalTpn.ITypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var type = context.TypeProblem.CreateTypeReference(scope,key);
-                return new SetUpResult<WeakTypeReference, LocalTpn.ITypeReference>(new TypeReferanceResolveReference(
+                return new SetUpResult<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
                     key), type);
             }
         }

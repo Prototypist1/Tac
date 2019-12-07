@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantBoolMaker : IMaker<ISetUp<WeakConstantBool, Tpn.IValue>>
+    internal class ConstantBoolMaker : IMaker<ISetUp<WeakConstantBool, LocalTpn.IValue>>
     {
         public ConstantBoolMaker() { }
 

@@ -26,14 +26,14 @@ namespace Tac.New
     }
 
     internal interface ISetUpResult<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode : Tpn.ITypeProblemNode
+        where TSetUpSideNode : LocalTpn.ITypeProblemNode
     {
         IResolve<TCodeElement> Resolve { get; }
         TSetUpSideNode SetUpSideNode { get; }
     }
 
     internal struct SetUpResult<TCodeElement, TSetUpSideNode>: ISetUpResult<TCodeElement, TSetUpSideNode>
-        where TSetUpSideNode : Tpn.ITypeProblemNode
+        where TSetUpSideNode : LocalTpn.ITypeProblemNode
     {
         public SetUpResult(IResolve<TCodeElement> populateBoxes, TSetUpSideNode setUpSideNode)
         {
@@ -46,9 +46,9 @@ namespace Tac.New
     }
 
     internal interface ISetUp<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode: Tpn.ITypeProblemNode
+        where TSetUpSideNode: LocalTpn.ITypeProblemNode
     {
-        ISetUpResult<TCodeElement, TSetUpSideNode> Run(Tpn.IScope scope, ISetUpContext context);
+        ISetUpResult<TCodeElement, TSetUpSideNode> Run(LocalTpn.IScope scope, ISetUpContext context);
     }
 
     public interface IResolveContext

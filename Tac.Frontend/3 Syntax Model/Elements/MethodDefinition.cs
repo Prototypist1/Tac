@@ -88,7 +88,7 @@ namespace Tac.Semantic_Model
 
             
             {
-                ISetUp<IFrontendType, LocalTpn.ITypeReference> inputType = null, outputType = null;
+                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
                 var matching = tokenMatching
                     .Has(new KeyWordMaker("method"), out var _)
                     .HasSquare(x => x
@@ -149,16 +149,16 @@ namespace Tac.Semantic_Model
 
         private class MethodDefinitionPopulateScope : ISetUp<WeakMethodDefinition, LocalTpn.IValue>
         {
-            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> parameterDefinition;
+            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> parameterDefinition;
             private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
-            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> output;
+            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> output;
             private readonly bool isEntryPoint;
             private readonly string parameterName;
 
             public MethodDefinitionPopulateScope(
-                ISetUp<IFrontendType, LocalTpn.ITypeReference> parameterDefinition,
+                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> parameterDefinition,
                 ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements,
-                ISetUp<IFrontendType, LocalTpn.ITypeReference> output,
+                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> output,
                 bool isEntryPoint,
                 string parameterName
                 )

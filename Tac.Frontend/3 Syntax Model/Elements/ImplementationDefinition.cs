@@ -94,7 +94,7 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class ImplementationDefinitionMaker : IMaker<ISetUp<WeakImplementationDefinition,Tpn.IValue>>
+    internal class ImplementationDefinitionMaker : IMaker<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>>
     {
         public ImplementationDefinitionMaker()
         {
@@ -102,7 +102,7 @@ namespace Tac.Semantic_Model
         
         public ITokenMatching<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            ISetUp<IFrontendType, LocalTpn.ITypeReference> context= null, input = null, output = null;
+            ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -138,14 +138,14 @@ namespace Tac.Semantic_Model
             }
 
 
-            return TokenMatching<ISetUp<WeakImplementationDefinition,Tpn.IValue>>.MakeNotMatch(match.Context);
+            return TokenMatching<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>>.MakeNotMatch(match.Context);
         }
         
         public static ISetUp<WeakImplementationDefinition, LocalTpn.IValue> PopulateScope(
-                                ISetUp<IFrontendType, LocalTpn.ITypeReference> contextDefinition,
-                ISetUp<IFrontendType, LocalTpn.ITypeReference> parameterDefinition,
+                                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> contextDefinition,
+                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> parameterDefinition,
                 ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements,
-                ISetUp<IFrontendType, LocalTpn.ITypeReference> output,
+                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> output,
                 string contextName,
                 string parameterName)
         {
@@ -160,18 +160,18 @@ namespace Tac.Semantic_Model
         
         private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition, LocalTpn.IValue>
         {
-            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> contextDefinition;
-            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> parameterDefinition;
+            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> contextDefinition;
+            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> parameterDefinition;
             private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
-            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> output;
+            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
 
             public PopulateScopeImplementationDefinition(
-                ISetUp<IFrontendType, LocalTpn.ITypeReference> contextDefinition,
-                ISetUp<IFrontendType, LocalTpn.ITypeReference> parameterDefinition,
+                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> contextDefinition,
+                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> parameterDefinition,
                 ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements,
-                ISetUp<IFrontendType, LocalTpn.ITypeReference> output,
+                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> output,
                 string contextName,
                 string parameterName)
             {
@@ -183,7 +183,7 @@ namespace Tac.Semantic_Model
                 this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
             }
 
-            public ISetUpResult<WeakImplementationDefinition,Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakImplementationDefinition,LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var realizeContext = contextDefinition.Run(scope, context);
                 var realizedInput = parameterDefinition.Run(scope, context);

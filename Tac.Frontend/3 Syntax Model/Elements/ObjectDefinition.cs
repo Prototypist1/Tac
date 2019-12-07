@@ -38,7 +38,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType
     {
-        public WeakObjectDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns) {
+        public WeakObjectDefinition(WeakScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -48,7 +48,7 @@ namespace Tac.Semantic_Model
             Assignments = assigns.ToArray();
         }
 
-        public IResolvableScope Scope { get; }
+        public WeakScope Scope { get; }
         public IIsPossibly<WeakAssignOperation>[] Assignments { get; }
 
         public IBuildIntention<IObjectDefiniton> GetBuildIntention(IConversionContext context)
