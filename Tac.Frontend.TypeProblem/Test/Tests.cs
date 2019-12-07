@@ -385,13 +385,13 @@ namespace Tac.Frontend.TypeProblem.Test
             },new TestExplictTypeConverter());
 
             x.CreateMember(pairType, new NameKey("x"),
-                new NameKey("T"),false, new TestMemberConverter(new NameKey("x")));
+                new NameKey("T"), new TestMemberConverter(new NameKey("x")));
 
             var chickenType = x.CreateType(x.Root, new NameKey("chicken"), new TestExplictTypeConverter());
 
             x.CreateMember(chickenType, new NameKey("eggs"), new TestMemberConverter(new NameKey("eggs")));
 
-            var chickenPair = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter(new NameKey("x")));
+            var chickenPair = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }),  new TestMemberConverter(new NameKey("x")));
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
@@ -419,14 +419,14 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(type, new NameKey("next"), new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("node-t")
-            }), false, new TestMemberConverter(new NameKey("next")));
+            }),  new TestMemberConverter(new NameKey("next")));
 
             x.CreateType(x.Root, new NameKey("chicken"), new TestExplictTypeConverter());
 
 
             var thing = x.CreateMember(x.Root, new NameKey("thing"), new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("chicken")
-            }), false, new TestMemberConverter(new NameKey("thing")));
+            }),  new TestMemberConverter(new NameKey("thing")));
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
@@ -454,7 +454,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(left,new NameKey("thing"), new GenericNameKey(new NameKey("right"), new IKey[] {
                 new NameKey("left-t")
-            }), false, new TestMemberConverter(new NameKey("thing")));
+            }),  new TestMemberConverter(new NameKey("thing")));
 
             var right = x.CreateGenericType(x.Root, new NameKey("right"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("right-t"), new TestExplictTypeConverter())
@@ -462,13 +462,13 @@ namespace Tac.Frontend.TypeProblem.Test
 
             x.CreateMember(right, new NameKey("thing"), new GenericNameKey(new NameKey("left"), new IKey[] {
                 new NameKey("right-t")
-            }), false, new TestMemberConverter(new NameKey("thing")));
+            }),  new TestMemberConverter(new NameKey("thing")));
 
             x.CreateType(x.Root, new NameKey("chicken"), new TestExplictTypeConverter());
 
-            var leftMember =  x.CreateMember(x.Root, new NameKey("left-member"), new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter(new NameKey("left-member")));
+            var leftMember =  x.CreateMember(x.Root, new NameKey("left-member"), new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") }), new TestMemberConverter(new NameKey("left-member")));
 
-            var rightMember = x.CreateMember(x.Root, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }), false, new TestMemberConverter(new NameKey("right-member")));
+            var rightMember = x.CreateMember(x.Root, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }), new TestMemberConverter(new NameKey("right-member")));
 
             var solution = x.Solve(new TestExplictTypeConverter());
 
@@ -504,13 +504,13 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
             x.CreateMember(pairType, new NameKey("x"),
-                new NameKey("T"), false, new TestMemberConverter(new NameKey("x")));
+                new NameKey("T"),  new TestMemberConverter(new NameKey("x")));
 
             var chickenType = x.CreateType(x.Root, new NameKey("chicken"), new TestExplictTypeConverter());
 
             x.CreateMember(chickenType, new NameKey("eggs"), new TestMemberConverter(new NameKey("eggs")));
 
-            var xMember = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }), false, new TestMemberConverter(new NameKey("x")));
+            var xMember = x.CreateMember(x.Root, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }),  new TestMemberConverter(new NameKey("x")));
 
             var solution = x.Solve(new TestExplictTypeConverter());
 

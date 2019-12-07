@@ -23,7 +23,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
             TypeProblem2.Value CreateValue(IScope scope, IKey typeKey,IConvertTo<TypeProblem2.Value,TValue> converter);
-            TypeProblem2.Member CreateMember(IScope scope, IKey key, IKey typeKey, bool isReadonly, IConvertTo<TypeProblem2.Member,TMember> converter);
+            TypeProblem2.Member CreateMember(IScope scope, IKey key, IKey typeKey, IConvertTo<TypeProblem2.Member,TMember> converter);
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member,TMember> converter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, TMember> converter);
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, TTypeReference> converter);
@@ -344,14 +344,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public class Member : TypeProblemNode<Member,TMember>, IValue, ILookUpType, ICanBeAssignedTo
             {
-                public Member(TypeProblem2 problem, bool isReadonly, string debugName, IConvertTo<Member, TMember> converter) : base(problem, debugName, converter)
+                public Member(TypeProblem2 problem, string debugName, IConvertTo<Member, TMember> converter) : base(problem, debugName, converter)
                 {
-                    IsReadonly = isReadonly;
-                }
-
-                public bool IsReadonly
-                {
-                    get;
                 }
             }
             public class Type : TypeProblemNode<Type,TExplictType>, IExplicitType
@@ -514,9 +508,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMember(IScope scope, IKey key, IKey typeKey, bool isReadonly, IConvertTo<Member, TMember> converter)
+            public Member CreateMember(IScope scope, IKey key, IKey typeKey, IConvertTo<Member, TMember> converter)
             {
-                var res = new Member(this, isReadonly, key.ToString(), converter);
+                var res = new Member(this, key.ToString(), converter);
                 HasMember(scope, key, res);
                 lookUpTypeContext[res] = scope;
                 lookUpTypeKey[res] = typeKey;
@@ -525,7 +519,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member CreateMember(IScope scope, IKey key, IConvertTo<Member, TMember> converter)
             {
-                var res = new Member(this, false, key.ToString(), converter);
+                var res = new Member(this, key.ToString(), converter);
                 HasMember(scope, key, res);
                 lookUpTypeContext[res] = scope;
                 return res;
@@ -533,7 +527,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<Member,TMember> converter)
             {
-                var res = new Member(this, false, key.ToString(),converter);
+                var res = new Member(this, key.ToString(),converter);
                 HasMembersPossiblyOnParent(scope, key, res);
                 lookUpTypeContext[res] = scope;
                 return res;
@@ -601,11 +595,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{((TypeProblemNode)inputType).debugName},outputType:{((TypeProblemNode)outputType).debugName}}}", converter);
                 IsChildOf(parent, res);
-                var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(), outkey, false, outputConverter) : CreateMember(res, new ImplicitKey(), outputConverter);
+                var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(), outkey, outputConverter) : CreateMember(res, new ImplicitKey(), outputConverter);
                 methodReturns[res] = returns;
                 if (lookUpTypeKey.TryGetValue(inputType, out var inkey))
                 {
-                    methodInputs[res] = CreateMember(res, new NameKey(inputName), inkey, false, inputConverter);
+                    methodInputs[res] = CreateMember(res, new NameKey(inputName), inkey, inputConverter);
                 }
                 else
                 {
@@ -617,7 +611,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member CreateHopefulMember(IHaveHopefulMembers scope, IKey key, IConvertTo<Member,TMember> converter)
             {
-                var res = new Member(this, false, key.ToString(), converter);
+                var res = new Member(this, key.ToString(), converter);
                 HasHopefulMember(scope, key, res);
                 return res;
             }
@@ -1121,7 +1115,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     foreach (var member in dict)
                                     {
-                                        var newValue = Copy(member.Value, new Member(this, member.Value.IsReadonly, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
+                                        var newValue = Copy(member.Value, new Member(this,  $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
                                         HasMember(innerScopeTo, member.Key, newValue);
                                     }
                                 }
@@ -1184,7 +1178,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     foreach (var possible in dict)
                                     {
-                                        var newValue = Copy(possible.Value, new Member(this, possible.Value.IsReadonly, $"copied from {((TypeProblemNode)possible.Value).debugName}",possible.Value.Converter));
+                                        var newValue = Copy(possible.Value, new Member(this,  $"copied from {((TypeProblemNode)possible.Value).debugName}",possible.Value.Converter));
                                         HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
                                     }
                                 }
@@ -1197,7 +1191,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var possible in dict)
                                 {
-                                    var newValue = Copy(possible.Value, new Member(this, possible.Value.IsReadonly, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
+                                    var newValue = Copy(possible.Value, new Member(this,  $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
                                     HasHopefulMember(innerToHopeful, possible.Key, newValue);
                                 }
                             }
@@ -1276,7 +1270,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             else
                             {
 
-                                var newValue = new Member(this, memberPair.Value.IsReadonly, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+                                var newValue = new Member(this,  $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
                                 HasMember(infered, memberPair.Key, newValue);
                                 lookUps[newValue] = lookUps[memberPair.Value];
                                 res = true;
@@ -1316,7 +1310,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 // if they are the same type
                                 if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value)))
                                 {
-                                    var member = new Member(this, leftMember.Value.IsReadonly, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}", leftMember.Value.Converter);
+                                    var member = new Member(this, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}", leftMember.Value.Converter);
                                     lookUps[member] = GetType(rightMember);
                                     res[leftMember.Key] = member;
                                 }

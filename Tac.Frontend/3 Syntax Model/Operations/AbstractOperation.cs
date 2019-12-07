@@ -105,21 +105,21 @@ namespace Tac.Semantic_Model.CodeStuff
         where TRight : IFrontendType
         where TType: IVerifiableType 
     { 
-        public IIsPossibly<TLeft> Left { get; }
-        public IIsPossibly<TRight> Right { get; }
-        public IEnumerable<IIsPossibly<IConvertableFrontendType<IVerifiableType>>> Operands { get {
+        public IBox<TLeft> Left { get; }
+        public IBox<TRight> Right { get; }
+        public IEnumerable<IBox<IConvertableFrontendType<IVerifiableType>>> Operands { get {
                 // this make me sad,
                 // if we could mark TLeft, TRight as classes and I would need these ugly casts
                 // but a lot of types are structs
                 // so I have casts
                 // I assume this has something to do with boxing
                 // the cast boxes
-                yield return (IIsPossibly<IConvertableFrontendType<IVerifiableType>>)Left;
-                yield return (IIsPossibly<IConvertableFrontendType<IVerifiableType >>)Right;
+                yield return (IBox<IConvertableFrontendType<IVerifiableType>>)Left;
+                yield return (IBox<IConvertableFrontendType<IVerifiableType>>)Right;
             }
         }
 
-        public BinaryTypeOperation(IIsPossibly<TLeft> left, IIsPossibly<TRight> right)
+        public BinaryTypeOperation(IBox<TLeft> left, IBox<TRight> right)
         {
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));

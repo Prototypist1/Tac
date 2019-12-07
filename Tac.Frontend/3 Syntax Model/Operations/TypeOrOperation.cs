@@ -43,7 +43,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
 {
     internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>
     {
-        public WeakTypeOrOperation(IIsPossibly<IFrontendType> left, IIsPossibly<IFrontendType> right) : base(left, right)
+        public WeakTypeOrOperation(IBox<IFrontendType> left, IBox<IFrontendType> right) : base(left, right)
         {
         }
 
@@ -53,8 +53,8 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
 
             var (res, builder) = TypeOr.Create();
             return new BuildIntention<ITypeOr>(res, () => builder.Build(
-                Left.GetOrThrow().ConvertTypeOrThrow(context),
-                Right.GetOrThrow().ConvertTypeOrThrow(context)
+                Left.GetValue().ConvertTypeOrThrow(context),
+                Right.GetValue().ConvertTypeOrThrow(context)
                 ));
         }
     }
