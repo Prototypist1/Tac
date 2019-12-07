@@ -28,9 +28,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticAssertAssignMaker = AddOperationMatcher(() => new AssertAssignOperationMaker());
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticAssertAssignMaker = AddOperationMatcher(() => new AssertAssignOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> AssertAssignMaker = StaticAssertAssignMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> AssertAssignMaker = StaticAssertAssignMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -64,14 +64,14 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class AssertAssignOperationMaker : IMaker<ISetUp<WeakAssignOperation, Tpn.IValue>>
+    internal class AssertAssignOperationMaker : IMaker<ISetUp<WeakAssignOperation, LocalTpn.IValue>>
     {
 
         public AssertAssignOperationMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakAssignOperation, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -80,46 +80,46 @@ namespace Tac.Semantic_Model.Operations
                 var left = matching.Context.ParseLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElement(match.rhs);
 
-                return TokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakAssignOperation, LocalTpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new WeakAssignOperationPopulateScope(left, right));
             }
 
-            return TokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakAssignOperation, LocalTpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        private class WeakAssignOperationPopulateScope : ISetUp<WeakAssignOperation, Tpn.IValue>
+        private class WeakAssignOperationPopulateScope : ISetUp<WeakAssignOperation, LocalTpn.IValue>
         {
-            private readonly ISetUp<IFrontendCodeElement,Tpn.ITypeProblemNode> left;
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right;
+            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left;
+            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> right;
 
-            public WeakAssignOperationPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right)
+            public WeakAssignOperationPopulateScope(ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left,
+                ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> right)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));;
             }
 
-            public ISetUpResult<WeakAssignOperation,Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakAssignOperation, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
 
                 var nextLeft = left.Run(scope, context);
                 var nextRight = right.Run(scope, context);
 
-                if (left is Tpn.ICanAssignFromMe from && right is Tpn.ICanBeAssignedTo to) {
+                if (left is LocalTpn.ICanAssignFromMe from && right is LocalTpn.ICanBeAssignedTo to) {
                     from.AssignTo(to);
                 }
                 else {
                     throw new Exception("I need real error handling");
                 }
 
-                return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(
+                return new SetUpResult<WeakAssignOperation, LocalTpn.IValue>(new WeakAssignOperationResolveReferance(
                     nextLeft.Resolve,
                     nextRight.Resolve),
-                    nextLeft.SetUpSideNode as Tpn.IValue);
+                    nextLeft.SetUpSideNode as LocalTpn.IValue);
             }
         }
 

@@ -20,10 +20,10 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticEmptyInstanceMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticEmptyInstanceMaker = AddElementMakers(
             () => new EmptyInstanceMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
+            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
     }
 }
 
@@ -57,11 +57,11 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
         }
     }
 
-    internal class EmptyInstanceMaker : IMaker<ISetUp<WeakEmptyInstance,Tpn.IValue>>
+    internal class EmptyInstanceMaker : IMaker<ISetUp<WeakEmptyInstance, LocalTpn.IValue>>
     {
         public EmptyInstanceMaker() { }
 
-        public ITokenMatching<ISetUp<WeakEmptyInstance, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakEmptyInstance, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             // change key word to nothing?
             var match = tokenMatching
@@ -70,12 +70,12 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakEmptyInstance, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new EmptyInstancePopulateScope());
+                return TokenMatching<ISetUp<WeakEmptyInstance, LocalTpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new EmptyInstancePopulateScope());
             }
-            return TokenMatching<ISetUp<WeakEmptyInstance, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<WeakEmptyInstance, LocalTpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<WeakEmptyInstance, Tpn.IValue> PopulateScope()
+        public static ISetUp<WeakEmptyInstance, LocalTpn.IValue> PopulateScope()
         {
             return new EmptyInstancePopulateScope();
         }
@@ -84,15 +84,15 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             return new EmptyInstanceResolveReferance();
         }
 
-        private class EmptyInstancePopulateScope : ISetUp<WeakEmptyInstance, Tpn.IValue>
+        private class EmptyInstancePopulateScope : ISetUp<WeakEmptyInstance, LocalTpn.IValue>
         {
 
             public EmptyInstancePopulateScope() { }
 
-            public ISetUpResult<WeakEmptyInstance, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakEmptyInstance, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope,new NameKey("empty"));
-                return new SetUpResult<WeakEmptyInstance, Tpn.IValue>(new EmptyInstanceResolveReferance(),value);
+                return new SetUpResult<WeakEmptyInstance, LocalTpn.IValue>(new EmptyInstanceResolveReferance(),value);
             }
         }
 

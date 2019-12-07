@@ -93,6 +93,23 @@ namespace Tac.Frontend
             return new WeakTypeDefinition(Help.GetScope(typeSolution,from), key);
         }
     }
+
+
+    internal class PrimativeTypeConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Type, IFrontendType>
+    {
+        private readonly IFrontendType frontendType;
+
+        public PrimativeTypeConverter(IFrontendType frontendType)
+        {
+            this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
+        }
+
+        public IFrontendType Convert(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type from)
+        {
+            return frontendType;
+        }
+    }
+
     internal class WeakMethodDefinitionConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Method, WeakMethodDefinition>
     {
         private readonly Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member outputMember;

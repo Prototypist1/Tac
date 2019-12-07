@@ -21,11 +21,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticTypeDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticTypeDefinitionMaker = AddElementMakers(
             () => new TypeDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -100,13 +100,13 @@ namespace Tac.Semantic_Model
     }
 
 
-    internal class TypeDefinitionMaker : IMaker<ISetUp<IFrontendType, Tpn.ITypeReference>>
+    internal class TypeDefinitionMaker : IMaker<ISetUp<IFrontendType, LocalTpn.ITypeReference>>
     {
         public TypeDefinitionMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -117,7 +117,7 @@ namespace Tac.Semantic_Model
             {
                var elements = tokenMatching.Context.ParseBlock(body);
                 
-               return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeMatch(
+               return TokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new TypeDefinitionPopulateScope(
@@ -125,33 +125,33 @@ namespace Tac.Semantic_Model
                        typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey()));
             }
 
-            return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>>.MakeNotMatch(
                     matching.Context);
         }
         
-        public static ISetUp<IFrontendType, Tpn.ITypeReference> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements, IKey typeName)
+        public static ISetUp<IFrontendType, LocalTpn.ITypeReference> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements, IKey typeName)
         {
             return new TypeDefinitionPopulateScope(elements, typeName);
         }
         
-        private class TypeDefinitionPopulateScope : ISetUp<IFrontendType, Tpn.ITypeReference>
+        private class TypeDefinitionPopulateScope : ISetUp<IFrontendType, LocalTpn.ITypeReference>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
             private readonly IKey key;
             private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
 
-            public TypeDefinitionPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements, IKey typeName)
+            public TypeDefinitionPopulateScope(ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements, IKey typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public ISetUpResult<IFrontendType, Tpn.ITypeReference> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IFrontendType, LocalTpn.ITypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var type= context.TypeProblem.CreateType(scope, key);
                 var typeReference = context.TypeProblem.CreateTypeReference(scope, key);
                 elements.Select(x => x.Run(type, context)).ToArray();
-                return new SetUpResult<IFrontendType, Tpn.ITypeReference>( new TypeDefinitionResolveReference(
+                return new SetUpResult<IFrontendType, LocalTpn.ITypeReference>( new TypeDefinitionResolveReference(
                     definitionBox,
                     typeReference,
                     key), typeReference);

@@ -63,10 +63,10 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class BinaryOperation
     {
-        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode> left, ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode> right);
+        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left, ISetUpResult<IFrontendCodeElement, LocalTpn.ITypeProblemNode> right);
         public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right);
 
-        public delegate Tpn.ITypeReference ToTypeProblemThings(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendType, Tpn.ITypeProblemNode> left, ISetUpResult<IFrontendType, Tpn.ITypeProblemNode> right);
+        public delegate Tpn.ITypeReference ToTypeProblemThings(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendType, LocalTpn.ITypeProblemNode> left, ISetUpResult<IFrontendType, LocalTpn.ITypeProblemNode> right);
         public delegate IIsPossibly<T> MakeBinaryType<out T>(IIsPossibly<IFrontendType> left, IIsPossibly<IFrontendType> right);
 
 
@@ -149,7 +149,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public string Symbol { get; }
         private BinaryOperation.Make<TFrontendCodeElement> Make { get; }
 
-        public ITokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<TFrontendCodeElement, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -158,20 +158,20 @@ namespace Tac.Semantic_Model.CodeStuff
                 var left = matching.Context.ParseLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElement(match.rhs);
 
-                return TokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<TFrontendCodeElement, LocalTpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new BinaryPopulateScope(left, right, Make, keyMaker));
             }
 
-            return TokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<TFrontendCodeElement, LocalTpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        public static ISetUp<TFrontendCodeElement, Tpn.IValue> PopulateScope(
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right,
+        public static ISetUp<TFrontendCodeElement, LocalTpn.IValue> PopulateScope(
+                ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left,
+                ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> right,
                 BinaryOperation.Make<TFrontendCodeElement> make,
                 BinaryOperation.GetReturnedValue key)
         {
@@ -191,15 +191,15 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
 
-        private class BinaryPopulateScope : ISetUp<TFrontendCodeElement, Tpn.IValue>
+        private class BinaryPopulateScope : ISetUp<TFrontendCodeElement, LocalTpn.IValue>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right;
+            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left;
+            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
             private readonly BinaryOperation.GetReturnedValue keyMaker;
 
-            public BinaryPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right,
+            public BinaryPopulateScope(ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left,
+                ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> right,
                 BinaryOperation.Make<TFrontendCodeElement> make,
                 BinaryOperation.GetReturnedValue key)
             {
@@ -209,13 +209,13 @@ namespace Tac.Semantic_Model.CodeStuff
                 this.keyMaker = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public ISetUpResult<TFrontendCodeElement, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<TFrontendCodeElement, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var nextLeft = left.Run(scope, context);
                 var nextRight = right.Run(scope, context);
                 var value = keyMaker(scope, context,nextLeft, nextRight);
 
-                return new SetUpResult<TFrontendCodeElement, Tpn.IValue>(new BinaryResolveReferance(
+                return new SetUpResult<TFrontendCodeElement, LocalTpn.IValue>(new BinaryResolveReferance(
                     nextLeft.Resolve,
                     nextRight.Resolve,
                     make), value);
@@ -251,7 +251,7 @@ namespace Tac.Semantic_Model.CodeStuff
     }
 
 
-    internal class BinaryTypeMaker : IMaker<ISetUp<IFrontendType, Tpn.ITypeReference>>
+    internal class BinaryTypeMaker : IMaker<ISetUp<IFrontendType, LocalTpn.ITypeReference>>
     {
         private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
@@ -267,7 +267,7 @@ namespace Tac.Semantic_Model.CodeStuff
         public string Symbol { get; }
         private BinaryOperation.MakeBinaryType<IFrontendType> Make { get; }
 
-        public ITokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -276,20 +276,20 @@ namespace Tac.Semantic_Model.CodeStuff
                 var left = matching.Context.ParseTypeLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElementType(match.rhs);
 
-                return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new BinaryPopulateScope(left, right, Make, toTypeProblemThings));
             }
 
-            return TokenMatching<ISetUp<IFrontendType, Tpn.ITypeReference>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IFrontendType, LocalTpn.ITypeReference>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        public static ISetUp<IFrontendType, Tpn.ITypeReference> PopulateScope(
-            ISetUp<IConvertableFrontendType<IVerifiableType>, Tpn.ITypeProblemNode> left,
-            ISetUp<IConvertableFrontendType<IVerifiableType>, Tpn.ITypeProblemNode> right,
+        public static ISetUp<IFrontendType, LocalTpn.ITypeReference> PopulateScope(
+            ISetUp<IConvertableFrontendType<IVerifiableType>, LocalTpn.ITypeProblemNode> left,
+            ISetUp<IConvertableFrontendType<IVerifiableType>, LocalTpn.ITypeProblemNode> right,
             BinaryOperation.MakeBinaryType<IFrontendType> make,
             BinaryOperation.ToTypeProblemThings toTypeProblemThings)
         {
@@ -309,15 +309,15 @@ namespace Tac.Semantic_Model.CodeStuff
 
 
 
-        private class BinaryPopulateScope : ISetUp<IFrontendType, Tpn.ITypeReference>
+        private class BinaryPopulateScope : ISetUp<IFrontendType, LocalTpn.ITypeReference>
         {
-            private readonly ISetUp<IFrontendType, Tpn.ITypeProblemNode> left;
-            private readonly ISetUp<IFrontendType, Tpn.ITypeProblemNode> right;
+            private readonly ISetUp<IFrontendType, LocalTpn.ITypeProblemNode> left;
+            private readonly ISetUp<IFrontendType, LocalTpn.ITypeProblemNode> right;
             private readonly BinaryOperation.MakeBinaryType<IFrontendType> make;
             private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
-            public BinaryPopulateScope(ISetUp<IFrontendType, Tpn.ITypeProblemNode> left,
-                ISetUp<IFrontendType, Tpn.ITypeProblemNode> right,
+            public BinaryPopulateScope(ISetUp<IFrontendType, LocalTpn.ITypeProblemNode> left,
+                ISetUp<IFrontendType, LocalTpn.ITypeProblemNode> right,
                 BinaryOperation.MakeBinaryType<IFrontendType> make,
                 BinaryOperation.ToTypeProblemThings toTypeProblemThings)
             {
@@ -328,7 +328,7 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public ISetUpResult<IFrontendType, Tpn.ITypeReference> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IFrontendType, LocalTpn.ITypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 // TODO
                 // this is something I don't much like
@@ -348,7 +348,7 @@ namespace Tac.Semantic_Model.CodeStuff
                 var nextRight = right.Run(scope, context);
                 var type = toTypeProblemThings(scope, context, nextLeft, nextRight);
 
-                return new SetUpResult<IFrontendType, Tpn.ITypeReference>(new BinaryResolveReferance(
+                return new SetUpResult<IFrontendType, LocalTpn.ITypeReference>(new BinaryResolveReferance(
                     nextLeft.Resolve,
                     nextRight.Resolve,
                     make

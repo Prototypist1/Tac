@@ -19,11 +19,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticImplementationDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticImplementationDefinitionMaker = AddElementMakers(
             () => new ImplementationDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
 #pragma warning disable IDE0052 // Remove unread private members
     }
 }
@@ -100,9 +100,9 @@ namespace Tac.Semantic_Model
         {
         }
         
-        public ITokenMatching<ISetUp<WeakImplementationDefinition,Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            ISetUp<IFrontendType, Tpn.ITypeReference> context= null, input = null, output = null;
+            ISetUp<IFrontendType, LocalTpn.ITypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -125,7 +125,7 @@ namespace Tac.Semantic_Model
                 var elements = tokenMatching.Context.ParseBlock(body);
                 
 
-                return TokenMatching<ISetUp<WeakImplementationDefinition,Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new PopulateScopeImplementationDefinition(
@@ -141,11 +141,11 @@ namespace Tac.Semantic_Model
             return TokenMatching<ISetUp<WeakImplementationDefinition,Tpn.IValue>>.MakeNotMatch(match.Context);
         }
         
-        public static ISetUp<WeakImplementationDefinition,Tpn.IValue> PopulateScope(
-                                ISetUp<IFrontendType, Tpn.ITypeReference> contextDefinition,
-                ISetUp<IFrontendType, Tpn.ITypeReference> parameterDefinition,
-                ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
-                ISetUp<IFrontendType, Tpn.ITypeReference> output,
+        public static ISetUp<WeakImplementationDefinition, LocalTpn.IValue> PopulateScope(
+                                ISetUp<IFrontendType, LocalTpn.ITypeReference> contextDefinition,
+                ISetUp<IFrontendType, LocalTpn.ITypeReference> parameterDefinition,
+                ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements,
+                ISetUp<IFrontendType, LocalTpn.ITypeReference> output,
                 string contextName,
                 string parameterName)
         {
@@ -158,20 +158,20 @@ namespace Tac.Semantic_Model
                  parameterName);
         }
         
-        private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition,Tpn.IValue>
+        private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition, LocalTpn.IValue>
         {
-            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> contextDefinition;
-            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> parameterDefinition;
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
-            private readonly ISetUp<IFrontendType, Tpn.ITypeReference> output;
+            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> contextDefinition;
+            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> parameterDefinition;
+            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
+            private readonly ISetUp<IFrontendType, LocalTpn.ITypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
 
             public PopulateScopeImplementationDefinition(
-                ISetUp<IFrontendType, Tpn.ITypeReference> contextDefinition,
-                ISetUp<IFrontendType, Tpn.ITypeReference> parameterDefinition,
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
-                ISetUp<IFrontendType, Tpn.ITypeReference> output,
+                ISetUp<IFrontendType, LocalTpn.ITypeReference> contextDefinition,
+                ISetUp<IFrontendType, LocalTpn.ITypeReference> parameterDefinition,
+                ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements,
+                ISetUp<IFrontendType, LocalTpn.ITypeReference> output,
                 string contextName,
                 string parameterName)
             {
@@ -213,7 +213,7 @@ namespace Tac.Semantic_Model
                     }),
                 }));
 
-                return new SetUpResult<WeakImplementationDefinition, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
+                return new SetUpResult<WeakImplementationDefinition, LocalTpn.IValue>(new ImplementationDefinitionResolveReferance(
                     realizeContext.Resolve,
                     realizedInput.Resolve,
                     elements.Select(y => y.Run(inner, context).Resolve).ToArray(),

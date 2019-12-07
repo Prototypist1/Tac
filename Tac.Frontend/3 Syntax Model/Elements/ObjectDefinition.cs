@@ -23,11 +23,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticObjectDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticObjectDefinitionMaker = AddElementMakers(
             () => new ObjectDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ObjectDefinitionMaker = StaticObjectDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> ObjectDefinitionMaker = StaticObjectDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -67,13 +67,13 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class ObjectDefinitionMaker : IMaker<ISetUp<WeakObjectDefinition, Tpn.IValue>>
+    internal class ObjectDefinitionMaker : IMaker<ISetUp<WeakObjectDefinition, LocalTpn.IValue>>
     {
         public ObjectDefinitionMaker()
         {
         }
 
-        public ITokenMatching<ISetUp<WeakObjectDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakObjectDefinition, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("object"), out var _)
@@ -83,30 +83,30 @@ namespace Tac.Semantic_Model
 
                 var elements = tokenMatching.Context.ParseBlock(block);
                 
-                return TokenMatching<ISetUp<WeakObjectDefinition, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakObjectDefinition, LocalTpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new ObjectDefinitionPopulateScope(elements));
             }
-            return TokenMatching<ISetUp<WeakObjectDefinition, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakObjectDefinition, LocalTpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 
-        public static ISetUp<WeakObjectDefinition, Tpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
+        public static ISetUp<WeakObjectDefinition, LocalTpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements)
         {
             return new ObjectDefinitionPopulateScope(elements);
         }
 
-        private class ObjectDefinitionPopulateScope : ISetUp<WeakObjectDefinition,Tpn.IValue>
+        private class ObjectDefinitionPopulateScope : ISetUp<WeakObjectDefinition, LocalTpn.IValue>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
 
-            public ObjectDefinitionPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
+            public ObjectDefinitionPopulateScope(ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public ISetUpResult<WeakObjectDefinition,Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakObjectDefinition, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var key = new ImplicitKey();
 
@@ -116,7 +116,7 @@ namespace Tac.Semantic_Model
                 // ugh! an object is a type
                 //
 
-                return new SetUpResult<WeakObjectDefinition, Tpn.IValue>(new ResolveReferanceObjectDefinition(
+                return new SetUpResult<WeakObjectDefinition, LocalTpn.IValue>(new ResolveReferanceObjectDefinition(
                     elements.Select(x => x.Run(myScope, context).Resolve).ToArray()
                     ),value);
             }

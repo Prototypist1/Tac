@@ -17,11 +17,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticConstantStringMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticConstantStringMaker = AddElementMakers(
             () => new ConstantStringMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ConstantStringMaker = StaticConstantStringMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> ConstantStringMaker = StaticConstantStringMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantStringMaker : IMaker<ISetUp<WeakConstantString, Tpn.IValue>>
+    internal class ConstantStringMaker : IMaker<ISetUp<WeakConstantString, LocalTpn.IValue>>
     {
         public ConstantStringMaker() { }
 
@@ -85,7 +85,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public ITokenMatching<ISetUp<WeakConstantString, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakConstantString, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .Has(new StringMaker(), out var str);
@@ -93,12 +93,12 @@ namespace Tac.Semantic_Model.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakConstantString, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantStringPopulateScope(str));
+                return TokenMatching<ISetUp<WeakConstantString, LocalTpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantStringPopulateScope(str));
             }
-            return TokenMatching<ISetUp<WeakConstantString, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<WeakConstantString, LocalTpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<WeakConstantString, Tpn.IValue> PopulateScope(string str)
+        public static ISetUp<WeakConstantString, LocalTpn.IValue> PopulateScope(string str)
         {
             return new ConstantStringPopulateScope(str);
         }
@@ -107,7 +107,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantStringResolveReferance(str);
         }
 
-        private class ConstantStringPopulateScope : ISetUp<WeakConstantString, Tpn.IValue>
+        private class ConstantStringPopulateScope : ISetUp<WeakConstantString, LocalTpn.IValue>
         {
             private readonly string str;
 
@@ -116,10 +116,10 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public ISetUpResult<WeakConstantString, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakConstantString, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope, new NameKey("string"));
-                return new SetUpResult<WeakConstantString, Tpn.IValue>(new ConstantStringResolveReferance(str),value);
+                return new SetUpResult<WeakConstantString, LocalTpn.IValue>(new ConstantStringResolveReferance(str),value);
             }
         }
 

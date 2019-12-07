@@ -21,9 +21,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
+        private static readonly WithConditions<ISetUp<IFrontendType, LocalTpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
+        private readonly WithConditions<ISetUp<IFrontendType, LocalTpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -69,7 +69,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
                             Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
                                 new WeakTypeOrOperation(l, r)))))),(s,c,l,r)=> {
                                     var key = new ImplicitKey();
-                                    c.TypeProblem.CreateOrType(s, key,(Tpn.ITypeReference)l.SetUpSideNode, (Tpn.ITypeReference)r.SetUpSideNode);
+                                    c.TypeProblem.CreateOrType(s, key,(LocalTpn.ITypeReference)l.SetUpSideNode, (LocalTpn.ITypeReference)r.SetUpSideNode);
                                     var reference = c.TypeProblem.CreateTypeReference(s, key);
                                     return reference;
                                 })

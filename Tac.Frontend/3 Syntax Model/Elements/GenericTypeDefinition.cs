@@ -22,11 +22,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
             () => new GenericTypeDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -120,14 +120,14 @@ namespace Tac.Semantic_Model
         }
     }
     
-    internal class GenericTypeDefinitionMaker : IMaker<ISetUp<WeakGenericTypeDefinition,Tpn.IExplicitType>>
+    internal class GenericTypeDefinitionMaker : IMaker<ISetUp<WeakGenericTypeDefinition, LocalTpn.IExplicitType>>
     {
 
         public GenericTypeDefinitionMaker()
         {
         }
 
-        public ITokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakGenericTypeDefinition, LocalTpn.IExplicitType>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -136,7 +136,7 @@ namespace Tac.Semantic_Model
                 .Has(new BodyMaker(), out var body);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakGenericTypeDefinition, LocalTpn.IExplicitType>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new GenericTypeDefinitionPopulateScope(
@@ -146,13 +146,13 @@ namespace Tac.Semantic_Model
                         PrimitiveTypes.CreateGenericTypeParameterPlacholder(new NameKey(x))).ToArray()));
             }
 
-            return TokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakGenericTypeDefinition, LocalTpn.IExplicitType>>.MakeNotMatch(
                     matching.Context);
         }
 
-        public static ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType> PopulateScope(
+        public static ISetUp<WeakGenericTypeDefinition, LocalTpn.IExplicitType> PopulateScope(
                 NameKey nameKey,
-                IEnumerable<ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>> lines,
+                IEnumerable<ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
@@ -161,16 +161,16 @@ namespace Tac.Semantic_Model
                 genericParameters);
         }
 
-        private class GenericTypeDefinitionPopulateScope : ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>
+        private class GenericTypeDefinitionPopulateScope : ISetUp<WeakGenericTypeDefinition, LocalTpn.IExplicitType>
         {
             private readonly NameKey nameKey;
-            private readonly IEnumerable<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines;
+            private readonly IEnumerable<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
             private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IEnumerable<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines,
+                IEnumerable<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -178,11 +178,11 @@ namespace Tac.Semantic_Model
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             }
 
-            public ISetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakGenericTypeDefinition, LocalTpn.IExplicitType> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>x.Key).ToArray());
                 var nextLines = lines.Select(x => x.Run(myScope, context).Resolve).ToArray();
-                return new SetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(nameKey, box, genericParameters, nextLines), myScope);
+                return new SetUpResult<WeakGenericTypeDefinition, LocalTpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(nameKey, box, genericParameters, nextLines), myScope);
             }
         }
 

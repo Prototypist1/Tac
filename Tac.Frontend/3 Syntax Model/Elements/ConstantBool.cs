@@ -17,11 +17,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticConstantBoolMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticConstantBoolMaker = AddElementMakers(
             () => new ConstantBoolMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ConstantBoolMaker = StaticConstantBoolMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> ConstantBoolMaker = StaticConstantBoolMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -83,7 +83,7 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        public ITokenMatching<ISetUp<WeakConstantBool, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakConstantBool, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .Has(new BoolMaker(), out var dub);
@@ -91,12 +91,12 @@ namespace Tac.Semantic_Model.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakConstantBool, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
+                return TokenMatching<ISetUp<WeakConstantBool, LocalTpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
             }
-            return TokenMatching<ISetUp<WeakConstantBool, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<WeakConstantBool, LocalTpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<WeakConstantBool, Tpn.IValue> PopulateScope(bool dub)
+        public static ISetUp<WeakConstantBool, LocalTpn.IValue> PopulateScope(bool dub)
         {
             return new ConstantBoolPopulateScope(dub);
         }
@@ -105,7 +105,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantBoolResolveReferance(dub);
         }
 
-        private class ConstantBoolPopulateScope : ISetUp<WeakConstantBool, Tpn.IValue>
+        private class ConstantBoolPopulateScope : ISetUp<WeakConstantBool, LocalTpn.IValue>
         {
             private readonly bool dub;
 
@@ -114,10 +114,10 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public ISetUpResult<WeakConstantBool, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakConstantBool, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope, new NameKey("bool"));
-                return new SetUpResult<WeakConstantBool, Tpn.IValue>(new ConstantBoolResolveReferance(dub),value);
+                return new SetUpResult<WeakConstantBool, LocalTpn.IValue>(new ConstantBoolResolveReferance(dub),value);
             }
         }
 

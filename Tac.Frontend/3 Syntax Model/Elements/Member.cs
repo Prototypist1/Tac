@@ -17,37 +17,37 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticMemberMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticMemberMaker = AddElementMakers(
             () => new MemberMaker());
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> MemberMaker = StaticMemberMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> MemberMaker = StaticMemberMaker;
     }
 }
 
 
 namespace Tac.Semantic_Model
 {
-    internal class MemberMaker : IMaker<ISetUp<WeakMemberReference,Tpn.IMember>>
+    internal class MemberMaker : IMaker<ISetUp<WeakMemberReference, LocalTpn.IMember>>
     {
         public MemberMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<WeakMemberReference, Tpn.IMember>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakMemberReference, LocalTpn.IMember>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new NameMaker(), out var first);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakMemberReference, Tpn.IMember>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakMemberReference, LocalTpn.IMember>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new MemberPopulateScope(first.Item)); ;
             }
-            return TokenMatching<ISetUp<WeakMemberReference, Tpn.IMember>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakMemberReference, LocalTpn.IMember>>.MakeNotMatch(
                     matching.Context);
         }
 
-        public static ISetUp<WeakMemberReference, Tpn.IMember> PopulateScope(string item)
+        public static ISetUp<WeakMemberReference, LocalTpn.IMember> PopulateScope(string item)
         {
             return new MemberPopulateScope(item);
         }
@@ -58,7 +58,7 @@ namespace Tac.Semantic_Model
                 key);
         }
 
-        private class MemberPopulateScope : ISetUp<WeakMemberReference, Tpn.IMember>
+        private class MemberPopulateScope : ISetUp<WeakMemberReference, LocalTpn.IMember>
         {
             private readonly string memberName;
 
@@ -67,12 +67,12 @@ namespace Tac.Semantic_Model
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
             }
 
-            public ISetUpResult<WeakMemberReference, Tpn.IMember> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakMemberReference, LocalTpn.IMember> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var nameKey = new NameKey(memberName);
                 var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, nameKey);
 
-                return new SetUpResult<WeakMemberReference, Tpn.IMember>(new MemberResolveReferance( nameKey),member);
+                return new SetUpResult<WeakMemberReference, LocalTpn.IMember>(new MemberResolveReferance( nameKey),member);
             }
 
         }

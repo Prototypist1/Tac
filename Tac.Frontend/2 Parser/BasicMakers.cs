@@ -12,7 +12,7 @@ namespace Tac.Frontend._2_Parser
     // relax tho, it is really readonly
     public class Keywords {
 
-        public static Lazy<Keywords> Singleton = new Lazy<Keywords>(()=>new Keywords());
+        public static readonly Lazy<Keywords> Singleton = new Lazy<Keywords>(()=>new Keywords());
 
         public readonly string Type;
         public readonly IReadOnlyList<string> AllKeywords;
@@ -38,7 +38,7 @@ namespace Tac.Frontend._2_Parser
         public ITokenMatching<AtomicToken> TryMake(IMatchedTokenMatching elementToken)
         {
             if (elementToken.Tokens.Any() &&
-                elementToken.Tokens.First() is AtomicToken first &&
+                elementToken.Tokens[0] is AtomicToken first &&
                 !double.TryParse(first.Item, out var _) &&
                 IsNotKeyWord(first.Item))
             {
@@ -60,7 +60,7 @@ namespace Tac.Frontend._2_Parser
         {
 
             if (self.Tokens.Any() &&
-                self.Tokens.First() is AtomicToken first &&
+                self.Tokens[0] is AtomicToken first &&
                 !double.TryParse(first.Item, out var _))
             {
                 var at = TokenMatching<NameKey>.MakeStart(self.Tokens.Skip(1).ToArray(), self.Context);
@@ -85,7 +85,7 @@ namespace Tac.Frontend._2_Parser
         public ITokenMatching<double> TryMake(IMatchedTokenMatching self)
         {
             if (self.Tokens.Any() &&
-                self.Tokens.First() is AtomicToken first &&
+                self.Tokens[0] is AtomicToken first &&
                 double.TryParse(first.Item, out var res))
             {
                 return TokenMatching<double>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context,res);
@@ -114,7 +114,7 @@ namespace Tac.Frontend._2_Parser
         {
 
             if (self.Tokens.Any() &&
-                self.Tokens.First() is CurleyBracketToken first)
+                self.Tokens[0] is CurleyBracketToken first)
             {
                 return TokenMatching< CurleyBracketToken>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, first);
             }
@@ -129,23 +129,23 @@ namespace Tac.Frontend._2_Parser
         {
 
             if (self.Tokens.Any() &&
-                            self.Tokens.First() is SquareBacketToken typeParameters &&
-                                typeParameters.Tokens.Count() == 3 &&
-                                typeParameters.Tokens.ElementAt(0) is LineToken firstLine &&
-                                    firstLine.Tokens.Count() == 1 &&
-                                    firstLine.Tokens.ElementAt(0) is ElementToken firstElement &&
-                                    firstElement.Tokens.Count() == 1 &&
-                                    firstElement.Tokens.ElementAt(0) is AtomicToken firstType &&
-                                typeParameters.Tokens.ElementAt(1) is LineToken secondLine &&
-                                    secondLine.Tokens.Count() == 1 &&
-                                    secondLine.Tokens.ElementAt(0) is ElementToken secondElement &&
-                                    secondElement.Tokens.Count() == 1 &&
-                                    secondElement.Tokens.ElementAt(0) is AtomicToken secondType &&
-                                typeParameters.Tokens.ElementAt(2) is LineToken thridLine &&
-                                    thridLine.Tokens.Count() == 1 &&
-                                    thridLine.Tokens.ElementAt(0) is ElementToken thridElement &&
-                                    thridElement.Tokens.Count() == 1 &&
-                                    thridElement.Tokens.ElementAt(0) is AtomicToken thirdType)
+                            self.Tokens[0] is SquareBacketToken typeParameters &&
+                                typeParameters.Tokens.Count == 3 &&
+                                typeParameters.Tokens[0] is LineToken firstLine &&
+                                    firstLine.Tokens.Count == 1 &&
+                                    firstLine.Tokens[0] is ElementToken firstElement &&
+                                    firstElement.Tokens.Count == 1 &&
+                                    firstElement.Tokens[0] is AtomicToken firstType &&
+                                typeParameters.Tokens[1] is LineToken secondLine &&
+                                    secondLine.Tokens.Count == 1 &&
+                                    secondLine.Tokens[0] is ElementToken secondElement &&
+                                    secondElement.Tokens.Count == 1 &&
+                                    secondElement.Tokens[0] is AtomicToken secondType &&
+                                typeParameters.Tokens[2] is LineToken thridLine &&
+                                    thridLine.Tokens.Count == 1 &&
+                                    thridLine.Tokens[0] is ElementToken thridElement &&
+                                    thridElement.Tokens.Count == 1 &&
+                                    thridElement.Tokens[0] is AtomicToken thirdType)
             {
                 return TokenMatching<(AtomicToken, AtomicToken, AtomicToken)>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, (firstType,secondType,thirdType));
             }
@@ -161,11 +161,11 @@ namespace Tac.Frontend._2_Parser
         {
             
             if (elementMatching.Tokens.Any() &&
-                           elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
+                           elementMatching.Tokens[0] is SquareBacketToken typeParameters &&
                                typeParameters.Tokens.All(x => x is LineToken line &&
-                                   line.Tokens.Count() == 1 &&
+                                   line.Tokens.Count == 1 &&
                                    line.Tokens.ElementAt(0) is ElementToken element &&
-                                   element.Tokens.Count() == 1 &&
+                                   element.Tokens.Count == 1 &&
                                    element.Tokens.ElementAt(0) is AtomicToken))
             {
                 return TokenMatching<string[]>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, typeParameters.Tokens.Select(x => x.Cast<LineToken>().Tokens.Single().Cast<ElementToken>().Tokens.Single().Cast<AtomicToken>().Item).ToArray());
@@ -180,7 +180,7 @@ namespace Tac.Frontend._2_Parser
         public ITokenMatching<NameKey[]> TryMake(IMatchedTokenMatching elementMatching)
         {
             if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
+                elementMatching.Tokens[0] is SquareBacketToken typeParameters &&
                 typeParameters.Tokens.All(x => x is LineToken lt && lt.Tokens.All(y=> y is ElementToken)) &&
                 TryToToken(out var res))
             {
@@ -224,18 +224,18 @@ namespace Tac.Frontend._2_Parser
         public ITokenMatching<(AtomicToken, AtomicToken)> TryMake(IMatchedTokenMatching elementMatching)
         {
             if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens.First() is SquareBacketToken typeParameters &&
-                    typeParameters.Tokens.Count() == 2 &&
-                    typeParameters.Tokens.ElementAt(0) is LineToken firstLine &&
-                        firstLine.Tokens.Count() == 1 &&
-                        firstLine.Tokens.ElementAt(0) is ElementToken firstElement &&
-                        firstElement.Tokens.Count() == 1 &&
-                        firstElement.Tokens.ElementAt(0) is AtomicToken firstType &&
-                    typeParameters.Tokens.ElementAt(1) is LineToken secondLine &&
-                        secondLine.Tokens.Count() == 1 &&
-                        secondLine.Tokens.ElementAt(0) is ElementToken secondElement &&
-                        secondElement.Tokens.Count() == 1 &&
-                        secondElement.Tokens.ElementAt(0) is AtomicToken secondType)
+                elementMatching.Tokens[0] is SquareBacketToken typeParameters &&
+                    typeParameters.Tokens.Count == 2 &&
+                    typeParameters.Tokens[0] is LineToken firstLine &&
+                        firstLine.Tokens.Count == 1 &&
+                        firstLine.Tokens[0] is ElementToken firstElement &&
+                        firstElement.Tokens.Count == 1 &&
+                        firstElement.Tokens[0] is AtomicToken firstType &&
+                    typeParameters.Tokens[1] is LineToken secondLine &&
+                        secondLine.Tokens.Count == 1 &&
+                        secondLine.Tokens[0] is ElementToken secondElement &&
+                        secondElement.Tokens.Count == 1 &&
+                        secondElement.Tokens[0] is AtomicToken secondType)
             {
                 return TokenMatching<(AtomicToken, AtomicToken)>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, (firstType, secondType));
             }
@@ -263,14 +263,14 @@ namespace Tac.Frontend._2_Parser
             {
                 var right = elementMatching.Tokens.Last();
 
-                var at = TokenMatching<(IEnumerable<IToken>, AtomicToken, IToken)>.MakeStart(elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray(), elementMatching.Context);
+                var at = TokenMatching<(IEnumerable<IToken>, AtomicToken, IToken)>.MakeStart(elementMatching.Tokens.Take(elementMatching.Tokens.Count - 1).ToArray(), elementMatching.Context);
 
                 if (at.Tokens.Any() &&
                     at.Tokens.Last() is AtomicToken op &&
                     op.Item == s)
                 {
-                    var preface = at.Tokens.Take(at.Tokens.Count() - 1).ToArray();
-                    return TokenMatching<(IReadOnlyList<IToken>, AtomicToken, IToken)>.MakeMatch(preface, elementMatching.Context, (at.Tokens.Take(at.Tokens.Count() - 1).ToArray(), op, right));
+                    var preface = at.Tokens.Take(at.Tokens.Count - 1).ToArray();
+                    return TokenMatching<(IReadOnlyList<IToken>, AtomicToken, IToken)>.MakeMatch(preface, elementMatching.Context, (at.Tokens.Take(at.Tokens.Count - 1).ToArray(), op, right));
                 }
             }
             
@@ -294,7 +294,7 @@ namespace Tac.Frontend._2_Parser
                 && op.Item == s)
             {
 
-                var preface = elementMatching.Tokens.Take(elementMatching.Tokens.Count() - 1).ToArray(); ;
+                var preface = elementMatching.Tokens.Take(elementMatching.Tokens.Count - 1).ToArray(); ;
                 return TokenMatching<(IEnumerable<IToken>, AtomicToken)>.MakeMatch(preface, elementMatching.Context, (preface, op));
             }
             
@@ -313,7 +313,7 @@ namespace Tac.Frontend._2_Parser
 
         public ITokenMatching<AtomicToken> TryMake(IMatchedTokenMatching self)
         {
-            if (self.Tokens.First() is AtomicToken first &&
+            if (self.Tokens is AtomicToken first &&
                                 first.Item == word)
             {
                 return TokenMatching<AtomicToken>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, first);

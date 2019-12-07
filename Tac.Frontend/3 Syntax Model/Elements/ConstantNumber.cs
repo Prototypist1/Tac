@@ -18,12 +18,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticConstantNumberMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticConstantNumberMaker = AddElementMakers(
             () => new ConstantNumberMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
 
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ConstantNumberMaker = StaticConstantNumberMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> ConstantNumberMaker = StaticConstantNumberMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -58,11 +58,11 @@ namespace Tac.Semantic_Model.Operations
         }
     }
 
-    internal class ConstantNumberMaker : IMaker<ISetUp<WeakConstantNumber, Tpn.IValue>>
+    internal class ConstantNumberMaker : IMaker<ISetUp<WeakConstantNumber, LocalTpn.IValue>>
     {
         public ConstantNumberMaker() {}
 
-        public ITokenMatching<ISetUp<WeakConstantNumber, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakConstantNumber, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .Has(new NumberMaker(), out var dub);
@@ -70,12 +70,12 @@ namespace Tac.Semantic_Model.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakConstantNumber, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantNumberPopulateScope(dub));
+                return TokenMatching<ISetUp<WeakConstantNumber, LocalTpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantNumberPopulateScope(dub));
             }
-            return TokenMatching<ISetUp<WeakConstantNumber, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<WeakConstantNumber, LocalTpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<WeakConstantNumber, Tpn.IValue> PopulateScope(double dub)
+        public static ISetUp<WeakConstantNumber, LocalTpn.IValue> PopulateScope(double dub)
         {
             return new ConstantNumberPopulateScope(dub);
         }
@@ -84,7 +84,7 @@ namespace Tac.Semantic_Model.Operations
             return new ConstantNumberResolveReferance(dub);
         }
 
-        private class ConstantNumberPopulateScope : ISetUp<WeakConstantNumber, Tpn.IValue>
+        private class ConstantNumberPopulateScope : ISetUp<WeakConstantNumber, LocalTpn.IValue>
         {
             private readonly double dub;
 
@@ -93,11 +93,11 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public ISetUpResult<WeakConstantNumber, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakConstantNumber, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
 
                 var value = context.TypeProblem.CreateValue(scope,new NameKey("number"));
-                return new SetUpResult<WeakConstantNumber, Tpn.IValue>(new ConstantNumberResolveReferance(dub),value);
+                return new SetUpResult<WeakConstantNumber, LocalTpn.IValue>(new ConstantNumberResolveReferance(dub),value);
             }
         }
 
