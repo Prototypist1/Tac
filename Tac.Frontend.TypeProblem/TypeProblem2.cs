@@ -17,6 +17,18 @@ namespace Tac.Frontend.New.CrzayNamespace
     // this static class is here just to make us all think in terms of these bros
     public class Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>
     {
+
+        public class TypeAndConverter {
+            public readonly IKey key;
+            public readonly IConvertTo<TypeProblem2.Type, TExplictType> converter;
+
+            public TypeAndConverter(IKey key, IConvertTo<TypeProblem2.Type, TExplictType> converter)
+            {
+                this.key = key ?? throw new ArgumentNullException(nameof(key));
+                this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
+            }
+        }
+
         public interface ISetUpTypeProblem
         {
             // a =: x
@@ -29,7 +41,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, TTypeReference> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope,TScope> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type,TExplictType> converter);
-            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<TypeProblem2.Type ,TExplictType>)> placeholders, IConvertTo<TypeProblem2.Type, TExplictType> converter);
+            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, TExplictType> converter);
             TypeProblem2.Object CreateObject(IScope parent, IKey key, IConvertTo<TypeProblem2.Object,TObject> converter);
             TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method ,TMethod> converter, IConvertTo<TypeProblem2.Member,TMember> inputConverter, IConvertTo<TypeProblem2.Member, TMember> outputConverter);
             TypeProblem2.Method CreateMethod(IScope parent, TypeProblem2.TypeReference inputType, TypeProblem2.TypeReference outputType, string inputName, IConvertTo<TypeProblem2.Method,TMethod> converter, IConvertTo<TypeProblem2.Member, TMember> inputConverter, IConvertTo<TypeProblem2.Member, TMember> outputConverter);
@@ -564,15 +576,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<Type,TExplictType>)> placeholders, IConvertTo<Type,TExplictType> converter)
+            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type,TExplictType> converter)
             {
                 var res = new Type(this, $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", converter);
                 IsChildOf(parent, res);
                 HasType(parent, key, res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.Item1.ToString()}",placeholder.Item2);
-                    HasPlaceholderType(res, placeholder.Item1, placeholderType);
+                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}",placeholder.converter);
+                    HasPlaceholderType(res, placeholder.key, placeholderType);
                 }
                 return res;
             }

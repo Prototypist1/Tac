@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Fluent;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,7 @@ using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.New;
 using Tac.Semantic_Model;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Frontend
 {
@@ -42,14 +44,14 @@ namespace Tac.Frontend
 
     internal class TestScopeConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Scope, WeakScope>
     {
-        public WeakScope Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope from)
+        public WeakScope Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Scope from)
         {
             return Help.GetScope(typeSolution, from);
         }
     }
 
     internal static class Help {
-        public static WeakScope GetScope(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.IHaveMembers haveMembers) {
+        public static WeakScope GetScope(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.IHaveMembers haveMembers) {
 
             var members = typeSolution.GetMembers(haveMembers);
             var membersList = new List<IBox<WeakMemberDefinition>>();
@@ -60,7 +62,7 @@ namespace Tac.Frontend
             return new WeakScope(membersList);
         }
 
-        public static IBox<IFrontendType> GetType(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ILookUpType lookUpType) {
+        public static IBox<IFrontendType> GetType(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ILookUpType lookUpType) {
             var orType = typeSolution.GetType(lookUpType);
 
             IBox<IFrontendType> testType;
@@ -81,7 +83,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakTypeDefinitionConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Type, WeakTypeDefinition>
+    internal class WeakTypeDefinitionConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>>
     {
         //IIsPossibly<IKey> key;
 
@@ -90,12 +92,33 @@ namespace Tac.Frontend
             //this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public WeakTypeDefinition Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type from)
+        public OrType<WeakTypeDefinition, WeakGenericTypeDefinition> Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Type from)
         {
-            return new WeakTypeDefinition(Help.GetScope(typeSolution,from));//, key
+            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition>( new WeakTypeDefinition(Help.GetScope(typeSolution,from)));//, key
         }
     }
 
+    internal class WeakGenericTypeDefinitionConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>>
+    {
+
+        private readonly NameKey key;
+        private readonly SyntaxModel.Elements.AtomicTypes.PrimitiveTypes.IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
+
+        public WeakGenericTypeDefinitionConverter(NameKey key, PrimitiveTypes.IGenericTypeParameterPlacholder[] typeParameterDefinitions)
+        {
+            this.key = key ?? throw new ArgumentNullException(nameof(key));
+            TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
+        }
+
+        public OrType<WeakTypeDefinition, WeakGenericTypeDefinition> Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type from)
+        {
+            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition>(
+                new WeakGenericTypeDefinition(
+                    Possibly.Is(key),
+                    new Box<WeakScope>(Help.GetScope(typeSolution, from)),
+                    TypeParameterDefinitions.Select(x => Possibly.Is(x)).ToArray()));//, key
+        }
+    }
 
     internal class PrimativeTypeConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Type, IFrontendType>
     {
@@ -106,7 +129,7 @@ namespace Tac.Frontend
             this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
         }
 
-        public IFrontendType Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type from)
+        public IFrontendType Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Type from)
         {
             return frontendType;
         }
@@ -123,7 +146,7 @@ namespace Tac.Frontend
             this.isEntryPoint = isEntryPoint;
         }
 
-        public WeakMethodDefinition Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method from)
+        public WeakMethodDefinition Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Method from)
         {
             return new WeakMethodDefinition(
                 Help.GetType(typeSolution, typeSolution.GetResultType(from)),
@@ -159,21 +182,21 @@ namespace Tac.Frontend
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public WeakMemberDefinition Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member from)
+        public WeakMemberDefinition Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Member from)
         {
             return new WeakMemberDefinition(isReadonly, nameKey, Help.GetType(typeSolution,from));
         }
     }
     internal class WeakTypeReferenceConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.TypeReference, WeakTypeReference>
     {
-        public WeakTypeReference Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.TypeReference from)
+        public WeakTypeReference Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.TypeReference from)
         {
             return new WeakTypeReference(Help.GetType(typeSolution, from));
         }
     }
     internal class WeakTypeOrOperationConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.OrType, WeakTypeOrOperation>
     {
-        public WeakTypeOrOperation Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.OrType from)
+        public WeakTypeOrOperation Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.OrType from)
         {
             var (left,right) = typeSolution.GetOrTypeElements(from);
             return new WeakTypeOrOperation(Help.GetType(typeSolution,left), Help.GetType(typeSolution,right));
@@ -182,7 +205,7 @@ namespace Tac.Frontend
 
     internal class PlaceholderValueConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Value, PlaceholderValue>
     {
-        public PlaceholderValue Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Value from)
+        public PlaceholderValue Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Value from)
         {
             return new PlaceholderValue(Help.GetType(typeSolution, from));
         }
@@ -193,7 +216,7 @@ namespace Tac.Frontend
 
         private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
 
-        public WeakBlockDefinition Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope from)
+        public WeakBlockDefinition Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Scope from)
         {
             return
                 new WeakBlockDefinition(
@@ -205,13 +228,13 @@ namespace Tac.Frontend
 
     internal class WeakObjectConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Object, WeakObjectDefinition>
     {
-        public WeakObjectDefinition Convert(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object from)
+        public WeakObjectDefinition Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Object from)
         {
             return new WeakObjectDefinition(Help.GetScope(typeSolution, from),);
         }
     }
 
-    internal class LocalTpn : Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>
+    internal class LocalTpn : Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>
     {
     }
 }

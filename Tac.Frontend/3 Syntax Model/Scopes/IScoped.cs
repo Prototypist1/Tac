@@ -1,5 +1,4 @@
-﻿using Prototypist.LeftToRight;
-using Prototypist.TaskChain;
+﻿using Prototypist.TaskChain;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,6 +10,7 @@ using Tac.Model.Elements;
 using Tac.Parser;
 using Tac.Semantic_Model.Operations;
 using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
+using Prototypist.Fluent;
 
 namespace Tac.Semantic_Model
 {
@@ -400,14 +400,14 @@ namespace Tac.Semantic_Model
                 {
                     var overlayed = set.Select(x => x.Definition.GetValue())
                         .Where(x => x.IsDefinately(out var _, out var _))
-                        .Where(x => x.GetOrThrow().TypeParameterDefinitions.Length == typesBoxes.Count())
+                        .Where(x => x.GetOrThrow().TypeParameterDefinitions.Length == typesBoxes.Count)
                         .Single()
                         .Assign(out var single).GetOrThrow()
                         .Overlay(single.GetOrThrow().TypeParameterDefinitions.Zip(typesBoxes, (x, y) => new TypeParameter(x.GetOrThrow(), y.GetValue().GetOrThrow())).ToArray());
-                    if (overlayed.Is(out IConvertableFrontendType<IVerifiableType> frontendType)) {
+                    if (overlayed.Is2(out var frontendType)) {
                         return Possibly.Is(frontendType);
                     }
-                    if (overlayed.Is(out IFrontendGenericType frontendGeneric))
+                    if (overlayed.Is1(out var frontendGeneric))
                     {
                         return Possibly.Is(frontendGeneric);
                     }
@@ -448,7 +448,7 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IFinalizedScope>(toBuild, () =>
             {
                 maker.Build(
-                    members.Select(x=>new Tac.Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)).ToArray());
+                    members.Select(x=>new Model.Instantiated.Scope.IsStatic(x.Value.Single().Definition.GetValue().GetOrThrow().Convert(context),false)).ToArray());
             });
         }
     }
