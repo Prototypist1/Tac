@@ -43,8 +43,8 @@ namespace Tac.Semantic_Model
         public WeakMethodDefinition(
             IBox<IFrontendType> outputType, 
             IBox<IWeakMemberDefinition> parameterDefinition,
-            IBox<IFrontendCodeElement>[] body,
-            IBox<WeakScope> scope,
+            IIsPossibly<IFrontendCodeElement>[] body,
+            WeakScope scope,
             IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers,
             bool isEntryPoint) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
@@ -193,9 +193,9 @@ namespace Tac.Semantic_Model
 
         private class MethodDefinitionResolveReferance : IResolve<WeakMethodDefinition>
         {
-            private readonly Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference,WeakGenericTypeDefinition>.TypeProblem2.Method method;
+            private readonly Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method method;
 
-            public MethodDefinitionResolveReferance(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference,WeakGenericTypeDefinition>.TypeProblem2.Method method)
+            public MethodDefinitionResolveReferance(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method method)
             {
                 this.method = method;
             }

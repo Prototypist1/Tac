@@ -106,9 +106,9 @@ namespace Tac.Semantic_Model
 
         private class ResolveReferanceBlockDefinition : IResolve<WeakBlockDefinition>
         {
-            private readonly Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference,WeakGenericTypeDefinition>.TypeProblem2.Scope myScope;
+            private readonly Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope;
 
-            public ResolveReferanceBlockDefinition(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference,WeakGenericTypeDefinition>.TypeProblem2.Scope myScope)
+            public ResolveReferanceBlockDefinition(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope)
             {
                 this.myScope = myScope;
             }

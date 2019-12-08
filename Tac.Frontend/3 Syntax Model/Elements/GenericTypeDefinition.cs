@@ -16,7 +16,6 @@ using Tac.Parser;
 using Tac.Semantic_Model;
 using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
 using Prototypist.TaskChain;
-using Tac.Frontend._3_Syntax_Model.Operations;
 
 namespace Tac.Parser
 {
@@ -67,7 +66,7 @@ namespace Tac.Semantic_Model
 
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key,
-            IBox<WeakScope> scope,
+            IResolvableScope scope,
             IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
@@ -77,7 +76,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IKey> Key { get; }
-        public IBox<WeakScope> Scope { get; }
+        public IResolvableScope Scope { get; }
 
         //public IBuildIntention<IGenericType> GetBuildIntention(ConversionContext context)
         //{
@@ -184,25 +183,45 @@ namespace Tac.Semantic_Model
                 // oh geez here is a mountain.
                 // I generic types are erased 
                 // what on earth does this return?
-                var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>(x.Key, new WeakTypeDefinitionConverter())).ToArray(),new WeakGenericTypeDefinitionConverter(nameKey, genericParameters));
+                var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>(x.Key, new WeakTypeDefinitionConverter())).ToArray(),new WeakTypeDefinitionConverter());
                 var nextLines = lines.Select(x => x.Run(myScope, context).Resolve).ToArray();
-                return new SetUpResult<WeakGenericTypeDefinition, LocalTpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope), myScope);
+                return new SetUpResult<WeakGenericTypeDefinition, LocalTpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(nameKey, box, genericParameters, nextLines), myScope);
             }
         }
 
         private class GenericTypeDefinitionResolveReferance : IResolve<WeakGenericTypeDefinition>
         {
-            private Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference, WeakGenericTypeDefinition>.TypeProblem2.GenericType myScope;
+            private readonly NameKey nameKey;
+            private readonly Box<IIsPossibly<IFrontendGenericType>> box;
+            private readonly IGenericTypeParameterPlacholder[] genericParameters;
+            private readonly IResolve<IFrontendCodeElement>[] lines;
 
-            public GenericTypeDefinitionResolveReferance(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference, WeakGenericTypeDefinition>.TypeProblem2.GenericType myScope)
+            public GenericTypeDefinitionResolveReferance(
+                NameKey nameKey,
+                Box<IIsPossibly<IFrontendGenericType>> box,
+                IGenericTypeParameterPlacholder[] genericParameters,
+                IResolve<IFrontendCodeElement>[] lines)
             {
-                this.myScope = myScope;
+                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+                this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+                this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
             }
 
             public IBox<WeakGenericTypeDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                return context.GetGenericType(myScope);
+                // hmm getting the template down here is hard
+                // scope mostly comes from context
+                // why is that?
+
+                var nextLines = lines.Select(x => x.Run(context)).ToArray();
+                return box.Fill(Possibly.Is(new WeakGenericTypeDefinition(
+                    Possibly.Is(nameKey),
+                    context.GetScope(this.scope),
+                    genericParameters.Select(x => Possibly.Is(x)).ToArray())));
             }
         }
+
+
     }
 }

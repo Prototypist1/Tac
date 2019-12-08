@@ -59,7 +59,7 @@ namespace Tac.New
 
     //internal class ResolveContext : IResolveContext
     //{
-    //    public ResolveContext(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference,WeakGenericTypeDefinition>.ITypeSolution solution)
+    //    public ResolveContext(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution solution)
     //    {
     //        Solution = solution ?? throw new ArgumentNullException(nameof(solution));
     //    }
