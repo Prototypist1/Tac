@@ -15,7 +15,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
     // this static class is here just to make us all think in terms of these bros
-    public class Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>
+    public class Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>
     {
         public interface ISetUpTypeProblem
         {
@@ -29,7 +29,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, TTypeReference> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope,TScope> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type,TExplictType> converter);
-            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<TypeProblem2.Type ,TExplictType>)> placeholders, IConvertTo<TypeProblem2.Type, TExplictType> converter);
+            TypeProblem2.GenericType CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<TypeProblem2.Type ,TExplictType>)> placeholders, IConvertTo<TypeProblem2.GenericType, TGenericType> converter);
             TypeProblem2.Object CreateObject(IScope parent, IKey key, IConvertTo<TypeProblem2.Object,TObject> converter);
             TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method ,TMethod> converter, IConvertTo<TypeProblem2.Member,TMember> inputConverter, IConvertTo<TypeProblem2.Member, TMember> outputConverter);
             TypeProblem2.Method CreateMethod(IScope parent, TypeProblem2.TypeReference inputType, TypeProblem2.TypeReference outputType, string inputName, IConvertTo<TypeProblem2.Method,TMethod> converter, IConvertTo<TypeProblem2.Member, TMember> inputConverter, IConvertTo<TypeProblem2.Member, TMember> outputConverter);
@@ -47,11 +47,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             IBox<TTypeReference> GetTypeReference(TypeProblem2.TypeReference typeReference);
             IBox<TScope> GetScope(TypeProblem2.Scope scope);
             IBox<TExplictType> GetExplicitType(TypeProblem2.Type explicitType);
+            IBox<TGenericType> GetGenericType(TypeProblem2.GenericType explicitType);
             IBox<TObject> GetObject(TypeProblem2.Object @object);
             IBox<TOrType> GetOrType(TypeProblem2.OrType orType);
             IBox<TMethod> GetMethod(TypeProblem2.Method method);
             IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
-            OrType<TypeProblem2.Type, TypeProblem2.OrType> GetType(ILookUpType from);
+            OrType<TypeProblem2.Type, TypeProblem2.GenericType, TypeProblem2.OrType> GetType(ILookUpType from);
             (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from);
             TypeProblem2.TypeReference GetResultType(TypeProblem2.Method from);
             TypeProblem2.Member GetInputMember(TypeProblem2.Method from);
@@ -143,7 +144,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<ILookUpType, IHaveMembers> map;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
 
-            public TypeSolution(IReadOnlyDictionary<ILookUpType, IHaveMembers> map, IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members, IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts)
+            public TypeSolution(
+                IReadOnlyDictionary<ILookUpType, IHaveMembers> map, 
+                IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members, 
+                IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.members = members ?? throw new ArgumentNullException(nameof(members));
@@ -248,6 +252,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheValue[value];
             }
 
+
+            private readonly Dictionary<TypeProblem2.GenericType, IBox<TGenericType>> genericTypeCache = new Dictionary<TypeProblem2.GenericType, IBox<TGenericType>>();
+            public IBox<TGenericType> GetGenericType(TypeProblem2.GenericType genericType)
+            {
+                if (!genericTypeCache.ContainsKey(genericType))
+                {
+                    var box = new Box<TGenericType>();
+                    genericTypeCache[genericType] = box;
+                    box.Fill(genericType.Converter.Convert(this, genericType));
+                }
+                return genericTypeCache[genericType];
+            }
+
             public IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from)
             {
                 if (!members.ContainsKey(from)) {
@@ -256,18 +273,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return members[from];
             }
 
-            public OrType<TypeProblem2.Type, TypeProblem2.OrType> GetType(ILookUpType from)
+
+
+            public OrType<TypeProblem2.Type, TypeProblem2.GenericType, TypeProblem2.OrType> GetType(ILookUpType from)
             {
                 var res = map[from];
 
                 if (res is TypeProblem2.Type type)
                 {
-                    return new OrType<TypeProblem2.Type, TypeProblem2.OrType>(type);
+                    return new OrType<TypeProblem2.Type, TypeProblem2.GenericType, TypeProblem2.OrType>(type);
+                }
+                else if (res is TypeProblem2.GenericType genericType)
+                {
+
+                    return new OrType<TypeProblem2.Type, TypeProblem2.GenericType, TypeProblem2.OrType>(genericType);
                 }
                 else if (res is TypeProblem2.OrType orType)
                 {
 
-                    return new OrType<TypeProblem2.Type, TypeProblem2.OrType>(orType);
+                    return new OrType<TypeProblem2.Type, TypeProblem2.GenericType, TypeProblem2.OrType>(orType);
                 }
                 else {
                     throw new Exception("bug");
@@ -276,6 +300,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from){
                 return orTypeElememts[from];
+            }
+
+
+            public TypeProblem2.TypeReference GetResultType(TypeProblem2.Method from)
+            {
+                throw new NotImplementedException();
+            }
+
+            public TypeProblem2.Member GetInputMember(TypeProblem2.Method from)
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -362,6 +397,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
+            // this is kind of a werid duck
+            // it is just a type
+            public class GenericType : TypeProblemNode<GenericType, TGenericType>, IExplicitType
+            {
+                public GenericType(TypeProblem2 problem, string debugName, IConvertTo<GenericType, TGenericType> converter) : base(problem, debugName, converter)
+                {
+                }
+            }
+
             public class OrType : TypeProblemNode<OrType,TOrType>, IHaveMembers
             {
                 public OrType(TypeProblem2 problem, string debugName, IConvertTo<OrType,TOrType> converter) : base(problem, debugName, converter)
@@ -407,7 +451,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
             private readonly Dictionary<IScope, List<TypeReference>> refs = new Dictionary<IScope, List<TypeReference>>();
             private readonly Dictionary<IScope, Dictionary<IKey, OrType>> orTypes = new Dictionary<IScope, Dictionary<IKey, OrType>>();
-            private readonly Dictionary<IScope, Dictionary<IKey, Type>> types = new Dictionary<IScope, Dictionary<IKey, Type>>();
+            private readonly Dictionary<IScope, Dictionary<IKey, IExplicitType>> types = new Dictionary<IScope, Dictionary<IKey, IExplicitType>>();
             private readonly Dictionary<IScope, Dictionary<IKey, Object>> objects = new Dictionary<IScope, Dictionary<IKey, Object>>();
             private readonly Dictionary<IScope, Dictionary<IKey, IHaveMembers>> genericOverlays = new Dictionary<IScope, Dictionary<IKey, IHaveMembers>>();
 
@@ -443,11 +487,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 refs[parent].Add(reference);
             }
-            public void HasType(IScope parent, IKey key, Type type)
+            public void HasType(IScope parent, IKey key, IExplicitType type)
             {
                 if (!types.ContainsKey(parent))
                 {
-                    types.Add(parent, new Dictionary<IKey, Type>());
+                    types.Add(parent, new Dictionary<IKey, IExplicitType>());
                 }
                 types[parent].Add(key, type);
             }
@@ -564,9 +608,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<Type,TExplictType>)> placeholders, IConvertTo<Type,TExplictType> converter)
+            public GenericType CreateGenericType(IScope parent, IKey key, IReadOnlyList<(IKey, IConvertTo<Type,TExplictType>)> placeholders, IConvertTo<GenericType, TGenericType> converter)
             {
-                var res = new Type(this, $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", converter);
+                var res = new GenericType(this, $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", converter);
                 IsChildOf(parent, res);
                 HasType(parent, key, res);
                 foreach (var placeholder in placeholders)
@@ -844,28 +888,55 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         // I think this could be expanded down the road
                         // given intest in generic methods and objects
-                        if (!(LookUpOrOverlayOrThrow2(from, genericNameKey.name) is Type lookedUp))
-                        {
-                            throw new Exception();
-                        }
-                        var genericTypeKey = new GenericTypeKey(lookedUp, types);
 
-                        if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                        // the type vs generic type thing is so weird! 💩
+                        if (LookUpOrOverlayOrThrow2(from, genericNameKey.name) is Type lookedUp)
                         {
-                            res = res2;
+                            var genericTypeKey = new GenericTypeKey(lookedUp, types);
+
+                            if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                            {
+                                res = res2;
+                                return true;
+                            }
+
+                            var map = new Dictionary<IHaveMembers, IHaveMembers>();
+                            foreach (var (oldType, newType) in types.Zip(genericOverlays[lookedUp], (x, y) => (y.Value, x)))
+                            {
+                                map[oldType] = newType;
+                            }
+
+                            var explict = CopyTree(lookedUp, new Type(this, $"generated-generic-{lookedUp.debugName}", lookedUp.Converter), map);
+                            realizedGeneric.Add(genericTypeKey, explict);
+                            res = explict;
                             return true;
                         }
-
-                        var map = new Dictionary<IHaveMembers, IHaveMembers>();
-                        foreach (var (oldType, newType) in types.Zip(genericOverlays[lookedUp], (x, y) => (y.Value, x)))
+                        else
+                        if (LookUpOrOverlayOrThrow2(from, genericNameKey.name) is GenericType genericType)
                         {
-                            map[oldType] = newType;
+                            var genericTypeKey = new GenericTypeKey(genericType, types);
+
+                            if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                            {
+                                res = res2;
+                                return true;
+                            }
+
+                            var map = new Dictionary<IHaveMembers, IHaveMembers>();
+                            foreach (var (oldType, newType) in types.Zip(genericOverlays[genericType], (x, y) => (y.Value, x)))
+                            {
+                                map[oldType] = newType;
+                            }
+
+                            var explict = CopyTree(genericType, new GenericType(this, $"generated-generic-{genericType.debugName}", genericType.Converter), map);
+                            realizedGeneric.Add(genericTypeKey, explict);
+                            res = explict;
+                            return true;
+                        }
+                        else {
+                            throw new Exception("this is wierd!");
                         }
 
-                        var explict = CopyTree(lookedUp, new Type(this, $"generated-generic-{lookedUp.debugName}", lookedUp.Converter), map);
-                        realizedGeneric.Add(genericTypeKey, explict);
-                        res = explict;
-                        return true;
                     }
                     else
                     if (TryLookUp(from, key, out res))
@@ -1059,8 +1130,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     foreach (var type in dict)
                                     {
-                                        var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
-                                        HasType(innerScopeTo, type.Key, newValue);
+                                        if (type.Value is Type actuallyType)
+                                        {
+                                            var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", actuallyType.Converter));
+                                            HasType(innerScopeTo, type.Key, newValue);
+                                        }
+                                        else
+                                        if (type.Value is GenericType genericType)
+                                        {
+                                            var newValue = Copy(type.Value, new GenericType(this, $"copied from {((TypeProblemNode)type.Value).debugName}", genericType.Converter));
+                                            HasType(innerScopeTo, type.Key, newValue);
+                                        }
+                                        else {
+                                            // this is a bit shit 💩💩
+                                            // really everything should know how to copy it self
+                                            throw new Exception("bug");
+                                        }
                                     }
                                 }
                             }
@@ -1267,7 +1352,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-
             public TypeProblem2(IConvertTo<Scope, TScope> rootConverter)
             {
                 Root = new Scope(this, "root", rootConverter);
@@ -1324,22 +1408,22 @@ namespace Tac.Frontend.New.CrzayNamespace
     public static class TpnExtensions
     {
         //extensions
-        public static IKey Key<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.TypeProblem2.TypeReference type)
+        public static IKey Key<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>.TypeProblem2.TypeReference type)
         {
             return type.Problem.GetKey(type);
         }
 
-        public static Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.TypeProblem2.Member Returns<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.IMethod method)
+        public static Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>.TypeProblem2.Member Returns<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>.IMethod method)
         {
             return method.Problem.GetReturns(method);
         }
 
-        public static Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.TypeProblem2.Member Input<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.TypeProblem2.Method method)
+        public static Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>.TypeProblem2.Member Input<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>.TypeProblem2.Method method)
         {
             return method.Problem.GetInput(method);
         }
 
-        public static void AssignTo<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.ICanAssignFromMe from, Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference>.ICanBeAssignedTo to)
+        public static void AssignTo<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>(this Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>.ICanAssignFromMe from, Tpn<TScope, TExplictType, TObject, TOrType, TMethod, TValue, TMember, TTypeReference, TGenericType>.ICanBeAssignedTo to)
         {
             from.Problem.IsAssignedTo(from, to);
         }
