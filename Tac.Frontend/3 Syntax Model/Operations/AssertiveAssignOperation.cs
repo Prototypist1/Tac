@@ -137,12 +137,12 @@ namespace Tac.Semantic_Model.Operations
             }
 
 
-            public IIsPossibly<WeakAssignOperation> Run(IResolvableScope scope, IResolveContext context)
+            public IIsPossibly<WeakAssignOperation> Run( IResolveContext context)
             {
-                var leftRes = left.Run(scope, context);
+                var leftRes = left.Run( context);
                 var res = Possibly.Is(new WeakAssignOperation(
                     leftRes,
-                    right.Run(scope, context)));
+                    right.Run( context)));
                 return res;
             }
         }

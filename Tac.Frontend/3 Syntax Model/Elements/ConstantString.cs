@@ -133,7 +133,7 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IIsPossibly<WeakConstantString> Run(IResolvableScope scope, IResolveContext context)
+            public IIsPossibly<WeakConstantString> Run(IResolveContext context)
             {
                 return Possibly.Is(new WeakConstantString(Possibly.Is(str)));
             }

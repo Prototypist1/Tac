@@ -130,10 +130,10 @@ namespace Tac.Semantic_Model.Operations
             }
 
 
-            public IIsPossibly<WeakPathOperation> Run(IResolvableScope scope, IResolveContext context)
+            public IIsPossibly<WeakPathOperation> Run(IResolveContext context)
             {
                 var res = Possibly.Is(new WeakPathOperation(
-                    left.Run(scope, context),
+                    left.Run(context),
                     Possibly.Is(new WeakMemberReference(left.GetReturnedType().GetMemberDefinition(new NameKey(name))))));
                 return res;
             }

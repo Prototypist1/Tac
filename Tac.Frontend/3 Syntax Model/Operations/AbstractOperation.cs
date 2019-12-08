@@ -240,11 +240,11 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<TFrontendCodeElement> Run(IResolvableScope scope, IResolveContext context)
+            public IIsPossibly<TFrontendCodeElement> Run(IResolveContext context)
             {
                 var res = make(
-                    left.Run(scope,context),
-                    right.Run(scope, context));
+                    left.Run(context),
+                    right.Run( context));
                 return res;
             }
         }
@@ -374,11 +374,11 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<IFrontendType> Run(IResolvableScope scope, IResolveContext context)
+            public IIsPossibly<IFrontendType> Run(IResolveContext context)
             {
                 var res = make(
-                    left.Run(scope,context),
-                    right.Run(scope, context));
+                    left.Run(context),
+                    right.Run( context));
 
                 return res;
             }

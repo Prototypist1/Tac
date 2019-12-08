@@ -132,11 +132,11 @@ namespace Tac.Semantic_Model
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IIsPossibly<WeakObjectDefinition> Run(IResolvableScope _, IResolveContext context)
+            public IIsPossibly<WeakObjectDefinition> Run(IResolveContext context)
             {
                 var innerRes = new WeakObjectDefinition(
                             scope,
-                            elements.Select(x => x.Run(scope,context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray());
+                            elements.Select(x => x.Run(context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray());
                 var res = Possibly.Is(innerRes);
 
                 return res;

@@ -214,14 +214,14 @@ namespace Tac.Semantic_Model
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
             }
 
-            public IIsPossibly<WeakMemberReference> Run(IResolvableScope scope, IResolveContext context)
+            public IIsPossibly<WeakMemberReference> Run(IResolveContext context)
             {
                 memberDefinitionBox.Fill(
                     Possibly.Is(
                     new WeakMemberDefinition(
                         isReadonly,
                         memberName,
-                        type.Run(scope,context))));
+                        type.Run(context))));
 
                 return Possibly.Is(new WeakMemberReference(Possibly.Is(memberDefinitionBox)));
             }

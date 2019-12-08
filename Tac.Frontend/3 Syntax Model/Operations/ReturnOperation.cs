@@ -158,9 +158,9 @@ namespace Tac.Semantic_Model.Operations
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IIsPossibly<TFrontendCodeElement> Run(IResolvableScope scope ,IResolveContext context)
+            public IIsPossibly<TFrontendCodeElement> Run(IResolveContext context)
             {
-                var res = make(left.Run(scope,context));
+                var res = make(left.Run(context));
                 return res;
             }
         }

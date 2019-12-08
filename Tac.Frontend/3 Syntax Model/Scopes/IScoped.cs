@@ -1,6 +1,5 @@
 ﻿using Prototypist.LeftToRight;
 using Prototypist.TaskChain;
-using Prototypist.TaskChain.DataTypes;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,7 +17,7 @@ namespace Tac.Semantic_Model
     // I am not really sure this is a useful concept
     internal interface IScoped
     {
-        WeakScope Scope { get; }
+        IBox<WeakScope> Scope { get; }
     }
 
     internal interface IFrontendGenericType : IFrontendType

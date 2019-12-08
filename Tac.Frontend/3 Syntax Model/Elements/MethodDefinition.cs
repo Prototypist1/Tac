@@ -210,14 +210,14 @@ namespace Tac.Semantic_Model
                 this.isEntryPoint = isEntryPoint;
             }
 
-            public IIsPossibly<WeakMethodDefinition> Run(IResolvableScope _, IResolveContext context)
+            public IIsPossibly<WeakMethodDefinition> Run(IResolveContext context)
             {
                 return 
                     Possibly.Is(
                         new WeakMethodDefinition(
-                            output.Run(methodScope,context),
-                            parameter.Run(methodScope,context).IfIs(x => x.MemberDefinition),
-                            lines.Select(x => x.Run(methodScope,context)).ToArray(),
+                            output.Run(context),
+                            parameter.Run(context).IfIs(x => x.MemberDefinition),
+                            lines.Select(x => x.Run(context)).ToArray(),
                             methodScope,
                             new IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[0], isEntryPoint));
             }

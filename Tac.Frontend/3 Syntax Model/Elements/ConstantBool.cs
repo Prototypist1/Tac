@@ -131,7 +131,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IIsPossibly<WeakConstantBool> Run(IResolvableScope scope, IResolveContext context)
+            public IIsPossibly<WeakConstantBool> Run(IResolveContext context)
             {
                 return Possibly.Is(new WeakConstantBool(Possibly.Is(dub)));
             }

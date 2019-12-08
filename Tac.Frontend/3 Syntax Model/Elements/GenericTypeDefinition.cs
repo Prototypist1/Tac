@@ -205,13 +205,13 @@ namespace Tac.Semantic_Model
                 this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
             }
 
-            public IIsPossibly<WeakGenericTypeDefinition> Run(IResolvableScope _, IResolveContext context)
+            public IIsPossibly<WeakGenericTypeDefinition> Run(IResolveContext context)
             {
                 // hmm getting the template down here is hard
                 // scope mostly comes from context
                 // why is that?
 
-                var nextLines = lines.Select(x => x.Run(this.scope,context)).ToArray();
+                var nextLines = lines.Select(x => x.Run(context)).ToArray();
                 return box.Fill(Possibly.Is(new WeakGenericTypeDefinition(
                     Possibly.Is(nameKey),
                     this.scope,

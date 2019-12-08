@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac.Frontend;
+using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model.Elements;
@@ -17,12 +18,12 @@ namespace Tac.New
     
     internal interface ISetUpContext
     {
-        ISetUpTypeProblem TypeProblem { get; }
+        LocalTpn.ISetUpTypeProblem TypeProblem { get; }
     }
 
     internal class SetUpContext : ISetUpContext
     {
-        public ISetUpTypeProblem TypeProblem { get; }
+        public LocalTpn.ISetUpTypeProblem TypeProblem { get; }
     }
 
     internal interface ISetUpResult<out TCodeElement, out TSetUpSideNode>
@@ -51,17 +52,27 @@ namespace Tac.New
         ISetUpResult<TCodeElement, TSetUpSideNode> Run(LocalTpn.IScope scope, ISetUpContext context);
     }
 
-    public interface IResolveContext
+    internal interface IResolveContext
     {
+        public LocalTpn.ITypeSolution Solution { get; }
     }
 
-    public class ResolveContext : IResolveContext
+    internal class ResolveContext : IResolveContext
     {
+        public ResolveContext(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution solution)
+        {
+            Solution = solution ?? throw new ArgumentNullException(nameof(solution));
+        }
+
+        public LocalTpn.ITypeSolution Solution
+        {
+            get;
+        }
     }
 
     internal interface IResolve<out TCodeElement> 
     {
-        IIsPossibly<TCodeElement> Run(IResolvableScope scope, IResolveContext context);
+        IIsPossibly<TCodeElement> Run(IResolveContext context);
     }
     
 }

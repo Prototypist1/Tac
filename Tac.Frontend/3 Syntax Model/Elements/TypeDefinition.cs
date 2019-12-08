@@ -174,7 +174,7 @@ namespace Tac.Semantic_Model
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public IIsPossibly<IFrontendType> Run(IResolvableScope _, IResolveContext context)
+            public IIsPossibly<IFrontendType> Run(IResolveContext context)
             {
                 definitionBox.Fill(Possibly.Is(new WeakTypeDefinition(resolvableScope, Possibly.Is(key))));
                 return Possibly.Is(typeReferance);

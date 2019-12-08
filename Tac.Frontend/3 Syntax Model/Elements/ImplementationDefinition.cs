@@ -242,13 +242,13 @@ namespace Tac.Semantic_Model
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
             }
 
-            public IIsPossibly<WeakImplementationDefinition> Run(IResolvableScope _, IResolveContext context)
+            public IIsPossibly<WeakImplementationDefinition> Run(IResolveContext context)
             {
                 var innerRes = new WeakImplementationDefinition(
-                        contextDefinition.Run(methodScope,context).IfIs(x => x.MemberDefinition),
-                        parameterDefinition.Run(methodScope,context).IfIs(x => x.MemberDefinition),
-                        output.Run(methodScope,context),
-                        elements.Select(x => x.Run(methodScope,context)).ToArray(),
+                        contextDefinition.Run(context).IfIs(x => x.MemberDefinition),
+                        parameterDefinition.Run(context).IfIs(x => x.MemberDefinition),
+                        output.Run(context),
+                        elements.Select(x => x.Run(context)).ToArray(),
                         methodScope,
                         new IConvertableFrontendCodeElement<ICodeElement>[0]);
 

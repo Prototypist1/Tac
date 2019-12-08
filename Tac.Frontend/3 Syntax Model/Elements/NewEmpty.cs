@@ -102,7 +102,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             {
             }
 
-            public IIsPossibly<WeakEmptyInstance> Run(IResolvableScope _, IResolveContext context)
+            public IIsPossibly<WeakEmptyInstance> Run(IResolveContext context)
             {
                 return Possibly.Is(new WeakEmptyInstance());
             }
