@@ -130,7 +130,7 @@ namespace Tac.Semantic_Model.Operations
             }
 
 
-            public IIsPossibly<WeakPathOperation> Run(IResolveContext context)
+            public IIsPossibly<WeakPathOperation> Run(LocalTpn.ITypeSolution context)
             {
                 var res = Possibly.Is(new WeakPathOperation(
                     left.Run(context),

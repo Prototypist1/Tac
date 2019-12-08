@@ -191,9 +191,9 @@ namespace Tac.Semantic_Model
                 var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"),new[] {
                     realizedInput.SetUpSideNode.Key(),
                     realizedOutput.SetUpSideNode.Key(),
-                }));
+                }),new WeakTypeReferenceConverter());
 
-                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName);
+                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName,new WeakMethodDefinitionConverter());
 
                 var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName);
 
@@ -201,7 +201,7 @@ namespace Tac.Semantic_Model
                     new GenericNameKey(new NameKey("method"), new[] {
                          realizedInput.SetUpSideNode.Key(),
                          realizedOutput.SetUpSideNode.Key(),
-                    }));
+                    }), new PlaceholderValueConverter());
 
                 innerValue.AssignTo(outer.Returns());
 
@@ -211,7 +211,7 @@ namespace Tac.Semantic_Model
                          realizedInput.SetUpSideNode.Key(),
                          realizedOutput.SetUpSideNode.Key(),
                     }),
-                }));
+                }),new PlaceholderValueConverter());
 
                 return new SetUpResult<WeakImplementationDefinition, LocalTpn.IValue>(new ImplementationDefinitionResolveReferance(
                     realizeContext.Resolve,
@@ -242,7 +242,7 @@ namespace Tac.Semantic_Model
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
             }
 
-            public IIsPossibly<WeakImplementationDefinition> Run(IResolveContext context)
+            public IIsPossibly<WeakImplementationDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 var innerRes = new WeakImplementationDefinition(
                         contextDefinition.Run(context).IfIs(x => x.MemberDefinition),
@@ -250,7 +250,7 @@ namespace Tac.Semantic_Model
                         output.Run(context),
                         elements.Select(x => x.Run(context)).ToArray(),
                         methodScope,
-                        new IConvertableFrontendCodeElement<ICodeElement>[0]);
+                        Array.Empty<IConvertableFrontendCodeElement<ICodeElement>>());
 
                 var res = Possibly.Is(innerRes);
 

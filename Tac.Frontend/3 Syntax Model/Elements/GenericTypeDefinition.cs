@@ -180,7 +180,10 @@ namespace Tac.Semantic_Model
 
             public ISetUpResult<WeakGenericTypeDefinition, LocalTpn.IExplicitType> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
-                var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>x.Key).ToArray());
+                // oh geez here is a mountain.
+                // I generic types are erased 
+                // what on earth does this return?
+                var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>(x.Key, new WeakTypeDefinitionConverter())).ToArray(),new WeakTypeDefinitionConverter());
                 var nextLines = lines.Select(x => x.Run(myScope, context).Resolve).ToArray();
                 return new SetUpResult<WeakGenericTypeDefinition, LocalTpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(nameKey, box, genericParameters, nextLines), myScope);
             }
@@ -205,7 +208,7 @@ namespace Tac.Semantic_Model
                 this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
             }
 
-            public IIsPossibly<WeakGenericTypeDefinition> Run(IResolveContext context)
+            public IIsPossibly<WeakGenericTypeDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 // hmm getting the template down here is hard
                 // scope mostly comes from context
@@ -214,7 +217,7 @@ namespace Tac.Semantic_Model
                 var nextLines = lines.Select(x => x.Run(context)).ToArray();
                 return box.Fill(Possibly.Is(new WeakGenericTypeDefinition(
                     Possibly.Is(nameKey),
-                    this.scope,
+                    context.GetScope(this.scope),
                     genericParameters.Select(x => Possibly.Is(x)).ToArray())));
             }
         }

@@ -137,7 +137,7 @@ namespace Tac.Semantic_Model.Operations
             }
 
 
-            public IIsPossibly<WeakAssignOperation> Run( IResolveContext context)
+            public IIsPossibly<WeakAssignOperation> Run(LocalTpn.ITypeSolution context)
             {
                 var leftRes = left.Run( context);
                 var res = Possibly.Is(new WeakAssignOperation(

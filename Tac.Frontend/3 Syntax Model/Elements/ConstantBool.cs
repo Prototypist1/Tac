@@ -65,7 +65,7 @@ namespace Tac.Semantic_Model.Operations
             public ITokenMatching<bool> TryMake(IMatchedTokenMatching self)
             {
                 if (self.Tokens.Any() &&
-                    self.Tokens.First() is AtomicToken first)
+                    self.Tokens[0] is AtomicToken first)
                 {
                     if (first.Item == "true") {
                         return TokenMatching<bool>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, true);
@@ -116,7 +116,12 @@ namespace Tac.Semantic_Model.Operations
 
             public ISetUpResult<WeakConstantBool, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
-                var value = context.TypeProblem.CreateValue(scope, new NameKey("bool"));
+                // PlaceholderValueConverter is a little weird
+                // I kind of think it should make the WeakConstantBool
+                // yeah it totally should
+                // TODO 
+                // this applies to my other constants 
+                var value = context.TypeProblem.CreateValue(scope, new NameKey("bool"), new PlaceholderValueConverter());
                 return new SetUpResult<WeakConstantBool, LocalTpn.IValue>(new ConstantBoolResolveReferance(dub),value);
             }
         }
@@ -131,7 +136,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IIsPossibly<WeakConstantBool> Run(IResolveContext context)
+            public IIsPossibly<WeakConstantBool> Run(LocalTpn.ITypeSolution context)
             {
                 return Possibly.Is(new WeakConstantBool(Possibly.Is(dub)));
             }

@@ -96,7 +96,7 @@ namespace Tac.Semantic_Model.Operations
             public ISetUpResult<WeakConstantNumber, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
 
-                var value = context.TypeProblem.CreateValue(scope,new NameKey("number"));
+                var value = context.TypeProblem.CreateValue(scope,new NameKey("number"), new PlaceholderValueConverter());
                 return new SetUpResult<WeakConstantNumber, LocalTpn.IValue>(new ConstantNumberResolveReferance(dub),value);
             }
         }
@@ -111,7 +111,7 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IIsPossibly<WeakConstantNumber> Run(IResolveContext context)
+            public IIsPossibly<WeakConstantNumber> Run(LocalTpn.ITypeSolution context)
             {
                 return Possibly.Is(new WeakConstantNumber(Possibly.Is(dub)));
             }

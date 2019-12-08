@@ -214,7 +214,7 @@ namespace Tac.Semantic_Model
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
             }
 
-            public IIsPossibly<WeakMemberReference> Run(IResolveContext context)
+            public IIsPossibly<WeakMemberReference> Run(LocalTpn.ITypeSolution context)
             {
                 memberDefinitionBox.Fill(
                     Possibly.Is(

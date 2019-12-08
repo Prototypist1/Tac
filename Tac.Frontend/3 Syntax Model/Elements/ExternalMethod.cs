@@ -9,6 +9,8 @@ using Tac.Semantic_Model;
 namespace Tac.Frontend._3_Syntax_Model.Elements
 {
 
+    // uhhh.. this never used?
+    // not really atleast
     internal interface IMethodDefinition: IFrontendType
     {
         IIsPossibly<IFrontendType> InputType { get; }

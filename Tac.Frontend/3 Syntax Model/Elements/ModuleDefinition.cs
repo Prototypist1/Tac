@@ -146,7 +146,7 @@ namespace Tac.Semantic_Model
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public IIsPossibly<WeakModuleDefinition> Run(IResolveContext context)
+            public IIsPossibly<WeakModuleDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 var innerRes = new WeakModuleDefinition(
                         scope,

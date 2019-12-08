@@ -53,6 +53,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
             OrType<TypeProblem2.Type, TypeProblem2.OrType> GetType(ILookUpType from);
             (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from);
+            TypeProblem2.TypeReference GetResultType(TypeProblem2.Method from);
+            TypeProblem2.Member GetInputMember(TypeProblem2.Method from);
         }
 
         public class ConcreteSolutionType : IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>

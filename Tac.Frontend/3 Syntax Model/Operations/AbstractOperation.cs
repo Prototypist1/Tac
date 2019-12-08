@@ -240,7 +240,7 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<TFrontendCodeElement> Run(IResolveContext context)
+            public IIsPossibly<TFrontendCodeElement> Run(LocalTpn.ITypeSolution context)
             {
                 var res = make(
                     left.Run(context),
@@ -374,7 +374,7 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<IFrontendType> Run(IResolveContext context)
+            public IIsPossibly<IFrontendType> Run(LocalTpn.ITypeSolution context)
             {
                 var res = make(
                     left.Run(context),

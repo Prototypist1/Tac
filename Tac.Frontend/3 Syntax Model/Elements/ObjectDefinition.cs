@@ -132,7 +132,7 @@ namespace Tac.Semantic_Model
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public IIsPossibly<WeakObjectDefinition> Run(IResolveContext context)
+            public IIsPossibly<WeakObjectDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 var innerRes = new WeakObjectDefinition(
                             scope,

@@ -68,18 +68,18 @@ namespace Tac.Semantic_Model
     }
 
     internal interface IWeakTypeDefinition: IConvertableFrontendCodeElement<IInterfaceType>, IScoped, IConvertableFrontendType<IInterfaceType> {
-        IIsPossibly<IKey> Key { get; }
+        //IIsPossibly<IKey> Key { get; }
     }
 
     internal class WeakTypeDefinition : IWeakTypeDefinition
     {
-        public WeakTypeDefinition(WeakScope scope, IIsPossibly<IKey> key)
+        public WeakTypeDefinition(WeakScope scope)//, IIsPossibly<IKey> key
         {
-            Key = key ?? throw new ArgumentNullException(nameof(key));
+            //Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public IIsPossibly<IKey> Key { get; }
+        //public IIsPossibly<IKey> Key { get; }
         // I am not sure I agree with this
         // it is an ordered set of types, names and acccessablity modifiers
         public WeakScope Scope { get; }
@@ -174,7 +174,7 @@ namespace Tac.Semantic_Model
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public IIsPossibly<IFrontendType> Run(IResolveContext context)
+            public IIsPossibly<IFrontendType> Run(LocalTpn.ITypeSolution context)
             {
                 definitionBox.Fill(Possibly.Is(new WeakTypeDefinition(resolvableScope, Possibly.Is(key))));
                 return Possibly.Is(typeReferance);

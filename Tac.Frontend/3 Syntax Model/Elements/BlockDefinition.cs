@@ -116,13 +116,13 @@ namespace Tac.Semantic_Model
                 this.resolveReferance = resolveReferance;
             }
 
-            public IIsPossibly<WeakBlockDefinition> Run(IResolveContext context)
+            public IIsPossibly<WeakBlockDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 return
                         Possibly.Is(
                             new WeakBlockDefinition(
                                 resolveReferance.Select(x => x.Run(context)).ToArray(),
-                                context.Solution.GetScope(myScope),
+                                context.GetScope(myScope),
                                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
             }
         }

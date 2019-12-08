@@ -52,27 +52,27 @@ namespace Tac.New
         ISetUpResult<TCodeElement, TSetUpSideNode> Run(LocalTpn.IScope scope, ISetUpContext context);
     }
 
-    internal interface IResolveContext
-    {
-        public LocalTpn.ITypeSolution Solution { get; }
-    }
+    //internal interface IResolveContext
+    //{
+    //    public LocalTpn.ITypeSolution Solution { get; }
+    //}
 
-    internal class ResolveContext : IResolveContext
-    {
-        public ResolveContext(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution solution)
-        {
-            Solution = solution ?? throw new ArgumentNullException(nameof(solution));
-        }
+    //internal class ResolveContext : IResolveContext
+    //{
+    //    public ResolveContext(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution solution)
+    //    {
+    //        Solution = solution ?? throw new ArgumentNullException(nameof(solution));
+    //    }
 
-        public LocalTpn.ITypeSolution Solution
-        {
-            get;
-        }
-    }
+    //    public LocalTpn.ITypeSolution Solution
+    //    {
+    //        get;
+    //    }
+    //}
 
     internal interface IResolve<out TCodeElement> 
     {
-        IIsPossibly<TCodeElement> Run(IResolveContext context);
+        IIsPossibly<TCodeElement> Run(LocalTpn.ITypeSolution context);
     }
     
 }

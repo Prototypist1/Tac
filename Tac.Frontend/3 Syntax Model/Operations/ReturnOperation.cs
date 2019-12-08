@@ -158,7 +158,7 @@ namespace Tac.Semantic_Model.Operations
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IIsPossibly<TFrontendCodeElement> Run(IResolveContext context)
+            public IIsPossibly<TFrontendCodeElement> Run(LocalTpn.ITypeSolution context)
             {
                 var res = make(left.Run(context));
                 return res;

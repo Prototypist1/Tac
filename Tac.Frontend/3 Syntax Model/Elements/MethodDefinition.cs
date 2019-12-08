@@ -210,7 +210,7 @@ namespace Tac.Semantic_Model
                 this.isEntryPoint = isEntryPoint;
             }
 
-            public IIsPossibly<WeakMethodDefinition> Run(IResolveContext context)
+            public IIsPossibly<WeakMethodDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 return 
                     Possibly.Is(
