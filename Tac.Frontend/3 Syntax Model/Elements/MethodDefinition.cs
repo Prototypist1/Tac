@@ -181,7 +181,7 @@ namespace Tac.Semantic_Model
                 var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new IKey[] {
                     realizedInput.SetUpSideNode.Key(),
                     realizedOutput.SetUpSideNode.Key(),
-                }));
+                }), new PlaceholderValueConverter());
 
                 return new SetUpResult<WeakMethodDefinition, LocalTpn.IValue>( new MethodDefinitionResolveReferance(
                     realizedInput.Resolve,

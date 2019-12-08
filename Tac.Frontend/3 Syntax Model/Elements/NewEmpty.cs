@@ -91,7 +91,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             public ISetUpResult<WeakEmptyInstance, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
-                var value = context.TypeProblem.CreateValue(scope,new NameKey("empty"));
+                var value = context.TypeProblem.CreateValue(scope,new NameKey("empty"),new PlaceholderValueConverter());
                 return new SetUpResult<WeakEmptyInstance, LocalTpn.IValue>(new EmptyInstanceResolveReferance(),value);
             }
         }

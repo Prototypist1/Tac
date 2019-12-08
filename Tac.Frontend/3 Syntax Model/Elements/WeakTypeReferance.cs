@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
@@ -163,10 +164,6 @@ namespace Tac.Semantic_Model
         {
             return new TypeReferancePopulateScope(typeName);
         }
-        public static IResolve<WeakTypeReference> PopulateBoxes(IKey key)
-        {
-            return new TypeReferanceResolveReference(key);
-        }
 
 
         private class TypeReferancePopulateScope : ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>
@@ -180,24 +177,24 @@ namespace Tac.Semantic_Model
 
             public ISetUpResult<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
-                var type = context.TypeProblem.CreateTypeReference(scope,key);
+                var type = context.TypeProblem.CreateTypeReference(scope,key, new WeakTypeReferenceConverter());
                 return new SetUpResult<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
-                    key), type);
+                    type), type);
             }
         }
 
         private class TypeReferanceResolveReference : IResolve<WeakTypeReference>
         {
-            private readonly IKey key;
+            private readonly Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.TypeReference type;
 
-            public TypeReferanceResolveReference( IKey key)
+            public TypeReferanceResolveReference(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.TypeReference type)
             {
-                this.key = key ?? throw new ArgumentNullException(nameof(key));
+                this.type = type;
             }
 
             public IIsPossibly<WeakTypeReference> Run(LocalTpn.ITypeSolution context)
             {
-                return Possibly.Is(new WeakTypeReference(scope.PossiblyGetType(key)));
+                return Possibly.Is(context.GetTypeReference(type).GetValue());
             }
         }
     }

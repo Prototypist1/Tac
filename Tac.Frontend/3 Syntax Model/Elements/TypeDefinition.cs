@@ -148,8 +148,8 @@ namespace Tac.Semantic_Model
 
             public ISetUpResult<IFrontendType, LocalTpn.TypeProblem2.TypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
-                var type= context.TypeProblem.CreateType(scope, key);
-                var typeReference = context.TypeProblem.CreateTypeReference(scope, key);
+                var type= context.TypeProblem.CreateType(scope, key,new WeakTypeDefinitionConverter());
+                var typeReference = context.TypeProblem.CreateTypeReference(scope, key, new WeakTypeReferenceConverter());
                 elements.Select(x => x.Run(type, context)).ToArray();
                 return new SetUpResult<IFrontendType, LocalTpn.TypeProblem2.TypeReference>( new TypeDefinitionResolveReference(
                     definitionBox,

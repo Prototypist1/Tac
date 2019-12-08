@@ -185,6 +185,13 @@ namespace Tac.Semantic_Model
 
             public ISetUpResult<WeakImplementationDefinition,LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
+
+                // TODO this is so painful, I think I need to look in to implementations having special treatment...
+                // maybe they need to be a generic on the tpn
+                // altho to the tpn they really are not special
+                // but here they might maybe convert to an implementation not a method that returns a method
+                // idk! 🤷‍😭
+
                 var realizeContext = contextDefinition.Run(scope, context);
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);

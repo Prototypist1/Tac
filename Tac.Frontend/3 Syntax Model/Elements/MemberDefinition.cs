@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
@@ -66,11 +67,11 @@ namespace Tac.Semantic_Model
     // very tac-ian 
     internal static class MemberDefinitionShared {
 
-        public static IMemberDefinition Convert(IIsPossibly<IFrontendType> Type,IConversionContext context, bool ReadOnly, IKey Key)
+        public static IMemberDefinition Convert(IBox<IFrontendType> Type,IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (def, builder) = MemberDefinition.Create();
 
-            var buildIntention = Type.GetOrThrow().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().Cast<IConvertable<IVerifiableType>>().GetBuildIntention(context);
+            var buildIntention = Type.GetValue().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().Cast<IConvertable<IVerifiableType>>().GetBuildIntention(context);
             buildIntention.Build();
             builder.Build(Key, buildIntention.Tobuild, ReadOnly);
             return def;
@@ -158,16 +159,6 @@ namespace Tac.Semantic_Model
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
 
-        public static IResolve<WeakMemberReference> PopulateBoxes(
-                IKey memberName,
-                bool isReadonly,
-                IResolve<WeakTypeReference> type)
-        {
-            return new MemberDefinitionResolveReferance(
-                memberName,
-                isReadonly,
-                type);
-        }
 
 
         private class MemberDefinitionPopulateScope : ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>
@@ -187,43 +178,27 @@ namespace Tac.Semantic_Model
             {
 
                 var type = this.type.Run(scope, context);
-                var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.Key(),isReadonly);
+                var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.Key(), new WeakMemberDefinitionConverter(isReadonly,memberName));
 
 
                 return new SetUpResult<WeakMemberReference, LocalTpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
-                    memberName, 
-                    isReadonly,
-                    type.Resolve),member);
+                    member),member);
             }
 
         }
 
         private class MemberDefinitionResolveReferance : IResolve<WeakMemberReference>
         {
-            private readonly IKey memberName;
-            private readonly bool isReadonly;
-            public readonly IResolve<IFrontendType> type;
+            private Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
 
-            public MemberDefinitionResolveReferance(
-                IKey memberName,
-                bool isReadonly,
-                IResolve<IFrontendType> type)
+            public MemberDefinitionResolveReferance(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
             {
-                this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
-                this.isReadonly = isReadonly;
-                this.type = type ?? throw new ArgumentNullException(nameof(type));
+                this.member = member;
             }
 
             public IIsPossibly<WeakMemberReference> Run(LocalTpn.ITypeSolution context)
             {
-                memberDefinitionBox.Fill(
-                    Possibly.Is(
-                    new WeakMemberDefinition(
-                        isReadonly,
-                        memberName,
-                        type.Run(context))));
-
-                return Possibly.Is(new WeakMemberReference(Possibly.Is(memberDefinitionBox)));
+                return Possibly.Is(new WeakMemberReference(context.GetMember(member)));
             }
         }
     }

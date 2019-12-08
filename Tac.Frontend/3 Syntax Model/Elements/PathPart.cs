@@ -46,32 +46,32 @@ namespace Tac.Semantic_Model
 
     internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReferance>, IFrontendType
     {
-        IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
+        IBox<IWeakMemberDefinition> MemberDefinition { get; }
     }
 
     // TODO I don't think I want this...
     // just use member definition 
     internal class WeakMemberReference : IWeakMemberReference
     {
-        public WeakMemberReference(IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> memberDefinition)
+        public WeakMemberReference(IBox<IWeakMemberDefinition> memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
         }
 
-        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
+        public IBox<IWeakMemberDefinition> MemberDefinition { get; }
 
         public IBuildIntention<IMemberReferance> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = MemberReference.Create();
             return new BuildIntention<IMemberReferance>(toBuild, () =>
             {
-                maker.Build(MemberDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context));
+                maker.Build(MemberDefinition.GetValue().Convert(context));
             });
         }
 
         public IIsPossibly<IFrontendType> Returns()
         {
-            return MemberDefinition.IfIs(x => x.GetValue()).IfIs(x => x.Type).IfIs(x => x.TypeDefinition).IfIs(x => x.GetValue());
+            return Possibly.Is(MemberDefinition.GetValue().Type.GetValue());
         }
     }
 }

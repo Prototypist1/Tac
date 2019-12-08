@@ -11,6 +11,7 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Operations;
+using Tac.Frontend._3_Syntax_Model.Operations;
 
 namespace Tac.Parser
 {
@@ -51,12 +52,6 @@ namespace Tac.Semantic_Model
         {
             return new MemberPopulateScope(item);
         }
-        public static IResolve<WeakMemberReference> PopulateBoxes(
-                NameKey key)
-        {
-            return new MemberResolveReferance(
-                key);
-        }
 
         private class MemberPopulateScope : ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>
         {
@@ -70,9 +65,9 @@ namespace Tac.Semantic_Model
             public ISetUpResult<WeakMemberReference, LocalTpn.TypeProblem2.Member> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var nameKey = new NameKey(memberName);
-                var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, nameKey);
+                var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, nameKey,new WeakMemberDefinitionConverter(false,nameKey));
 
-                return new SetUpResult<WeakMemberReference, LocalTpn.TypeProblem2.Member>(new MemberResolveReferance( nameKey),member);
+                return new SetUpResult<WeakMemberReference, LocalTpn.TypeProblem2.Member>(new MemberResolveReferance(member),member);
             }
 
         }
@@ -80,17 +75,16 @@ namespace Tac.Semantic_Model
 
         private class MemberResolveReferance : IResolve<WeakMemberReference>
         {
-            private readonly NameKey key;
+            private readonly Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
 
-            public MemberResolveReferance(
-                NameKey key)
+            public MemberResolveReferance(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
             {
-                this.key = key ?? throw new ArgumentNullException(nameof(key));
+                this.member = member ?? throw new ArgumentNullException(nameof(member));
             }
 
             public IIsPossibly<WeakMemberReference> Run(LocalTpn.ITypeSolution context)
             {
-                return Possibly.Is(new WeakMemberReference(scope.PossiblyGetMember(false, key)));
+                return Possibly.Is(new WeakMemberReference(context.GetMember(member)));
             }
         }
     }

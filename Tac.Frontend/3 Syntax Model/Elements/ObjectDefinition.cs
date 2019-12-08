@@ -110,9 +110,9 @@ namespace Tac.Semantic_Model
             {
                 var key = new ImplicitKey();
 
-                var myScope = context.TypeProblem.CreateObject(scope, key);
+                var myScope = context.TypeProblem.CreateObject(scope, key, new WeakObjectConverter());
 
-                var value = context.TypeProblem.CreateValue(scope, key);
+                var value = context.TypeProblem.CreateValue(scope, key, new PlaceholderValueConverter());
                 // ugh! an object is a type
                 //
 
