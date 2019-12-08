@@ -76,16 +76,10 @@ namespace Tac.Frontend.TypeProblem.Test
         }
     }
 
-    public class TestGenericType : TestExplictType
-    {
-        public TestGenericType(IBox<TestScope> memberCollection) : base(memberCollection)
-        {
-        }
-    }
 
     public class TestScopeConverter : WTF.IConvertTo<WTF.TypeProblem2.Scope, TestScope>
     {
-        public TestScope Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.TypeProblem2.Scope from)
+        public TestScope Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Scope from)
         {
             var members = typeSolution.GetMembers(from);
             var res = new TestScope();
@@ -98,7 +92,7 @@ namespace Tac.Frontend.TypeProblem.Test
     }
     public class TestExplictTypeConverter : WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>
     {
-        public TestExplictType Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.TypeProblem2.Type from)
+        public TestExplictType Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Type from)
         {
             var members = typeSolution.GetMembers(from);
             var scope = new TestScope();
@@ -111,24 +105,9 @@ namespace Tac.Frontend.TypeProblem.Test
             return new TestExplictType(@ref);
         }
     }
-    public class TestGenericTypeConverter : WTF.IConvertTo<WTF.TypeProblem2.GenericType, TestGenericType>
-    {
-        public TestGenericType Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.TypeProblem2.GenericType from)
-        {
-            var members = typeSolution.GetMembers(from);
-            var scope = new TestScope();
-            foreach (var member in members)
-            {
-                scope.members.Add(typeSolution.GetMember(member));
-            }
-            var @ref = new Box<TestScope>();
-            @ref.Fill(scope);
-            return new TestGenericType(@ref);
-        }
-    }
     public class TestMethodConverter : WTF.IConvertTo<WTF.TypeProblem2.Method, TestMethod>
     {
-        public TestMethod Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.TypeProblem2.Method from)
+        public TestMethod Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Method from)
         {
             var members = typeSolution.GetMembers(from);
             var scope = new TestScope();
@@ -150,7 +129,7 @@ namespace Tac.Frontend.TypeProblem.Test
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public TestMember Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.TypeProblem2.Member from)
+        public TestMember Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Member from)
         {
             var orType = typeSolution.GetType(from);
 
@@ -162,15 +141,9 @@ namespace Tac.Frontend.TypeProblem.Test
             else if (orType.Is2(out var v2))
             {
 
-                testType = typeSolution.GetGenericType(v2);
+                testType = typeSolution.GetOrType(v2);
             }
-            else if (orType.Is3(out var v3))
-            {
-
-                testType = typeSolution.GetOrType(v3);
-            }
-            else
-            {
+            else {
                 throw new Exception("well, should have been one of those");
             }
             return new TestMember(testType, nameKey);
@@ -178,7 +151,7 @@ namespace Tac.Frontend.TypeProblem.Test
     }
     public class TestTypeReferenceConverter : WTF.IConvertTo<WTF.TypeProblem2.Member, TestTypeReference>
     {
-        public TestTypeReference Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.TypeProblem2.Member from)
+        public TestTypeReference Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Member from)
         {
             var orType = typeSolution.GetType(from);
 
@@ -190,12 +163,7 @@ namespace Tac.Frontend.TypeProblem.Test
             else if (orType.Is2(out var v2))
             {
 
-                testType = typeSolution.GetGenericType(v2);
-            }
-            else if (orType.Is3(out var v3))
-            {
-
-                testType = typeSolution.GetOrType(v3);
+                testType = typeSolution.GetOrType(v2);
             }
             else
             {
@@ -206,7 +174,7 @@ namespace Tac.Frontend.TypeProblem.Test
     }
     public class TestValueConverter : WTF.IConvertTo<WTF.TypeProblem2.Value, TestValue>
     {
-        public TestValue Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType>.TypeProblem2.Value from)
+        public TestValue Convert(Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.ITypeSolution typeSolution, Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference>.TypeProblem2.Value from)
         {
             var orType = typeSolution.GetType(from);
 
@@ -218,12 +186,7 @@ namespace Tac.Frontend.TypeProblem.Test
             else if (orType.Is2(out var v2))
             {
 
-                testType = typeSolution.GetGenericType(v2);
-            }
-            else if (orType.Is3(out var v3))
-            {
-
-                testType = typeSolution.GetOrType(v3);
+                testType = typeSolution.GetOrType(v2);
             }
             else
             {
@@ -233,7 +196,7 @@ namespace Tac.Frontend.TypeProblem.Test
         }
     }
 
-    public class WTF : Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference, TestGenericType> { 
+    public class WTF : Tpn<TestScope, TestExplictType, TestObject, TestOrType, TestMethod, TestValue, TestMember, TestTypeReference> { 
     }
 
     // TODO test or types
@@ -419,7 +382,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var pairType = x.CreateGenericType(x.Root, new NameKey("pair"), new (IKey,WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("T"), new TestExplictTypeConverter())
-            },new TestGenericTypeConverter());
+            },new TestExplictTypeConverter());
 
             x.CreateMember(pairType, new NameKey("x"),
                 new NameKey("T"), new TestMemberConverter(new NameKey("x")));
@@ -452,7 +415,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var type = x.CreateGenericType(x.Root, new NameKey("node"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("node-t"), new TestExplictTypeConverter())
-            }, new TestGenericTypeConverter());
+            }, new TestExplictTypeConverter());
 
             x.CreateMember(type, new NameKey("next"), new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("node-t")
@@ -487,7 +450,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var left = x.CreateGenericType(x.Root, new NameKey("left"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("left-t"), new TestExplictTypeConverter())
-            }, new TestGenericTypeConverter());
+            }, new TestExplictTypeConverter());
 
             x.CreateMember(left,new NameKey("thing"), new GenericNameKey(new NameKey("right"), new IKey[] {
                 new NameKey("left-t")
@@ -495,7 +458,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var right = x.CreateGenericType(x.Root, new NameKey("right"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("right-t"), new TestExplictTypeConverter())
-            }, new TestGenericTypeConverter());
+            }, new TestExplictTypeConverter());
 
             x.CreateMember(right, new NameKey("thing"), new GenericNameKey(new NameKey("left"), new IKey[] {
                 new NameKey("right-t")
@@ -537,7 +500,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var pairType = x.CreateGenericType(x.Root, new NameKey("pair"), new (IKey, WTF.IConvertTo<WTF.TypeProblem2.Type, TestExplictType>)[] {
                 (new NameKey("T"), new TestExplictTypeConverter())
-            }, new TestGenericTypeConverter());
+            }, new TestExplictTypeConverter());
 
 
             x.CreateMember(pairType, new NameKey("x"),
