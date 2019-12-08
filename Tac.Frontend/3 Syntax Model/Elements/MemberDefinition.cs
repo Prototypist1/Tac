@@ -189,9 +189,9 @@ namespace Tac.Semantic_Model
 
         private class MemberDefinitionResolveReferance : IResolve<WeakMemberReference>
         {
-            private readonly Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
+            private readonly Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference,WeakGenericTypeDefinition>.TypeProblem2.Member member;
 
-            public MemberDefinitionResolveReferance(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
+            public MemberDefinitionResolveReferance(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference,WeakGenericTypeDefinition>.TypeProblem2.Member member)
             {
                 this.member = member;
             }
