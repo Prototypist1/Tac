@@ -42,12 +42,12 @@ namespace Tac.Semantic_Model.Operations
 {
     internal class WeakReturnOperation : TrailingOperation, IConvertableFrontendCodeElement<IReturnOperation>
     {
-        public WeakReturnOperation(IIsPossibly<IFrontendCodeElement> result)
+        public WeakReturnOperation(IBox<IFrontendCodeElement> result)
         {
             Result = result;
         }
         
-        public IIsPossibly<IFrontendCodeElement> Result { get; }
+        public IBox<IFrontendCodeElement> Result { get; }
         
         public IIsPossibly<IFrontendType> Returns()
         {
@@ -59,7 +59,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = ReturnOperation.Create();
             return new BuildIntention<IReturnOperation>(toBuild, () =>
             {
-                maker.Build(Result.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Result.GetValue().ConvertElementOrThrow(context));
             });
         }
     }
@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model.Operations
     internal class TrailingOperation {
         public delegate LocalTpn.IValue GetReturnedValue(LocalTpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendCodeElement, LocalTpn.ITypeProblemNode> parm);
 
-        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> codeElement);
+        public delegate IBox<T> Make<out T>(IBox<IFrontendCodeElement> codeElement);
     }
 
     internal class TrailingOperationMaker<TFrontendCodeElement, TCodeElement> : IMaker<ISetUp<TFrontendCodeElement, LocalTpn.IValue>>
@@ -158,7 +158,7 @@ namespace Tac.Semantic_Model.Operations
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IIsPossibly<TFrontendCodeElement> Run(LocalTpn.ITypeSolution context)
+            public IBox<TFrontendCodeElement> Run(LocalTpn.ITypeSolution context)
             {
                 var res = make(left.Run(context));
                 return res;
@@ -169,7 +169,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ReturnOperationMaker : TrailingOperationMaker<WeakReturnOperation, IReturnOperation>
     {
-        public ReturnOperationMaker() : base(SymbolsRegistry.StaticReturnSymbol, x=>Possibly.Is(new WeakReturnOperation(x)),(s,c,x)=> {
+        public ReturnOperationMaker() : base(SymbolsRegistry.StaticReturnSymbol, x=>new Box<WeakReturnOperation>(new WeakReturnOperation(x)),(s,c,x)=> {
 
 
             // this smells
@@ -181,7 +181,7 @@ namespace Tac.Semantic_Model.Operations
             // I will need to change this when I do a pass to communitcate error better
             (x.SetUpSideNode as LocalTpn.IValue).AssignTo(mem);
 
-            return c.TypeProblem.CreateValue(s, new NameKey("empty"));
+            return c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter());
         })
         {
         }

@@ -62,15 +62,13 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
     internal class TypeOrOperationMaker : BinaryTypeMaker
     {
         public TypeOrOperationMaker() : base(SymbolsRegistry.StaticTypeOrSymbol, (l, r) => 
-            Possibly.Is<IWeakTypeReference>(
+            new Box<WeakTypeReference>(
                 new WeakTypeReference(
-                    Possibly.Is<IBox<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>>(
-                        new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
-                            Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
-                                new WeakTypeOrOperation(l, r)))))),(s,c,l,r)=> {
+                        new Box<WeakTypeOrOperation>(
+                                new WeakTypeOrOperation(l, r)))),(s,c,l,r)=> {
                                     var key = new ImplicitKey();
-                                    c.TypeProblem.CreateOrType(s, key,(LocalTpn.TypeProblem2.TypeReference)l.SetUpSideNode, (LocalTpn.TypeProblem2.TypeReference)r.SetUpSideNode);
-                                    var reference = c.TypeProblem.CreateTypeReference(s, key);
+                                    c.TypeProblem.CreateOrType(s, key,(LocalTpn.TypeProblem2.TypeReference)l.SetUpSideNode, (LocalTpn.TypeProblem2.TypeReference)r.SetUpSideNode,new WeakTypeOrOperationConverter());
+                                    var reference = c.TypeProblem.CreateTypeReference(s, key, new WeakTypeReferenceConverter());
                                     return reference;
                                 })
         {

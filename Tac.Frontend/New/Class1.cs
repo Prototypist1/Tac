@@ -72,7 +72,7 @@ namespace Tac.New
 
     internal interface IResolve<out TCodeElement> 
     {
-        IIsPossibly<TCodeElement> Run(LocalTpn.ITypeSolution context);
+        IBox<TCodeElement> Run(LocalTpn.ITypeSolution context);
     }
     
 }

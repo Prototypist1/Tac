@@ -64,10 +64,10 @@ namespace Tac.Semantic_Model.CodeStuff
     internal class BinaryOperation
     {
         public delegate LocalTpn.IValue GetReturnedValue(LocalTpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left, ISetUpResult<IFrontendCodeElement, LocalTpn.ITypeProblemNode> right);
-        public delegate IIsPossibly<T> Make<out T>(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right);
+        public delegate IBox<T> Make<out T>(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right);
 
         public delegate LocalTpn.TypeProblem2.TypeReference ToTypeProblemThings(LocalTpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendType, LocalTpn.ITypeProblemNode> left, ISetUpResult<IFrontendType, LocalTpn.ITypeProblemNode> right);
-        public delegate IIsPossibly<T> MakeBinaryType<out T>(IIsPossibly<IFrontendType> left, IIsPossibly<IFrontendType> right);
+        public delegate IBox<T> MakeBinaryType<out T>(IBox<IFrontendType> left, IBox<IFrontendType> right);
 
 
     }
@@ -77,17 +77,17 @@ namespace Tac.Semantic_Model.CodeStuff
         where TRight : class, IFrontendCodeElement
         where TCodeElement: class, ICodeElement
     {
-        public IIsPossibly<TLeft> Left { get; }
-        public IIsPossibly<TRight> Right { get; }
-        public IIsPossibly<IFrontendCodeElement>[] Operands
+        public IBox<TLeft> Left { get; }
+        public IBox<TRight> Right { get; }
+        public IBox<IFrontendCodeElement>[] Operands
         {
             get
             {
-                return new IIsPossibly<IFrontendCodeElement>[] { Left, Right };
+                return new IBox<IFrontendCodeElement>[] { Left, Right };
             }
         }
         
-        public BinaryOperation(IIsPossibly<TLeft> left, IIsPossibly<TRight> right)
+        public BinaryOperation(IBox<TLeft> left, IBox<TRight> right)
         {
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -240,7 +240,7 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<TFrontendCodeElement> Run(LocalTpn.ITypeSolution context)
+            public IBox<TFrontendCodeElement> Run(LocalTpn.ITypeSolution context)
             {
                 var res = make(
                     left.Run(context),
@@ -374,7 +374,7 @@ namespace Tac.Semantic_Model.CodeStuff
             }
 
 
-            public IIsPossibly<IFrontendType> Run(LocalTpn.ITypeSolution context)
+            public IBox<IFrontendType> Run(LocalTpn.ITypeSolution context)
             {
                 var res = make(
                     left.Run(context),

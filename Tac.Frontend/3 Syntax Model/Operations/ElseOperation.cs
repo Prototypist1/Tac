@@ -41,7 +41,7 @@ namespace Tac.Semantic_Model.Operations
     internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IElseOperation>
     {
         // right should have more validation
-        public WeakElseOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakElseOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -55,7 +55,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = ElseOperation.Create();
             return new BuildIntention<IElseOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
             });
         }
     }
@@ -63,7 +63,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation,IElseOperation>
     {
-        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>Possibly.Is(new WeakElseOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("bool")))
+        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>new Box<WeakElseOperation>(new WeakElseOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("bool"),new PlaceholderValueConverter()))
         {
         }
     }

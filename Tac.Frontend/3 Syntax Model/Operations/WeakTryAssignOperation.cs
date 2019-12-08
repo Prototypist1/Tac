@@ -15,7 +15,7 @@ namespace Tac.Semantic_Model.Operations
     internal class WeakTryAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ITryAssignOperation>
     {
 
-        public WeakTryAssignOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakTryAssignOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
         {
         }
 
@@ -29,7 +29,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = TryAssignOperation.Create();
             return new BuildIntention<ITryAssignOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
             });
         }
     }
@@ -56,9 +56,9 @@ namespace Tac.Semantic_Model.Operations
                     matched.Tokens,
                     matched.Context,
                     BinaryOperationMaker<WeakTryAssignOperation, ITryAssignOperation>.PopulateScope(left, right, (l, r) =>
-                        Possibly.Is(
+                       new Box<WeakTryAssignOperation>(
                             new WeakTryAssignOperation(l, r)),
-                    (s,c,l,r)=> c.TypeProblem.CreateValue(s,new NameKey("bool"))));
+                    (s,c,l,r)=> c.TypeProblem.CreateValue(s,new NameKey("bool"),new PlaceholderValueConverter())));
             }
 
             return TokenMatching<ISetUp<WeakTryAssignOperation, LocalTpn.IValue>>.MakeNotMatch(

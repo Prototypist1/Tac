@@ -208,7 +208,7 @@ namespace Tac.Semantic_Model
                 this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
             }
 
-            public IIsPossibly<WeakGenericTypeDefinition> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakGenericTypeDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 // hmm getting the template down here is hard
                 // scope mostly comes from context

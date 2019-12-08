@@ -196,9 +196,9 @@ namespace Tac.Semantic_Model
                 this.member = member;
             }
 
-            public IIsPossibly<WeakMemberReference> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakMemberReference> Run(LocalTpn.ITypeSolution context)
             {
-                return Possibly.Is(new WeakMemberReference(context.GetMember(member)));
+                return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
             }
         }
     }

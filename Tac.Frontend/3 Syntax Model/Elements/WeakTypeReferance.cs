@@ -74,7 +74,7 @@ namespace Tac.Semantic_Model
 
         public IIsPossibly<IFrontendType> Returns()
         {
-            return TypeDefinition.IfIs(x => x.GetValue());
+            return Possibly.Is(TypeDefinition.GetValue());
         }
     }
 
@@ -141,22 +141,22 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>
+    internal class TypeReferanceMaker : IMaker<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>
     {
-        public ITokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new TypeNameMaker(), out var name);
 
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new TypeReferancePopulateScope(name));
             }
 
-            return TokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);
+            return TokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);
         }
 
 
@@ -183,7 +183,7 @@ namespace Tac.Semantic_Model
             }
         }
 
-        private class TypeReferanceResolveReference : IResolve<WeakTypeReference>
+        public class TypeReferanceResolveReference : IResolve<WeakTypeReference>
         {
             private readonly Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.TypeReference type;
 
@@ -192,9 +192,9 @@ namespace Tac.Semantic_Model
                 this.type = type;
             }
 
-            public IIsPossibly<WeakTypeReference> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakTypeReference> Run(LocalTpn.ITypeSolution context)
             {
-                return Possibly.Is(context.GetTypeReference(type).GetValue());
+                return context.GetTypeReference(type);
             }
         }
     }

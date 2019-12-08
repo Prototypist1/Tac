@@ -6,6 +6,7 @@ using System.Text;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Elements;
+using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
@@ -175,54 +176,36 @@ namespace Tac.Semantic_Model
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);
 
+                var box = new Box<IResolve<IFrontendCodeElement>[]>();
+                var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
+                var method= context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(), new WeakMemberDefinitionConverter());
 
-                var method= context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName);
+                box.Fill(elements.Select(x => x.Run(method, context).Resolve).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new IKey[] {
                     realizedInput.SetUpSideNode.Key(),
                     realizedOutput.SetUpSideNode.Key(),
                 }), new PlaceholderValueConverter());
 
-                return new SetUpResult<WeakMethodDefinition, LocalTpn.IValue>( new MethodDefinitionResolveReferance(
-                    realizedInput.Resolve,
-                    elements.Select(x => x.Run(method, context).Resolve).ToArray(),
-                    realizedOutput.Resolve,
-                    isEntryPoint),value);
+                return new SetUpResult<WeakMethodDefinition, LocalTpn.IValue>( new MethodDefinitionResolveReferance(method),value);
             }
         }
 
         private class MethodDefinitionResolveReferance : IResolve<WeakMethodDefinition>
         {
-            private readonly IResolve<WeakMemberReference> parameter;
-            private readonly IResolve<IFrontendCodeElement>[] lines;
-            private readonly IResolve<IFrontendType> output;
-            private readonly bool isEntryPoint;
+            private readonly Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method method;
 
-            public MethodDefinitionResolveReferance(
-                IResolve<WeakMemberReference> parameter,
-                IResolve<IFrontendCodeElement>[] resolveReferance2,
-                IResolve<IFrontendType> output,
-                bool isEntryPoint)
+            public MethodDefinitionResolveReferance(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method method)
             {
-                this.parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
-                lines = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-                this.output = output ?? throw new ArgumentNullException(nameof(output));
-                this.isEntryPoint = isEntryPoint;
+                this.method = method;
             }
 
-            public IIsPossibly<WeakMethodDefinition> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakMethodDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                return 
-                    Possibly.Is(
-                        new WeakMethodDefinition(
-                            output.Run(context),
-                            parameter.Run(context).IfIs(x => x.MemberDefinition),
-                            lines.Select(x => x.Run(context)).ToArray(),
-                            methodScope,
-                            new IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>[0], isEntryPoint));
+                return context.GetMethod(method);
+
+
             }
         }
     }
-
-    
 }

@@ -249,7 +249,7 @@ namespace Tac.Semantic_Model
                 this.output = output ?? throw new ArgumentNullException(nameof(output));
             }
 
-            public IIsPossibly<WeakImplementationDefinition> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakImplementationDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 var innerRes = new WeakImplementationDefinition(
                         contextDefinition.Run(context).IfIs(x => x.MemberDefinition),
@@ -259,7 +259,7 @@ namespace Tac.Semantic_Model
                         methodScope,
                         Array.Empty<IConvertableFrontendCodeElement<ICodeElement>>());
 
-                var res = Possibly.Is(innerRes);
+                var res = new Box<WeakImplementationDefinition>(innerRes);
 
                 return res;
             }

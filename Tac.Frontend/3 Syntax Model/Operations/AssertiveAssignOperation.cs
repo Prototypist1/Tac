@@ -45,7 +45,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAssignOperation>
     {
-        public WeakAssignOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakAssignOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
         {
         }
 
@@ -59,7 +59,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = AssignOperation.Create();
             return new BuildIntention<IAssignOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
             });
         }
     }
@@ -137,10 +137,10 @@ namespace Tac.Semantic_Model.Operations
             }
 
 
-            public IIsPossibly<WeakAssignOperation> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakAssignOperation> Run(LocalTpn.ITypeSolution context)
             {
                 var leftRes = left.Run( context);
-                var res = Possibly.Is(new WeakAssignOperation(
+                var res = new Box<WeakAssignOperation>(new WeakAssignOperation(
                     leftRes,
                     right.Run( context)));
                 return res;

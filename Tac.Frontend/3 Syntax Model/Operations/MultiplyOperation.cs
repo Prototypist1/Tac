@@ -40,7 +40,7 @@ namespace Tac.Semantic_Model.Operations
     {
         public const string Identifier = "*";
 
-        public WeakMultiplyOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakMultiplyOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -54,7 +54,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = MultiplyOperation.Create();
             return new BuildIntention<IMultiplyOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
             });
         }
 
@@ -62,7 +62,7 @@ namespace Tac.Semantic_Model.Operations
 
     internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation, IMultiplyOperation>
     {
-        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>Possibly.Is(new WeakMultiplyOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("number")))
+        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>new Box<WeakMultiplyOperation>(new WeakMultiplyOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("number"),new PlaceholderValueConverter()))
         {
         }
     }

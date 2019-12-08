@@ -36,7 +36,7 @@ namespace Tac.Semantic_Model.CodeStuff
 
     internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILessThanOperation>
     {
-        public WeakLessThanOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakLessThanOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -50,14 +50,14 @@ namespace Tac.Semantic_Model.CodeStuff
             var (toBuild, maker) = LessThanOperation.Create();
             return new BuildIntention<ILessThanOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
             });
         }
     }
 
     internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation, ILessThanOperation>
     {
-        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> Possibly.Is(new WeakLessThanOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("bool")))
+        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> new Box<WeakLessThanOperation>(new WeakLessThanOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("bool"), new PlaceholderValueConverter()))
         {
         }
     }

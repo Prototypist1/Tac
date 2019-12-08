@@ -38,7 +38,7 @@ namespace Tac.Semantic_Model.Operations
 {
     internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ISubtractOperation>
     {
-        public WeakSubtractOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakSubtractOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -52,7 +52,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = SubtractOperation.Create();
             return new BuildIntention<ISubtractOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
             });
         }
     }
@@ -60,8 +60,8 @@ namespace Tac.Semantic_Model.Operations
     internal class SubtractOperationMaker : BinaryOperationMaker<WeakSubtractOperation,ISubtractOperation>
     {
         public SubtractOperationMaker() : base(SymbolsRegistry.StaticSubtractSymbol, (l,r)=>
-            Possibly.Is(
-                new WeakSubtractOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("number")))
+           new Box<WeakSubtractOperation>(
+                new WeakSubtractOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("number"), new PlaceholderValueConverter()))
         {}
     }
 }

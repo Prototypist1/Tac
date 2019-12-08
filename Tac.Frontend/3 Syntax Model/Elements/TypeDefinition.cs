@@ -100,13 +100,13 @@ namespace Tac.Semantic_Model
     }
 
 
-    internal class TypeDefinitionMaker : IMaker<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>
+    internal class TypeDefinitionMaker : IMaker<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>
     {
         public TypeDefinitionMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -117,7 +117,7 @@ namespace Tac.Semantic_Model
             {
                var elements = tokenMatching.Context.ParseBlock(body);
                 
-               return TokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>.MakeMatch(
+               return TokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new TypeDefinitionPopulateScope(
@@ -125,16 +125,11 @@ namespace Tac.Semantic_Model
                        typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey()));
             }
 
-            return TokenMatching<ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>.MakeNotMatch(
                     matching.Context);
         }
         
-        public static ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements, IKey typeName)
-        {
-            return new TypeDefinitionPopulateScope(elements, typeName);
-        }
-        
-        private class TypeDefinitionPopulateScope : ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference>
+        private class TypeDefinitionPopulateScope : ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>
         {
             private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
             private readonly IKey key;
@@ -146,40 +141,13 @@ namespace Tac.Semantic_Model
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public ISetUpResult<IFrontendType, LocalTpn.TypeProblem2.TypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var type= context.TypeProblem.CreateType(scope, key,new WeakTypeDefinitionConverter());
                 var typeReference = context.TypeProblem.CreateTypeReference(scope, key, new WeakTypeReferenceConverter());
                 elements.Select(x => x.Run(type, context)).ToArray();
-                return new SetUpResult<IFrontendType, LocalTpn.TypeProblem2.TypeReference>( new TypeDefinitionResolveReference(
-                    definitionBox,
-                    typeReference,
-                    key), typeReference);
-            }
-        }
-
-        private class TypeDefinitionResolveReference : IResolve<IFrontendType>
-        {
-            private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox;
-            private readonly WeakTypeReference typeReferance;
-            private readonly IKey key;
-
-            public TypeDefinitionResolveReference(
-                Box<IIsPossibly<WeakTypeDefinition>> definitionBox,
-                WeakTypeReference typeReferance,
-                IKey key)
-            {
-                this.definitionBox = definitionBox ?? throw new ArgumentNullException(nameof(definitionBox));
-                this.typeReferance = typeReferance ?? throw new ArgumentNullException(nameof(typeReferance));
-                this.key = key ?? throw new ArgumentNullException(nameof(key));
-            }
-
-            public IIsPossibly<IFrontendType> Run(LocalTpn.ITypeSolution context)
-            {
-                definitionBox.Fill(Possibly.Is(new WeakTypeDefinition(resolvableScope, Possibly.Is(key))));
-                return Possibly.Is(typeReferance);
+                return new SetUpResult<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>( new TypeReferanceMaker.TypeReferanceResolveReference(typeReference), typeReference);
             }
         }
     }
-
 }

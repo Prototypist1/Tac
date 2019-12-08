@@ -133,9 +133,9 @@ namespace Tac.Semantic_Model.Operations
                 this.str = str;
             }
 
-            public IIsPossibly<WeakConstantString> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakConstantString> Run(LocalTpn.ITypeSolution context)
             {
-                return Possibly.Is(new WeakConstantString(Possibly.Is(str)));
+                return new Box<WeakConstantString>(new WeakConstantString(Possibly.Is(str)));
             }
         }
     }

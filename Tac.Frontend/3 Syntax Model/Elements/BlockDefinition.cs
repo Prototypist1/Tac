@@ -116,10 +116,9 @@ namespace Tac.Semantic_Model
                 this.resolveReferance = resolveReferance;
             }
 
-            public IIsPossibly<WeakBlockDefinition> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakBlockDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                return
-                        Possibly.Is(
+                return new Box<WeakBlockDefinition>(
                             new WeakBlockDefinition(
                                 resolveReferance.Select(x => x.Run(context)).ToArray(),
                                 context.GetScope(myScope),

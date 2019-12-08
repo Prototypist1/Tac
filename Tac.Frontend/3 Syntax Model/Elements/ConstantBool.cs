@@ -136,9 +136,9 @@ namespace Tac.Semantic_Model.Operations
                 this.dub = dub;
             }
 
-            public IIsPossibly<WeakConstantBool> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakConstantBool> Run(LocalTpn.ITypeSolution context)
             {
-                return Possibly.Is(new WeakConstantBool(Possibly.Is(dub)));
+                return new Box<WeakConstantBool>(new WeakConstantBool(Possibly.Is(dub)));
             }
         }
     }

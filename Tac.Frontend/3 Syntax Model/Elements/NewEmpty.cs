@@ -102,9 +102,9 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             {
             }
 
-            public IIsPossibly<WeakEmptyInstance> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakEmptyInstance> Run(LocalTpn.ITypeSolution context)
             {
-                return Possibly.Is(new WeakEmptyInstance());
+                return new Box<WeakEmptyInstance>(new WeakEmptyInstance());
             }
         }
     }

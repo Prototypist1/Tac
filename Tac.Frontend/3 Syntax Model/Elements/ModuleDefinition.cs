@@ -146,14 +146,14 @@ namespace Tac.Semantic_Model
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public IIsPossibly<WeakModuleDefinition> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakModuleDefinition> Run(LocalTpn.ITypeSolution context)
             {
                 var innerRes = new WeakModuleDefinition(
                         scope,
                         resolveReferance.Select(x => x.Run(context)).ToArray(),
                         nameKey);
 
-                var res = Possibly.Is(innerRes);
+                var res = new Box<WeakModuleDefinition>(innerRes);
 
                 return res;
             }

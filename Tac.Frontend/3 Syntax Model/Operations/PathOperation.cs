@@ -39,7 +39,7 @@ namespace Tac.Semantic_Model.Operations
 {
     internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IPathOperation>
     {
-        public WeakPathOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakPathOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -54,7 +54,7 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = PathOperation.Create();
             return new BuildIntention<IPathOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
             });
         }
     }
@@ -108,7 +108,7 @@ namespace Tac.Semantic_Model.Operations
             public ISetUpResult<WeakPathOperation, LocalTpn.TypeProblem2.Member> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
                 var nextLeft = left.Run(scope, context);
-                var member = context.TypeProblem.CreateHopefulMember((LocalTpn.IHaveHopefulMembers)nextLeft, new NameKey(name));
+                var member = context.TypeProblem.CreateHopefulMember((LocalTpn.IHaveHopefulMembers)nextLeft, new NameKey(name), new WeakMemberDefinitionConverter(false,new NameKey(name)));
 
                 return new SetUpResult<WeakPathOperation, LocalTpn.TypeProblem2.Member>(new WeakPathOperationResolveReferance(
                     left.Run(scope, context).Resolve,
@@ -130,11 +130,11 @@ namespace Tac.Semantic_Model.Operations
             }
 
 
-            public IIsPossibly<WeakPathOperation> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakPathOperation> Run(LocalTpn.ITypeSolution context)
             {
-                var res = Possibly.Is(new WeakPathOperation(
+                var res = new Box<WeakPathOperation>(new WeakPathOperation(
                     left.Run(context),
-                    Possibly.Is(new WeakMemberReference(left.GetReturnedType().GetMemberDefinition(new NameKey(name))))));
+                    new Box<WeakMemberReference>(new WeakMemberReference(left.GetReturnedType().GetMemberDefinition(new NameKey(name))))));
                 return res;
             }
         }

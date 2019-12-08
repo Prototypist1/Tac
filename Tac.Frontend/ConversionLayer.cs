@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
+using Tac.New;
 using Tac.Semantic_Model;
 
 namespace Tac.Frontend
@@ -112,10 +114,10 @@ namespace Tac.Frontend
 
     internal class WeakMethodDefinitionConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Method, WeakMethodDefinition>
     {
-        private readonly IIsPossibly<IFrontendCodeElement>[] body;
+        private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
         private readonly bool isEntryPoint;
 
-        public WeakMethodDefinitionConverter(IIsPossibly<IFrontendCodeElement>[] body, bool isEntryPoint)
+        public WeakMethodDefinitionConverter(IBox<IResolve<IFrontendCodeElement>[]> body, bool isEntryPoint)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
             this.isEntryPoint = isEntryPoint;
@@ -126,7 +128,7 @@ namespace Tac.Frontend
             return new WeakMethodDefinition(
                 Help.GetType(typeSolution, typeSolution.GetResultType(from)),
                 typeSolution.GetMember(typeSolution.GetInputMember(from)),
-                body,
+                body.GetValue().Select(x=>x.Run(typeSolution)).ToArray(),
                 Help.GetScope(typeSolution,from),
                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
                 isEntryPoint);
@@ -144,6 +146,7 @@ namespace Tac.Frontend
             public IFrontendType GetValue()=>memberBox.GetValue().Type.GetValue();
             
         }
+
     }
     internal class WeakMemberDefinitionConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Member, WeakMemberDefinition>
     {
