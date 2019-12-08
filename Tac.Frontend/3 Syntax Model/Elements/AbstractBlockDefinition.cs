@@ -12,7 +12,7 @@ namespace Tac.Semantic_Model
     {
         protected WeakAbstractBlockDefinition(
             IBox<WeakScope> scope,
-            IIsPossibly<IFrontendCodeElement>[] body, 
+            IBox<IFrontendCodeElement>[] body, 
             IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Body = body ?? throw new ArgumentNullException(nameof(body));
@@ -21,7 +21,7 @@ namespace Tac.Semantic_Model
 
 
         public IBox<WeakScope> Scope { get; }
-        public IIsPossibly<IFrontendCodeElement>[] Body { get; }
+        public IBox<IFrontendCodeElement>[] Body { get; }
         // I think I am gettting well ahead of myself with these...
         // I think I should build this I plan on using soonish
         public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitailizers { get; }

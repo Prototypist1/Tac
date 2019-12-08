@@ -151,7 +151,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            private Dictionary<TypeProblem2.Type, IBox<TExplictType>> cacheType = new Dictionary<TypeProblem2.Type, IBox<TExplictType>>();
+            private readonly Dictionary<TypeProblem2.Type, IBox<TExplictType>> cacheType = new Dictionary<TypeProblem2.Type, IBox<TExplictType>>();
             public IBox<TExplictType> GetExplicitType(TypeProblem2.Type explicitType)
             {
                 if (!cacheType.ContainsKey(explicitType))
@@ -163,7 +163,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheType[explicitType];
             }
 
-            private Dictionary<TypeProblem2.Member, IBox<TMember>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<TMember>>();
+            private readonly Dictionary<TypeProblem2.Member, IBox<TMember>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<TMember>>();
             public IBox<TMember> GetMember(TypeProblem2.Member member)
             {
                 if (!cacheMember.ContainsKey(member))
@@ -175,7 +175,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheMember[member];
             }
 
-            private Dictionary<TypeProblem2.Method, IBox<TMethod>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<TMethod>>();
+            private readonly Dictionary<TypeProblem2.Method, IBox<TMethod>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<TMethod>>();
             public IBox<TMethod> GetMethod(TypeProblem2.Method method)
             {
                 if (!cacheMethod.ContainsKey(method))
@@ -187,7 +187,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheMethod[method];
             }
 
-            private Dictionary<TypeProblem2.Object, IBox<TObject>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<TObject>>();
+            private readonly Dictionary<TypeProblem2.Object, IBox<TObject>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<TObject>>();
             public IBox<TObject> GetObject(TypeProblem2.Object @object)
             {
                 if (!cacheObject.ContainsKey(@object))
@@ -199,7 +199,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheObject[@object];
             }
 
-            private Dictionary<TypeProblem2.OrType, IBox<TOrType>> cacheOrType = new Dictionary<TypeProblem2.OrType, IBox<TOrType>>();
+            private readonly Dictionary<TypeProblem2.OrType, IBox<TOrType>> cacheOrType = new Dictionary<TypeProblem2.OrType, IBox<TOrType>>();
             public IBox<TOrType> GetOrType(TypeProblem2.OrType orType)
             {
                 if (!cacheOrType.ContainsKey(orType))
@@ -211,7 +211,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheOrType[orType];
             }
 
-            private Dictionary<TypeProblem2.Scope, IBox<TScope>> cacheScope = new Dictionary<TypeProblem2.Scope, IBox<TScope>>();
+            private readonly Dictionary<TypeProblem2.Scope, IBox<TScope>> cacheScope = new Dictionary<TypeProblem2.Scope, IBox<TScope>>();
             public IBox<TScope> GetScope(TypeProblem2.Scope scope)
             {
                 if (!cacheScope.ContainsKey(scope))
@@ -223,7 +223,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheScope[scope];
             }
 
-            private Dictionary<TypeProblem2.TypeReference, IBox<TTypeReference>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, IBox<TTypeReference>>();
+            private readonly Dictionary<TypeProblem2.TypeReference, IBox<TTypeReference>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, IBox<TTypeReference>>();
             public IBox<TTypeReference> GetTypeReference(TypeProblem2.TypeReference typeReference)
             {
                 if (!cacheTypeReference.ContainsKey(typeReference))
@@ -235,7 +235,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheTypeReference[typeReference];
             }
 
-            private Dictionary<TypeProblem2.Value, IBox<TValue>> cacheValue = new Dictionary<TypeProblem2.Value, IBox<TValue>>();
+            private readonly Dictionary<TypeProblem2.Value, IBox<TValue>> cacheValue = new Dictionary<TypeProblem2.Value, IBox<TValue>>();
 
             public IBox<TValue> GetValue(TypeProblem2.Value value)
             {
@@ -798,7 +798,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    Flow(GetType(to), GetType(from));
                 //}
 
-                return new TypeSolution(lookUps, members.ToDictionary(x => x.Key, x => (IReadOnlyList<Member>)(x.Value.Select(y => y.Value).ToArray())), orTypeComponets);
+                return new TypeSolution(lookUps, members.ToDictionary(x => x.Key, x => (IReadOnlyList<Member>)x.Value.Select(y => y.Value).ToArray()), orTypeComponets);
 
                 #region Helpers
 

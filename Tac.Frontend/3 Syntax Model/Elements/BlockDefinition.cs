@@ -34,7 +34,7 @@ namespace Tac.Semantic_Model
     internal class WeakBlockDefinition : WeakAbstractBlockDefinition<IBlockDefinition>
     {
         public WeakBlockDefinition(
-            IIsPossibly<IFrontendCodeElement>[] body,
+            IBox<IFrontendCodeElement>[] body,
             IBox<WeakScope> scope,
             IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) :
             base(scope, body, staticInitailizers)
@@ -47,7 +47,7 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     Scope.GetValue().Convert(context),
-                    Body.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
+                    Body.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -99,30 +99,23 @@ namespace Tac.Semantic_Model
 
             public ISetUpResult<WeakBlockDefinition, LocalTpn.IScope> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
-                var myScope = context.TypeProblem.CreateScope(scope, new WeakScopeConverter());
-                return new SetUpResult<WeakBlockDefinition, LocalTpn.IScope>(new ResolveReferanceBlockDefinition(myScope,
-                    Elements.Select(x => x.Run(myScope, context).Resolve).ToArray()), myScope);
+                var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter());
+                return new SetUpResult<WeakBlockDefinition, LocalTpn.IScope>(new ResolveReferanceBlockDefinition(myScope), myScope);
             }
         }
 
         private class ResolveReferanceBlockDefinition : IResolve<WeakBlockDefinition>
         {
-            private readonly Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope;
-            private readonly IResolve<IFrontendCodeElement>[] resolveReferance;
+            private readonly Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope;
 
-            public ResolveReferanceBlockDefinition(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope, IResolve<IFrontendCodeElement>[] resolveReferance)
+            public ResolveReferanceBlockDefinition(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope)
             {
                 this.myScope = myScope;
-                this.resolveReferance = resolveReferance;
             }
 
             public IBox<WeakBlockDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                return new Box<WeakBlockDefinition>(
-                            new WeakBlockDefinition(
-                                resolveReferance.Select(x => x.Run(context)).ToArray(),
-                                context.GetScope(myScope),
-                                Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
+                return context.GetScope(myScope);
             }
         }
     }

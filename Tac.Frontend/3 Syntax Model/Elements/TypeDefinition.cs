@@ -133,7 +133,6 @@ namespace Tac.Semantic_Model
         {
             private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
             private readonly IKey key;
-            private readonly Box<IIsPossibly<WeakTypeDefinition>> definitionBox = new Box<IIsPossibly<WeakTypeDefinition>>();
 
             public TypeDefinitionPopulateScope(ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements, IKey typeName)
             {

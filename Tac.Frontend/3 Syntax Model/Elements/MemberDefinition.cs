@@ -76,7 +76,7 @@ namespace Tac.Semantic_Model
             builder.Build(Key, buildIntention.Tobuild, ReadOnly);
             return def;
         }
-        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IIsPossibly<IFrontendType> Type, IConversionContext context, bool ReadOnly, IKey Key)
+        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IBox<IFrontendType> Type, IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (toBuild, maker) = MemberDefinition.Create();
             return new BuildIntention<IMemberDefinition>(toBuild, () =>
@@ -189,9 +189,9 @@ namespace Tac.Semantic_Model
 
         private class MemberDefinitionResolveReferance : IResolve<WeakMemberReference>
         {
-            private Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
+            private readonly Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
 
-            public MemberDefinitionResolveReferance(Tpn<WeakScope, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
+            public MemberDefinitionResolveReferance(Tpn<WeakBlockDefinition, WeakTypeDefinition, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
             {
                 this.member = member;
             }
