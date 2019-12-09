@@ -43,8 +43,8 @@ namespace Tac.Semantic_Model
         public WeakMethodDefinition(
             IBox<IFrontendType> outputType, 
             IBox<IWeakMemberDefinition> parameterDefinition,
-            IIsPossibly<IFrontendCodeElement>[] body,
-            WeakScope scope,
+            IBox<IFrontendCodeElement>[] body,
+            IBox<WeakScope> scope,
             IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers,
             bool isEntryPoint) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {

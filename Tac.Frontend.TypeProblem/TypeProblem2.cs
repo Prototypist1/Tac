@@ -58,6 +58,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             IBox<TMember> GetMember(TypeProblem2.Member member);
             IBox<TTypeReference> GetTypeReference(TypeProblem2.TypeReference typeReference);
             IBox<TScope> GetScope(TypeProblem2.Scope scope);
+            // when I ungeneric this it should probably have the box inside the or..
             IBox<TExplictType> GetExplicitType(TypeProblem2.Type explicitType);
             IBox<TObject> GetObject(TypeProblem2.Object @object);
             IBox<TOrType> GetOrType(TypeProblem2.OrType orType);
