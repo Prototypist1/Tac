@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Tac.Frontend._3_Syntax_Model.Scopes
 {
     [Serializable]
-    internal class Bug : Exception
+    public class Bug : Exception
     {
         public Bug()
         {

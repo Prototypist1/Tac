@@ -13,6 +13,7 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Frontend._3_Syntax_Model.Operations;
+using Prototypist.Fluent;
 
 namespace Tac.Parser
 {
@@ -106,9 +107,9 @@ namespace Tac.Semantic_Model
 
         private class ResolveReferanceBlockDefinition : IResolve<WeakBlockDefinition>
         {
-            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Scope myScope;
+            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Scope myScope;
 
-            public ResolveReferanceBlockDefinition(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Scope myScope)
+            public ResolveReferanceBlockDefinition(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Scope myScope)
             {
                 this.myScope = myScope;
             }

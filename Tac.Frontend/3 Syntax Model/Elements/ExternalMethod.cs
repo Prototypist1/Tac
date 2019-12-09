@@ -17,41 +17,4 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
         IIsPossibly<IFrontendType> OutputType { get; }
         IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
     }
-    
-
-    // 🤷‍
-    //internal class ExternalMethod : 
-    //    IMethodDefinition,
-    //    IFrontendCodeElement<IExternalMethodDefinition>, IFrontendType<IVerifiableType>
-    //{
-    //    private readonly Guid Id;
-
-    //    public ExternalMethod(Guid id, IIsPossibly<IWeakTypeReferance> outputType, IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition)
-    //    {
-    //        Id = id;
-    //        OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
-    //        ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-    //    }
-
-    //    public IIsPossibly<IWeakTypeReferance> InputType => ParameterDefinition.IfIs(x => x.GetValue()).IfIs(x => x.Type);
-    //    public IIsPossibly<IWeakTypeReferance> OutputType { get; }
-    //    public IIsPossibly<IBox<IIsPossibly<Semantic_Model.IWeakMemberDefinition>>> ParameterDefinition { get; }
-
-    //    public IBuildIntention<IExternalMethodDefinition> GetBuildIntention(IConversionContext context)
-    //    {
-    //        var (toBuild, maker) = ExternalMethodDefinition.Create();
-    //        return new BuildIntention<IExternalMethodDefinition>(toBuild, () =>
-    //        {
-    //            maker.Build(
-    //                TransformerExtensions.Convert<ITypeReferance>(InputType.GetOrThrow(), context),
-    //                TransformerExtensions.Convert<ITypeReferance>(OutputType.GetOrThrow(), context),
-    //                ParameterDefinition.GetOrThrow().GetValue().GetOrThrow().Convert(context),
-    //                Id);
-    //        });
-    //    }
-
-    //    public IIsPossibly<IFrontendType<IVerifiableType>> Returns() => Possibly.Is(this);
-
-    //    IBuildIntention<IVerifiableType> IConvertable<IVerifiableType>.GetBuildIntention(IConversionContext context) => GetBuildIntention(context);
-    //}
 }

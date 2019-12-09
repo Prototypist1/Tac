@@ -289,9 +289,18 @@ namespace Tac.Frontend
 
     internal class WeakObjectConverter : LocalTpn.IConvertTo<LocalTpn.TypeProblem2.Object, WeakObjectDefinition>
     {
+        private Box<IResolve<IFrontendCodeElement>[]> box;
+
+        public WeakObjectConverter(Box<IResolve<IFrontendCodeElement>[]> box)
+        {
+            this.box = box;
+        }
+
         public WeakObjectDefinition Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition,WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition,WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object from)
         {
-            return new WeakObjectDefinition(Help.GetScope(typeSolution, from),);
+            return new WeakObjectDefinition(
+                new Box<WeakScope>(Help.GetScope(typeSolution, from)), 
+                box.GetValue().Select(x=>x.Run(typeSolution)).ToArray());
         }
     }
 

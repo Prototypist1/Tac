@@ -207,7 +207,7 @@ namespace Tac.Parser
                 // why would an element be wrapped in parenthesis ?
                 // maybe I can just remove??
                 // maybe we have a parentthesis matcher?
-                if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken)
+                if (elementToken.Tokens.Count == 1 && elementToken.Tokens[0] is ParenthesisToken parenthesisToken)
                 {
                     return ParseTypeLine(parenthesisToken.Tokens);
                 }
@@ -240,7 +240,7 @@ namespace Tac.Parser
                 // why would an element be wrapped in parenthesis ?
                 // maybe I can just remove??
                 // maybe we have a parentthesis matcher?
-                if (elementToken.Tokens.Count() == 1 && elementToken.Tokens.First() is ParenthesisToken parenthesisToken)
+                if (elementToken.Tokens.Count == 1 && elementToken.Tokens[0] is ParenthesisToken parenthesisToken)
                 {
                     return ParseLine(parenthesisToken.Tokens);
                 }

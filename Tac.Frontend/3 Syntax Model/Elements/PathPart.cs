@@ -15,35 +15,6 @@ using Tac.Semantic_Model.Operations;
 namespace Tac.Semantic_Model
 {
 
-    internal class OverlayMemberReference : IWeakMemberReference
-    {
-        private readonly IWeakMemberReference backing;
-
-        public OverlayMemberReference(IWeakMemberReference backing, Overlay overlay)
-        {
-            MemberDefinition = backing.MemberDefinition.IfIs(x =>
-                Possibly.Is(
-                    new DelegateBox<IIsPossibly<IWeakMemberDefinition>>(() =>
-                        x.GetValue()
-                            .IfIs(z =>
-                                Possibly.Is(
-                                    new OverlayMemberDefinition(z, overlay))))));
-            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-        }
-
-        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> MemberDefinition { get; }
-
-        public IBuildIntention<IMemberReferance> GetBuildIntention(IConversionContext context)
-        {
-            return backing.Cast<IConvertableFrontendCodeElement<IMemberReferance>>().GetBuildIntention(context);
-        }
-
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return backing.Returns();
-        }
-    }
-
     internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReferance>, IFrontendType
     {
         IBox<IWeakMemberDefinition> MemberDefinition { get; }

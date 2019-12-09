@@ -53,18 +53,18 @@ namespace Tac.Semantic_Model
         }
 
         // dang! these could also be inline definitions 
-        public IIsPossibly<IFrontendType> ContextTypeBox
+        public IBox<IFrontendType> ContextTypeBox
         {
             get
             {
-                return ContextDefinition.IfIs(x=>x.GetValue()).IfIs(x=> x.Type);
+                return ContextDefinition;
             }
         }
-        public IIsPossibly<IFrontendType> InputTypeBox
+        public IBox<IFrontendType> InputTypeBox
         {
             get
             {
-                return ParameterDefinition.IfIs(x => x.GetValue()).IfIs(x => x.Type);
+                return ParameterDefinition;
             }
         }
         public IBox<IFrontendType> OutputType { get; }

@@ -40,7 +40,7 @@ namespace Tac.Semantic_Model.Operations
     internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IIfOperation>
     {
         // right should have more validation
-        public WeakIfTrueOperation(IIsPossibly<IFrontendCodeElement> left, IIsPossibly<IFrontendCodeElement> right) : base(left, right)
+        public WeakIfTrueOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
         {
         }
         
@@ -54,14 +54,14 @@ namespace Tac.Semantic_Model.Operations
             var (toBuild, maker) = IfOperation.Create();
             return new BuildIntention<IIfOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetOrThrow().ConvertElementOrThrow(context), Right.GetOrThrow().ConvertElementOrThrow(context));
+                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
             });
         }
     }
 
     internal class IfTrueOperationMaker : BinaryOperationMaker<WeakIfTrueOperation,IIfOperation>
     {
-        public IfTrueOperationMaker() : base(SymbolsRegistry.StaticIfSymbol, (l,r)=> Possibly.Is(new WeakIfTrueOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("bool"),new PlaceholderValueConverter()))
+        public IfTrueOperationMaker() : base(SymbolsRegistry.StaticIfSymbol, (l,r)=> new Box<WeakIfTrueOperation>(new WeakIfTrueOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("bool"),new PlaceholderValueConverter()))
         {
         }
     }

@@ -37,25 +37,6 @@ namespace Tac.Parser
 namespace Tac.Semantic_Model
 {
 
-    internal class OverlayGenericTypeDefinition: IWeakGenericTypeDefinition
-    {
-        private readonly IWeakGenericTypeDefinition backing;
-
-        public OverlayGenericTypeDefinition(IWeakGenericTypeDefinition backing, Overlay overlay)
-        {
-            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-            Scope = new OverlayedScope(backing.Scope, overlay);
-        }
-        
-        public IResolvableScope Scope { get; }
-
-        public IIsPossibly<IKey> Key => backing.Key;
-        public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions=> backing.TypeParameterDefinitions;
-        public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters) => backing.Overlay(typeParameters);
-
-        public IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
-    }
-
     internal interface IWeakGenericTypeDefinition: IFrontendCodeElement, IScoped, IFrontendType, IFrontendGenericType
     {
         IIsPossibly<IKey> Key { get; }
@@ -63,8 +44,6 @@ namespace Tac.Semantic_Model
 
     internal class WeakGenericTypeDefinition : IWeakGenericTypeDefinition
     {
-        private readonly ConcurrentIndexed<Overlay, Prototypist.Fluent.OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>> typeCache = new ConcurrentIndexed<Overlay, OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>>();
-
         public WeakGenericTypeDefinition(
             IIsPossibly<NameKey> key,
             IBox<WeakScope> scope,
@@ -78,42 +57,6 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IKey> Key { get; }
         public IBox<WeakScope> Scope { get; }
-
-        //public IBuildIntention<IGenericType> GetBuildIntention(ConversionContext context)
-        //{
-        //    var (toBuild, maker) = GenericInterfaceDefinition.Create();
-        //    return new BuildIntention<IGenericInterfaceDefinition>(toBuild, () =>
-        //    {
-        //        maker.Build(
-        //            Scope.Convert(context),
-        //            TypeParameterDefinitions.Select(x=>x.GetOrThrow().Convert(context)).ToArray());
-        //    });
-        //}
-
-        public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
-        {
-            // I kept reusing this code..
-            var overlay =  new Overlay(typeParameters.ToDictionary(x=>x.parameterDefinition,x=>x.frontendType));
-
-            return typeCache.GetOrAdd(overlay, Help());
-            
-            OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Help()
-            {
-                if (typeParameters.All(x => !(x.frontendType is IGenericTypeParameterPlacholder)))
-                {
-                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new OverlayTypeDefinition(
-                        new WeakTypeDefinition(Scope, Key), overlay));
-                }
-                else
-                {
-                    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new OverlayGenericTypeDefinition(
-                        this, overlay).Cast<IFrontendGenericType>());
-                }
-            }
-        }
-
-
-        //IBuildIntention<IGenericType> IConvertable<IGenericType>.GetBuildIntention(ConversionContext context) => GetBuildIntention(context);
 
         IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
         {
@@ -192,10 +135,10 @@ namespace Tac.Semantic_Model
 
         private class GenericTypeDefinitionResolveReferance : IResolve<WeakGenericTypeDefinition>
         {
-            private Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type myScope;
+            private Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type myScope;
             private IResolve<IFrontendCodeElement>[] nextLines;
 
-            public GenericTypeDefinitionResolveReferance(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type myScope, IResolve<IFrontendCodeElement>[] nextLines)
+            public GenericTypeDefinitionResolveReferance(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type myScope, IResolve<IFrontendCodeElement>[] nextLines)
             {
                 this.myScope = myScope;
                 this.nextLines = nextLines;

@@ -17,6 +17,8 @@ using Tac.Semantic_Model.Operations;
 using Tac.Semantic_Model;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
+using Prototypist.Fluent;
+using Tac.Frontend._3_Syntax_Model.Operations;
 
 namespace Tac.Parser
 {
@@ -38,7 +40,7 @@ namespace Tac.Semantic_Model
 
     internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType
     {
-        public WeakObjectDefinition(WeakScope scope, IEnumerable<IIsPossibly<WeakAssignOperation>> assigns) {
+        public WeakObjectDefinition(IBox<WeakScope> scope, IEnumerable<IBox<WeakAssignOperation>> assigns) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -48,7 +50,7 @@ namespace Tac.Semantic_Model
             Assignments = assigns.ToArray();
         }
 
-        public WeakScope Scope { get; }
+        public IBox<WeakScope> Scope { get; }
         public IIsPossibly<WeakAssignOperation>[] Assignments { get; }
 
         public IBuildIntention<IObjectDefiniton> GetBuildIntention(IConversionContext context)
@@ -56,7 +58,7 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = ObjectDefiniton.Create();
             return new BuildIntention<IObjectDefiniton>(toBuild, () =>
             {
-                maker.Build(Scope.Convert(context), 
+                maker.Build(Scope.GetValue().Convert(context), 
                     Assignments.Select(x => x.GetOrThrow().Convert(context)).ToArray());
             });
         }
@@ -110,36 +112,32 @@ namespace Tac.Semantic_Model
             {
                 var key = new ImplicitKey();
 
-                var myScope = context.TypeProblem.CreateObject(scope, key, new WeakObjectConverter());
+                var box = new Box<IResolve<IFrontendCodeElement>[]>();
+                var myScope = context.TypeProblem.CreateObject(scope, key, new WeakObjectConverter(box));
+                box.Fill(elements.Select(x => x.Run(myScope, context).Resolve).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, key, new PlaceholderValueConverter());
                 // ugh! an object is a type
                 //
 
-                return new SetUpResult<WeakObjectDefinition, LocalTpn.IValue>(new ResolveReferanceObjectDefinition(
-                    elements.Select(x => x.Run(myScope, context).Resolve).ToArray()
-                    ),value);
+                return new SetUpResult<WeakObjectDefinition, LocalTpn.IValue>(new ResolveReferanceObjectDefinition(myScope),value);
             }
         }
 
         private class ResolveReferanceObjectDefinition : IResolve<WeakObjectDefinition>
         {
-            private readonly IResolve<IFrontendCodeElement>[] elements;
+            private Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope;
 
-            public ResolveReferanceObjectDefinition(
-                IResolve<IFrontendCodeElement>[] elements)
+            public ResolveReferanceObjectDefinition(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope)
             {
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+                this.myScope = myScope;
             }
 
+            // do these really need to be IBox? they seeme to generally be filled...
+            // mayble IPossibly...
             public IBox<WeakObjectDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                var innerRes = new WeakObjectDefinition(
-                            scope,
-                            elements.Select(x => x.Run(context).Cast<IIsPossibly<WeakAssignOperation>>()).ToArray());
-                var res = new Box<WeakObjectDefinition>(innerRes);
-
-                return res;
+                return context.GetObject(myScope);
             }
         }
     }

@@ -117,7 +117,7 @@ namespace Tac.Semantic_Model
                             elements,
                             outputType,
                             false,
-                            parameterName.)
+                            parameterName.Item)
                         );
                 }
             }
@@ -138,7 +138,8 @@ namespace Tac.Semantic_Model
                             TypeReferanceMaker.PopulateScope(new NameKey("empty")),
                             elements,
                             TypeReferanceMaker.PopulateScope(new NameKey("empty")),
-                            true)
+                            true,
+                            "main")
                         );
                 }
 

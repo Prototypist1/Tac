@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Fluent;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -185,9 +185,9 @@ namespace Tac.Semantic_Model
 
         public class TypeReferanceResolveReference : IResolve<WeakTypeReference>
         {
-            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.TypeReference type;
+            private Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.TypeReference type;
 
-            public TypeReferanceResolveReference(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.TypeReference type)
+            public TypeReferanceResolveReference(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.TypeReference type)
             {
                 this.type = type;
             }

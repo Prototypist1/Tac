@@ -12,6 +12,7 @@ using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Operations;
 using Tac.Frontend._3_Syntax_Model.Operations;
+using Prototypist.Fluent;
 
 namespace Tac.Parser
 {
@@ -72,14 +73,13 @@ namespace Tac.Semantic_Model
 
         }
 
-
         private class MemberResolveReferance : IResolve<WeakMemberReference>
         {
-            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Member member;
+            private readonly Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
 
-            public MemberResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Member member)
+            public MemberResolveReferance(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
             {
-                this.member = member ?? throw new ArgumentNullException(nameof(member));
+                this.member = member;
             }
 
             public IBox<WeakMemberReference> Run(LocalTpn.ITypeSolution context)

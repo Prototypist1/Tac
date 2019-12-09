@@ -1,4 +1,5 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Fluent;
+using Prototypist.LeftToRight;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,35 +35,6 @@ namespace Tac.Parser
 
 namespace Tac.Semantic_Model
 {
-    internal class OverlayMemberDefinition: IWeakMemberDefinition
-    {
-        private readonly IWeakMemberDefinition backing;
-
-        public OverlayMemberDefinition(IWeakMemberDefinition backing, Overlay overlay)
-        {
-            if (overlay == null)
-            {
-                throw new ArgumentNullException(nameof(overlay));
-            }
-
-            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-            this.Type = backing.Type.IfIs(x => Possibly.Is(new OverlayTypeReference(x,overlay)));
-        }
-
-        public IIsPossibly<IFrontendType> Type { get; }
-        public bool ReadOnly => backing.ReadOnly;
-        public IKey Key=> backing.Key;
-
-        public IMemberDefinition Convert(IConversionContext context)
-        {
-            return MemberDefinitionShared.Convert(Type,context, ReadOnly,Key);
-        }
-
-        public IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context) {
-            return MemberDefinitionShared.GetBuildIntention(Type, context, ReadOnly, Key);
-        }
-        
-    }
 
     // very tac-ian 
     internal static class MemberDefinitionShared {
@@ -189,9 +161,9 @@ namespace Tac.Semantic_Model
 
         private class MemberDefinitionResolveReferance : IResolve<WeakMemberReference>
         {
-            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Member member;
+            private readonly Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
 
-            public MemberDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Member member)
+            public MemberDefinitionResolveReferance(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
             {
                 this.member = member;
             }

@@ -35,45 +35,13 @@ namespace Tac.Parser
 namespace Tac.Semantic_Model
 {
 
-    internal class OverlayTypeDefinition : IWeakTypeDefinition
-    {
-        private readonly IWeakTypeDefinition backing;
-
-        public OverlayTypeDefinition(IWeakTypeDefinition backing, Overlay overlay)
-        {
-            if (overlay == null)
-            {
-                throw new ArgumentNullException(nameof(overlay));
-            }
-
-            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-            Scope = new OverlayedScope(backing.Scope,overlay);
-        }
-        public IIsPossibly<IKey> Key => backing.Key;
-        public IResolvableScope Scope { get; }
-
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is(this);
-        }
-
-        public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
-        {
-            var (toBuild, maker) = InterfaceType.Create();
-            return new BuildIntention<IInterfaceType>(toBuild, () =>
-            {
-                maker.Build(Scope.Convert(context).Members);
-            });
-        }
-    }
-
     internal interface IWeakTypeDefinition: IConvertableFrontendCodeElement<IInterfaceType>, IScoped, IConvertableFrontendType<IInterfaceType> {
         //IIsPossibly<IKey> Key { get; }
     }
 
     internal class WeakTypeDefinition : IWeakTypeDefinition
     {
-        public WeakTypeDefinition(WeakScope scope)//, IIsPossibly<IKey> key
+        public WeakTypeDefinition(IBox<WeakScope> scope)//, IIsPossibly<IKey> key
         {
             //Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -82,7 +50,7 @@ namespace Tac.Semantic_Model
         //public IIsPossibly<IKey> Key { get; }
         // I am not sure I agree with this
         // it is an ordered set of types, names and acccessablity modifiers
-        public WeakScope Scope { get; }
+        public IBox<WeakScope> Scope { get; }
         
         public IIsPossibly<IFrontendType> Returns()
         {
@@ -94,7 +62,7 @@ namespace Tac.Semantic_Model
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
             {
-                maker.Build(Scope.Convert(context).Members);
+                maker.Build(Scope.GetValue().Convert(context).Members);
             });
         }
     }
