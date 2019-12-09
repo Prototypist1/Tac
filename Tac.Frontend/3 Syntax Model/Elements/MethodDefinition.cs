@@ -1,4 +1,5 @@
 ﻿
+using Prototypist.Fluent;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,8 +68,8 @@ namespace Tac.Semantic_Model
                     InputType.GetValue().ConvertTypeOrThrow(context),
                     OutputType.GetValue().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
-                    Scope.Convert(context),
-                    Body.Select(x=>x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
+                    Scope.GetValue().Convert(context),
+                    Body.Select(x=>x.GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x=>x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
                     IsEntryPoint);
             });
@@ -116,7 +117,7 @@ namespace Tac.Semantic_Model
                             elements,
                             outputType,
                             false,
-                            parameterName)
+                            parameterName.)
                         );
                 }
             }
@@ -178,7 +179,7 @@ namespace Tac.Semantic_Model
 
                 var box = new Box<IResolve<IFrontendCodeElement>[]>();
                 var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
-                var method= context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(), new WeakMemberDefinitionConverter());
+                var method= context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false,new NameKey(parameterName)), new WeakMemberDefinitionConverter(false,new NameKey("result")));
 
                 box.Fill(elements.Select(x => x.Run(method, context).Resolve).ToArray());
 
@@ -193,18 +194,20 @@ namespace Tac.Semantic_Model
 
         private class MethodDefinitionResolveReferance : IResolve<WeakMethodDefinition>
         {
-            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Method method;
+            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Method method;
 
-            public MethodDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Method method)
+            public MethodDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Method method)
             {
                 this.method = method;
             }
 
             public IBox<WeakMethodDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                return context.GetMethod(method);
-
-
+                var res = context.GetMethod(method);
+                if (res.GetValue().Is1(out var v1)) {
+                    return new Box<WeakMethodDefinition>(v1);
+                }
+                throw new Exception("wrong!");
             }
         }
     }

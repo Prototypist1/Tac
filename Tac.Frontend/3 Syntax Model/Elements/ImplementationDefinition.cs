@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Prototypist.Fluent;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
@@ -35,11 +37,11 @@ namespace Tac.Semantic_Model
     {
 
         public WeakImplementationDefinition(
-            IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> contextDefinition,
-            IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> parameterDefinition,
-            IIsPossibly<IFrontendType> outputType, 
-            IEnumerable<IIsPossibly<IFrontendCodeElement>> metohdBody,
-            IResolvableScope scope, 
+            IBox<IWeakMemberDefinition> contextDefinition,
+            IBox<IWeakMemberDefinition> parameterDefinition,
+            IBox<IFrontendType> outputType,
+            IReadOnlyList<IBox<IFrontendCodeElement>> metohdBody,
+            IBox<WeakScope> scope, 
             IEnumerable<IFrontendCodeElement> staticInitializers)
         {
             ContextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
@@ -65,12 +67,11 @@ namespace Tac.Semantic_Model
                 return ParameterDefinition.IfIs(x => x.GetValue()).IfIs(x => x.Type);
             }
         }
-        public IIsPossibly<IFrontendType> OutputType { get; }
-        // are these really boxes
-        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ContextDefinition { get; }
-        public IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
-        public IResolvableScope Scope { get; }
-        public IEnumerable<IIsPossibly<IFrontendCodeElement>> MethodBody { get; }
+        public IBox<IFrontendType> OutputType { get; }
+        public IBox<IWeakMemberDefinition> ContextDefinition { get; }
+        public IBox<IWeakMemberDefinition> ParameterDefinition { get; }
+        public IBox<WeakScope> Scope { get; }
+        public IReadOnlyList<IBox<IFrontendCodeElement>> MethodBody { get; }
         public IEnumerable<IFrontendCodeElement> StaticInitialzers { get; }
 
         public IIsPossibly<IFrontendType> Returns()
@@ -87,8 +88,8 @@ namespace Tac.Semantic_Model
                     TransformerExtensions.Convert<IVerifiableType>(OutputType.GetOrThrow(),context),
                     ContextDefinition.IfIs(x=>x.GetValue()).GetOrThrow().Convert(context),
                     ParameterDefinition.IfIs(x => x.GetValue()).GetOrThrow().Convert(context),
-                    Scope.Convert(context),
-                    MethodBody.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
+                    Scope.GetValue().Convert(context),
+                    MethodBody.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitialzers.Select(x => x.ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -200,11 +201,15 @@ namespace Tac.Semantic_Model
                     realizedOutput.SetUpSideNode.Key(),
                 }),new WeakTypeReferenceConverter());
 
-                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName,new WeakMethodDefinitionConverter());
+                var innerBox = new Box<LocalTpn.TypeProblem2.Method>();
+                var linesBox = new Box<IResolve<IFrontendCodeElement>[]>();
+                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)), new WeakMemberDefinitionConverter(false, new NameKey("result")));
 
-                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName);
+                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)), new WeakMemberDefinitionConverter(false, new NameKey("result")));
+                innerBox.Fill(inner);
+                linesBox.Fill(elements.Select(y => y.Run(inner, context).Resolve).ToArray());
 
-                var innerValue = context.TypeProblem.CreateValue(outer, 
+               var innerValue = context.TypeProblem.CreateValue(outer, 
                     new GenericNameKey(new NameKey("method"), new[] {
                          realizedInput.SetUpSideNode.Key(),
                          realizedOutput.SetUpSideNode.Key(),
@@ -221,47 +226,28 @@ namespace Tac.Semantic_Model
                 }),new PlaceholderValueConverter());
 
                 return new SetUpResult<WeakImplementationDefinition, LocalTpn.IValue>(new ImplementationDefinitionResolveReferance(
-                    realizeContext.Resolve,
-                    realizedInput.Resolve,
-                    elements.Select(y => y.Run(inner, context).Resolve).ToArray(),
-                    realizedOutput.Resolve
-                    ), value);
+                    outer), value);
             }
         }
 
 
         private class ImplementationDefinitionResolveReferance : IResolve<WeakImplementationDefinition>
         {
-            private readonly IResolve<IFrontendType> contextDefinition;
-            private readonly IResolve<IFrontendType> parameterDefinition;
-            private readonly IResolve<IFrontendCodeElement>[] elements;
-            private readonly IResolve<IFrontendType> output;
+            private Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method outer;
 
-            public ImplementationDefinitionResolveReferance(
-                IResolve<IFrontendType> contextDefinition,
-                IResolve<IFrontendType> parameterDefinition,
-                IResolve<IFrontendCodeElement>[] elements,
-                IResolve<IFrontendType> output)
+            public ImplementationDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method outer)
             {
-                this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
-                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.output = output ?? throw new ArgumentNullException(nameof(output));
+                this.outer = outer;
             }
 
             public IBox<WeakImplementationDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                var innerRes = new WeakImplementationDefinition(
-                        contextDefinition.Run(context).IfIs(x => x.MemberDefinition),
-                        parameterDefinition.Run(context).IfIs(x => x.MemberDefinition),
-                        output.Run(context),
-                        elements.Select(x => x.Run(context)).ToArray(),
-                        methodScope,
-                        Array.Empty<IConvertableFrontendCodeElement<ICodeElement>>());
-
-                var res = new Box<WeakImplementationDefinition>(innerRes);
-
-                return res;
+                var res = context.GetMethod(outer);
+                if (res.GetValue().Is2(out var v2))
+                {
+                    return new Box<WeakImplementationDefinition>(v2);
+                }
+                throw new Exception("wrong!");
             }
         }
     }
