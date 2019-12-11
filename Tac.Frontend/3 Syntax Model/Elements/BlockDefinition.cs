@@ -107,11 +107,11 @@ namespace Tac.Semantic_Model
 
         private class ResolveReferanceBlockDefinition : IResolve<WeakBlockDefinition>
         {
-            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Scope myScope;
+            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope;
 
-            public ResolveReferanceBlockDefinition(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.TypeProblem2.Scope myScope)
+            public ResolveReferanceBlockDefinition(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope)
             {
-                this.myScope = myScope;
+                this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
             }
 
             public IBox<WeakBlockDefinition> Run(LocalTpn.ITypeSolution context)

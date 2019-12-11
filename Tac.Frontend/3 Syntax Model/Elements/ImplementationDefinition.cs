@@ -233,9 +233,9 @@ namespace Tac.Semantic_Model
 
         private class ImplementationDefinitionResolveReferance : IResolve<WeakImplementationDefinition>
         {
-            private Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method outer;
+            private Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition,WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method outer;
 
-            public ImplementationDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method outer)
+            public ImplementationDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method outer)
             {
                 this.outer = outer;
             }

@@ -126,18 +126,23 @@ namespace Tac.Semantic_Model
 
         private class ResolveReferanceObjectDefinition : IResolve<WeakObjectDefinition>
         {
-            private Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope;
+            private readonly Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, Prototypist.Fluent.OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope;
 
-            public ResolveReferanceObjectDefinition(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope)
+            public ResolveReferanceObjectDefinition(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, Prototypist.Fluent.OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope)
             {
-                this.myScope = myScope;
+                this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
             }
 
             // do these really need to be IBox? they seeme to generally be filled...
             // mayble IPossibly...
             public IBox<WeakObjectDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                return context.GetObject(myScope);
+                var objectOr = context.GetObject(myScope);
+                if (objectOr.GetValue().Is1(out var v1))
+                {
+                    return new Box<WeakObjectDefinition>(v1);
+                }
+                throw new Exception("wrong or");
             }
         }
     }

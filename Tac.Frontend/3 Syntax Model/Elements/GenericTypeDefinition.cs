@@ -135,10 +135,10 @@ namespace Tac.Semantic_Model
 
         private class GenericTypeDefinitionResolveReferance : IResolve<WeakGenericTypeDefinition>
         {
-            private Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type myScope;
+            private Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type myScope;
             private IResolve<IFrontendCodeElement>[] nextLines;
 
-            public GenericTypeDefinitionResolveReferance(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type myScope, IResolve<IFrontendCodeElement>[] nextLines)
+            public GenericTypeDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Type myScope, IResolve<IFrontendCodeElement>[] nextLines)
             {
                 this.myScope = myScope;
                 this.nextLines = nextLines;

@@ -161,11 +161,11 @@ namespace Tac.Semantic_Model
 
         private class MemberDefinitionResolveReferance : IResolve<WeakMemberReference>
         {
-            private readonly Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
+            private readonly Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, Prototypist.Fluent.OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
 
-            public MemberDefinitionResolveReferance(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
+            public MemberDefinitionResolveReferance(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, Prototypist.Fluent.OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
             {
-                this.member = member;
+                this.member = member ?? throw new ArgumentNullException(nameof(member));
             }
 
             public IBox<WeakMemberReference> Run(LocalTpn.ITypeSolution context)

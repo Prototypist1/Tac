@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Prototypist.Fluent;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
+using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
@@ -33,15 +35,15 @@ namespace Tac.Semantic_Model
 
     internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IFrontendType
     {
-        public WeakModuleDefinition(IResolvableScope scope, IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitialization, IKey Key)
+        public WeakModuleDefinition(IBox<WeakScope> scope, IEnumerable<IBox<IFrontendCodeElement>> staticInitialization, IKey Key)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
             this.Key = Key ?? throw new ArgumentNullException(nameof(Key));
         }
         
-        public WeakScope Scope { get; }
-        public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitialization { get; }
+        public IBox<WeakScope> Scope { get; }
+        public IEnumerable<IBox<IFrontendCodeElement>> StaticInitialization { get; }
 
         public IKey Key
         {
@@ -125,37 +127,30 @@ namespace Tac.Semantic_Model
 
             public ISetUpResult<WeakModuleDefinition, LocalTpn.TypeProblem2.Object> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
-                var myScope= context.TypeProblem.CreateObject(scope, nameKey);
+                var box = new Box<IResolve<IFrontendCodeElement>[]>();
+                var myScope= context.TypeProblem.CreateObject(scope, nameKey, new WeakModuleConverter(box, nameKey));
+                box.Fill(elements.Select(x => x.Run(myScope, context).Resolve).ToArray());
 
-                return new SetUpResult<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(
-                    elements.Select(x => x.Run(myScope, context).Resolve).ToArray(),
-                    nameKey),myScope);
+                return new SetUpResult<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope),myScope);
             }
         }
 
         private class ModuleDefinitionResolveReferance : IResolve<WeakModuleDefinition>
         {
-            private readonly IResolve<IFrontendCodeElement>[] resolveReferance;
-            private readonly NameKey nameKey;
+            private Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope;
 
-            public ModuleDefinitionResolveReferance(
-                IResolve<IFrontendCodeElement>[] resolveReferance,
-                NameKey nameKey)
+            public ModuleDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope)
             {
-                this.resolveReferance = resolveReferance ?? throw new ArgumentNullException(nameof(resolveReferance));
-                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+                this.myScope = myScope;
             }
 
             public IBox<WeakModuleDefinition> Run(LocalTpn.ITypeSolution context)
             {
-                var innerRes = new WeakModuleDefinition(
-                        scope,
-                        resolveReferance.Select(x => x.Run(context)).ToArray(),
-                        nameKey);
-
-                var res = new Box<WeakModuleDefinition>(innerRes);
-
-                return res;
+                var moduleOr = context.GetObject(myScope);
+                if (moduleOr.GetValue().Is2(out var v2)) {
+                    return new Box<WeakModuleDefinition>(v2);
+                }
+                throw new Exception("wrong or");
             }
         }
     }
