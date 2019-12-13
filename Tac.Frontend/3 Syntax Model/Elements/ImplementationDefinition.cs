@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Prototypist.Fluent;
+using Prototypist.Toolbox;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Operations;

@@ -15,7 +15,7 @@ using Tac.Parser;
 using Tac.Semantic_Model;
 using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
 using Prototypist.TaskChain;
-using Prototypist.Fluent;
+using Prototypist.Toolbox;
 using Tac.Frontend._3_Syntax_Model.Operations;
 
 namespace Tac.Parser

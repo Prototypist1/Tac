@@ -1,4 +1,4 @@
-﻿using Prototypist.Fluent;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,25 +12,6 @@ using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Frontend
 {
-
-    // Colin! you shit! why don't you just use real stuff!?
-    internal interface ITestType
-    {
-
-    }
-
-    internal interface IHasScope
-    {
-        IBox<IResolvableScope> MemberCollection { get; }
-    }
-
-    //internal class WeakTypeOrOperation : ITestType
-    //{
-    //    public readonly IBox<ITestType> Type1;
-    //    public readonly IBox<ITestType> Type2;
-    //}
-
-
     internal class PlaceholderValue
     {
         public readonly IBox<IFrontendType> Type;
@@ -109,7 +90,7 @@ namespace Tac.Frontend
 
         public OrType<WeakTypeDefinition, WeakGenericTypeDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
-            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition>(new WeakTypeDefinition(Help.GetScope(typeSolution, from)));//, key
+            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition>(new WeakTypeDefinition(new Box<WeakScope>(Help.GetScope(typeSolution, from))));//, key
         }
     }
 

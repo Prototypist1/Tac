@@ -10,7 +10,7 @@ using Tac.Model.Elements;
 using Tac.Parser;
 using Tac.Semantic_Model.Operations;
 using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
-using Prototypist.Fluent;
+using Prototypist.Toolbox;
 
 namespace Tac.Semantic_Model
 {

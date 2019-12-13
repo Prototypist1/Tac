@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Prototypist.Fluent" Version="1.0.0.3" />
+    <PackageReference Include="Prototypist.Toolbox" Version="1.0.0.5" />
   </ItemGroup>
 
 </Project>
