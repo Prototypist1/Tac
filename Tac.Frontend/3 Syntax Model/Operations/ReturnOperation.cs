@@ -30,9 +30,9 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticReturnMaker = AddOperationMatcher(() => new ReturnOperationMaker());
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticReturnMaker = AddOperationMatcher(() => new ReturnOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> ReturnMaker = StaticReturnMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ReturnMaker = StaticReturnMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -67,12 +67,12 @@ namespace Tac.Semantic_Model.Operations
     }
 
     internal class TrailingOperation {
-        public delegate LocalTpn.IValue GetReturnedValue(LocalTpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendCodeElement, LocalTpn.ITypeProblemNode> parm);
+        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode> parm);
 
         public delegate IBox<T> Make<out T>(IBox<IFrontendCodeElement> codeElement);
     }
 
-    internal class TrailingOperationMaker<TFrontendCodeElement, TCodeElement> : IMaker<ISetUp<TFrontendCodeElement, LocalTpn.IValue>>
+    internal class TrailingOperationMaker<TFrontendCodeElement, TCodeElement> : IMaker<ISetUp<TFrontendCodeElement, Tpn.IValue>>
         where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
@@ -88,7 +88,7 @@ namespace Tac.Semantic_Model.Operations
         public string Symbol { get; }
         private TrailingOperation.Make<TFrontendCodeElement> Make { get; }
 
-        public ITokenMatching<ISetUp<TFrontendCodeElement, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             
 
@@ -98,16 +98,16 @@ namespace Tac.Semantic_Model.Operations
             {
                 var left = matching.Context.ParseLine(res.perface);
                 
-                return TokenMatching<ISetUp<TFrontendCodeElement, LocalTpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new TrailingPopulateScope(left,Make, getReturnedValue));
             }
-            return TokenMatching<ISetUp<TFrontendCodeElement, LocalTpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
         
-        public static ISetUp<TFrontendCodeElement, LocalTpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.IValue> left,
+        public static ISetUp<TFrontendCodeElement, Tpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.IValue> left,
                 TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
         {
             return new TrailingPopulateScope(left, make, getReturnedValue);
@@ -121,23 +121,23 @@ namespace Tac.Semantic_Model.Operations
         }
 
 
-        private class TrailingPopulateScope : ISetUp<TFrontendCodeElement, LocalTpn.IValue>
+        private class TrailingPopulateScope : ISetUp<TFrontendCodeElement, Tpn.IValue>
         {
-            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left;
+            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
             private readonly TrailingOperation.GetReturnedValue getReturnedValue;
 
-            public TrailingPopulateScope(ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
+            public TrailingPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
                 this.getReturnedValue = getReturnedValue ?? throw new ArgumentNullException(nameof(getReturnedValue));
             }
 
-            public ISetUpResult<TFrontendCodeElement, LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<TFrontendCodeElement, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var nextLeft = left.Run(scope, context);
-                return new SetUpResult<TFrontendCodeElement, LocalTpn.IValue>(new TrailingResolveReferance(nextLeft.Resolve, make), getReturnedValue(scope, context, nextLeft));
+                return new SetUpResult<TFrontendCodeElement, Tpn.IValue>(new TrailingResolveReferance(nextLeft.Resolve, make), getReturnedValue(scope, context, nextLeft));
             }
         }
 
@@ -153,7 +153,7 @@ namespace Tac.Semantic_Model.Operations
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IBox<TFrontendCodeElement> Run(LocalTpn.ITypeSolution context)
+            public IBox<TFrontendCodeElement> Run(Tpn.ITypeSolution context)
             {
                 var res = make(left.Run(context));
                 return res;
@@ -174,7 +174,7 @@ namespace Tac.Semantic_Model.Operations
             
             // this is shit, with good code this is fine, but with bad code this will throw
             // I will need to change this when I do a pass to communitcate error better
-            (x.SetUpSideNode as LocalTpn.IValue).AssignTo(mem);
+            (x.SetUpSideNode as Tpn.IValue).AssignTo(mem);
 
             return c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter());
         })

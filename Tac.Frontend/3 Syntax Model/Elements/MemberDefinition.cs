@@ -23,11 +23,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticMemberDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticMemberDefinitionMaker = AddElementMakers(
             () => new MemberDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> MemberDefinitionMaker = StaticMemberDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> MemberDefinitionMaker = StaticMemberDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -100,13 +100,13 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal class MemberDefinitionMaker : IMaker<ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>>
+    internal class MemberDefinitionMaker : IMaker<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>
     {
         public MemberDefinitionMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
@@ -114,47 +114,47 @@ namespace Tac.Semantic_Model
                 .Has(new NameMaker(), out var nameToken);
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type));
             }
-            return TokenMatching<ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeNotMatch(
                                matching.Context);
         }
 
 
-        public static ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member> PopulateScope(
+        public static ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member> PopulateScope(
             IKey item, 
             bool v, 
-            ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> typeToken)
+            ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> typeToken)
         {
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
 
 
 
-        private class MemberDefinitionPopulateScope : ISetUp<WeakMemberReference, LocalTpn.TypeProblem2.Member>
+        private class MemberDefinitionPopulateScope : ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>
         {
             private readonly IKey memberName;
             private readonly bool isReadonly;
-            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> type;
+            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> type;
             
-            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> typeToken)
+            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;
                 type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
             }
 
-            public ISetUpResult<WeakMemberReference, LocalTpn.TypeProblem2.Member> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakMemberReference, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
             {
 
                 var type = this.type.Run(scope, context);
                 var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.Key(), new WeakMemberDefinitionConverter(isReadonly,memberName));
 
 
-                return new SetUpResult<WeakMemberReference, LocalTpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
+                return new SetUpResult<WeakMemberReference, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
                     member),member);
             }
 
@@ -162,14 +162,14 @@ namespace Tac.Semantic_Model
 
         private class MemberDefinitionResolveReferance : IResolve<WeakMemberReference>
         {
-            private readonly Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, Prototypist.Fluent.OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
+            private readonly Tpn.TypeProblem2.Member member;
 
-            public MemberDefinitionResolveReferance(Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, Prototypist.Fluent.OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
+            public MemberDefinitionResolveReferance(Tpn.TypeProblem2.Member member)
             {
                 this.member = member ?? throw new ArgumentNullException(nameof(member));
             }
 
-            public IBox<WeakMemberReference> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakMemberReference> Run(Tpn.ITypeSolution context)
             {
                 return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
             }

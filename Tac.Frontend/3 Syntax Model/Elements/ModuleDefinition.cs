@@ -19,11 +19,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticModuleDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticModuleDefinitionMaker = AddElementMakers(
             () => new ModuleDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -70,14 +70,14 @@ namespace Tac.Semantic_Model
     // modules are not really objects tho
     // they have very constrained syntax
     // they only can contain constants, methods and implementations 
-    internal class ModuleDefinitionMaker : IMaker<ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>>
+    internal class ModuleDefinitionMaker : IMaker<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>>
     {
         public ModuleDefinitionMaker()
         {
         }
         
 
-        public ITokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("module"), out _)
@@ -88,18 +88,18 @@ namespace Tac.Semantic_Model
                 var elements = matching.Context.ParseBlock(third);
                 var nameKey = new NameKey(name.Item);
 
-                return TokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new ModuleDefinitionPopulateScope(elements, nameKey));
 
             }
-            return TokenMatching<ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>>.MakeNotMatch(
+            return TokenMatching<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        public static ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements,
+        public static ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
                 NameKey nameKey)
         {
             return new ModuleDefinitionPopulateScope(elements,
@@ -107,39 +107,39 @@ namespace Tac.Semantic_Model
         }
 
 
-        private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>
+        private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>
         {
-            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
+            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionPopulateScope(
-                ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements,
+                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public ISetUpResult<WeakModuleDefinition, LocalTpn.TypeProblem2.Object> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var box = new Box<IResolve<IFrontendCodeElement>[]>();
                 var myScope= context.TypeProblem.CreateObject(scope, nameKey, new WeakModuleConverter(box, nameKey));
                 box.Fill(elements.Select(x => x.Run(myScope, context).Resolve).ToArray());
 
-                return new SetUpResult<WeakModuleDefinition, LocalTpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope),myScope);
+                return new SetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope),myScope);
             }
         }
 
         private class ModuleDefinitionResolveReferance : IResolve<WeakModuleDefinition>
         {
-            private Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope;
+            private Tpn.TypeProblem2.Object myScope;
 
-            public ModuleDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Object myScope)
+            public ModuleDefinitionResolveReferance(Tpn.TypeProblem2.Object myScope)
             {
                 this.myScope = myScope;
             }
 
-            public IBox<WeakModuleDefinition> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakModuleDefinition> Run(Tpn.ITypeSolution context)
             {
                 var moduleOr = context.GetObject(myScope);
                 if (moduleOr.GetValue().Is2(out var v2)) {

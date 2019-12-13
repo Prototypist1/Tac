@@ -21,11 +21,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticImplementationDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticImplementationDefinitionMaker = AddElementMakers(
             () => new ImplementationDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
 #pragma warning disable IDE0052 // Remove unread private members
     }
 }
@@ -90,15 +90,15 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class ImplementationDefinitionMaker : IMaker<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>>
+    internal class ImplementationDefinitionMaker : IMaker<ISetUp<WeakImplementationDefinition, Tpn.IValue>>
     {
         public ImplementationDefinitionMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakImplementationDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> context= null, input = null, output = null;
+            ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -121,7 +121,7 @@ namespace Tac.Semantic_Model
                 var elements = tokenMatching.Context.ParseBlock(body);
                 
 
-                return TokenMatching<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakImplementationDefinition, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new PopulateScopeImplementationDefinition(
@@ -134,14 +134,14 @@ namespace Tac.Semantic_Model
             }
 
 
-            return TokenMatching<ISetUp<WeakImplementationDefinition, LocalTpn.IValue>>.MakeNotMatch(match.Context);
+            return TokenMatching<ISetUp<WeakImplementationDefinition, Tpn.IValue>>.MakeNotMatch(match.Context);
         }
         
-        public static ISetUp<WeakImplementationDefinition, LocalTpn.IValue> PopulateScope(
-                                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> contextDefinition,
-                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> parameterDefinition,
-                ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements,
-                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> output,
+        public static ISetUp<WeakImplementationDefinition, Tpn.IValue> PopulateScope(
+                                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition,
+                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+                ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
+                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
                 string contextName,
                 string parameterName)
         {
@@ -154,20 +154,20 @@ namespace Tac.Semantic_Model
                  parameterName);
         }
         
-        private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition, LocalTpn.IValue>
+        private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition, Tpn.IValue>
         {
-            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> contextDefinition;
-            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> parameterDefinition;
-            private readonly ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements;
-            private readonly ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> output;
+            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition;
+            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
 
             public PopulateScopeImplementationDefinition(
-                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> contextDefinition,
-                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> parameterDefinition,
-                ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements,
-                ISetUp<IFrontendType, LocalTpn.TypeProblem2.TypeReference> output,
+                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition,
+                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
+                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
                 string contextName,
                 string parameterName)
             {
@@ -179,7 +179,7 @@ namespace Tac.Semantic_Model
                 this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
             }
 
-            public ISetUpResult<WeakImplementationDefinition,LocalTpn.IValue> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakImplementationDefinition,Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
 
                 // TODO this is so painful, I think I need to look in to implementations having special treatment...
@@ -196,7 +196,7 @@ namespace Tac.Semantic_Model
                     realizedOutput.SetUpSideNode.Key(),
                 }),new WeakTypeReferenceConverter());
 
-                var innerBox = new Box<LocalTpn.TypeProblem2.Method>();
+                var innerBox = new Box<Tpn.TypeProblem2.Method>();
                 var linesBox = new Box<IResolve<IFrontendCodeElement>[]>();
                 var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)), new WeakMemberDefinitionConverter(false, new NameKey("result")));
 
@@ -220,7 +220,7 @@ namespace Tac.Semantic_Model
                     }),
                 }),new PlaceholderValueConverter());
 
-                return new SetUpResult<WeakImplementationDefinition, LocalTpn.IValue>(new ImplementationDefinitionResolveReferance(
+                return new SetUpResult<WeakImplementationDefinition, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
                     outer), value);
             }
         }
@@ -228,14 +228,14 @@ namespace Tac.Semantic_Model
 
         private class ImplementationDefinitionResolveReferance : IResolve<WeakImplementationDefinition>
         {
-            private Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition,WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method outer;
+            private Tpn.TypeProblem2.Method outer;
 
-            public ImplementationDefinitionResolveReferance(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Method outer)
+            public ImplementationDefinitionResolveReferance(Tpn.TypeProblem2.Method outer)
             {
                 this.outer = outer;
             }
 
-            public IBox<WeakImplementationDefinition> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakImplementationDefinition> Run(Tpn.ITypeSolution context)
             {
                 var res = context.GetMethod(outer);
                 if (res.GetValue().Is2(out var v2))

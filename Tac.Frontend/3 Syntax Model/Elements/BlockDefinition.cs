@@ -20,11 +20,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticBlockDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticBlockDefinitionMaker = AddElementMakers(
             () => new BlockDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -54,13 +54,13 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class BlockDefinitionMaker : IMaker<ISetUp<WeakBlockDefinition, LocalTpn.IScope>>
+    internal class BlockDefinitionMaker : IMaker<ISetUp<WeakBlockDefinition, Tpn.IScope>>
     {
         public BlockDefinitionMaker()
         {
         }
 
-        public ITokenMatching<ISetUp<WeakBlockDefinition, LocalTpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakBlockDefinition, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                .Has(new BodyMaker(), out var body);
@@ -70,48 +70,48 @@ namespace Tac.Semantic_Model
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
 
-                return TokenMatching<ISetUp<WeakBlockDefinition, LocalTpn.IScope>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context,
+                return TokenMatching<ISetUp<WeakBlockDefinition, Tpn.IScope>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context,
                     new BlockDefinitionPopulateScope(elements));
             }
 
-            return TokenMatching<ISetUp<WeakBlockDefinition, LocalTpn.IScope>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<WeakBlockDefinition, Tpn.IScope>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<WeakBlockDefinition, LocalTpn.IScope> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, LocalTpn.ITypeProblemNode>[] elements)
+        public static ISetUp<WeakBlockDefinition, Tpn.IScope> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
         {
             return new BlockDefinitionPopulateScope(elements);
         }
-        private class BlockDefinitionPopulateScope : ISetUp<WeakBlockDefinition, LocalTpn.IScope>
+        private class BlockDefinitionPopulateScope : ISetUp<WeakBlockDefinition, Tpn.IScope>
         {
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] Elements { get; }
+            private ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] Elements { get; }
 
-            public BlockDefinitionPopulateScope(ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>[] elements)
+            public BlockDefinitionPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public ISetUpResult<WeakBlockDefinition, LocalTpn.IScope> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakBlockDefinition, Tpn.IScope> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var box = new Box<IResolve<IFrontendCodeElement>[]>();
                 var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));
                 box.Fill(Elements.Select(x=>x.Run(scope,context).Resolve).ToArray());
-                return new SetUpResult<WeakBlockDefinition, LocalTpn.IScope>(new ResolveReferanceBlockDefinition(myScope), myScope);
+                return new SetUpResult<WeakBlockDefinition, Tpn.IScope>(new ResolveReferanceBlockDefinition(myScope), myScope);
             }
         }
 
         private class ResolveReferanceBlockDefinition : IResolve<WeakBlockDefinition>
         {
-            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope;
+            private readonly Tpn.TypeProblem2.Scope myScope;
 
-            public ResolveReferanceBlockDefinition(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope myScope)
+            public ResolveReferanceBlockDefinition(Tpn.TypeProblem2.Scope myScope)
             {
                 this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
             }
 
-            public IBox<WeakBlockDefinition> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakBlockDefinition> Run(Tpn.ITypeSolution context)
             {
                 return context.GetScope(myScope);
             }

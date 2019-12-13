@@ -18,23 +18,23 @@ namespace Tac.New
     
     internal interface ISetUpContext
     {
-        LocalTpn.ISetUpTypeProblem TypeProblem { get; }
+        Tpn.ISetUpTypeProblem TypeProblem { get; }
     }
 
     internal class SetUpContext : ISetUpContext
     {
-        public LocalTpn.ISetUpTypeProblem TypeProblem { get; }
+        public Tpn.ISetUpTypeProblem TypeProblem { get; }
     }
 
     internal interface ISetUpResult<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode : LocalTpn.ITypeProblemNode
+        where TSetUpSideNode : Tpn.ITypeProblemNode
     {
         IResolve<TCodeElement> Resolve { get; }
         TSetUpSideNode SetUpSideNode { get; }
     }
 
     internal struct SetUpResult<TCodeElement, TSetUpSideNode>: ISetUpResult<TCodeElement, TSetUpSideNode>
-        where TSetUpSideNode : LocalTpn.ITypeProblemNode
+        where TSetUpSideNode : Tpn.ITypeProblemNode
     {
         public SetUpResult(IResolve<TCodeElement> populateBoxes, TSetUpSideNode setUpSideNode)
         {
@@ -47,14 +47,14 @@ namespace Tac.New
     }
 
     internal interface ISetUp<out TCodeElement, out TSetUpSideNode>
-        where TSetUpSideNode: LocalTpn.ITypeProblemNode
+        where TSetUpSideNode: Tpn.ITypeProblemNode
     {
-        ISetUpResult<TCodeElement, TSetUpSideNode> Run(LocalTpn.IScope scope, ISetUpContext context);
+        ISetUpResult<TCodeElement, TSetUpSideNode> Run(Tpn.IScope scope, ISetUpContext context);
     }
 
     //internal interface IResolveContext
     //{
-    //    public LocalTpn.ITypeSolution Solution { get; }
+    //    public Tpn.ITypeSolution Solution { get; }
     //}
 
     //internal class ResolveContext : IResolveContext
@@ -64,7 +64,7 @@ namespace Tac.New
     //        Solution = solution ?? throw new ArgumentNullException(nameof(solution));
     //    }
 
-    //    public LocalTpn.ITypeSolution Solution
+    //    public Tpn.ITypeSolution Solution
     //    {
     //        get;
     //    }
@@ -72,7 +72,7 @@ namespace Tac.New
 
     internal interface IResolve<out TCodeElement> 
     {
-        IBox<TCodeElement> Run(LocalTpn.ITypeSolution context);
+        IBox<TCodeElement> Run(Tpn.ITypeSolution context);
     }
     
 }

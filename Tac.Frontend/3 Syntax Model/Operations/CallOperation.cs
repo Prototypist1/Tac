@@ -33,13 +33,13 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticLastCallMaker = AddOperationMatcher(() => new LastCallOperationMaker());
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticLastCallMaker = AddOperationMatcher(() => new LastCallOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> LastCallMaker = StaticLastCallMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> LastCallMaker = StaticLastCallMaker;
 #pragma warning restore IDE0052 // Remove unread private members
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> StaticNextCallMaker = AddOperationMatcher(() => new NextCallOperationMaker());
+        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticNextCallMaker = AddOperationMatcher(() => new NextCallOperationMaker());
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, LocalTpn.ITypeProblemNode>> NextCallMaker = StaticNextCallMaker;
+        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> NextCallMaker = StaticNextCallMaker;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
@@ -68,8 +68,8 @@ namespace Tac.Semantic_Model.Operations
     {
         public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> new Box<WeakNextCallOperation>( new WeakNextCallOperation(l,r)),(s,c,l,r)=> {
 
-            (l.SetUpSideNode as LocalTpn.IValue).AssignTo( s.Problem.GetInput(r.SetUpSideNode as LocalTpn.TypeProblem2.Method));
-            return (r.SetUpSideNode as LocalTpn.IMethod).Returns(); })
+            (l.SetUpSideNode as Tpn.IValue).AssignTo( s.Problem.GetInput(r.SetUpSideNode as Tpn.TypeProblem2.Method));
+            return (r.SetUpSideNode as Tpn.IMethod).Returns(); })
         {
         }
     }
@@ -96,8 +96,8 @@ namespace Tac.Semantic_Model.Operations
     {
         public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>new Box<WeakLastCallOperation>( new WeakLastCallOperation(l,r)), (s, c, l, r) =>
         {
-            (r.SetUpSideNode as LocalTpn.IValue).AssignTo(s.Problem.GetInput(l.SetUpSideNode as LocalTpn.TypeProblem2.Method)) ;
-            return (l.SetUpSideNode as LocalTpn.IMethod).Returns();
+            (r.SetUpSideNode as Tpn.IValue).AssignTo(s.Problem.GetInput(l.SetUpSideNode as Tpn.TypeProblem2.Method)) ;
+            return (l.SetUpSideNode as Tpn.IMethod).Returns();
         })
         {
         }

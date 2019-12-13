@@ -141,26 +141,26 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>
+    internal class TypeReferanceMaker : IMaker<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>>
     {
-        public ITokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new TypeNameMaker(), out var name);
 
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new TypeReferancePopulateScope(name));
             }
 
-            return TokenMatching<ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);
+            return TokenMatching<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);
         }
 
 
-        public class TypeReferancePopulateScope : ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>
+        public class TypeReferancePopulateScope : ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>
         {
             private readonly IKey key;
 
@@ -169,24 +169,24 @@ namespace Tac.Semantic_Model
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public ISetUpResult<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference> Run(LocalTpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<WeakTypeReference, Tpn.TypeProblem2.TypeReference> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var type = context.TypeProblem.CreateTypeReference(scope,key, new WeakTypeReferenceConverter());
-                return new SetUpResult<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
+                return new SetUpResult<WeakTypeReference, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
                     type), type);
             }
         }
 
         public class TypeReferanceResolveReference : IResolve<WeakTypeReference>
         {
-            private readonly Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.TypeReference type;
+            private readonly Tpn.TypeProblem2.TypeReference type;
 
-            public TypeReferanceResolveReference(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.TypeReference type)
+            public TypeReferanceResolveReference(Tpn.TypeProblem2.TypeReference type)
             {
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
             }
 
-            public IBox<WeakTypeReference> Run(LocalTpn.ITypeSolution context)
+            public IBox<WeakTypeReference> Run(Tpn.ITypeSolution context)
             {
                 return context.GetTypeReference(type);
             }
