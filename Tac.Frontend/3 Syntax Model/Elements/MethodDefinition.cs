@@ -38,8 +38,7 @@ namespace Tac.Semantic_Model
 {
 
     internal class WeakMethodDefinition :
-        WeakAbstractBlockDefinition<IInternalMethodDefinition>,
-        IValueDefinition
+        WeakAbstractBlockDefinition<IInternalMethodDefinition>
     {
         public WeakMethodDefinition(
             IBox<IFrontendType> outputType, 
@@ -74,8 +73,6 @@ namespace Tac.Semantic_Model
                     IsEntryPoint);
             });
         }
-
-        public override IIsPossibly<IFrontendType> Returns() => Possibly.Is(this);
     }
     
     internal class MethodDefinitionMaker : IMaker<ISetUp<WeakMethodDefinition, LocalTpn.IValue>>
@@ -135,9 +132,9 @@ namespace Tac.Semantic_Model
                         matched.Tokens,
                         matched.Context,
                         new MethodDefinitionPopulateScope(
-                            TypeReferanceMaker.PopulateScope(new NameKey("empty")),
+                            new TypeReferanceMaker.TypeReferancePopulateScope(new NameKey("empty")),
                             elements,
-                            TypeReferanceMaker.PopulateScope(new NameKey("empty")),
+                            new TypeReferanceMaker.TypeReferancePopulateScope(new NameKey("empty")),
                             true,
                             "main")
                         );

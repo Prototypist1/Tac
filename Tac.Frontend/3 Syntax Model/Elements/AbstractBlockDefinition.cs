@@ -26,6 +26,5 @@ namespace Tac.Semantic_Model
         // I think I should build this I plan on using soonish
         public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitailizers { get; }
         public abstract IBuildIntention<T> GetBuildIntention(IConversionContext context);
-        public abstract IIsPossibly<IFrontendType> Returns();
     }
 }

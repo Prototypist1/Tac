@@ -92,9 +92,6 @@ namespace Tac.Semantic_Model.CodeStuff
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
-        
-        public abstract IIsPossibly<IFrontendType> Returns();
-
         public abstract IBuildIntention<TCodeElement> GetBuildIntention(IConversionContext context);
     }
 

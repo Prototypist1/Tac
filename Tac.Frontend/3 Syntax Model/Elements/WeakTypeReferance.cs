@@ -15,40 +15,40 @@ using Tac.Parser;
 
 namespace Tac.Semantic_Model
 {
-    internal class OverlayTypeReference //: IFrontendType
-    {
-        public OverlayTypeReference(IFrontendType weakTypeReferance, Overlay overlay)
-        {
-            if (weakTypeReferance == null)
-            {
-                throw new ArgumentNullException(nameof(weakTypeReferance));
-            }
+    //internal class OverlayTypeReference //: IFrontendType
+    //{
+    //    public OverlayTypeReference(IFrontendType weakTypeReferance, Overlay overlay)
+    //    {
+    //        if (weakTypeReferance == null)
+    //        {
+    //            throw new ArgumentNullException(nameof(weakTypeReferance));
+    //        }
 
-            if (overlay == null)
-            {
-                throw new ArgumentNullException(nameof(overlay));
-            }
+    //        if (overlay == null)
+    //        {
+    //            throw new ArgumentNullException(nameof(overlay));
+    //        }
 
-            TypeDefinition = weakTypeReferance.TypeDefinition.IfIs(x =>
-                Possibly.Is(
-                    new DelegateBox<IIsPossibly<IFrontendType>>(() => x
-                        .GetValue()
-                        .IfIs(y => Possibly.Is(overlay.Convert(y))))));
+    //        TypeDefinition = weakTypeReferance.TypeDefinition.IfIs(x =>
+    //            Possibly.Is(
+    //                new DelegateBox<IIsPossibly<IFrontendType>>(() => x
+    //                    .GetValue()
+    //                    .IfIs(y => Possibly.Is(overlay.Convert(y))))));
 
-        }
+    //    }
 
-        public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
+    //    public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
 
-        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
-        {
-            return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
-        }
+    //    public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
+    //    {
+    //        return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
+    //    }
 
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return TypeDefinition.IfIs(x => x.GetValue());
-        }
-    }
+    //    public IIsPossibly<IFrontendType> Returns()
+    //    {
+    //        return TypeDefinition.IfIs(x => x.GetValue());
+    //    }
+    //}
 
     //internal interface IWeakTypeReference : IConvertableFrontendType<IVerifiableType>, IFrontendCodeElement
     //{
@@ -160,13 +160,7 @@ namespace Tac.Semantic_Model
         }
 
 
-        public static ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference> PopulateScope(IKey typeName)
-        {
-            return new TypeReferancePopulateScope(typeName);
-        }
-
-
-        private class TypeReferancePopulateScope : ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>
+        public class TypeReferancePopulateScope : ISetUp<WeakTypeReference, LocalTpn.TypeProblem2.TypeReference>
         {
             private readonly IKey key;
 

@@ -62,11 +62,6 @@ namespace Tac.Semantic_Model
                     Assignments.Select(x => x.GetOrThrow().Convert(context)).ToArray());
             });
         }
-
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is(this);
-        }
     }
 
     internal class ObjectDefinitionMaker : IMaker<ISetUp<WeakObjectDefinition, LocalTpn.IValue>>

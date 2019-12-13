@@ -19,11 +19,6 @@ namespace Tac.Semantic_Model.Operations
         {
         }
 
-        public override IIsPossibly<IFrontendType> Returns()
-        {
-            return Left.IfIs(x => x.Returns());
-        }
-
         public override IBuildIntention<ITryAssignOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = TryAssignOperation.Create();

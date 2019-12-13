@@ -50,11 +50,6 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
                 maker.Build();
             });
         }
-
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is<IFrontendType>(PrimitiveTypes.CreateEmptyType());
-        }
     }
 
     internal class EmptyInstanceMaker : IMaker<ISetUp<WeakEmptyInstance, LocalTpn.IValue>>

@@ -45,11 +45,6 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateBooleanType());
-        }
-        
         public override IBuildIntention<IElseOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = ElseOperation.Create();

@@ -57,11 +57,6 @@ namespace Tac.Semantic_Model
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IKey> Key { get; }
         public IBox<WeakScope> Scope { get; }
-
-        IIsPossibly<IFrontendType> IFrontendCodeElement.Returns()
-        {
-            return Possibly.Is(this);
-        }
     }
     
     internal class GenericTypeDefinitionMaker : IMaker<ISetUp<WeakGenericTypeDefinition, LocalTpn.IExplicitType>>

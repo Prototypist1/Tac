@@ -44,11 +44,6 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
-        }
-
         public override IBuildIntention<IMultiplyOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = MultiplyOperation.Create();

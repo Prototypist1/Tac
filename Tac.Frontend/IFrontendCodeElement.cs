@@ -12,7 +12,6 @@ namespace Tac.Frontend
     {
         // we can do better, but what does it get us?
         // let's wait and see
-        IIsPossibly<IFrontendType> Returns();
     }
 
     internal static class IFrontendCodeElementStatic{

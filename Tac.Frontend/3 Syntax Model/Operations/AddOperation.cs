@@ -55,10 +55,6 @@ namespace Tac.Semantic_Model.Operations
                 maker.Build(Left.GetValue().ConvertElementOrThrow(context),Right.GetValue().ConvertElementOrThrow(context));
             });
         }
-
-        public override IIsPossibly<IFrontendType> Returns() {
-            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateNumberType());
-        }
     }
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation, IAddOperation>

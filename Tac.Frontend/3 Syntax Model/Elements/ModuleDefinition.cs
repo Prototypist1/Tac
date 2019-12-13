@@ -56,19 +56,14 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IModuleDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    Scope.Convert(context), 
+                    Scope.GetValue().Convert(context), 
                     StaticInitialization
-                        .Select(x=>x.GetOrThrow().PossiblyConvert(context))
+                        .Select(x=>x.GetValue().PossiblyConvert(context))
                         .OfType<IIsDefinately<ICodeElement>>()
                         .Select(x=>x.Value)
                         .ToArray(),
                     Key);
             });
-        }
-
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is(this);
         }
     }
     

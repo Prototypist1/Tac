@@ -74,11 +74,6 @@ namespace Tac.Semantic_Model
         public IReadOnlyList<IBox<IFrontendCodeElement>> MethodBody { get; }
         public IEnumerable<IFrontendCodeElement> StaticInitialzers { get; }
 
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is(this);
-        }
-
         public IBuildIntention<IImplementationDefinition> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = ImplementationDefinition.Create();

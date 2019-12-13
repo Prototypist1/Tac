@@ -49,11 +49,6 @@ namespace Tac.Semantic_Model.Operations
         
         public IBox<IFrontendCodeElement> Result { get; }
         
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is<IConvertableFrontendType<IVerifiableType>>(PrimitiveTypes.CreateEmptyType());
-        }
-
         public IBuildIntention<IReturnOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = ReturnOperation.Create();

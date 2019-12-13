@@ -43,7 +43,8 @@ namespace Tac.Semantic_Model
         {
             var (def, builder) = MemberDefinition.Create();
 
-            var buildIntention = Type.GetValue().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().Cast<IConvertable<IVerifiableType>>().GetBuildIntention(context);
+            //uhh seems bad
+            var buildIntention = Type.GetValue().Cast<IConvertable<IVerifiableType>>().GetBuildIntention(context);
             buildIntention.Build();
             builder.Build(Key, buildIntention.Tobuild, ReadOnly);
             return def;
@@ -55,7 +56,7 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     Key,
-                    Type.GetOrThrow().TypeDefinition.GetOrThrow().GetValue().GetOrThrow().ConvertTypeOrThrow(context),
+                    Type.GetValue().ConvertTypeOrThrow(context),
                     ReadOnly);
             });
         }

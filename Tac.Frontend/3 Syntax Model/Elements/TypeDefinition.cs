@@ -52,10 +52,6 @@ namespace Tac.Semantic_Model
         // it is an ordered set of types, names and acccessablity modifiers
         public IBox<WeakScope> Scope { get; }
         
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is(this);
-        }
 
         public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
         {

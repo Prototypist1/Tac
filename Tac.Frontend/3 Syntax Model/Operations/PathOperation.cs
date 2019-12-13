@@ -43,12 +43,6 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType> Returns()
-        {
-            // should this check to see if the left contains the member defined on the rhs?
-            return Right.IfIs(x =>  Possibly.Is(x.Cast<WeakMemberReference>()));
-        }
-        
         public override IBuildIntention<IPathOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = PathOperation.Create();
@@ -112,29 +106,30 @@ namespace Tac.Semantic_Model.Operations
 
                 return new SetUpResult<WeakPathOperation, LocalTpn.TypeProblem2.Member>(new WeakPathOperationResolveReferance(
                     left.Run(scope, context).Resolve,
-                    name),member);
+                     member),member);
             }
         }
 
         private class WeakPathOperationResolveReferance : IResolve<WeakPathOperation>
         {
-            public readonly IResolve<IFrontendCodeElement> left;
-            private readonly string name;
+            readonly IResolve<IFrontendCodeElement> left;
+            readonly Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, Prototypist.Fluent.OrType<WeakObjectDefinition, WeakModuleDefinition>, Frontend._3_Syntax_Model.Operations.WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member;
 
             public WeakPathOperationResolveReferance(
                 IResolve<IFrontendCodeElement> resolveReferance1, 
-                string name)
+                Tpn<WeakBlockDefinition, Prototypist.Fluent.OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, Prototypist.Fluent.OrType<WeakObjectDefinition, WeakModuleDefinition>, Frontend._3_Syntax_Model.Operations.WeakTypeOrOperation, Prototypist.Fluent.OrType<WeakMethodDefinition, WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Member member)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-                this.name = name ?? throw new ArgumentNullException(nameof(name));
+                this.member = member ?? throw new ArgumentNullException(nameof(member));
             }
-
 
             public IBox<WeakPathOperation> Run(LocalTpn.ITypeSolution context)
             {
+                var convertedMember = context.GetMember(member);
+
                 var res = new Box<WeakPathOperation>(new WeakPathOperation(
                     left.Run(context),
-                    new Box<WeakMemberReference>(new WeakMemberReference(left.GetReturnedType().GetMemberDefinition(new NameKey(name))))));
+                    new Box<WeakMemberReference>(new WeakMemberReference(convertedMember))));
                 return res;
             }
         }

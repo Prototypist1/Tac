@@ -54,13 +54,6 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType> Returns()
-        {
-            return Right.GetOrThrow().Unwrap<Frontend._3_Syntax_Model.Elements.IMethodDefinition>().OutputType
-                .IfIs(x => x.TypeDefinition)
-                .IfIs(x => x.GetValue());
-        }
-
         public override IBuildIntention<INextCallOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = NextCallOperation.Create();
@@ -75,7 +68,7 @@ namespace Tac.Semantic_Model.Operations
     {
         public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> new Box<WeakNextCallOperation>( new WeakNextCallOperation(l,r)),(s,c,l,r)=> {
 
-            (l.SetUpSideNode as LocalTpn.IValue).AssignTo((r.SetUpSideNode as LocalTpn.IMethod).Input());
+            (l.SetUpSideNode as LocalTpn.IValue).AssignTo( s.Problem.GetInput(r.SetUpSideNode as LocalTpn.TypeProblem2.Method));
             return (r.SetUpSideNode as LocalTpn.IMethod).Returns(); })
         {
         }
@@ -89,13 +82,6 @@ namespace Tac.Semantic_Model.Operations
         {
         }
         
-        public override IIsPossibly<IFrontendType> Returns()
-        {
-            return Left.GetValue().Unwrap<Frontend._3_Syntax_Model.Elements.IMethodDefinition>().OutputType
-                .IfIs(x=>x.TypeDefinition)
-                .IfIs(x=>x.GetValue());
-        }
-
         public override IBuildIntention<ILastCallOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = LastCallOperation.Create();
@@ -110,26 +96,10 @@ namespace Tac.Semantic_Model.Operations
     {
         public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>new Box<WeakLastCallOperation>( new WeakLastCallOperation(l,r)), (s, c, l, r) =>
         {
-            (r.SetUpSideNode as LocalTpn.IValue).AssignTo((l.SetUpSideNode as LocalTpn.IMethod).Input()) ;
+            (r.SetUpSideNode as LocalTpn.IValue).AssignTo(s.Problem.GetInput(l.SetUpSideNode as LocalTpn.TypeProblem2.Method)) ;
             return (l.SetUpSideNode as LocalTpn.IMethod).Returns();
         })
         {
         }
     }
-
-    internal static class MemberUnwrapper{
-        public static T Unwrap<T>(this IFrontendCodeElement codeElement) where T: IFrontendType
-        {
-            if (codeElement.Returns().Is< WeakMemberDefinition>(out var member) && 
-                member.Type.IsDefinately(out var yes, out var _) &&  
-                yes.Value.TypeDefinition.IsDefinately(out var yes2, out var _) &&
-                yes2.Value.GetValue().IsDefinately(out var yes3, out var _) &&
-                yes3.Value.Is<T>(out var t)) {
-                return t;
-            }
-            return codeElement.Returns().Cast<T>();
-        }
-    }
-
-
 }

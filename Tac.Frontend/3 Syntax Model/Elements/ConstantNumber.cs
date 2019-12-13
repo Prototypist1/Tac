@@ -51,11 +51,6 @@ namespace Tac.Semantic_Model.Operations
                     Value.GetOrThrow());
             });
         }
-        
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType());
-        }
     }
 
     internal class ConstantNumberMaker : IMaker<ISetUp<WeakConstantNumber, LocalTpn.IValue>>

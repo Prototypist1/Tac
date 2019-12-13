@@ -48,11 +48,6 @@ namespace Tac.Semantic_Model.Operations
                     Value.GetOrThrow());
             });
         }
-
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is<IFrontendType>(PrimitiveTypes.CreateNumberType());
-        }
     }
 
     internal class ConstantBoolMaker : IMaker<ISetUp<WeakConstantBool, LocalTpn.IValue>>

@@ -52,11 +52,6 @@ namespace Tac.Semantic_Model
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
-
-        public override IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is<IFrontendType>(PrimitiveTypes.CreateBlockType());
-        }
     }
 
     internal class BlockDefinitionMaker : IMaker<ISetUp<WeakBlockDefinition, LocalTpn.IScope>>
@@ -100,7 +95,9 @@ namespace Tac.Semantic_Model
 
             public ISetUpResult<WeakBlockDefinition, LocalTpn.IScope> Run(LocalTpn.IScope scope, ISetUpContext context)
             {
-                var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter());
+                var box = new Box<IResolve<IFrontendCodeElement>[]>();
+                var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));
+                box.Fill(Elements.Select(x=>x.Run(scope,context).Resolve).ToArray());
                 return new SetUpResult<WeakBlockDefinition, LocalTpn.IScope>(new ResolveReferanceBlockDefinition(myScope), myScope);
             }
         }

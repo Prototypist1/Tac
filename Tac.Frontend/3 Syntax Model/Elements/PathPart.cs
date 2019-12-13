@@ -39,10 +39,5 @@ namespace Tac.Semantic_Model
                 maker.Build(MemberDefinition.GetValue().Convert(context));
             });
         }
-
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is(MemberDefinition.GetValue().Type.GetValue());
-        }
     }
 }

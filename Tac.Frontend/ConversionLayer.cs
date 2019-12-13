@@ -277,6 +277,11 @@ namespace Tac.Frontend
 
         private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
 
+        public WeakBlockDefinitionConverter(IBox<IResolve<IFrontendCodeElement>[]> body)
+        {
+            this.body = body ?? throw new ArgumentNullException(nameof(body));
+        }
+
         public WeakBlockDefinition Convert(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition,WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.ITypeSolution typeSolution, Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, OrType<WeakObjectDefinition, WeakModuleDefinition>, WeakTypeOrOperation, OrType<WeakMethodDefinition,WeakImplementationDefinition>, PlaceholderValue, WeakMemberDefinition, WeakTypeReference>.TypeProblem2.Scope from)
         {
             return
