@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Operations;
-using Tac.Frontend.TypeProblem.Test;
 using Tac.Model;
 using Tac.Semantic_Model;
 

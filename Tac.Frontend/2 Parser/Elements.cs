@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Fluent;
 using System;
 using System.Collections.Generic;
 using System.Linq;

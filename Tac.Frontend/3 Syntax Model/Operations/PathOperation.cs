@@ -1,5 +1,4 @@
-﻿using Prototypist.LeftToRight;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Tac.Frontend;
 using Tac.Frontend._2_Parser;

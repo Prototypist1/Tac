@@ -5,4 +5,8 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Prototypist.Fluent" Version="1.0.0.3" />
+  </ItemGroup>
+
 </Project>
