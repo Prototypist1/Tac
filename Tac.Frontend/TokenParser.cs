@@ -31,7 +31,7 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var dependendcyScope = new PopulatableScope();
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter());
 
             foreach (var dependency in dependencies)
             {
@@ -45,14 +45,13 @@ namespace Tac.Frontend
                 }
             }
 
-            var problem = new Tpn.TypeProblem2();
 
             var populateScopeContex = new SetUpContext();
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.Root, populateScopeContex).Resolve).ToArray();
 
             var resolvableDependencyScope = dependendcyScope.GetResolvelizableScope().FinalizeScope();
 
-            var solution = problem.Solve();
+            var solution = problem.Solve(new WeakTypeDefinitionConverter());
 
             var module = referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray().Single().GetValue().CastTo<WeakModuleDefinition>(); ;
 

@@ -39,7 +39,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member,WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IFrontendType> converter);
-            TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope,WeakBlockDefinition> converter);
+            TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope>> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter);
             TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter);
             TypeProblem2.Object CreateObject(IScope parent, IKey key, IConvertTo<TypeProblem2.Object,OrType<WeakObjectDefinition, WeakModuleDefinition>> converter);
@@ -57,7 +57,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             IBox<PlaceholderValue> GetValue(TypeProblem2.Value value);
             IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member);
             IBox<IFrontendType> GetTypeReference(TypeProblem2.TypeReference typeReference);
-            IBox<WeakBlockDefinition> GetScope(TypeProblem2.Scope scope);
+            IBox<OrType<WeakBlockDefinition, WeakScope>> GetScope(TypeProblem2.Scope scope);
             // when I ungeneric this it should probably have the box inside the or..
             IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> GetExplicitType(TypeProblem2.Type explicitType);
             IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> GetObject(TypeProblem2.Object @object);
@@ -233,12 +233,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheOrType[orType];
             }
 
-            private readonly Dictionary<TypeProblem2.Scope, IBox<WeakBlockDefinition>> cacheScope = new Dictionary<TypeProblem2.Scope, IBox<WeakBlockDefinition>>();
-            public IBox<WeakBlockDefinition> GetScope(TypeProblem2.Scope scope)
+            private readonly Dictionary<TypeProblem2.Scope, IBox<OrType<WeakBlockDefinition, WeakScope>>> cacheScope = new Dictionary<TypeProblem2.Scope, IBox<OrType<WeakBlockDefinition, WeakScope>>>();
+            public IBox<OrType<WeakBlockDefinition, WeakScope>> GetScope(TypeProblem2.Scope scope)
             {
                 if (!cacheScope.ContainsKey(scope))
                 {
-                    var box = new Box<WeakBlockDefinition>();
+                    var box = new Box<OrType<WeakBlockDefinition, WeakScope>>();
                     cacheScope[scope] = box;
                     box.Fill(scope.Converter.Convert(this, scope));
                 }
@@ -406,9 +406,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
             }
-            public class Scope : TypeProblemNode<Scope,WeakBlockDefinition>, IScope
+            public class Scope : TypeProblemNode<Scope, OrType<WeakBlockDefinition, WeakScope>>, IScope
             {
-                public Scope(TypeProblem2 problem, string debugName, IConvertTo<Scope,WeakBlockDefinition> converter) : base(problem, debugName, converter)
+                public Scope(TypeProblem2 problem, string debugName, IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> converter) : base(problem, debugName, converter)
                 {
                 }
             }
@@ -581,7 +581,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Scope CreateScope(IScope parent, IConvertTo<Scope,WeakBlockDefinition> converter)
+            public Scope CreateScope(IScope parent, IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> converter)
             {
                 var res = new Scope(this, $"child-of-{((TypeProblemNode)parent).debugName}", converter);
                 IsChildOf(parent, res);
@@ -1300,7 +1300,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public TypeProblem2(IConvertTo<Scope, WeakBlockDefinition> rootConverter)
+            public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> rootConverter)
             {
                 Root = new Scope(this, "root", rootConverter);
                 //CreateGenericType(Root, new NameKey("method"), new IKey[] {

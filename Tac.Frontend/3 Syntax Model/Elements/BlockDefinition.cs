@@ -113,7 +113,7 @@ namespace Tac.Semantic_Model
 
             public IBox<WeakBlockDefinition> Run(Tpn.ITypeSolution context)
             {
-                return context.GetScope(myScope);
+                return new Box<WeakBlockDefinition>(context.GetScope(myScope).GetValue().Is1OrThrow());
             }
         }
     }

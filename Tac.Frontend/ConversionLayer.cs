@@ -156,18 +156,18 @@ namespace Tac.Frontend
         
     }
 
-    internal class MemberTypeBox : IBox<IFrontendType>
-    {
-        private readonly IBox<WeakMemberDefinition> memberBox;
+    //internal class MemberTypeBox : IBox<IFrontendType>
+    //{
+    //    private readonly IBox<WeakMemberDefinition> memberBox;
 
-        public MemberTypeBox(IBox<WeakMemberDefinition> memberBox)
-        {
-            this.memberBox = memberBox ?? throw new ArgumentNullException(nameof(memberBox));
-        }
+    //    public MemberTypeBox(IBox<WeakMemberDefinition> memberBox)
+    //    {
+    //        this.memberBox = memberBox ?? throw new ArgumentNullException(nameof(memberBox));
+    //    }
 
-        public IFrontendType GetValue() => memberBox.GetValue().Type.GetValue();
+    //    public IFrontendType GetValue() => memberBox.GetValue().Type.GetValue();
 
-    }
+    //}
 
     internal class WeakImplementationDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>>
     {
@@ -238,7 +238,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakBlockDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, WeakBlockDefinition>
+    internal class WeakBlockDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope>>
     {
 
         private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
@@ -248,13 +248,25 @@ namespace Tac.Frontend
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
-        public WeakBlockDefinition Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+        public OrType<WeakBlockDefinition, WeakScope> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
         {
-            return
+            return new OrType<WeakBlockDefinition, WeakScope>(
                 new WeakBlockDefinition(
                     body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                     new Box<WeakScope>(Help.GetScope(typeSolution, from)),
-                    Array.Empty<IIsPossibly<IFrontendCodeElement>>());
+                    Array.Empty<IIsPossibly<IFrontendCodeElement>>()));
+        }
+    }
+
+    internal class WeakScopeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope>>
+    {
+        public WeakScopeConverter()
+        {
+        }
+
+        public OrType<WeakBlockDefinition, WeakScope> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+        {
+            return new OrType<WeakBlockDefinition, WeakScope>(Help.GetScope(typeSolution, from));
         }
     }
 
