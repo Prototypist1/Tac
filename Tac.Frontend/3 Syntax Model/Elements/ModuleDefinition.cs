@@ -132,7 +132,7 @@ namespace Tac.Semantic_Model
 
         private class ModuleDefinitionResolveReferance : IResolve<WeakModuleDefinition>
         {
-            private Tpn.TypeProblem2.Object myScope;
+            private readonly Tpn.TypeProblem2.Object myScope;
 
             public ModuleDefinitionResolveReferance(Tpn.TypeProblem2.Object myScope)
             {

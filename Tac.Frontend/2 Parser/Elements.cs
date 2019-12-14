@@ -103,7 +103,7 @@ namespace Tac.Parser
             Func<IBox<IIsPossibly<IFrontendType>>, IMaker<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>> func, 
             params Condition<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>[] conditions)
         {
-            Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>> res = (x) => new WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(() => func(x), conditions.ToList());
+            WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> res(IBox<IIsPossibly<IFrontendType>> x) => new WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(() => func(x), conditions.ToList());
             implicitElementMakers.Add(res);
             return res;
         }
