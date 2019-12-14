@@ -66,7 +66,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
             OrType<TypeProblem2.Type, TypeProblem2.OrType> GetType(ILookUpType from);
             (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from);
-            TypeProblem2.TypeReference GetResultType(TypeProblem2.Method from);
+            ILookUpType GetResultType(TypeProblem2.Method from);
             TypeProblem2.Member GetInputMember(TypeProblem2.Method from);
         }
 
@@ -155,12 +155,21 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members;
             private readonly IReadOnlyDictionary<ILookUpType, IHaveMembers> map;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
+            private readonly IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodIn;
+            private readonly IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodOut;
 
-            public TypeSolution(IReadOnlyDictionary<ILookUpType, IHaveMembers> map, IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members, IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts)
+            public TypeSolution(
+                IReadOnlyDictionary<ILookUpType, IHaveMembers> map, 
+                IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members, 
+                IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
+                IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodIn,
+                IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodOut)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.members = members ?? throw new ArgumentNullException(nameof(members));
                 this.orTypeElememts = orTypeElememts ?? throw new ArgumentNullException(nameof(orTypeElememts));
+                this.methodIn = methodIn ?? throw new ArgumentNullException(nameof(methodIn));
+                this.methodOut = methodOut ?? throw new ArgumentNullException(nameof(methodOut));
             }
 
 
@@ -289,6 +298,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from){
                 return orTypeElememts[from];
+            }
+
+            public ILookUpType GetResultType(TypeProblem2.Method from)
+            {
+                return methodOut[from];
+            }
+
+            public TypeProblem2.Member GetInputMember(TypeProblem2.Method from)
+            {
+                return methodIn[from];
             }
         }
 
@@ -811,7 +830,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    Flow(GetType(to), GetType(from));
                 //}
 
-                return new TypeSolution(lookUps, members.ToDictionary(x => x.Key, x => (IReadOnlyList<Member>)x.Value.Select(y => y.Value).ToArray()), orTypeComponets);
+                return new TypeSolution(lookUps, members.ToDictionary(x => x.Key, x => (IReadOnlyList<Member>)x.Value.Select(y => y.Value).ToArray()), orTypeComponets, methodInputs, methodReturns);
 
                 #region Helpers
 

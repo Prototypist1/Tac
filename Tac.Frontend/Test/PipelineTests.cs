@@ -1,9 +1,11 @@
 ﻿using Newtonsoft.Json;
 using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Frontend.Test.Samples;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -20,6 +22,7 @@ namespace Tac.Tests
 {
     public class PipelineTests
     {
+#pragma warning disable CA1707 // Identifiers should not contain underscores
         [Fact]
         public void Token_CodeElements_Factorial()
         {
@@ -68,21 +71,17 @@ namespace Tac.Tests
 
             var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
 
-            var stack = new PopulatableScope();
-            
+
+            var problem = new Tpn.TypeProblem2();
+
             var populateScopeContex = new SetUpContext();
-            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(stack,populateScopeContex)).ToArray();
+            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.Root, populateScopeContex).Resolve).ToArray();
 
 
-            var resolvelizable = stack.GetResolvelizableScope();
-            var resolvalbe = resolvelizable.FinalizeScope();
-            var finalizeScopeContext = new FinalizeScopeContext();
-            var populateBoxes = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolvalbe, finalizeScopeContext)).ToArray();
+            var solution = problem.Solve();
 
+            var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray().Single().GetValue().CastTo<WeakModuleDefinition>();
 
-            var resolveReferanceContext = new ResolveContext();
-            var result = populateBoxes.Select(reranceResolver => reranceResolver.Run(resolvalbe,resolveReferanceContext)).ToArray().Single().GetOrThrow().CastTo<WeakModuleDefinition>();
-            
             var target = sample.Module;
 
             var context = TransformerExtensions.NewConversionContext();
@@ -150,5 +149,8 @@ namespace Tac.Tests
 
             Assert.Equal(target.ToString(), res.ToString());
         }
+
+
+#pragma warning restore CA1707 // Identifiers should not contain underscores
     }
 }

@@ -201,8 +201,8 @@ namespace Tac.Frontend._2_Parser
                     NameKey typeSource = null;
                     if (matcher
                         .HasElement(x=>x
-                        .Has(new TypeNameMaker(), out typeSource)
-                        .Has(new DoneMaker()))
+                            .Has(new TypeNameMaker(), out typeSource)
+                            .Has(new DoneMaker()))
                         .Has(new DoneMaker()) is IMatchedTokenMatching)
                     {
                         typeSourcesBuilding.Add(typeSource);

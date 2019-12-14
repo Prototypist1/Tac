@@ -7,6 +7,8 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 using Tac.Semantic_Model;
+using System.Linq;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Frontend
 {
@@ -24,36 +26,43 @@ namespace Tac.Frontend
             // i mean it is not a pure data objet
             // what is the cost to passing it in?
 
-            var scope = new PopulatableScope();
-            foreach (var member in assembly.Scope.Members)
-            {
-                if (!scope.TryAddMember(DefintionLifetime.Instance,member.Key,new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is( MemberDefinition(member))))) {
-                    throw new Exception("😨 member should not already exist");
-                }
-            }
-            //foreach (var type in assembly.Scope.Types)
+            //var scope = new PopulatableScope();
+            //foreach (var member in assembly.Scope.Members)
             //{
-            //    if (type.Type is IInterfaceType interfaceType)
-            //    {
-            //        if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
-            //        {
-            //            throw new Exception("type should not already exist");
-            //        }
+            //    if (!scope.TryAddMember(DefintionLifetime.Instance,member.Key,new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is( MemberDefinition(member))))) {
+            //        throw new Exception("😨 member should not already exist");
             //    }
             //}
-            //foreach (var genericType in assembly.Scope.GenericTypes)
-            //{
-            //    if (genericType.Type is IGenericInterfaceDefinition genericInterface)
-            //    {
-            //        if (!scope.TryAddGeneric(genericType.Key.Name, new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(GenericTypeDefinition(genericInterface)))))
-            //        {
-            //            throw new Exception("type should not already exist");
-            //        }
-            //    }
-            //}
-            var resolvelizableScope = scope.GetResolvelizableScope();
-            var resolvableScope = resolvelizableScope.FinalizeScope();
-            return new WeakTypeDefinition(resolvableScope, Possibly.Is(new ImplicitKey()));
+            ////foreach (var type in assembly.Scope.Types)
+            ////{
+            ////    if (type.Type is IInterfaceType interfaceType)
+            ////    {
+            ////        if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
+            ////        {
+            ////            throw new Exception("type should not already exist");
+            ////        }
+            ////    }
+            ////}
+            ////foreach (var genericType in assembly.Scope.GenericTypes)
+            ////{
+            ////    if (genericType.Type is IGenericInterfaceDefinition genericInterface)
+            ////    {
+            ////        if (!scope.TryAddGeneric(genericType.Key.Name, new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(GenericTypeDefinition(genericInterface)))))
+            ////        {
+            ////            throw new Exception("type should not already exist");
+            ////        }
+            ////    }
+            ////}
+            //var resolvelizableScope = scope.GetResolvelizableScope();
+            //var resolvableScope = resolvelizableScope.FinalizeScope();
+            //return new WeakTypeDefinition(resolvableScope, Possibly.Is(new ImplicitKey()));
+
+
+            var scope = new WeakScope(
+                assembly.Scope.Members.Select(x=> new Box<WeakMemberDefinition>(MemberDefinition(x)).CastTo<IBox<WeakMemberDefinition>>()).ToList());
+
+            return new WeakTypeDefinition(new Box<WeakScope>(scope));
+
         }
 
 
@@ -74,12 +83,8 @@ namespace Tac.Frontend
                 var interpetedMemberDefinition = new WeakMemberDefinition(
                     member.ReadOnly,
                     member.Key,
-                    Possibly.Is(
-                        new WeakTypeReference(
-                            Possibly.Is(
-                                new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
-                                    Possibly.Is(
-                                        TypeMap.MapType(member.Type)))))));
+                    new Box<IFrontendType>(
+                                        TypeMap.MapType(member.Type)));
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition;
             }

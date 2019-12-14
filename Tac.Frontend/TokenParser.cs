@@ -1,8 +1,10 @@
 ﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -35,41 +37,28 @@ namespace Tac.Frontend
             {
                 var convertedDependency = dependencyConverter.ConvertToType<TBacking>(dependency);
                 if (!dependendcyScope.TryAddMember(DefintionLifetime.Instance, dependency.Key, new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is(
-                    new WeakMemberDefinition(true, dependency.Key, Possibly.Is(
-                        new WeakTypeReference(
-                            Possibly.Is(
-                                new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(
-                                    Possibly.Is<IConvertableFrontendType<IVerifiableType>>(
-                                        convertedDependency)))))))))) {
+                    new WeakMemberDefinition(
+                        true, 
+                        dependency.Key, 
+                        new Box<IFrontendType>(convertedDependency)))))) {
                     throw new Exception("could not add dependency!");
                 }
             }
 
-            var scope = new PopulatableScope(dependendcyScope);
+            var problem = new Tpn.TypeProblem2();
 
             var populateScopeContex = new SetUpContext();
-            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(scope,populateScopeContex)).ToArray();
+            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.Root, populateScopeContex).Resolve).ToArray();
 
             var resolvableDependencyScope = dependendcyScope.GetResolvelizableScope().FinalizeScope();
 
-            var resolvalbe = scope.GetResolvelizableScope().FinalizeScope(resolvableDependencyScope);
-            var finalizeScopeContext = new FinalizeScopeContext();
-            var populateBoxes = referanceResolvers.Select(reranceResolver => reranceResolver.Run(resolvalbe, finalizeScopeContext)).ToArray();
+            var solution = problem.Solve();
 
-             var resolveReferenceContext = new ResolveContext();
-
-            var module = new WeakModuleDefinition(
-                resolvalbe,
-                populateBoxes.Select(reranceResolver => reranceResolver.Run(resolvalbe, resolveReferenceContext)).ToArray(), 
-                new NameKey(name));
-
-            var resolveReferanceContext = new ResolveContext();
-
+            var module = referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray().Single().GetValue().CastTo<WeakModuleDefinition>(); ;
 
             var context = TransformerExtensions.NewConversionContext();
 
-
-            return new Project<TBacking>(module.Convert<IModuleDefinition>(context), dependencies);
+            return new Project<TBacking>(module.Convert(context), dependencies);
         }
     }
 }

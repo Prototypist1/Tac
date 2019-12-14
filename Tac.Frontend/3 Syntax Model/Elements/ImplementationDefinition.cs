@@ -81,8 +81,8 @@ namespace Tac.Semantic_Model
             {
                 maker.Build(
                     TransformerExtensions.Convert<IVerifiableType>(OutputType.GetOrThrow(),context),
-                    ContextDefinition.IfIs(x=>x.GetValue()).GetOrThrow().Convert(context),
-                    ParameterDefinition.IfIs(x => x.GetValue()).GetOrThrow().Convert(context),
+                    ContextDefinition.GetValue().Convert(context),
+                    ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
                     MethodBody.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitialzers.Select(x => x.ConvertElementOrThrow(context)).ToArray());
