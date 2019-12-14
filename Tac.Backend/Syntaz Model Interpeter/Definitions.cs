@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +13,7 @@ using Tac.Model.Operations;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using static Tac.Backend.Public.AssemblyBuilder;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Backend.Syntaz_Model_Interpeter
 {
@@ -30,7 +31,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> MemberDefinition(IMemberDefinition member)
         {
             var method = GetMethod(new Type[] { TypeMap.MapType(member.Type) }, nameof(MemberDefinition));
-            return method.Invoke(this, new object[] { member }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { member }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> MemberDefinition<T>(IMemberDefinition member)
@@ -58,8 +59,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedAddOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IBoxedDouble>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<IBoxedDouble>>());
                 return op;
             }
         }
@@ -67,7 +68,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> AssignOperation(IAssignOperation co)
         {
             var method = GetMethod(new Type[] { TypeMap.MapType(co.Left.Returns()), TypeMap.MapType(co.Right.Returns()) }, nameof(AssignOperation));
-            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { co }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> AssignOperation<TLeft,TRight>(IAssignOperation co)
@@ -83,8 +84,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedAssignOperation<TLeft,TRight>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<TLeft>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<TRight>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<TLeft>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<TRight>>());
                 return op;
             }
         }
@@ -93,7 +94,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> TryAssignOperation(ITryAssignOperation co)
         {
             var method = GetMethod(new Type[] { TypeMap.MapType(co.Left.Returns()), TypeMap.MapType(co.Right.Returns()) }, nameof(TryAssignOperation));
-            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { co }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> TryAssignOperation<TLeft, TRight>(ITryAssignOperation co)
@@ -109,8 +110,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedTryAssignOperation<TLeft, TRight>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<TLeft>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<TRight>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<TLeft>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<TRight>>());
                 return op;
             }
         }
@@ -206,8 +207,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedElseOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedBool>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpedEmpty>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IBoxedBool>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<IInterpedEmpty>>());
                 return op;
             }
         }
@@ -223,8 +224,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedIfTrueOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedBool>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpedEmpty>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IBoxedBool>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<IInterpedEmpty>>());
                 return op;
             }
         }
@@ -232,7 +233,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition(IImplementationDefinition codeElement)
         {
             var method = GetMethod(new Type[] { TypeMap.MapType(codeElement.ContextDefinition.Type), TypeMap.MapType(codeElement.ParameterDefinition.Type), TypeMap.MapType(codeElement.OutputType) }, nameof(ImplementationDefinition));
-            return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { codeElement }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition<TContext,TIn,TOut>(IImplementationDefinition codeElement)
@@ -249,20 +250,20 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedImplementationDefinition<TContext, TIn, TOut>();
                 backing.Add(codeElement, op);
                 op.Init(
-                    MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
-                    MemberDefinition(codeElement.ContextDefinition).Cast<InterpetedMemberDefinition<TContext>>(),
+                    MemberDefinition(codeElement.ParameterDefinition).CastTo<InterpetedMemberDefinition<TIn>>(),
+                    MemberDefinition(codeElement.ContextDefinition).CastTo<InterpetedMemberDefinition<TContext>>(),
                     codeElement.MethodBody.Select(x => x.Convert(this)).ToArray(),
                     new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
-                    codeElement.Returns().Cast<IImplementationType>());
+                    codeElement.Returns().CastTo<IImplementationType>());
                 return op;
             }
         }
 
         public IInterpetedOperation<IInterpetedAnyType> LastCallOperation(ILastCallOperation co)
         {
-            var methodType = co.Left.Returns().Cast<IMethodType>();
+            var methodType = co.Left.Returns().CastTo<IMethodType>();
             var method = GetMethod(new Type[] { TypeMap.MapType(methodType.InputType), TypeMap.MapType(methodType.OutputType) } ,nameof(LastCallOperation));
-            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { co }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> LastCallOperation<TIn,TOut>(ILastCallOperation co)
@@ -278,8 +279,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedLastCallOperation<TIn, TOut>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IInterpetedCallable<TIn, TOut>>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<TIn>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IInterpetedCallable<TIn, TOut>>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<TIn>>());
                 return op;
             }
         }
@@ -295,8 +296,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedLessThanOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IBoxedDouble>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<IBoxedDouble>>());
                 return op;
             }
         }
@@ -304,7 +305,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> MemberReferance(IMemberReferance codeElement)
         {
             var method = GetMethod(new Type[] { TypeMap.MapType(codeElement.MemberDefinition.Type) }, nameof(MemberReferance));
-            return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { codeElement }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
 
@@ -320,7 +321,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedMemberReferance<T>();
                 backing.Add(codeElement, op);
                 op.Init(
-                    MemberDefinition(codeElement.MemberDefinition).Cast<InterpetedMemberDefinition<T>>());
+                    MemberDefinition(codeElement.MemberDefinition).CastTo<InterpetedMemberDefinition<T>>());
                 return op;
             }
         }
@@ -328,7 +329,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> MethodDefinition(IInternalMethodDefinition codeElement)
         {
             var method = GetMethod(new Type[] { TypeMap.MapType(codeElement.InputType), TypeMap.MapType(codeElement.OutputType) }, nameof(MethodDefinition));
-            return method.Invoke(this, new object[] { codeElement }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { codeElement }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
 
         }
 
@@ -345,15 +346,15 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedMethodDefinition<TIn, TOut>();
                 backing.Add(codeElement, op);
                 op.Init(
-                    MemberDefinition(codeElement.ParameterDefinition).Cast<InterpetedMemberDefinition<TIn>>(),
+                    MemberDefinition(codeElement.ParameterDefinition).CastTo<InterpetedMemberDefinition<TIn>>(),
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
                     new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
-                    codeElement.Returns().Cast<IMethodType>());
+                    codeElement.Returns().CastTo<IMethodType>());
                 if (codeElement.IsEntryPoint) {
                     // sloppy this should be on the prop
                     if (EntryPoint == null)
                     {
-                        EntryPoint = op.Cast<IInterpetedOperation<IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>>>();
+                        EntryPoint = op.CastTo<IInterpetedOperation<IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>>>();
                     }
                     else {
                         new Exception("we already have an entry point");
@@ -391,18 +392,18 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedMultiplyOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IBoxedDouble>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<IBoxedDouble>>());
                 return op;
             }
         }
 
         public IInterpetedOperation<IInterpetedAnyType> NextCallOperation(INextCallOperation co)
         {
-            var methodType = co.Right.Returns().Cast<IMethodType>();
+            var methodType = co.Right.Returns().CastTo<IMethodType>();
 
             var method = GetMethod( new Type[] { TypeMap.MapType(methodType.InputType), TypeMap.MapType(methodType.OutputType) } ,nameof(NextCallOperation));
-            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { co }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> NextCallOperation<TIn,TOut>(INextCallOperation co)
@@ -418,8 +419,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedNextCallOperation<TIn, TOut>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<TIn>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IInterpetedCallable<TIn, TOut>>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<TIn>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<IInterpetedCallable<TIn, TOut>>>());
                 return op;
             }
         }
@@ -435,7 +436,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedObjectDefinition();
                 backing.Add(codeElement, op);
                 op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
-                    codeElement.Assignments.Select(x => AssignOperation(x).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>()).ToArray()
+                    codeElement.Assignments.Select(x => AssignOperation(x).CastTo<IInterpetedAssignOperation<IInterpetedAnyType>>()).ToArray()
                     );
                 return op;
             }
@@ -444,7 +445,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> PathOperation(IPathOperation co)
         {
             var method = GetMethod(new Type[] { TypeMap.MapType(co.Returns()) }, nameof(PathOperation));
-            return method.Invoke(this, new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this, new object[] { co }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> PathOperation<T>(IPathOperation co)
@@ -459,8 +460,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedPathOperation<T>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IInterpetedScope>>(),
-                    co.Right.Convert(this).Cast<IInterpetedMemberReferance<T>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IInterpetedScope>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedMemberReferance<T>>());
                 return op;
             }
         }
@@ -468,7 +469,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
         public IInterpetedOperation<IInterpetedAnyType> ReturnOperation(IReturnOperation co)
         {
             var method = GetMethod(new Type[] { TypeMap.MapType(co.Result.Returns()) }, nameof(ReturnOperation));
-            return method.Invoke(this,new object[] { co }).Cast<IInterpetedOperation<IInterpetedAnyType>>();
+            return method.Invoke(this,new object[] { co }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
         private IInterpetedOperation<IInterpetedAnyType> ReturnOperation<T>(IReturnOperation co)
@@ -483,7 +484,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedReturnOperation<T>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Result.Convert(this).Cast<IInterpetedOperation<T>>());
+                    co.Result.Convert(this).CastTo<IInterpetedOperation<T>>());
                 return op;
             }
         }
@@ -499,8 +500,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedSubtractOperation();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>(),
-                    co.Right.Convert(this).Cast<IInterpetedOperation<IBoxedDouble>>());
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IBoxedDouble>>(),
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<IBoxedDouble>>());
                 return op;
             }
         }

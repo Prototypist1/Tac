@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Prototypist.LeftToRight;
+using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +81,7 @@ namespace Tac.Tests
 
 
             var resolveReferanceContext = new ResolveContext();
-            var result = populateBoxes.Select(reranceResolver => reranceResolver.Run(resolvalbe,resolveReferanceContext)).ToArray().Single().GetOrThrow().Cast<WeakModuleDefinition>();
+            var result = populateBoxes.Select(reranceResolver => reranceResolver.Run(resolvalbe,resolveReferanceContext)).ToArray().Single().GetOrThrow().CastTo<WeakModuleDefinition>();
             
             var target = sample.Module;
 

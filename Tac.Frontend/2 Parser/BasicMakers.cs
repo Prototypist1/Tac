@@ -1,10 +1,10 @@
-﻿using Prototypist.LeftToRight;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Model;
 using Tac.New;
 using Tac.Parser;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Frontend._2_Parser
 {
@@ -168,7 +168,7 @@ namespace Tac.Frontend._2_Parser
                                    element.Tokens.Count == 1 &&
                                    element.Tokens.ElementAt(0) is AtomicToken))
             {
-                return TokenMatching<string[]>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, typeParameters.Tokens.Select(x => x.Cast<LineToken>().Tokens.Single().Cast<ElementToken>().Tokens.Single().Cast<AtomicToken>().Item).ToArray());
+                return TokenMatching<string[]>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, typeParameters.Tokens.Select(x => x.CastTo<LineToken>().Tokens.Single().CastTo<ElementToken>().Tokens.Single().CastTo<AtomicToken>().Item).ToArray());
             }
             
             return TokenMatching<string[]>.MakeNotMatch(elementMatching.Context);

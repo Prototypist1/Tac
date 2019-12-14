@@ -85,7 +85,7 @@ namespace Tac.Semantic_Model
                     matched.Context, 
                     new TypeDefinitionPopulateScope(
                        elements, 
-                       typeName != default ? new NameKey(typeName.Item).Cast<IKey>(): new ImplicitKey()));
+                       typeName != default ? new NameKey(typeName.Item).CastTo<IKey>(): new ImplicitKey()));
             }
 
             return TokenMatching<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(

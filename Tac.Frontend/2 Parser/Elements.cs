@@ -14,6 +14,8 @@ using Tac.New;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
+using Prototypist.Toolbox.Object;
+using Prototypist.Toolbox.Bool;
 
 namespace Tac.Parser
 {
@@ -306,7 +308,7 @@ namespace Tac.Parser
 
         public ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] ParseFile(FileToken file)
         {
-            return file.Tokens.Select(x => ParseLine(x.Cast<LineToken>().Tokens)).ToArray();
+            return file.Tokens.Select(x => ParseLine(x.CastTo<LineToken>().Tokens)).ToArray();
         }
 
         public ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] ParseBlock(CurleyBracketToken block)

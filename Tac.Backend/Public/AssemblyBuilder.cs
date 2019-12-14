@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,7 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Syntaz_Model_Interpeter;
 using static Tac.Model.Instantiated.Scope;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Backend.Public
 {
@@ -61,7 +62,7 @@ namespace Tac.Backend.Public
                         var method = typeof(InterpetedAssemblyBacking).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
                           x.Name == nameof(GetAssignemnt) && x.IsGenericMethod);
                         var madeMethod= method.MakeGenericMethod(new[] { typeParameter , typeParameter });
-                    return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2 }).Cast<IInterpetedAssignOperation<IInterpetedAnyType>>();
+                    return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2 }).CastTo<IInterpetedAssignOperation<IInterpetedAnyType>>();
                 }));
 
                 if (objectDefinition.Interpet(interpetedContext).IsReturn(out var _, out var value)) {

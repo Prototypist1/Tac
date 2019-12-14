@@ -1,4 +1,5 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -76,7 +77,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
                 var res = Scope.Create();
 
-                res.GetMember<TIn>(ParameterDefinition.Key).Cast<IInterpetedMemberSet<TIn>>().Set(input.Value);
+                res.GetMember<TIn>(ParameterDefinition.Key).CastTo<IInterpetedMemberSet<TIn>>().Set(input.Value);
 
                 var scope = Context.Child(res);
 
@@ -85,7 +86,7 @@ namespace Tac.Syntaz_Model_Interpeter
                     var result = line.Interpet(scope);
                     if (result.IsReturn(out var resMember, out var value))
                     {
-                        return InterpetedResult.Create(resMember.Cast<IInterpetedMember<TOut>>());
+                        return InterpetedResult.Create(resMember.CastTo<IInterpetedMember<TOut>>());
                     }
                 }
 
@@ -98,7 +99,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 if (typeof(IInterpedEmpty).IsAssignableFrom(typeof(TOut)))
                 {
                     var hack = TypeManager.Empty();
-                    return InterpetedResult.Create(Member<TOut>(hack.Convert(TransformerExtensions.NewConversionContext()), hack.Cast<TOut>()));
+                    return InterpetedResult.Create(Member<TOut>(hack.Convert(TransformerExtensions.NewConversionContext()), hack.CastTo<TOut>()));
                 }
 
                 throw new System.Exception("method did not return!");

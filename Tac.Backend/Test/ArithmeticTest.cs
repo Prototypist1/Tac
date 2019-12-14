@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Tests.Samples;
 using Xunit;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Backend.Test
 {
@@ -25,10 +26,10 @@ namespace Tac.Backend.Test
 
             Assert.False(res.IsReturn(out var _, out var member));
 
-            var scope = member.Value.Cast<IInterpetedScope>();
+            var scope = member.Value.CastTo<IInterpetedScope>();
             var x = scope.GetMember<IInterpetedAnyType>(new NameKey("x"));
 
-            Assert.Equal(63.0, x.Value.Cast<IBoxedDouble>().Value);
+            Assert.Equal(63.0, x.Value.CastTo<IBoxedDouble>().Value);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -34,7 +34,7 @@ namespace Tac.Model.Instantiated
         {
             if (context.TryGetValue(self, out var res))
             {
-                return res.Cast<T>();
+                return res.CastTo<T>();
             }
             else
             {

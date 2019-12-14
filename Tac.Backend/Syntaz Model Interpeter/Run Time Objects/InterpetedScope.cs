@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using Prototypist.TaskChain;
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
@@ -72,7 +73,7 @@ namespace Tac.Syntaz_Model_Interpeter
         
             public IInterpetedMember<T> GetMember<T>(IKey name) where T : IInterpetedAnyType
             {
-                return Backing.GetOrThrow(name).Cast<IInterpetedMember<T>>();
+                return Backing.GetOrThrow(name).CastTo<IInterpetedMember<T>>();
             }
 
             public bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType

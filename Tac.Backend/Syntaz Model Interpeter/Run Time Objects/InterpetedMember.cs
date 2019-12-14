@@ -1,4 +1,5 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -34,7 +35,7 @@ namespace Tac.Syntaz_Model_Interpeter
             var method = typeof(TypeManager).GetMethods(BindingFlags.Public | BindingFlags.Static).Single(x =>
               x.Name == nameof(Member) && x.IsGenericMethod && x.GetParameters().Count() == 1);
             var made = method.MakeGenericMethod(new Type[] { TypeMap.MapType(type) });
-            return made.Invoke(null,new object[] { type }).Cast<IInterpetedMember>();
+            return made.Invoke(null,new object[] { type }).CastTo<IInterpetedMember>();
         }
 
         public static IInterpetedMember<IInterpetedAnyType> AnyMember()
@@ -152,7 +153,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 // also don't like passing in false here
                 // forces me to know too much about that is going on under the hood 
                 if (VerifiableType.TheyAreUs(incommingType, false)) {
-                    Set(o.Cast<T>());
+                    Set(o.CastTo<T>());
                     return true;
                 }
                 return false;

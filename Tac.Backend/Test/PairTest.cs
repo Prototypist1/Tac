@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -33,7 +33,7 @@ namespace Tac.Backend.Test
 
             Assert.False(res.IsReturn(out var _, out var scope));
 
-            var method = scope.Cast<IInterpetedMember<IInterpetedScope>>().Value.GetMember<IInterpetedMethod<IBoxedDouble,IInterpetedScope>>(new NameKey("pairify"));
+            var method = scope.CastTo<IInterpetedMember<IInterpetedScope>>().Value.GetMember<IInterpetedMethod<IBoxedDouble,IInterpetedScope>>(new NameKey("pairify"));
 
             Assert.False( method.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodResult));
 

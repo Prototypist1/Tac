@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.Tests.Samples;
 using Xunit;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Backend.Test
 {
@@ -26,8 +27,8 @@ namespace Tac.Backend.Test
 
             Assert.False(res.IsReturn(out var _, out var value));
 
-            var scope = value.Value.Cast<IInterpetedScope>();
-            var method = scope.GetMember<IInterpetedAnyType>(new NameKey("create-accululator")).Value.Cast<IInterpetedMethod<IBoxedDouble, IInterpetedMethod<IBoxedDouble, IBoxedDouble>>>();
+            var scope = value.Value.CastTo<IInterpetedScope>();
+            var method = scope.GetMember<IInterpetedAnyType>(new NameKey("create-accululator")).Value.CastTo<IInterpetedMethod<IBoxedDouble, IInterpetedMethod<IBoxedDouble, IBoxedDouble>>>();
             
             Assert.False(method.Invoke(TypeManager.NumberMember(TypeManager.Double(1))).IsReturn(out var _, out var innerMethod));
 

@@ -9,7 +9,8 @@ using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Xunit;
 using static Tac.Backend.Public.AssemblyBuilder;
-using Prototypist.LeftToRight;
+using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.SnippetTests
 {
@@ -63,19 +64,19 @@ namespace Tac.SnippetTests
             return new AssemblyBuilder(new NameKey("out"))
                        .AddMethod(
                            new NameKey("write-number"),
-                           (IBoxedDouble x) => { numberDestination(x.Value); return TypeManager.Empty().Cast<IInterpedEmpty>(); },
+                           (IBoxedDouble x) => { numberDestination(x.Value); return TypeManager.Empty().CastTo<IInterpedEmpty>(); },
                            MethodType.CreateAndBuild(
                                    new NumberType(),
                                    new EmptyType()))
                        .AddMethod(
                            new NameKey("write-string"),
-                           (IBoxedString x) => { stringDestination(x.Value); return TypeManager.Empty().Cast<IInterpedEmpty>(); },
+                           (IBoxedString x) => { stringDestination(x.Value); return TypeManager.Empty().CastTo<IInterpedEmpty>(); },
                            MethodType.CreateAndBuild(
                                    new StringType(),
                                    new EmptyType()))
                        .AddMethod(
                            new NameKey("write-bool"),
-                           (IBoxedBool x) => { boolDestination(x.Value); return TypeManager.Empty().Cast<IInterpedEmpty>(); },
+                           (IBoxedBool x) => { boolDestination(x.Value); return TypeManager.Empty().CastTo<IInterpedEmpty>(); },
                            MethodType.CreateAndBuild(
                                    new BooleanType(),
                                    new EmptyType()))

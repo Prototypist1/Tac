@@ -1,4 +1,5 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 
 namespace Tac.Syntaz_Model_Interpeter
@@ -34,7 +35,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(rightReturned);
             }
 
-            return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(rightValue.Cast<IInterpetedMemberSet<TRight>>().TrySet(leftValue.Value))));
+            return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(rightValue.CastTo<IInterpetedMemberSet<TRight>>().TrySet(leftValue.Value))));
         }
     }
 }

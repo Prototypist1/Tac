@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -124,7 +124,7 @@ namespace Tac.Syntaz_Model_Interpeter
         //    }
         //    if (Value is InterpetedMemberDefinition memberDefinition)
         //    {
-        //        return context.GetMember(memberDefinition.Key).Value.Cast<T>();
+        //        return context.GetMember(memberDefinition.Key).Value.CastTo<T>();
         //    }
         //    return Value;
         //}

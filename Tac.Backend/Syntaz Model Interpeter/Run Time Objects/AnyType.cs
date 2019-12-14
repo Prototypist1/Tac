@@ -1,4 +1,4 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +26,7 @@ namespace Tac.Syntaz_Model_Interpeter
         //private static T CreateFromIntention<T>(Func<RunTimeAnyRoot, T> value)
         //    where T :  IInterpetedAnyType
         //{
-        //    return new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { (x)=> value(x).Cast<IInterpetedAnyType>() }).Has<T>();
+        //    return new RunTimeAnyRoot(new Func<RunTimeAnyRoot, IInterpetedAnyType>[] { (x)=> value(x).CastTo<IInterpetedAnyType>() }).Has<T>();
         //}
 
 

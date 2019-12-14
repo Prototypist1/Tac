@@ -1,4 +1,5 @@
 ﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace Tac.Semantic_Model
             var (def, builder) = MemberDefinition.Create();
 
             //uhh seems bad
-            var buildIntention = Type.GetValue().Cast<IConvertable<IVerifiableType>>().GetBuildIntention(context);
+            var buildIntention = Type.GetValue().CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context);
             buildIntention.Build();
             builder.Build(Key, buildIntention.Tobuild, ReadOnly);
             return def;

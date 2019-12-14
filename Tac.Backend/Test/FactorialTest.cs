@@ -1,4 +1,5 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,13 +37,13 @@ namespace Tac.Backend.Test
 
             Assert.False(res.IsReturn(out var _, out var value));
 
-            var scope = value.Value.Cast<IInterpetedScope>();
+            var scope = value.Value.CastTo<IInterpetedScope>();
             // no way this cast works...
             var method = scope.GetMember<IInterpetedMethod<IBoxedDouble, IBoxedDouble>>(new NameKey("fac"));
 
             Assert.False(method.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodReturn));
 
-            return methodReturn.Value.Cast<IBoxedDouble>().Value;
+            return methodReturn.Value.CastTo<IBoxedDouble>().Value;
         }
 
     }

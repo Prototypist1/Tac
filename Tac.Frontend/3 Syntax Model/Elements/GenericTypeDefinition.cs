@@ -130,8 +130,8 @@ namespace Tac.Semantic_Model
 
         private class GenericTypeDefinitionResolveReferance : IResolve<WeakGenericTypeDefinition>
         {
-            private Tpn.TypeProblem2.Type myScope;
-            private IResolve<IFrontendCodeElement>[] nextLines;
+            private readonly Tpn.TypeProblem2.Type myScope;
+            private readonly IResolve<IFrontendCodeElement>[] nextLines;
 
             public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IResolve<IFrontendCodeElement>[] nextLines)
             {

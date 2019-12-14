@@ -1,4 +1,5 @@
-﻿using Prototypist.LeftToRight;
+﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
@@ -35,7 +36,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<TLeft>>(rightReturned);
             }
 
-            rightValue.Cast<IInterpetedMemberSet<TRight>>().Set(leftValue.Value);
+            rightValue.CastTo<IInterpetedMemberSet<TRight>>().Set(leftValue.Value);
              
             return InterpetedResult.Create(leftValue);
         }
