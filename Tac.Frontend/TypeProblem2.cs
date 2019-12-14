@@ -38,7 +38,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IKey typeKey, IConvertTo<TypeProblem2.Member,WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member,WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, WeakTypeReference> converter);
+            TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IFrontendType> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope,WeakBlockDefinition> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter);
             TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter);
@@ -56,7 +56,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             IBox<PlaceholderValue> GetValue(TypeProblem2.Value value);
             IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member);
-            IBox<WeakTypeReference> GetTypeReference(TypeProblem2.TypeReference typeReference);
+            IBox<IFrontendType> GetTypeReference(TypeProblem2.TypeReference typeReference);
             IBox<WeakBlockDefinition> GetScope(TypeProblem2.Scope scope);
             // when I ungeneric this it should probably have the box inside the or..
             IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> GetExplicitType(TypeProblem2.Type explicitType);
@@ -245,12 +245,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheScope[scope];
             }
 
-            private readonly Dictionary<TypeProblem2.TypeReference, IBox<WeakTypeReference>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, IBox<WeakTypeReference>>();
-            public IBox<WeakTypeReference> GetTypeReference(TypeProblem2.TypeReference typeReference)
+            private readonly Dictionary<TypeProblem2.TypeReference, IBox<IFrontendType>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, IBox<IFrontendType>>();
+            public IBox<IFrontendType> GetTypeReference(TypeProblem2.TypeReference typeReference)
             {
                 if (!cacheTypeReference.ContainsKey(typeReference))
                 {
-                    var box = new Box<WeakTypeReference>();
+                    var box = new Box<IFrontendType>();
                     cacheTypeReference[typeReference] = box;
                     box.Fill(typeReference.Converter.Convert(this, typeReference));
                 }
@@ -369,9 +369,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 internal IConvertTo<Tin, Tout> Converter { get; }
             }
-            public class TypeReference : TypeProblemNode<TypeReference, WeakTypeReference>, ILookUpType
+            public class TypeReference : TypeProblemNode<TypeReference, IFrontendType>, ILookUpType
             {
-                public TypeReference(TypeProblem2 problem, string debugName, IConvertTo<TypeReference, WeakTypeReference> converter) : base(problem, debugName, converter)
+                public TypeReference(TypeProblem2 problem, string debugName, IConvertTo<TypeReference, IFrontendType> converter) : base(problem, debugName, converter)
                 {
                 }
             }
@@ -572,7 +572,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeReference, WeakTypeReference> converter)
+            public TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeReference, IFrontendType> converter)
             {
                 var res = new TypeReference(this, typeKey.ToString(),converter);
                 HasReference(context, res);

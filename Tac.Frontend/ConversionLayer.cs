@@ -214,11 +214,11 @@ namespace Tac.Frontend
             return new WeakMemberDefinition(isReadonly, nameKey, Help.GetType(typeSolution, from));
         }
     }
-    internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, WeakTypeReference>
+    internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IFrontendType>
     {
-        public WeakTypeReference Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
+        public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
         {
-            return new WeakTypeReference(Help.GetType(typeSolution, from));
+            return Help.GetType(typeSolution, from).GetValue();
         }
     }
     internal class WeakTypeOrOperationConverter : Tpn.IConvertTo<Tpn.TypeProblem2.OrType, WeakTypeOrOperation>

@@ -59,25 +59,25 @@ namespace Tac.Semantic_Model
 
     // now sure why this needs to be a thing
     // can't I just use the type?
-    internal class WeakTypeReference //: IFrontendType
-    {
-        public WeakTypeReference(IBox<IFrontendType> typeDefinition)
-        {
-            TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
-        }
+    //internal class WeakTypeReference //: IFrontendType
+    //{
+    //    public WeakTypeReference(IBox<IFrontendType> typeDefinition)
+    //    {
+    //        TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
+    //    }
 
-        public IBox<IFrontendType> TypeDefinition { get; }
+    //    public IBox<IFrontendType> TypeDefinition { get; }
 
-        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
-        {
-            return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
-        }
+    //    public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
+    //    {
+    //        return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
+    //    }
 
-        public IIsPossibly<IFrontendType> Returns()
-        {
-            return Possibly.Is(TypeDefinition.GetValue());
-        }
-    }
+    //    public IIsPossibly<IFrontendType> Returns()
+    //    {
+    //        return Possibly.Is(TypeDefinition.GetValue());
+    //    }
+    //}
 
     internal static class TypeReferenceStatic
     {
@@ -142,26 +142,26 @@ namespace Tac.Semantic_Model
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>>
+    internal class TypeReferanceMaker : IMaker<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>
     {
-        public ITokenMatching<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new TypeNameMaker(), out var name);
 
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new TypeReferancePopulateScope(name));
             }
 
-            return TokenMatching<ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);
+            return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);
         }
 
 
-        public class TypeReferancePopulateScope : ISetUp<WeakTypeReference, Tpn.TypeProblem2.TypeReference>
+        public class TypeReferancePopulateScope : ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>
         {
             private readonly IKey key;
 
@@ -170,15 +170,15 @@ namespace Tac.Semantic_Model
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public ISetUpResult<WeakTypeReference, Tpn.TypeProblem2.TypeReference> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var type = context.TypeProblem.CreateTypeReference(scope,key, new WeakTypeReferenceConverter());
-                return new SetUpResult<WeakTypeReference, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
+                return new SetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
                     type), type);
             }
         }
 
-        public class TypeReferanceResolveReference : IResolve<WeakTypeReference>
+        public class TypeReferanceResolveReference : IResolve<IFrontendType>
         {
             private readonly Tpn.TypeProblem2.TypeReference type;
 
@@ -187,7 +187,7 @@ namespace Tac.Semantic_Model
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
             }
 
-            public IBox<WeakTypeReference> Run(Tpn.ITypeSolution context)
+            public IBox<IFrontendType> Run(Tpn.ITypeSolution context)
             {
                 return context.GetTypeReference(type);
             }
