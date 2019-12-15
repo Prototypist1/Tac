@@ -1,4 +1,5 @@
 ﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.New;
 using Tac.Semantic_Model;
+using Tac.Semantic_Model.Operations;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Frontend
@@ -283,7 +285,7 @@ namespace Tac.Frontend
         {
             return new OrType<WeakObjectDefinition, WeakModuleDefinition>(new WeakObjectDefinition(
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)), 
-                box.GetValue().Select(x=>x.Run(typeSolution)).ToArray()));
+                box.GetValue().Select(x=>new Box<WeakAssignOperation>(x.Run(typeSolution).GetValue().CastTo<WeakAssignOperation>())).ToArray()));
         }
     }
 

@@ -50,7 +50,7 @@ namespace Tac.Semantic_Model
         }
 
         public IBox<WeakScope> Scope { get; }
-        public IIsPossibly<WeakAssignOperation>[] Assignments { get; }
+        public IBox<WeakAssignOperation>[] Assignments { get; }
 
         public IBuildIntention<IObjectDefiniton> GetBuildIntention(IConversionContext context)
         {
@@ -58,7 +58,7 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IObjectDefiniton>(toBuild, () =>
             {
                 maker.Build(Scope.GetValue().Convert(context), 
-                    Assignments.Select(x => x.GetOrThrow().Convert(context)).ToArray());
+                    Assignments.Select(x => x.GetValue().Convert(context)).ToArray());
             });
         }
     }

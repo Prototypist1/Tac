@@ -80,7 +80,7 @@ namespace Tac.Semantic_Model
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    TransformerExtensions.Convert<IVerifiableType>(OutputType.GetOrThrow(),context),
+                    OutputType.GetValue().ConvertTypeOrThrow(context),
                     ContextDefinition.GetValue().Convert(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
