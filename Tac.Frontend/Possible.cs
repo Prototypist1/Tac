@@ -6,7 +6,7 @@ namespace Tac.Frontend
 {
     public static class Possibly {
 
-        private class PrivateIs<T> : IIsDefinately<T>
+        private class PrivateIs<T> : IIsDefinitely<T>
         {
             public PrivateIs(T value)
             {
@@ -16,22 +16,22 @@ namespace Tac.Frontend
             public T Value {get;}
         }
 
-        private class PrivateIsNot<T> : IIsDefinatelyNot<T>
+        private class PrivateIsNot<T> : IIsDefinitelyNot<T>
         {
-            public PrivateIsNot(IReadOnlyList<IIsDefinatelyNot> reasons)
+            public PrivateIsNot(IReadOnlyList<IIsDefinitelyNot> reasons)
             {
                 Reasons = reasons ?? throw new ArgumentNullException(nameof(reasons));
             }
 
-            public IReadOnlyList<IIsDefinatelyNot> Reasons { get; }
+            public IReadOnlyList<IIsDefinitelyNot> Reasons { get; }
         }
 
-        public static IIsDefinately<T> Is<T>(T t) {
+        public static IIsDefinitely<T> Is<T>(T t) {
             return new PrivateIs<T>(t);
         }
 
 
-        public static IIsDefinatelyNot<T> IsNot<T>(params IIsDefinatelyNot[] nots)
+        public static IIsDefinitelyNot<T> IsNot<T>(params IIsDefinitelyNot[] nots)
         {
             return new PrivateIsNot<T>(nots);
         }
@@ -43,13 +43,13 @@ namespace Tac.Frontend
     }
 
     public static class IsPossiblyExtenstions {
-        public static bool IsDefinately<T>(this IIsPossibly<T> self, out IIsDefinately<T> yes, out IIsDefinatelyNot<T> no) {
-            if (self is IIsDefinately<T> isYes) {
+        public static bool IsDefinitely<T>(this IIsPossibly<T> self, out IIsDefinitely<T> yes, out IIsDefinitelyNot<T> no) {
+            if (self is IIsDefinitely<T> isYes) {
                 yes = isYes;
                 no = default;
                 return true;
             }
-            if (self is IIsDefinatelyNot<T> isNo)
+            if (self is IIsDefinitelyNot<T> isNo)
             {
                 no = isNo;
                 yes = default;
@@ -59,11 +59,11 @@ namespace Tac.Frontend
         }
 
         public static IIsPossibly<TT> IfIs<T, TT>(this IIsPossibly<T> self, Func<T, IIsPossibly<TT>> func) {
-            if (self is IIsDefinately<T> isYes)
+            if (self is IIsDefinitely<T> isYes)
             {
                 return func(isYes.Value);
             }
-            if (self is IIsDefinatelyNot<T> isNo)
+            if (self is IIsDefinitelyNot<T> isNo)
             {
                 return Possibly.IsNot<TT>(isNo);
             }
@@ -72,7 +72,7 @@ namespace Tac.Frontend
 
         public static T GetOrThrow<T>(this IIsPossibly<T> self)
         {
-            if (self is IIsDefinately<T> isYes)
+            if (self is IIsDefinitely<T> isYes)
             {
                 return isYes.Value;
             }
@@ -81,18 +81,18 @@ namespace Tac.Frontend
 
     }
     
-    public interface IIsDefinately<out T> : IIsPossibly<T>
+    public interface IIsDefinitely<out T> : IIsPossibly<T>
     {
         T Value { get; }
     }
 
-    public interface IIsDefinatelyNot {
+    public interface IIsDefinitelyNot {
 
     }
 
-    public interface IIsDefinatelyNot<out T>: IIsPossibly<T>, IIsDefinatelyNot
+    public interface IIsDefinitelyNot<out T>: IIsPossibly<T>, IIsDefinitelyNot
     {
-        IReadOnlyList<IIsDefinatelyNot> Reasons { get; }
+        IReadOnlyList<IIsDefinitelyNot> Reasons { get; }
     }
 
     public interface IReason {
