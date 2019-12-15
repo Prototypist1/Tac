@@ -23,6 +23,11 @@ namespace Tac.New
 
     internal class SetUpContext : ISetUpContext
     {
+        public SetUpContext(Tpn.ISetUpTypeProblem typeProblem)
+        {
+            TypeProblem = typeProblem ?? throw new ArgumentNullException(nameof(typeProblem));
+        }
+
         public Tpn.ISetUpTypeProblem TypeProblem { get; }
     }
 

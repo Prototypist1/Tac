@@ -1,6 +1,6 @@
 ﻿namespace Tac.Model
 {
-    public interface INameKey
+    public interface INameKey: IKey
     {
         string Name { get; }
     }

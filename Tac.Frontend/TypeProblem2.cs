@@ -428,6 +428,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // basic stuff
             private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
 
+            public IScope Base { get; }
             public IScope Root { get; }
             // relationships
             private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
@@ -876,7 +877,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         // I think this could be expanded down the road
                         // given intest in generic methods and objects
-                        if (!(LookUpOrOverlayOrThrow2(from, genericNameKey.name) is Type lookedUp))
+                        if (!(LookUpOrOverlayOrThrow2(from, genericNameKey.Name) is Type lookedUp))
                         {
                             throw new Exception();
                         }
@@ -1302,7 +1303,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> rootConverter)
             {
-                Root = new Scope(this, "root", rootConverter);
+
+                Base = new Scope(this, "base", rootConverter);
+                Root = CreateScope(Base, rootConverter);
+
                 //CreateGenericType(Root, new NameKey("method"), new IKey[] {
                 //    new NameKey("input"),
                 //    new NameKey("output")

@@ -9,10 +9,10 @@ namespace Tac.Model
 
     public class GenericNameKey : IKey
     {
-        public readonly  NameKey name;
+        public  NameKey Name { get; }
         public GenericNameKey(NameKey name, IKey[] types)
         {
-            this.name = name ?? throw new System.ArgumentNullException(nameof(name));
+            this.Name = name ?? throw new System.ArgumentNullException(nameof(name));
             Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
 
@@ -35,7 +35,7 @@ namespace Tac.Model
 
         public override string ToString()
         {
-            return $"{nameof(GenericNameKey)}-{name.ToString()}-{Types.Aggregate("",(x,y)=> x +""+ y.ToString())}";
+            return $"{nameof(GenericNameKey)}-{Name.ToString()}-{Types.Aggregate("",(x,y)=> x +""+ y.ToString())}";
         }
     }
 }

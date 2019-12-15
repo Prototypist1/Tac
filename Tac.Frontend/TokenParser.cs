@@ -33,23 +33,25 @@ namespace Tac.Frontend
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter());
 
-            foreach (var dependency in dependencies)
-            {
-                var convertedDependency = dependencyConverter.ConvertToType<TBacking>(dependency);
-                if (!dependendcyScope.TryAddMember(DefintionLifetime.Instance, dependency.Key, new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is(
-                    new WeakMemberDefinition(
-                        true, 
-                        dependency.Key, 
-                        new Box<IFrontendType>(convertedDependency)))))) {
-                    throw new Exception("could not add dependency!");
-                }
-            }
+            throw new NotImplementedException("I need to rethink this a bit");
+            
+            //foreach (var dependency in dependencies)
+            //{
+            //    //var dependencyScope = problem.CreateScope(problem.Base, new WeakScopeConverter());
+            //    problem.CreateMember(problem.Base, dependency.Key );
+            //    var convertedDependency = dependencyConverter.ConvertToType<TBacking>(dependency);
+            //    if (!dependendcyScope.TryAddMember(DefintionLifetime.Instance, dependency.Key, new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is(
+            //        new WeakMemberDefinition(
+            //            true, 
+            //            dependency.Key, 
+            //            new Box<IFrontendType>(convertedDependency)))))) {
+            //        throw new Exception("could not add dependency!");
+            //    }
+            //}
 
 
-            var populateScopeContex = new SetUpContext();
+            var populateScopeContex = new SetUpContext(problem);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.Root, populateScopeContex).Resolve).ToArray();
-
-            var resolvableDependencyScope = dependendcyScope.GetResolvelizableScope().FinalizeScope();
 
             var solution = problem.Solve(new WeakTypeDefinitionConverter());
 

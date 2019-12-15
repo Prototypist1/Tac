@@ -74,7 +74,7 @@ namespace Tac.Tests
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter());
 
-            var populateScopeContex = new SetUpContext();
+            var populateScopeContex = new SetUpContext(problem);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.Root, populateScopeContex).Resolve).ToArray();
 
 
