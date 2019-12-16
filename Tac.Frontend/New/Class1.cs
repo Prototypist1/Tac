@@ -10,7 +10,6 @@ using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
-using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
 
 namespace Tac.New
 {

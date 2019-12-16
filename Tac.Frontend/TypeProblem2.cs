@@ -6,6 +6,7 @@ using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Model;
 using Tac.Semantic_Model;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Frontend.New.CrzayNamespace
 {
@@ -20,9 +21,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal class TypeAndConverter {
             public readonly IKey key;
-            public readonly IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter;
+            public readonly IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter;
 
-            public TypeAndConverter(IKey key, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter)
+            public TypeAndConverter(IKey key, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
                 this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
@@ -40,8 +41,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IFrontendType> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope>> converter);
-            TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter);
-            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter);
+            TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
+            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Object CreateObject(IScope parent, IKey key, IConvertTo<TypeProblem2.Object,OrType<WeakObjectDefinition, WeakModuleDefinition>> converter);
             TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method ,OrType<WeakMethodDefinition,WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member,WeakMemberDefinition> inputConverter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> outputConverter);
             TypeProblem2.Method CreateMethod(IScope parent, TypeProblem2.TypeReference inputType, TypeProblem2.TypeReference outputType, string inputName, IConvertTo<TypeProblem2.Method,OrType<WeakMethodDefinition,WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> outputConverter);
@@ -59,7 +60,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             IBox<IFrontendType> GetTypeReference(TypeProblem2.TypeReference typeReference);
             IBox<OrType<WeakBlockDefinition, WeakScope>> GetScope(TypeProblem2.Scope scope);
             // when I ungeneric this it should probably have the box inside the or..
-            IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> GetExplicitType(TypeProblem2.Type explicitType);
+            IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> GetExplicitType(TypeProblem2.Type explicitType);
             IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> GetObject(TypeProblem2.Object @object);
             IBox<WeakTypeOrOperation> GetOrType(TypeProblem2.OrType orType);
             IBox<OrType<WeakMethodDefinition,WeakImplementationDefinition>> GetMethod(TypeProblem2.Method method);
@@ -173,12 +174,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            private readonly Dictionary<TypeProblem2.Type, IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition>>> cacheType = new Dictionary<TypeProblem2.Type, IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition>>>();
-            public IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> GetExplicitType(TypeProblem2.Type explicitType)
+            private readonly Dictionary<TypeProblem2.Type, IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>> cacheType = new Dictionary<TypeProblem2.Type, IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>>();
+            public IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> GetExplicitType(TypeProblem2.Type explicitType)
             {
                 if (!cacheType.ContainsKey(explicitType))
                 {
-                    var box = new Box<OrType<WeakTypeDefinition, WeakGenericTypeDefinition>>();
+                    var box = new Box<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>();
                     cacheType[explicitType] = box;
                     box.Fill(explicitType.Converter.Convert(this, explicitType));
                 }
@@ -387,9 +388,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
             }
-            public class Type : TypeProblemNode<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition>>, IExplicitType
+            public class Type : TypeProblemNode<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType
             {
-                public Type(TypeProblem2 problem, string debugName, IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter) : base(problem, debugName, converter)
+                public Type(TypeProblem2 problem, string debugName, IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
                 {
                 }
             }
@@ -402,7 +403,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public class InferedType : Type
             {
-                public InferedType(TypeProblem2 problem, string debugName, IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter) : base(problem, debugName, converter)
+                public InferedType(TypeProblem2 problem, string debugName, IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
                 {
                 }
             }
@@ -567,6 +568,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<Member,WeakMemberDefinition> converter)
             {
+                if (possibleMembers.TryGetValue(scope, out var members) && members.TryGetValue(key, out var res1)) {
+                    return res1;
+                }
                 var res = new Member(this, key.ToString(),converter);
                 HasMembersPossiblyOnParent(scope, key, res);
                 lookUpTypeContext[res] = scope;
@@ -589,7 +593,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Type CreateType(IScope parent, IKey key, IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter)
+            public Type CreateType(IScope parent, IKey key, IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 var res = new Type(this, key.ToString(), converter);
                 IsChildOf(parent, res);
@@ -597,7 +601,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> converter)
+            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 var res = new Type(this, $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", converter);
                 IsChildOf(parent, res);
@@ -715,7 +719,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // pretty sure it is not safe to solve more than once 
-            public ITypeSolution Solve(IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition>> inferedTypeConvert)
+            public ITypeSolution Solve(IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> inferedTypeConvert)
             {
                 var realizedGeneric = new Dictionary<GenericTypeKey, IExplicitType>();
                 var lookUps = new Dictionary<ILookUpType, IHaveMembers>();
@@ -1289,12 +1293,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 while (true)
                 {
-                    if (members[context].TryGetValue(key, out member))
+                    if (members.TryGetValue(context,out var contextMembers) && contextMembers.TryGetValue(key, out member))
                     {
                         return true;
                     }
                     if (!kidParent.TryGetValue(context, out context))
                     {
+                        member = default;
                         return false;
                     }
                 }
@@ -1317,10 +1322,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    new NameKey("input"),
                 //    new NameKey("output")
                 //});
-                //CreateType(Root, new NameKey("number"));
-                //CreateType(Root, new NameKey("string"));
-                //CreateType(Root, new NameKey("bool"));
-                //CreateType(Root, new NameKey("empty"));
+                CreateType(Base, new NameKey("number"),new PrimitiveTypeConverter(new NumberType()));
+                CreateType(Base, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));
+                CreateType(Base, new NameKey("bool"), new PrimitiveTypeConverter(new BooleanType()));
+                CreateType(Base, new NameKey("empty"), new PrimitiveTypeConverter(new EmptyType()));
             }
 
             private class GenericTypeKey
@@ -1343,7 +1348,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return other != null &&
                         primary.Equals(other.primary) &&
-                        parameters.Count() == other.parameters.Count() &&
+                        parameters.Length == other.parameters.Length &&
                         parameters.Zip(other.parameters, (x, y) => x.Equals(y)).All(x => x);
                 }
 

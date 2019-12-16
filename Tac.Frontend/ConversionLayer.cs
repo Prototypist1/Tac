@@ -81,7 +81,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>>
+    internal class WeakTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
     {
         //IIsPossibly<IKey> key;
 
@@ -90,27 +90,44 @@ namespace Tac.Frontend
             //this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public OrType<WeakTypeDefinition, WeakGenericTypeDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        public OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
-            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition>(new WeakTypeDefinition(new Box<WeakScope>(Help.GetScope(typeSolution, from))));//, key
+            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(new WeakTypeDefinition(new Box<WeakScope>(Help.GetScope(typeSolution, from))));//, key
         }
     }
 
-    internal class WeakGenericTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>>
+
+    internal class PrimitiveTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
+    {
+        public PrimitiveTypeConverter(IPrimitiveType primitiveType)
+        {
+            PrimitiveType = primitiveType;
+        }
+
+        public IPrimitiveType PrimitiveType { get; }
+
+        public OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        {
+            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(PrimitiveType);
+        }
+    }
+
+
+    internal class WeakGenericTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
     {
 
         private readonly NameKey key;
-        private readonly SyntaxModel.Elements.AtomicTypes.PrimitiveTypes.IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
+        private readonly SyntaxModel.Elements.AtomicTypes.IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
 
-        public WeakGenericTypeDefinitionConverter(NameKey key, PrimitiveTypes.IGenericTypeParameterPlacholder[] typeParameterDefinitions)
+        public WeakGenericTypeDefinitionConverter(NameKey key, IGenericTypeParameterPlacholder[] typeParameterDefinitions)
         {
             this.key = key ?? throw new ArgumentNullException(nameof(key));
             TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
         }
 
-        public OrType<WeakTypeDefinition, WeakGenericTypeDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        public OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
-            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition>(
+            return new OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(
                 new WeakGenericTypeDefinition(
                     Possibly.Is(key),
                     new Box<WeakScope>(Help.GetScope(typeSolution, from)),
@@ -199,7 +216,6 @@ namespace Tac.Frontend
 
     }
 
-
     internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Member, WeakMemberDefinition>
     {
         private readonly bool isReadonly;
@@ -216,6 +232,7 @@ namespace Tac.Frontend
             return new WeakMemberDefinition(isReadonly, nameKey, Help.GetType(typeSolution, from));
         }
     }
+
     internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IFrontendType>
     {
         public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
@@ -223,6 +240,7 @@ namespace Tac.Frontend
             return Help.GetType(typeSolution, from).GetValue();
         }
     }
+
     internal class WeakTypeOrOperationConverter : Tpn.IConvertTo<Tpn.TypeProblem2.OrType, WeakTypeOrOperation>
     {
         public WeakTypeOrOperation Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.OrType from)

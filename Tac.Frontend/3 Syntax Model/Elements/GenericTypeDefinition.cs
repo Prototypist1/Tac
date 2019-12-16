@@ -13,7 +13,6 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
-using static Tac.SyntaxModel.Elements.AtomicTypes.PrimitiveTypes;
 using Prototypist.TaskChain;
 using Prototypist.Toolbox;
 using Tac.Frontend._3_Syntax_Model.Operations;
@@ -82,7 +81,7 @@ namespace Tac.Semantic_Model
                         new NameKey(typeName.Item),
                         tokenMatching.Context.ParseBlock(body),
                         genericTypes.Select(x =>
-                        PrimitiveTypes.CreateGenericTypeParameterPlacholder(new NameKey(x))).ToArray()));
+                        new GenericTypeParameterPlacholder(new NameKey(x)) as IGenericTypeParameterPlacholder).ToArray()));
             }
 
             return TokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeNotMatch(
