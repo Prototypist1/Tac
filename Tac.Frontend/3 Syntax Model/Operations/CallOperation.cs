@@ -67,7 +67,7 @@ namespace Tac.Semantic_Model.Operations
     {
         public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> new Box<WeakNextCallOperation>( new WeakNextCallOperation(l,r)),(s,c,l,r)=> {
 
-            (l.SetUpSideNode as Tpn.IValue).AssignTo( s.Problem.GetInput(r.SetUpSideNode as Tpn.TypeProblem2.Method));
+            s.Problem.TryCall(l.SetUpSideNode, r.SetUpSideNode);
             return (r.SetUpSideNode as Tpn.IMethod).Returns(); })
         {
         }
@@ -95,7 +95,7 @@ namespace Tac.Semantic_Model.Operations
     {
         public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>new Box<WeakLastCallOperation>( new WeakLastCallOperation(l,r)), (s, c, l, r) =>
         {
-            (r.SetUpSideNode as Tpn.IValue).AssignTo(s.Problem.GetInput(l.SetUpSideNode as Tpn.TypeProblem2.Method)) ;
+            s.Problem.TryCall(r.SetUpSideNode, l.SetUpSideNode); ;
             return (l.SetUpSideNode as Tpn.IMethod).Returns();
         })
         {

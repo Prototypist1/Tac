@@ -20,8 +20,8 @@ namespace Tac.Tests.Samples
                                             TokenHelp.Ele(
                                                 TokenHelp.Atom("method"),
                                                 TokenHelp.Square(
-                                                    TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int"))),
-                                                    TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int")))),
+                                                    TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("number"))),
+                                                    TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("number")))),
                                                 TokenHelp.Atom("input"),
                                                 TokenHelp.Curl(
                                                     TokenHelp.Line(

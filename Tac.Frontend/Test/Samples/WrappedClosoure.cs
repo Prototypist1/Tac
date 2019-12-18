@@ -21,12 +21,12 @@ namespace Tac.Frontend.Test.Samples
                                             TokenHelp.Ele(
                                                 TokenHelp.Atom("method"),
                                                 TokenHelp.Square(
-                                                    TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int"))),
+                                                    TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("number"))),
                                                     TokenHelp.Line(TokenHelp.Ele(
                                                         TokenHelp.Atom("method"),
                                                         TokenHelp.Square(
-                                                            TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int"))),
-                                                            TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int")))
+                                                            TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("number"))),
+                                                            TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("number")))
                                                         )))),
                                                 TokenHelp.Atom("x"),
                                                 TokenHelp.Curl(
@@ -34,8 +34,8 @@ namespace Tac.Frontend.Test.Samples
                                                         TokenHelp.Ele(
                                                             TokenHelp.Atom("method"),
                                                             TokenHelp.Square(
-                                                                TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int"))),
-                                                                TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("int")))),
+                                                                TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("number"))),
+                                                                TokenHelp.Line(TokenHelp.Ele(TokenHelp.Atom("number")))),
                                                             TokenHelp.Atom("y"),
                                                             TokenHelp.Curl(
                                                                 TokenHelp.Line(

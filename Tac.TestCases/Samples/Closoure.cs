@@ -65,8 +65,8 @@ namespace Tac.Tests.Samples
                 return
 @"
 module closoure {
-    method [ int ; method [ int ; int ; ] ; ] x {
-        method [ int ; int ; ] y {
+    method [ number ; method [ number ; number ; ] ; ] x {
+        method [ number ; number ; ] y {
             x + y =: x ;
             x return ;
         } return ;

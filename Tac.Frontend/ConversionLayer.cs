@@ -59,9 +59,13 @@ namespace Tac.Frontend
                 {
                     testType = new Box<IFrontendType>(inner1);
                 }
-                else if (inner.Is1(out var inner2))
+                else if (inner.Is2(out var inner2))
                 {
                     testType = new Box<IFrontendType>(inner2);
+                }
+                else if (inner.Is3(out var inner3))
+                {
+                    testType = new Box<IFrontendType>(inner3);
                 }
                 else
                 {

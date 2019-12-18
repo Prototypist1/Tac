@@ -13,7 +13,7 @@ namespace Tac.Tests.Samples
             @"
 module pair-type { 
     type [ T ; ] pair { T x ; T y ; } ; 
-    method [ int ; pair [ int ; ] ] input {
+    method [ number ; pair [ number ; ] ] input {
         object {
             input =: x ;
             input =: y ;

@@ -23,7 +23,7 @@ namespace Tac.Tests.Samples
                                                     TokenHelp.Par(
                                                         TokenHelp.Ele(TokenHelp.Atom("bool")),
                                                         TokenHelp.Atom("|"),
-                                                        TokenHelp.Ele(TokenHelp.Atom("int"))),
+                                                        TokenHelp.Ele(TokenHelp.Atom("number"))),
                                                     TokenHelp.Atom("x"))), 
                                         TokenHelp.Line(
                                                 TokenHelp.Ele(TokenHelp.Atom("false")),
@@ -32,7 +32,7 @@ namespace Tac.Tests.Samples
                                                     TokenHelp.Par(
                                                         TokenHelp.Ele(TokenHelp.Atom("bool")),
                                                         TokenHelp.Atom("|"),
-                                                        TokenHelp.Ele(TokenHelp.Atom("int"))),
+                                                        TokenHelp.Ele(TokenHelp.Atom("number"))),
                                                     TokenHelp.Atom("y")))))));
             }
         }

@@ -1,4 +1,5 @@
 ﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Bool;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -51,6 +52,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.OrType CreateOrType(IScope s, IKey key, TypeProblem2.TypeReference setUpSideNode1, TypeProblem2.TypeReference setUpSideNode2, IConvertTo<TypeProblem2.OrType,WeakTypeOrOperation> converter);
             IKey GetKey(TypeProblem2.TypeReference type);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
+
+            void IsNumber(IScope parent, ICanAssignFromMe target);
+            void IsString(IScope parent, ICanAssignFromMe target);
+            void IsEmpty(IScope parent, ICanAssignFromMe target);
+            void IsBool(IScope parent, ICanAssignFromMe target);
+            TypeProblem2.Method IsMethod(ITypeProblemNode target);
         }
 
         internal interface ITypeSolution
@@ -388,6 +395,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
             }
+
+            public class TransientMember : TypeProblemNode, ILookUpType, ICanBeAssignedTo
+            {
+                public TransientMember(TypeProblem2 problem, string debugName) : base(problem, debugName)
+                {
+                }
+            }
+
             public class Type : TypeProblemNode<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType
             {
                 public Type(TypeProblem2 problem, string debugName, IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
@@ -431,6 +446,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IScope Base { get; }
             public IScope Root { get; }
+
+            private readonly Type numberPrimitive;
+            private readonly Type stringPrimitive;
+            private readonly Type boolPrimitive;
+            private readonly Type emptyPrimitive;
+
             // relationships
             private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
 
@@ -439,6 +460,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private readonly Dictionary<IScope, List<Value>> values = new Dictionary<IScope, List<Value>>();
             private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
+            private readonly Dictionary<IHaveMembers, List< TransientMember>> transientMembers = new Dictionary<IHaveMembers, List<TransientMember>>();
             private readonly Dictionary<IScope, List<TypeReference>> refs = new Dictionary<IScope, List<TypeReference>>();
             private readonly Dictionary<IScope, Dictionary<IKey, OrType>> orTypes = new Dictionary<IScope, Dictionary<IKey, OrType>>();
             private readonly Dictionary<IScope, Dictionary<IKey, Type>> types = new Dictionary<IScope, Dictionary<IKey, Type>>();
@@ -449,7 +471,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private readonly Dictionary<IScope, Dictionary<IKey, Member>> possibleMembers = new Dictionary<IScope, Dictionary<IKey, Member>>();
             private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Member>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Member>>();
-            private readonly List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+            private List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+            //private readonly List<(ICanAssignFromMe, ILookUpType)> calls = new List<(ICanAssignFromMe, ILookUpType)>();
+
             // members
             private readonly Dictionary<ILookUpType, IKey> lookUpTypeKey = new Dictionary<ILookUpType, IKey>();
             private readonly Dictionary<ILookUpType, IScope> lookUpTypeContext = new Dictionary<ILookUpType, IScope>();
@@ -509,6 +533,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     members.Add(parent, new Dictionary<IKey, Member>());
                 }
                 members[parent].Add(key, member);
+            }
+
+            public void HasTransientMember(IHaveMembers parent, TransientMember member)
+            {
+                if (!transientMembers.ContainsKey(parent))
+                {
+                    transientMembers.Add(parent, new List<TransientMember>());
+                }
+                transientMembers[parent].Add(member);
             }
             public void HasMembersPossiblyOnParent(IScope parent, IKey key, Member member)
             {
@@ -687,6 +720,39 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
+            public void IsNumber(IScope parent, ICanAssignFromMe target) 
+            {
+                ICanBeAssignedTo thing = CreateTransientMember(parent,new NameKey("number"));
+                IsAssignedTo(target, thing);
+            }
+
+            public void IsBool(IScope parent, ICanAssignFromMe target)
+            {
+                ICanBeAssignedTo thing = CreateTransientMember(parent, new NameKey("bool"));
+                IsAssignedTo(target, thing);
+            }
+
+            public void IsEmpty(IScope parent, ICanAssignFromMe target)
+            {
+                ICanBeAssignedTo thing = CreateTransientMember(parent, new NameKey("empty"));
+                IsAssignedTo(target, thing);
+            }
+
+            public void IsString(IScope parent, ICanAssignFromMe target)
+            {
+                ICanBeAssignedTo thing = CreateTransientMember(parent, new NameKey("string"));
+                IsAssignedTo(target, thing);
+            }
+
+            private TransientMember CreateTransientMember(IScope parent, NameKey nameKey)
+            {
+                var res = new TransientMember(this, "");
+                HasTransientMember(parent, res);
+                lookUpTypeContext[res] = parent;
+                lookUpTypeKey[res] = nameKey;
+                return res;
+            }
+
             #endregion
 
 
@@ -753,7 +819,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // members that might be on parents 
-                var defersTo = new Dictionary<IHaveMembers, IHaveMembers>();
+
+                //var defersTo = new Dictionary<IHaveMembers, IHaveMembers>();
+
+                var orTypeMembers = new Dictionary<OrType, Dictionary<IKey, Member>>();
 
                 foreach (var item in possibleMembers)
                 {
@@ -761,7 +830,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (TryGetMember(item.Key, pair.Key, out var member))
                         {
-                            defersTo[GetType(pair.Value)] = GetType(member);
+                            TryMerge(pair.Value, member);
                         }
                         else
                         {
@@ -770,7 +839,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                var orTypeMembers = new Dictionary<OrType, Dictionary<IKey, Member>>();
 
                 // hopeful members 
 
@@ -780,7 +848,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (GetMembers(GetType(hopeful.Key)).TryGetValue(pair.Key, out var member))
                         {
-                            defersTo[GetType(pair.Value)] = GetType(member);
+                            TryMerge(pair.Value, member);
                         }
                         else if (GetType(hopeful.Key) is InferedType infered)
                         {
@@ -792,6 +860,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
                 }
+
+
 
                 //var flowFroms = assignments.Select(x => x.Item1).ToList();
                 //var nextFlowFroms = flowFroms;
@@ -838,6 +908,74 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new TypeSolution(lookUps, members.ToDictionary(x => x.Key, x => (IReadOnlyList<Member>)x.Value.Select(y => y.Value).ToArray()), orTypeComponets, methodInputs, methodReturns);
 
                 #region Helpers
+
+                void TryMerge(IValue deferer, IValue deferredTo) {
+
+                    var defererType = GetType(deferer);
+                    if ((defererType is InferedType).Not())
+                    {
+                        throw new Exception("we can't merge that!");
+                    }
+                    var deferredToType = GetType(deferredTo);
+
+                    lookUps[deferer] = deferredToType;
+
+
+                    if (deferredTo is ICanAssignFromMe deferredToLeft)
+                    {
+                        if (deferredTo is ICanBeAssignedTo deferredToRight)
+                        {
+                            var nextAssignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+                            foreach (var assignment in assignments)
+                            {
+                                var left = assignment.Item1 == deferer ? deferredToLeft : assignment.Item1;
+                                var right = assignment.Item2 == deferer ? deferredToRight : assignment.Item2;
+                                nextAssignments.Add((left, right));
+                            }
+                            assignments = nextAssignments;
+                        }
+                        else
+                        {
+                            var nextAssignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+                            foreach (var assignment in assignments)
+                            {
+                                var left = assignment.Item1 == deferer ? deferredToLeft : assignment.Item1;
+                                nextAssignments.Add((left, assignment.Item2));
+                            }
+                            assignments = nextAssignments;
+                        }
+                    }
+                    else if (deferredTo is ICanBeAssignedTo deferredToRight)
+                    {
+                        var nextAssignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+
+                        foreach (var assignment in assignments)
+                        {
+                            var right = assignment.Item2 == deferer ? deferredToRight : assignment.Item2;
+                            nextAssignments.Add((assignment.Item1, right));
+                        }
+                        assignments = nextAssignments;
+                    }
+
+                    foreach (var memberPair in GetMembers(defererType))
+                    {
+                        if (!members.ContainsKey(deferredToType))
+                        {
+                            members[deferredToType] = new Dictionary<IKey, Member>();
+                        }
+                        var dict = members[deferredToType];
+                        if (dict.TryGetValue(memberPair.Key, out var deferedToMember))
+                        {
+                            TryMerge(memberPair.Value, deferedToMember);
+                        }
+                        else
+                        {
+                            var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+                            HasMember(deferredToType, memberPair.Key, newValue);
+                            lookUps[newValue] = lookUps[memberPair.Value];
+                        }
+                    }
+                }
 
                 IHaveMembers LookUpOrOverlayOrThrow(ILookUpType node)
                 {
@@ -995,6 +1133,32 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
 
+                    //var oldCalls = calls.ToArray();
+                    //foreach (var pair in map)
+                    //{
+                    //    if (pair.Key is ILookUpType assignedToFrom && pair.Value is ILookUpType assignedToTo)
+                    //    {
+                    //        foreach (var item in oldAssignments)
+                    //        {
+                    //            if (item.Item2 == assignedToFrom)
+                    //            {
+                    //                calls.Add((CopiedToOrSelf(item.Item1), assignedToTo));
+                    //            }
+                    //        }
+                    //    }
+
+                    //    if (pair.Value is ICanAssignFromMe assignFromFrom && pair.Value is ICanAssignFromMe assignFromTo)
+                    //    {
+                    //        foreach (var item in oldAssignments)
+                    //        {
+                    //            if (item.Item1 == assignFromFrom)
+                    //            {
+                    //                calls.Add((assignFromTo, CopiedToOrSelf(item.Item2)));
+                    //            }
+                    //        }
+                    //    }
+                    //}
+
                     foreach (var pair in map)
                     {
                         if (pair.Key is ILookUpType lookUpFrom && pair.Value is ILookUpType lookUpTo)
@@ -1079,6 +1243,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 }
                             }
 
+                            {
+                                if (transientMembers.TryGetValue(innerFromScope, out var list))
+                                {
+                                    foreach (var member in list)
+                                    {
+                                        var newValue = Copy(member, new TransientMember(this, $"copied from {((TypeProblemNode)member).debugName}"));
+                                        HasTransientMember(innerScopeTo, newValue);
+                                    }
+                                }
+                            }
 
                             {
                                 if (objects.TryGetValue(innerFromScope, out var dict))
@@ -1160,27 +1334,27 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                IHaveMembers GetType2(ILookUpType value)
-                {
-                    var res = lookUps[value];
-                    while (true)
-                    {
-                        if (res is IExplicitType explicitType && defersTo.TryGetValue(explicitType, out var nextRes))
-                        {
-                            res = nextRes;
-                        }
-                        else
-                        {
-                            return res;
-                        }
-                    }
-                }
+                //IHaveMembers GetType2(ILookUpType value)
+                //{
+                //    var res = lookUps[value];
+                //    while (true)
+                //    {
+                //        if (res is IExplicitType explicitType && defersTo.TryGetValue(explicitType, out var nextRes))
+                //        {
+                //            res = nextRes;
+                //        }
+                //        else
+                //        {
+                //            return res;
+                //        }
+                //    }
+                //}
 
                 IHaveMembers GetType(ITypeProblemNode value)
                 {
                     if (value is ILookUpType lookup)
                     {
-                        return GetType2(lookup);
+                        return lookUps[lookup];
                     }
                     if (value is IHaveMembers haveMembers)
                     {
@@ -1322,12 +1496,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    new NameKey("input"),
                 //    new NameKey("output")
                 //});
-                CreateType(Base, new NameKey("number"),new PrimitiveTypeConverter(new NumberType()));
-                CreateType(Base, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));
-                CreateType(Base, new NameKey("bool"), new PrimitiveTypeConverter(new BooleanType()));
-                CreateType(Base, new NameKey("empty"), new PrimitiveTypeConverter(new EmptyType()));
-            }
+                numberPrimitive = CreateType(Base, new NameKey("number"),new PrimitiveTypeConverter(new NumberType()));
+                stringPrimitive = CreateType(Base, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));
+                boolPrimitive = CreateType(Base, new NameKey("bool"), new PrimitiveTypeConverter(new BooleanType()));
+                emptyPrimitive = CreateType(Base, new NameKey("empty"), new PrimitiveTypeConverter(new EmptyType()));
 
+                // shocked this works...
+                IGenericTypeParameterPlacholder[] genericParameters = new IGenericTypeParameterPlacholder[] { new GenericTypeParameterPlacholder(new NameKey("T1")), new GenericTypeParameterPlacholder(new NameKey("T2")) };
+                CreateGenericType(Base, new NameKey("method"), new TypeAndConverter[] { new TypeAndConverter(new NameKey("T1"), new WeakTypeDefinitionConverter()), new TypeAndConverter(new NameKey("T2"), new WeakTypeDefinitionConverter()) }, new WeakGenericTypeDefinitionConverter(new NameKey("method"), genericParameters));
+            }
+            
             private class GenericTypeKey
             {
                 private readonly IExplicitType primary;

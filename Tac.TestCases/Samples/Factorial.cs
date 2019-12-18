@@ -75,7 +75,7 @@ namespace Tac.Tests.Samples
                 return
 @"
 module factorial {
-    method [ int ; int ; ] input {
+    method [ number ; number ; ] input {
         input <? 2 then {
             1 return ;
         } else {

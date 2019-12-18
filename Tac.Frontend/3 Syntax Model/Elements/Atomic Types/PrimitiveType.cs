@@ -10,7 +10,7 @@ using Tac.Semantic_Model;
 
 namespace Tac.SyntaxModel.Elements.AtomicTypes
 {
-    internal interface IPrimitiveType
+    internal interface IPrimitiveType: IFrontendType
     {
     }
 

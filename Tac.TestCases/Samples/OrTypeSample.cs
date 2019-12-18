@@ -11,8 +11,8 @@ namespace Tac.Tests.Samples
         public string Text => @"
 module or-test 
 { 
-    5 =: ( bool | int ) x ;
-    false =: ( bool | int ) y ; 
+    5 =: ( bool | number ) x ;
+    false =: ( bool | number ) y ; 
 } ;";
 
         public IModuleDefinition Module => ModuleDefinition.CreateAndBuild(
