@@ -47,17 +47,17 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Object CreateObject(IScope parent, IKey key, IConvertTo<TypeProblem2.Object,OrType<WeakObjectDefinition, WeakModuleDefinition>> converter);
             TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method ,OrType<WeakMethodDefinition,WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member,WeakMemberDefinition> inputConverter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> outputConverter);
             TypeProblem2.Method CreateMethod(IScope parent, TypeProblem2.TypeReference inputType, TypeProblem2.TypeReference outputType, string inputName, IConvertTo<TypeProblem2.Method,OrType<WeakMethodDefinition,WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> outputConverter);
-            TypeProblem2.Member GetReturns(IScope s);
+            IMember GetReturns(IScope s);
             TypeProblem2.Member CreateHopefulMember(IHaveHopefulMembers scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.OrType CreateOrType(IScope s, IKey key, TypeProblem2.TypeReference setUpSideNode1, TypeProblem2.TypeReference setUpSideNode2, IConvertTo<TypeProblem2.OrType,WeakTypeOrOperation> converter);
             IKey GetKey(TypeProblem2.TypeReference type);
-            TypeProblem2.Member GetInput(TypeProblem2.Method method);
+            IMember GetInput(IMethod method);
 
             void IsNumber(IScope parent, ICanAssignFromMe target);
             void IsString(IScope parent, ICanAssignFromMe target);
             void IsEmpty(IScope parent, ICanAssignFromMe target);
             void IsBool(IScope parent, ICanAssignFromMe target);
-            TypeProblem2.Method IsMethod(ITypeProblemNode target);
+            IMethod IsMethod(IScope parent, ICanAssignFromMe target);
         }
 
         internal interface ITypeSolution
@@ -74,8 +74,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
             OrType<TypeProblem2.Type, TypeProblem2.OrType> GetType(ILookUpType from);
             (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from);
-            ILookUpType GetResultType(TypeProblem2.Method from);
-            TypeProblem2.Member GetInputMember(TypeProblem2.Method from);
+            IMember GetResultMember(IMethod from);
+            IMember GetInputMember(IMethod from);
         }
 
         internal class ConcreteSolutionType : IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>
@@ -163,15 +163,15 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members;
             private readonly IReadOnlyDictionary<ILookUpType, IHaveMembers> map;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
-            private readonly IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodIn;
-            private readonly IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodOut;
+            private readonly IReadOnlyDictionary<IMethod, IMember> methodIn;
+            private readonly IReadOnlyDictionary<IMethod, IMember> methodOut;
 
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, IHaveMembers> map, 
                 IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members, 
                 IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
-                IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodIn,
-                IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodOut)
+                IReadOnlyDictionary<IMethod, IMember> methodIn,
+                IReadOnlyDictionary<IMethod, IMember> methodOut)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.members = members ?? throw new ArgumentNullException(nameof(members));
@@ -308,12 +308,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return orTypeElememts[from];
             }
 
-            public ILookUpType GetResultType(TypeProblem2.Method from)
+            public IMember GetResultMember(IMethod from)
             {
                 return methodOut[from];
             }
 
-            public TypeProblem2.Member GetInputMember(TypeProblem2.Method from)
+            public IMember GetInputMember(IMethod from)
             {
                 return methodIn[from];
             }
@@ -349,6 +349,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface IExplicitType : IHaveMembers, IScope {}
         internal interface IScope : IHaveMembers { }
         internal interface IMethod : IHaveMembers, IScope { }
+        internal interface IMember : IValue, ILookUpType, ICanBeAssignedTo { }
 
 
         internal class TypeProblem2 : ISetUpTypeProblem
@@ -389,14 +390,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
             }
-            public class Member : TypeProblemNode<Member,WeakMemberDefinition>, IValue, ILookUpType, ICanBeAssignedTo
+            public class Member : TypeProblemNode<Member,WeakMemberDefinition>, IMember
             {
                 public Member(TypeProblem2 problem, string debugName, IConvertTo<Member, WeakMemberDefinition> converter) : base(problem, debugName, converter)
                 {
                 }
             }
 
-            public class TransientMember : TypeProblemNode, ILookUpType, ICanBeAssignedTo
+            public class TransientMember : TypeProblemNode, IMember
             {
                 public TransientMember(TypeProblem2 problem, string debugName) : base(problem, debugName)
                 {
@@ -409,6 +410,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
             }
+
 
             public class OrType : TypeProblemNode<OrType,WeakTypeOrOperation>, IHaveMembers
             {
@@ -441,26 +443,29 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
+            public class TransientMethod : TypeProblemNode, IMethod
+            {
+                public TransientMethod(TypeProblem2 problem, string debugName) : base(problem, debugName)
+                {
+                }
+            }
+
             // basic stuff
             private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
 
             public IScope Base { get; }
             public IScope Root { get; }
 
-            private readonly Type numberPrimitive;
-            private readonly Type stringPrimitive;
-            private readonly Type boolPrimitive;
-            private readonly Type emptyPrimitive;
-
             // relationships
             private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
 
-            private readonly Dictionary<Method, Member> methodReturns = new Dictionary<Method, Member>();
-            private readonly Dictionary<Method, Member> methodInputs = new Dictionary<Method, Member>();
+            private readonly Dictionary<IMethod, IMember> methodReturns = new Dictionary<IMethod, IMember>();
+            private readonly Dictionary<IMethod, IMember> methodInputs = new Dictionary<IMethod, IMember>();
 
             private readonly Dictionary<IScope, List<Value>> values = new Dictionary<IScope, List<Value>>();
             private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
-            private readonly Dictionary<IHaveMembers, List< TransientMember>> transientMembers = new Dictionary<IHaveMembers, List<TransientMember>>();
+            private readonly Dictionary<IScope, List<TransientMember>> transientMembers = new Dictionary<IScope, List<TransientMember>>();
+            private readonly Dictionary<IScope, Dictionary<IKey, TransientMethod>> transientMethods = new Dictionary<IScope, Dictionary<IKey, TransientMethod>>();
             private readonly Dictionary<IScope, List<TypeReference>> refs = new Dictionary<IScope, List<TypeReference>>();
             private readonly Dictionary<IScope, Dictionary<IKey, OrType>> orTypes = new Dictionary<IScope, Dictionary<IKey, OrType>>();
             private readonly Dictionary<IScope, Dictionary<IKey, Type>> types = new Dictionary<IScope, Dictionary<IKey, Type>>();
@@ -509,6 +514,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 types[parent].Add(key, type);
             }
+            public void HasTransientMethod(IScope parent, IKey key, TransientMethod type)
+            {
+                if (!transientMethods.ContainsKey(parent))
+                {
+                    transientMethods.Add(parent, new Dictionary<IKey, TransientMethod>());
+                }
+                transientMethods[parent].Add(key, type);
+            }
             public void HasObject(IScope parent, IKey key, Object @object)
             {
                 if (!objects.ContainsKey(parent))
@@ -535,7 +548,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 members[parent].Add(key, member);
             }
 
-            public void HasTransientMember(IHaveMembers parent, TransientMember member)
+            public void HasTransientMember(IScope parent, TransientMember member)
             {
                 if (!transientMembers.ContainsKey(parent))
                 {
@@ -659,7 +672,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
-                var returns = CreateMember(res, new ImplicitKey(), outputConverter);
+                // TODO why does it no say "HasMethod" here??
+                var returns = CreateMember(res, new ImplicitKey(Guid.NewGuid()), outputConverter);
                 methodReturns[res] = returns;
                 var input = CreateMember(res, new NameKey(inputName), inputConverter);
                 methodInputs[res] = input;
@@ -672,7 +686,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{((TypeProblemNode)inputType).debugName},outputType:{((TypeProblemNode)outputType).debugName}}}", converter);
                 IsChildOf(parent, res);
-                var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(), outkey, outputConverter) : CreateMember(res, new ImplicitKey(), outputConverter);
+                var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(Guid.NewGuid()), outkey, outputConverter) : CreateMember(res, new ImplicitKey(Guid.NewGuid()), outputConverter);
                 methodReturns[res] = returns;
                 if (lookUpTypeKey.TryGetValue(inputType, out var inkey))
                 {
@@ -722,29 +736,29 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public void IsNumber(IScope parent, ICanAssignFromMe target) 
             {
-                ICanBeAssignedTo thing = CreateTransientMember(parent,new NameKey("number"));
+                var thing = CreateTransientMember(parent,new NameKey("number"));
                 IsAssignedTo(target, thing);
             }
 
             public void IsBool(IScope parent, ICanAssignFromMe target)
             {
-                ICanBeAssignedTo thing = CreateTransientMember(parent, new NameKey("bool"));
+                var thing = CreateTransientMember(parent, new NameKey("bool"));
                 IsAssignedTo(target, thing);
             }
 
             public void IsEmpty(IScope parent, ICanAssignFromMe target)
             {
-                ICanBeAssignedTo thing = CreateTransientMember(parent, new NameKey("empty"));
+                var thing = CreateTransientMember(parent, new NameKey("empty"));
                 IsAssignedTo(target, thing);
             }
 
             public void IsString(IScope parent, ICanAssignFromMe target)
             {
-                ICanBeAssignedTo thing = CreateTransientMember(parent, new NameKey("string"));
+                var thing = CreateTransientMember(parent, new NameKey("string"));
                 IsAssignedTo(target, thing);
             }
 
-            private TransientMember CreateTransientMember(IScope parent, NameKey nameKey)
+            private TransientMember CreateTransientMember(IScope parent, IKey nameKey)
             {
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
@@ -753,12 +767,34 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
+
+            public IMethod IsMethod(IScope parent, ICanAssignFromMe target)
+            {
+                var key = new ImplicitKey(Guid.NewGuid());
+                var thing = CreateTransientMember(parent, key);
+                var method = CreateTransientMethod(parent, key);
+                IsAssignedTo(target, thing);
+                return method;
+            }
+
+            private IMethod CreateTransientMethod(IScope parent, ImplicitKey key)
+            {
+                var res = new TransientMethod(this, "");
+                HasTransientMethod(parent, key,res);
+                var returns = CreateTransientMember(res, new ImplicitKey(Guid.NewGuid()));
+                methodReturns[res] = returns;
+                var input = CreateTransientMember(res, new ImplicitKey(Guid.NewGuid()));
+                methodInputs[res] = input;
+                return res;
+            }
+
+
             #endregion
 
 
-            public Member GetReturns(IScope s)
+            public IMember GetReturns(IScope s)
             {
-                if (s is Method method)
+                if (s is IMethod method)
                 {
                     return GetReturns(method);
                 }
@@ -768,13 +804,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            internal Member GetReturns(Method method)
+            internal IMember GetReturns(IMethod method)
             {
                 return methodReturns[method];
             }
 
 
-            public Member GetInput(Method method)
+            public IMember GetInput(IMethod method)
             {
                 return methodInputs[method];
             }
@@ -794,7 +830,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
                 foreach (var node in toLookUp.Where(x => !lookUpTypeKey.ContainsKey(x)))
                 {
-                    var key = new ImplicitKey();
+                    var key = new ImplicitKey(Guid.NewGuid());
                     var type = new InferedType(this, $"for {((TypeProblemNode)node).debugName}", inferedTypeConvert);
                     lookUps[node] = type;
                 }
@@ -1079,6 +1115,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
                         {
+                            if (transientMethods.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                            {
+                                result = res;
+                                return true;
+                            }
+                        }
+                        {
                             if (genericOverlays.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
                             {
                                 result = res;
@@ -1272,6 +1315,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     {
                                         var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
                                         HasType(innerScopeTo, type.Key, newValue);
+                                    }
+                                }
+                            }
+
+                            {
+                                if (transientMethods.TryGetValue(innerFromScope, out var dict))
+                                {
+                                    foreach (var type in dict)
+                                    {
+                                        var newValue = Copy(type.Value, new TransientMethod(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
+                                        HasTransientMethod(innerScopeTo, type.Key, newValue);
                                     }
                                 }
                             }
@@ -1479,7 +1533,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-
             public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> rootConverter)
             {
 
@@ -1496,10 +1549,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    new NameKey("input"),
                 //    new NameKey("output")
                 //});
-                numberPrimitive = CreateType(Base, new NameKey("number"),new PrimitiveTypeConverter(new NumberType()));
-                stringPrimitive = CreateType(Base, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));
-                boolPrimitive = CreateType(Base, new NameKey("bool"), new PrimitiveTypeConverter(new BooleanType()));
-                emptyPrimitive = CreateType(Base, new NameKey("empty"), new PrimitiveTypeConverter(new EmptyType()));
+                CreateType(Base, new NameKey("number"),new PrimitiveTypeConverter(new NumberType()));
+                CreateType(Base, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));
+                CreateType(Base, new NameKey("bool"), new PrimitiveTypeConverter(new BooleanType()));
+                CreateType(Base, new NameKey("empty"), new PrimitiveTypeConverter(new EmptyType()));
 
                 // shocked this works...
                 IGenericTypeParameterPlacholder[] genericParameters = new IGenericTypeParameterPlacholder[] { new GenericTypeParameterPlacholder(new NameKey("T1")), new GenericTypeParameterPlacholder(new NameKey("T2")) };
@@ -1548,12 +1601,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             return type.Problem.GetKey(type);
         }
 
-        public static Tpn.TypeProblem2.Member Returns(this Tpn.IMethod method)
+        public static Tpn.IMember Returns(this Tpn.IMethod method)
         {
             return method.Problem.GetReturns(method);
         }
 
-        public static Tpn.TypeProblem2.Member Input(this Tpn.TypeProblem2.Method method)
+        public static Tpn.IMember Input(this Tpn.IMethod method)
         {
             return method.Problem.GetInput(method);
         }

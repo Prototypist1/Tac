@@ -1,10 +1,33 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace Tac.Model
 {
 
-    public class ImplicitKey : IKey {
+    public class ImplicitKey : IKey, IEquatable<ImplicitKey>
+    {
+        private readonly Guid guid;
 
+        public ImplicitKey(Guid guid)
+        {
+            this.guid = guid;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ImplicitKey);
+        }
+
+        public bool Equals(ImplicitKey other)
+        {
+            return other != null &&
+                   guid.Equals(other.guid);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(guid);
+        }
     }
 
     public class GenericNameKey : IKey

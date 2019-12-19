@@ -104,7 +104,6 @@ namespace Tac.Semantic_Model
             private readonly NameKey nameKey;
             private readonly IEnumerable<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
-            private readonly Box<IIsPossibly<IFrontendGenericType>> box = new Box<IIsPossibly<IFrontendGenericType>>();
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
