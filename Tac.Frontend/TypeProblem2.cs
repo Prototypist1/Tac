@@ -466,6 +466,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
             private readonly Dictionary<IScope, List<TransientMember>> transientMembers = new Dictionary<IScope, List<TransientMember>>();
             private readonly Dictionary<IScope, Dictionary<IKey, TransientMethod>> transientMethods = new Dictionary<IScope, Dictionary<IKey, TransientMethod>>();
+            private readonly Dictionary<IScope, Dictionary<IKey, Method>> methods = new Dictionary<IScope, Dictionary<IKey, Method>>();
             private readonly Dictionary<IScope, List<TypeReference>> refs = new Dictionary<IScope, List<TypeReference>>();
             private readonly Dictionary<IScope, Dictionary<IKey, OrType>> orTypes = new Dictionary<IScope, Dictionary<IKey, OrType>>();
             private readonly Dictionary<IScope, Dictionary<IKey, Type>> types = new Dictionary<IScope, Dictionary<IKey, Type>>();
@@ -547,6 +548,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 members[parent].Add(key, member);
             }
+            public void HasMethod(IScope parent, IKey key, Method method)
+            {
+                if (!methods.ContainsKey(parent))
+                {
+                    methods.Add(parent, new Dictionary<IKey, Method>());
+                }
+                methods[parent].Add(key, method);
+            }
+
 
             public void HasTransientMember(IScope parent, TransientMember member)
             {
@@ -672,7 +682,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
-                // TODO why does it no say "HasMethod" here??
+                HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                 var returns = CreateMember(res, new ImplicitKey(Guid.NewGuid()), outputConverter);
                 methodReturns[res] = returns;
                 var input = CreateMember(res, new NameKey(inputName), inputConverter);
@@ -686,6 +696,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{((TypeProblemNode)inputType).debugName},outputType:{((TypeProblemNode)outputType).debugName}}}", converter);
                 IsChildOf(parent, res);
+                HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                 var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateMember(res, new ImplicitKey(Guid.NewGuid()), outkey, outputConverter) : CreateMember(res, new ImplicitKey(Guid.NewGuid()), outputConverter);
                 methodReturns[res] = returns;
                 if (lookUpTypeKey.TryGetValue(inputType, out var inkey))
@@ -1326,6 +1337,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     {
                                         var newValue = Copy(type.Value, new TransientMethod(this, $"copied from {((TypeProblemNode)type.Value).debugName}"));
                                         HasTransientMethod(innerScopeTo, type.Key, newValue);
+                                    }
+                                }
+                            }
+
+
+                            {
+                                if (methods.TryGetValue(innerFromScope, out var dict))
+                                {
+                                    foreach (var method in dict)
+                                    {
+                                        var newValue = Copy(method.Value, new Method(this, $"copied from {((TypeProblemNode)method.Value).debugName}",method.Value.Converter));
+                                        HasMethod(innerScopeTo, method.Key, newValue);
                                     }
                                 }
                             }
