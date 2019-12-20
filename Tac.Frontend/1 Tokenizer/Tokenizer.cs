@@ -209,7 +209,7 @@ namespace Tac.Parser
 
         private IResultAndExitString<FileToken> TokenzieFile(ref StringWalker enumerator)
         {
-            return OuterTokenzie(ref enumerator, TokenzieLine, new string[] { }, x => new FileToken(x), true, false);
+            return OuterTokenzie(ref enumerator, TokenzieLine, Array.Empty<string>(), x => new FileToken(x), true, false);
 
         }
 
