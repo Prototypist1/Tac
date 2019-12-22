@@ -139,6 +139,19 @@ namespace Tac.Frontend
         }
     }
 
+
+    internal class MethodTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.MethodType, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
+    {
+        public MethodTypeConverter()
+        {
+        }
+
+        public OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.MethodType from)
+        {
+            // TODO!
+        }
+    }
+
     internal class PrimativeTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IFrontendType>
     {
         private readonly IFrontendType frontendType;
