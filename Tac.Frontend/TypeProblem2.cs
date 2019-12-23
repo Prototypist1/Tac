@@ -1006,24 +1006,43 @@ namespace Tac.Frontend.New.CrzayNamespace
                         assignments = nextAssignments;
                     }
 
-                    foreach (var memberPair in GetMembers(defererType))
+                    if (defererType.Is2(out var defererHaveMembers) && deferredToType.Is2(out var deferredToHaveType))
                     {
-                        if (!members.ContainsKey(deferredToType))
+                        foreach (var memberPair in GetMembers(defererHaveMembers))
                         {
-                            members[deferredToType] = new Dictionary<IKey, Member>();
-                        }
-                        var dict = members[deferredToType];
-                        if (dict.TryGetValue(memberPair.Key, out var deferedToMember))
-                        {
-                            TryMerge(memberPair.Value, deferedToMember);
-                        }
-                        else
-                        {
-                            var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                            HasMember(deferredToType, memberPair.Key, newValue);
-                            lookUps[newValue] = lookUps[memberPair.Value];
+                            if (!members.ContainsKey(deferredToHaveType))
+                            {
+                                members[deferredToHaveType] = new Dictionary<IKey, Member>();
+                            }
+                            var dict = members[deferredToHaveType];
+                            if (dict.TryGetValue(memberPair.Key, out var deferedToMember))
+                            {
+                                TryMerge(memberPair.Value, deferedToMember);
+                            }
+                            else
+                            {
+                                var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+                                HasMember(deferredToHaveType, memberPair.Key, newValue);
+                                lookUps[newValue] = lookUps[memberPair.Value];
+                            }
                         }
                     }
+                    else if (defererType.Is1(out var defererMethod) && deferredToType.Is1(out var deferredToMethod))
+                    {
+                        var defererReturns = methodReturns[new OrType<Method, MethodType>(defererMethod)];
+                        var deferredToReturns = methodReturns[new OrType<Method, MethodType>(deferredToMethod)];
+                        TryMerge(defererReturns, deferredToReturns);
+
+
+                        var defererInput = methodInputs[new OrType<Method, MethodType>(defererMethod)];
+                        var deferredToInput = methodInputs[new OrType<Method, MethodType>(deferredToMethod)];
+                        TryMerge(defererInput, deferredToInput);
+                    }
+                    else {
+                        throw new Exception("or type has an unexpect type");
+                    }
+
+                    
                 }
 
                 OrType<MethodType, IHaveMembers> LookUpOrOverlayOrThrow(ILookUpType node)
@@ -1031,7 +1050,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (lookUps.TryGetValue(node, out var res))
                         {
-                            return new OrType<MethodType, IHaveMembers>( res);
+                            return res;
                         }
                     }
 
