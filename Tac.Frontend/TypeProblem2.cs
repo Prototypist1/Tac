@@ -163,15 +163,15 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members;
             private readonly IReadOnlyDictionary<ILookUpType, IHaveMembers> map;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
-            private readonly IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodIn;
-            private readonly IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodOut;
+            private readonly IReadOnlyDictionary<IHaveInputAndOutput, TypeProblem2.Member> methodIn;
+            private readonly IReadOnlyDictionary<IHaveInputAndOutput, TypeProblem2.Member> methodOut;
 
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, IHaveMembers> map, 
                 IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members, 
                 IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
-                IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodIn,
-                IReadOnlyDictionary<TypeProblem2.Method, TypeProblem2.Member> methodOut)
+                IReadOnlyDictionary<IHaveInputAndOutput, TypeProblem2.Member> methodIn,
+                IReadOnlyDictionary<IHaveInputAndOutput, TypeProblem2.Member> methodOut)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.members = members ?? throw new ArgumentNullException(nameof(members));
@@ -308,12 +308,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return orTypeElememts[from];
             }
 
-            public TypeProblem2.Member GetResultMember(TypeProblem2.Method from)
+            public TypeProblem2.Member GetResultMember(IHaveInputAndOutput from)
             {
                 return methodOut[from];
             }
 
-            public TypeProblem2.Member GetInputMember(TypeProblem2.Method from)
+            public TypeProblem2.Member GetInputMember(IHaveInputAndOutput from)
             {
                 return methodIn[from];
             }
@@ -355,7 +355,6 @@ namespace Tac.Frontend.New.CrzayNamespace
         // TODO is transient member really not a member?
         // can't it's transientness be captured but waht dict it is in??
         internal interface IMember : IValue, ILookUpType, ICanBeAssignedTo { }
-
 
         internal class TypeProblem2 : ISetUpTypeProblem
         {
@@ -476,7 +475,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly Dictionary<IScope, Dictionary<IKey, Type>> types = new Dictionary<IScope, Dictionary<IKey, Type>>();
             private readonly Dictionary<IScope, Dictionary<IKey, MethodType>> methodTypes = new Dictionary<IScope, Dictionary<IKey, MethodType>>();
             private readonly Dictionary<IScope, Dictionary<IKey, Object>> objects = new Dictionary<IScope, Dictionary<IKey, Object>>();
-            private readonly Dictionary<OrType<MethodType, IScope>, Dictionary<IKey, IHaveMembers>> genericOverlays = new Dictionary<OrType<MethodType, IScope>, Dictionary<IKey, IHaveMembers>>();
+            
+            // oh god, what is this??
+            private readonly Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type>>> genericOverlays = new Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type>>>();
 
             private readonly Dictionary<OrType, (TypeReference, TypeReference)> orTypeComponets = new Dictionary<OrType, (TypeReference, TypeReference)>();
 
@@ -538,11 +539,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 objects[parent].Add(key, @object);
             }
 
-            public void HasPlaceholderType(OrType<MethodType, IScope> parent, IKey key, IHaveMembers type)
+            public void HasPlaceholderType(OrType<MethodType, Type> parent, IKey key, OrType<MethodType, Type> type)
             {
                 if (!genericOverlays.ContainsKey(parent))
                 {
-                    genericOverlays.Add(parent, new Dictionary<IKey, IHaveMembers>());
+                    genericOverlays.Add(parent, new Dictionary<IKey, OrType<MethodType,Type>>());
                 }
                 genericOverlays[parent].Add(key, type);
             }
@@ -671,7 +672,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var placeholder in placeholders)
                 {
                     var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}",placeholder.converter);
-                    HasPlaceholderType(new OrType<MethodType, IScope>(res), placeholder.key, placeholderType);
+                    HasPlaceholderType(new OrType<MethodType, Type>(res), placeholder.key, new OrType<MethodType, Type>( placeholderType));
                 }
                 return res;
             }
@@ -831,10 +832,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // pretty sure it is not safe to solve more than once 
-            public ITypeSolution Solve(IConvertTo<Type,OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> inferedTypeConvert)
+            public ITypeSolution Solve(IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> inferedTypeConvert)
             {
-                var realizedGeneric = new Dictionary<GenericTypeKey, OrType<MethodType, IScope>>();
-                var lookUps = new Dictionary<ILookUpType, OrType<MethodType, IHaveMembers>>();
+                var realizedGeneric = new Dictionary<GenericTypeKey, OrType<MethodType, Type>>();
+                var lookUps = new Dictionary<ILookUpType, OrType<MethodType, Type>>();
 
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
@@ -842,14 +843,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var key = new ImplicitKey(Guid.NewGuid());
                     var type = new InferedType(this, $"for {((TypeProblemNode)node).debugName}", inferedTypeConvert);
-                    lookUps[node] = new OrType<MethodType, IHaveMembers>(type);
+                    lookUps[node] = new OrType<MethodType, Type>(type);
                 }
 
                 // generics register themsleves 
-                var localScopes = typeProblemNodes.OfType<MethodType>().Select(x => new OrType<MethodType, IScope>(x));
-                var localMethodTypes = typeProblemNodes.OfType<IScope>().Select(x => new OrType<MethodType, IScope>(x));
+                var localScopes = typeProblemNodes.OfType<MethodType>().Select(x => new OrType<MethodType, Type>(x));
+                var localMethodTypes = typeProblemNodes.OfType<Type>().Select(x => new OrType<MethodType, Type>(x));
 
-                foreach (var node in new[] { localScopes,localMethodTypes}.SelectMany(x=>x))
+                foreach (var node in new[] { localScopes, localMethodTypes }.SelectMany(x => x))
                 {
                     var key = new GenericTypeKey(node, genericOverlays[node].Values.ToArray());
                     realizedGeneric[key] = node;
@@ -1042,10 +1043,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new Exception("or type has an unexpect type");
                     }
 
-                    
+
                 }
 
-                OrType<MethodType, IHaveMembers> LookUpOrOverlayOrThrow(ILookUpType node)
+                OrType<MethodType, Type> LookUpOrOverlayOrThrow(ILookUpType node)
                 {
                     {
                         if (lookUps.TryGetValue(node, out var res))
@@ -1068,7 +1069,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
 
-                OrType<MethodType, IHaveMembers> LookUpOrOverlayOrThrow2(IScope from, IKey key)
+                OrType<MethodType, Type> LookUpOrOverlayOrThrow2(IScope from, IKey key)
                 {
                     if (!TryLookUpOrOverlay(from, key, out var res))
                     {
@@ -1077,7 +1078,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                bool TryLookUpOrOverlay(IScope from, IKey key, out OrType<MethodType, IHaveMembers> res)
+                bool TryLookUpOrOverlay(IScope from, IKey key, out OrType<MethodType, Type> res)
                 {
 
                     if (key is GenericNameKey genericNameKey)
@@ -1085,32 +1086,39 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         var types = genericNameKey.Types.Select(typeKey => LookUpOrOverlayOrThrow2(from, typeKey)).ToArray();
 
-                        int error = "you need to actually think here -- ";
 
-                        // I think this could be expanded down the road
-                        // given intest in generic methods and objects
-                        if (!(LookUpOrOverlayOrThrow2(from, genericNameKey.Name) is Type lookedUp))
-                        {
-                            throw new Exception();
-                        }
-                        var genericTypeKey = new GenericTypeKey(new OrType<MethodType, IScope>(lookedUp), types);
+                        var outerLookedUp = LookUpOrOverlayOrThrow2(from, genericNameKey.Name);
 
-                        if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                        if (outerLookedUp.Is2(out var hasMembers))
                         {
-                            res = res2;
+                            // I think this could be expanded down the road
+                            // given intest in generic methods and objects
+                            if (!(hasMembers is Type lookedUp))
+                            {
+                                throw new Exception();
+                            }
+                            var genericTypeKey = new GenericTypeKey(new OrType<MethodType, Type>(lookedUp), types);
+
+                            if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                            {
+                                res = res2;
+                                return true;
+                            }
+
+                            var map = new Dictionary<OrType<MethodType, Type>, OrType<MethodType, Type>>();
+                            foreach (var (oldType, newType) in types.Zip(genericOverlays[new OrType<MethodType, Type>(lookedUp)], (x, y) => (y.Value, x)))
+                            {
+                                map[oldType] = newType;
+                            }
+
+                            var explict = CopyTree(lookedUp, new Type(this, $"generated-generic-{lookedUp.debugName}", lookedUp.Converter), map);
+                            realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type>(explict));
+                            res = new OrType<MethodType, Type>(explict);
                             return true;
                         }
-
-                        var map = new Dictionary<IHaveMembers, IHaveMembers>();
-                        foreach (var (oldType, newType) in types.Zip(genericOverlays[new OrType<MethodType, IScope>( lookedUp)], (x, y) => (y.Value, x)))
-                        {
-                            map[oldType] = newType;
+                        else if (outerLookedUp.Is1(out var methodType)) {
+                            int error = "you need to actually think here -- ";
                         }
-
-                        var explict = CopyTree(lookedUp, new Type(this, $"generated-generic-{lookedUp.debugName}", lookedUp.Converter), map);
-                        realizedGeneric.Add(genericTypeKey, new OrType<MethodType, IScope>( explict));
-                        res = new OrType<MethodType, IHaveMembers>( explict);
-                        return true;
                     }
                     else
                     if (TryLookUp(from, key, out var res2))
@@ -1158,11 +1166,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return true;
                             }
                         }
-                        {
-                            if (genericOverlays.TryGetValue(new OrType<MethodType, IScope>(haveTypes), out var dict) && dict.TryGetValue(key, out var res))
+                        if (haveTypes is Type type ){
+                            if (genericOverlays.TryGetValue(new OrType<MethodType, Type>(type), out var dict) && dict.TryGetValue(key, out var res))
                             {
-                                result = new OrType<MethodType, IHaveMembers>(res);
-                                return true;
+                                if (res.Is1(out var methodType))
+                                {
+                                    result = new OrType<MethodType, IHaveMembers>(methodType);
+                                    return true;
+                                }
+                                else if (res.Is2(out var innerType))
+                                {
+                                    result = new OrType<MethodType, IHaveMembers>(innerType);
+                                    return true;
+                                }
+                                else {
+                                    throw new Exception("uh oh! we hit a type we did not want");
+                                }
                             }
                         }
 
@@ -1380,29 +1399,54 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                             {
-                                if (genericOverlays.TryGetValue(new OrType<MethodType, IScope>(innerFromScope), out var dict))
-                                {
-                                    foreach (var type in dict)
-                                    {
-                                        if (overlayed.TryGetValue(type.Value, out var toType))
-                                        {
-                                            HasPlaceholderType(new OrType<MethodType, IScope>(innerScopeTo), type.Key, toType);
-                                        }
-                                        else
-                                        {
-                                            HasPlaceholderType(new OrType<MethodType, IScope>(innerScopeTo), type.Key, type.Value);
-                                        }
-                                    }
-                                }
-                            }
-
-                            {
                                 if (possibleMembers.TryGetValue(innerFromScope, out var dict))
                                 {
                                     foreach (var possible in dict)
                                     {
                                         var newValue = Copy(possible.Value, new Member(this,  $"copied from {((TypeProblemNode)possible.Value).debugName}",possible.Value.Converter));
                                         HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (innerFrom is Type innerFromType && innerTo is Type innerTypeTo) {
+
+                            {
+                                if (genericOverlays.TryGetValue(new OrType<MethodType, Type>(innerFromType), out var dict))
+                                {
+                                    foreach (var type in dict)
+                                    {
+                                        if (overlayed.TryGetValue(type.Value, out var toType))
+                                        {
+                                            HasPlaceholderType(new OrType<MethodType, Type>(innerTypeTo), type.Key, toType);
+                                        }
+                                        else
+                                        {
+                                            HasPlaceholderType(new OrType<MethodType, Type>(innerTypeTo), type.Key, type.Value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+                        if (innerFrom is MethodType innerFromMethodType && innerTo is MethodType innerMethodTypeTo)
+                        {
+
+                            {
+                                if (genericOverlays.TryGetValue(new OrType<MethodType, Type>(innerFromMethodType), out var dict))
+                                {
+                                    foreach (var type in dict)
+                                    {
+                                        if (overlayed.TryGetValue(type.Value, out var toType))
+                                        {
+                                            HasPlaceholderType(new OrType<MethodType, Type>(innerMethodTypeTo), type.Key, toType);
+                                        }
+                                        else
+                                        {
+                                            HasPlaceholderType(new OrType<MethodType, Type>(innerMethodTypeTo), type.Key, type.Value);
+                                        }
                                     }
                                 }
                             }
@@ -1441,7 +1485,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    }
                 //}
 
-                OrType<MethodType, IHaveMembers> GetType(ITypeProblemNode value)
+                OrType<MethodType, Type> GetType(ITypeProblemNode value)
                 {
                     if (value is ILookUpType lookup)
                     {
@@ -1449,11 +1493,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     if (value is IHaveMembers haveMembers)
                     {
-                        return new OrType<MethodType, IHaveMembers>(haveMembers);
+                        return new OrType<MethodType, Type>(haveMembers);
                     }
                     if (value is MethodType methodType)
                     {
-                        return new OrType<MethodType, IHaveMembers>(methodType);
+                        return new OrType<MethodType, Type>(methodType);
                     }
 
                     throw new Exception("flaming pile of piss");
@@ -1463,7 +1507,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // returns true if the target was modified 
-                bool Flow(OrType<MethodType, IHaveMembers> from, OrType<MethodType, IHaveMembers> to)
+                bool Flow(OrType<MethodType, Type> from, OrType<MethodType, Type> to)
                 {
                     var res = false;
                     // I think the only thing that "flow" are members
@@ -1507,7 +1551,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                IReadOnlyDictionary<IKey, Member> GetMembers2(OrType<MethodType, IHaveMembers> or)
+                IReadOnlyDictionary<IKey, Member> GetMembers2(OrType<MethodType, Type> or)
                 {
                     if (or.Is1(out var v1))
                     {
@@ -1571,7 +1615,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
-
             private bool TryGetMember(IScope context, IKey key, out Member member)
             {
                 while (true)
@@ -1621,7 +1664,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var placeholder in placeholders)
                 {
                     var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", placeholder.converter);
-                    HasPlaceholderType(new OrType<MethodType, IScope>(res), placeholder.key, placeholderType);
+                    HasPlaceholderType(new OrType<MethodType, Type>(res), placeholder.key, placeholderType);
                 }
 
 
@@ -1629,10 +1672,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             
             private class GenericTypeKey
             {
-                private readonly OrType<MethodType, IScope> primary;
-                private readonly IHaveMembers[] parameters;
+                private readonly OrType<MethodType, Type> primary;
+                private readonly OrType<MethodType, Type>[] parameters;
 
-                public GenericTypeKey(OrType<MethodType, IScope> primary, IHaveMembers[] parameters)
+                public GenericTypeKey(OrType<MethodType, Type> primary, OrType<MethodType, Type>[] parameters)
                 {
                     this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
                     this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
