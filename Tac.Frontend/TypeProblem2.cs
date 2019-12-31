@@ -825,13 +825,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal Member GetReturns(Method method)
             {
-                return methodReturns[method];
+                return methodReturns[new OrType<Method, MethodType>( method)];
             }
 
 
             public Member GetInput(Method method)
             {
-                return methodInputs[method];
+                return methodInputs[new OrType<Method, MethodType>( method)];
             }
 
             public IKey GetKey(TypeProblem2.TypeReference type)
@@ -1112,7 +1112,38 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (outerLookedUp.Is1(out var method))
                         {
-                            int error = "you need to actually think here -- ";
+                            var genericTypeKey = new GenericTypeKey(new OrType<MethodType, Type>(method), types);
+
+
+                            if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                            {
+                                res = res2;
+                                return true;
+                            }
+
+                            // this is duplicate code - 94875369485
+                            var map = new Dictionary<OrType<MethodType, Type, Object, OrType>, OrType<MethodType, Type, Object, OrType>>();
+                            foreach (var (oldType, newType) in types.Zip(genericOverlays[new OrType<MethodType, Type>(method)], (x, y) => (y.Value, x)))
+                            {
+                                map[oldType] = newType;
+                            }
+
+                            var @explicit = CopyTree(new OrType<MethodType, Type>(method), new OrType<MethodType, Type>(new MethodType(this, $"generated-generic-{method.debugName}", method.Converter)), map);
+                            if (@explicit.Is1(out var v1))
+                            {
+                                realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType>(v1));
+                                res = new OrType<MethodType, Type, Object, OrType>(v1);
+                            }
+                            else if (@explicit.Is2(out var v2))
+                            {
+                                realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType>(v2));
+                                res = new OrType<MethodType, Type, Object, OrType>(v2);
+                            }
+                            else
+                            {
+                                throw new Exception();
+                            }
+                            return true;
                         }
                         else if (outerLookedUp.Is2(out var type))
                         {
@@ -1124,24 +1155,42 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return true;
                             }
 
+                            // this is duplicate code - 94875369485
                             var map = new Dictionary<OrType<MethodType, Type, Object, OrType>, OrType<MethodType, Type, Object, OrType>>();
                             foreach (var (oldType, newType) in types.Zip(genericOverlays[new OrType<MethodType, Type>(type)], (x, y) => (y.Value, x)))
                             {
                                 map[oldType] = newType;
                             }
 
-                            var @explicit = CopyTree(type, new Type(this, $"generated-generic-{type.debugName}", type.Converter), map);
-                            realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType>(@explicit));
-                            res = new OrType<MethodType, Type, Object, OrType>(@explicit);
+                            var @explicit = CopyTree(new OrType<MethodType, Type>(type), new OrType<MethodType, Type>(new Type(this, $"generated-generic-{type.debugName}", type.Converter)), map);
+                            if (@explicit.Is1(out var v1))
+                            {
+                                realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType>(v1));
+                                res = new OrType<MethodType, Type, Object, OrType>(v1);
+                            }
+                            else if (@explicit.Is2(out var v2))
+                            {
+                                realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType>(v2));
+                                res = new OrType<MethodType, Type, Object, OrType>(v2);
+                            }
+                            else
+                            {
+                                throw new Exception();
+                            }
                             return true;
                         }
                         else if (outerLookedUp.Is3(out var @object))
                         {
-                            int error = "you need to actually think here -- ";
+                            res = new OrType<MethodType, Type, Object, OrType>(@object);
+                            return true;
                         }
                         else if (outerLookedUp.Is4(out var orType))
                         {
-                            int error = "you need to actually think here -- ";
+                            res = new OrType<MethodType, Type, Object, OrType>(orType);
+                            return true;
+                        }
+                        else {
+                            throw new Exception();
                         }
                     }
                     else
@@ -1219,11 +1268,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                Type CopyTree(Type from, Type to, IReadOnlyDictionary<OrType<MethodType, Type, Object, OrType>, OrType<MethodType, Type, Object, OrType>> overlayed)
+                OrType<MethodType, Type> CopyTree(OrType<MethodType, Type> from, OrType<MethodType, Type> to, IReadOnlyDictionary<OrType<MethodType, Type, Object, OrType>, OrType<MethodType, Type, Object, OrType>> overlayed)
                 {
 
                     var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();
-                    Copy(from, to);
+                    if (from.Is1(out var from1) && to.Is1(out var to1))
+                    {
+                        Copy(from1, to1);
+                    }
+                    else if (from.Is2(out var from2) && to.Is2(out var to2))
+                    {
+                        Copy(from2, to2);
+                    }
+                    else {
+                        throw new Exception("or exception");
+                    }
 
                     foreach (var pair in map)
                     {
@@ -1258,32 +1317,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
                     }
-
-                    //var oldCalls = calls.ToArray();
-                    //foreach (var pair in map)
-                    //{
-                    //    if (pair.Key is ILookUpType assignedToFrom && pair.Value is ILookUpType assignedToTo)
-                    //    {
-                    //        foreach (var item in oldAssignments)
-                    //        {
-                    //            if (item.Item2 == assignedToFrom)
-                    //            {
-                    //                calls.Add((CopiedToOrSelf(item.Item1), assignedToTo));
-                    //            }
-                    //        }
-                    //    }
-
-                    //    if (pair.Value is ICanAssignFromMe assignFromFrom && pair.Value is ICanAssignFromMe assignFromTo)
-                    //    {
-                    //        foreach (var item in oldAssignments)
-                    //        {
-                    //            if (item.Item1 == assignFromFrom)
-                    //            {
-                    //                calls.Add((assignFromTo, CopiedToOrSelf(item.Item2)));
-                    //            }
-                    //        }
-                    //    }
-                    //}
 
                     foreach (var pair in map)
                     {
@@ -1551,7 +1584,37 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (inFromOr.Is1(out var fromMethod) && inToOr.Is1(out var toMethod))
                     {
-                        int error = "ok so this.. ";
+                        var inOne = GetType(methodInputs[new OrType<Method, MethodType>(fromMethod)]);
+                        var inTwo = GetType(methodInputs[new OrType<Method, MethodType>(fromMethod)]);
+                        // do I really flow both ways?
+                        if (IsInfered(inOne))
+                        {
+                            res |= Flow(inTwo, inOne);
+                        }
+                        else if (IsInfered(inTwo))
+                        {
+                            res |= Flow(inOne, inTwo);
+                        }
+                        else
+                        {
+                            throw new Exception("these types are not compatible... right?");
+                        }
+
+                        var outOne = GetType(methodReturns[new OrType<Method, MethodType>(fromMethod)]);
+                        var outTwo = GetType(methodReturns[new OrType<Method, MethodType>(fromMethod)]);
+                        // do I really flow both ways?
+                        if (IsInfered(outOne))
+                        {
+                            res |= Flow(outTwo, outOne);
+                        }
+                        else if (IsInfered(outTwo))
+                        {
+                            res |= Flow(outOne, outTwo);
+                        }
+                        else
+                        {
+                            throw new Exception("these types are not compatible... right?");
+                        }
                     }
 
                     if (inFromOr.Is2(out var fromType))
@@ -1603,6 +1666,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 var one = GetType(upstreamMember);
                                 var two = GetType(memberPair.Value);
+                                // do I really flow both ways?
                                 if (IsInfered(one))
                                 {
                                     res |= Flow(two, one);
