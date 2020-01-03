@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
@@ -16,6 +15,7 @@ using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
 using Prototypist.Toolbox.Object;
 using Prototypist.Toolbox.Bool;
+using Tac.Frontend.Parser;
 
 namespace Tac.Parser
 {

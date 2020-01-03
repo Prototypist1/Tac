@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox.Object;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -67,8 +68,12 @@ namespace Tac.Semantic_Model.Operations
     {
         public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> new Box<WeakNextCallOperation>( new WeakNextCallOperation(l,r)),(s,c,l,r)=> {
 
-            s.Problem.TryCall(l.SetUpSideNode, r.SetUpSideNode);
-            return (r.SetUpSideNode as Tpn.IMethod).Returns(); })
+            // nearly duplicate code 3930174039475
+            // really this should not throw if the type requirement are not met
+            // it is just a compliation error
+            s.Problem.IsAssignedTo(l.SetUpSideNode.CastTo<Tpn.ICanAssignFromMe>(), r.SetUpSideNode.CastTo<Tpn.TypeProblem2.Method>().Input());
+            return (r.SetUpSideNode as Tpn.TypeProblem2.Method).Returns(); 
+        })
         {
         }
     }
@@ -95,8 +100,11 @@ namespace Tac.Semantic_Model.Operations
     {
         public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>new Box<WeakLastCallOperation>( new WeakLastCallOperation(l,r)), (s, c, l, r) =>
         {
-            s.Problem.TryCall(r.SetUpSideNode, l.SetUpSideNode); ;
-            return (l.SetUpSideNode as Tpn.IMethod).Returns();
+            // nearly duplicate code 3930174039475
+            // really this should not throw if the type requirement are not met
+            // it is just a compliation error
+            s.Problem.IsAssignedTo(r.SetUpSideNode.CastTo<Tpn.ICanAssignFromMe>(), l.SetUpSideNode.CastTo<Tpn.TypeProblem2.Method>().Input()); ;
+            return (l.SetUpSideNode as Tpn.TypeProblem2.Method).Returns();
         })
         {
         }

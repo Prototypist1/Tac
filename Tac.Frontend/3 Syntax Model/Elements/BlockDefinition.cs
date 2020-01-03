@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
@@ -14,6 +13,7 @@ using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Prototypist.Toolbox;
+using Tac.Frontend.Parser;
 
 namespace Tac.Parser
 {

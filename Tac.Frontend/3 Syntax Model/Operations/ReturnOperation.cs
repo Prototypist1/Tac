@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -13,6 +12,7 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
+using Tac.Frontend.Parser;
 
 namespace Tac.Semantic_Model.CodeStuff
 {

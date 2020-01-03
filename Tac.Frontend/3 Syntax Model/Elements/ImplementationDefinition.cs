@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using Prototypist.Toolbox;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
+using Tac.Frontend.Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -198,9 +198,9 @@ namespace Tac.Semantic_Model
 
                 var innerBox = new Box<Tpn.TypeProblem2.Method>();
                 var linesBox = new Box<IResolve<IFrontendCodeElement>[]>();
-                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)), new WeakMemberDefinitionConverter(false, new NameKey("result")));
+                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
-                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)), new WeakMemberDefinitionConverter(false, new NameKey("result")));
+                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
                 innerBox.Fill(inner);
                 linesBox.Fill(elements.Select(y => y.Run(inner, context).Resolve).ToArray());
 
@@ -228,7 +228,7 @@ namespace Tac.Semantic_Model
 
         private class ImplementationDefinitionResolveReferance : IResolve<WeakImplementationDefinition>
         {
-            private Tpn.TypeProblem2.Method outer;
+            private readonly Tpn.TypeProblem2.Method outer;
 
             public ImplementationDefinitionResolveReferance(Tpn.TypeProblem2.Method outer)
             {

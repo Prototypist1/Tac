@@ -7,6 +7,7 @@ using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Model;
 using Tac.Semantic_Model;
+using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Frontend.New.CrzayNamespace
@@ -70,6 +71,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // when I ungeneric this it should probably have the box inside the or..
             IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> GetExplicitType(TypeProblem2.Type explicitType);
             IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> GetObject(TypeProblem2.Object @object);
+            IBox<MethodType> GetMethodType(TypeProblem2.MethodType methodType);
             IBox<WeakTypeOrOperation> GetOrType(TypeProblem2.OrType orType);
             IBox<OrType<WeakMethodDefinition, WeakImplementationDefinition>> GetMethod(TypeProblem2.Method method);
             IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
@@ -279,6 +281,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheValue[value];
             }
 
+            private readonly Dictionary<TypeProblem2.MethodType, IBox<MethodType>> cacheMethodType = new Dictionary<TypeProblem2.MethodType, IBox<MethodType>>();
+
+
+            public IBox<MethodType> GetMethodType(TypeProblem2.MethodType methodType)
+            {
+                if (!cacheMethodType.ContainsKey(methodType))
+                {
+                    var box = new Box<MethodType>();
+                    cacheMethodType[methodType] = box;
+                    box.Fill(methodType.Converter.Convert(this, methodType));
+                }
+                return cacheMethodType[methodType];
+            }
+
+
             public IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from)
             {
                 if (!members.ContainsKey(from))
@@ -307,6 +324,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return methodIn[from];
             }
+
         }
 
         // the simple model of or-types:
@@ -405,9 +423,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            public class MethodType : TypeProblemNode<MethodType, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IHaveInputAndOutput
+            public class MethodType : TypeProblemNode<MethodType, SyntaxModel.Elements.AtomicTypes.MethodType>, IHaveInputAndOutput
             {
-                public MethodType(TypeProblem2 problem, string debugName, IConvertTo<MethodType, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
+                public MethodType(TypeProblem2 problem, string debugName, IConvertTo<MethodType, SyntaxModel.Elements.AtomicTypes.MethodType> converter) : base(problem, debugName, converter)
                 {
                 }
             }
@@ -517,7 +535,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public void HasMethodType(IScope parent, IKey key, MethodType type)
             {
-                if (!types.ContainsKey(parent))
+                if (!methodTypes.ContainsKey(parent))
                 {
                     methodTypes.Add(parent, new Dictionary<IKey, MethodType>());
                 }
@@ -572,7 +590,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     possibleMembers.Add(parent, new Dictionary<IKey, Member>());
                 }
-                possibleMembers[parent].Add(key, member);
+                possibleMembers[parent].TryAdd(key, member);
             }
             public void HasHopefulMember(IHaveHopefulMembers parent, IKey key, Member member)
             {
@@ -581,7 +599,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     hopefulMembers.Add(parent, new Dictionary<IKey, Member>());
                 }
-                hopefulMembers[parent].Add(key, member);
+                hopefulMembers[parent].TryAdd(key, member);
             }
 
             private T Register<T>(T typeProblemNode)
@@ -1677,7 +1695,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     return res;
 
-                    bool IsInfered(OrType<MethodType, Type, Object, OrType> toCheck)
+                    // ooo! static local!
+                    static bool IsInfered(OrType<MethodType, Type, Object, OrType> toCheck)
                     {
                         return toCheck.Is2(out var v2) && v2 is InferredType;
                     }

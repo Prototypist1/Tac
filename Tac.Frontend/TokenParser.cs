@@ -22,7 +22,7 @@ namespace Tac.Frontend
             where TBacking:IBacking
         {
 
-            var tokenizer = new Parser.Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
+            var tokenizer = new Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
             var tokens = tokenizer.Tokenize(text);
 
             var elementMatchingContest = new ElementMatchingContext();

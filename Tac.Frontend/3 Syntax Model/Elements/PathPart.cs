@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
+using Tac.Frontend.Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;

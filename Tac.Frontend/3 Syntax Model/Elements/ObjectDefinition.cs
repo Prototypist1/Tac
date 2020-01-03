@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -18,6 +17,7 @@ using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Prototypist.Toolbox;
 using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.Parser;
 
 namespace Tac.Parser
 {
@@ -37,7 +37,7 @@ namespace Tac.Parser
 namespace Tac.Semantic_Model
 {
 
-    internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>,  IScoped, IFrontendType
+    internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>, IScoped, IFrontendType
     {
         public WeakObjectDefinition(IBox<WeakScope> scope, IEnumerable<IBox<WeakAssignOperation>> assigns) {
             if (assigns == null)
