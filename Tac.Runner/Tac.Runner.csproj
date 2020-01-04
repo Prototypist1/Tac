@@ -7,7 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Prototypist.TaskChain" Version="1.0.9" />
-    <PackageReference Include="Prototypist.Toolbox" Version="1.0.0.5" />
+    <PackageReference Include="Prototypist.Toolbox" Version="1.0.0.6" />
   </ItemGroup>
 
   <ItemGroup>

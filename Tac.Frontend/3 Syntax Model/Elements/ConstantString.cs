@@ -11,6 +11,7 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Operations;
+using Prototypist.Toolbox;
 
 namespace Tac.Parser
 {
@@ -71,7 +72,7 @@ namespace Tac.Semantic_Model.Operations
                     self.Tokens[0] is AtomicToken first &&
                     first.Item.StartsWith('"') && first.Item.EndsWith('"'))
                 {
-                    var res = first.Item.Substring(1, first.Item.Length - 2);
+                    var res = first.Item[1..^1];
                     return TokenMatching<string>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, res);
                 }
 

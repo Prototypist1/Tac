@@ -829,13 +829,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal TransientMember GetReturns(Method method)
             {
-                return methodReturns[new OrType<Method, MethodType>( method)];
+                return methodReturns[new OrType<Method, MethodType>(method)];
             }
 
 
             public Member GetInput(Method method)
             {
-                return methodInputs[new OrType<Method, MethodType>( method)];
+                return methodInputs[new OrType<Method, MethodType>(method)];
             }
 
             public IKey GetKey(TypeProblem2.TypeReference type)
@@ -986,7 +986,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
 
                     var defererType = GetType(deferer);
-                    if (defererType.Is2(out var temp)  && (temp is InferredType).Not())
+                    if (defererType.Is2(out var temp) && (temp is InferredType).Not())
                     {
                         throw new Exception("we can't merge that!");
                     }
@@ -1193,7 +1193,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                             res = new OrType<MethodType, Type, Object, OrType>(orType);
                             return true;
                         }
-                        else {
+                        else
+                        {
                             throw new Exception();
                         }
                     }
@@ -1284,7 +1285,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         Copy(from2, to2);
                     }
-                    else {
+                    else
+                    {
                         throw new Exception("or exception");
                     }
 
@@ -1850,7 +1852,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public override int GetHashCode()
                 {
-                    return primary.GetHashCode() + parameters.Sum(x => x.GetHashCode());
+                    return unchecked(primary.GetHashCode() + parameters.Aggregate(0, (y, x) => unchecked(y + x.GetHashCode())));
                 }
             }
         }

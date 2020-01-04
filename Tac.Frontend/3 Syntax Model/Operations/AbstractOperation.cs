@@ -31,8 +31,8 @@ namespace Tac.Semantic_Model.CodeStuff
             });
             return s;
         }
-        // playing some fucking games here
-        // I want each symbol to register itself in stead of having a centeral list
+        // playing some crazy games here
+        // I want each symbol to register itself instead of having a centeral list
         // unfo, ensuring static init is hard in C#
 
         // my solution:

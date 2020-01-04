@@ -240,12 +240,12 @@ namespace Tac.Parser
             var buildingPart = "";
             while (enumerator.TryPeek(out var next))
             {
-                if (buildingPart == "" && next == '"') {
+                if (buildingPart.Length == 0 && next == '"') {
                     return BuildStringConstant(ref enumerator, out part);
                 }
 
                 var numberWalker = new StringWalker(enumerator);
-                if (buildingPart == "" && IsNumber(ref numberWalker, out var num)) {
+                if (buildingPart.Length == 0 && IsNumber(ref numberWalker, out var num)) {
                     enumerator.Update(numberWalker);
                     part = num;
                     return true;
@@ -253,7 +253,7 @@ namespace Tac.Parser
 
                 if (IsOperationOrExit(ref enumerator, out var exit))
                 {
-                    if (buildingPart != "")
+                    if (buildingPart.Length != 0)
                     {
                         part = buildingPart;
                         return true;
@@ -277,7 +277,7 @@ namespace Tac.Parser
                 }
 
                 if (IsNothing(next)) {
-                    if (buildingPart != "")
+                    if (buildingPart.Length != 0)
                     {
                         part = buildingPart;
                         return true;
