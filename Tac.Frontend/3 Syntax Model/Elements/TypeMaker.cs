@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
+using Tac.Frontend.Parser;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;

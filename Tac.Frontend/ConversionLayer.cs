@@ -7,9 +7,11 @@ using System.Text;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.New;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Frontend
@@ -51,37 +53,53 @@ namespace Tac.Frontend
         {
             var orType = typeSolution.GetType(lookUpType);
 
-            IBox<IFrontendType> testType;
-            if (orType.Is1(out var v1))
+            if (orType.Is1(out var v1)) {
+                return new Box<IFrontendType>(typeSolution.GetMethodType(v1).GetValue());
+            }
+            else if (orType.Is2(out var v2))
             {
-                var inner = typeSolution.GetExplicitType(v1).GetValue();
+                var inner = typeSolution.GetExplicitType(v2).GetValue();
                 if (inner.Is1(out var inner1))
                 {
-                    testType = new Box<IFrontendType>(inner1);
+                    return new Box<IFrontendType>(inner1);
                 }
                 else if (inner.Is2(out var inner2))
                 {
-                    testType = new Box<IFrontendType>(inner2);
+                    return new Box<IFrontendType>(inner2);
                 }
                 else if (inner.Is3(out var inner3))
                 {
-                    testType = new Box<IFrontendType>(inner3);
+                    return new Box<IFrontendType>(inner3);
                 }
                 else
                 {
                     throw new Exception("wish there was a clearner way to do this");
                 }
             }
-            else if (orType.Is2(out var v2))
+            else if (orType.Is3(out var v3))
             {
-
-                testType = typeSolution.GetOrType(v2);
+                var inner = typeSolution.GetObject(v3).GetValue();
+                if (inner.Is1(out var inner1))
+                {
+                    return new Box<IFrontendType>(inner1);
+                }
+                else if (inner.Is2(out var inner2)) 
+                {
+                    return new Box<IFrontendType>(inner2);
+                }
+                else
+                {
+                    throw new Exception("blarg");
+                }
+            }
+            else if (orType.Is4(out var v4))
+            {
+                return typeSolution.GetOrType(v4);
             }
             else
             {
                 throw new Exception("well, should have been one of those");
             }
-            return testType;
         }
     }
 
@@ -139,6 +157,24 @@ namespace Tac.Frontend
         }
     }
 
+
+    internal class MethodTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.MethodType, MethodType>
+    {
+        public MethodTypeConverter()
+        {
+        }
+
+        public MethodType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.MethodType from)
+        {
+            // TODO I added the CastTo b/c I am sick of it not compiling
+            // 
+            return 
+                new MethodType(
+                    Help.GetType(typeSolution, typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>(from))).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
+                    Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>(from))).GetValue().CastTo< IConvertableFrontendType<IVerifiableType>>());
+        }
+    }
+
     internal class PrimativeTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IFrontendType>
     {
         private readonly IFrontendType frontendType;
@@ -168,8 +204,8 @@ namespace Tac.Frontend
         public OrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             return new OrType<WeakMethodDefinition, WeakImplementationDefinition>( new WeakMethodDefinition(
-                Help.GetType(typeSolution, typeSolution.GetResultMember(from)),
-                typeSolution.GetMember(typeSolution.GetInputMember(from)),
+                Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( from))),
+                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( from))),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
@@ -210,9 +246,9 @@ namespace Tac.Frontend
         public OrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             return new OrType<WeakMethodDefinition, WeakImplementationDefinition>(new WeakImplementationDefinition(
-                typeSolution.GetMember(typeSolution.GetInputMember(from)),
-                typeSolution.GetMember(typeSolution.GetInputMember(inner.GetValue())),
-                Help.GetType(typeSolution, typeSolution.GetResultMember(inner.GetValue())),
+                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( from))),
+                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( inner.GetValue()))),
+                Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( inner.GetValue()))),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IFrontendCodeElement>()));

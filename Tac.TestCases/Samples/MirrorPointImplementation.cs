@@ -17,7 +17,8 @@ namespace Tac.TestCases.Samples
         {
             get
             {
-                return @"
+                return 
+@"
 module mirror-module {
     implementation [ type { x ; y ; } ; empty ; empty ] context input { 
         context . x =: temp ;

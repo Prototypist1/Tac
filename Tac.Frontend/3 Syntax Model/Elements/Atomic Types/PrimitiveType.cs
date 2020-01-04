@@ -79,6 +79,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             var key = Key;
             return new BuildIntention<IVerifiableType>(res, () => { maker.Build(key); });
         }
+
     }
 
     internal struct AnyType : IConvertableFrontendType<IAnyType>, IPrimitiveType
@@ -128,7 +129,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 });
         }
     }
-    internal struct MethodType : IConvertableFrontendType<IMethodType>, IPrimitiveType
+    internal class MethodType : IConvertableFrontendType<IMethodType>, IPrimitiveType
     {
         public MethodType(IConvertableFrontendType<IVerifiableType> inputType, IConvertableFrontendType<IVerifiableType> outputType)
         {

@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Prototypist.Toolbox.Object;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
 using Tac.Frontend.New.CrzayNamespace;
+using Tac.Frontend.Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -65,19 +67,17 @@ namespace Tac.Semantic_Model.Operations
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
-            if (matching is IMatchedTokenMatching matched)
+            if (matching is IMatchedTokenMatching)
             {
-                var matching2 = matched.Has(new NameMaker(), out var first);
-                if (matching2 is IMatchedTokenMatching matched2)
-                {
-                    
+                if (tokenMatching.Tokens[tokenMatching.Tokens.Count - 1] is ElementToken elementToken && 
+                    elementToken.Tokens.Single() is AtomicToken atomic ) {
                     var left = matching.Context.ParseLine(match.perface);
                     //var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);
 
                     return TokenMatching<ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>>.MakeMatch(
-                        matched2.Tokens,
-                        matched2.Context,
-                        new WeakPathOperationPopulateScope(left, first.Item));
+                        Array.Empty<IToken>(),
+                        matching.Context,
+                        new WeakPathOperationPopulateScope(left, atomic.Item));
                 }
             }
 
@@ -101,7 +101,7 @@ namespace Tac.Semantic_Model.Operations
             public ISetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var nextLeft = left.Run(scope, context);
-                var member = context.TypeProblem.CreateHopefulMember((Tpn.IHaveHopefulMembers)nextLeft, new NameKey(name), new WeakMemberDefinitionConverter(false,new NameKey(name)));
+                var member = context.TypeProblem.CreateHopefulMember(nextLeft.SetUpSideNode.CastTo<Tpn.IHaveHopefulMembers>(), new NameKey(name), new WeakMemberDefinitionConverter(false,new NameKey(name)));
 
                 return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReferance(
                     left.Run(scope, context).Resolve,

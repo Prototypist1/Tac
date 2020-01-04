@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Tac.Frontend;
-using Tac.Frontend._2_Parser;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
+using Tac.Frontend.Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -17,7 +17,7 @@ using Tac.New;
 using Tac.Parser;
 using Tac.Semantic_Model;
 using Tac.Semantic_Model.CodeStuff;
-
+using Tac.SemanticModel;
 
 namespace Tac.Parser
 {
@@ -34,14 +34,14 @@ namespace Tac.Parser
 }
 
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
 
     internal class WeakMethodDefinition :
         WeakAbstractBlockDefinition<IInternalMethodDefinition>
     {
         public WeakMethodDefinition(
-            IBox<IFrontendType> outputType, 
+            IBox<IFrontendType> outputType,
             IBox<IWeakMemberDefinition> parameterDefinition,
             IBox<IFrontendCodeElement>[] body,
             IBox<WeakScope> scope,
@@ -52,7 +52,7 @@ namespace Tac.Semantic_Model
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             IsEntryPoint = isEntryPoint;
         }
-        
+
         public IBox<IFrontendType> InputType => ParameterDefinition.GetValue().Type;
         public IBox<IFrontendType> OutputType { get; }
         public IBox<IWeakMemberDefinition> ParameterDefinition { get; }
@@ -68,13 +68,13 @@ namespace Tac.Semantic_Model
                     OutputType.GetValue().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
-                    Body.Select(x=>x.GetValue().ConvertElementOrThrow(context)).ToArray(),
-                    StaticInitailizers.Select(x=>x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
+                    Body.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
+                    StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
                     IsEntryPoint);
             });
         }
     }
-    
+
     internal class MethodDefinitionMaker : IMaker<ISetUp<WeakMethodDefinition, Tpn.IValue>>
     {
         public MethodDefinitionMaker()
@@ -85,7 +85,7 @@ namespace Tac.Semantic_Model
         public ITokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
-            
+
             {
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
                 var matching = tokenMatching
@@ -105,7 +105,7 @@ namespace Tac.Semantic_Model
                      is IMatchedTokenMatching matched)
                 {
                     var elements = matching.Context.ParseBlock(body);
-                    
+
                     return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeMatch(
                         matched.Tokens,
                         matched.Context,
@@ -177,7 +177,7 @@ namespace Tac.Semantic_Model
 
                 var box = new Box<IResolve<IFrontendCodeElement>[]>();
                 var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
-                var method= context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false,new NameKey(parameterName)), new WeakMemberDefinitionConverter(false,new NameKey("result")));
+                var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
                 box.Fill(elements.Select(x => x.Run(method, context).Resolve).ToArray());
 
@@ -186,7 +186,7 @@ namespace Tac.Semantic_Model
                     realizedOutput.SetUpSideNode.Key(),
                 }), new PlaceholderValueConverter());
 
-                return new SetUpResult<WeakMethodDefinition, Tpn.IValue>( new MethodDefinitionResolveReferance(method),value);
+                return new SetUpResult<WeakMethodDefinition, Tpn.IValue>(new MethodDefinitionResolveReferance(method), value);
             }
         }
 
@@ -202,7 +202,8 @@ namespace Tac.Semantic_Model
             public IBox<WeakMethodDefinition> Run(Tpn.ITypeSolution context)
             {
                 var res = context.GetMethod(method);
-                if (res.GetValue().Is1(out var v1)) {
+                if (res.GetValue().Is1(out var v1))
+                {
                     return new Box<WeakMethodDefinition>(v1);
                 }
                 throw new Exception("wrong!");
