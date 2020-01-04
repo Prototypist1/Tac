@@ -71,8 +71,8 @@ namespace Tac.Semantic_Model.Operations
             // nearly duplicate code 3930174039475
             // really this should not throw if the type requirement are not met
             // it is just a compliation error
-            s.Problem.IsAssignedTo(l.SetUpSideNode.CastTo<Tpn.ICanAssignFromMe>(), r.SetUpSideNode.CastTo<Tpn.TypeProblem2.Method>().Input());
-            return (r.SetUpSideNode as Tpn.TypeProblem2.Method).Returns(); 
+            s.Problem.IsAssignedTo(l.SetUpSideNode.CastTo<Tpn.ICanAssignFromMe>(), r.SetUpSideNode.CastTo<Tpn.IValue>().Input());
+            return r.SetUpSideNode.CastTo<Tpn.IValue>().Returns(); 
         })
         {
         }
@@ -103,8 +103,8 @@ namespace Tac.Semantic_Model.Operations
             // nearly duplicate code 3930174039475
             // really this should not throw if the type requirement are not met
             // it is just a compliation error
-            s.Problem.IsAssignedTo(r.SetUpSideNode.CastTo<Tpn.ICanAssignFromMe>(), l.SetUpSideNode.CastTo<Tpn.TypeProblem2.Method>().Input()); ;
-            return (l.SetUpSideNode as Tpn.TypeProblem2.Method).Returns();
+            s.Problem.IsAssignedTo(r.SetUpSideNode.CastTo<Tpn.ICanAssignFromMe>(), l.SetUpSideNode.CastTo<Tpn.IValue>().Input()); ;
+            return l.SetUpSideNode.CastTo<Tpn.IValue>().Returns();
         })
         {
         }

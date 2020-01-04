@@ -101,7 +101,7 @@ namespace Tac.Semantic_Model.Operations
             public ISetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var nextLeft = left.Run(scope, context);
-                var member = context.TypeProblem.CreateHopefulMember(nextLeft.SetUpSideNode.CastTo<Tpn.IHaveHopefulMembers>(), new NameKey(name), new WeakMemberDefinitionConverter(false,new NameKey(name)));
+                var member = context.TypeProblem.CreateHopefulMember(nextLeft.SetUpSideNode.CastTo<Tpn.IValue>(), new NameKey(name), new WeakMemberDefinitionConverter(false,new NameKey(name)));
 
                 return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReferance(
                     left.Run(scope, context).Resolve,

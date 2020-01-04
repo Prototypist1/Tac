@@ -13,6 +13,7 @@ using Tac.Parser;
 using Tac.Semantic_Model.CodeStuff;
 using Tac.Semantic_Model.Operations;
 using Tac.Frontend.Parser;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Semantic_Model.CodeStuff
 {
@@ -174,7 +175,7 @@ namespace Tac.Semantic_Model.Operations
             
             // this is shit, with good code this is fine, but with bad code this will throw
             // I will need to change this when I do a pass to communitcate error better
-            (x.SetUpSideNode as Tpn.IValue).AssignTo(mem);
+            x.SetUpSideNode.CastTo<Tpn.IValue>().AssignTo(mem);
 
             return c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter());
         })
