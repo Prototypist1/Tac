@@ -104,7 +104,7 @@ namespace Tac.Semantic_Model
 
             public ISetUpResult<WeakObjectDefinition, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var key = new ImplicitKey();
+                var key = new ImplicitKey(Guid.NewGuid());
 
                 var box = new Box<IResolve<IFrontendCodeElement>[]>();
                 var myScope = context.TypeProblem.CreateObject(scope, key, new WeakObjectConverter(box));

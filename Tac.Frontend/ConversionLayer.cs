@@ -168,7 +168,7 @@ namespace Tac.Frontend
         public OrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             return new OrType<WeakMethodDefinition, WeakImplementationDefinition>( new WeakMethodDefinition(
-                Help.GetType(typeSolution, typeSolution.GetResultType(from)),
+                Help.GetType(typeSolution, typeSolution.GetResultMember(from)),
                 typeSolution.GetMember(typeSolution.GetInputMember(from)),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
@@ -212,7 +212,7 @@ namespace Tac.Frontend
             return new OrType<WeakMethodDefinition, WeakImplementationDefinition>(new WeakImplementationDefinition(
                 typeSolution.GetMember(typeSolution.GetInputMember(from)),
                 typeSolution.GetMember(typeSolution.GetInputMember(inner.GetValue())),
-                Help.GetType(typeSolution, typeSolution.GetResultType(inner.GetValue())),
+                Help.GetType(typeSolution, typeSolution.GetResultMember(inner.GetValue())),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IFrontendCodeElement>()));

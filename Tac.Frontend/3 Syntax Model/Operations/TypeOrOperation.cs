@@ -65,7 +65,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
             SymbolsRegistry.StaticTypeOrSymbol, 
             (l, r) => new Box<WeakTypeOrOperation>(new WeakTypeOrOperation(l, r)),
             (s,c,l,r)=> {
-                var key = new ImplicitKey();
+                var key = new ImplicitKey(Guid.NewGuid());
                 c.TypeProblem.CreateOrType(s, key,(Tpn.TypeProblem2.TypeReference)l.SetUpSideNode, (Tpn.TypeProblem2.TypeReference)r.SetUpSideNode,new WeakTypeOrOperationConverter());
                 var reference = c.TypeProblem.CreateTypeReference(s, key, new WeakTypeReferenceConverter());
                 return reference;
