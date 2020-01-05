@@ -27,13 +27,13 @@ namespace Tac.Frontend
     }
 
 
-    internal class TestScopeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, WeakScope>
-    {
-        public WeakScope Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
-        {
-            return Help.GetScope(typeSolution, from);
-        }
-    }
+    //internal class TestScopeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, WeakScope>
+    //{
+    //    public WeakScope Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+    //    {
+    //        return Help.GetScope(typeSolution, from);
+    //    }
+    //}
 
     internal static class Help
     {

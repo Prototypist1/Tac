@@ -486,8 +486,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             // basic stuff
             private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
 
-            public IScope Base { get; }
-            public IScope Root { get; }
+            private IScope Primitive { get; }
+            public IScope Dependency { get; }
+            public IScope ModuleRoot { get; }
 
             // relationships
             private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
@@ -566,6 +567,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 methodTypes[parent].Add(key, type);
             }
+            // why do objects have keys?
+            // that is wierd
             public void HasObject(IScope parent, IKey key, Object @object)
             {
                 if (!objects.ContainsKey(parent))
@@ -714,6 +717,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
+            // why do objects have keys?
+            // that is wierd
             public Object CreateObject(IScope parent, IKey key, IConvertTo<Object, OrType<WeakObjectDefinition, WeakModuleDefinition>> converter)
             {
                 var res = new Object(this, key.ToString(), converter);
@@ -1892,8 +1897,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> rootConverter)
             {
 
-                Base = new Scope(this, "base", rootConverter);
-                Root = CreateScope(Base, rootConverter);
+                Primitive = new Scope(this, "base", rootConverter);
+                Dependency = CreateScope(Primitive, rootConverter);
+                ModuleRoot = CreateScope(Dependency, rootConverter);
 
                 //CreateGenericType(Root, new NameKey("method"), new IKey[] {
                 //    new NameKey("input"),
@@ -1905,10 +1911,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    new NameKey("input"),
                 //    new NameKey("output")
                 //});
-                CreateType(Base, new NameKey("number"), new PrimitiveTypeConverter(new NumberType()));
-                CreateType(Base, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));
-                CreateType(Base, new NameKey("bool"), new PrimitiveTypeConverter(new BooleanType()));
-                CreateType(Base, new NameKey("empty"), new PrimitiveTypeConverter(new EmptyType()));
+                CreateType(Primitive, new NameKey("number"), new PrimitiveTypeConverter(new NumberType()));
+                CreateType(Primitive, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));
+                CreateType(Primitive, new NameKey("bool"), new PrimitiveTypeConverter(new BooleanType()));
+                CreateType(Primitive, new NameKey("empty"), new PrimitiveTypeConverter(new EmptyType()));
 
                 // shocked this works...
                 IGenericTypeParameterPlacholder[] genericParameters = new IGenericTypeParameterPlacholder[] { new GenericTypeParameterPlacholder(new NameKey("T1")), new GenericTypeParameterPlacholder(new NameKey("T2")) };
@@ -1920,7 +1926,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}",
                     new MethodTypeConverter());
 
-                HasMethodType(Base, key, res);
+                HasMethodType(Primitive, key, res);
                 foreach (var placeholder in placeholders)
                 {
                     var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", placeholder.converter);

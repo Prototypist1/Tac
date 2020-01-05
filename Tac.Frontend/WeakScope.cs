@@ -7,7 +7,7 @@ namespace Tac.Frontend
 {
     internal class WeakScope : IConvertable<IFinalizedScope>
     {
-        private List<IBox<WeakMemberDefinition>> membersList;
+        public readonly List<IBox<WeakMemberDefinition>> membersList;
 
         public WeakScope(List<IBox<WeakMemberDefinition>> membersList)
         {
