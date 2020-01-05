@@ -1038,7 +1038,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new Exception("no good!");
                     }
                 }
-                
+
+
+                // we don't want any dummies in our assignments 
+
+                foreach (var group in assignments.GroupBy(x => x.Item1))
+                {
+                    if (group.All(x => lookUps[x.Item2].Is1(out var _)))
+                    {
+                        lookUps[group.Key] = new OrType<MethodType, Type, Object, OrType, DummyType>( new InferredMethodType(this, "last minute method", new MethodTypeConverter()));
+                    }
+                    else if (group.All(x => !lookUps[x.Item2].Is1(out var _)))
+                    {
+                        lookUps[group.Key] = new OrType<MethodType, Type, Object, OrType, DummyType>(new InferredType(this, "last minute type", inferedTypeConvert));
+                    }
+                    else {
+                        throw new Exception("uhhh so it is a method and not a method 🤔");
+                    }
+                }
+
                 // flow up stream
                 // very sloppy and slow
                 // if I ever am worried about speed I am sure this will be a canidate
@@ -1046,9 +1064,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 do
                 {
                     go = false;
+
                     foreach (var (from, to) in assignments)
                     {
-                        go |= Flow(GetType(to), GetType(from));
+                        var toType = lookUps[to];
+                        var fromType = lookUps[from];
+                        go |= Flow(fromType,toType);
+                        
                     }
                 } while (go);
 
@@ -1667,6 +1689,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    }
                 //}
 
+
+
                 OrType<MethodType, Type, Object, OrType, DummyType> GetType(ITypeProblemNode value)
                 {
                     if (value is ILookUpType lookup)
@@ -1699,58 +1723,42 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // returns true if the target was modified 
-                bool Flow(OrType<MethodType, Type, Object, OrType, DummyType> inFromOr, OrType<MethodType, Type, Object, OrType, DummyType> inToOr)
+                bool Flow(OrType<MethodType, Type, Object, OrType, DummyType> flowFrom, OrType<MethodType, Type, Object, OrType, DummyType> flowTo)
                 {
                     var res = false;
 
-                    IHaveMembers to, from;
 
-                    if (inFromOr.Is1(out var fromMethod) && inToOr.Is1(out var toMethod))
+                    if (flowFrom.Is1(out var fromMethod) && flowTo.Is1(out var toMethod))
                     {
-                        var inOne = GetType(methodInputs[new OrType<Method, MethodType>(fromMethod)]);
-                        var inTwo = GetType(methodInputs[new OrType<Method, MethodType>(fromMethod)]);
+                        var inFlowFrom = GetType(methodInputs[new OrType<Method, MethodType>(fromMethod)]);
+                        var inFlowTo = GetType(methodInputs[new OrType<Method, MethodType>(toMethod)]);
 
-                        // do I really flow both ways?
-                        if (IsInferred(inOne))
+                        if (IsInferred(inFlowTo))
                         {
-                            res |= Flow(inTwo, inOne);
+                            res |= Flow(inFlowFrom, inFlowTo);
                         }
-                        else if (IsInferred(inTwo))
-                        {
-                            res |= Flow(inOne, inTwo);
-                        }
-                        else
-                        {
-                            throw new Exception("these types are not compatible... right?");
-                        }
+                        
+                        var returnFlowFrom = GetType(methodReturns[new OrType<Method, MethodType>(fromMethod)]);
+                        var retrunFlowTo = GetType(methodReturns[new OrType<Method, MethodType>(toMethod)]);
 
-                        var outOne = GetType(methodReturns[new OrType<Method, MethodType>(fromMethod)]);
-                        var outTwo = GetType(methodReturns[new OrType<Method, MethodType>(fromMethod)]);
-
-                        // do I really flow both ways?
-                        if (IsInferred(outOne))
+                        if (IsInferred(retrunFlowTo))
                         {
-                            res |= Flow(outTwo, outOne);
-                        }
-                        else if (IsInferred(outTwo))
-                        {
-                            res |= Flow(outOne, outTwo);
-                        }
-                        else
-                        {
-                            throw new Exception("these types are not compatible... right?");
+                            res |= Flow(returnFlowFrom, retrunFlowTo);
                         }
                     }
 
-                    if (inFromOr.Is2(out var fromType))
+                    
+                    IHaveMembers from;
+
+                    if (flowFrom.Is2(out var fromType))
                     {
                         from = fromType;
                     }
-                    else if (inFromOr.Is3(out var fromObject))
+                    else if (flowFrom.Is3(out var fromObject))
                     {
                         from = fromObject;
                     }
-                    else if (inFromOr.Is4(out var fromOr))
+                    else if (flowFrom.Is4(out var fromOr))
                     {
                         from = fromOr;
                     }
@@ -1759,56 +1767,31 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new Exception("yuck");
                     }
 
-                    if (inToOr.Is2(out var toType))
-                    {
-                        to = toType;
-                    }
-                    else if (inToOr.Is3(out var toObject))
-                    {
-                        to = toObject;
-                    }
-                    else if (inToOr.Is4(out var toOr))
-                    {
-                        to = toOr;
-                    }
-                    else
-                    {
-                        throw new Exception("yuck");
-                    }
-
                     // I think the only thing that "flow" are members
                     // but not all types will accept new members
-                    if (toType is InferredType inferred)
+                    if (flowTo.Is2(out var toType) && toType is InferredType inferredFlowTo)
                     {
                         foreach (var memberPair in GetMembers(from))
                         {
-                            if (!members.ContainsKey(inferred))
+                            if (!members.ContainsKey(inferredFlowTo))
                             {
-                                members[inferred] = new Dictionary<IKey, Member>();
+                                members[inferredFlowTo] = new Dictionary<IKey, Member>();
                             }
-                            var dict = members[inferred];
-                            if (dict.TryGetValue(memberPair.Key, out var upstreamMember))
+                            var dict = members[inferredFlowTo];
+                            if (dict.TryGetValue(memberPair.Key, out var memberFlowTo))
                             {
-                                var one = GetType(upstreamMember);
-                                var two = GetType(memberPair.Value);
-                                // do I really flow both ways?
-                                if (IsInferred(one))
+                                var typeFlowTo = GetType(memberFlowTo);
+                                var typeFlowFrom = GetType(memberPair.Value);
+                                
+                                if (IsInferred(typeFlowTo))
                                 {
-                                    res |= Flow(two, one);
-                                }
-                                else if (IsInferred(two))
-                                {
-                                    res |= Flow(one, two);
-                                }
-                                else
-                                {
-                                    throw new Exception("these types are not compatible... right?");
+                                    res |= Flow(typeFlowFrom, typeFlowTo);
                                 }
                             }
                             else
                             {
                                 var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                                HasMember(inferred, memberPair.Key, newValue);
+                                HasMember(inferredFlowTo, memberPair.Key, newValue);
                                 lookUps[newValue] = lookUps[memberPair.Value];
                                 res = true;
                             }
@@ -1819,7 +1802,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // ooo! static local!
                     static bool IsInferred(OrType<MethodType, Type, Object, OrType, DummyType> toCheck)
                     {
-                        return toCheck.Is2(out var v2) && v2 is InferredType;
+                        return toCheck.Is2(out var v2) && v2 is InferredType || toCheck.Is1(out var v1) && v1 is InferredMethodType;
                     }
                 }
 
