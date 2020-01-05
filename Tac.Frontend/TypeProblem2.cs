@@ -424,19 +424,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            public class DummyType : TypeProblemNode
-            {
-                public DummyType(TypeProblem2 problem, string debugName) : base(problem, debugName)
-                {
-                }
-            }
-
             // methods don't really have members in the way other things do
             // they have members while they are executing
             // but you can't really access their members
             public class MethodType : TypeProblemNode<MethodType, SyntaxModel.Elements.AtomicTypes.MethodType>, IHaveInputAndOutput, IHaveMembers, IScope
             {
                 public MethodType(TypeProblem2 problem, string debugName, IConvertTo<MethodType, SyntaxModel.Elements.AtomicTypes.MethodType> converter) : base(problem, debugName, converter)
+                {
+                }
+            }
+
+            public class DummyType : TypeProblemNode, IHaveInputAndOutput, IHaveMembers, IScope
+            {
+                public DummyType(TypeProblem2 problem, string debugName) : base(problem, debugName)
                 {
                 }
             }
@@ -449,15 +449,16 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation>, IHaveMembers
-            {
-                public OrType(TypeProblem2 problem, string debugName, IConvertTo<OrType, WeakTypeOrOperation> converter) : base(problem, debugName, converter)
-                {
-                }
-            }
             public class InferredType : Type
             {
                 public InferredType(TypeProblem2 problem, string debugName, IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
+                {
+                }
+            }
+
+            public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation>, IHaveMembers
+            {
+                public OrType(TypeProblem2 problem, string debugName, IConvertTo<OrType, WeakTypeOrOperation> converter) : base(problem, debugName, converter)
                 {
                 }
             }
@@ -1053,22 +1054,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-
                 // we don't want any dummies in our assignments 
-
                 foreach (var group in assignments.GroupBy(x => x.Item1))
                 {
-                    if (group.All(x => lookUps[x.Item2].Is1(out var _)))
+                    if (lookUps[group.Key].Is5(out var _))
                     {
-                        lookUps[group.Key] = new OrType<MethodType, Type, Object, OrType, DummyType>(new InferredMethodType(this, "last minute method", new MethodTypeConverter()));
-                    }
-                    else if (group.All(x => !lookUps[x.Item2].Is1(out var _)))
-                    {
-                        lookUps[group.Key] = new OrType<MethodType, Type, Object, OrType, DummyType>(new InferredType(this, "last minute type", inferedTypeConvert));
-                    }
-                    else
-                    {
-                        throw new Exception("uhhh so it is a method and not a method 🤔");
+                        if (group.All(x => lookUps[x.Item2].Is1(out var _)))
+                        {
+                            lookUps[group.Key] = new OrType<MethodType, Type, Object, OrType, DummyType>(new InferredMethodType(this, "last minute method", new MethodTypeConverter()));
+                        }
+                        else if (group.All(x => !lookUps[x.Item2].Is1(out var _)))
+                        {
+                            lookUps[group.Key] = new OrType<MethodType, Type, Object, OrType, DummyType>(new InferredType(this, "last minute type", inferedTypeConvert));
+                        }
+                        else
+                        {
+                            throw new Exception("uhhh so it is a method and not a method 🤔");
+                        }
                     }
                 }
 
@@ -1084,7 +1086,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         var toType = lookUps[to];
                         var fromType = lookUps[from];
-                        go |= Flow(fromType, toType);
+                        go |= Flow(toType,fromType);
 
                     }
                 } while (go);
@@ -1173,7 +1175,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (defererType.Is2(out var defererHaveMembers) && deferredToType.Is2(out var deferredToHaveType))
                     {
-                        foreach (var memberPair in GetMembers(defererHaveMembers))
+                        foreach (var memberPair in GetMembers(new OrType<IHaveMembers, OrType>(defererHaveMembers)))
                         {
                             if (!members.ContainsKey(deferredToHaveType))
                             {
@@ -1790,7 +1792,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // but not all types will accept new members
                     if (flowTo.Is2(out var toType) && toType is InferredType inferredFlowTo)
                     {
-                        foreach (var memberPair in GetMembers(from))
+                        foreach (var memberPair in GetMembers(new OrType<IHaveMembers, OrType>(from)))
                         {
                             if (!members.ContainsKey(inferredFlowTo))
                             {
@@ -1820,13 +1822,26 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 IReadOnlyDictionary<IKey, Member> GetMembers2(OrType<MethodType, Type, Object, OrType, DummyType> or)
                 {
-                    if (or.Is1(out var v1))
+                    if (or.Is1(out var _))
                     {
                         return new Dictionary<IKey, Member>();
                     }
                     else if (or.Is2(out var v2))
                     {
-                        return GetMembers(v2);
+                        return GetMembers(new OrType<IHaveMembers, OrType>(v2));
+                    }
+                    else if (or.Is3(out var v3))
+                    {
+                        return GetMembers(new OrType < IHaveMembers, OrType >(v3));
+                    }
+                    else if (or.Is4(out var v4))
+                    {
+                        return GetMembers(new OrType<IHaveMembers, OrType>(v4));
+
+                    }
+                    else if (or.Is5(out var v5))
+                    {
+                        return new Dictionary<IKey, Member>();
                     }
                     else
                     {
@@ -1834,9 +1849,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                IReadOnlyDictionary<IKey, Member> GetMembers(IHaveMembers type)
+                IReadOnlyDictionary<IKey, Member> GetMembers(OrType<IHaveMembers, OrType> type)
                 {
-                    if (type is IExplicitType explictType)
+                    if (type.Is1(out var explictType))
                     {
                         if (members.TryGetValue(explictType, out var res))
                         {
@@ -1845,7 +1860,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return new Dictionary<IKey, Member>();
                     }
 
-                    if (type is OrType orType)
+                    if (type.Is2(out var orType))
                     {
                         if (orTypeMembers.TryGetValue(orType, out var res))
                         {
