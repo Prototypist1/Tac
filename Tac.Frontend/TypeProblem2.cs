@@ -813,12 +813,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IsAssignedTo(target, thing);
             }
 
-            private TransientMember CreateTransientMember(IScope parent, IKey nameKey)
+            private TransientMember CreateTransientMember(IScope parent)
             {
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
                 lookUpTypeContext[res] = parent;
-                lookUpTypeKey[res] = nameKey;
+                return res;
+            }
+
+
+            private TransientMember CreateTransientMember(IScope parent, IKey typeKey)
+            {
+                var res = new TransientMember(this, "");
+                HasTransientMember(parent, res);
+                lookUpTypeContext[res] = parent;
+                lookUpTypeKey[res] = typeKey;
                 return res;
             }
 
@@ -872,7 +881,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     var methodInputKey = new ImplicitKey(Guid.NewGuid());
                     methodInputs[new OrType<Method, MethodType>(inferredMethodType)] = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey)); ;
-                    var returns = CreateTransientMember(inferredMethodType, new ImplicitKey(Guid.NewGuid())); ;
+                    var returns = CreateTransientMember(inferredMethodType); ;
                     methodReturns[new OrType<Method, MethodType>(inferredMethodType)] = returns;
 
                     return returns;
@@ -892,7 +901,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var methodInputKey = new ImplicitKey(Guid.NewGuid());
                     var input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey));
                     methodInputs[new OrType<Method, MethodType>(inferredMethodType)] = input;
-                    methodReturns[new OrType<Method, MethodType>(inferredMethodType)] = CreateTransientMember(inferredMethodType, new ImplicitKey(Guid.NewGuid()));
+                    methodReturns[new OrType<Method, MethodType>(inferredMethodType)] = CreateTransientMember(inferredMethodType);
 
                     return input;
                 }
@@ -906,10 +915,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             // pretty sure it is not safe to solve more than once 
             public ITypeSolution Solve(IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> inferedTypeConvert)
             {
-                var realizedGeneric = new Dictionary<GenericTypeKey, OrType<MethodType, Type, Object, OrType, DummyType>>();
+                // create types for everything 
                 var lookUps = new Dictionary<ILookUpType, OrType<MethodType, Type, Object, OrType, DummyType>>();
 
-                // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
                 foreach (var node in toLookUp.Where(x => !lookUpTypeKey.ContainsKey(x)))
                 {
@@ -917,9 +925,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     lookUps[node] = new OrType<MethodType, Type, Object, OrType, DummyType>(type);
                 }
 
+
                 // generics register themsleves 
-                var localScopes = typeProblemNodes.OfType<MethodType>().Select(x => new OrType<MethodType, Type>(x));
-                var localMethodTypes = typeProblemNodes.OfType<Type>().Select(x => new OrType<MethodType, Type>(x));
+                var realizedGeneric = new Dictionary<GenericTypeKey, OrType<MethodType, Type, Object, OrType, DummyType>>();
+
+                var localScopes = typeProblemNodes.OfType<MethodType>().Select(x => new OrType<MethodType, Type>(x)).Where(x=>genericOverlays.ContainsKey(x));
+                var localMethodTypes = typeProblemNodes.OfType<Type>().Select(x => new OrType<MethodType, Type>(x)).Where(x => genericOverlays.ContainsKey(x));
 
                 foreach (var node in new[] { localScopes, localMethodTypes }.SelectMany(x => x))
                 {
@@ -1027,30 +1038,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new Exception("no good!");
                     }
                 }
-
-                //var flowFroms = assignments.Select(x => x.Item1).ToList();
-                //var nextFlowFroms = flowFroms;
-                //while (flowFroms.Any()) {
-                //    nextFlowFroms = new List<ICanAssignFromMe>();
-                //    foreach (var from in flowFroms)
-                //    {
-                //        if (flowMap.ContainsKey(from))
-                //        {
-                //            foreach (var to in flowMap[from])
-                //            {
-                //                if (Flow(GetType(from), GetType(to))) {
-                //                    if (!nextFlowFroms.Contains(to)) {
-                //                        nextFlowFroms.Add(to);
-                //                    }   
-                //                }
-                //            }
-                //        }
-                //    }
-                //    flowFroms = nextFlowFroms;
-                //}
-
+                
+                // flow up stream
                 // very sloppy and slow
-                // if I never am worried about speed I am sure this will be a canidate
+                // if I ever am worried about speed I am sure this will be a canidate
                 bool go;
                 do
                 {
@@ -1061,14 +1052,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 } while (go);
 
-
                 // we dont flow downstream
-                // flow downstream
-                // we can't flow through convergences, since it might be an or-type
-                //foreach (var (from, to) in assignments.GroupBy(x => x.Item2).Where(x => x.Count() == 1).SelectMany(x => x))
-                //{
-                //    Flow(GetType(to), GetType(from));
-                //}
 
                 return new TypeSolution(lookUps.ToDictionary(x=>x.Key, x=> {
                     if (x.Value.Is1(out var v1))
@@ -1179,6 +1163,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                         var defererInput = methodInputs[new OrType<Method, MethodType>(defererMethod)];
                         var deferredToInput = methodInputs[new OrType<Method, MethodType>(deferredToMethod)];
                         TryMerge(defererInput, deferredToInput);
+                    }
+                    else if (defererType.Is5(out var _)) { 
+                        // do nothing 
                     }
                     else
                     {
@@ -1359,9 +1346,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return true;
                             }
                         }
-                        if (haveTypes is Type type)
+                        if (haveTypes is Type || haveTypes is MethodType)
                         {
-                            if (genericOverlays.TryGetValue(new OrType<MethodType, Type>(type), out var dict) && dict.TryGetValue(key, out var res))
+                            OrType<MethodType, Type> orType;
+                            if (haveTypes is Type type) {
+                                orType = new OrType<MethodType, Type>(type);
+                            } else if (haveTypes is MethodType methodType1) {
+                                orType = new OrType<MethodType, Type>(methodType1);
+                            } else {
+                                throw new Exception("💩💩💩💩💩");
+                            }
+
+                            if (genericOverlays.TryGetValue(orType, out var dict) && dict.TryGetValue(key, out var res))
                             {
                                 if (res.Is1(out var methodType))
                                 {
@@ -1949,8 +1945,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var methodInputKey = new ImplicitKey(Guid.NewGuid());
-                methodInputs[new OrType<Method, MethodType>(res)] = CreateMember(res, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey));
-                methodReturns[new OrType<Method, MethodType>(res)] = CreateTransientMember(res, new ImplicitKey(Guid.NewGuid()));
+                methodInputs[new OrType<Method, MethodType>(res)] = CreateMember(res, methodInputKey, new NameKey("T1"),new WeakMemberDefinitionConverter(false, methodInputKey));
+                methodReturns[new OrType<Method, MethodType>(res)] = CreateTransientMember(res, new NameKey("T2"));
             }
 
             private class GenericTypeKey
