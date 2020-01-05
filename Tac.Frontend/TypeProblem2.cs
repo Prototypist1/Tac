@@ -55,6 +55,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.OrType CreateOrType(IScope s, IKey key, TypeProblem2.TypeReference setUpSideNode1, TypeProblem2.TypeReference setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
             IKey GetKey(TypeProblem2.TypeReference type);
             TypeProblem2.Member GetInput(IValue method);
+            TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
             void IsNumber(IScope parent, ICanAssignFromMe target);
             void IsString(IScope parent, ICanAssignFromMe target);
@@ -912,6 +913,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return input;
                 }
             }
+
+            public Member GetInput(Method method)
+            {
+                return methodInputs[new OrType<Method, MethodType>(method)];
+            }
+
 
             public IKey GetKey(TypeProblem2.TypeReference type)
             {
@@ -1892,8 +1899,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-
-
             public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> rootConverter)
             {
 
@@ -1986,6 +1991,12 @@ namespace Tac.Frontend.New.CrzayNamespace
         public static Tpn.TypeProblem2.TransientMember Returns(this Tpn.IScope method)
         {
             return method.Problem.GetReturns(method);
+        }
+
+
+        public static Tpn.TypeProblem2.Member Input(this Tpn.TypeProblem2.Method method)
+        {
+            return method.Problem.GetInput(method);
         }
 
         public static Tpn.TypeProblem2.Member Input(this Tpn.IValue method)
