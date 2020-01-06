@@ -113,6 +113,45 @@ namespace Tac.Frontend
         public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.InferredType from)
         {
 
+
+            var scope = Help.GetScope(typeSolution, from);
+            typeSolution.TryGetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from), out var input);
+            typeSolution.TryGetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from), out var output);
+
+            if ((input != default || output != default) && scope.membersList.Count > 1) {
+                // this might be wrong
+                // methods might end up with more than one member
+                // input counts as a member but it is really something different
+                // todo
+                throw new Exception("so... this is a type and a method?!");
+            }
+
+            if (input != default && output != default)
+            {
+                return
+                    new MethodType(
+                        Help.GetType(typeSolution, input).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
+                        Help.GetType(typeSolution, output).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>());
+            }
+
+
+            if (input != default)
+            {
+                return
+                    new MethodType(
+                        Help.GetType(typeSolution, input).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
+                        new EmptyType());
+            }
+
+            if (output != default)
+            {
+                return
+                    new MethodType(
+                        new EmptyType(),
+                        Help.GetType(typeSolution, output).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>());
+            }
+
+            return new WeakTypeDefinition(new Box<WeakScope>(scope));
         }
     }
 
