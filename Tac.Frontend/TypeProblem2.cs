@@ -746,7 +746,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
-                var returns = CreateTransientMember(res, new ImplicitKey(Guid.NewGuid()));
+                var returns = CreateTransientMember(res);
                 methodReturns[new OrType<Method, MethodType, InferredType>(res)] = returns;
                 var input = CreateMember(res, new NameKey(inputName), inputConverter);
                 methodInputs[new OrType<Method, MethodType, InferredType>(res)] = input;
@@ -760,7 +760,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputType.debugName},outputType:{outputType.debugName}}}", converter);
                 IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
-                var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateTransientMember(res, outkey) : CreateTransientMember(res, new ImplicitKey(Guid.NewGuid()));
+                var returns = lookUpTypeKey.TryGetValue(inputType, out var outkey) ? CreateTransientMember(res, outkey) : CreateTransientMember(res);
                 methodReturns[new OrType<Method, MethodType, InferredType>(res)] = returns;
                 if (lookUpTypeKey.TryGetValue(inputType, out var inkey))
                 {
@@ -858,8 +858,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //
             public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter)
             {
-                var key = new ImplicitKey(Guid.NewGuid());
-                var thing = CreateTransientMember(parent, key);
+                var thing = CreateTransientMember(parent);
                 var method = CreateMethod(parent, "input", converter, inputConverter);
                 IsAssignedTo(target, thing);
                 return method;
@@ -1827,9 +1826,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var res = false;
 
-                    // TODO
-                    // copy paste city!
-
                     if (flowFrom.Is1(out var fromMethod) && flowTo.Is1(out var toMethod))
                     {
                         var inFlowFrom = GetType(methodInputs[new OrType<Method, MethodType, InferredType>(fromMethod)]);
@@ -1918,6 +1914,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                         var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
                                         HasMember(deferredToInferred, memberPair.Key, newValue);
                                         lookUps[newValue] = lookUps[memberPair.Value];
+                                        res = true;
                                     }
                                 }
                             }
@@ -1956,6 +1953,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     else
                                     {
                                         methodReturns[new OrType<Method, MethodType, InferredType>(deferredToInferred)] = defererReturns;
+                                        res = true;
                                     }
                                 }
 
@@ -1968,6 +1966,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     else
                                     {
                                         methodInputs[new OrType<Method, MethodType, InferredType>(deferredToInferred)] = defererInput;
+                                        res = true;
                                     }
                                 }
                             }

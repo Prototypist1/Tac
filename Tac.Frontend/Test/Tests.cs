@@ -90,7 +90,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var methodResult = result.GetMethod(method).GetValue().Is1OrThrow();
 
-            HasCount(4, methodResult);
+            HasCount(3, methodResult);
+            HasMember(methodResult, new NameKey("input"));
             HasMember(methodResult, new NameKey("x"));
             HasMember(methodResult, new NameKey("y"));
             var inputResult = MemberToType(HasMember(methodResult, new NameKey("input")));
