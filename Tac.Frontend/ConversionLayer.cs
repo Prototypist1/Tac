@@ -53,7 +53,8 @@ namespace Tac.Frontend
         {
             var orType = typeSolution.GetType(lookUpType);
 
-            if (orType.Is1(out var v1)) {
+            if (orType.Is1(out var v1))
+            {
                 return new Box<IFrontendType>(typeSolution.GetMethodType(v1).GetValue());
             }
             else if (orType.Is2(out var v2))
@@ -83,7 +84,7 @@ namespace Tac.Frontend
                 {
                     return new Box<IFrontendType>(inner1);
                 }
-                else if (inner.Is2(out var inner2)) 
+                else if (inner.Is2(out var inner2))
                 {
                     return new Box<IFrontendType>(inner2);
                 }
@@ -96,10 +97,22 @@ namespace Tac.Frontend
             {
                 return typeSolution.GetOrType(v4);
             }
+            else if (orType.Is5(out var v5))
+            {
+                return typeSolution.GetInferredType(v5, new InferredTypeConverter());
+            }
             else
             {
                 throw new Exception("well, should have been one of those");
             }
+        }
+    }
+
+    internal class InferredTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.InferredType, IFrontendType>
+    {
+        public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.InferredType from)
+        {
+
         }
     }
 
@@ -170,8 +183,8 @@ namespace Tac.Frontend
             // 
             return 
                 new MethodType(
-                    Help.GetType(typeSolution, typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>(from))).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
-                    Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>(from))).GetValue().CastTo< IConvertableFrontendType<IVerifiableType>>());
+                    Help.GetType(typeSolution, typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from))).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
+                    Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from))).GetValue().CastTo< IConvertableFrontendType<IVerifiableType>>());
         }
     }
 
@@ -204,8 +217,8 @@ namespace Tac.Frontend
         public OrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             return new OrType<WeakMethodDefinition, WeakImplementationDefinition>( new WeakMethodDefinition(
-                Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( from))),
-                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( from))),
+                Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
+                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
@@ -246,9 +259,9 @@ namespace Tac.Frontend
         public OrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             return new OrType<WeakMethodDefinition, WeakImplementationDefinition>(new WeakImplementationDefinition(
-                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( from))),
-                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( inner.GetValue()))),
-                Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType>( inner.GetValue()))),
+                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
+                typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( inner.GetValue()))),
+                Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( inner.GetValue()))),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IFrontendCodeElement>()));
