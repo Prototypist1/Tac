@@ -31,6 +31,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
                 this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
             }
+
+            public override string ToString()
+            {
+                return key.ToString();
+            }
         }
 
         internal interface ISetUpTypeProblem
@@ -1465,9 +1470,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var pair in map)
                     {
-                        if (pair.Key is IScope fromScope && to is IScope toScope)
+                        if (pair.Key is IScope fromScope)
                         {
-                            kidParent[toScope] = CopiedToOrSelf(kidParent[fromScope]);
+                            if (to.Is1(out var method))
+                            {
+                                kidParent[method] = CopiedToOrSelf(kidParent[fromScope]);
+                            }
+                            else if (to.Is2(out var type)) 
+                            {
+                                kidParent[type] = CopiedToOrSelf(kidParent[fromScope]);
+                            }
                         }
                     }
 
@@ -2090,7 +2102,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var res = new MethodType(
                     this,
-                    $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}",
+                    $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.key.ToString())}",
                     new MethodTypeConverter());
 
                 HasMethodType(Primitive, key, res);

@@ -49,6 +49,65 @@ namespace Tac.Frontend
             return new WeakScope(membersList);
         }
 
+        private class UnWrappingTypeBox : IBox<IFrontendType>
+        {
+            private IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box;
+
+            public UnWrappingTypeBox(IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box)
+            {
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IFrontendType GetValue()
+            {
+                var inner = box.GetValue();
+                if (inner.Is1(out var inner1))
+                {
+                    return inner1;
+                }
+                else if (inner.Is2(out var inner2))
+                {
+                    return inner2;
+                }
+                else if (inner.Is3(out var inner3))
+                {
+                    return inner3;
+                }
+                else
+                {
+                    throw new Exception("wish there was a clearner way to do this");
+                }
+            }
+        }
+
+
+        private class UnWrappingObjectBox : IBox<IFrontendType>
+        {
+            private IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> box;
+
+            public UnWrappingObjectBox(IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> box)
+            {
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IFrontendType GetValue()
+            {
+                var inner = box.GetValue();
+                if (inner.Is1(out var inner1))
+                {
+                    return inner1;
+                }
+                else if (inner.Is2(out var inner2))
+                {
+                    return inner2;
+                }
+                else
+                {
+                    throw new Exception("blarg");
+                }
+            }
+        }
+
         public static IBox<IFrontendType> GetType(Tpn.ITypeSolution typeSolution, Tpn.ILookUpType lookUpType)
         {
             var orType = typeSolution.GetType(lookUpType);
@@ -59,39 +118,13 @@ namespace Tac.Frontend
             }
             else if (orType.Is2(out var v2))
             {
-                var inner = typeSolution.GetExplicitType(v2).GetValue();
-                if (inner.Is1(out var inner1))
-                {
-                    return new Box<IFrontendType>(inner1);
-                }
-                else if (inner.Is2(out var inner2))
-                {
-                    return new Box<IFrontendType>(inner2);
-                }
-                else if (inner.Is3(out var inner3))
-                {
-                    return new Box<IFrontendType>(inner3);
-                }
-                else
-                {
-                    throw new Exception("wish there was a clearner way to do this");
-                }
+
+                return new UnWrappingTypeBox(typeSolution.GetExplicitType(v2));
             }
             else if (orType.Is3(out var v3))
             {
-                var inner = typeSolution.GetObject(v3).GetValue();
-                if (inner.Is1(out var inner1))
-                {
-                    return new Box<IFrontendType>(inner1);
-                }
-                else if (inner.Is2(out var inner2))
-                {
-                    return new Box<IFrontendType>(inner2);
-                }
-                else
-                {
-                    throw new Exception("blarg");
-                }
+                return new UnWrappingObjectBox(typeSolution.GetObject(v3));
+                
             }
             else if (orType.Is4(out var v4))
             {
@@ -266,19 +299,6 @@ namespace Tac.Frontend
 
         
     }
-
-    //internal class MemberTypeBox : IBox<IFrontendType>
-    //{
-    //    private readonly IBox<WeakMemberDefinition> memberBox;
-
-    //    public MemberTypeBox(IBox<WeakMemberDefinition> memberBox)
-    //    {
-    //        this.memberBox = memberBox ?? throw new ArgumentNullException(nameof(memberBox));
-    //    }
-
-    //    public IFrontendType GetValue() => memberBox.GetValue().Type.GetValue();
-
-    //}
 
     internal class WeakImplementationDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>>
     {
