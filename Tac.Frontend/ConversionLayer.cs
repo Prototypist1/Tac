@@ -26,14 +26,10 @@ namespace Tac.Frontend
         }
     }
 
-
-    //internal class TestScopeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, WeakScope>
-    //{
-    //    public WeakScope Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
-    //    {
-    //        return Help.GetScope(typeSolution, from);
-    //    }
-    //}
+    // {D27D98BA-96CF-402C-824C-744DACC63FEE}
+    // I have a lot of GetValue on this page
+    // I am sure they are ok when they are passed in the consturctor
+    // but if they running of typeSolution they are not really safe
 
     internal static class Help
     {
@@ -161,6 +157,8 @@ namespace Tac.Frontend
 
             if (input != default && output != default)
             {
+                // I don't think this is safe see:
+                //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
                         Help.GetType(typeSolution, input).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
@@ -170,6 +168,8 @@ namespace Tac.Frontend
 
             if (input != default)
             {
+                // I don't think this is safe see:
+                //  {D27D98BA-96CF-402C-824C-744DACC63FEE}e
                 return
                     new MethodType(
                         Help.GetType(typeSolution, input).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
@@ -178,6 +178,8 @@ namespace Tac.Frontend
 
             if (output != default)
             {
+                // I don't think this is safe see:
+                //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
                         new EmptyType(),
@@ -253,27 +255,30 @@ namespace Tac.Frontend
         {
             // TODO I added the CastTo b/c I am sick of it not compiling
             // 
-            return 
+
+            // I don't think this is safe see:
+            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+            return
                 new MethodType(
                     Help.GetType(typeSolution, typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from))).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
                     Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from))).GetValue().CastTo< IConvertableFrontendType<IVerifiableType>>());
         }
     }
 
-    internal class PrimativeTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IFrontendType>
-    {
-        private readonly IFrontendType frontendType;
+    //internal class PrimativeTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IFrontendType>
+    //{
+    //    private readonly IFrontendType frontendType;
 
-        public PrimativeTypeConverter(IFrontendType frontendType)
-        {
-            this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
-        }
+    //    public PrimativeTypeConverter(IFrontendType frontendType)
+    //    {
+    //        this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
+    //    }
 
-        public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
-        {
-            return frontendType;
-        }
-    }
+    //    public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+    //    {
+    //        return frontendType;
+    //    }
+    //}
 
     internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>>
     {
@@ -349,6 +354,8 @@ namespace Tac.Frontend
     {
         public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
         {
+            // I don't think this is safe see:
+            // {D27D98BA-96CF-402C-824C-744DACC63FEE}
             return Help.GetType(typeSolution, from).GetValue();
         }
     }

@@ -2115,6 +2115,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var methodInputKey = new ImplicitKey(Guid.NewGuid());
                 methodInputs[new OrType<Method, MethodType, InferredType>(res)] = CreateMember(res, methodInputKey, new NameKey("T1"), new WeakMemberDefinitionConverter(false, methodInputKey));
                 methodReturns[new OrType<Method, MethodType, InferredType>(res)] = CreateTransientMember(res, new NameKey("T2"));
+                IsChildOf(Primitive, res);
             }
 
             private class GenericTypeKey
