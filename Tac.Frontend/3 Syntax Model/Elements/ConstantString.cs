@@ -9,8 +9,8 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel;
+using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
 
 namespace Tac.Parser
@@ -28,7 +28,7 @@ namespace Tac.Parser
 }
 
 
-namespace Tac.Semantic_Model.Operations
+namespace Tac.SemanticModel.Operations
 {
 
     // TODO how does this work???

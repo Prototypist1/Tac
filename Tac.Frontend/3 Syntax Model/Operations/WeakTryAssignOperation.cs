@@ -7,10 +7,10 @@ using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel.CodeStuff;
+using Tac.SemanticModel.Operations;
 
-namespace Tac.Semantic_Model.Operations
+namespace Tac.SemanticModel.Operations
 {
     internal class WeakTryAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ITryAssignOperation>
     {
@@ -79,7 +79,7 @@ namespace Tac.Parser
 }
 
 
-namespace Tac.Semantic_Model.CodeStuff
+namespace Tac.SemanticModel.CodeStuff
 {
     // maybe some registaration in this page
     // like at the bottum we tell something this is here

@@ -8,10 +8,10 @@ using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel.CodeStuff;
+using Tac.SemanticModel.Operations;
 
-namespace Tac.Semantic_Model.CodeStuff
+namespace Tac.SemanticModel.CodeStuff
 {
     // this is how we register the symbol
     public partial class SymbolsRegistry
@@ -34,7 +34,7 @@ namespace Tac.Parser
 }
 
 
-namespace Tac.Semantic_Model.Operations
+namespace Tac.SemanticModel.Operations
 {
     internal class WeakMultiplyOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IMultiplyOperation>
     {

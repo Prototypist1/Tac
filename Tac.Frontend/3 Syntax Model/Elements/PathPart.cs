@@ -8,13 +8,14 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel.CodeStuff;
+using Tac.SemanticModel.Operations;
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
 
-    internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReferance>, IFrontendType
+    // does not seems like this should be an "IFrontendType"
+    internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReferance>
     {
         IBox<IWeakMemberDefinition> MemberDefinition { get; }
     }

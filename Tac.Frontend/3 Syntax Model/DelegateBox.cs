@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
     // todo - should this cache?
     public class DelegateBox<T> : IBox<T> 

@@ -7,7 +7,7 @@ using System.Text;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.New;
-using Tac.Semantic_Model;
+using Tac.SemanticModel;
 using Xunit;
 
 namespace Tac.Frontend.TypeProblem.Test

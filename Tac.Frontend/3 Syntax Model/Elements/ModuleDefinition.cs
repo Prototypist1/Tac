@@ -12,7 +12,7 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model;
+using Tac.SemanticModel;
 
 namespace Tac.Parser
 {
@@ -29,7 +29,7 @@ namespace Tac.Parser
 }
 
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
 
 

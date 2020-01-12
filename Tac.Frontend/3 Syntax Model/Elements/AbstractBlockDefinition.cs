@@ -5,7 +5,7 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
 
     internal abstract class WeakAbstractBlockDefinition<T> : IConvertableFrontendCodeElement<T>, IScoped

@@ -7,9 +7,9 @@ using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model.Elements;
 using Tac.Parser;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel;
+using Tac.SemanticModel.CodeStuff;
+using Tac.SemanticModel.Operations;
 
 namespace Tac.New
 {

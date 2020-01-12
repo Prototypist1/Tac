@@ -10,7 +10,7 @@ using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
+using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Parser
 {
@@ -24,7 +24,7 @@ namespace Tac.Parser
     }
 }
 
-namespace Tac.Semantic_Model.CodeStuff
+namespace Tac.SemanticModel.CodeStuff
 {
     // this is how we register the symbol
     public partial class SymbolsRegistry

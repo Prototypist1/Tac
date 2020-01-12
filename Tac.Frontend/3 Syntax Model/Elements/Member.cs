@@ -7,8 +7,8 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel;
+using Tac.SemanticModel.Operations;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Prototypist.Toolbox;
 using Tac.Frontend.Parser;
@@ -25,7 +25,7 @@ namespace Tac.Parser
 }
 
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
     internal class MemberMaker : IMaker<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>
     {

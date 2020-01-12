@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
     public interface IBox<out T> 
     {

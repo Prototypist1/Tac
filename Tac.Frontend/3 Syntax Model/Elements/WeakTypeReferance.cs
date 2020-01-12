@@ -14,7 +14,7 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
     //internal class OverlayTypeReference //: IFrontendType
     //{

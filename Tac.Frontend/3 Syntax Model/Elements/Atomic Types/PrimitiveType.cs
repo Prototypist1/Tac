@@ -6,10 +6,12 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
-using Tac.Semantic_Model;
+using Tac.SemanticModel;
 
 namespace Tac.SyntaxModel.Elements.AtomicTypes
 {
+    // reference is a type!
+
     internal interface IPrimitiveType: IFrontendType
     {
     }
@@ -50,7 +52,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         IKey Key { get; }
     }
 
-    internal struct GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder
+    internal struct GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder, IEquatable<GenericTypeParameterPlacholder>
     {
         public GenericTypeParameterPlacholder(IKey key)
         {
@@ -61,8 +63,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public override bool Equals(object obj)
         {
-            return obj is GenericTypeParameterPlacholder placholder &&
-                   EqualityComparer<IKey>.Default.Equals(Key, placholder.Key);
+            return obj is GenericTypeParameterPlacholder placholder && Equals(placholder);
         }
 
         public override int GetHashCode()
@@ -80,6 +81,10 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IVerifiableType>(res, () => { maker.Build(key); });
         }
 
+        public bool Equals(GenericTypeParameterPlacholder placholder)
+        {
+            return EqualityComparer<IKey>.Default.Equals(Key, placholder.Key);
+        }
     }
 
     internal struct AnyType : IConvertableFrontendType<IAnyType>, IPrimitiveType
@@ -158,6 +163,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
     }
 
+    // uhhh do I still need these?? (GenericMethodType, GenericImplementationType, IGenericMethodType, IGenericImplementationType)
+    // I hope not.
 
     internal interface IGenericMethodType : IFrontendType, IFrontendGenericType { }
 
@@ -177,20 +184,6 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
-        //public OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
-        //{
-        //    var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));
-
-        //    var overlayedInput = overlay.Convert(input);
-        //    var overlayedOutput = overlay.Convert(output);
-
-        //    if (overlayedInput is IConvertableFrontendType<IVerifiableType> convertableInput && overlayedOutput is IConvertableFrontendType<IVerifiableType> convertableOutput) {
-        //        return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new MethodType(convertableInput, convertableOutput));
-        //    }
-
-        //    return new OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>>(new GenericMethodType(overlayedInput, overlayedOutput));
-
-        //}
     }
 
 

@@ -8,10 +8,10 @@ using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Parser;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
     // I am not really sure this is a useful concept
     internal interface IScoped

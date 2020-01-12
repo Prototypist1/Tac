@@ -7,7 +7,7 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated.Elements;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model;
+using Tac.SemanticModel;
 using Tac.Frontend;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Model;

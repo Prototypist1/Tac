@@ -5,7 +5,7 @@ using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
-using Tac.Semantic_Model;
+using Tac.SemanticModel;
 
 namespace Tac.Frontend._3_Syntax_Model.Elements
 {

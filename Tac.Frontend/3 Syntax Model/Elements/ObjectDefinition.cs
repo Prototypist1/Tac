@@ -10,9 +10,9 @@ using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
-using Tac.Semantic_Model;
+using Tac.SemanticModel.CodeStuff;
+using Tac.SemanticModel.Operations;
+using Tac.SemanticModel;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Prototypist.Toolbox;
@@ -34,7 +34,7 @@ namespace Tac.Parser
 }
 
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
 
     internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>, IScoped, IFrontendType

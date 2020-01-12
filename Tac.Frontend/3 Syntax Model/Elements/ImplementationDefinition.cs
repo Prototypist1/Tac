@@ -13,8 +13,8 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
+using Tac.SemanticModel;
+using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Parser
 {
@@ -30,10 +30,10 @@ namespace Tac.Parser
     }
 }
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
 
-    internal class WeakImplementationDefinition: IConvertableFrontendCodeElement<IImplementationDefinition>, IFrontendType
+    internal class WeakImplementationDefinition: IConvertableFrontendCodeElement<IImplementationDefinition>
     {
 
         public WeakImplementationDefinition(
@@ -52,21 +52,6 @@ namespace Tac.Semantic_Model
             StaticInitialzers = staticInitializers ?? throw new ArgumentNullException(nameof(staticInitializers));
         }
 
-        // dang! these could also be inline definitions 
-        public IBox<IFrontendType> ContextTypeBox
-        {
-            get
-            {
-                return ContextDefinition;
-            }
-        }
-        public IBox<IFrontendType> InputTypeBox
-        {
-            get
-            {
-                return ParameterDefinition;
-            }
-        }
         public IBox<IFrontendType> OutputType { get; }
         public IBox<IWeakMemberDefinition> ContextDefinition { get; }
         public IBox<IWeakMemberDefinition> ParameterDefinition { get; }

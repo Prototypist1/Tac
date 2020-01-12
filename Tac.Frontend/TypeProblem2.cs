@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Operations;
 using Tac.Model;
-using Tac.Semantic_Model;
 using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 
@@ -1741,7 +1740,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    }
                 //}
 
-                bool IsHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers haveMembers) {
+                static bool IsHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers haveMembers) {
                     if (type.Is1(out var v1)) {
                         haveMembers = default;
                         return false;
@@ -1769,8 +1768,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     throw new Exception("boom!");
                 }
 
-
-                bool IsNotInferedHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers haveMembers)
+                static bool IsNotInferedHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers haveMembers)
                 {
                     if (type.Is1(out var v1))
                     {

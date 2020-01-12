@@ -9,8 +9,8 @@ using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.New;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel;
+using Tac.SemanticModel.Operations;
 using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 

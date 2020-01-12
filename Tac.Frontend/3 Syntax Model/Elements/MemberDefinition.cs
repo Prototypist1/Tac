@@ -13,9 +13,9 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel;
+using Tac.SemanticModel.CodeStuff;
+using Tac.SemanticModel.Operations;
 
 
 namespace Tac.Parser
@@ -33,7 +33,7 @@ namespace Tac.Parser
 }
 
 
-namespace Tac.Semantic_Model
+namespace Tac.SemanticModel
 {
 
     // very tac-ian 
@@ -63,7 +63,8 @@ namespace Tac.Semantic_Model
 
     }
 
-    internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>, IFrontendType
+    // is this really a frontend type??
+    internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>
     {
         IBox<IFrontendType> Type { get; }
         bool ReadOnly { get; }

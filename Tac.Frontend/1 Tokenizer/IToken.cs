@@ -1,5 +1,5 @@
 ﻿using System;
-using Tac.Semantic_Model.CodeStuff;
+using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Parser
 {

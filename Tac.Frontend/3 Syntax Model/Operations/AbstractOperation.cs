@@ -11,9 +11,9 @@ using Tac.Model.Elements;
 using Tac.Model.Operations;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model.Operations;
+using Tac.SemanticModel.Operations;
 
-namespace Tac.Semantic_Model.CodeStuff
+namespace Tac.SemanticModel.CodeStuff
 {
 
     public static class StaticSymbolsRegistry {
@@ -43,7 +43,20 @@ namespace Tac.Semantic_Model.CodeStuff
         // when you use StaticSymbolsRegistry.SymbolsRegistry
         // we create a SymbolsRegistry so all the symbols are added to listLocker
         // then we set SymbolsRegistry.Symbols to listLocker
-        public static SymbolsRegistry SymbolsRegistry = CreateSymbolsRegistry();
+        private static SymbolsRegistry symbolsRegistry = CreateSymbolsRegistry();
+
+        public static SymbolsRegistry SymbolsRegistry
+        {
+            get
+            {
+                return symbolsRegistry;
+            }
+
+            set
+            {
+                symbolsRegistry = value;
+            }
+        }
 
         private static SymbolsRegistry CreateSymbolsRegistry() {
             var res = new SymbolsRegistry

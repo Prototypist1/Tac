@@ -4,7 +4,7 @@ using System.Text;
 using Tac.Backend;
 using Tac.Frontend;
 using Tac.Model;
-using Tac.Semantic_Model.CodeStuff;
+using Tac.SemanticModel.CodeStuff;
 using static Tac.Backend.Public.AssemblyBuilder;
 
 // yeah, I really do not need a project for this...

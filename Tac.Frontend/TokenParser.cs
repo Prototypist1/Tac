@@ -10,8 +10,8 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
-using Tac.Semantic_Model;
-using Tac.Semantic_Model.CodeStuff;
+using Tac.SemanticModel;
+using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Frontend
 {
@@ -33,10 +33,28 @@ namespace Tac.Frontend
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter());
 
-            throw new NotImplementedException("I need to rethink this a bit");
+            //throw new NotImplementedException("I need to rethink this a bit");
 
             foreach (var dependency in dependencies)
             {
+
+                // new new WIP
+
+
+                //var convertedDependency = dependencyConverter.ConvertToType(dependency);
+
+                //var typeKey = new ImplicitKey(Guid.NewGuid());
+                //var type = problem.CreateType(problem.Dependency, typeKey, throw);
+                //problem.CreateMember(problem.Dependency, dependency.Key, typeKey, throw);
+
+                //foreach (var member in convertedDependency.Scope.GetValue().membersList.Select(x => x.GetValue()))
+                //{
+                //    var innerTypeKey = GetTypeKey(type, member.Type.GetValue());
+                //    problem.CreateMember(type, member.Key, innerTypeKey, throw);
+                //}
+
+
+
                 // new code, work in progress
                 //problem.CreateMember(problem.Dependency, dependency.Key, new WeakMemberDefinitionConverter(true,dependency.Key));
                 //var key = new ImplicitKey(Guid.NewGuid());
@@ -49,6 +67,11 @@ namespace Tac.Frontend
 
 
                 //}
+
+
+                // the whole dependency is a type
+                // 
+
 
                 // old code
                 //var dependencyScope = problem.CreateScope(problem.Base, new WeakScopeConverter());
@@ -74,6 +97,66 @@ namespace Tac.Frontend
             var context = TransformerExtensions.NewConversionContext();
 
             return new Project<TBacking>(module.Convert(context), dependencies);
+        }
+
+        private static IKey GetTypeKey(Tpn.IScope context, IFrontendType frontendType)
+        {
+            throw new NotImplementedException();
+
+            if (frontendType is SyntaxModel.Elements.AtomicTypes.StringType)
+            {
+
+            }
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.EmptyType) { 
+            
+            }
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.NumberType) {
+
+            }
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.AnyType)
+            {
+
+            }
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.BooleanType)
+            {
+
+            }
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.MethodType)
+            {
+
+            }
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.ImplementationType)
+            {
+
+            }
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.ImplementationType)
+            {
+
+            }
+            else if (frontendType is Tac.Frontend._3_Syntax_Model.Operations.WeakTypeOrOperation)
+            {
+
+            }
+            else if (frontendType is Tac.SemanticModel.WeakMethodDefinition)
+            {
+
+            }
+            else if (frontendType is WeakImplementationDefinition)
+            {
+
+            }
+            else if (frontendType is WeakObjectDefinition)
+            {
+
+            }
+            else if (frontendType is WeakTypeDefinition)
+            {
+
+            }
+            else if (frontendType is WeakModuleDefinition)
+            {
+
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Tac.Model;
-using Tac.Semantic_Model;
+using Tac.SemanticModel;
 
 namespace Tac.Frontend
 {
