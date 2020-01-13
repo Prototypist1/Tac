@@ -64,12 +64,24 @@ namespace Tac.Model
     // I was clearly adding what I needed as I went 
     public interface IFinalizedScope
     {
-        IReadOnlyList<IMemberDefinition> Members { get; }
-        IReadOnlyList<IKey> MemberKeys { get; }
+        IReadOnlyDictionary<IKey, IsStatic> Members { get; }
+        IReadOnlyDictionary<IKey, IInterfaceType> Types { get; }
 
         //IReadOnlyList<GenericTypeEntry> GenericTypes { get; }
 
         //IReadOnlyList<TypeEntry> Types { get; }
+    }
+
+    public struct IsStatic
+    {
+        public IsStatic(IMemberDefinition value, bool @static)
+        {
+            Value = value ?? throw new ArgumentNullException(nameof(value));
+            Static = @static;
+        }
+
+        public IMemberDefinition Value { get; }
+        public bool Static { get; }
     }
 
     public class GenericKeyDefinition : IKey

@@ -27,14 +27,14 @@ namespace Tac.Tests.Samples
                                 
                 Module = ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
-                        new List<Scope.IsStatic>(){new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false),false) } ),
+                        new List<IsStatic>(){new IsStatic( MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false),false) } ),
                     new[] {
                         AssignOperation.CreateAndBuild(
                         ObjectDefiniton.CreateAndBuild(
                              Scope.CreateAndBuild(
-                                new List<Scope.IsStatic> {
-                                    new Scope.IsStatic( localX ,false),
-                                    new Scope.IsStatic( localY ,false)
+                                new List<IsStatic> {
+                                    new IsStatic( localX ,false),
+                                    new IsStatic( localY ,false)
                                 }),
                             new IAssignOperation[]{
                                 AssignOperation.CreateAndBuild(

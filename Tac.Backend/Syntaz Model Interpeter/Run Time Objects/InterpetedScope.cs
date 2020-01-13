@@ -107,7 +107,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
                 foreach (var member in scopeDefinition.Members)
                 {
-                    backing[member.Key] = TypeManager.MakeMember(member.Type);
+                    backing[member.Key] = TypeManager.MakeMember(member.Value.Value.Type);
                 }
                 return new RunTimeAnyRootEntry(scope, type);
             };
@@ -124,7 +124,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
                 foreach (var member in scopeDefinition.Members)
                 {
-                    backing[member.Key] = TypeManager.MakeMember(member.Type); ;
+                    backing[member.Key] = TypeManager.MakeMember(member.Value.Value.Type); ;
                 }
 
                 return new RunTimeAnyRootEntry(scope, type);

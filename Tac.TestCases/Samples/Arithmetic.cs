@@ -12,7 +12,7 @@ namespace Tac.Tests.Samples
 
         public IModuleDefinition Module => ModuleDefinition.CreateAndBuild(
              Scope.CreateAndBuild(
-                new List<Scope.IsStatic> { new Scope.IsStatic( MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false) ,false)}),
+                new List<IsStatic> { new IsStatic( MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false) ,false)}),
             new[] {
                 AssignOperation.CreateAndBuild(
                     MultiplyOperation.CreateAndBuild(

@@ -17,9 +17,9 @@ module or-test
 
         public IModuleDefinition Module => ModuleDefinition.CreateAndBuild(
              Scope.CreateAndBuild(
-                new List<Scope.IsStatic> {
-                    new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false), false),
-                    new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("y"), TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false), false)}),
+                new List<IsStatic> {
+                    new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false), false),
+                    new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("y"), TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false), false)}),
             new[] {
                 AssignOperation.CreateAndBuild(
                     ConstantNumber.CreateAndBuild(5),

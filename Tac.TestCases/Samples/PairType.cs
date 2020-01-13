@@ -35,7 +35,7 @@ module pair-type {
             var inputKey = new NameKey("input");
             var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
             
-            var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(input, false) });
+            var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input, false) });
 
             var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), false);
             var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false);
@@ -45,7 +45,7 @@ module pair-type {
             
             Module = ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
-                    new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
+                    new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
                 new ICodeElement[] {
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(
@@ -57,9 +57,9 @@ module pair-type {
                                 ReturnOperation.CreateAndBuild(
                                     ObjectDefiniton.CreateAndBuild(
                                             Scope.CreateAndBuild(
-                                            new List<Scope.IsStatic> {
-                                                new Scope.IsStatic(localX ,false),
-                                                new Scope.IsStatic(localY, false)
+                                            new List<IsStatic> {
+                                                new IsStatic(localX ,false),
+                                                new IsStatic(localY, false)
                                             }),
                                         new IAssignOperation[]{
                                             AssignOperation.CreateAndBuild(

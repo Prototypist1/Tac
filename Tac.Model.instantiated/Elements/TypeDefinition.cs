@@ -17,7 +17,7 @@ namespace Tac.Model.Instantiated
 
     public static class FinalizedScopeExtensions
     {
-        public static IInterfaceModuleType ToVerifiableType(this IFinalizedScope scope) => scope.Members.Select(x => (x.Key, x.Type)).ToArray().ToVerifiableType();
+        public static IInterfaceModuleType ToVerifiableType(this IFinalizedScope scope) => scope.Members.Select(x => (x.Key, x.Value.Value.Type)).ToArray().ToVerifiableType();
 
 
         public static IInterfaceModuleType ToVerifiableType(this (IKey, IVerifiableType)[] scope)

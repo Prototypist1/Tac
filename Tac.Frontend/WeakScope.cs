@@ -18,7 +18,7 @@ namespace Tac.Frontend
         {
             var scope = new Tac.Model.Instantiated.Scope();
             return new BuildIntention<Model.Instantiated.Scope>(scope, () => {
-                scope.Build(membersList.Select(x=>new Model.Instantiated.Scope.IsStatic(x.GetValue().Convert(context),false)).ToArray());
+                scope.Build(membersList.Select(x=>new IsStatic(x.GetValue().Convert(context),false)).ToArray());
              });
         }
     }

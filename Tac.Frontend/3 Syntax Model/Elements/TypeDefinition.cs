@@ -58,7 +58,7 @@ namespace Tac.SemanticModel
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
             {
-                maker.Build(Scope.GetValue().Convert(context).Members);
+                maker.Build(Scope.GetValue().Convert(context).Members.Values.Select(x=>x.Value).ToArray());
             });
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
@@ -43,7 +44,7 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-            return InterfaceType.CreateAndBuild(Scope.Members);
+            return InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x=>x.Value).ToList());
         }
     }
 

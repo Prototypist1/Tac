@@ -15,7 +15,7 @@ namespace Tac.Runner
 
         public static void Run(string name, IReadOnlyList<IAssembly<InterpetedAssemblyBacking>> dependencies,string toRun)
         {
-            var module = TokenParser.Parse(toRun,dependencies, name);
+            var module = new TokenParser().Parse(toRun,dependencies, name);
             Interpeter.Run(module);
         }
     }

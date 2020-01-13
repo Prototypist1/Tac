@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -43,10 +44,10 @@ module mirror-module {
                 contextKey, 
                     InterfaceType.CreateAndBuild(
                         Scope.CreateAndBuild(
-                            new List<Scope.IsStatic>() {
-                                new Scope.IsStatic(localX ,false),
-                                new Scope.IsStatic(localY ,false),
-                            }).Members),
+                            new List<IsStatic>() {
+                                new IsStatic(localX ,false),
+                                new IsStatic(localY ,false),
+                            }).Members.Values.Select(x => x.Value).ToList()),
                 false); ;
 
             var inputKey = new NameKey("input");
@@ -56,15 +57,15 @@ module mirror-module {
             var temp = MemberDefinition.CreateAndBuild(tempKey, new AnyType(), false);
 
             var implementationScope = Scope.CreateAndBuild(
-                new List<Scope.IsStatic> {
-                    new Scope.IsStatic( input ,false),
-                    new Scope.IsStatic(temp ,false) });
+                new List<IsStatic> {
+                    new IsStatic( input ,false),
+                    new IsStatic(temp ,false) });
 
 
             Module = ModuleDefinition.CreateAndBuild(
                  Scope.CreateAndBuild(
-                    new List<Scope.IsStatic>() {
-                        new Scope.IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false) ,false) }),
+                    new List<IsStatic>() {
+                        new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false) ,false) }),
                 new[] {
                     AssignOperation.CreateAndBuild(
                     ImplementationDefinition.CreateAndBuild(

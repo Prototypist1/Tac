@@ -12,8 +12,8 @@ namespace Tac.Tests.Samples
     public class Factorial : ITestCase
     {
         public Factorial() {
-            var ifBlockScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { });
-            var elseBlock = Scope.CreateAndBuild(new List<Scope.IsStatic> { });
+            var ifBlockScope = Scope.CreateAndBuild(new List<IsStatic> { });
+            var elseBlock = Scope.CreateAndBuild(new List<IsStatic> { });
 
             var inputKey = new NameKey("input");
             var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
@@ -22,13 +22,13 @@ namespace Tac.Tests.Samples
             var fac = MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false);
 
 
-            var methodScope = Scope.CreateAndBuild(new List<Scope.IsStatic> { new Scope.IsStatic(input ,false) });
+            var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input ,false) });
 
 
             Module =
                 ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
-                        new List<Scope.IsStatic> { new Scope.IsStatic(MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false), false) }),
+                        new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false), false) }),
                     new ICodeElement[]{
                         AssignOperation.CreateAndBuild(
                                 MethodDefinition.CreateAndBuild(
