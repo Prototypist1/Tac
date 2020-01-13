@@ -15,10 +15,10 @@ using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Frontend
 {
-    public static class TokenParser
+    public class TokenParser
     {
         
-        public static IProject<TBacking> Parse<TBacking>(string text,IReadOnlyList<IAssembly<TBacking>> dependencies, string name)
+        public IProject<TBacking> Parse<TBacking>(string text,IReadOnlyList<IAssembly<TBacking>> dependencies, string name)
             where TBacking:IBacking
         {
 
@@ -40,19 +40,13 @@ namespace Tac.Frontend
 
                 // new new WIP
 
+                var convertedDependency = dependencyConverter.ConvertToType(dependency);
 
-                //var convertedDependency = dependencyConverter.ConvertToType(dependency);
+                var typeKey = new ImplicitKey(Guid.NewGuid());
+                var type = problem.CreateType(problem.Dependency, typeKey, throw);
+                problem.CreateMember(problem.Dependency, dependency.Key, typeKey, throw);
 
-                //var typeKey = new ImplicitKey(Guid.NewGuid());
-                //var type = problem.CreateType(problem.Dependency, typeKey, throw);
-                //problem.CreateMember(problem.Dependency, dependency.Key, typeKey, throw);
-
-                //foreach (var member in convertedDependency.Scope.GetValue().membersList.Select(x => x.GetValue()))
-                //{
-                //    var innerTypeKey = GetTypeKey(type, member.Type.GetValue());
-                //    problem.CreateMember(type, member.Key, innerTypeKey, throw);
-                //}
-
+                AddMembers(problem, type, dependency.Scope.Members);
 
 
                 // new code, work in progress
@@ -99,63 +93,104 @@ namespace Tac.Frontend
             return new Project<TBacking>(module.Convert(context), dependencies);
         }
 
-        private static IKey GetTypeKey(Tpn.IScope context, IFrontendType frontendType)
+        private IKey GetTypeKey(Tpn.TypeProblem2 problem, Tpn.IScope context, IFrontendType frontendType)
         {
-            throw new NotImplementedException();
 
             if (frontendType is SyntaxModel.Elements.AtomicTypes.StringType)
             {
-
+                return new NameKey("string");
             }
-            else if (frontendType is SyntaxModel.Elements.AtomicTypes.EmptyType) { 
-            
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.EmptyType) 
+            {
+                return new NameKey("empty");
             }
-            else if (frontendType is SyntaxModel.Elements.AtomicTypes.NumberType) {
-
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.NumberType) 
+            {
+                return new NameKey("number");
             }
             else if (frontendType is SyntaxModel.Elements.AtomicTypes.AnyType)
             {
-
+                return new NameKey("any");
             }
             else if (frontendType is SyntaxModel.Elements.AtomicTypes.BooleanType)
             {
-
+                return new NameKey("bool");
             }
-            else if (frontendType is SyntaxModel.Elements.AtomicTypes.MethodType)
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.MethodType methodType)
+            {
+                return new GenericNameKey(new NameKey("method"), new IKey[] {
+                    GetTypeKey(problem,context,methodType.InputType),
+                    GetTypeKey(problem,context,methodType.OutputType)
+                });
+            }
+            else if (frontendType is SyntaxModel.Elements.AtomicTypes.ImplementationType implementation)
             {
 
+                return new GenericNameKey(new NameKey("implementation"), new IKey[] {
+                    GetTypeKey(problem,context,implementation.ContextType),
+                    GetTypeKey(problem,context,implementation.InputType),
+                    GetTypeKey(problem,context,implementation.OutputType)
+                });
             }
-            else if (frontendType is SyntaxModel.Elements.AtomicTypes.ImplementationType)
+            else if (frontendType is Tac.Frontend._3_Syntax_Model.Operations.WeakTypeOrOperation typeOr)
             {
-
-            }
-            else if (frontendType is SyntaxModel.Elements.AtomicTypes.ImplementationType)
-            {
-
-            }
-            else if (frontendType is Tac.Frontend._3_Syntax_Model.Operations.WeakTypeOrOperation)
-            {
-
+                var key = new ImplicitKey(new Guid());
+                var left = problem.CreateTypeReference(context, GetTypeKey(problem, context, typeOr.Left.GetValue()), throw);
+                var right = problem.CreateTypeReference(context, GetTypeKey(problem, context, typeOr.Right.GetValue()), throw);
+                problem.CreateOrType(context, key, left, right, throw);
+                return key;
             }
             else if (frontendType is Tac.SemanticModel.WeakMethodDefinition)
             {
-
+                // this is an interesting case.
+                // frontendType should never be this
+                throw new NotImplementedException();
             }
             else if (frontendType is WeakImplementationDefinition)
             {
-
+                // frontendType should never be this
+                throw new NotImplementedException();
             }
-            else if (frontendType is WeakObjectDefinition)
+            else if (frontendType is WeakObjectDefinition weakObjectDefinition)
             {
-
+                var key = new ImplicitKey(new Guid());
+                var nextScope = problem.CreateObjectOrModule(context, key, throw);
+                AddMembers(problem,nextScope, weakObjectDefinition.Scope.GetValue());
+                return key;
             }
-            else if (frontendType is WeakTypeDefinition)
+            else if (frontendType is WeakTypeDefinition weakTypeDefinition)
             {
-
+                var key = new ImplicitKey(new Guid());
+                var nextScope = problem.CreateType(context, key, throw);
+                AddMembers(problem,nextScope, weakTypeDefinition.Scope.GetValue());
+                return key;
             }
-            else if (frontendType is WeakModuleDefinition)
+            else if (frontendType is WeakModuleDefinition weakModuleDefinition)
             {
+                var key = new ImplicitKey(new Guid());
+                var nextScope = problem.CreateObjectOrModule(context, key, throw);
+                AddMembers(problem,nextScope, weakModuleDefinition.Scope.GetValue());
+                return key;
+            }
 
+            throw new Exception($"that is unexpected! {frontendType.GetType().Name}");
+        }
+
+        private void AddMembers(Tpn.TypeProblem2 problem, Tpn.IScope nextScope, WeakScope weakScope)
+        {
+            foreach (var member in weakScope.membersList.Select(x => x.GetValue()))
+            {
+                var innerTypeKey = GetTypeKey(problem, nextScope, member.Type.GetValue());
+                problem.CreateMember(nextScope, member.Key, innerTypeKey, throw);
+            }
+        }
+
+        private void AddMembers(Tpn.TypeProblem2 problem, Tpn.IScope nextScope, IReadOnlyList<IMemberDefinition> members)
+        {
+            foreach (var member in members)
+            {
+                var innerTypeKey = GetTypeKey(problem, nextScope, member.Type);
+                problem.CreateMember(nextScope, member.Key, innerTypeKey, throw);
             }
         }
     }

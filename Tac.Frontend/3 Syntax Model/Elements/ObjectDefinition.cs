@@ -107,7 +107,7 @@ namespace Tac.SemanticModel
                 var key = new ImplicitKey(Guid.NewGuid());
 
                 var box = new Box<IResolve<IFrontendCodeElement>[]>();
-                var myScope = context.TypeProblem.CreateObject(scope, key, new WeakObjectConverter(box));
+                var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box));
                 box.Fill(elements.Select(x => x.Run(myScope, context).Resolve).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, key, new PlaceholderValueConverter());

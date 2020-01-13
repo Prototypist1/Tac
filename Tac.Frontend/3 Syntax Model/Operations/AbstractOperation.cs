@@ -43,20 +43,7 @@ namespace Tac.SemanticModel.CodeStuff
         // when you use StaticSymbolsRegistry.SymbolsRegistry
         // we create a SymbolsRegistry so all the symbols are added to listLocker
         // then we set SymbolsRegistry.Symbols to listLocker
-        private static SymbolsRegistry symbolsRegistry = CreateSymbolsRegistry();
-
-        public static SymbolsRegistry SymbolsRegistry
-        {
-            get
-            {
-                return symbolsRegistry;
-            }
-
-            set
-            {
-                symbolsRegistry = value;
-            }
-        }
+        public static SymbolsRegistry SymbolsRegistry { get; set; } = CreateSymbolsRegistry();
 
         private static SymbolsRegistry CreateSymbolsRegistry() {
             var res = new SymbolsRegistry

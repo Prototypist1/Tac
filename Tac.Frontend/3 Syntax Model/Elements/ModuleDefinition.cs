@@ -123,7 +123,7 @@ namespace Tac.SemanticModel
             public ISetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var box = new Box<IResolve<IFrontendCodeElement>[]>();
-                var myScope= context.TypeProblem.CreateObject(scope, nameKey, new WeakModuleConverter(box, nameKey));
+                var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey));
                 box.Fill(elements.Select(x => x.Run(myScope, context).Resolve).ToArray());
 
                 return new SetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope),myScope);
