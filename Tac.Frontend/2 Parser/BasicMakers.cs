@@ -190,25 +190,25 @@ namespace Tac.Frontend.Parser
                 return TokenMatching<IKey[]>.MakeMatch(
                     elementMatching.Tokens.Skip(1).ToArray(),
                     elementMatching.Context,
-                    res);
+                    res!);
             }
 
             return TokenMatching<IKey[]>.MakeNotMatch(elementMatching.Context);
 
-            bool TryToToken(out IKey[] typeSourcesInner)
+            bool TryToToken(out IKey[]? typeSourcesInner)
             {
                 var typeSourcesBuilding = new List<IKey>();
                 foreach (var elementToken in typeParameters.Tokens.OfType<LineToken>())
                 {
                     var matcher = TokenMatching<object>.MakeStart(elementToken.Tokens, elementMatching.Context);
-                    IKey typeSource = null;
+                    IKey? typeSource = null;
                     if (matcher
                         .HasElement(x => x
                             .Has(new TypeNameMaker(), out typeSource)
                             .Has(new DoneMaker()))
                         .Has(new DoneMaker()) is IMatchedTokenMatching)
                     {
-                        typeSourcesBuilding.Add(typeSource);
+                        typeSourcesBuilding.Add(typeSource!);
                     }
                     else
                     {

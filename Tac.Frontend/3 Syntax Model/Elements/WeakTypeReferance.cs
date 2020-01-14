@@ -1,5 +1,6 @@
 ﻿using Prototypist.Toolbox;
 using Prototypist.Toolbox.Bool;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -111,11 +112,11 @@ namespace Tac.SemanticModel
                         // colin, why! w x y z
                         // you are an adult arn't you?
                         var item = default(IKey);
-                        var y = x.HasLine(z => z.Has(new KeyMatcher(), out item));
+                        var y = x.HasLine(z => z.Has(new KeyMatcher(), out item) );
                         if (y is IMatchedTokenMatching w)
                         {
                             x = w;
-                            list.Add(item);
+                            list.Add(item!);
                             if (w.Tokens.Any().Not())
                             {
                                 return w;

@@ -37,7 +37,7 @@ namespace Tac.Model.Instantiated
         
 
         private readonly ConcurrentDictionary<IKey, IsStatic> members = new ConcurrentDictionary<IKey, IsStatic>();
-        private readonly ConcurrentDictionary<IKey, IInterfaceType> types = new ConcurrentDictionary<IKey, IInterfaceType>();
+        //private readonly ConcurrentDictionary<IKey, IInterfaceType> types = new ConcurrentDictionary<IKey, IInterfaceType>();
         //private readonly IDictionary<NameKey, List<IGenericType>> genericTypes = new ConcurrentDictionary<NameKey, List<IGenericType>>();
 
         public Scope()
@@ -55,7 +55,7 @@ namespace Tac.Model.Instantiated
 
         public IReadOnlyDictionary<IKey, IsStatic> Members => members;
 
-        public IReadOnlyDictionary<IKey, IInterfaceType> Types => types;
+        //public IReadOnlyDictionary<IKey, IInterfaceType> Types => types;
 
 
         //public IReadOnlyList<GenericTypeEntry> GenericTypes => genericTypes.SelectMany(x=> x.Value.Select(y=> new GenericTypeEntry(y, new GenericKeyDefinition(x.Key,y.TypeParameterKeys)))).ToList();

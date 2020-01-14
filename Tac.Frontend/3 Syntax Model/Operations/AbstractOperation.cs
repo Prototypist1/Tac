@@ -46,17 +46,19 @@ namespace Tac.SemanticModel.CodeStuff
         public static SymbolsRegistry SymbolsRegistry { get; set; } = CreateSymbolsRegistry();
 
         private static SymbolsRegistry CreateSymbolsRegistry() {
-            var res = new SymbolsRegistry
-            {
-                Symbols = listLocker.Run(x => x)
-            };
+            var res = new SymbolsRegistry(listLocker.Run(x => x));
             return res;
         }
     }
 
     public partial class SymbolsRegistry
     {
-        public IEnumerable<string> Symbols { get; set; }
+        public SymbolsRegistry(IEnumerable<string> symbols)
+        {
+            Symbols = symbols ?? throw new ArgumentNullException(nameof(symbols));
+        }
+
+        public IEnumerable<string> Symbols { get; }
 
     }
 

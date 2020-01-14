@@ -17,7 +17,7 @@ namespace Tac.Parser
         {
             T GetTokenOrThrow();
             bool HasToken();
-            bool TryGetExitString(out string exitString);
+            bool TryGetExitString(out string? exitString);
         }
 
 
@@ -44,9 +44,9 @@ namespace Tac.Parser
             {
             }
 
-            private string ExitString { get; }
-            private T Result { get; }
-            public bool TryGetExitString(out string exitString)
+            private string? ExitString { get; }
+            private T? Result { get; }
+            public bool TryGetExitString(out string? exitString)
             {
                 if (ExitString != null)
                 {
@@ -56,7 +56,7 @@ namespace Tac.Parser
                 exitString = default;
                 return false;
             }
-            public bool TryGetToken(out T token)
+            public bool TryGetToken(out T? token)
             {
                 if (Result != null)
                 {
@@ -106,18 +106,18 @@ namespace Tac.Parser
                     {
                         if (alwaysMake || elements.Any())
                         {
-                            return new ResultAndExitString<T>(exitString, makeToken(elements.ToArray()));
+                            return new ResultAndExitString<T>(exitString!, makeToken(elements.ToArray()));
                         }
                         else
                         {
-                            return new ResultAndExitString<T>(exitString);
+                            return new ResultAndExitString<T>(exitString!);
                         }
                     }
                     else
                     {
                         if (addExitString)
                         {
-                            elements.Add(new AtomicToken(exitString));
+                            elements.Add(new AtomicToken(exitString!));
                         }
                     }
                 }
@@ -142,24 +142,24 @@ namespace Tac.Parser
             {
                 if (NextPart(ref enumerator, out var part))
                 {
-                    if (IsExit(part))
+                    if (IsExit(part!))
                     {
                         if (elementsParts.Any())
                         {
-                            return new ResultAndExitString<ElementToken>(part, new ElementToken(elementsParts.ToArray()));
+                            return new ResultAndExitString<ElementToken>(part!, new ElementToken(elementsParts.ToArray()));
                         }
                         else
                         {
-                            return new ResultAndExitString<ElementToken>(part);
+                            return new ResultAndExitString<ElementToken>(part!);
                         }
                     }
-                    if (TryEnter(part, ref enumerator, out var token))
+                    if (TryEnter(part!, ref enumerator, out var token))
                     {
-                        elementsParts.Add(token);
+                        elementsParts.Add(token!);
                     }
                     else
                     {
-                        elementsParts.Add(new AtomicToken(part));
+                        elementsParts.Add(new AtomicToken(part!));
                     }
                 }
                 else
@@ -213,7 +213,7 @@ namespace Tac.Parser
 
         }
 
-        private bool TryEnter(string part, ref StringWalker enumerator, out IToken token)
+        private bool TryEnter(string part, ref StringWalker enumerator, out IToken? token)
         {
             if (part == "(")
             {
@@ -235,7 +235,7 @@ namespace Tac.Parser
             return false;
         }
 
-        private bool NextPart(ref StringWalker enumerator, out string part)
+        private bool NextPart(ref StringWalker enumerator, out string? part)
         {
             var buildingPart = "";
             while (enumerator.TryPeek(out var next))
@@ -315,7 +315,7 @@ namespace Tac.Parser
                 next == '\r';
         }
 
-        private static bool IsNumber(ref StringWalker stringWalker, out string number)
+        private static bool IsNumber(ref StringWalker stringWalker, out string? number)
         {
             var myWalker = new StringWalker(stringWalker);
 
@@ -363,7 +363,7 @@ namespace Tac.Parser
 
         }
 
-        private bool IsOperationOrExit(ref StringWalker stringWalker,  out string exitString)
+        private bool IsOperationOrExit(ref StringWalker stringWalker,  out string? exitString)
         {
             foreach (var op in operations.Union(new[] { "{","}","(",")","[","]",";"}).OrderByDescending(x => x.Length))
             {
@@ -377,7 +377,7 @@ namespace Tac.Parser
             return false;
         }
 
-        private static bool BuildStringConstant(ref StringWalker enumerator, out string part)
+        private static bool BuildStringConstant(ref StringWalker enumerator, out string? part)
         {
             part = "";
 

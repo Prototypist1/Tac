@@ -61,7 +61,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IKey Key { get; }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is GenericTypeParameterPlacholder placholder && Equals(placholder);
         }

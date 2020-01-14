@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -27,5 +28,4 @@
     <ProjectReference Include="..\Tac.Model\Tac.Model.csproj" />
     <ProjectReference Include="..\Tac.TestCases\Tac.TestCases.csproj" />
   </ItemGroup>
-
 </Project>

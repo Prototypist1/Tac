@@ -11,6 +11,7 @@ namespace Tac.SemanticModel
 
 
     public class Box<T> : IBox<T>
+        where T:class
     {
         public Box()
         {
@@ -28,11 +29,11 @@ namespace Tac.SemanticModel
         }
 
         private bool HasThing = false;
-        private T InnerType { get; set; }
+        private T? InnerType { get; set; }
 
         public T GetValue()
         {
-            return InnerType;
+            return InnerType!;
         }
 
         public TT Fill<TT>(TT t)

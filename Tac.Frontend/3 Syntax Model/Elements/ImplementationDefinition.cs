@@ -83,7 +83,7 @@ namespace Tac.SemanticModel
         
         public ITokenMatching<ISetUp<WeakImplementationDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> context= null, input = null, output = null;
+            ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>? context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -110,10 +110,10 @@ namespace Tac.SemanticModel
                     matched.Tokens,
                     matched.Context,
                     new PopulateScopeImplementationDefinition(
-                        context,
-                        input, 
+                        context!,
+                        input!, 
                         elements,
-                        output,
+                        output!,
                         contextName?.Item ?? "context",
                         parameterName?.Item ?? "input"));
             }

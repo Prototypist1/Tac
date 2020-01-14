@@ -81,7 +81,7 @@ namespace Tac.SemanticModel
 
 
             {
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
+                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>? inputType = null, outputType = null;
                 var matching = tokenMatching
                     .Has(new KeyWordMaker("method"), out var _)
                     .HasSquare(x => x
@@ -104,11 +104,11 @@ namespace Tac.SemanticModel
                         matched.Tokens,
                         matched.Context,
                         new MethodDefinitionPopulateScope(
-                            inputType,
+                            inputType!,
                             elements,
-                            outputType,
+                            outputType!,
                             false,
-                            parameterName.Item)
+                            parameterName!.Item)
                         );
                 }
             }

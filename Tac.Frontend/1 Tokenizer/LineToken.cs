@@ -13,7 +13,7 @@ namespace Tac.Parser
             return $"Line({base.ToString()})";
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is LineToken token && base.Equals(token);
         }

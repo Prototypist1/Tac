@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox.Object;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac.Frontend;
@@ -114,7 +115,7 @@ namespace Tac.SemanticModel.Operations
                 return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(
                     nextLeft.Resolve,
                     nextRight.Resolve),
-                    nextLeft.SetUpSideNode as Tpn.IValue);
+                    nextLeft.SetUpSideNode.CastTo<Tpn.IValue>());
             }
         }
 

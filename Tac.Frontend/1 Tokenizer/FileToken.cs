@@ -13,7 +13,7 @@ namespace Tac.Parser
             return $"File({base.ToString()})";
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is FileToken token && base.Equals(token);
         }

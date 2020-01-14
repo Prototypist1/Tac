@@ -20,7 +20,9 @@ namespace Tac.Parser
     {
         private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticMemberMaker = AddElementMakers(
             () => new MemberMaker());
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> MemberMaker = StaticMemberMaker;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }
 

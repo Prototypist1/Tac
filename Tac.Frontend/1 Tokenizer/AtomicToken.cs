@@ -12,7 +12,7 @@ namespace Tac.Parser
 
         public override string ToString()=> $"Atom({Item})";
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is AtomicToken token &&
                    Item == token.Item;

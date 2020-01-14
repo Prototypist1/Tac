@@ -16,6 +16,7 @@ using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox.Object;
 using Prototypist.Toolbox.Bool;
 using Tac.Frontend.Parser;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Tac.Parser
 {
@@ -348,9 +349,8 @@ namespace Tac.Parser
         T Value { get; }
     }
     
-    internal static class TokenMatching<T> 
+    internal static class TokenMatching<T>
     {
-
         private class Matched : IMatchedTokenMatching<T>
         {
             public Matched(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T value)
@@ -417,7 +417,9 @@ namespace Tac.Parser
     
     internal static class ElementMatcher
     {
-        public static ITokenMatching<T> GetValue<T>(this ITokenMatching<T> self, out T value) {
+        public static ITokenMatching<T> GetValue<T>(this ITokenMatching<T> self, out T? value)
+            where T:class
+        {
             if (self is IMatchedTokenMatching<T> matched) {
                 value = matched.Value;
                 return matched;
@@ -472,7 +474,8 @@ namespace Tac.Parser
             this ITokenMatching self, 
             Func<ITokenMatching, ITokenMatching<T>> first, 
             Func<ITokenMatching, ITokenMatching<T>> second,
-            out T res)
+            out T? res)
+            where T:class
         {
             if (!(self is IMatchedTokenMatching))
             {
@@ -505,7 +508,8 @@ namespace Tac.Parser
         public static ITokenMatching<T> HasOne<T>(
             this ITokenMatching self,
             Func<ITokenMatching, ITokenMatching<T>>[] items,
-            out T res)
+            out T? res)
+            where T:class 
         {
             if (!(self is IMatchedTokenMatching matchedTokenMatching))
             {
@@ -608,7 +612,7 @@ namespace Tac.Parser
         }
 
 
-        public static ITokenMatching OptionalHas<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
+        public static ITokenMatching OptionalHas<T>(this ITokenMatching self, IMaker<T> pattern, [MaybeNullWhen(false)] out T? t)
             where T : class
         {
 

@@ -65,7 +65,7 @@ namespace Tac.Model
     public interface IFinalizedScope
     {
         IReadOnlyDictionary<IKey, IsStatic> Members { get; }
-        IReadOnlyDictionary<IKey, IInterfaceType> Types { get; }
+        //IReadOnlyDictionary<IKey, IInterfaceType> Types { get; }
 
         //IReadOnlyList<GenericTypeEntry> GenericTypes { get; }
 

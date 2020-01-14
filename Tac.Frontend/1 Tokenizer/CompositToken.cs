@@ -20,7 +20,7 @@ namespace Tac.Parser
             return Tokens.Aggregate("", (x, y) => x + y.ToString() + ",");
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is CompositToken other && Tokens.SequenceEqual(other.Tokens);
         }

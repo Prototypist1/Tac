@@ -69,7 +69,7 @@ namespace Tac.Tests
 
             var elementMatchingContest = new ElementMatchingContext();
 
-            var scopePopulators = elementMatchingContest.ParseFile(sample.Token as FileToken);
+            var scopePopulators = elementMatchingContest.ParseFile(sample.Token.SafeCastTo<IToken,FileToken>());
 
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter());

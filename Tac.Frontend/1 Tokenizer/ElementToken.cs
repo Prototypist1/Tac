@@ -9,7 +9,7 @@ namespace Tac.Parser
         {
         }
         public override string ToString() => $"Ele({base.ToString()})";
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ElementToken token && base.Equals(token);
         }
