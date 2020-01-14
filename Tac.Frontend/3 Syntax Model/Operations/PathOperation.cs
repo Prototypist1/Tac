@@ -66,7 +66,7 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching)
             {
                 if (tokenMatching.Tokens[tokenMatching.Tokens.Count - 1] is ElementToken elementToken && 

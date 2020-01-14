@@ -103,7 +103,7 @@ namespace Tac.SemanticModel
                 .Has(new BodyMaker(), out var body);
             if (match is IMatchedTokenMatching matched)
             {
-                var elements = tokenMatching.Context.ParseBlock(body);
+                var elements = tokenMatching.Context.ParseBlock(body!);
                 
 
                 return TokenMatching<ISetUp<WeakImplementationDefinition, Tpn.IValue>>.MakeMatch(

@@ -85,8 +85,8 @@ namespace Tac.SemanticModel
                 .Has(new BodyMaker(), out var third);
             if (matching is IMatchedTokenMatching matched)
             {
-                var elements = matching.Context.ParseBlock(third);
-                var nameKey = new NameKey(name.Item);
+                var elements = matching.Context.ParseBlock(third!);
+                var nameKey = new NameKey(name!.Item);
 
                 return TokenMatching<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>>.MakeMatch(
                     matched.Tokens,

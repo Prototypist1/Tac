@@ -77,7 +77,7 @@ namespace Tac.SemanticModel
             if (matching is IMatchedTokenMatching matched)
             {
 
-                var elements = tokenMatching.Context.ParseBlock(block);
+                var elements = tokenMatching.Context.ParseBlock(block!);
                 
                 return TokenMatching<ISetUp<WeakObjectDefinition, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,

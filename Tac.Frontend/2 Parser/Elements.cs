@@ -222,7 +222,7 @@ namespace Tac.Parser
                         .Has(new DoneMaker())
                         is IMatchedTokenMatching)
                     {
-                        return res;
+                        return res!;
                     }
                 }
             }
@@ -255,7 +255,7 @@ namespace Tac.Parser
                         .Has(new DoneMaker())
                         is IMatchedTokenMatching)
                     {
-                        return res;
+                        return res!;
                     }
                 }
             }
@@ -275,7 +275,7 @@ namespace Tac.Parser
                         .Has(operationMatcher, out var res)
                          is IMatchedTokenMatching)
                 {
-                    return res;
+                    return res!;
                 }
             }
 
@@ -295,7 +295,7 @@ namespace Tac.Parser
                         .Has(operationMatcher, out var res)
                          is IMatchedTokenMatching)
                 {
-                    return res;
+                    return res!;
                 }
             }
 
@@ -351,6 +351,25 @@ namespace Tac.Parser
     
     internal static class TokenMatching<T>
     {
+        private class Start : IMatchedTokenMatching
+        {
+            public Start(IReadOnlyList<IToken> tokens, ElementMatchingContext context)
+            {
+                Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+            }
+
+            public IReadOnlyList<IToken> Tokens
+            {
+                get;
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+        }
+
         private class Matched : IMatchedTokenMatching<T>
         {
             public Matched(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T value)
@@ -389,9 +408,9 @@ namespace Tac.Parser
             }
         }
         
-        public static IMatchedTokenMatching<T> MakeStart(IReadOnlyList<IToken> tokens, ElementMatchingContext context)
+        public static IMatchedTokenMatching MakeStart(IReadOnlyList<IToken> tokens, ElementMatchingContext context)
         {
-            return new Matched(tokens, context, default);
+            return new Start(tokens, context);
         }
 
         public static IMatchedTokenMatching<T> MakeMatch(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T value)
@@ -428,12 +447,13 @@ namespace Tac.Parser
             return self;
         }
 
-        public static ITokenMatching<T> Has<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
+        public static ITokenMatching<T> Has<T>(this ITokenMatching self, IMaker<T> pattern, out T? t)
+            where T:class
         {
-            t = default;
 
             if (! (self is IMatchedTokenMatching firstMatched))
             {
+                t = default;
                 return TokenMatching<T>.MakeNotMatch(self.Context);
             }
 
@@ -441,9 +461,34 @@ namespace Tac.Parser
             if (res is IMatchedTokenMatching<T> matched)
             {
                 t = matched.Value;
+                return res;
             }
+
+            t = default;
             return res;
         }
+
+        public static ITokenMatching<T> HasStruct<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
+            where T : struct
+        {
+
+            if (!(self is IMatchedTokenMatching firstMatched))
+            {
+                t = default;
+                return TokenMatching<T>.MakeNotMatch(self.Context);
+            }
+
+            var res = pattern.TryMake(firstMatched);
+            if (res is IMatchedTokenMatching<T> matched)
+            {
+                t = matched.Value;
+                return res;
+            }
+
+            t = default;
+            return res;
+        }
+
 
 
 

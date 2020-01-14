@@ -94,7 +94,7 @@ namespace Tac.SemanticModel.Operations
             
 
             var matching = tokenMatching
-                .Has(new TrailingOperationMatcher(Symbol), out (IEnumerable<IToken> perface, AtomicToken _) res);
+                .HasStruct(new TrailingOperationMatcher(Symbol), out (IEnumerable<IToken> perface, AtomicToken _) res);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(res.perface);

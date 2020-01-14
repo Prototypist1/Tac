@@ -78,8 +78,8 @@ namespace Tac.SemanticModel
                     matched.Tokens,
                     matched.Context,
                     new GenericTypeDefinitionPopulateScope(
-                        new NameKey(typeName.Item),
-                        tokenMatching.Context.ParseBlock(body),
+                        new NameKey(typeName!.Item),
+                        tokenMatching.Context.ParseBlock(body!),
                         genericTypes.Select(x =>
                         new GenericTypeParameterPlacholder(new NameKey(x)) as IGenericTypeParameterPlacholder).ToArray()));
             }

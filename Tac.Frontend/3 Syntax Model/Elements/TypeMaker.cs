@@ -41,7 +41,7 @@ namespace Tac.SemanticModel
                     return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
-                            type);
+                            type!);
                 }
             }
 
@@ -53,7 +53,7 @@ namespace Tac.SemanticModel
                     return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
-                            type);
+                            type!);
                 }
             }
 
@@ -75,7 +75,7 @@ namespace Tac.SemanticModel
                     return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                             tokenMatching.Tokens.Skip(1).ToArray(),
                             matched.Context,
-                            type);
+                            type!);
 
                 }
             }

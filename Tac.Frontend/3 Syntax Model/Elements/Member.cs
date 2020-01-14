@@ -44,7 +44,7 @@ namespace Tac.SemanticModel
                 return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
-                    new MemberPopulateScope(first.Item)); ;
+                    new MemberPopulateScope(first!.Item)); ;
             }
             return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeNotMatch(
                     matching.Context);

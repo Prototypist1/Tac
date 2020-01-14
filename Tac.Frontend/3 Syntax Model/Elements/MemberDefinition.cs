@@ -118,7 +118,7 @@ namespace Tac.SemanticModel
                 return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
-                    new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type));
+                    new MemberDefinitionPopulateScope(new NameKey(nameToken!.Item), readonlyToken != default, type!));
             }
             return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeNotMatch(
                                matching.Context);
@@ -132,8 +132,6 @@ namespace Tac.SemanticModel
         {
             return new MemberDefinitionPopulateScope(item, v,  typeToken);
         }
-
-
 
         private class MemberDefinitionPopulateScope : ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>
         {

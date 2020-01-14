@@ -79,7 +79,7 @@ namespace Tac.SemanticModel
 
             if (matching is IMatchedTokenMatching matched)
             {
-               var elements = tokenMatching.Context.ParseBlock(body);
+               var elements = tokenMatching.Context.ParseBlock(body!);
                 
                return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.Tokens,

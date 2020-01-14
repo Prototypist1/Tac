@@ -39,7 +39,7 @@ namespace Tac.SemanticModel.Operations
         {
 
             var matching = tokenMatching
-            .Has(new BinaryOperationMatcher(SymbolsRegistry.TryAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) res);
+            .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.TryAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) res);
 
             if (matching
                  is IMatchedTokenMatching matched)

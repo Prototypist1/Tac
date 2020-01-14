@@ -131,12 +131,12 @@ namespace Tac.SemanticModel
 
             if (genericMatachig is IMatchedTokenMatching genericMatched)
             {
-                return TokenMatching<IKey>.MakeMatch(genericMatched.Tokens, genericMatched.Context, new GenericNameKey(new NameKey(typeName.Item), list.ToArray()));
+                return TokenMatching<IKey>.MakeMatch(genericMatched.Tokens, genericMatched.Context, new GenericNameKey(new NameKey(typeName!.Item), list.ToArray()));
             }
 
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IKey>.MakeMatch(matched.Tokens, matched.Context, new NameKey(typeName.Item));
+                return TokenMatching<IKey>.MakeMatch(matched.Tokens, matched.Context, new NameKey(typeName!.Item));
             }
 
             return TokenMatching<IKey>.MakeNotMatch(matching.Context);
@@ -155,7 +155,7 @@ namespace Tac.SemanticModel
                 return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
-                    new TypeReferancePopulateScope(name));
+                    new TypeReferancePopulateScope(name!));
             }
 
             return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);

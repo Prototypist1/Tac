@@ -70,7 +70,7 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(match.perface);

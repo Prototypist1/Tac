@@ -98,7 +98,7 @@ namespace Tac.SemanticModel
                 if (matching
                      is IMatchedTokenMatching matched)
                 {
-                    var elements = matching.Context.ParseBlock(body);
+                    var elements = matching.Context.ParseBlock(body!);
 
                     return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeMatch(
                         matched.Tokens,
@@ -119,7 +119,7 @@ namespace Tac.SemanticModel
                 if (matching
                      is IMatchedTokenMatching matched)
                 {
-                    var elements = matching.Context.ParseBlock(body);
+                    var elements = matching.Context.ParseBlock(body!);
 
 
                     return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeMatch(

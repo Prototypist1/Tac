@@ -12,6 +12,7 @@ using Tac.SemanticModel;
 using Tac.SemanticModel.Operations;
 using Tac.Frontend.Parser;
 using Prototypist.Toolbox;
+using System;
 
 namespace Tac.Parser
 {
@@ -60,7 +61,7 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<WeakConstantNumber, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
-                .Has(new NumberMaker(), out var dub);
+                .HasStruct(new NumberMaker(), out var dub);
 
             if (match
                  is IMatchedTokenMatching matched)
