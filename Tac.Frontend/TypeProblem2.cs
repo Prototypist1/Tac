@@ -50,6 +50,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IFrontendType> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope>> converter);
+            TypeProblem2.Type CreateType(IScope parent, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Object CreateObjectOrModule(IScope parent, IKey key, IConvertTo<TypeProblem2.Object, OrType<WeakObjectDefinition, WeakModuleDefinition>> converter);
@@ -63,6 +64,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member GetInput(IValue method);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
+            TypeProblem2.MethodType GetMethod(OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType> input, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType> output);
             void IsNumber(IScope parent, ICanAssignFromMe target);
             void IsString(IScope parent, ICanAssignFromMe target);
             void IsEmpty(IScope parent, ICanAssignFromMe target);
@@ -733,6 +735,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
+            public Type CreateType(IScope parent, IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
+            {
+                var key = new ImplicitKey(Guid.NewGuid());
+                var res = new Type(this, key.ToString()!, converter);
+                IsChildOf(parent, res);
+                // migiht need this, let's try without first
+                //HasType(parent, key, res);
+                return res;
+            }
+
+
             public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 var res = new Type(this, $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", converter);
@@ -806,7 +819,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
 
             }
-
+            public MethodType GetMethod(OrType<MethodType, Type, Object, OrType, InferredType> input, OrType<MethodType, Type, Object, OrType, InferredType> output)
+            {
+                throw new NotImplementedException();
+            }
 
             private void Ors(OrType orType, TypeReference a, TypeReference b)
             {
