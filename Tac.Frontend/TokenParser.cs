@@ -36,14 +36,10 @@ namespace Tac.Frontend
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter());
 
-            //throw new NotImplementedException("I need to rethink this a bit");
-
             foreach (var dependency in dependencies)
             {
 
-                // new new WIP
-                var typeKey = new ImplicitKey(Guid.NewGuid());
-                var type = problem.CreateType(problem.Dependency, typeKey, new WeakTypeDefinitionConverter());
+                var type = problem.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
                 foreach (var memberPair in dependency.Scope.Members)
                 {
                     var innerType = ConvertType(problem,type, memberPair.Value.Value.Type); innerType.Switch(x => {
@@ -55,51 +51,16 @@ namespace Tac.Frontend
                 }
                 problem.CreateMember(problem.Dependency, dependency.Key, new OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>(type), new WeakMemberDefinitionConverter(true, dependency.Key));
 
-                //var typeKey = new ImplicitKey(Guid.NewGuid());
-                //var type = problem.CreateType(problem.Dependency, typeKey, throw);
-                //problem.CreateMember(problem.Dependency, dependency.Key, typeKey, throw);
-
-                //AddMembers(problem, type, dependency.Scope.Members);
-
-
-                // new code, work in progress
-                //problem.CreateMember(problem.Dependency, dependency.Key, new WeakMemberDefinitionConverter(true,dependency.Key));
-                //var key = new ImplicitKey(Guid.NewGuid());
-                //var dependencyModule = problem.CreateObject(problem.Dependency, key, new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), key));
-
-                //foreach (var member in dependency.Scope.Members)
-                //{
-                //    problem.CreateType(dependencyModule,  )
-                //    problem.CreateMember(dependencyModule, member.Key, new WeakMemberDefinitionConverter(true, member.Key));
-
-
-                //}
-
-
-                // the whole dependency is a type
-                // 
-
-
-                // old code
-                //var dependencyScope = problem.CreateScope(problem.Base, new WeakScopeConverter());
-                //var convertedDependency = dependencyConverter.ConvertToType(dependency);
-                //if (!dependendcyScope.TryAddMember(DefintionLifetime.Instance, dependency.Key, new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is(
-                //    new WeakMemberDefinition(
-                //        true,
-                //        dependency.Key,
-                //        new Box<IFrontendType>(convertedDependency))))))
-                //{
-                //    throw new Exception("could not add dependency!");
-                //}
             }
-
 
             var populateScopeContex = new SetUpContext(problem);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve).ToArray();
 
             var solution = problem.Solve(new WeakTypeDefinitionConverter());
 
-            var module = referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray().Single().GetValue().CastTo<WeakModuleDefinition>(); ;
+            var resolved = referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray().Single().GetValue();
+
+            var module = resolved.SafeCastTo<IFrontendCodeElement,WeakModuleDefinition>(); ;
 
             var context = TransformerExtensions.NewConversionContext();
 

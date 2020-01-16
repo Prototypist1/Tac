@@ -136,6 +136,27 @@ entry-point {
             verifyBoolIn();
         }
 
+
+        [Fact]
+        public void AddSimple()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 4.0 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+ @"
+ entry-point {
+     2 + 2 > (out.write-number);
+ };");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+
         [Fact]
         public void Add()
         {

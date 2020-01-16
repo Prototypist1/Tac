@@ -705,7 +705,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return res1;
                 }
-                var res = new Member(this, key.ToString()!, converter);
+                var res = new Member(this, "possibly on parent -" + key.ToString()!, converter);
                 HasMembersPossiblyOnParent(scope, key, res);
                 lookUpTypeContext[res] = scope;
                 return res;
@@ -804,7 +804,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
             {
-                var res = new Member(this, key.ToString()!, converter);
+                var res = new Member(this,"hopeful - " + key.ToString()!, converter);
                 HasHopefulMember(scope, key, res);
                 return res;
             }
@@ -928,7 +928,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var inferredMethodType = new InferredType(this, "zzzz");
                     hopefulMethods[value] = inferredMethodType;
 
-                    var methodInputKey = new ImplicitKey(Guid.NewGuid());
+                    var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
                     methodInputs[new OrType<Method, MethodType, InferredType>(inferredMethodType)] = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey)); ;
                     var returns = CreateTransientMember(inferredMethodType); ;
                     methodReturns[new OrType<Method, MethodType, InferredType>(inferredMethodType)] = returns;
@@ -948,7 +948,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var inferredMethodType = new InferredType(this, "zzzz");
                     hopefulMethods[value] = inferredMethodType;
 
-                    var methodInputKey = new ImplicitKey(Guid.NewGuid());
+                    var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
                     var input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey));
                     methodInputs[new OrType<Method, MethodType, InferredType>(inferredMethodType)] = input;
                     methodReturns[new OrType<Method, MethodType, InferredType>(inferredMethodType)] = CreateTransientMember(inferredMethodType);
@@ -1563,6 +1563,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                             methodInputs[new OrType<Method, MethodType, InferredType>(methodTo)] = CopiedToOrSelf(methodInputs[new OrType<Method, MethodType, InferredType>(methodFrom)]);
                             methodReturns[new OrType<Method, MethodType, InferredType>(methodTo)] = CopiedToOrSelf(methodReturns[new OrType<Method, MethodType, InferredType>(methodFrom)]);
                         }
+
+                        if (pair.Key is MethodType methodFromType && pair.Value is MethodType methodToType)
+                        {
+                            methodInputs[new OrType<Method, MethodType, InferredType>(methodToType)] = CopiedToOrSelf(methodInputs[new OrType<Method, MethodType, InferredType>(methodFromType)]);
+                            methodReturns[new OrType<Method, MethodType, InferredType>(methodToType)] = CopiedToOrSelf(methodReturns[new OrType<Method, MethodType, InferredType>(methodFromType)]);
+                        }
+
+                        if (pair.Key is InferredType inferedFrom && pair.Value is InferredType inferedTo)
+                        {
+                            methodInputs[new OrType<Method, MethodType, InferredType>(inferedTo)] = CopiedToOrSelf(methodInputs[new OrType<Method, MethodType, InferredType>(inferedFrom)]);
+                            methodReturns[new OrType<Method, MethodType, InferredType>(inferedTo)] = CopiedToOrSelf(methodReturns[new OrType<Method, MethodType, InferredType>(inferedFrom)]);
+                        }
                     }
 
                     return to;
@@ -2140,7 +2152,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     HasPlaceholderType(new OrType<MethodType, Type>(res), placeholder.key, new OrType<MethodType, Type, Object, OrType, InferredType>(placeholderType));
                 }
 
-                var methodInputKey = new ImplicitKey(Guid.NewGuid());
+                var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
                 methodInputs[new OrType<Method, MethodType, InferredType>(res)] = CreateMember(res, methodInputKey, new NameKey("T1"), new WeakMemberDefinitionConverter(false, methodInputKey));
                 methodReturns[new OrType<Method, MethodType, InferredType>(res)] = CreateTransientMember(res, new NameKey("T2"));
                 IsChildOf(Primitive, res);
