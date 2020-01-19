@@ -7,6 +7,8 @@ namespace Tac.Model.Elements
         IKey Key { get; }
         IFinalizedScope Scope { get; }
         IReadOnlyList<ICodeElement> StaticInitialization { get; }
+
+        IEntryPointDefinition EntryPoint { get; }
     }
 
     public interface IProject<TBacking> 

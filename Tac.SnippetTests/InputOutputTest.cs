@@ -138,18 +138,16 @@ entry-point {
 
 
         [Fact]
-        public void AddSimple()
+        public void Simple()
         {
-            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 4.0 });
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] {  });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
-     2 + 2 > (out.write-number);
- };");
+ entry-point { };");
 
             verifyIntIn();
             verifyStringIn();

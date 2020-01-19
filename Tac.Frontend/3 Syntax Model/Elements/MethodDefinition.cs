@@ -39,18 +39,15 @@ namespace Tac.SemanticModel
             IBox<IWeakMemberDefinition> parameterDefinition,
             IBox<IFrontendCodeElement>[] body,
             IBox<WeakScope> scope,
-            IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers,
-            bool isEntryPoint) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+            IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-            IsEntryPoint = isEntryPoint;
         }
 
         public IBox<IFrontendType> InputType => ParameterDefinition.GetValue().Type;
         public IBox<IFrontendType> OutputType { get; }
         public IBox<IWeakMemberDefinition> ParameterDefinition { get; }
-        public bool IsEntryPoint { get; }
 
         public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(IConversionContext context)
         {
@@ -63,8 +60,7 @@ namespace Tac.SemanticModel
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
                     Body.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
-                    StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
-                    IsEntryPoint);
+                    StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
     }
@@ -79,65 +75,39 @@ namespace Tac.SemanticModel
         public ITokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
-
-            {
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>? inputType = null, outputType = null;
-                var matching = tokenMatching
-                    .Has(new KeyWordMaker("method"), out var _)
-                    .HasSquare(x => x
-                        .HasLine(y => y
-                            .HasElement(z => z.Has(new TypeMaker(), out inputType))
-                            .Has(new DoneMaker()))
-                        .HasLine(y => y
-                            .HasElement(z => z.Has(new TypeMaker(), out outputType))
-                            .Has(new DoneMaker()))
+            ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>? inputType = null, outputType = null;
+            var matching = tokenMatching
+                .Has(new KeyWordMaker("method"), out var _)
+                .HasSquare(x => x
+                    .HasLine(y => y
+                        .HasElement(z => z.Has(new TypeMaker(), out inputType))
                         .Has(new DoneMaker()))
-                    .OptionalHas(new NameMaker(), out var parameterName)
-                    .Has(new BodyMaker(), out var body);
+                    .HasLine(y => y
+                        .HasElement(z => z.Has(new TypeMaker(), out outputType))
+                        .Has(new DoneMaker()))
+                    .Has(new DoneMaker()))
+                .OptionalHas(new NameMaker(), out var parameterName)
+                .Has(new BodyMaker(), out var body);
 
-                if (matching
-                     is IMatchedTokenMatching matched)
-                {
-                    var elements = matching.Context.ParseBlock(body!);
-
-                    return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeMatch(
-                        matched.Tokens,
-                        matched.Context,
-                        new MethodDefinitionPopulateScope(
-                            inputType!,
-                            elements,
-                            outputType!,
-                            false,
-                            parameterName!.Item)
-                        );
-                }
-            }
+            if (matching
+                 is IMatchedTokenMatching matched)
             {
-                var matching = tokenMatching
-                    .Has(new KeyWordMaker("entry-point"), out var _)
-                    .Has(new BodyMaker(), out var body);
-                if (matching
-                     is IMatchedTokenMatching matched)
-                {
-                    var elements = matching.Context.ParseBlock(body!);
+                var elements = matching.Context.ParseBlock(body!);
 
-
-                    return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeMatch(
-                        matched.Tokens,
-                        matched.Context,
-                        new MethodDefinitionPopulateScope(
-                            new TypeReferanceMaker.TypeReferancePopulateScope(new NameKey("empty")),
-                            elements,
-                            new TypeReferanceMaker.TypeReferancePopulateScope(new NameKey("empty")),
-                            true,
-                            "main")
-                        );
-                }
-
-                return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeNotMatch(
-                        matching.Context);
+                return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context,
+                    new MethodDefinitionPopulateScope(
+                        inputType!,
+                        elements,
+                        outputType!,
+                        false,
+                        parameterName!.Item)
+                    );
             }
 
+            return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeNotMatch(
+                    matching.Context);
         }
 
 

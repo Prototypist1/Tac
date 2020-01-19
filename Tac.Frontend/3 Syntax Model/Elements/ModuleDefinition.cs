@@ -35,14 +35,16 @@ namespace Tac.SemanticModel
 
     internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IFrontendType
     {
-        public WeakModuleDefinition(IBox<WeakScope> scope, IEnumerable<IBox<IFrontendCodeElement>> staticInitialization, IKey Key)
+        public WeakModuleDefinition(IBox<WeakScope> scope, IEnumerable<IBox<IFrontendCodeElement>> staticInitialization, IKey Key, IBox<WeakEntryPointDefinition> entryPoint)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
             this.Key = Key ?? throw new ArgumentNullException(nameof(Key));
+            EntryPoint = entryPoint ?? throw new ArgumentNullException(nameof(entryPoint));
         }
         
         public IBox<WeakScope> Scope { get; }
+        IBox<WeakEntryPointDefinition> EntryPoint { get; }
         public IEnumerable<IBox<IFrontendCodeElement>> StaticInitialization { get; }
 
         public IKey Key
@@ -62,7 +64,8 @@ namespace Tac.SemanticModel
                         .OfType<IIsDefinately<ICodeElement>>()
                         .Select(x=>x.Value)
                         .ToArray(),
-                    Key);
+                    Key,
+                    EntryPoint.GetValue().Convert(context));
             });
         }
     }

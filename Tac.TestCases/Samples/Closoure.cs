@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -48,14 +49,13 @@ namespace Tac.Tests.Samples
                                             ReturnOperation.CreateAndBuild(
                                                 MemberReference.CreateAndBuild(x))
                                         },
-                                        new ICodeElement[0],
-                                        false)
+                                        new ICodeElement[0])
                                     )},
-                            new ICodeElement[0],
-                            false),
+                            new ICodeElement[0]),
                         MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))
                  },
-                new NameKey("closoure"));
+                new NameKey("closoure"),
+                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
         }
 
         public string Text

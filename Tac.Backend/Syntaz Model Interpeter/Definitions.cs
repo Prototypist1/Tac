@@ -22,7 +22,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
     {
         private readonly Dictionary<object, IInterpetedOperation<IInterpetedAnyType>> backing = new Dictionary<object, IInterpetedOperation<IInterpetedAnyType>>();
 
-        public IInterpetedOperation<IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>> EntryPoint { get; private set; }
+        public InterpetedEntryPointDefinition EntryPoint { get; private set; }
 
         public Definitions()
         {
@@ -333,6 +333,32 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         }
 
+
+        IInterpetedOperation<IInterpetedAnyType> IOpenBoxesContext<IInterpetedOperation<IInterpetedAnyType>, InterpetedAssemblyBacking>.EntryPoint(IEntryPointDefinition codeElement)
+        {
+            if (backing.TryGetValue(codeElement, out var res))
+            {
+                return res;
+            }
+            else
+            {
+                var op = new InterpetedEntryPointDefinition();
+                backing.Add(codeElement, op);
+                op.Init(
+                    codeElement.Body.Select(x => x.Convert(this)).ToArray(),
+                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()));
+                if (EntryPoint == null)
+                {
+                    EntryPoint = op;
+                }
+                else {
+                    throw new Exception("entry point already defined");
+                }
+                return op;
+            }
+        }
+
+
         private IInterpetedOperation<IInterpetedAnyType> MethodDefinition<TIn,TOut>(IInternalMethodDefinition codeElement)
             where TIn: class, IInterpetedAnyType
             where TOut: class, IInterpetedAnyType
@@ -350,16 +376,6 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
                     new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.Returns().CastTo<IMethodType>());
-                if (codeElement.IsEntryPoint) {
-                    // sloppy this should be on the prop
-                    if (EntryPoint == null)
-                    {
-                        EntryPoint = op.CastTo<IInterpetedOperation<IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>>>();
-                    }
-                    else {
-                        new Exception("we already have an entry point");
-                    }
-                }
                 return op;
             }
         }
@@ -375,7 +391,9 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedModuleDefinition();
                 backing.Add(codeElement, op);
                 op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
-                    codeElement.StaticInitialization.Select(x => x.Convert(this)).ToArray()
+                    codeElement.StaticInitialization.Select(x => x.Convert(this)).ToArray(),
+                    // yikos yuckos
+                    (this as IOpenBoxesContext<IInterpetedOperation<IInterpetedAnyType>, InterpetedAssemblyBacking>).EntryPoint(codeElement.EntryPoint).CastTo<InterpetedEntryPointDefinition>()
                     );
                 return op;
             }
@@ -521,12 +539,13 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
         }
 
+
         #region Help
 
         // you are here
         // I need to use interfaces here
         // espesally for anytime
-        // my type system is not hat mcuh likes C#
+        // my type system is not that much likes C#'s
         // maybe leaning on C# type system is not a good idea??
 
         // I need to use IAnyTime no the class

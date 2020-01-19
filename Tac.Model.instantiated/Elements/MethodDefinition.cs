@@ -6,6 +6,63 @@ using Tac.Model.Operations;
 namespace Tac.Model.Instantiated
 {
 
+    public class EntryPointDefinition: IEntryPointDefinition,IEntryPointDefinitionBuilder
+    {
+        private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitailizers = new Buildable<IEnumerable<ICodeElement>>();
+        private readonly Buildable<ICodeElement[]> buildableBody = new Buildable<ICodeElement[]>();
+        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
+
+        private EntryPointDefinition() { }
+        public static (IEntryPointDefinition, IEntryPointDefinitionBuilder) Create()
+        {
+            var res = new EntryPointDefinition();
+            return (res, res);
+        }
+
+        public IFinalizedScope Scope { get => buildableScope.Get(); }
+        public ICodeElement[] Body { get => buildableBody.Get(); }
+        public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
+
+
+        public void Build(
+            IFinalizedScope scope,
+            ICodeElement[] body,
+            IEnumerable<ICodeElement> staticInitailizers)
+        {
+            buildableScope.Set(scope);
+            buildableBody.Set(body);
+            buildableStaticInitailizers.Set(staticInitailizers);
+        }
+
+        public static IEntryPointDefinition CreateAndBuild(
+            IFinalizedScope scope,
+            ICodeElement[] body,
+            IEnumerable<ICodeElement> staticInitailizers)
+        {
+            var (x, y) = Create();
+            y.Build( scope, body, staticInitailizers);
+            return x;
+        }
+
+        public IVerifiableType Returns()
+        {
+            return new EntryPointType();
+        }
+
+        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context) where TBacking : IBacking
+        {
+            return context.EntryPoint(this);
+        }
+    }
+
+    public interface IEntryPointDefinitionBuilder {
+
+        void Build(
+            IFinalizedScope scope,
+            ICodeElement[] body,
+            IEnumerable<ICodeElement> staticInitailizers);
+    }
+
     public class MethodDefinition : IInternalMethodDefinition,
         IMethodDefinitionBuilder
     {
@@ -15,7 +72,6 @@ namespace Tac.Model.Instantiated
         private readonly Buildable<IVerifiableType> buildableInputType = new Buildable<IVerifiableType>();
         private readonly Buildable<IVerifiableType> buildableOutputType = new Buildable<IVerifiableType>();
         private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new Buildable<IMemberDefinition>();
-        private readonly BuildableValue<bool> buildableIsEntryPoint = new BuildableValue<bool>();
 
         private MethodDefinition() { }
 
@@ -27,7 +83,6 @@ namespace Tac.Model.Instantiated
         public IFinalizedScope Scope { get => buildableScope.Get(); }
         public ICodeElement[] Body { get => buildableBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
-        public bool IsEntryPoint { get => buildableIsEntryPoint.Get(); }
 
 
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
@@ -49,8 +104,7 @@ namespace Tac.Model.Instantiated
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             ICodeElement[] body,
-            IEnumerable<ICodeElement> staticInitailizers,
-            bool isEntryPoint)
+            IEnumerable<ICodeElement> staticInitailizers)
         {
             buildableInputType.Set(inputType);
             buildableOutputType.Set(outputType);
@@ -58,7 +112,6 @@ namespace Tac.Model.Instantiated
             buildableScope.Set(scope);
             buildableBody.Set(body);
             buildableStaticInitailizers.Set(staticInitailizers);
-            buildableIsEntryPoint.Set(isEntryPoint);
         }
 
         public static (IInternalMethodDefinition, IMethodDefinitionBuilder) Create()
@@ -73,10 +126,9 @@ namespace Tac.Model.Instantiated
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             ICodeElement[] body,
-            IEnumerable<ICodeElement> staticInitailizers,
-            bool isEntryPoint) {
+            IEnumerable<ICodeElement> staticInitailizers) {
             var (x, y) = Create();
-            y.Build(inputType, outputType, parameterDefinition, scope, body, staticInitailizers, isEntryPoint);
+            y.Build(inputType, outputType, parameterDefinition, scope, body, staticInitailizers);
             return x;
         }
     }
@@ -89,7 +141,6 @@ namespace Tac.Model.Instantiated
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             ICodeElement[] body,
-            IEnumerable<ICodeElement> staticInitailizers,
-            bool isEntryPoint );
+            IEnumerable<ICodeElement> staticInitailizers);
     }
 }

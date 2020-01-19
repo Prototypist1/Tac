@@ -105,34 +105,12 @@ namespace Tac.Frontend
 
         public static IBox<IFrontendType> GetType(Tpn.ITypeSolution typeSolution, Tpn.ILookUpType lookUpType)
         {
-            var orType = typeSolution.GetType(lookUpType);
-
-            if (orType.Is1(out var v1))
-            {
-                return new Box<IFrontendType>(typeSolution.GetMethodType(v1).GetValue());
-            }
-            else if (orType.Is2(out var v2))
-            {
-
-                return new UnWrappingTypeBox(typeSolution.GetExplicitType(v2));
-            }
-            else if (orType.Is3(out var v3))
-            {
-                return new UnWrappingObjectBox(typeSolution.GetObject(v3));
-                
-            }
-            else if (orType.Is4(out var v4))
-            {
-                return typeSolution.GetOrType(v4);
-            }
-            else if (orType.Is5(out var v5))
-            {
-                return typeSolution.GetInferredType(v5, new InferredTypeConverter());
-            }
-            else
-            {
-                throw new Exception("well, should have been one of those");
-            }
+            return typeSolution.GetType(lookUpType).SwitchReturns(
+                v1 => new Box<IFrontendType>(typeSolution.GetMethodType(v1).GetValue()),
+                v2 => new UnWrappingTypeBox(typeSolution.GetExplicitType(v2)),
+                v3 => new UnWrappingObjectBox(typeSolution.GetObject(v3)),
+                v4 => typeSolution.GetOrType(v4),
+                v5 => typeSolution.GetInferredType(v5, new InferredTypeConverter()));
         }
     }
 
@@ -264,21 +242,6 @@ namespace Tac.Frontend
         }
     }
 
-    //internal class PrimativeTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IFrontendType>
-    //{
-    //    private readonly IFrontendType frontendType;
-
-    //    public PrimativeTypeConverter(IFrontendType frontendType)
-    //    {
-    //        this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
-    //    }
-
-    //    public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
-    //    {
-    //        return frontendType;
-    //    }
-    //}
-
     internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>>
     {
         private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
@@ -297,8 +260,7 @@ namespace Tac.Frontend
                 typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
-                Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
-                isEntryPoint));
+                Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
 
         
@@ -376,7 +338,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakBlockDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope>>
+    internal class WeakBlockDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope,WeakEntryPointDefinition>>
     {
 
         private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
@@ -386,9 +348,9 @@ namespace Tac.Frontend
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
-        public OrType<WeakBlockDefinition, WeakScope> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+        public OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
         {
-            return new OrType<WeakBlockDefinition, WeakScope>(
+            return new OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakBlockDefinition(
                     body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
                     new Box<WeakScope>(Help.GetScope(typeSolution, from)),
@@ -396,15 +358,35 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakScopeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope>>
+    internal class WeakEntryPointConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>
+    {
+
+        private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
+
+        public WeakEntryPointConverter(IBox<IResolve<IFrontendCodeElement>[]> body)
+        {
+            this.body = body ?? throw new ArgumentNullException(nameof(body));
+        }
+
+        public OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+        {
+            return new OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
+                new WeakEntryPointDefinition(
+                    body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
+                    new Box<WeakScope>(Help.GetScope(typeSolution, from)),
+                    Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
+        }
+    }
+
+    internal class WeakScopeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>
     {
         public WeakScopeConverter()
         {
         }
 
-        public OrType<WeakBlockDefinition, WeakScope> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+        public OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
         {
-            return new OrType<WeakBlockDefinition, WeakScope>(Help.GetScope(typeSolution, from));
+            return new OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(Help.GetScope(typeSolution, from));
         }
     }
 
@@ -438,10 +420,24 @@ namespace Tac.Frontend
 
         public OrType<WeakObjectDefinition, WeakModuleDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
+            WeakEntryPointDefinition weakEntryPoint;
+            if (typeSolution.GetEntryPoint(from) is IIsDefinately<Tpn.TypeProblem2.Scope> scope)
+            {
+                weakEntryPoint = typeSolution.GetScope(scope.Value).GetValue().Is3OrThrow();
+            }
+            else {
+                weakEntryPoint = new WeakEntryPointDefinition(
+                    Array.Empty<IBox<IFrontendCodeElement>>(),
+                    new Box<WeakScope>(new WeakScope(new List<IBox<WeakMemberDefinition>>())),
+                    Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>());
+            }
+
+
             return new OrType<WeakObjectDefinition, WeakModuleDefinition>(new WeakModuleDefinition(
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 box.GetValue().Select(x => x.Run(typeSolution)).ToArray(), 
-                key));
+                key,
+                new Box<WeakEntryPointDefinition>(weakEntryPoint)));
         }
     }
 

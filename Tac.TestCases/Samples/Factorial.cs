@@ -21,7 +21,6 @@ namespace Tac.Tests.Samples
             var facKey = new NameKey("fac");
             var fac = MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false);
 
-
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input ,false) });
 
 
@@ -60,11 +59,11 @@ namespace Tac.Tests.Samples
                                                                     MemberReference.CreateAndBuild(fac)),
                                                                 MemberReference.CreateAndBuild(input)))},
                                                     new ICodeElement[0]))},
-                                    new ICodeElement[0],
-                                    false),
+                                    new ICodeElement[0]),
                                 MemberReference.CreateAndBuild(fac)
                         ) },
-                    new NameKey("factorial")
+                    new NameKey("factorial"), 
+                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()),Array.Empty<ICodeElement>(),Array.Empty<ICodeElement>())
                     );
         }
 

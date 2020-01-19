@@ -10,12 +10,14 @@ namespace Tac.Model.Instantiated
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
         private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitialization = new Buildable<IReadOnlyList<ICodeElement>>();
         private readonly Buildable<IKey> buildableKey = new Buildable<IKey>();
+        private readonly Buildable<IEntryPointDefinition> buildableEntryPoint = new Buildable<IEntryPointDefinition>();
 
         private ModuleDefinition() { }
 
         public IFinalizedScope Scope => buildableScope.Get();
         public IReadOnlyList<ICodeElement> StaticInitialization => buildableStaticInitialization.Get();
         public IKey Key => buildableKey.Get();
+        public IEntryPointDefinition EntryPoint => buildableEntryPoint.Get();
 
         public T Convert<T,TBaking>(IOpenBoxesContext<T, TBaking> context)
             where TBaking: IBacking
@@ -23,11 +25,12 @@ namespace Tac.Model.Instantiated
             return context.ModuleDefinition(this);
         }
 
-        public void Build(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key)
+        public void Build(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key, IEntryPointDefinition entryPoint)
         {
             buildableScope.Set(scope);
             buildableStaticInitialization.Set(staticInitialization);
             buildableKey.Set(key);
+            buildableEntryPoint.Set(entryPoint);
         }
         
         public static (IModuleDefinition, IModuleDefinitionBuilder) Create()
@@ -36,9 +39,9 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key) {
+        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key, IEntryPointDefinition entryPoint) {
             var (x, y) = Create();
-            y.Build(scope, staticInitialization, key);
+            y.Build(scope, staticInitialization, key, entryPoint);
             return x;
         }
 
@@ -50,6 +53,6 @@ namespace Tac.Model.Instantiated
 
     public interface IModuleDefinitionBuilder
     {
-        void Build(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key);
+        void Build(IFinalizedScope scope, IReadOnlyList<ICodeElement> staticInitialization, IKey key, IEntryPointDefinition entryPoint);
     }
 }

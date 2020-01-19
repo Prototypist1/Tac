@@ -40,18 +40,18 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void Simplest()
         {
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
-            x.Solve(new WeakTypeDefinitionConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
+            x.Solve();
         }
 
         [Fact]
         public void AddType()
         {
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
             var hello = x.CreateType(x.ModuleRoot, new NameKey("Hello"), new WeakTypeDefinitionConverter());
             var hello_x = x.CreateMember(hello, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
             var hello_y = x.CreateMember(hello, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
-            var solution = x.Solve(new WeakTypeDefinitionConverter());
+            var solution = x.Solve();
 
             var resultHello = solution.GetExplicitType(hello).GetValue().Is1OrThrow();
 
@@ -64,7 +64,7 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void AddMethod()
         {
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var hello = x.CreateType(x.ModuleRoot, new NameKey("hello"), new WeakTypeDefinitionConverter());
             var hello_x = x.CreateMember(hello, new NameKey("x"), new WeakMemberDefinitionConverter(false,new NameKey("x")));
@@ -86,7 +86,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             input.AssignTo(method.Input());
 
-            var result = x.Solve(new WeakTypeDefinitionConverter());
+            var result = x.Solve();
 
             var methodResult = result.GetMethod(method).GetValue().Is1OrThrow();
 
@@ -114,7 +114,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentXDownStream()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var m1 = x.CreateMember(x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
             x.CreateHopefulMember(m1, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
@@ -129,7 +129,7 @@ namespace Tac.Frontend.TypeProblem.Test
             m3.AssignTo(m4);
             m3.AssignTo(m5);
 
-            var solution = x.Solve(new WeakTypeDefinitionConverter());
+            var solution = x.Solve();
 
             HasCount(1, MemberToType(solution.GetMember(m1).GetValue()));
             HasCount(1, MemberToType(solution.GetMember(m2).GetValue()));
@@ -145,7 +145,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentXUpStream()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var m1 = x.CreateMember(x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
             var m2 = x.CreateMember(x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(false, new NameKey("m2")));
@@ -160,7 +160,7 @@ namespace Tac.Frontend.TypeProblem.Test
             m3.AssignTo(m4);
             m3.AssignTo(m5);
 
-            var solution = x.Solve(new WeakTypeDefinitionConverter());
+            var solution = x.Solve();
 
             HasCount(2, MemberToType(solution.GetMember(m1).GetValue()));
             HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
@@ -174,7 +174,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentMutual()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var m1 = x.CreateMember(x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
             x.CreateHopefulMember(m1, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
@@ -184,7 +184,7 @@ namespace Tac.Frontend.TypeProblem.Test
             m1.AssignTo(m2);
             m2.AssignTo(m1);
 
-            var solution = x.Solve(new WeakTypeDefinitionConverter());
+            var solution = x.Solve();
 
             HasCount(2, MemberToType(solution.GetMember(m1).GetValue()));
             HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
@@ -195,7 +195,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void Generic()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var pairType = x.CreateGenericType(
                 x.ModuleRoot, 
@@ -215,7 +215,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var chickenPair = x.CreateMember(x.ModuleRoot, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
-            var solution = x.Solve(new WeakTypeDefinitionConverter());
+            var solution = x.Solve();
 
             var chickenPairResult = solution.GetMember(chickenPair).GetValue();
 
@@ -233,7 +233,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void GenericContainsSelf()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var type = x.CreateGenericType(x.ModuleRoot, new NameKey("node"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("node-t"), new WeakTypeDefinitionConverter())
@@ -250,7 +250,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 new NameKey("chicken")
             }), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
-            var solution = x.Solve(new WeakTypeDefinitionConverter());
+            var solution = x.Solve();
 
             var thingResult = solution.GetMember(thing).GetValue();
             var thingResultType = MemberToType(thingResult);
@@ -268,7 +268,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void GenericCircular()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var left = x.CreateGenericType(x.ModuleRoot, new NameKey("left"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("left-t"), new WeakTypeDefinitionConverter())
@@ -292,7 +292,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var rightMember = x.CreateMember(x.ModuleRoot, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }), new WeakMemberDefinitionConverter(false, new NameKey("right-member")));
 
-            var solution = x.Solve(new WeakTypeDefinitionConverter());
+            var solution = x.Solve();
 
             var leftResult = solution.GetMember(leftMember).GetValue();
             var rightResult = solution.GetMember(rightMember).GetValue();
@@ -318,7 +318,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void NestedGeneric()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var pairType = x.CreateGenericType(x.ModuleRoot, new NameKey("pair"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
@@ -334,7 +334,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var xMember = x.CreateMember(x.ModuleRoot, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
-            var solution = x.Solve(new WeakTypeDefinitionConverter());
+            var solution = x.Solve();
 
             var xMemberResult = solution.GetMember(xMember).GetValue();
             var xMemberResultType = MemberToType(xMemberResult);

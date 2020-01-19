@@ -90,7 +90,8 @@ module mirror-module {
                         new ICodeElement[0]),
                     MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))
                 },
-                new NameKey("mirror-module"));
+                new NameKey("mirror-module"),
+                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
             
         }
 

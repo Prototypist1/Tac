@@ -28,12 +28,7 @@ namespace Tac.Backend
                 throw new Exception("this should not really return");
             }
 
-            if (conversionContext.EntryPoint.Interpet(interpetedContext).IsReturn(out var _, out var value))
-            {
-                throw new Exception("this should not really return");
-            }
-            value.Value.Invoke(TypeManager.EmptyMember(TypeManager.Empty()));
-
+            conversionContext.EntryPoint.Interpet(interpetedContext);
         }
     }
 }

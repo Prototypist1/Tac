@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -69,10 +70,10 @@ module pair-type {
                                                 MemberReference.CreateAndBuild(input),
                                                 MemberReference.CreateAndBuild(localY))
                                         }))},
-                            new ICodeElement[0],
-                            false),
+                            new ICodeElement[0]),
                     MemberReference.CreateAndBuild(pairify))},
-                new NameKey("pair-type"));
+                new NameKey("pair-type"),
+                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
         }
     }
 }

@@ -35,6 +35,7 @@ namespace Tac.Model
         T AddOperation(IAddOperation co);
         T NextCallOperation(INextCallOperation co);
         T ElseOperation(IElseOperation co);
+        T EntryPoint(IEntryPointDefinition entryPointDefinition);
         T IfTrueOperation(IIfOperation co);
         T LessThanOperation(ILessThanOperation co);
         T MultiplyOperation(IMultiplyOperation co);

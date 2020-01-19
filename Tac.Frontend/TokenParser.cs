@@ -34,7 +34,7 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter());
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             foreach (var dependency in dependencies)
             {
@@ -56,15 +56,15 @@ namespace Tac.Frontend
             var populateScopeContex = new SetUpContext(problem);
             var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve).ToArray();
 
-            var solution = problem.Solve(new WeakTypeDefinitionConverter());
+            var solution = problem.Solve();
 
-            var resolved = referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray().Single().GetValue();
+            referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray();
 
-            var module = resolved.SafeCastTo<IFrontendCodeElement,WeakModuleDefinition>(); ;
+            var moduleDefinition = solution.GetObject(problem.ModuleRoot).GetValue().Is2OrThrow();
 
             var context = TransformerExtensions.NewConversionContext();
 
-            return new Project<TBacking>(module.Convert(context), dependencies);
+            return new Project<TBacking>(moduleDefinition.Convert(context), dependencies);
         }
 
         private OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>> ConvertType(

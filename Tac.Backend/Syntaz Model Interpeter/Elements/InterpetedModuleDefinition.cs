@@ -9,12 +9,14 @@ namespace Tac.Syntaz_Model_Interpeter
 {
     internal class InterpetedModuleDefinition : IInterpetedOperation<IInterpetedScope>
     {
-        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedOperation<IInterpetedAnyType>> staticInitialization)
+        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedOperation<IInterpetedAnyType>> staticInitialization, InterpetedEntryPointDefinition interpetedEntry)
         {
             ScopeTemplate = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
+            InterpetedEntry = interpetedEntry ?? throw new ArgumentNullException(nameof(interpetedEntry));
         }
         
+        public InterpetedEntryPointDefinition InterpetedEntry { get; private set; }
         public IInterpetedScopeTemplate ScopeTemplate { get; private set; }
         public IEnumerable<IInterpetedOperation<IInterpetedAnyType>> StaticInitialization { get; private set; }
 

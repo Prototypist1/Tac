@@ -49,7 +49,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IFrontendType> converter);
-            TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope>> converter);
+            TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter);
             TypeProblem2.Type CreateType(IScope parent, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
@@ -69,6 +69,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             void IsString(IScope parent, ICanAssignFromMe target);
             void IsEmpty(IScope parent, ICanAssignFromMe target);
             void IsBool(IScope parent, ICanAssignFromMe target);
+
+            void HasEntryPoint(IScope parent, Tpn.TypeProblem2.Scope entry);
             TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
         }
 
@@ -78,7 +80,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member);
             IBox<IFrontendType> GetTypeReference(TypeProblem2.TypeReference typeReference);
             IBox<IFrontendType> GetInferredType(TypeProblem2.InferredType inferredType, IConvertTo<TypeProblem2.InferredType, IFrontendType> converter);
-            IBox<OrType<WeakBlockDefinition, WeakScope>> GetScope(TypeProblem2.Scope scope);
+            IBox<OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> GetScope(TypeProblem2.Scope scope);
             // when I ungeneric this it should probably have the box inside the or..
             IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> GetExplicitType(TypeProblem2.Type explicitType);
             IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> GetObject(TypeProblem2.Object @object);
@@ -93,7 +95,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             TypeProblem2.TransientMember GetResultMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from);
             TypeProblem2.Member GetInputMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from);
-
+            IIsPossibly<TypeProblem2.Scope> GetEntryPoint(TypeProblem2.Object from);
         }
 
         //internal class ConcreteSolutionType : IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>
@@ -183,19 +185,22 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
             private readonly IReadOnlyDictionary<OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn;
             private readonly IReadOnlyDictionary<OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.TransientMember> methodOut;
+            private readonly IReadOnlyDictionary<IScope, TypeProblem2.Scope> moduleEntryPoint;
 
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>> map,
                 IReadOnlyDictionary<IHaveMembers, IReadOnlyList<TypeProblem2.Member>> members,
                 IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
                 IReadOnlyDictionary<OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn,
-                IReadOnlyDictionary<OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.TransientMember> methodOut)
+                IReadOnlyDictionary<OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.TransientMember> methodOut,
+                IReadOnlyDictionary<IScope, TypeProblem2.Scope> moduleEntryPoint)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.members = members ?? throw new ArgumentNullException(nameof(members));
                 this.orTypeElememts = orTypeElememts ?? throw new ArgumentNullException(nameof(orTypeElememts));
                 this.methodIn = methodIn ?? throw new ArgumentNullException(nameof(methodIn));
                 this.methodOut = methodOut ?? throw new ArgumentNullException(nameof(methodOut));
+                this.moduleEntryPoint = moduleEntryPoint ?? throw new ArgumentNullException(nameof(moduleEntryPoint));
             }
 
 
@@ -259,12 +264,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheOrType[orType];
             }
 
-            private readonly Dictionary<TypeProblem2.Scope, IBox<OrType<WeakBlockDefinition, WeakScope>>> cacheScope = new Dictionary<TypeProblem2.Scope, IBox<OrType<WeakBlockDefinition, WeakScope>>>();
-            public IBox<OrType<WeakBlockDefinition, WeakScope>> GetScope(TypeProblem2.Scope scope)
+            private readonly Dictionary<TypeProblem2.Scope, IBox<OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>> cacheScope = new Dictionary<TypeProblem2.Scope, IBox<OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>>();
+            public IBox<OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> GetScope(TypeProblem2.Scope scope)
             {
                 if (!cacheScope.ContainsKey(scope))
                 {
-                    var box = new Box<OrType<WeakBlockDefinition, WeakScope>>();
+                    var box = new Box<OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>();
                     cacheScope[scope] = box;
                     box.Fill(scope.Converter.Convert(this, scope));
                 }
@@ -362,6 +367,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return methodIn[from];
             }
 
+            public IIsPossibly<TypeProblem2.Scope> GetEntryPoint(TypeProblem2.Object from)
+            {
+                if (moduleEntryPoint.TryGetValue(from, out var res)){
+                    return Possibly.Is<TypeProblem2.Scope>(res);
+                }
+                return Possibly.IsNot<TypeProblem2.Scope>();
+            }
         }
 
         // the simple model of or-types:
@@ -482,9 +494,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
             }
-            public class Scope : TypeProblemNode<Scope, OrType<WeakBlockDefinition, WeakScope>>, IScope
+            public class Scope : TypeProblemNode<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>, IScope
             {
-                public Scope(TypeProblem2 problem, string debugName, IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> converter) : base(problem, debugName, converter)
+                public Scope(TypeProblem2 problem, string debugName, IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter) : base(problem, debugName, converter)
                 {
                 }
             }
@@ -508,9 +520,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             // basic stuff
             private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
 
-            private IScope Primitive { get; }
-            public IScope Dependency { get; }
-            public IScope ModuleRoot { get; }
+            private Scope Primitive { get; }
+            public Scope Dependency { get; }
+            public Object ModuleRoot { get; }
 
             // relationships
             private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
@@ -521,6 +533,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             // legit methods
             private readonly Dictionary<OrType<Method, MethodType, InferredType>, TransientMember> methodReturns = new Dictionary<OrType<Method, MethodType, InferredType>, TransientMember>();
             private readonly Dictionary<OrType<Method, MethodType, InferredType>, Member> methodInputs = new Dictionary<OrType<Method, MethodType, InferredType>, Member>();
+
+            // entryPoints
+            private readonly Dictionary<IScope, List<Scope>> entryPoints = new Dictionary<IScope, List<Scope>>();
 
             private readonly Dictionary<IScope, List<Value>> values = new Dictionary<IScope, List<Value>>();
             private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
@@ -574,6 +589,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 refs[parent].Add(reference);
             }
+
+
+            public void HasEntryPoint(IScope parent, Scope entry)
+            {
+                if (!entryPoints.ContainsKey(parent))
+                {
+                    entryPoints.Add(parent, new List<Scope>());
+                }
+                entryPoints[parent].Add(entry);
+            }
+
             public void HasType(IScope parent, IKey key, Type type)
             {
                 if (!types.ContainsKey(parent))
@@ -720,7 +746,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Scope CreateScope(IScope parent, IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> converter)
+            public Scope CreateScope(IScope parent, IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter)
             {
                 var res = new Scope(this, $"child-of-{((TypeProblemNode)parent).debugName}", converter);
                 IsChildOf(parent, res);
@@ -969,7 +995,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // pretty sure it is not safe to solve more than once 
-            public ITypeSolution Solve(IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> inferedTypeConvert)
+            public ITypeSolution Solve()
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
@@ -1110,7 +1136,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     members.ToDictionary(x => x.Key, x => (IReadOnlyList<Member>)x.Value.Select(y => y.Value).ToArray()),
                     orTypeComponents,
                     methodInputs,
-                    methodReturns);
+                    methodReturns,
+                    entryPoints.ToDictionary(x=>x.Key, x=> x.Value.Single()));
 
                 #region Helpers
 
@@ -2123,12 +2150,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope>> rootConverter)
+            public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, IConvertTo<Object,OrType<WeakObjectDefinition, WeakModuleDefinition>> moduleConverter)
             {
 
                 Primitive = new Scope(this, "base", rootConverter);
                 Dependency = CreateScope(Primitive, rootConverter);
-                ModuleRoot = CreateScope(Dependency, rootConverter);
+                ModuleRoot = CreateObjectOrModule(CreateScope(Dependency, rootConverter),new ImplicitKey(Guid.NewGuid()),moduleConverter);
 
                 CreateType(Primitive, new NameKey("number"), new PrimitiveTypeConverter(new NumberType()));
                 CreateType(Primitive, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));

@@ -217,6 +217,13 @@ namespace Tac.Model.Instantiated
         }
     }
 
+    public struct EntryPointType : IEntryPointType {
+        public bool TheyAreUs(IVerifiableType they, bool noTagBacks) => SimpleTypeHelp.TheyAreUs<IEntryPointType>(this, they, noTagBacks);
+
+        public bool WeAreThem(IVerifiableType them, bool noTagBacks) => SimpleTypeHelp.WeAreThem<IEntryPointType>(this, them, noTagBacks);
+
+    }
+
     public struct NumberType : INumberType
     {
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks) => SimpleTypeHelp.TheyAreUs<INumberType>(this, they, noTagBacks);
