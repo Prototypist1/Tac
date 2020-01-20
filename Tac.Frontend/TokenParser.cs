@@ -42,7 +42,8 @@ namespace Tac.Frontend
                 var type = problem.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
                 foreach (var memberPair in dependency.Scope.Members)
                 {
-                    var innerType = ConvertType(problem,type, memberPair.Value.Value.Type); innerType.Switch(x => {
+                    var innerType = ConvertType(problem,type, memberPair.Value.Value.Type); 
+                    innerType.Switch(x => {
                         problem.CreateMember(type, memberPair.Key, x, new WeakMemberDefinitionConverter(true, memberPair.Key));
                     }, y =>
                     {

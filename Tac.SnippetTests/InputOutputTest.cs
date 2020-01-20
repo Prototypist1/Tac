@@ -155,6 +155,28 @@ entry-point {
         }
 
 
+
+        [Fact]
+        public void SimpleAdd()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 4.0 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+ @"
+ entry-point {
+     2 + 2 > (out.write-number);
+ };");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+
+
         [Fact]
         public void Add()
         {
@@ -290,9 +312,9 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
-    5 =: (bool|int) x;
+    5 =: (bool|number) x;
 
-    x ?=: int y > (out.write-bool);
+    x ?=: number y > (out.write-bool);
     y > (out.write-number);
     x ?=: bool z > (out.write-bool);
 };");
@@ -313,9 +335,9 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
-    true =: (bool|int) x;
+    true =: (bool|number) x;
 
-    x ?=: int y > (out.write-bool);
+    x ?=: number y > (out.write-bool);
     x ?=: bool z > (out.write-bool);
     z > (out.write-bool);
 };");

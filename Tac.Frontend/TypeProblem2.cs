@@ -661,15 +661,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 transientMembers[parent].Add(member);
             }
-            public void HasMembersPossiblyOnParent(IScope parent, IKey key, Member member)
+            public Member HasMembersPossiblyOnParent(IScope parent, IKey key, Member member)
             {
                 if (!possibleMembers.ContainsKey(parent))
                 {
                     possibleMembers.Add(parent, new Dictionary<IKey, Member>());
                 }
                 possibleMembers[parent].TryAdd(key, member);
+                return possibleMembers[parent][key];
             }
-            public void HasHopefulMember(IValue parent, IKey key, Member member)
+            public Member HasHopefulMember(IValue parent, IKey key, Member member)
             {
 
                 if (!hopefulMembers.ContainsKey(parent))
@@ -677,6 +678,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     hopefulMembers.Add(parent, new Dictionary<IKey, Member>());
                 }
                 hopefulMembers[parent].TryAdd(key, member);
+                return hopefulMembers[parent][key];
+
             }
 
             private T Register<T>(T typeProblemNode)
@@ -732,7 +735,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res1;
                 }
                 var res = new Member(this, "possibly on parent -" + key.ToString()!, converter);
-                HasMembersPossiblyOnParent(scope, key, res);
+                res = HasMembersPossiblyOnParent(scope, key, res);
                 lookUpTypeContext[res] = scope;
                 return res;
             }
@@ -831,7 +834,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
             {
                 var res = new Member(this,"hopeful - " + key.ToString()!, converter);
-                HasHopefulMember(scope, key, res);
+                res = HasHopefulMember(scope, key, res);
                 return res;
             }
 
@@ -1151,8 +1154,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     var deferredToType = GetType(deferredTo);
 
-                    lookUps[deferer] = deferredToType;
-
+                    var toReplace = new List<ILookUpType>();
+                    foreach (var pair in lookUps)
+                    {
+                        if (pair.Value.Equals(defererType)) {
+                            toReplace.Add(pair.Key);
+                        }
+                    }
+                    foreach (var key in toReplace)
+                    {
+                        lookUps[key] = deferredToType;
+                    }
+                    
                     // why do I need this?
                     // 
                     {

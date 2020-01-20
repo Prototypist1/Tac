@@ -103,22 +103,22 @@ namespace Tac.SemanticModel.Operations
                 var nextLeft = left.Run(scope, context);
                 var member = context.TypeProblem.CreateHopefulMember(nextLeft.SetUpSideNode.CastTo<Tpn.IValue>(), new NameKey(name), new WeakMemberDefinitionConverter(false,new NameKey(name)));
 
-                return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReferance(
+                return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
                     left.Run(scope, context).Resolve,
                      member),member);
             }
         }
 
-        private class WeakPathOperationResolveReferance : IResolve<WeakPathOperation>
+        private class WeakPathOperationResolveReference : IResolve<WeakPathOperation>
         {
             readonly IResolve<IFrontendCodeElement> left;
             readonly Tpn.TypeProblem2.Member member;
 
-            public WeakPathOperationResolveReferance(
-                IResolve<IFrontendCodeElement> resolveReferance1, 
+            public WeakPathOperationResolveReference(
+                IResolve<IFrontendCodeElement> resolveReference, 
                 Tpn.TypeProblem2.Member member)
             {
-                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+                left = resolveReference ?? throw new ArgumentNullException(nameof(resolveReference));
                 this.member = member ?? throw new ArgumentNullException(nameof(member));
             }
 
