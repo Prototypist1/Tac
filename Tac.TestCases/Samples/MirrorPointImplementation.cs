@@ -87,7 +87,7 @@ module mirror-module {
                                     PathOperation.CreateAndBuild(MemberReference.CreateAndBuild(context),MemberReference.CreateAndBuild(localY))
                                     )
                         },
-                        new ICodeElement[0]),
+                        Array.Empty<ICodeElement>()),
                     MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))
                 },
                 new NameKey("mirror-module"),

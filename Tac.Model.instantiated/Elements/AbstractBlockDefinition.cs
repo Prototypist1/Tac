@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -25,22 +26,22 @@ namespace Tac.Model.Instantiated
     internal class Buildable<T>
         where T : class
     {
-        private T t;
+        private IIsPossibly<T> t = Possibly.IsNot<T>();
         public T Get()
         {
-            if (t == null)
+            if (t is IIsDefinately<T> definate)
             {
-                throw new ApplicationException();
+                return definate.Value;
             }
-            return t;
+            throw new ApplicationException();
         }
         public void Set(T t)
         {
-            if (this.t != null)
+            if (t is IIsDefinatelyNot<T>)
             {
                 throw new ApplicationException();
             }
-            this.t = t ?? throw new ArgumentNullException();
+            this.t = Possibly.Is(t);
         }
     }
 

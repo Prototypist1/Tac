@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox.Object;
+using System;
 using System.Linq;
 
 namespace Tac.Model
@@ -15,7 +16,7 @@ namespace Tac.Model
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as ImplicitKey);
+            return Equals(obj.SafeCastTo<object,ImplicitKey>());
         }
 
         public bool Equals(ImplicitKey other)

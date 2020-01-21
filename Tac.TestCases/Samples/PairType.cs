@@ -70,7 +70,7 @@ module pair-type {
                                                 MemberReference.CreateAndBuild(input),
                                                 MemberReference.CreateAndBuild(localY))
                                         }))},
-                            new ICodeElement[0]),
+                            Array.Empty<ICodeElement>()),
                     MemberReference.CreateAndBuild(pairify))},
                 new NameKey("pair-type"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));

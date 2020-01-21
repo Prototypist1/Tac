@@ -46,7 +46,7 @@ namespace Tac.Tests.Samples
                                                         new ICodeElement[]{
                                                             ReturnOperation.CreateAndBuild(
                                                                 ConstantNumber.CreateAndBuild(1))},
-                                                        new ICodeElement[0])),
+                                                        Array.Empty<ICodeElement>())),
                                                 BlockDefinition.CreateAndBuild(
                                                     elseBlock,
                                                     new ICodeElement[]{
@@ -58,8 +58,8 @@ namespace Tac.Tests.Samples
                                                                         ConstantNumber.CreateAndBuild(1)),
                                                                     MemberReference.CreateAndBuild(fac)),
                                                                 MemberReference.CreateAndBuild(input)))},
-                                                    new ICodeElement[0]))},
-                                    new ICodeElement[0]),
+                                                    Array.Empty<ICodeElement>()))},
+                                    Array.Empty<ICodeElement>()),
                                 MemberReference.CreateAndBuild(fac)
                         ) },
                     new NameKey("factorial"), 

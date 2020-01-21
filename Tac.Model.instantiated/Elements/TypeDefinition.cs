@@ -286,10 +286,11 @@ namespace Tac.Model.Instantiated
 
         public void Build(IKey key)
         {
-            this.Key = key ?? throw new ArgumentNullException(nameof(key));
+            this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IKey Key { get; private set; }
+        private IKey? key = null;
+        public IKey Key { get=>key?? throw new NullReferenceException(nameof(key)); private set => key = value; }
 
         public override bool Equals(object obj)
         {

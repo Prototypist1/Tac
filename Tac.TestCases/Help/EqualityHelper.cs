@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,9 @@ namespace Tac.Tests.Help
                 sharedTypes = new List<Type>() { typeof(T) };
             }
 
-            if (!PublicStateIsValueEqual(target, actual,new List<(object,object)>(), sharedTypes, out var res))
+            if (PublicStateIsValueNotEqual(target, actual,new List<(object,object)>(), sharedTypes) is IIsDefinately<string> value)
             {
-                throw new Exception(res);
+                throw new Exception(value.Value);
             }
         }
 
@@ -38,58 +39,54 @@ namespace Tac.Tests.Help
             return target.GetType().FindInterfaces((x, y) => true, new object()).Intersect(actual.GetType().FindInterfaces((x, y) => true, new object()));
         }
 
-        private static bool PublicStateIsValueEqual(this object target, object actual,IEnumerable<(object,object)> assumed, IEnumerable<Type> types,  out string error)
+        /// <summary>
+        /// returns Possibly.IsNot when Equal
+        /// and
+        /// Possibly.Is when not equal
+        /// <returns></returns>
+        private static IIsPossibly<string> PublicStateIsValueNotEqual(this object target, object actual,IEnumerable<(object,object)> assumed, IEnumerable<Type> types)
         {
             if (target == null && actual == null)
             {
-                error = null;
-                return true;
+                return Possibly.IsNot<string>(); ;
             }
 
             if (target == null)
             {
-                error = $" {nameof(target)} is null, {nameof(actual)} is {actual}";
-                return false;
+                return  Possibly.Is($" {nameof(target)} is null, {nameof(actual)} is {actual}");
             }
 
             if (actual == null)
             {
-                error = $" {nameof(target)} is {target}, {nameof(actual)} is null";
-                return false;
+                return Possibly.Is($" {nameof(target)} is {target}, {nameof(actual)} is null");
             }
             
             if (!types.Any()) {
-                error = $" {nameof(target)} and {target} are different types";
-                return false;
+                return Possibly.Is($" {nameof(target)} and {target} are different types");
             }
 
             if (assumed.Any(x => (x.Item1.Equals(target) && x.Item2.Equals(actual)) ||
                 (x.Item2.Equals(target) && x.Item1.Equals(actual))))
             {
-                error = null;
-                return true;
+                return Possibly.IsNot<string>();
             }
             
             if (target.GetType().IsPrimitive)
             {
                 if (!target.Equals(actual))
                 {
-                    error = $" {nameof(target)} is {target}, {nameof(actual)} is {actual}";
-                    return false;
+                    return Possibly.Is($" {nameof(target)} is {target}, {nameof(actual)} is {actual}");
                 }
-                error = null;
-                return true;
+                return Possibly.IsNot<string>();
             }
 
             if (target is string targetString)
             {
                 if (!(actual is string actualString) || targetString != actualString)
                 {
-                    error = $" {nameof(target)} is {target}, {nameof(actual)} is {actual}";
-                    return false;
+                    return Possibly.Is($" {nameof(target)} is {target}, {nameof(actual)} is {actual}");
                 }
-                error = null;
-                return true;
+                return Possibly.IsNot<string>();
             }
 
             var innerAssummed = new Overlay(assumed, new List<(object, object)> { (target, actual) });
@@ -104,16 +101,15 @@ namespace Tac.Tests.Help
                 {
                     var method = list.GetMethod("GetEnumerator");
 
-                    var leftEnumor =(System.Collections.IEnumerator) method.Invoke(target, new object[] { }); 
-                    var rightEnumor = (System.Collections.IEnumerator)method.Invoke(actual, new object[] { });
+                    var leftEnumor =(System.Collections.IEnumerator) method.Invoke(target, Array.Empty<object>()); 
+                    var rightEnumor = (System.Collections.IEnumerator)method.Invoke(actual, Array.Empty<object>());
                     var i = 0;
 
                     while (leftEnumor.MoveNext() && rightEnumor.MoveNext())
                     {
-                        if (!PublicStateIsValueEqual(leftEnumor.Current, rightEnumor.Current, innerAssummed, new[] { list.GetGenericArguments().Single() }, out var err))
+                        if (PublicStateIsValueNotEqual(leftEnumor.Current, rightEnumor.Current, innerAssummed, new[] { list.GetGenericArguments().Single() }) is IIsDefinately<string> value)
                         {
-                            error = $"[{i}]{err}";
-                            return false;
+                            return Possibly.Is($"[{i}]{value.Value}");
                         }
                         i++;
                     }
@@ -124,8 +120,8 @@ namespace Tac.Tests.Help
                 {
                     var method = enumer.GetMethod("GetEnumerator");
 
-                    var leftEnum = (System.Collections.IEnumerator)method.Invoke(target, new object[] { });
-                    var rightEnum = (System.Collections.IEnumerator)method.Invoke(actual, new object[] { });
+                    var leftEnum = (System.Collections.IEnumerator)method.Invoke(target, Array.Empty<object>());
+                    var rightEnum = (System.Collections.IEnumerator)method.Invoke(actual, Array.Empty<object>());
 
                     var leftDict = new Dictionary<object,bool>();
                     while (leftEnum.MoveNext())
@@ -140,23 +136,21 @@ namespace Tac.Tests.Help
 
                     if (leftDict.Count != rightDict.Count)
                     {
-                        error = $".Count: left {leftDict.Count}, right: {rightDict.Count}";
-                        return false;
+                        return Possibly.Is($".Count: left {leftDict.Count}, right: {rightDict.Count}");
                     }
 
                     foreach (var leftKey in leftDict.Keys)
                     {
                         foreach (var rightKey in rightDict.Where(x => x.Value).Select(x => x.Key))
                         {
-                            if (PublicStateIsValueEqual(leftKey, rightKey, innerAssummed, new[] { enumer.GetGenericArguments().Single() }, out var err))
+                            if (PublicStateIsValueNotEqual(leftKey, rightKey, innerAssummed, new[] { enumer.GetGenericArguments().Single() }) is IIsDefinately<string> value)
                             {
-                                leftDict[leftKey] = false;
-                                rightDict[rightKey] = false;
+                                return Possibly.Is($"[{leftKey}]{value.Value}");
                             }
                             else
                             {
-                                error = $"[{leftKey}]{err}";
-                                return false;
+                                leftDict[leftKey] = false;
+                                rightDict[rightKey] = false;
                             }
                         }
                     }
@@ -168,14 +162,13 @@ namespace Tac.Tests.Help
 
             foreach (var propertyInfo in GetPropertryInfo())
             {
-                if (propertyInfo.CanRead && propertyInfo.GetGetMethod().IsPublic && propertyInfo.GetIndexParameters().Count() == 0)
+                if (propertyInfo.CanRead && propertyInfo.GetGetMethod().IsPublic && propertyInfo.GetIndexParameters().Any())
                 {
                     var firstValue = propertyInfo.GetValue(target, null);
                     var secondValue = propertyInfo.GetValue(actual, null);
-                    if (!ReferenceEquals(firstValue, target) && !ReferenceEquals(secondValue, actual) && !PublicStateIsValueEqual(firstValue, secondValue, innerAssummed, new[] { propertyInfo.PropertyType }, out var res))
+                    if (ReferenceEquals(firstValue, target) && !ReferenceEquals(secondValue, actual) && PublicStateIsValueNotEqual(firstValue, secondValue, innerAssummed, new[] { propertyInfo.PropertyType }) is IIsDefinately<string> value)
                     {
-                        error = $".{propertyInfo.Name}{res}";
-                        return false;
+                        return Possibly.Is($".{propertyInfo.Name}{value.Value}");
                     }
                 }
             }
@@ -186,17 +179,15 @@ namespace Tac.Tests.Help
                 {
                     var firstValue = fieldInfo.GetValue(target);
                     var secondValue = fieldInfo.GetValue(actual);
-                    if (!PublicStateIsValueEqual(firstValue, secondValue, innerAssummed, new[] { fieldInfo.FieldType }, out var res))
+                    if (PublicStateIsValueNotEqual(firstValue, secondValue, innerAssummed, new[] { fieldInfo.FieldType }) is IIsDefinately<string> value)
                     {
-                        error = $".{fieldInfo.Name}{res}";
-                        return false;
+                        return Possibly.Is($".{fieldInfo.Name}{value.Value}");
                     }
                 }
             }
 
-            error = null;
-            return true;
-            
+            return Possibly.IsNot<string>();
+
             PropertyInfo[] GetPropertryInfo()
             {
                 return types.SelectMany(x => x.GetProperties()).ToArray();

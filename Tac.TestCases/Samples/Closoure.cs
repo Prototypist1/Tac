@@ -49,9 +49,9 @@ namespace Tac.Tests.Samples
                                             ReturnOperation.CreateAndBuild(
                                                 MemberReference.CreateAndBuild(x))
                                         },
-                                        new ICodeElement[0])
+                                        Array.Empty<ICodeElement>())
                                     )},
-                            new ICodeElement[0]),
+                            Array.Empty<ICodeElement>()),
                         MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))
                  },
                 new NameKey("closoure"),
