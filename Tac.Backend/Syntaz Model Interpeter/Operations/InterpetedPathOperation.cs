@@ -13,9 +13,11 @@ namespace Tac.Syntaz_Model_Interpeter
             Left = left ?? throw new ArgumentNullException(nameof(left));
             Right = right ?? throw new ArgumentNullException(nameof(right));
         }
-        
-        public IInterpetedOperation<IInterpetedScope> Left { get; private set; }
-        public IInterpetedMemberReferance<T> Right { get; private set; }
+
+        private IInterpetedOperation<IInterpetedScope>? left;
+        public IInterpetedOperation<IInterpetedScope> Left { get => left ?? throw new NullReferenceException(nameof(left)); private set => left = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedMemberReferance<T>? right;
+        public IInterpetedMemberReferance<T> Right { get => right ?? throw new NullReferenceException(nameof(right)); private set => right = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {

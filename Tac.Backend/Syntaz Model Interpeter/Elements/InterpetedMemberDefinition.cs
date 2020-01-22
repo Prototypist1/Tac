@@ -25,9 +25,11 @@ namespace Tac.Syntaz_Model_Interpeter
             Key = key ?? throw new ArgumentNullException(nameof(key));
             return this;
         }
-        
-        public IVerifiableType Type { get; private set; }
-        public IKey Key { get; private set; }
+
+        private IVerifiableType? type;
+        public IVerifiableType Type { get => type ?? throw new NullReferenceException(nameof(type)); private set => type = value ?? throw new NullReferenceException(nameof(value)); }
+        private IKey? key;
+        public IKey Key { get => key ?? throw new NullReferenceException(nameof(key)); private set => key = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {

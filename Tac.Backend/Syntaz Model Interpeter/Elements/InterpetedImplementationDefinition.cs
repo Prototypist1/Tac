@@ -25,11 +25,21 @@ namespace Tac.Syntaz_Model_Interpeter
             ImplementationType= implementationType ?? throw new ArgumentNullException(nameof(implementationType));
         }
 
-        public InterpetedMemberDefinition<TMethodIn> ParameterDefinition { get; private set; }
-        public InterpetedMemberDefinition<TIn> ContextDefinition { get; private set; }
-        public IInterpetedOperation<IInterpetedAnyType>[] MethodBody { get; private set; }
-        public IInterpetedScopeTemplate Scope { get; private set; }
-        public IImplementationType ImplementationType { get; private set; }
+        private InterpetedMemberDefinition<TMethodIn>? parameterDefinition;
+        public InterpetedMemberDefinition<TMethodIn> ParameterDefinition { get => parameterDefinition ?? throw new NullReferenceException(nameof(parameterDefinition)); private set => parameterDefinition = value ?? throw new NullReferenceException(nameof(value)); }
+
+
+        private InterpetedMemberDefinition<TIn>? contextDefinition;
+        public InterpetedMemberDefinition<TIn> ContextDefinition { get => contextDefinition ?? throw new NullReferenceException(nameof(contextDefinition)); private set => contextDefinition = value ?? throw new NullReferenceException(nameof(value)); }
+
+        public IInterpetedOperation<IInterpetedAnyType>[]? methodBody;
+        public IInterpetedOperation<IInterpetedAnyType>[] MethodBody { get => methodBody ?? throw new NullReferenceException(nameof(methodBody)); private set => methodBody = value ?? throw new NullReferenceException(nameof(value)); }
+        
+        public IInterpetedScopeTemplate? scope;
+        public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
+
+        public IImplementationType? implementationType;
+        public IImplementationType ImplementationType { get => implementationType ?? throw new NullReferenceException(nameof(implementationType)); private set => implementationType = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedResult<IInterpetedMember<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>> Interpet(InterpetedContext interpetedContext)
         {

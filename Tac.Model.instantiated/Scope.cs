@@ -9,7 +9,7 @@ namespace Tac.Model.Instantiated
 {
     public class Scope : IFinalizedScope, IFinalizedScopeBuilder
     {
-        private readonly IFinalizedScope parent;
+        private readonly IFinalizedScope? parent;
 
         public class TypeData {
             public TypeData(IKey key, IVerifiableType type)

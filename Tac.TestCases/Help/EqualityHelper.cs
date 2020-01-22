@@ -25,7 +25,6 @@ namespace Tac.Tests.Help
             }
         }
 
-
         private static IEnumerable<Type> GetSharedTypes(this object target, object actual)
         {
             if (target == null || actual == null) {

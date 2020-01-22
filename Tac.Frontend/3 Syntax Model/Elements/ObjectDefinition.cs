@@ -16,7 +16,7 @@ using Tac.SemanticModel;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Prototypist.Toolbox;
-using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Frontend.Parser;
 
 namespace Tac.Parser

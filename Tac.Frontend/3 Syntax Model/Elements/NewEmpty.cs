@@ -9,7 +9,7 @@ using Tac.New;
 using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.Frontend;
-using Tac.Frontend._3_Syntax_Model.Elements;
+using Tac.Frontend.SyntaxModel.Elements;
 using Tac.Model;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
@@ -29,7 +29,7 @@ namespace Tac.Parser
 
 
 
-namespace Tac.Frontend._3_Syntax_Model.Elements
+namespace Tac.Frontend.SyntaxModel.Elements
 {
     // what is the empty instance...
     // I though empty was a type

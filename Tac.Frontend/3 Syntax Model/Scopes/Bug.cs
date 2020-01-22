@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Tac.Frontend._3_Syntax_Model.Scopes
+namespace Tac.Frontend.SyntaxModel.Scopes
 {
     [Serializable]
+#pragma warning disable CA1710 // Identifiers should have correct suffix
     public class Bug : Exception
+#pragma warning restore CA1710 // Identifiers should have correct suffix
     {
         public Bug()
         {

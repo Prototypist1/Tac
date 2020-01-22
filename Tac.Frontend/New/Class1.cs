@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tac.Frontend;
-using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model.Elements;

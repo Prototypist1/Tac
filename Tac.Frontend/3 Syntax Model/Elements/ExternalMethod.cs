@@ -7,7 +7,7 @@ using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.SemanticModel;
 
-namespace Tac.Frontend._3_Syntax_Model.Elements
+namespace Tac.Frontend.SyntaxModel.Elements
 {
 
     // uhhh.. this never used?

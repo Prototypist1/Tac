@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Frontend;
-using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Frontend.Parser;

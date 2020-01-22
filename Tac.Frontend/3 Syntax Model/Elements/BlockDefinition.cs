@@ -11,7 +11,7 @@ using Tac.Model.Instantiated;
 using Tac.New;
 using Tac.Parser;
 using Tac.SemanticModel;
-using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.SyntaxModel.Operations;
 using Prototypist.Toolbox;
 using Tac.Frontend.Parser;
 

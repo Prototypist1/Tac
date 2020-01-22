@@ -398,8 +398,10 @@ namespace Tac.Model.Instantiated
             return this.WeAreThem(this, true);
         }
 
-        public IVerifiableType InputType { get; private set; }
-        public IVerifiableType OutputType { get; private set; }
+        private IVerifiableType? inputType; 
+        public IVerifiableType InputType { get=> inputType?? throw new NullReferenceException(nameof(inputType)); private set=>inputType = value; }
+        private IVerifiableType? outputType;
+        public IVerifiableType OutputType { get => outputType ?? throw new NullReferenceException(nameof(outputType)); private set => outputType = value; }
     }
     
     public interface IMethodTypeBuilder

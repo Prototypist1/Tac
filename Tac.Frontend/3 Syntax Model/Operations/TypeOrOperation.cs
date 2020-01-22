@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Frontend;
-using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -39,7 +39,7 @@ namespace Tac.SemanticModel.CodeStuff
     }
 }
 
-namespace Tac.Frontend._3_Syntax_Model.Operations
+namespace Tac.Frontend.SyntaxModel.Operations
 {
     internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>
     {

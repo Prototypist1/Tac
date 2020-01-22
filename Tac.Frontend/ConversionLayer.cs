@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Tac.Frontend._3_Syntax_Model.Operations;
+using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -203,7 +203,7 @@ namespace Tac.Frontend
     {
 
         private readonly NameKey key;
-        private readonly SyntaxModel.Elements.AtomicTypes.IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
+        private readonly Tac.SyntaxModel.Elements.AtomicTypes.IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
 
         public WeakGenericTypeDefinitionConverter(NameKey key, IGenericTypeParameterPlacholder[] typeParameterDefinitions)
         {

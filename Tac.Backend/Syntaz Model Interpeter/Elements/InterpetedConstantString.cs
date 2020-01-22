@@ -8,10 +8,11 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         public void Init(string value)
         {
-            this.Value = value;
+            this.value = value;
         }
 
-        public string Value { get; private set; }
+        private string? value;
+        public string Value { get => value ?? throw new NullReferenceException(nameof(value)); private set => this.value = value; }
 
         public IInterpetedResult<IInterpetedMember<IBoxedString>> Interpet(InterpetedContext interpetedContext)
         {
