@@ -12,7 +12,10 @@ namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
         where TOut :  IInterpetedAnyType
         where TIn :  IInterpetedAnyType
     {
-        public IMethodType MethodType { get; private set; }
+        private IMethodType? methodType;
+        public IMethodType MethodType { get => methodType ?? throw new NullReferenceException(nameof(methodType)); private set => methodType = value ?? throw new NullReferenceException(nameof(value)); }
+
+
 
 
         public void Init(Func<TIn, TOut> backing, IMethodType methodType)
@@ -28,7 +31,9 @@ namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
             return InterpetedResult.Create(TypeManager.Member(thing.Convert(TransformerExtensions.NewConversionContext()), thing));
         }
 
-        public Func<TIn, TOut> Backing { get; private set; }
+        private Func<TIn, TOut>? backing;
+        public Func<TIn, TOut> Backing { get => backing ?? throw new NullReferenceException(nameof(backing)); private set => backing = value ?? throw new NullReferenceException(nameof(value)); }
+
 
     }
 }

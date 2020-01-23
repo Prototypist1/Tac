@@ -22,9 +22,11 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
+#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
 #pragma warning restore IDE0052 // Remove unread private members
+#pragma warning restore CA1823
     }
 }
 

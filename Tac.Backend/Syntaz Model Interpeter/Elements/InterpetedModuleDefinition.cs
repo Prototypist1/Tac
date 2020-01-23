@@ -15,10 +15,19 @@ namespace Tac.Syntaz_Model_Interpeter
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
             InterpetedEntry = interpetedEntry ?? throw new ArgumentNullException(nameof(interpetedEntry));
         }
-        
-        public InterpetedEntryPointDefinition InterpetedEntry { get; private set; }
-        public IInterpetedScopeTemplate ScopeTemplate { get; private set; }
-        public IEnumerable<IInterpetedOperation<IInterpetedAnyType>> StaticInitialization { get; private set; }
+
+
+        private InterpetedEntryPointDefinition? interpetedEntry;
+        public InterpetedEntryPointDefinition InterpetedEntry { get => interpetedEntry ?? throw new NullReferenceException(nameof(interpetedEntry)); private set => interpetedEntry = value ?? throw new NullReferenceException(nameof(value)); }
+
+
+        private IInterpetedScopeTemplate? scopeTemplate;
+        public IInterpetedScopeTemplate ScopeTemplate { get => scopeTemplate ?? throw new NullReferenceException(nameof(scopeTemplate)); private set => scopeTemplate = value ?? throw new NullReferenceException(nameof(value)); }
+
+
+        private IEnumerable<IInterpetedOperation<IInterpetedAnyType>>? staticInitialization;
+        public IEnumerable<IInterpetedOperation<IInterpetedAnyType>> StaticInitialization { get => staticInitialization ?? throw new NullReferenceException(nameof(staticInitialization)); private set => staticInitialization = value ?? throw new NullReferenceException(nameof(value)); }
+
 
         public IInterpetedResult<IInterpetedMember<IInterpetedScope>> Interpet(InterpetedContext interpetedContext)
         {

@@ -23,14 +23,20 @@ namespace Tac.Syntaz_Model_Interpeter
             MethodType = methodType ?? throw new ArgumentNullException(nameof(methodType));
         }
 
-        public InterpetedMemberDefinition<TIn> ParameterDefinition { get; private set; }
+
+        private InterpetedMemberDefinition<TIn>? parameterDefinition;
+        public InterpetedMemberDefinition<TIn> ParameterDefinition { get => parameterDefinition ?? throw new NullReferenceException(nameof(parameterDefinition)); private set => parameterDefinition = value ?? throw new NullReferenceException(nameof(value)); }
+
         private IInterpetedOperation<IInterpetedAnyType>[]? body;
         public IInterpetedOperation<IInterpetedAnyType>[] Body { get => body ?? throw new NullReferenceException(nameof(body)); private set => body = value ?? throw new NullReferenceException(nameof(value)); }
 
         private IInterpetedScopeTemplate? scope;
         public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IMethodType MethodType { get; private set; }
+
+        private IMethodType? methodType;
+        public IMethodType MethodType { get => methodType ?? throw new NullReferenceException(nameof(methodType)); private set => methodType = value ?? throw new NullReferenceException(nameof(value)); }
+
 
         public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn,TOut>>> Interpet(InterpetedContext interpetedContext)
         {

@@ -472,16 +472,17 @@ namespace Tac.Model.Instantiated
             return this.WeAreThem(this, true);
         }
 
-        private IVerifiableType ImplementationInputType;
-        private IVerifiableType ImplementationOutputType;
-        private IVerifiableType MethodInputType;
-        private IVerifiableType MethodOutputType;
+        private IVerifiableType? ImplementationInputType;
+        private IVerifiableType? ImplementationOutputType;
+        private IVerifiableType? MethodInputType;
+        private IVerifiableType? MethodOutputType;
 
-        IVerifiableType IImplementationType.InputType => ImplementationInputType;
-        IVerifiableType IImplementationType.OutputType => ImplementationOutputType;
-        IVerifiableType IMethodType.InputType => MethodInputType;
-        IVerifiableType IMethodType.OutputType => MethodOutputType;
-        public IVerifiableType ContextType { get; private set; }
+        IVerifiableType IImplementationType.InputType => ImplementationInputType ?? throw new NullReferenceException(nameof(ImplementationInputType));
+        IVerifiableType IImplementationType.OutputType => ImplementationOutputType ?? throw new NullReferenceException(nameof(ImplementationOutputType));
+        IVerifiableType IMethodType.InputType => MethodInputType ?? throw new NullReferenceException(nameof(MethodInputType));
+        IVerifiableType IMethodType.OutputType => MethodOutputType ?? throw new NullReferenceException(nameof(MethodOutputType));
+        private IVerifiableType? contextType;
+        public IVerifiableType ContextType { get => contextType ?? throw new NullReferenceException(nameof(contextType)); private set => contextType = value ?? throw new NullReferenceException(nameof(value)); }
     }
 
     public interface IGenericImplementationBuilder

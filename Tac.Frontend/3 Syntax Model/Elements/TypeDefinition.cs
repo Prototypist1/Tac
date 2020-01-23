@@ -24,9 +24,12 @@ namespace Tac.Parser
         private static readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> StaticTypeDefinitionMaker = AddTypeMaker(
             () => new TypeDefinitionMaker(),
             MustBeBefore<ISetUp<IFrontendType, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
+#pragma warning restore CA1823
+
     }
 }
 

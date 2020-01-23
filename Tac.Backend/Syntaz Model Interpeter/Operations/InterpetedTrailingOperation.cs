@@ -14,6 +14,8 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public abstract IInterpetedResult<IInterpetedMember<TOut>> Interpet(InterpetedContext interpetedContext);
 
-        public IInterpetedOperation<TIn> Argument { get; private set; }
+        private IInterpetedOperation<TIn>? argument;
+        public IInterpetedOperation<TIn> Argument { get => argument ?? throw new NullReferenceException(nameof(argument)); private set => argument = value ?? throw new NullReferenceException(nameof(value)); }
+
     }
 }

@@ -18,9 +18,11 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticLessThanMaker = AddOperationMatcher(() => new LessThanOperationMaker());
+#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> LessThanMaker = StaticLessThanMaker;
 #pragma warning restore IDE0052 // Remove unread private members
+#pragma warning restore CA1823
     }
 }
 

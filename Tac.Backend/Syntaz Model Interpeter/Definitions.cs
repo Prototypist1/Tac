@@ -22,8 +22,8 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
     {
         private readonly Dictionary<object, IInterpetedOperation<IInterpetedAnyType>> backing = new Dictionary<object, IInterpetedOperation<IInterpetedAnyType>>();
 
-        public InterpetedEntryPointDefinition? entryPoint;
-        public InterpetedEntryPointDefinition EntryPoint { get=> entryPoint?? throw new NullReferenceException(nameof(entryPoint)); private set=> entryPoint = value ?? throw new NullReferenceException(nameof(entryPoint)); }
+
+        public InterpetedEntryPointDefinition? EntryPoint { get; private set; }
 
         public Definitions()
         {

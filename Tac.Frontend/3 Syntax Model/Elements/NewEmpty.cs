@@ -23,7 +23,9 @@ namespace Tac.Parser
         private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticEmptyInstanceMaker = AddElementMakers(
             () => new EmptyInstanceMaker(),
             MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+#pragma warning disable CA1823
         private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
+#pragma warning restore CA1823
     }
 }
 

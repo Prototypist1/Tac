@@ -23,9 +23,11 @@ namespace Tac.Parser
         private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticBlockDefinitionMaker = AddElementMakers(
             () => new BlockDefinitionMaker(),
             MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> BlockDefinitionMaker = StaticBlockDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
+#pragma warning restore CA1823
     }
 }
 

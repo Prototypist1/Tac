@@ -72,9 +72,11 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticTryAssignMaker = AddOperationMatcher(() => new TryAssignOperationMaker());
+#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> TryAssignMaker = StaticTryAssignMaker;
 #pragma warning restore IDE0052 // Remove unread private members
+#pragma warning restore CA1823
     }
 }
 

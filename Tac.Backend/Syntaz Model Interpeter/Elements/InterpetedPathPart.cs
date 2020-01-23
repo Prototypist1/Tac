@@ -19,7 +19,8 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public IKey Key => MemberDefinition.Key;
 
-        public InterpetedMemberDefinition<T> MemberDefinition { get; private set; }
+        private InterpetedMemberDefinition<T>? memberDefinition;
+        public InterpetedMemberDefinition<T> MemberDefinition { get => memberDefinition ?? throw new NullReferenceException(nameof(memberDefinition)); private set => memberDefinition = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
         {
