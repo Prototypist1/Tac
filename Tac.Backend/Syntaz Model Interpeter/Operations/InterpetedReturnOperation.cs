@@ -13,10 +13,10 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (argumentResult.IsReturn(out var argumentReturned, out var argumentValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<T>>(argumentReturned);
+                return InterpetedResult.Return<IInterpetedMember<T>>(argumentReturned!);
             }
 
-            return InterpetedResult.Return<IInterpetedMember<T>>(argumentValue);
+            return InterpetedResult.Return<IInterpetedMember<T>>(argumentValue!);
         }
         
     }

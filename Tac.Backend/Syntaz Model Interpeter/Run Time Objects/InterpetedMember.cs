@@ -99,7 +99,8 @@ namespace Tac.Syntaz_Model_Interpeter
             // it does have to be a type of some sort
             public IVerifiableType VerifiableType { get; }
 
-            private T _value;
+
+            private IIsPossibly<T> _value = Possibly.IsNot<T>();
 
             public InterpetedMember(IVerifiableType verifiableType,IRunTimeAnyRoot root) : base(root)
             {
@@ -121,12 +122,12 @@ namespace Tac.Syntaz_Model_Interpeter
             {
                 get
                 {
-                    if (_value == null)
+                    if (_value is IIsDefinately<T> definately)
                     {
-                        throw new Exception($"members must be initialized before they are read");
-                    }
+                        return definately.Value;
 
-                    return _value;
+                    }
+                    throw new Exception($"members must be initialized before they are read");
                 }
                 set
                 {
@@ -135,7 +136,7 @@ namespace Tac.Syntaz_Model_Interpeter
                         throw new ArgumentNullException(nameof(value));
                     }
 
-                    _value = value;
+                    _value = Possibly.Is(value);
                 }
             }
 

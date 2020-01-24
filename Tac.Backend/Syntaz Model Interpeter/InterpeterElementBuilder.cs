@@ -62,9 +62,48 @@ namespace Tac.Syntaz_Model_Interpeter
     }
 
     internal static class InterpetedResultExtensions {
-        
-        public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedAnyType returned, out T value)
-            where T : IInterpetedAnyType
+
+        public static IInterpetedResult<IInterpetedMember<T>> Return<T>(this IInterpetedResult<T> self)
+            where T : class, IInterpetedAnyType
+        {
+
+            if (self is IInterpetedResultNotReturn<T> notReturn)
+            {
+                return  InterpetedResult.Return<IInterpetedMember<T>>(notReturn.Value);
+            }
+
+            if (self is IInterpetedResultReturn<T> toReturn)
+            {
+                return InterpetedResult.Return<IInterpetedMember<T>>(toReturn.Value);
+            }
+
+            throw new Exception("should be one!");
+        }
+
+
+        public static TT IsReturn<T,TT>(this IInterpetedResult<T> self, Func<IInterpetedAnyType,TT> returned, Func<T, TT> value)
+            where T : class, IInterpetedAnyType
+        {
+            if (self is IInterpetedResultNotReturn<T> && self is IInterpetedResultReturn<T>)
+            {
+                throw new Exception("should not be both!");
+            }
+
+            if (self is IInterpetedResultNotReturn<T> notReturn)
+            {
+                return value(notReturn.Value);
+            }
+
+            if (self is IInterpetedResultReturn<T> toReturn)
+            {
+                return returned(toReturn.Value);
+            }
+
+            throw new Exception("should be one!");
+        }
+
+        public static bool IsReturn<T>(this IInterpetedResult<T> self, out IInterpetedAnyType? returned, out T? value)
+            where T :class, IInterpetedAnyType
         {
             if (self is IInterpetedResultNotReturn<T> && self is IInterpetedResultReturn<T>) {
                 throw new Exception("should not be both!");
@@ -87,7 +126,7 @@ namespace Tac.Syntaz_Model_Interpeter
             
             throw new Exception("should be one!");
         }
-        
+
     }
 
     internal static class InterpetedResult

@@ -69,7 +69,7 @@ namespace Tac.Backend.Public
                     throw new Exception("this should not throw");
                 }
 
-                return value;
+                return value!;
             }
 
             private IInterpetedAssignOperation<TLeft,TRight> GetAssignemnt<TLeft, TRight>(IKey key, IInterpetedOperation<TLeft> operation, IVerifiableType type)

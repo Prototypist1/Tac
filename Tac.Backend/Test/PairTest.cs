@@ -38,8 +38,8 @@ namespace Tac.Backend.Test
 
             Assert.False( method.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodResult));
 
-            Assert.Equal(d, methodResult.Value.GetMember<IBoxedDouble>(new NameKey("x")).Value.Value);
-            Assert.Equal(d, methodResult.Value.GetMember<IBoxedDouble>(new NameKey("y")).Value.Value);
+            Assert.Equal(d, methodResult!.Value.GetMember<IBoxedDouble>(new NameKey("x")).Value.Value);
+            Assert.Equal(d, methodResult!.Value.GetMember<IBoxedDouble>(new NameKey("y")).Value.Value);
         }
     }
 }

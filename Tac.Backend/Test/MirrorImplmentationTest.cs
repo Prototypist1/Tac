@@ -27,7 +27,7 @@ namespace Tac.Backend.Test
 
             Assert.False(res.IsReturn(out var _, out var value));
 
-            var scope = value.Value.CastTo<IInterpetedScope>();
+            var scope = value!.Value.CastTo<IInterpetedScope>();
             var implementation = scope.GetMember<IInterpetedAnyType>(new NameKey("mirror")).Value.CastTo<IInterpetedImplementation<IInterpetedScope, IInterpedEmpty, IInterpedEmpty>>();
 
             var context = TypeManager.InstanceScope(
@@ -37,7 +37,7 @@ namespace Tac.Backend.Test
             {
                 Assert.False(implementation.Invoke(TypeManager.Member<IInterpetedScope>(context.Convert(TransformerExtensions.NewConversionContext()), context)).IsReturn(out var _, out var method));
 
-                method.Value.Invoke(TypeManager.EmptyMember(TypeManager.Empty()));
+                method!.Value.Invoke(TypeManager.EmptyMember(TypeManager.Empty()));
             }
 
             Assert.Equal(7,context.GetMember<IInterpetedAnyType>(new NameKey("x")).Value.CastTo<IBoxedDouble>().Value);
@@ -46,7 +46,7 @@ namespace Tac.Backend.Test
             {
                 Assert.False(implementation.Invoke(TypeManager.Member<IInterpetedScope>(context.Convert(TransformerExtensions.NewConversionContext()), context)).IsReturn(out var _, out var method));
 
-                method.Value.Invoke(TypeManager.EmptyMember(TypeManager.Empty()));
+                method!.Value.Invoke(TypeManager.EmptyMember(TypeManager.Empty()));
             }
 
             Assert.Equal(5, context.GetMember<IInterpetedAnyType>(new NameKey("x")).Value.CastTo<IBoxedDouble>().Value);

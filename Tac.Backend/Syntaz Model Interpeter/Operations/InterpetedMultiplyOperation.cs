@@ -12,19 +12,19 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<IBoxedDouble>>(leftReturned);
+                return InterpetedResult.Return<IInterpetedMember<IBoxedDouble>>(leftReturned!);
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<IBoxedDouble>>(rightReturned);
+                return InterpetedResult.Return<IInterpetedMember<IBoxedDouble>>(rightReturned!);
             }
 
             return InterpetedResult.Create(TypeManager.NumberMember(TypeManager.Double(
-                leftValue.Value.Value *
-                rightValue.Value.Value)));
+                leftValue!.Value.Value *
+                rightValue!.Value.Value)));
         }
     }
 }

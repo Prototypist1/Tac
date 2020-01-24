@@ -25,10 +25,10 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<T>>(leftReturned);
+                return InterpetedResult.Return<IInterpetedMember<T>>(leftReturned!);
             }
 
-            return InterpetedResult.Create(leftValue.Value.GetMember<T>(Right.Key));
+            return InterpetedResult.Create(leftValue!.Value.GetMember<T>(Right.Key));
         }
     }
 }

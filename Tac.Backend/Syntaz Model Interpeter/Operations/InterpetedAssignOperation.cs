@@ -26,17 +26,17 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<TLeft>>(leftReturned);
+                return InterpetedResult.Return<IInterpetedMember<TLeft>>(leftReturned!);
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<TLeft>>(rightReturned);
+                return InterpetedResult.Return<IInterpetedMember<TLeft>>(rightReturned!);
             }
 
-            rightValue.CastTo<IInterpetedMemberSet<TRight>>().Set(leftValue.Value);
+            rightValue.CastTo<IInterpetedMemberSet<TRight>>().Set(leftValue!.Value);
              
             return InterpetedResult.Create(leftValue);
         }

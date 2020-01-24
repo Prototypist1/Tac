@@ -37,13 +37,13 @@ namespace Tac.Backend.Test
 
             Assert.False(res.IsReturn(out var _, out var value));
 
-            var scope = value.Value.CastTo<IInterpetedScope>();
+            var scope = value!.Value.CastTo<IInterpetedScope>();
             // no way this cast works...
             var method = scope.GetMember<IInterpetedMethod<IBoxedDouble, IBoxedDouble>>(new NameKey("fac"));
 
             Assert.False(method.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodReturn));
 
-            return methodReturn.Value.CastTo<IBoxedDouble>().Value;
+            return methodReturn!.Value.CastTo<IBoxedDouble>().Value;
         }
 
     }

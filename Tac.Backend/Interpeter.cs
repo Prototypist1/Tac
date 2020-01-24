@@ -28,6 +28,9 @@ namespace Tac.Backend
                 throw new Exception("this should not really return");
             }
 
+            if (conversionContext.EntryPoint == null) {
+                throw new NullReferenceException();
+            }
             conversionContext.EntryPoint.Interpet(interpetedContext);
         }
     }

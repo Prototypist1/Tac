@@ -12,6 +12,7 @@ namespace Tac.Tests.Help
     public static class EqualityHelper
     {
         public static void ValueEqualOrThrow<T>(this T target, T actual)
+            where T:notnull
         {
             var sharedTypes = target.GetSharedTypes(actual);
 

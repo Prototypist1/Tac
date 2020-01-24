@@ -126,38 +126,6 @@ namespace Tac.Frontend.Parser
         }
     }
 
-    internal class Generic3Maker : IMaker<(AtomicToken, AtomicToken, AtomicToken)>
-    {
-        public ITokenMatching<(AtomicToken, AtomicToken, AtomicToken)> TryMake(IMatchedTokenMatching self)
-        {
-
-            if (self.Tokens.Any() &&
-                            self.Tokens[0] is SquareBacketToken typeParameters &&
-                                typeParameters.Tokens.Count == 3 &&
-                                typeParameters.Tokens[0] is LineToken firstLine &&
-                                    firstLine.Tokens.Count == 1 &&
-                                    firstLine.Tokens[0] is ElementToken firstElement &&
-                                    firstElement.Tokens.Count == 1 &&
-                                    firstElement.Tokens[0] is AtomicToken firstType &&
-                                typeParameters.Tokens[1] is LineToken secondLine &&
-                                    secondLine.Tokens.Count == 1 &&
-                                    secondLine.Tokens[0] is ElementToken secondElement &&
-                                    secondElement.Tokens.Count == 1 &&
-                                    secondElement.Tokens[0] is AtomicToken secondType &&
-                                typeParameters.Tokens[2] is LineToken thridLine &&
-                                    thridLine.Tokens.Count == 1 &&
-                                    thridLine.Tokens[0] is ElementToken thridElement &&
-                                    thridElement.Tokens.Count == 1 &&
-                                    thridElement.Tokens[0] is AtomicToken thirdType)
-            {
-                return TokenMatching<(AtomicToken, AtomicToken, AtomicToken)>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, (firstType, secondType, thirdType));
-            }
-
-            return TokenMatching<(AtomicToken, AtomicToken, AtomicToken)>.MakeNotMatch(self.Context);
-
-        }
-    }
-
     internal class DefineGenericNMaker : IMaker<string[]>
     {
         public ITokenMatching<string[]> TryMake(IMatchedTokenMatching elementMatching)
@@ -219,32 +187,6 @@ namespace Tac.Frontend.Parser
                 typeSourcesInner = typeSourcesBuilding.ToArray();
                 return true;
             }
-        }
-    }
-
-    internal class Generic2Maker : IMaker<(AtomicToken, AtomicToken)>
-    {
-        public ITokenMatching<(AtomicToken, AtomicToken)> TryMake(IMatchedTokenMatching elementMatching)
-        {
-            if (elementMatching.Tokens.Any() &&
-                elementMatching.Tokens[0] is SquareBacketToken typeParameters &&
-                    typeParameters.Tokens.Count == 2 &&
-                    typeParameters.Tokens[0] is LineToken firstLine &&
-                        firstLine.Tokens.Count == 1 &&
-                        firstLine.Tokens[0] is ElementToken firstElement &&
-                        firstElement.Tokens.Count == 1 &&
-                        firstElement.Tokens[0] is AtomicToken firstType &&
-                    typeParameters.Tokens[1] is LineToken secondLine &&
-                        secondLine.Tokens.Count == 1 &&
-                        secondLine.Tokens[0] is ElementToken secondElement &&
-                        secondElement.Tokens.Count == 1 &&
-                        secondElement.Tokens[0] is AtomicToken secondType)
-            {
-                return TokenMatching<(AtomicToken, AtomicToken)>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, (firstType, secondType));
-            }
-
-            return TokenMatching<(AtomicToken, AtomicToken)>.MakeNotMatch(elementMatching.Context);
-
         }
     }
 
