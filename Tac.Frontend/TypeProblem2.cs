@@ -64,13 +64,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member GetInput(IValue method);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
-            TypeProblem2.MethodType GetMethod(OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType> input, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType> output);
+            TypeProblem2.MethodType GetMethod(OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> input, OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> output);
             void IsNumber(IScope parent, ICanAssignFromMe target);
             void IsString(IScope parent, ICanAssignFromMe target);
             void IsEmpty(IScope parent, ICanAssignFromMe target);
             void IsBool(IScope parent, ICanAssignFromMe target);
 
-            void HasEntryPoint(IScope parent, Tpn.TypeProblem2.Scope entry);
+            void HasEntryPoint(IScope parent, TypeProblem2.Scope entry);
             TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
         }
 
@@ -297,7 +297,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (moduleEntryPoint.TryGetValue(from, out var res))
                 {
-                    return Possibly.Is<TypeProblem2.Scope>(res);
+                    return Possibly.Is(res);
                 }
                 return Possibly.IsNot<TypeProblem2.Scope>();
             }
@@ -324,7 +324,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface IHaveMembers : ITypeProblemNode
         {
-            public Dictionary<IKey, Tpn.TypeProblem2.Member> Members { get; }
+            public Dictionary<IKey, TypeProblem2.Member> Members { get; }
         }
         internal interface ILookUpType : ITypeProblemNode { }
 
@@ -336,6 +336,16 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface IScope : IHaveMembers
         {
             IScope? Parent { get; set; }
+
+            public List<TypeProblem2.Scope> EntryPoints { get; }
+            public List<TypeProblem2.Value> Values { get; }
+            public List<TypeProblem2.TransientMember> TransientMembers { get; }
+            public Dictionary<IKey, TypeProblem2.Method> Methods { get; }
+            public List<TypeProblem2.TypeReference> Refs { get; }
+            public Dictionary<IKey, TypeProblem2.OrType> OrTypes { get; }
+            public Dictionary<IKey, TypeProblem2.Type> Types { get; }
+            public Dictionary<IKey, TypeProblem2.MethodType> MethodTypes { get; }
+            public Dictionary<IKey, TypeProblem2.Object> Objects { get; }
         }
         //internal interface IMethod : IHaveMembers, IScope { }
         internal interface IHaveInputAndOutput : ITypeProblemNode { }
@@ -406,6 +416,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IScope? Parent { get; set; }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
 
+
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Value> Values { get; } = new List<Value>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public List<TypeReference> Refs { get; } = new List<TypeReference>();
+                public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
+                public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
+                public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+
             }
 
             // methods don't really have members in the way other things do
@@ -419,6 +440,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IScope? Parent { get; set; }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Value> Values { get; } = new List<Value>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public List<TypeReference> Refs { get; } = new List<TypeReference>();
+                public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
+                public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
+                public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
 
             }
 
@@ -429,6 +459,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 public IScope? Parent { get; set; }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Value> Values { get; } = new List<Value>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public List<TypeReference> Refs { get; } = new List<TypeReference>();
+                public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
+                public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
+                public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
             }
 
             public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation>, IHaveMembers
@@ -445,6 +484,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 public IScope? Parent { get; set; }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Value> Values { get; } = new List<Value>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public List<TypeReference> Refs { get; } = new List<TypeReference>();
+                public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
+                public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
+                public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
             }
             public class Object : TypeProblemNode<Object, OrType<WeakObjectDefinition, WeakModuleDefinition>>, IExplicitType
             {
@@ -453,6 +501,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 public IScope? Parent { get; set; }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Value> Values { get; } = new List<Value>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public List<TypeReference> Refs { get; } = new List<TypeReference>();
+                public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
+                public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
+                public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
             }
             // methods don't really have members in the way other things do
             // they have members while they are executing
@@ -464,6 +521,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 public IScope? Parent { get; set; }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Value> Values { get; } = new List<Value>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public List<TypeReference> Refs { get; } = new List<TypeReference>();
+                public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
+                public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
+                public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
 
             }
 
@@ -475,8 +541,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Scope Dependency { get; }
             public Object ModuleRoot { get; }
 
-            // relationships
-            //private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
 
             //hopeful methods 
             private readonly Dictionary<IValue, InferredType> hopefulMethods = new Dictionary<IValue, InferredType>();
@@ -484,19 +548,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             // legit methods
             private readonly Dictionary<OrType<Method, MethodType, InferredType>, TransientMember> methodReturns = new Dictionary<OrType<Method, MethodType, InferredType>, TransientMember>();
             private readonly Dictionary<OrType<Method, MethodType, InferredType>, Member> methodInputs = new Dictionary<OrType<Method, MethodType, InferredType>, Member>();
-
-            // entryPoints
-            private readonly Dictionary<IScope, List<Scope>> entryPoints = new Dictionary<IScope, List<Scope>>();
-
-            private readonly Dictionary<IScope, List<Value>> values = new Dictionary<IScope, List<Value>>();
-            //private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
-            private readonly Dictionary<IScope, List<TransientMember>> transientMembers = new Dictionary<IScope, List<TransientMember>>();
-            private readonly Dictionary<IScope, Dictionary<IKey, Method>> methods = new Dictionary<IScope, Dictionary<IKey, Method>>();
-            private readonly Dictionary<IScope, List<TypeReference>> refs = new Dictionary<IScope, List<TypeReference>>();
-            private readonly Dictionary<IScope, Dictionary<IKey, OrType>> orTypes = new Dictionary<IScope, Dictionary<IKey, OrType>>();
-            private readonly Dictionary<IScope, Dictionary<IKey, Type>> types = new Dictionary<IScope, Dictionary<IKey, Type>>();
-            private readonly Dictionary<IScope, Dictionary<IKey, MethodType>> methodTypes = new Dictionary<IScope, Dictionary<IKey, MethodType>>();
-            private readonly Dictionary<IScope, Dictionary<IKey, Object>> objects = new Dictionary<IScope, Dictionary<IKey, Object>>();
 
             // this holds real overlays 
             // the left hand side is the generic
@@ -526,56 +577,33 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public void HasValue(IScope parent, Value value)
             {
-                if (!values.ContainsKey(parent))
-                {
-                    values.Add(parent, new List<Value>());
-                }
-                values[parent].Add(value);
+
+                parent.Values.Add(value);
             }
             public void HasReference(IScope parent, TypeReference reference)
             {
-                if (!refs.ContainsKey(parent))
-                {
-                    refs.Add(parent, new List<TypeReference>());
-                }
-                refs[parent].Add(reference);
+                parent.Refs.Add(reference);
             }
 
 
             public void HasEntryPoint(IScope parent, Scope entry)
             {
-                if (!entryPoints.ContainsKey(parent))
-                {
-                    entryPoints.Add(parent, new List<Scope>());
-                }
-                entryPoints[parent].Add(entry);
+                parent.EntryPoints.Add(entry);
             }
 
             public void HasType(IScope parent, IKey key, Type type)
             {
-                if (!types.ContainsKey(parent))
-                {
-                    types.Add(parent, new Dictionary<IKey, Type>());
-                }
-                types[parent].Add(key, type);
+                parent.Types.Add(key, type);
             }
             public void HasMethodType(IScope parent, IKey key, MethodType type)
             {
-                if (!methodTypes.ContainsKey(parent))
-                {
-                    methodTypes.Add(parent, new Dictionary<IKey, MethodType>());
-                }
-                methodTypes[parent].Add(key, type);
+                parent.MethodTypes.Add(key, type);
             }
             // why do objects have keys?
             // that is wierd
             public void HasObject(IScope parent, IKey key, Object @object)
             {
-                if (!objects.ContainsKey(parent))
-                {
-                    objects.Add(parent, new Dictionary<IKey, Object>());
-                }
-                objects[parent].Add(key, @object);
+                parent.Objects.Add(key, @object);
             }
 
             public void HasPlaceholderType(OrType<MethodType, Type> parent, IKey key, OrType<MethodType, Type, Object, OrType, InferredType> type)
@@ -592,21 +620,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public void HasMethod(IScope parent, IKey key, Method method)
             {
-                if (!methods.ContainsKey(parent))
-                {
-                    methods.Add(parent, new Dictionary<IKey, Method>());
-                }
-                methods[parent].Add(key, method);
+                parent.Methods.Add(key, method);
             }
 
 
             public void HasTransientMember(IScope parent, TransientMember member)
             {
-                if (!transientMembers.ContainsKey(parent))
-                {
-                    transientMembers.Add(parent, new List<TransientMember>());
-                }
-                transientMembers[parent].Add(member);
+                parent.TransientMembers.Add(member);
             }
             public Member HasMembersPossiblyOnParent(IScope parent, IKey key, Member member)
             {
@@ -807,11 +827,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private void HasOrType(IScope scope, IKey kay, OrType orType1)
             {
-                if (!orTypes.ContainsKey(scope))
-                {
-                    orTypes[scope] = new Dictionary<IKey, OrType>();
-                }
-                orTypes[scope][kay] = orType1;
+                scope.OrTypes[kay] = orType1;
             }
 
 
@@ -863,7 +879,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // it is just something of type method
             // it is really just a type
             //
-            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter)
+            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
             {
                 var thing = CreateTransientMember(parent);
                 var method = CreateMethod(parent, "input", converter, inputConverter);
@@ -943,7 +959,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public IKey GetKey(TypeProblem2.TypeReference type)
+            public IKey GetKey(TypeReference type)
             {
                 return lookUpTypeKey[type];
             }
@@ -1091,7 +1107,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     orTypeComponents,
                     methodInputs,
                     methodReturns,
-                    entryPoints.ToDictionary(x => x.Key, x => x.Value.Single()));
+                    typeProblemNodes.OfType<IScope>().Where(x=>x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()));
 
                 #region Helpers
 
@@ -1389,28 +1405,28 @@ namespace Tac.Frontend.New.CrzayNamespace
                     while (true)
                     {
                         {
-                            if (types.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                            if (haveTypes.Types.TryGetValue(key, out var res))
                             {
                                 result = new OrType<MethodType, Type, Object, OrType, InferredType>(res);
                                 return true;
                             }
                         }
                         {
-                            if (objects.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                            if (haveTypes.Objects.TryGetValue(key, out var res))
                             {
                                 result = new OrType<MethodType, Type, Object, OrType, InferredType>(res);
                                 return true;
                             }
                         }
                         {
-                            if (orTypes.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                            if (haveTypes.OrTypes.TryGetValue(key, out var res))
                             {
                                 result = new OrType<MethodType, Type, Object, OrType, InferredType>(res);
                                 return true;
                             }
                         }
                         {
-                            if (methodTypes.TryGetValue(haveTypes, out var dict) && dict.TryGetValue(key, out var res))
+                            if (haveTypes.MethodTypes.TryGetValue(key, out var res))
                             {
                                 result = new OrType<MethodType, Type, Object, OrType, InferredType>(res);
                                 return true;
@@ -1582,24 +1598,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
 
                             {
-                                if (values.TryGetValue(innerFromScope, out var dict))
+                                foreach (var item in innerFromScope.Values)
                                 {
-                                    foreach (var item in dict)
-                                    {
-                                        var newValue = Copy(item, new Value(this, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
-                                        HasValue(innerScopeTo, newValue);
-                                    }
+                                    var newValue = Copy(item, new Value(this, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
+                                    HasValue(innerScopeTo, newValue);
                                 }
                             }
 
                             {
-                                if (refs.TryGetValue(innerFromScope, out var dict))
+                                foreach (var item in innerFromScope.Refs)
                                 {
-                                    foreach (var item in dict)
-                                    {
-                                        var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
-                                        HasReference(innerScopeTo, newValue);
-                                    }
+                                    var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
+                                    HasReference(innerScopeTo, newValue);
                                 }
                             }
 
@@ -1612,56 +1622,42 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
 
                             {
-                                if (transientMembers.TryGetValue(innerFromScope, out var list))
+                                foreach (var member in innerFromScope.TransientMembers)
                                 {
-                                    foreach (var member in list)
-                                    {
-                                        var newValue = Copy(member, new TransientMember(this, $"copied from {((TypeProblemNode)member).debugName}"));
-                                        HasTransientMember(innerScopeTo, newValue);
-                                    }
+                                    var newValue = Copy(member, new TransientMember(this, $"copied from {((TypeProblemNode)member).debugName}"));
+                                    HasTransientMember(innerScopeTo, newValue);
                                 }
                             }
 
                             {
-                                if (objects.TryGetValue(innerFromScope, out var dict))
+                                foreach (var @object in innerFromScope.Objects)
                                 {
-                                    foreach (var @object in dict)
-                                    {
-                                        var newValue = Copy(@object.Value, new Object(this, $"copied from {((TypeProblemNode)@object.Value).debugName}", @object.Value.Converter));
-                                        HasObject(innerScopeTo, @object.Key, newValue);
-                                    }
+                                    var newValue = Copy(@object.Value, new Object(this, $"copied from {((TypeProblemNode)@object.Value).debugName}", @object.Value.Converter));
+                                    HasObject(innerScopeTo, @object.Key, newValue);
+                                }
+
+                            }
+
+                            {
+                                foreach (var type in innerFromScope.Types)
+                                {
+                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
+                                    HasType(innerScopeTo, type.Key, newValue);
+                                }
+                            }
+                            {
+                                foreach (var method in innerFromScope.Methods)
+                                {
+                                    var newValue = Copy(method.Value, new Method(this, $"copied from {((TypeProblemNode)method.Value).debugName}", method.Value.Converter));
+                                    HasMethod(innerScopeTo, method.Key, newValue);
                                 }
                             }
 
                             {
-                                if (types.TryGetValue(innerFromScope, out var dict))
+                                foreach (var type in innerFromScope.OrTypes)
                                 {
-                                    foreach (var type in dict)
-                                    {
-                                        var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
-                                        HasType(innerScopeTo, type.Key, newValue);
-                                    }
-                                }
-                            }
-                            {
-                                if (methods.TryGetValue(innerFromScope, out var dict))
-                                {
-                                    foreach (var method in dict)
-                                    {
-                                        var newValue = Copy(method.Value, new Method(this, $"copied from {((TypeProblemNode)method.Value).debugName}", method.Value.Converter));
-                                        HasMethod(innerScopeTo, method.Key, newValue);
-                                    }
-                                }
-                            }
-
-                            {
-                                if (orTypes.TryGetValue(innerFromScope, out var dict))
-                                {
-                                    foreach (var type in dict)
-                                    {
-                                        var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
-                                        HasOrType(innerScopeTo, type.Key, newValue);
-                                    }
+                                    var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
+                                    HasOrType(innerScopeTo, type.Key, newValue);
                                 }
                             }
 
