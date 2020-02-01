@@ -98,80 +98,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             IIsPossibly<TypeProblem2.Scope> GetEntryPoint(TypeProblem2.Object from);
         }
 
-        //internal class ConcreteSolutionType : IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>
-        //{
-        //    private readonly IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)> members;
-
-        //    public ConcreteSolutionType(IReadOnlyDictionary<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)> members)
-        //    {
-        //        this.members = members ?? throw new ArgumentNullException(nameof(members));
-        //    }
-
-        //    public (bool, OrType<OrSolutionType, ConcreteSolutionType>) this[IKey key]
-        //    {
-        //        get
-        //        {
-        //            return members[key];
-        //        }
-        //    }
-
-        //    public IEnumerable<IKey> Keys
-        //    {
-        //        get
-        //        {
-        //            return members.Keys;
-        //        }
-        //    }
-
-        //    public IEnumerable<(bool, OrType<OrSolutionType, ConcreteSolutionType>)> Values
-        //    {
-        //        get
-        //        {
-        //            return members.Values;
-        //        }
-        //    }
-
-        //    public int Count
-        //    {
-        //        get
-        //        {
-        //            return members.Count;
-        //        }
-        //    }
-
-        //    public bool ContainsKey(IKey key)
-        //    {
-        //        return members.ContainsKey(key);
-        //    }
-
-        //    public IEnumerator<KeyValuePair<IKey, (bool, OrType<OrSolutionType, ConcreteSolutionType>)>> GetEnumerator()
-        //    {
-        //        return members.GetEnumerator();
-        //    }
-
-        //    public bool TryGetValue(IKey key, out (bool, OrType<OrSolutionType, ConcreteSolutionType>) value)
-        //    {
-        //        return members.TryGetValue(key, out value);
-        //    }
-
-        //    IEnumerator IEnumerable.GetEnumerator()
-        //    {
-        //        return members.GetEnumerator();
-        //    }
-        //}
-
-        //internal class OrSolutionType
-        //{
-        //    private readonly OrType<OrSolutionType, ConcreteSolutionType> left;
-        //    private readonly OrType<OrSolutionType, ConcreteSolutionType> right;
-
-        //    public OrSolutionType(OrType<OrSolutionType, ConcreteSolutionType> left, OrType<OrSolutionType, ConcreteSolutionType> right)
-        //    {
-        //        this.left = left ?? throw new ArgumentNullException(nameof(left));
-        //        this.right = right ?? throw new ArgumentNullException(nameof(right));
-        //    }
-        //}
-
         internal interface IConvertTo<in TConvertFrom, out TConvertsTo>
         {
             TConvertsTo Convert(ITypeSolution typeSolution, TConvertFrom from);
@@ -346,7 +272,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return orTypeElememts[from];
             }
 
-            public bool  TryGetResultMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out TypeProblem2.TransientMember? transientMember)
+            public bool TryGetResultMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out TypeProblem2.TransientMember? transientMember)
             {
                 return methodOut.TryGetValue(from, out transientMember);
             }
@@ -369,7 +295,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IIsPossibly<TypeProblem2.Scope> GetEntryPoint(TypeProblem2.Object from)
             {
-                if (moduleEntryPoint.TryGetValue(from, out var res)){
+                if (moduleEntryPoint.TryGetValue(from, out var res))
+                {
                     return Possibly.Is<TypeProblem2.Scope>(res);
                 }
                 return Possibly.IsNot<TypeProblem2.Scope>();
@@ -395,7 +322,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             ISetUpTypeProblem Problem { get; }
         }
 
-        internal interface IHaveMembers : ITypeProblemNode { }
+        internal interface IHaveMembers : ITypeProblemNode
+        {
+            public Dictionary<IKey, Tpn.TypeProblem2.Member> Members { get; }
+        }
         internal interface ILookUpType : ITypeProblemNode { }
 
         internal interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }
@@ -403,7 +333,10 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface IValue : ITypeProblemNode, ILookUpType, ICanAssignFromMe { }
         //public interface Member :  IValue, ILookUpType, ICanBeAssignedTo {bool IsReadonly { get; }}
         internal interface IExplicitType : IHaveMembers, IScope { }
-        internal interface IScope : IHaveMembers { }
+        internal interface IScope : IHaveMembers
+        {
+            IScope? Parent { get; set; }
+        }
         //internal interface IMethod : IHaveMembers, IScope { }
         internal interface IHaveInputAndOutput : ITypeProblemNode { }
         //internal interface IHavePlaceholders: ITypeProblemNode { }
@@ -469,6 +402,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Type(TypeProblem2 problem, string debugName, IConvertTo<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
                 {
                 }
+
+                public IScope? Parent { get; set; }
+                public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+
             }
 
             // methods don't really have members in the way other things do
@@ -479,6 +416,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public MethodType(TypeProblem2 problem, string debugName, IConvertTo<MethodType, Tac.SyntaxModel.Elements.AtomicTypes.MethodType> converter) : base(problem, debugName, converter)
                 {
                 }
+
+                public IScope? Parent { get; set; }
+                public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+
             }
 
             public class InferredType : TypeProblemNode, IHaveInputAndOutput, IHaveMembers, IScope
@@ -486,6 +427,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public InferredType(TypeProblem2 problem, string debugName) : base(problem, debugName)
                 {
                 }
+                public IScope? Parent { get; set; }
+                public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
             }
 
             public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation>, IHaveMembers
@@ -493,18 +436,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public OrType(TypeProblem2 problem, string debugName, IConvertTo<OrType, WeakTypeOrOperation> converter) : base(problem, debugName, converter)
                 {
                 }
+                public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
             }
             public class Scope : TypeProblemNode<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>, IScope
             {
                 public Scope(TypeProblem2 problem, string debugName, IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter) : base(problem, debugName, converter)
                 {
                 }
+                public IScope? Parent { get; set; }
+                public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
             }
             public class Object : TypeProblemNode<Object, OrType<WeakObjectDefinition, WeakModuleDefinition>>, IExplicitType
             {
                 public Object(TypeProblem2 problem, string debugName, IConvertTo<Object, OrType<WeakObjectDefinition, WeakModuleDefinition>> converter) : base(problem, debugName, converter)
                 {
                 }
+                public IScope? Parent { get; set; }
+                public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
             }
             // methods don't really have members in the way other things do
             // they have members while they are executing
@@ -514,6 +462,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Method(TypeProblem2 problem, string debugName, IConvertTo<Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>> converter) : base(problem, debugName, converter)
                 {
                 }
+                public IScope? Parent { get; set; }
+                public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+
             }
 
 
@@ -525,7 +476,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Object ModuleRoot { get; }
 
             // relationships
-            private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
+            //private readonly Dictionary<IScope, IScope> kidParent = new Dictionary<IScope, IScope>();
 
             //hopeful methods 
             private readonly Dictionary<IValue, InferredType> hopefulMethods = new Dictionary<IValue, InferredType>();
@@ -538,7 +489,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly Dictionary<IScope, List<Scope>> entryPoints = new Dictionary<IScope, List<Scope>>();
 
             private readonly Dictionary<IScope, List<Value>> values = new Dictionary<IScope, List<Value>>();
-            private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
+            //private readonly Dictionary<IHaveMembers, Dictionary<IKey, Member>> members = new Dictionary<IHaveMembers, Dictionary<IKey, Member>>();
             private readonly Dictionary<IScope, List<TransientMember>> transientMembers = new Dictionary<IScope, List<TransientMember>>();
             private readonly Dictionary<IScope, Dictionary<IKey, Method>> methods = new Dictionary<IScope, Dictionary<IKey, Method>>();
             private readonly Dictionary<IScope, List<TypeReference>> refs = new Dictionary<IScope, List<TypeReference>>();
@@ -571,7 +522,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public void IsChildOf(IScope parent, IScope kid)
             {
-                kidParent.Add(kid, parent);
+                kid.Parent = parent;
             }
             public void HasValue(IScope parent, Value value)
             {
@@ -637,11 +588,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public void HasMember(IHaveMembers parent, IKey key, Member member)
             {
-                if (!members.ContainsKey(parent))
-                {
-                    members.Add(parent, new Dictionary<IKey, Member>());
-                }
-                members[parent].Add(key, member);
+                parent.Members.Add(key, member);
             }
             public void HasMethod(IScope parent, IKey key, Method method)
             {
@@ -833,7 +780,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
             {
-                var res = new Member(this,"hopeful - " + key.ToString()!, converter);
+                var res = new Member(this, "hopeful - " + key.ToString()!, converter);
                 res = HasHopefulMember(scope, key, res);
                 return res;
             }
@@ -933,9 +880,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return GetReturns(method);
                 }
+                else if (s.Parent != null)
+                {
+                    return GetReturns(s.Parent);
+                }
                 else
                 {
-                    return GetReturns(kidParent[s]);
+                    throw new Exception("s.Parent should not be null");
                 }
             }
 
@@ -1136,11 +1087,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return new TypeSolution(
                     lookUps,
-                    members.ToDictionary(x => x.Key, x => (IReadOnlyList<Member>)x.Value.Select(y => y.Value).ToArray()),
+                    typeProblemNodes.OfType<IHaveMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.Members.Select(y => y.Value).ToArray()),
                     orTypeComponents,
                     methodInputs,
                     methodReturns,
-                    entryPoints.ToDictionary(x=>x.Key, x=> x.Value.Single()));
+                    entryPoints.ToDictionary(x => x.Key, x => x.Value.Single()));
 
                 #region Helpers
 
@@ -1157,7 +1108,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var toReplace = new List<ILookUpType>();
                     foreach (var pair in lookUps)
                     {
-                        if (pair.Value.Equals(defererType)) {
+                        if (pair.Value.Equals(defererType))
+                        {
                             toReplace.Add(pair.Key);
                         }
                     }
@@ -1165,7 +1117,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         lookUps[key] = deferredToType;
                     }
-                    
+
                     // why do I need this?
                     // 
                     {
@@ -1225,16 +1177,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     {
-                        if (IsNotInferedHasMembers(deferredToType,out var hasMembers))
+                        if (IsNotInferedHasMembers(deferredToType, out var hasMembers))
                         {
                             foreach (var memberPair in GetMembers(new OrType<IHaveMembers, OrType>(deferringInferred)))
                             {
-                                if (!members.ContainsKey(hasMembers!))
-                                {
-                                    members[hasMembers!] = new Dictionary<IKey, Member>();
-                                }
-                                var dict = members[hasMembers!];
-                                if (dict.TryGetValue(memberPair.Key, out var deferedToMember))
+                                if (hasMembers!.Members.TryGetValue(memberPair.Key, out var deferedToMember))
                                 {
                                     TryMerge(memberPair.Value, deferedToMember);
                                 }
@@ -1255,12 +1202,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             foreach (var memberPair in GetMembers(new OrType<IHaveMembers, OrType>(deferringInferred)))
                             {
-                                if (!members.ContainsKey(deferredToInferred))
-                                {
-                                    members[deferredToInferred] = new Dictionary<IKey, Member>();
-                                }
-                                var dict = members[deferredToInferred];
-                                if (dict.TryGetValue(memberPair.Key, out var deferedToMember))
+                                if (deferredToInferred.Members.TryGetValue(memberPair.Key, out var deferedToMember))
                                 {
                                     TryMerge(memberPair.Value, deferedToMember);
                                 }
@@ -1509,12 +1451,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
 
-                        if (!kidParent.TryGetValue(haveTypes, out var nextHaveTypes))
+                        if (haveTypes.Parent == null)
                         {
                             result = null;
                             return false;
                         }
-                        haveTypes = nextHaveTypes!;
+                        haveTypes = haveTypes.Parent;
                     }
                 }
 
@@ -1537,15 +1479,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var pair in map)
                     {
-                        if (pair.Key is IScope fromScope)
+                        if (pair.Key is IScope fromScope && fromScope.Parent != null)
                         {
                             if (to.Is1(out var method))
                             {
-                                kidParent[method] = CopiedToOrSelf(kidParent[fromScope]);
+                                method.Parent = CopiedToOrSelf(fromScope.Parent);
                             }
-                            else if (to.Is2(out var type)) 
+                            else if (to.Is2(out var type))
                             {
-                                kidParent[type] = CopiedToOrSelf(kidParent[fromScope]);
+                                type.Parent = CopiedToOrSelf(fromScope.Parent);
                             }
                         }
                     }
@@ -1662,13 +1604,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
 
                             {
-                                if (members.TryGetValue(innerFromScope, out var dict))
+                                foreach (var member in innerFromScope.Members)
                                 {
-                                    foreach (var member in dict)
-                                    {
-                                        var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
-                                        HasMember(innerScopeTo, member.Key, newValue);
-                                    }
+                                    var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
+                                    HasMember(innerScopeTo, member.Key, newValue);
                                 }
                             }
 
@@ -1821,11 +1760,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //}
 
                 //[MaybeNullWhen(false)]
-                static bool IsHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers) {
-                    if (type.Is1(out var v1)) {
+                static bool IsHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers)
+                {
+                    if (type.Is1(out var v1))
+                    {
                         haveMembers = default;
                         return false;
-                    }else if (type.Is2(out var v2))
+                    }
+                    else if (type.Is2(out var v2))
                     {
                         haveMembers = v2;
                         return true;
@@ -1932,7 +1874,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     }
 
-                    if (IsHasMembers(flowFrom,out var fromType))
+                    if (IsHasMembers(flowFrom, out var fromType))
                     {
 
                         {
@@ -1940,12 +1882,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var memberPair in GetMembers(new OrType<IHaveMembers, OrType>(fromType!)))
                                 {
-                                    if (!members.ContainsKey(deferredToHaveType))
-                                    {
-                                        members[deferredToHaveType] = new Dictionary<IKey, Member>();
-                                    }
-                                    var dict = members[deferredToHaveType];
-                                    if (dict.TryGetValue(memberPair.Key, out var deferedToMember))
+                                    if (deferredToHaveType.Members.TryGetValue(memberPair.Key, out var deferedToMember))
                                     {
                                         res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
                                     }
@@ -1965,12 +1902,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var memberPair in GetMembers(new OrType<IHaveMembers, OrType>(fromType!)))
                                 {
-                                    if (!members.ContainsKey(deferredToObject))
-                                    {
-                                        members[deferredToObject] = new Dictionary<IKey, Member>();
-                                    }
-                                    var dict = members[deferredToObject];
-                                    if (dict.TryGetValue(memberPair.Key, out var deferedToMember))
+                                    if (deferredToObject.Members.TryGetValue(memberPair.Key, out var deferedToMember))
                                     {
                                         res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
                                     }
@@ -1991,12 +1923,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                                 foreach (var memberPair in GetMembers(new OrType<IHaveMembers, OrType>(fromType!)))
                                 {
-                                    if (!members.ContainsKey(deferredToInferred))
-                                    {
-                                        members[deferredToInferred] = new Dictionary<IKey, Member>();
-                                    }
-                                    var dict = members[deferredToInferred];
-                                    if (dict.TryGetValue(memberPair.Key, out var deferedToMember))
+                                    if (deferredToInferred.Members.TryGetValue(memberPair.Key, out var deferedToMember))
                                     {
                                         res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
                                     }
@@ -2012,7 +1939,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
 
-                    if (flowFrom.Is5(out var deferringInferred)) {
+                    if (flowFrom.Is5(out var deferringInferred))
+                    {
 
                         {
                             if (flowTo.Is1(out var deferredToMethod))
@@ -2080,7 +2008,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else if (or.Is3(out var v3))
                     {
-                        return GetMembers(new OrType < IHaveMembers, OrType >(v3));
+                        return GetMembers(new OrType<IHaveMembers, OrType>(v3));
                     }
                     else if (or.Is4(out var v4))
                     {
@@ -2101,11 +2029,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (type.Is1(out var explictType))
                     {
-                        if (members.TryGetValue(explictType, out var res))
-                        {
-                            return res;
-                        }
-                        return new Dictionary<IKey, Member>();
+                        return explictType.Members;
                     }
 
                     if (type.Is2(out var orType))
@@ -2150,25 +2074,25 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 while (true)
                 {
-                    if (members.TryGetValue(context, out var contextMembers) && contextMembers.TryGetValue(key, out member))
+                    if (context.Members.TryGetValue(key, out member))
                     {
                         return true;
                     }
-                    if (!kidParent.TryGetValue(context, out var nextContext))
+                    if (context.Parent == null)
                     {
                         member = default;
                         return false;
                     }
-                    context = nextContext!;
+                    context = context.Parent;
                 }
             }
 
-            public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, IConvertTo<Object,OrType<WeakObjectDefinition, WeakModuleDefinition>> moduleConverter)
+            public TypeProblem2(IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, IConvertTo<Object, OrType<WeakObjectDefinition, WeakModuleDefinition>> moduleConverter)
             {
 
                 Primitive = new Scope(this, "base", rootConverter);
                 Dependency = CreateScope(Primitive, rootConverter);
-                ModuleRoot = CreateObjectOrModule(CreateScope(Dependency, rootConverter),new ImplicitKey(Guid.NewGuid()),moduleConverter);
+                ModuleRoot = CreateObjectOrModule(CreateScope(Dependency, rootConverter), new ImplicitKey(Guid.NewGuid()), moduleConverter);
 
                 CreateType(Primitive, new NameKey("number"), new PrimitiveTypeConverter(new NumberType()));
                 CreateType(Primitive, new NameKey("string"), new PrimitiveTypeConverter(new StringType()));
