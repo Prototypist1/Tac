@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
-using Tac.New;
+using Tac.Infastructure;
 using Tac.SemanticModel;
 using Xunit;
 

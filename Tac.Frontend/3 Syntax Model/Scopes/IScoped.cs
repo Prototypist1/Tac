@@ -25,15 +25,15 @@ namespace Tac.SemanticModel
         //OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);
     }
 
-    internal class TypeParameter {
-        public readonly IGenericTypeParameterPlacholder parameterDefinition;
-        public readonly IFrontendType frontendType;
+    //internal class TypeParameter {
+    //    public readonly IGenericTypeParameterPlacholder parameterDefinition;
+    //    public readonly IFrontendType frontendType;
 
-        public TypeParameter(IGenericTypeParameterPlacholder parameterDefinition, IFrontendType frontendType)
-        {
-            this.parameterDefinition = parameterDefinition;
-            this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
-        }
-    }
+    //    public TypeParameter(IGenericTypeParameterPlacholder parameterDefinition, IFrontendType frontendType)
+    //    {
+    //        this.parameterDefinition = parameterDefinition;
+    //        this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
+    //    }
+    //}
 }
 

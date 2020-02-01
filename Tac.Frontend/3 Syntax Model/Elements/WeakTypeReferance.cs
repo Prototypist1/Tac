@@ -12,7 +12,7 @@ using Tac.Frontend.Parser;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
-using Tac.New;
+using Tac.Infastructure;
 using Tac.Parser;
 
 namespace Tac.SemanticModel

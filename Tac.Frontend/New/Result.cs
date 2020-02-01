@@ -1,4 +1,4 @@
-﻿namespace Tac.New
+﻿namespace Tac.Infastructure
 {
     public class Result<T> : IResult<T>
         where T:class

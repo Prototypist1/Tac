@@ -1,6 +1,6 @@
 ﻿using Tac.Parser;
 
-namespace Tac.New
+namespace Tac.Infastructure
 {
     internal interface IMaker
     {

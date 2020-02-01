@@ -11,7 +11,7 @@ using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
 
-namespace Tac.New
+namespace Tac.Infastructure
 {
 
     

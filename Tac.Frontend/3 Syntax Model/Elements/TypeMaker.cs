@@ -6,7 +6,7 @@ using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
-using Tac.New;
+using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
 

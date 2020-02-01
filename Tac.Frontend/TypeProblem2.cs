@@ -476,6 +476,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+
+                public TypeReference Left { get; set; }
+                public TypeReference Right { get; set; }
             }
             public class Scope : TypeProblemNode<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>, IScope
             {
@@ -542,8 +545,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Object ModuleRoot { get; }
 
 
-            //hopeful methods 
-            private readonly Dictionary<IValue, InferredType> hopefulMethods = new Dictionary<IValue, InferredType>();
 
             // legit methods
             private readonly Dictionary<OrType<Method, MethodType, InferredType>, TransientMember> methodReturns = new Dictionary<OrType<Method, MethodType, InferredType>, TransientMember>();
@@ -555,10 +556,15 @@ namespace Tac.Frontend.New.CrzayNamespace
             // it hold the placeholder and the realized type
             private readonly Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type, Object, OrType, InferredType>>> genericOverlays = new Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type, Object, OrType, InferredType>>>();
 
-            private readonly Dictionary<OrType, (TypeReference, TypeReference)> orTypeComponents = new Dictionary<OrType, (TypeReference, TypeReference)>();
+            //private readonly Dictionary<OrType, (TypeReference, TypeReference)> orTypeComponents = new Dictionary<OrType, (TypeReference, TypeReference)>();
 
             private readonly Dictionary<IScope, Dictionary<IKey, Member>> possibleMembers = new Dictionary<IScope, Dictionary<IKey, Member>>();
+
+
             private readonly Dictionary<IValue, Dictionary<IKey, Member>> hopefulMembers = new Dictionary<IValue, Dictionary<IKey, Member>>();
+            //hopeful methods 
+            private readonly Dictionary<IValue, InferredType> hopefulMethods = new Dictionary<IValue, InferredType>();
+
             private List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
 
             //private readonly List<(ICanAssignFromMe, ILookUpType)> calls = new List<(ICanAssignFromMe, ILookUpType)>();
@@ -566,9 +572,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             // members
             private readonly Dictionary<ILookUpType, IKey> lookUpTypeKey = new Dictionary<ILookUpType, IKey>();
             private readonly Dictionary<ILookUpType, IScope> lookUpTypeContext = new Dictionary<ILookUpType, IScope>();
-
-
             private readonly Dictionary<ILookUpType, OrType<MethodType, Type, Object, OrType, InferredType>> lookUps = new Dictionary<ILookUpType, OrType<MethodType, Type, Object, OrType, InferredType>>();
+            
+            
+            
             #region Building APIs
 
             public void IsChildOf(IScope parent, IScope kid)
@@ -577,7 +584,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public void HasValue(IScope parent, Value value)
             {
-
                 parent.Values.Add(value);
             }
             public void HasReference(IScope parent, TypeReference reference)
@@ -822,7 +828,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private void Ors(OrType orType, TypeReference a, TypeReference b)
             {
-                orTypeComponents[orType] = (a, b);
+                orType.Left = a;
+                orType.Right = b;
             }
 
             private void HasOrType(IScope scope, IKey kay, OrType orType1)
@@ -1104,7 +1111,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new TypeSolution(
                     lookUps,
                     typeProblemNodes.OfType<IHaveMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.Members.Select(y => y.Value).ToArray()),
-                    orTypeComponents,
+                    typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left,x.Right)),
                     methodInputs,
                     methodReturns,
                     typeProblemNodes.OfType<IScope>().Where(x=>x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()));
@@ -1552,7 +1559,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (pair.Key is OrType orFrom && pair.Value is OrType orTo)
                         {
-                            Ors(orTo, CopiedToOrSelf(orTypeComponents[orFrom].Item1), CopiedToOrSelf(orTypeComponents[orFrom].Item2));
+                            Ors(orTo, CopiedToOrSelf(orFrom.Left), CopiedToOrSelf(orFrom.Right));
                         }
 
 
@@ -2036,7 +2043,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
 
                         res = new Dictionary<IKey, Member>();
-                        var (left, right) = orTypeComponents[orType];
+                        var left = orType.Left;
+                        var right = orType.Right;
 
                         var rightMembers = GetMembers2(GetType(right));
                         foreach (var leftMember in GetMembers2(GetType(left)))

@@ -9,7 +9,7 @@ using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
 using Tac.Model.Elements;
-using Tac.New;
+using Tac.Infastructure;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;

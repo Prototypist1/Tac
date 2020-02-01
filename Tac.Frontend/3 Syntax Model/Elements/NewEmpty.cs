@@ -5,7 +5,7 @@ using System.Text;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated.Elements;
-using Tac.New;
+using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.Frontend;
