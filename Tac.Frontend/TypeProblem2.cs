@@ -60,7 +60,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.TransientMember GetReturns(IScope s);
             TypeProblem2.Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.OrType CreateOrType(IScope s, IKey key, TypeProblem2.TypeReference setUpSideNode1, TypeProblem2.TypeReference setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
-            IKey GetKey(TypeProblem2.TypeReference type);
+            IKey? GetKey(TypeProblem2.TypeReference type);
             TypeProblem2.Member GetInput(IValue method);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
@@ -328,7 +328,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
         internal interface ILookUpType : ITypeProblemNode
         {
-            public IKey? Key { get; set; }
+            public IKey? TypeKey { get; set; }
             public IScope? Context { get; set; }
             public OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>? LooksUp { get; set; }
 
@@ -393,9 +393,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IKey Key { get; set; }
-                public IScope Context { get; set; }
-                public OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> LooksUp { get; set; }
+                public IKey? TypeKey { get; set; }
+                public IScope? Context { get; set; }
+                public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
             }
             public class Value : TypeProblemNode<Value, PlaceholderValue>, IValue
             {
@@ -403,9 +403,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IKey Key { get; set; }
-                public IScope Context { get; set; }
-                public OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> LooksUp { get; set; }
+                public IKey? TypeKey { get; set; }
+                public IScope? Context { get; set; }
+                public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
             }
             public class Member : TypeProblemNode<Member, WeakMemberDefinition>, IMember
             {
@@ -413,9 +413,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IKey Key { get; set; }
-                public IScope Context { get; set; }
-                public OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> LooksUp { get; set; }
+                public IKey? TypeKey { get; set; }
+                public IScope? Context { get; set; }
+                public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
             }
 
             public class TransientMember : TypeProblemNode, IMember
@@ -424,9 +424,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IKey Key { get; set; }
-                public IScope Context { get; set; }
-                public OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> LooksUp { get; set; }
+                public IKey? TypeKey { get; set; }
+                public IScope? Context { get; set; }
+                public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
             }
 
             public class Type : TypeProblemNode<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType
@@ -694,7 +694,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Value(this, typeKey.ToString()!, converter);
                 HasValue(scope, res);
                 res.Context = scope;
-                res.Key = typeKey;
+                res.TypeKey = typeKey;
                 return res;
             }
 
@@ -703,7 +703,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
                 res.Context = scope;
-                res.Key = typeKey;
+                res.TypeKey = typeKey;
                 return res;
             }
 
@@ -740,7 +740,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new TypeReference(this, typeKey.ToString()!, converter);
                 HasReference(context, res);
                 res.Context = context;
-                res.Key = typeKey;
+                res.TypeKey = typeKey;
                 return res;
             }
 
@@ -812,11 +812,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputType.debugName},outputType:{outputType.debugName}}}", converter);
                 IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
-                var returns = inputType.Key != null ? CreateTransientMember(res, inputType.Key) : CreateTransientMember(res);
+                var returns = inputType.TypeKey != null ? CreateTransientMember(res, inputType.TypeKey) : CreateTransientMember(res);
                 methodReturns[new OrType<Method, MethodType, InferredType>(res)] = returns;
-                if (inputType.Key != null)
+                if (inputType.TypeKey != null)
                 {
-                    methodInputs[new OrType<Method, MethodType, InferredType>(res)] = CreateMember(res, new NameKey(inputName), inputType.Key, inputConverter);
+                    methodInputs[new OrType<Method, MethodType, InferredType>(res)] = CreateMember(res, new NameKey(inputName), inputType.TypeKey, inputConverter);
                 }
                 else
                 {
@@ -898,7 +898,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
                 res.Context = parent;
-                res.Key = typeKey;
+                res.TypeKey = typeKey;
                 return res;
             }
 
@@ -988,9 +988,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public IKey GetKey(TypeReference type)
+            public IKey? GetKey(TypeReference type)
             {
-                return type.Key;
+                return type.TypeKey;
             }
 
             // pretty sure it is not safe to solve more than once 
@@ -998,7 +998,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => x.LooksUp == null && x.Key == null))
+                foreach (var node in toLookUp.Where(x => x.LooksUp == null && x.TypeKey == null))
                 {
                     var type = new InferredType(this, $"for {((TypeProblemNode)node).debugName}");
                     node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(type);
@@ -1123,6 +1123,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         var toType = to.LooksUp;
                         var fromType = from.LooksUp;
+
+                        // nothing should look up to null at this point
+                        if (toType == null) {
+                            throw new NullReferenceException(nameof(toType));
+                        }
+                        if (fromType == null)
+                        {
+                            throw new NullReferenceException(nameof(fromType));
+                        }
+
                         go |= Flow(toType, fromType);
 
                     }
@@ -1296,8 +1306,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return node.LooksUp;
                     }
 
-                    var from = node.Context;
-                    var key = node.Key;
+                    // if we don't have a lookup we damn well better have a context and a key
+                    var from = node.Context ?? throw new NullReferenceException(nameof(node.Context));
+                    var key = node.TypeKey ?? throw new NullReferenceException(nameof(node.TypeKey)); ;
+
+
                     if (!TryLookUpOrOverlay(from, key, out var res))
                     {
                         throw new Exception("could not find type");
@@ -1568,9 +1581,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (pair.Key is ILookUpType lookUpFrom && pair.Value is ILookUpType lookUpTo)
                         {
 
-                            if (lookUpFrom.Key != null)
+                            if (lookUpFrom.TypeKey != null)
                             {
-                                lookUpTo.Key = lookUpFrom.Key;
+                                lookUpTo.TypeKey = lookUpFrom.TypeKey;
                             }
 
                             if (lookUpFrom.Context != null)
@@ -1581,7 +1594,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (pair.Key is OrType orFrom && pair.Value is OrType orTo)
                         {
-                            Ors(orTo, CopiedToOrSelf(orFrom.Left), CopiedToOrSelf(orFrom.Right));
+                            // from should have been populated
+                            Ors(orTo, CopiedToOrSelf(orFrom.Left ?? throw new NullReferenceException(nameof(orFrom.Left))), CopiedToOrSelf(orFrom.Right ?? throw new NullReferenceException(nameof(orFrom.Right))));
                         }
 
 
@@ -1852,7 +1866,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (value is ILookUpType lookup)
                     {
-                        return lookup.LooksUp;
+                        // look up needs to be populated at this point
+                        return lookup.LooksUp!;
                     }
                     if (value is MethodType methodType)
                     {
@@ -2065,8 +2080,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
 
                         res = new Dictionary<IKey, Member>();
-                        var left = orType.Left;
-                        var right = orType.Right;
+                        var left = orType.Left ?? throw new NullReferenceException(nameof(orType.Left));
+                        var right = orType.Right ?? throw new NullReferenceException(nameof(orType.Right));
 
                         var rightMembers = GetMembers2(GetType(right));
                         foreach (var leftMember in GetMembers2(GetType(left)))
@@ -2096,7 +2111,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
-            private bool TryGetMember(IScope context, IKey key, [MaybeNullWhen(false)] out Member? member)
+            private static bool TryGetMember(IScope context, IKey key, [MaybeNullWhen(false)] out Member? member)
             {
                 while (true)
                 {
@@ -2185,7 +2200,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         //extensions
         public static IKey Key(this Tpn.TypeProblem2.TypeReference type)
         {
-            return type.Problem.GetKey(type);
+            // I THINK typeReference always have a Key
+            return type.Problem.GetKey(type) ?? throw new NullReferenceException();
         }
 
         public static Tpn.TypeProblem2.TransientMember Returns(this Tpn.IValue method)
