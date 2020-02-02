@@ -1575,7 +1575,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             if (lookUpFrom.Context != null)
                             {
-                                lookUpTo.Context = lookUpFrom.Context;
+                                lookUpTo.Context = CopiedToOrSelf(lookUpFrom.Context);
                             }
                         }
 
