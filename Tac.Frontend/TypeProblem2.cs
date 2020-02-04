@@ -337,8 +337,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }
         internal interface ICanBeAssignedTo : ITypeProblemNode, ILookUpType { }
-        internal interface IValue : ITypeProblemNode, ILookUpType, ICanAssignFromMe {
-            public Dictionary<IKey, TypeProblem2.Member> HopefulMembers {get;}
+        internal interface IValue : ITypeProblemNode, ILookUpType, ICanAssignFromMe
+        {
+            public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; }
             public TypeProblem2.InferredType? HopefulMethod { get; set; }
         }
         //public interface Member :  IValue, ILookUpType, ICanBeAssignedTo {bool IsReadonly { get; }}
@@ -356,6 +357,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Dictionary<IKey, TypeProblem2.Type> Types { get; }
             public Dictionary<IKey, TypeProblem2.MethodType> MethodTypes { get; }
             public Dictionary<IKey, TypeProblem2.Object> Objects { get; }
+            public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; }
         }
         //internal interface IMethod : IHaveMembers, IScope { }
         internal interface IHaveInputAndOutput : ITypeProblemNode { }
@@ -412,7 +414,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
 
                 public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; } = new Dictionary<IKey, TypeProblem2.Member>();
-                public TypeProblem2.InferredType? HopefulMethod { get; set; } 
+                public TypeProblem2.InferredType? HopefulMethod { get; set; }
             }
             public class Member : TypeProblemNode<Member, WeakMemberDefinition>, IMember
             {
@@ -459,6 +461,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
             }
 
@@ -482,6 +485,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
                 public Member? Input { get; set; }
                 public TransientMember? Returns { get; set; }
@@ -503,6 +507,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
                 public Member? Input { get; set; }
                 public TransientMember? Returns { get; set; }
@@ -534,6 +539,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
             }
             public class Object : TypeProblemNode<Object, OrType<WeakObjectDefinition, WeakModuleDefinition>>, IExplicitType
             {
@@ -551,6 +557,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
             }
             // methods don't really have members in the way other things do
             // they have members while they are executing
@@ -571,6 +578,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
                 public Member? Input { get; set; }
                 public TransientMember? Returns { get; set; }
@@ -592,7 +600,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             // it hold the placeholder and the realized type
             private readonly Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type, Object, OrType, InferredType>>> genericOverlays = new Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type, Object, OrType, InferredType>>>();
 
-            private readonly Dictionary<IScope, Dictionary<IKey, Member>> possibleMembers = new Dictionary<IScope, Dictionary<IKey, Member>>();
 
 
             //private readonly Dictionary<IValue, Dictionary<IKey, Member>> hopefulMembers = new Dictionary<IValue, Dictionary<IKey, Member>>();
@@ -661,12 +668,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public Member HasMembersPossiblyOnParent(IScope parent, IKey key, Member member)
             {
-                if (!possibleMembers.ContainsKey(parent))
-                {
-                    possibleMembers.Add(parent, new Dictionary<IKey, Member>());
-                }
-                possibleMembers[parent].TryAdd(key, member);
-                return possibleMembers[parent][key];
+
+                parent.PossibleMembers.TryAdd(key, member);
+                return parent.PossibleMembers[key];
             }
             public Member HasHopefulMember(IValue parent, IKey key, Member member)
             {
@@ -722,7 +726,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
             {
-                if (possibleMembers.TryGetValue(scope, out var members) && members.TryGetValue(key, out var res1))
+                if (scope.PossibleMembers.TryGetValue(key, out var res1))
                 {
                     return res1;
                 }
@@ -1040,17 +1044,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var orTypeMembers = new Dictionary<OrType, Dictionary<IKey, Member>>();
 
-                foreach (var item in possibleMembers)
+                foreach (var (node, possibleMembers) in typeProblemNodes.OfType<IScope>().Select(x => (x, x.PossibleMembers)))
                 {
-                    foreach (var pair in item.Value)
+                    foreach (var pair in possibleMembers)
                     {
-                        if (TryGetMember(item.Key, pair.Key, out var member))
+                        if (TryGetMember(node, pair.Key, out var member))
                         {
                             TryMerge(pair.Value, member!);
                         }
                         else
                         {
-                            HasMember(item.Key, pair.Key, pair.Value);
+                            HasMember(node, pair.Key, pair.Value);
                         }
                     }
                 }
@@ -1059,7 +1063,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // they are very similar yet implemented differently 
 
                 // hopeful members 
-                foreach (var (node,hopeful) in typeProblemNodes.OfType<IValue>().Select(x=>(x,x.HopefulMembers)))
+                foreach (var (node, hopeful) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMembers)))
                 {
                     foreach (var pair in hopeful)
                     {
@@ -1079,7 +1083,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // hopeful methods 
-                foreach (var (node,hopefulMethod) in typeProblemNodes.OfType<IValue>().Where(x=>x.HopefulMethod != null).Select(x=>(x, x.HopefulMethod)))
+                foreach (var (node, hopefulMethod) in typeProblemNodes.OfType<IValue>().Where(x => x.HopefulMethod != null).Select(x => (x, x.HopefulMethod)))
                 {
                     var type = GetType(node);
                     if (type.Is1(out var methodType))
@@ -1121,7 +1125,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         var fromType = from.LooksUp;
 
                         // nothing should look up to null at this point
-                        if (toType == null) {
+                        if (toType == null)
+                        {
                             throw new NullReferenceException(nameof(toType));
                         }
                         if (fromType == null)
@@ -1140,25 +1145,28 @@ namespace Tac.Frontend.New.CrzayNamespace
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp != null).ToDictionary(x => x, x => x.LooksUp!),
                     typeProblemNodes.OfType<IHaveMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.Members.Select(y => y.Value).ToArray()),
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left!, x.Right!)),
-                    typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<OrType<Method, MethodType, InferredType>>>(x=> {
-                        if (x is Method m) {
+                    typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<OrType<Method, MethodType, InferredType>>>(x =>
+                    {
+                        if (x is Method m)
+                        {
                             return Possibly.Is(new OrType<Method, MethodType, InferredType>(m));
-                            }
+                        }
 
                         if (x is MethodType mt)
                         {
                             return Possibly.Is(new OrType<Method, MethodType, InferredType>(mt));
-                            }
+                        }
 
                         if (x is InferredType it)
                         {
                             return Possibly.Is(new OrType<Method, MethodType, InferredType>(it));
                         }
                         return Possibly.IsNot<OrType<Method, MethodType, InferredType>>();
-                    }).Where(x=> x is IIsDefinately<OrType<Method, MethodType, InferredType>>)
-                    .Select(x=> x.CastTo<IIsDefinately<OrType<Method, MethodType, InferredType>>>().Value)
-                    .ToDictionary(x=>x,x=> x.SwitchReturns(v1 => v1.Input!, v1 => v1.Input!, v1 => v1.Input!)),
-                    typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<OrType<Method, MethodType, InferredType>>>(x => {
+                    }).Where(x => x is IIsDefinately<OrType<Method, MethodType, InferredType>>)
+                    .Select(x => x.CastTo<IIsDefinately<OrType<Method, MethodType, InferredType>>>().Value)
+                    .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Input!, v1 => v1.Input!, v1 => v1.Input!)),
+                    typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<OrType<Method, MethodType, InferredType>>>(x =>
+                    {
                         if (x is Method m)
                         {
                             return Possibly.Is(new OrType<Method, MethodType, InferredType>(m));
@@ -1733,15 +1741,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 }
                             }
 
-
                             {
-                                if (possibleMembers.TryGetValue(innerFromScope, out var dict))
+                                foreach (var possible in innerFromScope.PossibleMembers)
                                 {
-                                    foreach (var possible in dict)
-                                    {
-                                        var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
-                                        HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
-                                    }
+                                    var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
+                                    HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
                                 }
                             }
                         }
@@ -1790,13 +1794,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (innerFrom is IValue innerFromHopeful && innerTo is IValue innerToHopeful)
                         {
-                            
-                                foreach (var possible in innerFromHopeful.HopefulMembers)
-                                {
-                                    var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
-                                    HasHopefulMember(innerToHopeful, possible.Key, newValue);
-                                }
-                            
+
+                            foreach (var possible in innerFromHopeful.HopefulMembers)
+                            {
+                                var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
+                                HasHopefulMember(innerToHopeful, possible.Key, newValue);
+                            }
+
 
                             if (innerFromHopeful.HopefulMethod != null)
                             {
