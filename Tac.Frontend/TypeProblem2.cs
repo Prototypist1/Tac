@@ -666,13 +666,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 parent.TransientMembers.Add(member);
             }
-            public Member HasMembersPossiblyOnParent(IScope parent, IKey key, Member member)
+            public static Member HasMembersPossiblyOnParent(IScope parent, IKey key, Member member)
             {
 
                 parent.PossibleMembers.TryAdd(key, member);
                 return parent.PossibleMembers[key];
             }
-            public Member HasHopefulMember(IValue parent, IKey key, Member member)
+            public static  Member HasHopefulMember(IValue parent, IKey key, Member member)
             {
                 parent.HopefulMembers.TryAdd(key, member);
                 return parent.HopefulMembers[key];
@@ -938,7 +938,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal TransientMember GetReturns(Method method)
             {
-                return method.Returns;
+                return method.Returns ?? throw new NullReferenceException(nameof(method.Returns));
             }
 
 
@@ -947,7 +947,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (value.HopefulMethod != null)
                 {
-                    return value.HopefulMethod.Returns;
+                    return value.HopefulMethod.Returns ?? throw new NullReferenceException(nameof(value.HopefulMethod.Returns));
                 }
                 else
                 {
@@ -966,7 +966,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (value.HopefulMethod != null)
                 {
-                    return value.HopefulMethod.Input;
+                    return value.HopefulMethod.Input?? throw new NullReferenceException(nameof(value.HopefulMethod.Input));
                 }
                 else
                 {
@@ -984,7 +984,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member GetInput(Method method)
             {
-                return method.Input;
+                return method.Input ?? throw new NullReferenceException(nameof(method.Input));
             }
 
 
@@ -1092,12 +1092,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(methodType);
 
-                            var defererReturns = hopefulMethod.Returns;
-                            var deferredToReturns = methodType.Returns;
+                            var defererReturns = hopefulMethod.Returns ?? throw new NullReferenceException(nameof(hopefulMethod.Returns));
+                            var deferredToReturns = methodType.Returns ?? throw new NullReferenceException(nameof(methodType.Returns)); ;
                             TryMerge(defererReturns, deferredToReturns);
 
-                            var defererInput = hopefulMethod.Input;
-                            var deferredToInput = methodType.Input;
+                            var defererInput = hopefulMethod.Input ?? throw new NullReferenceException(nameof(hopefulMethod.Input)); ;
+                            var deferredToInput = methodType.Input ?? throw new NullReferenceException(nameof(methodType.Input)); ;
                             TryMerge(defererInput, deferredToInput);
                         }
                     }
@@ -1255,14 +1255,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (deferredToType.Is1(out var deferredToMethod))
                         {
-                            if (deferringInferred.Returns != null)
+                            if (deferringInferred.Returns != null && deferredToMethod.Returns != null)
                             {
                                 var deferredToReturns = deferredToMethod.Returns;
                                 TryMerge(deferringInferred.Returns, deferredToReturns);
                             }
 
 
-                            if (deferringInferred.Input != null)
+                            if (deferringInferred.Input != null && deferredToMethod.Input != null)
                             {
                                 var deferredToInput = deferredToMethod.Input;
                                 TryMerge(deferringInferred.Input, deferredToInput);
@@ -1638,20 +1638,20 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (pair.Key is Method methodFrom && pair.Value is Method methodTo)
                         {
-                            methodTo.Input = CopiedToOrSelf(methodFrom.Input);
-                            methodTo.Returns = CopiedToOrSelf(methodFrom.Returns);
+                            methodTo.Input = CopiedToOrSelf(methodFrom.Input ?? throw new NullReferenceException(nameof(methodFrom.Input)));
+                            methodTo.Returns = CopiedToOrSelf(methodFrom.Returns ?? throw new NullReferenceException(nameof(methodFrom.Returns)));
                         }
 
                         if (pair.Key is MethodType methodFromType && pair.Value is MethodType methodToType)
                         {
-                            methodToType.Input = CopiedToOrSelf(methodFromType.Input);
-                            methodToType.Returns = CopiedToOrSelf(methodFromType.Returns);
+                            methodToType.Input = CopiedToOrSelf(methodFromType.Input ?? throw new NullReferenceException(nameof(methodFromType.Input)));
+                            methodToType.Returns = CopiedToOrSelf(methodFromType.Returns ?? throw new NullReferenceException(nameof(methodFromType.Returns)));
                         }
 
                         if (pair.Key is InferredType inferedFrom && pair.Value is InferredType inferedTo)
                         {
-                            inferedTo.Input = CopiedToOrSelf(inferedFrom.Input);
-                            inferedTo.Returns = CopiedToOrSelf(inferedFrom.Returns);
+                            inferedTo.Input = CopiedToOrSelf(inferedFrom.Input ?? throw new NullReferenceException(nameof(inferedFrom.Input)));
+                            inferedTo.Returns = CopiedToOrSelf(inferedFrom.Returns ?? throw new NullReferenceException(nameof(inferedFrom.Returns)));
                         }
                     }
 
@@ -1933,14 +1933,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (flowFrom.Is1(out var fromMethod) && flowTo.Is1(out var toMethod))
                     {
-                        var inFlowFrom = GetType(fromMethod.Input);
-                        var inFlowTo = GetType(toMethod.Input);
+                        var inFlowFrom = GetType(fromMethod.Input ?? throw new NullReferenceException(nameof(fromMethod.Input)));
+                        var inFlowTo = GetType(toMethod.Input ?? throw new NullReferenceException(nameof(toMethod.Input)));
 
                         res |= Flow(inFlowFrom, inFlowTo);
 
 
-                        var returnFlowFrom = GetType(fromMethod.Returns);
-                        var retrunFlowTo = GetType(toMethod.Returns);
+                        var returnFlowFrom = GetType(fromMethod.Returns ?? throw new NullReferenceException(nameof(fromMethod.Returns)));
+                        var retrunFlowTo = GetType(toMethod.Returns ?? throw new NullReferenceException(nameof(toMethod.Returns)));
 
                         res |= Flow(returnFlowFrom, retrunFlowTo);
 
@@ -2017,14 +2017,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (flowTo.Is1(out var deferredToMethod))
                             {
-                                if (deferringInferred.Returns != null)
+                                if (deferringInferred.Returns != null && deferredToMethod.Returns != null)
                                 {
                                     var deferredToReturns = deferredToMethod.Returns;
                                     res |= Flow(GetType(deferringInferred.Returns), GetType(deferredToReturns));
                                 }
 
 
-                                if (deferringInferred.Input != null)
+                                if (deferringInferred.Input != null && deferredToMethod.Input != null)
                                 {
                                     var deferredToInput = deferredToMethod.Input;
                                     res |= Flow(GetType(deferringInferred.Input), GetType(deferredToInput));
