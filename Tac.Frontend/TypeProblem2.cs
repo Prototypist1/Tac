@@ -337,7 +337,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }
         internal interface ICanBeAssignedTo : ITypeProblemNode, ILookUpType { }
-        internal interface IValue : ITypeProblemNode, ILookUpType, ICanAssignFromMe { }
+        internal interface IValue : ITypeProblemNode, ILookUpType, ICanAssignFromMe {
+            public Dictionary<IKey, TypeProblem2.Member> HopefulMembers {get;}
+            public TypeProblem2.InferredType? HopefulMethod { get; set; }
+        }
         //public interface Member :  IValue, ILookUpType, ICanBeAssignedTo {bool IsReadonly { get; }}
         internal interface IExplicitType : IHaveMembers, IScope { }
         internal interface IScope : IHaveMembers
@@ -407,6 +410,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IKey? TypeKey { get; set; }
                 public IScope? Context { get; set; }
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
+
+                public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; } = new Dictionary<IKey, TypeProblem2.Member>();
+                public TypeProblem2.InferredType? HopefulMethod { get; set; } 
             }
             public class Member : TypeProblemNode<Member, WeakMemberDefinition>, IMember
             {
@@ -417,6 +423,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IKey? TypeKey { get; set; }
                 public IScope? Context { get; set; }
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
+                public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; } = new Dictionary<IKey, TypeProblem2.Member>();
+                public TypeProblem2.InferredType? HopefulMethod { get; set; }
             }
 
             public class TransientMember : TypeProblemNode, IMember
@@ -428,6 +436,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IKey? TypeKey { get; set; }
                 public IScope? Context { get; set; }
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
+                public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; } = new Dictionary<IKey, TypeProblem2.Member>();
+                public TypeProblem2.InferredType? HopefulMethod { get; set; }
             }
 
             public class Type : TypeProblemNode<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType
@@ -576,35 +586,19 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Object ModuleRoot { get; }
 
 
-
-            // legit methods
-            //private readonly Dictionary<OrType<Method, MethodType, InferredType>, TransientMember> methodReturns = new Dictionary<OrType<Method, MethodType, InferredType>, TransientMember>();
-            //private readonly Dictionary<OrType<Method, MethodType, InferredType>, Member> methodInputs = new Dictionary<OrType<Method, MethodType, InferredType>, Member>();
-
             // this holds real overlays 
             // the left hand side is the generic
             // the right hand side is the generic type parameter
             // it hold the placeholder and the realized type
             private readonly Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type, Object, OrType, InferredType>>> genericOverlays = new Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type, Object, OrType, InferredType>>>();
 
-            //private readonly Dictionary<OrType, (TypeReference, TypeReference)> orTypeComponents = new Dictionary<OrType, (TypeReference, TypeReference)>();
-
             private readonly Dictionary<IScope, Dictionary<IKey, Member>> possibleMembers = new Dictionary<IScope, Dictionary<IKey, Member>>();
 
 
-            private readonly Dictionary<IValue, Dictionary<IKey, Member>> hopefulMembers = new Dictionary<IValue, Dictionary<IKey, Member>>();
-            //hopeful methods 
-            private readonly Dictionary<IValue, InferredType> hopefulMethods = new Dictionary<IValue, InferredType>();
+            //private readonly Dictionary<IValue, Dictionary<IKey, Member>> hopefulMembers = new Dictionary<IValue, Dictionary<IKey, Member>>();
+            //private readonly Dictionary<IValue, InferredType> hopefulMethods = new Dictionary<IValue, InferredType>();
 
             private List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
-
-            //private readonly List<(ICanAssignFromMe, ILookUpType)> calls = new List<(ICanAssignFromMe, ILookUpType)>();
-
-            // members
-            //private readonly Dictionary<ILookUpType, IKey> lookUpTypeKey = new Dictionary<ILookUpType, IKey>();
-            //private readonly Dictionary<ILookUpType, IScope> lookUpTypeContext = new Dictionary<ILookUpType, IScope>();
-            //private readonly Dictionary<ILookUpType, OrType<MethodType, Type, Object, OrType, InferredType>> lookUps = new Dictionary<ILookUpType, OrType<MethodType, Type, Object, OrType, InferredType>>();
-
 
 
             #region Building APIs
@@ -676,14 +670,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public Member HasHopefulMember(IValue parent, IKey key, Member member)
             {
-
-                if (!hopefulMembers.ContainsKey(parent))
-                {
-                    hopefulMembers.Add(parent, new Dictionary<IKey, Member>());
-                }
-                hopefulMembers[parent].TryAdd(key, member);
-                return hopefulMembers[parent][key];
-
+                parent.HopefulMembers.TryAdd(key, member);
+                return parent.HopefulMembers[key];
             }
 
             private T Register<T>(T typeProblemNode)
@@ -953,14 +941,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public TransientMember GetReturns(IValue value)
             {
-                if (hopefulMethods.TryGetValue(value, out var res))
+                if (value.HopefulMethod != null)
                 {
-                    return res.Returns;
+                    return value.HopefulMethod.Returns;
                 }
                 else
                 {
                     var inferredMethodType = new InferredType(this, "zzzz");
-                    hopefulMethods[value] = inferredMethodType;
+                    value.HopefulMethod = inferredMethodType;
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
                     inferredMethodType.Input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey)); ;
@@ -972,14 +960,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member GetInput(IValue value)
             {
-                if (hopefulMethods.TryGetValue(value, out var res))
+                if (value.HopefulMethod != null)
                 {
-                    return res.Input;
+                    return value.HopefulMethod.Input;
                 }
                 else
                 {
                     var inferredMethodType = new InferredType(this, "zzzz");
-                    hopefulMethods[value] = inferredMethodType;
+                    value.HopefulMethod = inferredMethodType;
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
                     var input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey));
@@ -1071,15 +1059,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // they are very similar yet implemented differently 
 
                 // hopeful members 
-                foreach (var hopeful in hopefulMembers)
+                foreach (var (node,hopeful) in typeProblemNodes.OfType<IValue>().Select(x=>(x,x.HopefulMembers)))
                 {
-                    foreach (var pair in hopeful.Value)
+                    foreach (var pair in hopeful)
                     {
-                        if (GetMembers2(GetType(hopeful.Key)).TryGetValue(pair.Key, out var member))
+                        if (GetMembers2(GetType(node)).TryGetValue(pair.Key, out var member))
                         {
                             TryMerge(pair.Value, member);
                         }
-                        else if (GetType(hopeful.Key).Is5(out var inferred))
+                        else if (GetType(node).Is5(out var inferred))
                         {
                             HasMember(inferred, pair.Key, pair.Value);
                         }
@@ -1091,27 +1079,27 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // hopeful methods 
-                foreach (var hopefulMethod in hopefulMethods)
+                foreach (var (node,hopefulMethod) in typeProblemNodes.OfType<IValue>().Where(x=>x.HopefulMethod != null).Select(x=>(x, x.HopefulMethod)))
                 {
-                    var type = GetType(hopefulMethod.Key);
+                    var type = GetType(node);
                     if (type.Is1(out var methodType))
                     {
-                        if (!methodType.Equals(hopefulMethod.Value))
+                        if (!methodType.Equals(hopefulMethod))
                         {
-                            hopefulMethod.Key.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(methodType);
+                            node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(methodType);
 
-                            var defererReturns = hopefulMethod.Value.Returns;
+                            var defererReturns = hopefulMethod.Returns;
                             var deferredToReturns = methodType.Returns;
                             TryMerge(defererReturns, deferredToReturns);
 
-                            var defererInput = hopefulMethod.Value.Input;
+                            var defererInput = hopefulMethod.Input;
                             var deferredToInput = methodType.Input;
                             TryMerge(defererInput, deferredToInput);
                         }
                     }
                     else if (type.Is5(out var dummy))
                     {
-                        hopefulMethod.Key.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(hopefulMethod.Value);
+                        node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(hopefulMethod);
                     }
                     else
                     {
@@ -1802,19 +1790,18 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (innerFrom is IValue innerFromHopeful && innerTo is IValue innerToHopeful)
                         {
-                            if (hopefulMembers.TryGetValue(innerFromHopeful, out var dict))
-                            {
-                                foreach (var possible in dict)
+                            
+                                foreach (var possible in innerFromHopeful.HopefulMembers)
                                 {
                                     var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
                                     HasHopefulMember(innerToHopeful, possible.Key, newValue);
                                 }
-                            }
+                            
 
-                            if (hopefulMethods.TryGetValue(innerFromHopeful, out var method))
+                            if (innerFromHopeful.HopefulMethod != null)
                             {
-                                var newValue = Copy(method, new InferredType(this, $"copied from {((TypeProblemNode)method).debugName}"));
-                                hopefulMethods[innerToHopeful] = newValue;
+                                var newValue = Copy(innerFromHopeful.HopefulMethod, new InferredType(this, $"copied from {((TypeProblemNode)innerFromHopeful.HopefulMethod).debugName}"));
+                                innerToHopeful.HopefulMethod = newValue;
                             }
                         }
 
