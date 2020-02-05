@@ -522,8 +522,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
 
-                public TypeReference? Left { get; set; }
-                public TypeReference? Right { get; set; }
+                public IIsPossibly<TypeReference> Left { get; set; } = Possibly.IsNot<TypeReference>();
+                public IIsPossibly<TypeReference> Right { get; set; } = Possibly.IsNot<TypeReference>();
             }
             public class Scope : TypeProblemNode<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>, IScope
             {
@@ -857,8 +857,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private static void Ors(OrType orType, TypeReference a, TypeReference b)
             {
-                orType.Left = a;
-                orType.Right = b;
+                orType.Left = Possibly.Is(a);
+                orType.Right = Possibly.Is(b);
             }
 
             private static void HasOrType(IScope scope, IKey kay, OrType orType1)
@@ -1153,7 +1153,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new TypeSolution(
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp != null).ToDictionary(x => x, x => x.LooksUp!),
                     typeProblemNodes.OfType<IHaveMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.Members.Select(y => y.Value).ToArray()),
-                    typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left!, x.Right!)),
+                    typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
                     typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<OrType<Method, MethodType, InferredType>>>(x =>
                     {
                         if (x is Method m)
@@ -1638,7 +1638,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (pair.Key is OrType orFrom && pair.Value is OrType orTo)
                         {
                             // from should have been populated
-                            Ors(orTo, CopiedToOrSelf(orFrom.Left ?? throw new NullReferenceException(nameof(orFrom.Left))), CopiedToOrSelf(orFrom.Right ?? throw new NullReferenceException(nameof(orFrom.Right))));
+                            Ors(orTo, CopiedToOrSelf(orFrom.Left.GetOrThrow()), CopiedToOrSelf(orFrom.Right.GetOrThrow()));
                         }
 
 
@@ -2116,8 +2116,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
 
                         res = new Dictionary<IKey, Member>();
-                        var left = orType.Left ?? throw new NullReferenceException(nameof(orType.Left));
-                        var right = orType.Right ?? throw new NullReferenceException(nameof(orType.Right));
+                        var left = orType.Left.GetOrThrow();
+                        var right = orType.Right.GetOrThrow();
 
                         var rightMembers = GetMembers2(GetType(right));
                         foreach (var leftMember in GetMembers2(GetType(left)))
