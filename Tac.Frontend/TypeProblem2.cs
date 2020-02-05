@@ -62,7 +62,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.TransientMember GetReturns(IScope s);
             TypeProblem2.Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.OrType CreateOrType(IScope s, IKey key, TypeProblem2.TypeReference setUpSideNode1, TypeProblem2.TypeReference setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
-            IKey? GetKey(TypeProblem2.TypeReference type);
+            IIsPossibly<IKey> GetKey(TypeProblem2.TypeReference type);
             TypeProblem2.Member GetInput(IValue method);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
@@ -330,7 +330,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
         internal interface ILookUpType : ITypeProblemNode
         {
-            public IKey? TypeKey { get; set; }
+            public IIsPossibly<IKey> TypeKey { get; set; }
             public IScope? Context { get; set; }
             public OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>? LooksUp { get; set; }
 
@@ -341,7 +341,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface IValue : ITypeProblemNode, ILookUpType, ICanAssignFromMe
         {
             public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; }
-            public TypeProblem2.InferredType? HopefulMethod { get; set; }
+            public IIsPossibly<TypeProblem2.InferredType> HopefulMethod { get; set; }
         }
         //public interface Member :  IValue, ILookUpType, ICanBeAssignedTo {bool IsReadonly { get; }}
         internal interface IExplicitType : IHaveMembers, IScope { }
@@ -400,22 +400,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IKey? TypeKey { get; set; }
+                public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
                 public IScope? Context { get; set; }
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
             }
+
             public class Value : TypeProblemNode<Value, PlaceholderValue>, IValue
             {
                 public Value(TypeProblem2 problem, string debugName, IConvertTo<Value, PlaceholderValue> converter) : base(problem, debugName, converter)
                 {
                 }
 
-                public IKey? TypeKey { get; set; }
+                public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
                 public IScope? Context { get; set; }
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
 
-                public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; } = new Dictionary<IKey, TypeProblem2.Member>();
-                public TypeProblem2.InferredType? HopefulMethod { get; set; }
+                public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
+                public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
             }
             public class Member : TypeProblemNode<Member, WeakMemberDefinition>, IMember
             {
@@ -423,11 +424,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IKey? TypeKey { get; set; }
+                public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
                 public IScope? Context { get; set; }
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
-                public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; } = new Dictionary<IKey, TypeProblem2.Member>();
-                public TypeProblem2.InferredType? HopefulMethod { get; set; }
+                public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
+                public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
             }
 
             public class TransientMember : TypeProblemNode, IMember
@@ -436,11 +437,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IKey? TypeKey { get; set; }
+                public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
                 public IScope? Context { get; set; }
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
-                public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; } = new Dictionary<IKey, TypeProblem2.Member>();
-                public TypeProblem2.InferredType? HopefulMethod { get; set; }
+                public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
+                public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
             }
 
             public class Type : TypeProblemNode<Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType
@@ -462,7 +463,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
             }
 
@@ -486,7 +487,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
                 public Member? Input { get; set; }
                 public TransientMember? Returns { get; set; }
@@ -508,7 +509,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
                 public Member? Input { get; set; }
                 public TransientMember? Returns { get; set; }
@@ -540,7 +541,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
             }
             public class Object : TypeProblemNode<Object, OrType<WeakObjectDefinition, WeakModuleDefinition>>, IExplicitType
             {
@@ -558,7 +559,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
             }
             // methods don't really have members in the way other things do
             // they have members while they are executing
@@ -579,7 +580,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
                 public Member? Input { get; set; }
                 public TransientMember? Returns { get; set; }
@@ -696,7 +697,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Value(this, typeKey.ToString()!, converter);
                 HasValue(scope, res);
                 res.Context = scope;
-                res.TypeKey = typeKey;
+                res.TypeKey = Possibly.Is(typeKey);
                 return res;
             }
 
@@ -705,7 +706,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
                 res.Context = scope;
-                res.TypeKey = typeKey;
+                res.TypeKey = Possibly.Is(typeKey);
                 return res;
             }
 
@@ -742,7 +743,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new TypeReference(this, typeKey.ToString()!, converter);
                 HasReference(context, res);
                 res.Context = context;
-                res.TypeKey = typeKey;
+                res.TypeKey = Possibly.Is(typeKey);
                 return res;
             }
 
@@ -814,15 +815,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputType.debugName},outputType:{outputType.debugName}}}", converter);
                 IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
-                var returns = inputType.TypeKey != null ? CreateTransientMember(res, inputType.TypeKey) : CreateTransientMember(res);
-                res.Returns = returns;
-                if (inputType.TypeKey != null)
                 {
-                    res.Input = CreateMember(res, new NameKey(inputName), inputType.TypeKey, inputConverter);
+                    var returns = inputType.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value) : CreateTransientMember(res);
+                    res.Returns = returns;
                 }
-                else
                 {
-                    res.Input = CreateMember(res, new NameKey(inputName), inputConverter);
+                    if (inputType.TypeKey is IIsDefinately<IKey> typeKey)
+                    {
+                        res.Input = CreateMember(res, new NameKey(inputName), typeKey.Value, inputConverter);
+                    }
+                    else
+                    {
+                        res.Input = CreateMember(res, new NameKey(inputName), inputConverter);
+                    }
                 }
                 return res;
             }
@@ -900,7 +905,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
                 res.Context = parent;
-                res.TypeKey = typeKey;
+                res.TypeKey = Possibly.Is(typeKey);
                 return res;
             }
 
@@ -946,14 +951,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public TransientMember GetReturns(IValue value)
             {
-                if (value.HopefulMethod != null)
+                if (value.HopefulMethod is IIsDefinately<InferredType> inferredType)
                 {
-                    return value.HopefulMethod.Returns ?? throw new NullReferenceException(nameof(value.HopefulMethod.Returns));
+                    return inferredType.Value.Returns ?? throw new NullReferenceException(nameof(inferredType.Value.Returns));
                 }
                 else
                 {
                     var inferredMethodType = new InferredType(this, "zzzz");
-                    value.HopefulMethod = inferredMethodType;
+                    value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
                     inferredMethodType.Input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey)); ;
@@ -965,14 +970,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member GetInput(IValue value)
             {
-                if (value.HopefulMethod != null)
+                if (value.HopefulMethod is IIsDefinately<InferredType> inferredType)
                 {
-                    return value.HopefulMethod.Input?? throw new NullReferenceException(nameof(value.HopefulMethod.Input));
+                    return inferredType.Value.Input?? throw new NullReferenceException(nameof(inferredType.Value.Input));
                 }
                 else
                 {
                     var inferredMethodType = new InferredType(this, "zzzz");
-                    value.HopefulMethod = inferredMethodType;
+                    value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
                     var input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey));
@@ -989,7 +994,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public IKey? GetKey(TypeReference type)
+            public IIsPossibly<IKey> GetKey(TypeReference type)
             {
                 return type.TypeKey;
             }
@@ -999,7 +1004,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => x.LooksUp == null && x.TypeKey == null))
+                foreach (var node in toLookUp.Where(x => x.LooksUp == null && x.TypeKey is IIsDefinatelyNot))
                 {
                     var type = new InferredType(this, $"for {((TypeProblemNode)node).debugName}");
                     node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(type);
@@ -1084,31 +1089,34 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // hopeful methods 
-                foreach (var (node, hopefulMethod) in typeProblemNodes.OfType<IValue>().Where(x => x.HopefulMethod != null).Select(x => (x, x.HopefulMethod)))
+                foreach (var (node, hopefulMethod) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMethod)))
                 {
-                    var type = GetType(node);
-                    if (type.Is1(out var methodType))
+                    if (hopefulMethod is IIsDefinately<InferredType> definately)
                     {
-                        if (!methodType.Equals(hopefulMethod))
+                        var type = GetType(node);
+                        if (type.Is1(out var methodType))
                         {
-                            node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(methodType);
+                            if (!methodType.Equals(hopefulMethod))
+                            {
+                                node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(methodType);
 
-                            var defererReturns = hopefulMethod.Returns ?? throw new NullReferenceException(nameof(hopefulMethod.Returns));
-                            var deferredToReturns = methodType.Returns ?? throw new NullReferenceException(nameof(methodType.Returns)); ;
-                            TryMerge(defererReturns, deferredToReturns);
+                                var defererReturns = definately.Value.Returns ?? throw new NullReferenceException(nameof(definately.Value.Returns));
+                                var deferredToReturns = methodType.Returns ?? throw new NullReferenceException(nameof(methodType.Returns)); ;
+                                TryMerge(defererReturns, deferredToReturns);
 
-                            var defererInput = hopefulMethod.Input ?? throw new NullReferenceException(nameof(hopefulMethod.Input)); ;
-                            var deferredToInput = methodType.Input ?? throw new NullReferenceException(nameof(methodType.Input)); ;
-                            TryMerge(defererInput, deferredToInput);
+                                var defererInput = definately.Value.Input ?? throw new NullReferenceException(nameof(definately.Value.Input)); ;
+                                var deferredToInput = methodType.Input ?? throw new NullReferenceException(nameof(methodType.Input)); ;
+                                TryMerge(defererInput, deferredToInput);
+                            }
                         }
-                    }
-                    else if (type.Is5(out var dummy))
-                    {
-                        node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(hopefulMethod);
-                    }
-                    else
-                    {
-                        throw new Exception("no good!");
+                        else if (type.Is5(out var dummy))
+                        {
+                            node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(definately.Value);
+                        }
+                        else
+                        {
+                            throw new Exception("no good!");
+                        }
                     }
                 }
 
@@ -1346,10 +1354,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     // if we don't have a lookup we damn well better have a context and a key
                     var from = node.Context ?? throw new NullReferenceException(nameof(node.Context));
-                    var key = node.TypeKey ?? throw new NullReferenceException(nameof(node.TypeKey)); ;
 
-
-                    if (!TryLookUpOrOverlay(from, key, out var res))
+                    if (!TryLookUpOrOverlay(from, node.TypeKey.GetOrThrow(), out var res))
                     {
                         throw new Exception("could not find type");
                     }
@@ -1803,10 +1809,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
 
 
-                            if (innerFromHopeful.HopefulMethod != null)
+                            if (innerFromHopeful.HopefulMethod is IIsDefinately<InferredType> infered)
                             {
-                                var newValue = Copy(innerFromHopeful.HopefulMethod, new InferredType(this, $"copied from {((TypeProblemNode)innerFromHopeful.HopefulMethod).debugName}"));
-                                innerToHopeful.HopefulMethod = newValue;
+                                var newValue = Copy(infered.Value, new InferredType(this, $"copied from {((TypeProblemNode)infered.Value).debugName}"));
+                                innerToHopeful.HopefulMethod = Possibly.Is(newValue);
                             }
                         }
 
@@ -2234,7 +2240,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         public static IKey Key(this Tpn.TypeProblem2.TypeReference type)
         {
             // I THINK typeReference always have a Key
-            return type.Problem.GetKey(type) ?? throw new NullReferenceException();
+            return type.Problem.GetKey(type).GetOrThrow();
         }
 
         public static Tpn.TypeProblem2.TransientMember Returns(this Tpn.IValue method)
