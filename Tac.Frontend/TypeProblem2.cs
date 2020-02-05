@@ -14,8 +14,9 @@ using Tac.SyntaxModel.Elements.AtomicTypes;
 namespace Tac.Frontend.New.CrzayNamespace
 {
 
-    // having this be it's own project was a bad idea!
-    // these are very expensive abstractions
+    // todo there are some pretty stupid helpers here
+    // I think I like isPossibly more than IKey? atm it is stronger
+    // if there is anywhere I need comments it is here
 
 
     // this static class is here just to make us all think in terms of these bros
