@@ -331,7 +331,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface ILookUpType : ITypeProblemNode
         {
             public IIsPossibly<IKey> TypeKey { get; set; }
-            public IScope? Context { get; set; }
+            public IIsPossibly<IScope> Context { get; set; }
             public OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>? LooksUp { get; set; }
 
         }
@@ -401,7 +401,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
-                public IScope? Context { get; set; }
+                public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
             }
 
@@ -412,7 +412,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
-                public IScope? Context { get; set; }
+                public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
 
                 public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
@@ -425,7 +425,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
-                public IScope? Context { get; set; }
+                public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
                 public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
                 public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
@@ -438,7 +438,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
-                public IScope? Context { get; set; }
+                public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
                 public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
                 public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
@@ -696,7 +696,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new Value(this, typeKey.ToString()!, converter);
                 HasValue(scope, res);
-                res.Context = scope;
+                res.Context = Possibly.Is(scope);
                 res.TypeKey = Possibly.Is(typeKey);
                 return res;
             }
@@ -705,7 +705,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
-                res.Context = scope;
+                res.Context = Possibly.Is(scope);
                 res.TypeKey = Possibly.Is(typeKey);
                 return res;
             }
@@ -714,7 +714,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
-                res.Context = scope;
+                res.Context = Possibly.Is(scope);
                 return res;
             }
 
@@ -734,7 +734,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 var res = new Member(this, "possibly on parent -" + key.ToString()!, converter);
                 res = HasMembersPossiblyOnParent(scope, key, res);
-                res.Context = scope;
+                res.Context = Possibly.Is(scope);
                 return res;
             }
 
@@ -742,7 +742,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new TypeReference(this, typeKey.ToString()!, converter);
                 HasReference(context, res);
-                res.Context = context;
+                res.Context = Possibly.Is(context);
                 res.TypeKey = Possibly.Is(typeKey);
                 return res;
             }
@@ -895,7 +895,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
-                res.Context = parent;
+                res.Context = Possibly.Is(parent);
                 return res;
             }
 
@@ -904,7 +904,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
-                res.Context = parent;
+                res.Context = Possibly.Is(parent);
                 res.TypeKey = Possibly.Is(typeKey);
                 return res;
             }
@@ -1353,9 +1353,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     // if we don't have a lookup we damn well better have a context and a key
-                    var from = node.Context ?? throw new NullReferenceException(nameof(node.Context));
-
-                    if (!TryLookUpOrOverlay(from, node.TypeKey.GetOrThrow(), out var res))
+                    if (!TryLookUpOrOverlay(node.Context.GetOrThrow(), node.TypeKey.GetOrThrow(), out var res))
                     {
                         throw new Exception("could not find type");
                     }
@@ -1625,14 +1623,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (pair.Key is ILookUpType lookUpFrom && pair.Value is ILookUpType lookUpTo)
                         {
 
-                            if (lookUpFrom.TypeKey != null)
+                            if (lookUpFrom.TypeKey is IIsDefinately<IKey> definateKey)
                             {
-                                lookUpTo.TypeKey = lookUpFrom.TypeKey;
+                                lookUpTo.TypeKey =  definateKey;
                             }
 
-                            if (lookUpFrom.Context != null)
+                            if (lookUpFrom.Context is IIsDefinately<IScope> definateContext)
                             {
-                                lookUpTo.Context = CopiedToOrSelf(lookUpFrom.Context);
+                                lookUpTo.Context = Possibly.Is(CopiedToOrSelf(definateContext.Value));
                             }
                         }
 
