@@ -347,7 +347,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface IExplicitType : IHaveMembers, IScope { }
         internal interface IScope : IHaveMembers
         {
-            IScope? Parent { get; set; }
+            IIsPossibly<IScope> Parent { get; set; }
 
             public List<TypeProblem2.Scope> EntryPoints { get; }
             public List<TypeProblem2.Value> Values { get; }
@@ -450,7 +450,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IScope? Parent { get; set; }
+                public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
 
 
@@ -476,7 +476,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IScope? Parent { get; set; }
+                public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
@@ -489,8 +489,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
-                public Member? Input { get; set; }
-                public TransientMember? Returns { get; set; }
+                public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
+                public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
             }
 
             public class InferredType : TypeProblemNode, IHaveInputAndOutput, IHaveMembers, IScope
@@ -498,7 +498,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public InferredType(TypeProblem2 problem, string debugName) : base(problem, debugName)
                 {
                 }
-                public IScope? Parent { get; set; }
+                public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
@@ -511,8 +511,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
-                public Member? Input { get; set; }
-                public TransientMember? Returns { get; set; }
+                public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
+                public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
             }
 
             public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation>, IHaveMembers
@@ -530,7 +530,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Scope(TypeProblem2 problem, string debugName, IConvertTo<Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter) : base(problem, debugName, converter)
                 {
                 }
-                public IScope? Parent { get; set; }
+                public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
@@ -548,7 +548,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Object(TypeProblem2 problem, string debugName, IConvertTo<Object, OrType<WeakObjectDefinition, WeakModuleDefinition>> converter) : base(problem, debugName, converter)
                 {
                 }
-                public IScope? Parent { get; set; }
+                public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
@@ -569,7 +569,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Method(TypeProblem2 problem, string debugName, IConvertTo<Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>> converter) : base(problem, debugName, converter)
                 {
                 }
-                public IScope? Parent { get; set; }
+                public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
@@ -582,8 +582,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
-                public Member? Input { get; set; }
-                public TransientMember? Returns { get; set; }
+                public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
+                public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
 
             }
 
@@ -614,7 +614,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public void IsChildOf(IScope parent, IScope kid)
             {
-                kid.Parent = parent;
+                kid.Parent = Possibly.Is(parent);
             }
             public static void HasValue(IScope parent, Value value)
             {
@@ -802,9 +802,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                 var returns = CreateTransientMember(res);
-                res.Returns = returns;
+                res.Returns = Possibly.Is(returns);
                 var input = CreateMember(res, new NameKey(inputName), inputConverter);
-                res.Input = input;
+                res.Input = Possibly.Is(input);
                 return res;
             }
 
@@ -817,16 +817,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                 {
                     var returns = inputType.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value) : CreateTransientMember(res);
-                    res.Returns = returns;
+                    res.Returns = Possibly.Is(returns);
                 }
                 {
                     if (inputType.TypeKey is IIsDefinately<IKey> typeKey)
                     {
-                        res.Input = CreateMember(res, new NameKey(inputName), typeKey.Value, inputConverter);
+                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), typeKey.Value, inputConverter));
                     }
                     else
                     {
-                        res.Input = CreateMember(res, new NameKey(inputName), inputConverter);
+                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), inputConverter));
                     }
                 }
                 return res;
@@ -932,9 +932,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return GetReturns(method);
                 }
-                else if (s.Parent != null)
+                else if (s.Parent is IIsDefinately<IScope> definatelyScope)
                 {
-                    return GetReturns(s.Parent);
+                    return GetReturns(definatelyScope.Value);
                 }
                 else
                 {
@@ -944,7 +944,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal TransientMember GetReturns(Method method)
             {
-                return method.Returns ?? throw new NullReferenceException(nameof(method.Returns));
+                return method.Returns.GetOrThrow();
             }
 
 
@@ -953,7 +953,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (value.HopefulMethod is IIsDefinately<InferredType> inferredType)
                 {
-                    return inferredType.Value.Returns ?? throw new NullReferenceException(nameof(inferredType.Value.Returns));
+                    return inferredType.Value.Returns.GetOrThrow();
                 }
                 else
                 {
@@ -961,9 +961,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
-                    inferredMethodType.Input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey)); ;
+                    inferredMethodType.Input = Possibly.Is(CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey))); ;
                     var returns = CreateTransientMember(inferredMethodType); ;
-                    inferredMethodType.Returns = returns;
+                    inferredMethodType.Returns = Possibly.Is(returns);
                     return returns;
                 }
             }
@@ -972,7 +972,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (value.HopefulMethod is IIsDefinately<InferredType> inferredType)
                 {
-                    return inferredType.Value.Input?? throw new NullReferenceException(nameof(inferredType.Value.Input));
+                    return inferredType.Value.Input.GetOrThrow();
                 }
                 else
                 {
@@ -981,8 +981,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
                     var input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey));
-                    inferredMethodType.Input = input;
-                    inferredMethodType.Returns = CreateTransientMember(inferredMethodType);
+                    inferredMethodType.Input = Possibly.Is(input);
+                    inferredMethodType.Returns = Possibly.Is(CreateTransientMember(inferredMethodType));
 
                     return input;
                 }
@@ -990,7 +990,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member GetInput(Method method)
             {
-                return method.Input ?? throw new NullReferenceException(nameof(method.Input));
+                return method.Input.GetOrThrow();
             }
 
 
@@ -1100,12 +1100,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(methodType);
 
-                                var defererReturns = definately.Value.Returns ?? throw new NullReferenceException(nameof(definately.Value.Returns));
-                                var deferredToReturns = methodType.Returns ?? throw new NullReferenceException(nameof(methodType.Returns)); ;
+                                var defererReturns = definately.Value.Returns.GetOrThrow();
+                                var deferredToReturns = methodType.Returns.GetOrThrow();
                                 TryMerge(defererReturns, deferredToReturns);
 
-                                var defererInput = definately.Value.Input ?? throw new NullReferenceException(nameof(definately.Value.Input)); ;
-                                var deferredToInput = methodType.Input ?? throw new NullReferenceException(nameof(methodType.Input)); ;
+                                var defererInput = definately.Value.Input.GetOrThrow();
+                                var deferredToInput = methodType.Input.GetOrThrow();
                                 TryMerge(defererInput, deferredToInput);
                             }
                         }
@@ -1166,14 +1166,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return Possibly.Is(new OrType<Method, MethodType, InferredType>(mt));
                         }
 
-                        if (x is InferredType it)
+                        if (x is InferredType it && it.Input is IIsDefinately<Member>)
                         {
                             return Possibly.Is(new OrType<Method, MethodType, InferredType>(it));
                         }
                         return Possibly.IsNot<OrType<Method, MethodType, InferredType>>();
                     }).Where(x => x is IIsDefinately<OrType<Method, MethodType, InferredType>>)
                     .Select(x => x.CastTo<IIsDefinately<OrType<Method, MethodType, InferredType>>>().Value)
-                    .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Input!, v1 => v1.Input!, v1 => v1.Input!)),
+                    .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Input.GetOrThrow(), v1 => v1.Input.GetOrThrow(), v1 => v1.Input.GetOrThrow())),
                     typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<OrType<Method, MethodType, InferredType>>>(x =>
                     {
                         if (x is Method m)
@@ -1184,14 +1184,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             return Possibly.Is(new OrType<Method, MethodType, InferredType>(mt));
                         }
-                        if (x is InferredType it)
+                        if (x is InferredType it && it.Returns is IIsDefinately<TransientMember>)
                         {
                             return Possibly.Is(new OrType<Method, MethodType, InferredType>(it));
                         }
                         return Possibly.IsNot<OrType<Method, MethodType, InferredType>>();
                     }).Where(x => x is IIsDefinately<OrType<Method, MethodType, InferredType>>)
                     .Select(x => x.CastTo<IIsDefinately<OrType<Method, MethodType, InferredType>>>().Value)
-                    .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Returns!, v1 => v1.Returns!, v1 => v1.Returns!)),
+                    .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow())),
                     typeProblemNodes.OfType<IScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()));
 
                 #region Helpers
@@ -1264,17 +1264,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (deferredToType.Is1(out var deferredToMethod))
                         {
-                            if (deferringInferred.Returns != null && deferredToMethod.Returns != null)
+                            if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringReturns && deferredToMethod.Returns is IIsDefinately<TransientMember> deferredToReturns)
                             {
-                                var deferredToReturns = deferredToMethod.Returns;
-                                TryMerge(deferringInferred.Returns, deferredToReturns);
+                                TryMerge(deferringReturns.Value, deferredToReturns.Value);
                             }
 
 
-                            if (deferringInferred.Input != null && deferredToMethod.Input != null)
+                            if (deferringInferred.Input is IIsDefinately<Member> deferringInput && deferredToMethod.Input is IIsDefinately<Member> deferredToInput)
                             {
-                                var deferredToInput = deferredToMethod.Input;
-                                TryMerge(deferringInferred.Input, deferredToInput);
+                                TryMerge(deferringInput.Value, deferredToInput.Value);
                             }
                         }
                     }
@@ -1317,11 +1315,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 }
                             }
 
-                            if (deferringInferred.Returns != null)
+                            if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringInferredReturns)
                             {
-                                if (deferredToInferred.Returns != null)
+                                if (deferredToInferred.Returns is IIsDefinately<TransientMember> deferredToInferredReturns)
                                 {
-                                    TryMerge(deferringInferred.Returns, deferredToInferred.Returns);
+                                    TryMerge(deferringInferredReturns.Value, deferredToInferredReturns.Value);
                                 }
                                 else
                                 {
@@ -1329,11 +1327,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 }
                             }
 
-                            if (deferringInferred.Input != null)
+                            if (deferringInferred.Input is IIsDefinately<Member> deferringInferredInput)
                             {
-                                if (deferredToInferred.Input != null)
+                                if (deferredToInferred.Input is IIsDefinately<Member> deferredToInferredInput)
                                 {
-                                    TryMerge(deferringInferred.Input, deferredToInferred.Input);
+                                    TryMerge(deferringInferredInput.Value, deferredToInferredInput.Value);
                                 }
                                 else
                                 {
@@ -1551,12 +1549,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
 
-                        if (haveTypes.Parent == null)
+                        if (haveTypes.Parent is IIsDefinately<IScope> defScope)
+                        {
+                            haveTypes = defScope.Value;
+                        }
+                        else
                         {
                             result = null;
                             return false;
                         }
-                        haveTypes = haveTypes.Parent;
                     }
                 }
 
@@ -1579,15 +1580,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var pair in map)
                     {
-                        if (pair.Key is IScope fromScope && fromScope.Parent != null)
+                        if (pair.Key is IScope fromScope && fromScope.Parent is IIsDefinately<IScope> defScope)
                         {
                             if (to.Is1(out var method))
                             {
-                                method.Parent = CopiedToOrSelf(fromScope.Parent);
+                                method.Parent =  Possibly.Is( CopiedToOrSelf(defScope.Value));
                             }
                             else if (to.Is2(out var type))
                             {
-                                type.Parent = CopiedToOrSelf(fromScope.Parent);
+                                type.Parent = Possibly.Is(CopiedToOrSelf(defScope.Value));
                             }
                         }
                     }
@@ -1643,20 +1644,20 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (pair.Key is Method methodFrom && pair.Value is Method methodTo)
                         {
-                            methodTo.Input = CopiedToOrSelf(methodFrom.Input ?? throw new NullReferenceException(nameof(methodFrom.Input)));
-                            methodTo.Returns = CopiedToOrSelf(methodFrom.Returns ?? throw new NullReferenceException(nameof(methodFrom.Returns)));
+                            methodTo.Input =  Possibly.Is(CopiedToOrSelf(methodFrom.Input.GetOrThrow()));
+                            methodTo.Returns = Possibly.Is(CopiedToOrSelf(methodFrom.Returns.GetOrThrow()));
                         }
 
                         if (pair.Key is MethodType methodFromType && pair.Value is MethodType methodToType)
                         {
-                            methodToType.Input = CopiedToOrSelf(methodFromType.Input ?? throw new NullReferenceException(nameof(methodFromType.Input)));
-                            methodToType.Returns = CopiedToOrSelf(methodFromType.Returns ?? throw new NullReferenceException(nameof(methodFromType.Returns)));
+                            methodToType.Input = Possibly.Is(CopiedToOrSelf(methodFromType.Input.GetOrThrow()));
+                            methodToType.Returns = Possibly.Is(CopiedToOrSelf(methodFromType.Returns.GetOrThrow()));
                         }
 
                         if (pair.Key is InferredType inferedFrom && pair.Value is InferredType inferedTo)
                         {
-                            inferedTo.Input = CopiedToOrSelf(inferedFrom.Input ?? throw new NullReferenceException(nameof(inferedFrom.Input)));
-                            inferedTo.Returns = CopiedToOrSelf(inferedFrom.Returns ?? throw new NullReferenceException(nameof(inferedFrom.Returns)));
+                            inferedTo.Input = Possibly.Is(CopiedToOrSelf(inferedFrom.Input.GetOrThrow()));
+                            inferedTo.Returns = Possibly.Is(CopiedToOrSelf(inferedFrom.Returns.GetOrThrow()));
                         }
                     }
 
@@ -1938,14 +1939,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (flowFrom.Is1(out var fromMethod) && flowTo.Is1(out var toMethod))
                     {
-                        var inFlowFrom = GetType(fromMethod.Input ?? throw new NullReferenceException(nameof(fromMethod.Input)));
-                        var inFlowTo = GetType(toMethod.Input ?? throw new NullReferenceException(nameof(toMethod.Input)));
+                        var inFlowFrom = GetType(fromMethod.Input.GetOrThrow());
+                        var inFlowTo = GetType(toMethod.Input.GetOrThrow());
 
                         res |= Flow(inFlowFrom, inFlowTo);
 
 
-                        var returnFlowFrom = GetType(fromMethod.Returns ?? throw new NullReferenceException(nameof(fromMethod.Returns)));
-                        var retrunFlowTo = GetType(toMethod.Returns ?? throw new NullReferenceException(nameof(toMethod.Returns)));
+                        var returnFlowFrom = GetType(fromMethod.Returns.GetOrThrow());
+                        var retrunFlowTo = GetType(toMethod.Returns.GetOrThrow());
 
                         res |= Flow(returnFlowFrom, retrunFlowTo);
 
@@ -2022,17 +2023,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (flowTo.Is1(out var deferredToMethod))
                             {
-                                if (deferringInferred.Returns != null && deferredToMethod.Returns != null)
+                                if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringInferredReturns && deferredToMethod.Returns is IIsDefinately<TransientMember> deferredToMethodReturns)
                                 {
-                                    var deferredToReturns = deferredToMethod.Returns;
-                                    res |= Flow(GetType(deferringInferred.Returns), GetType(deferredToReturns));
+                                    res |= Flow(GetType(deferringInferredReturns.Value), GetType(deferredToMethodReturns.Value));
                                 }
 
 
-                                if (deferringInferred.Input != null && deferredToMethod.Input != null)
+                                if (deferringInferred.Input is IIsDefinately<Member> deferringInferredInput && deferredToMethod.Input is IIsDefinately<Member> deferredToMethodInput)
                                 {
-                                    var deferredToInput = deferredToMethod.Input;
-                                    res |= Flow(GetType(deferringInferred.Input), GetType(deferredToInput));
+                                    res |= Flow(GetType(deferringInferredInput.Value), GetType(deferredToMethodInput.Value));
                                 }
                             }
                         }
@@ -2040,11 +2039,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (flowTo.Is5(out var deferredToInferred))
                             {
-                                if (deferringInferred.Returns != null)
+                                if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringInferredReturns)
                                 {
-                                    if (deferredToInferred.Returns != null)
+                                    if (deferredToInferred.Returns is IIsDefinately<TransientMember> deferredToInferredReturns)
                                     {
-                                        res |= Flow(GetType(deferringInferred.Returns), GetType(deferredToInferred.Returns));
+                                        res |= Flow(GetType(deferringInferredReturns.Value), GetType(deferredToInferredReturns.Value));
                                     }
                                     else
                                     {
@@ -2053,11 +2052,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     }
                                 }
 
-                                if (deferringInferred.Input != null)
+                                if (deferringInferred.Input is IIsDefinately<Member> deferringInferredInput)
                                 {
-                                    if (deferredToInferred.Input != null)
+                                    if (deferredToInferred.Input is IIsDefinately<Member> deferredToInferredInput)
                                     {
-                                        res |= Flow(GetType(deferringInferred.Input), GetType(deferredToInferred.Input));
+                                        res |= Flow(GetType(deferringInferredInput.Value), GetType(deferredToInferredInput.Value));
                                     }
                                     else
                                     {
@@ -2156,12 +2155,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         return true;
                     }
-                    if (context.Parent == null)
+                    if (context.Parent is IIsDefinately<IScope> defParent)
                     {
+                        context = defParent.Value;
+                    }
+                    else { 
                         member = default;
                         return false;
                     }
-                    context = context.Parent;
                 }
             }
 
@@ -2195,8 +2196,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
-                res.Input = CreateMember(res, methodInputKey, new NameKey("T1"), new WeakMemberDefinitionConverter(false, methodInputKey));
-                res.Returns = CreateTransientMember(res, new NameKey("T2"));
+                res.Input = Possibly.Is(CreateMember(res, methodInputKey, new NameKey("T1"), new WeakMemberDefinitionConverter(false, methodInputKey)));
+                res.Returns = Possibly.Is(CreateTransientMember(res, new NameKey("T2")));
                 IsChildOf(Primitive, res);
             }
 
