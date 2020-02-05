@@ -332,7 +332,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             public IIsPossibly<IKey> TypeKey { get; set; }
             public IIsPossibly<IScope> Context { get; set; }
-            public OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>? LooksUp { get; set; }
+            public IIsPossibly<OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>> LooksUp { get; set; }
 
         }
 
@@ -402,7 +402,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
-                public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
+                public IIsPossibly<OrType<MethodType, Type, Object, OrType, InferredType>> LooksUp { get; set; } = Possibly.IsNot<OrType<MethodType, Type, Object, OrType, InferredType>>();
             }
 
             public class Value : TypeProblemNode<Value, PlaceholderValue>, IValue
@@ -413,7 +413,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
-                public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
+                public IIsPossibly<OrType<MethodType, Type, Object, OrType, InferredType>> LooksUp { get; set; } = Possibly.IsNot<OrType<MethodType, Type, Object, OrType, InferredType>>();
 
                 public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
                 public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
@@ -426,7 +426,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
-                public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
+                public IIsPossibly<OrType<MethodType, Type, Object, OrType, InferredType>> LooksUp { get; set; } = Possibly.IsNot<OrType<MethodType, Type, Object, OrType, InferredType>>();
                 public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
                 public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
             }
@@ -439,7 +439,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
-                public OrType<MethodType, Type, Object, OrType, InferredType>? LooksUp { get; set; }
+                public IIsPossibly<OrType<MethodType, Type, Object, OrType, InferredType>> LooksUp { get; set; } = Possibly.IsNot<OrType<MethodType, Type, Object, OrType, InferredType>>();
                 public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
                 public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
             }
@@ -722,7 +722,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
-                res.LooksUp = type;
+                res.LooksUp = Possibly.Is(type);
                 return res;
             }
 
@@ -1004,10 +1004,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => x.LooksUp == null && x.TypeKey is IIsDefinatelyNot))
+                foreach (var node in toLookUp.Where(x => x.LooksUp is IIsDefinatelyNot && x.TypeKey is IIsDefinatelyNot))
                 {
                     var type = new InferredType(this, $"for {((TypeProblemNode)node).debugName}");
-                    node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(type);
+                    node.LooksUp = Possibly.Is(new OrType<MethodType, Type, Object, OrType, InferredType>(type));
                 }
 
 
@@ -1034,7 +1034,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp == null).ToArray();
+                toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinatelyNot).ToArray();
 
                 // overlay generics
                 while (toLookUp.Any())
@@ -1043,7 +1043,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         LookUpOrOverlayOrThrow(node);
                     }
-                    toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp == null).ToArray();
+                    toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinatelyNot).ToArray();
                 }
 
                 // members that might be on parents 
@@ -1098,7 +1098,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (!methodType.Equals(hopefulMethod))
                             {
-                                node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(methodType);
+                                node.LooksUp = Possibly.Is(new OrType<MethodType, Type, Object, OrType, InferredType>(methodType));
 
                                 var defererReturns = definately.Value.Returns.GetOrThrow();
                                 var deferredToReturns = methodType.Returns.GetOrThrow();
@@ -1111,7 +1111,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                         else if (type.Is5(out var dummy))
                         {
-                            node.LooksUp = new OrType<MethodType, Type, Object, OrType, InferredType>(definately.Value);
+                            node.LooksUp = Possibly.Is(new OrType<MethodType, Type, Object, OrType, InferredType>(definately.Value));
                         }
                         else
                         {
@@ -1130,18 +1130,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var (from, to) in assignments)
                     {
-                        var toType = to.LooksUp;
-                        var fromType = from.LooksUp;
-
                         // nothing should look up to null at this point
-                        if (toType == null)
-                        {
-                            throw new NullReferenceException(nameof(toType));
-                        }
-                        if (fromType == null)
-                        {
-                            throw new NullReferenceException(nameof(fromType));
-                        }
+                        var toType = to.LooksUp.GetOrThrow();
+                        var fromType = from.LooksUp.GetOrThrow();
 
                         go |= Flow(toType, fromType);
 
@@ -1151,7 +1142,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // we dont flow downstream
 
                 return new TypeSolution(
-                    typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp != null).ToDictionary(x => x, x => x.LooksUp!),
+                    typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
                     typeProblemNodes.OfType<IHaveMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.Members.Select(y => y.Value).ToArray()),
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
                     typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<OrType<Method, MethodType, InferredType>>>(x =>
@@ -1210,7 +1201,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var lookUper in typeProblemNodes.OfType<ILookUpType>())
                     {
-                        if (lookUper.LooksUp != null && lookUper.LooksUp.Equals(defererType))
+                        if (lookUper.LooksUp is IIsDefinately<OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>> lookUperLooksUp && lookUperLooksUp.Value.Equals(defererType))
                         {
                             toReplace.Add(lookUper);
                         }
@@ -1218,7 +1209,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var key in toReplace)
                     {
-                        key.LooksUp = deferredToType;
+                        key.LooksUp = Possibly.Is(deferredToType);
                     }
 
                     // why do I need this?
@@ -1345,9 +1336,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 OrType<MethodType, Type, Object, OrType, InferredType> LookUpOrOverlayOrThrow(ILookUpType node)
                 {
 
-                    if (node.LooksUp != null)
+                    if (node.LooksUp is IIsDefinately<OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>> nodeLooksUp)
                     {
-                        return node.LooksUp;
+                        return nodeLooksUp.Value;
                     }
 
                     // if we don't have a lookup we damn well better have a context and a key
@@ -1355,7 +1346,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         throw new Exception("could not find type");
                     }
-                    node.LooksUp = res!;
+                    node.LooksUp = Possibly.Is(res!);
                     return res!;
 
                 }
@@ -1905,7 +1896,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (value is ILookUpType lookup)
                     {
                         // look up needs to be populated at this point
-                        return lookup.LooksUp!;
+                        return lookup.LooksUp.GetOrThrow();
                     }
                     if (value is MethodType methodType)
                     {
@@ -2128,7 +2119,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value)))
                                 {
                                     var member = new Member(this, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}", leftMember.Value.Converter);
-                                    member.LooksUp = GetType(rightMember);
+                                    member.LooksUp = Possibly.Is(GetType(rightMember));
                                     res[leftMember.Key] = member;
                                 }
                             }
