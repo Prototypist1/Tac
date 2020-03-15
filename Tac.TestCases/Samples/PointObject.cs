@@ -16,7 +16,7 @@ namespace Tac.Tests.Samples
                             2 =: y ;
                         } =: point ; }";
 
-        public IModuleDefinition Module { get; }
+        public IModuleDefinition ModuleDefinition { get; }
 
         public PointObject()
         {
@@ -24,10 +24,10 @@ namespace Tac.Tests.Samples
                 var localX = MemberDefinition.CreateAndBuild(keyX, new AnyType(), false);
                 var keyY = new NameKey("y");
                 var localY = MemberDefinition.CreateAndBuild(keyY, new AnyType(), false);
-                                
-                Module = ModuleDefinition.CreateAndBuild(
+
+            ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
-                        new List<IsStatic>(){new IsStatic( MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false),false) } ),
+                        new List<IsStatic>(){new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false),false) } ),
                     new[] {
                         AssignOperation.CreateAndBuild(
                         ObjectDefiniton.CreateAndBuild(

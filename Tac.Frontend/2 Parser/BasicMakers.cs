@@ -266,33 +266,4 @@ namespace Tac.Frontend.Parser
             return TokenMatching<AtomicToken>.MakeNotMatch(self.Context);
         }
     }
-
-    internal class AndDoneMaker<T> : IMaker<T>
-    {
-        private readonly IMaker<T> backing;
-
-        public AndDoneMaker(IMaker<T> backing)
-        {
-            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-        }
-
-        public ITokenMatching<T> TryMake(IMatchedTokenMatching elementToken)
-        {
-            var first = backing.TryMake(elementToken);
-
-            if (!(first is IMatchedTokenMatching<T> firstMatching))
-            {
-                return first;
-            }
-
-            var second = first.Has(new DoneMaker());
-
-            if (second is IMatchedTokenMatching secondMatching)
-            {
-                return TokenMatching<T>.MakeMatch(secondMatching.Tokens, second.Context, firstMatching.Value);
-            }
-
-            return TokenMatching<T>.MakeNotMatch(second.Context);
-        }
-    }
 }

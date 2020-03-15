@@ -22,18 +22,7 @@ namespace Tac.SemanticModel
     internal interface IFrontendGenericType : IFrontendType
     {
         IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
-        //OrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters);
     }
 
-    //internal class TypeParameter {
-    //    public readonly IGenericTypeParameterPlacholder parameterDefinition;
-    //    public readonly IFrontendType frontendType;
-
-    //    public TypeParameter(IGenericTypeParameterPlacholder parameterDefinition, IFrontendType frontendType)
-    //    {
-    //        this.parameterDefinition = parameterDefinition;
-    //        this.frontendType = frontendType ?? throw new ArgumentNullException(nameof(frontendType));
-    //    }
-    //}
 }
 

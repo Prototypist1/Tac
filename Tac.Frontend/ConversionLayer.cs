@@ -46,7 +46,7 @@ namespace Tac.Frontend
 
         private class UnWrappingTypeBox : IBox<IFrontendType>
         {
-            private IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box;
+            private readonly IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box;
 
             public UnWrappingTypeBox(IBox<OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box)
             {
@@ -78,7 +78,7 @@ namespace Tac.Frontend
 
         private class UnWrappingObjectBox : IBox<IFrontendType>
         {
-            private IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> box;
+            private readonly IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> box;
 
             public UnWrappingObjectBox(IBox<OrType<WeakObjectDefinition, WeakModuleDefinition>> box)
             {
@@ -169,11 +169,9 @@ namespace Tac.Frontend
 
     internal class WeakTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
     {
-        //IIsPossibly<IKey> key;
 
-        public WeakTypeDefinitionConverter()//IIsPossibly<IKey> key
+        public WeakTypeDefinitionConverter()
         {
-            //this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public OrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
@@ -203,7 +201,7 @@ namespace Tac.Frontend
     {
 
         private readonly NameKey key;
-        private readonly Tac.SyntaxModel.Elements.AtomicTypes.IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
+        private readonly IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
 
         public WeakGenericTypeDefinitionConverter(NameKey key, IGenericTypeParameterPlacholder[] typeParameterDefinitions)
         {

@@ -31,32 +31,6 @@ namespace Tac.Model
         }
     }
 
-    //public class GenericTypeEntry
-    //{
-    //    public GenericTypeEntry(IGenericType type, GenericKeyDefinition key)
-    //    {
-    //        Type = type ?? throw new ArgumentNullException(nameof(type));
-    //        Key = key ?? throw new ArgumentNullException(nameof(key));
-    //    }
-
-    //    public IGenericType Type { get; }
-    //    public GenericKeyDefinition Key { get; }
-
-    //    public override bool Equals(object obj)
-    //    {
-    //        return obj is GenericTypeEntry entry &&
-    //               EqualityComparer<IGenericType>.Default.Equals(Type, entry.Type) &&
-    //               EqualityComparer<GenericKeyDefinition>.Default.Equals(Key, entry.Key);
-    //    }
-
-    //    public override int GetHashCode()
-    //    {
-    //        var hashCode = 1195268993;
-    //        hashCode = (hashCode * -1521134295) + EqualityComparer<IGenericType>.Default.GetHashCode(Type);
-    //        hashCode = (hashCode * -1521134295) + EqualityComparer<GenericKeyDefinition>.Default.GetHashCode(Key);
-    //        return hashCode;
-    //    }
-    //}
 
     // TODO very confusing name
 
@@ -65,11 +39,7 @@ namespace Tac.Model
     public interface IFinalizedScope
     {
         IReadOnlyDictionary<IKey, IsStatic> Members { get; }
-        //IReadOnlyDictionary<IKey, IInterfaceType> Types { get; }
 
-        //IReadOnlyList<GenericTypeEntry> GenericTypes { get; }
-
-        //IReadOnlyList<TypeEntry> Types { get; }
     }
 
     public struct IsStatic

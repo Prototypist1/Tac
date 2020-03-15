@@ -50,14 +50,6 @@ namespace Tac.Parser
         private static readonly List<WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>>> typeOperationMatchers = new List<WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>>>();
         private static readonly List<WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>>> typeMakers = new List<WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>>>();
         public IEnumerable<IMaker<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>> OperationMatchers => Process(operationMatchers);
-        //public IEnumerable<IMaker<IPopulateScope<IFrontendCodeElement>>> ImplicitOperationMatchers(IBox<IIsPossibly<IFrontendType>> box) {
-        //    var list = new List<WithConditions<IPopulateScope<IFrontendCodeElement>>>();
-        //    list.AddRange(elementMakers);
-        //    list.AddRange(implicitElementMakers.Select(x => x(box)));
-
-        //    return Process(list);
-        //}
-
         public IEnumerable<IMaker<ISetUp<IFrontendCodeElement,Tpn.ITypeProblemNode>>> ElementMakers => Process(elementMakers);
         public IEnumerable<IMaker<ISetUp<IFrontendType, Tpn.ITypeProblemNode>>> TypeOperationMatchers => Process(typeOperationMatchers);
         public IEnumerable<IMaker<ISetUp<IFrontendType, Tpn.ITypeProblemNode>>> TypeMakers => Process(typeMakers);
@@ -149,30 +141,6 @@ namespace Tac.Parser
     internal class ElementMatchingContext
     {
 
-        //internal ElementMatchingContext ExpectPathPart(IBox<IIsPossibly<IFrontendType>> box) {
-        //    return new ElementMatchingContext(
-        //        operationMatchers, 
-        //        new IMaker<IPopulateScope<IFrontendCodeElement>>[] {
-        //            new MemberReferanceMaker(box)
-        //        },
-        //        typeOperationMatchers,
-        //        typeMakers);
-        //}
-        
-        //internal ElementMatchingContext AcceptImplicit(IBox<IIsPossibly<IFrontendType>> box)
-        //{
-        //    return new ElementMatchingContext(
-        //        operationMatchers,
-        //        MakerRegistry.Instance.ImplicitOperationMatchers(box).ToArray(),
-        //        typeOperationMatchers, 
-        //        typeMakers);
-        //}
-        
-        //internal ElementMatchingContext Child(ScopeStack scope)
-        //{
-        //    return new ElementMatchingContext(Builders,operationMatchers, elementMakers, scope);
-        //}
-        
         public ElementMatchingContext() : 
             this(
                 MakerRegistry.Instance.OperationMatchers.ToArray(),

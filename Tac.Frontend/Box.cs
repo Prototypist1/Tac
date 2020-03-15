@@ -19,12 +19,7 @@ namespace Tac.SemanticModel
 
         public Box(T innerType)
         {
-            if (innerType == null)
-            {
-                throw new System.ArgumentNullException(nameof(innerType));
-            }
-
-            InnerType = innerType;
+            InnerType = innerType ?? throw new System.ArgumentNullException(nameof(innerType));
             HasThing = true;
         }
 

@@ -62,7 +62,7 @@ module mirror-module {
                     new IsStatic(temp ,false) });
 
 
-            Module = ModuleDefinition.CreateAndBuild(
+            ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                  Scope.CreateAndBuild(
                     new List<IsStatic>() {
                         new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false) ,false) }),
@@ -96,6 +96,6 @@ module mirror-module {
         }
 
 
-        public IModuleDefinition Module {get;}
+        public IModuleDefinition ModuleDefinition {get;}
     }
 }

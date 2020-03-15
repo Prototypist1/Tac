@@ -18,9 +18,9 @@ namespace Tac.Tests.Samples
             var y = MemberDefinition.CreateAndBuild(yKey, new NumberType(), false);
 
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(x ,false) });
-            var innerMethodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(y ,false) }, methodScope);
+            var innerMethodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(y ,false) });
 
-            Module = ModuleDefinition.CreateAndBuild(
+            ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
                     new List<IsStatic>() {
                         new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(), false) ,false) }),
@@ -75,6 +75,6 @@ module closoure {
             }
         }
 
-        public IModuleDefinition Module { get; }
+        public IModuleDefinition ModuleDefinition { get; }
     }
 }

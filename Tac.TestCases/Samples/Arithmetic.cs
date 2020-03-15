@@ -11,7 +11,7 @@ namespace Tac.Tests.Samples
     {
         public string Text => "module math-module { ( 2 + 5 ) * ( 2 + 7 ) =: x ; } ;";
 
-        public IModuleDefinition Module => ModuleDefinition.CreateAndBuild(
+        public IModuleDefinition ModuleDefinition => Model.Instantiated.ModuleDefinition.CreateAndBuild(
              Scope.CreateAndBuild(
                 new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), false), false) }),
             new[] {

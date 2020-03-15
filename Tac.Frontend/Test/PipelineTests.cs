@@ -82,7 +82,7 @@ namespace Tac.Tests
 
             var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray().Single().GetValue().CastTo<WeakModuleDefinition>();
 
-            var target = sample.Module;
+            var target = sample.ModuleDefinition;
 
             var context = TransformerExtensions.NewConversionContext();
 

@@ -24,8 +24,8 @@ namespace Tac.Tests.Samples
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input ,false) });
 
 
-            Module =
-                ModuleDefinition.CreateAndBuild(
+            ModuleDefinition =
+                Model.Instantiated.ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
                         new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false), false) }),
                     new ICodeElement[]{
@@ -62,8 +62,8 @@ namespace Tac.Tests.Samples
                                     Array.Empty<ICodeElement>()),
                                 MemberReference.CreateAndBuild(fac)
                         ) },
-                    new NameKey("factorial"), 
-                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()),Array.Empty<ICodeElement>(),Array.Empty<ICodeElement>())
+                    new NameKey("factorial"),
+                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>())
                     );
         }
 
@@ -85,7 +85,7 @@ module factorial {
             }
         }
         
-        public IModuleDefinition Module { get; }
+        public IModuleDefinition ModuleDefinition { get; }
     }
 
 }

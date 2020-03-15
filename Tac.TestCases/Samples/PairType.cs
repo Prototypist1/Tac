@@ -22,7 +22,7 @@ module pair-type {
     } =: pairify ;
 }";
 
-        public IModuleDefinition Module { get; }
+        public IModuleDefinition ModuleDefinition { get; }
 
         public PairType()
         {
@@ -43,8 +43,8 @@ module pair-type {
 
             var pairifyKey = new NameKey("pairify");
             var pairify = MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false);
-            
-            Module = ModuleDefinition.CreateAndBuild(
+
+            ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
                     new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
                 new ICodeElement[] {

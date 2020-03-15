@@ -16,7 +16,7 @@ module or-test
     false =: ( bool | number ) y ; 
 } ;";
 
-        public IModuleDefinition Module => ModuleDefinition.CreateAndBuild(
+        public IModuleDefinition ModuleDefinition => Model.Instantiated.ModuleDefinition.CreateAndBuild(
              Scope.CreateAndBuild(
                 new List<IsStatic> {
                     new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false), false),

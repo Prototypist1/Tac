@@ -603,10 +603,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type, Object, OrType, InferredType>>> genericOverlays = new Dictionary<OrType<MethodType, Type>, Dictionary<IKey, OrType<MethodType, Type, Object, OrType, InferredType>>>();
 
 
-
-            //private readonly Dictionary<IValue, Dictionary<IKey, Member>> hopefulMembers = new Dictionary<IValue, Dictionary<IKey, Member>>();
-            //private readonly Dictionary<IValue, InferredType> hopefulMethods = new Dictionary<IValue, InferredType>();
-
             private List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
 
 
@@ -1811,23 +1807,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                //IHaveMembers GetType2(ILookUpType value)
-                //{
-                //    var res = lookUps[value];
-                //    while (true)
-                //    {
-                //        if (res is IExplicitType explicitType && defersTo.TryGetValue(explicitType, out var nextRes))
-                //        {
-                //            res = nextRes;
-                //        }
-                //        else
-                //        {
-                //            return res;
-                //        }
-                //    }
-                //}
-
-                //[MaybeNullWhen(false)]
                 static bool IsHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers)
                 {
                     if (type.Is1(out var v1))
@@ -1890,8 +1869,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     throw new Exception("boom!");
                 }
 
-
-                OrType<MethodType, Type, Object, OrType, InferredType> GetType(ITypeProblemNode value)
+                static OrType<MethodType, Type, Object, OrType, InferredType> GetType(ITypeProblemNode value)
                 {
                     if (value is ILookUpType lookup)
                     {
@@ -2118,8 +2096,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 // if they are the same type
                                 if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value)))
                                 {
-                                    var member = new Member(this, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}", leftMember.Value.Converter);
-                                    member.LooksUp = Possibly.Is(GetType(rightMember));
+                                    var member = new Member(this, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}", leftMember.Value.Converter)
+                                    {
+                                        LooksUp = Possibly.Is(GetType(rightMember))
+                                    };
                                     res[leftMember.Key] = member;
                                 }
                             }

@@ -56,24 +56,6 @@ namespace Tac.Infastructure
         ISetUpResult<TCodeElement, TSetUpSideNode> Run(Tpn.IScope scope, ISetUpContext context);
     }
 
-    //internal interface IResolveContext
-    //{
-    //    public Tpn.ITypeSolution Solution { get; }
-    //}
-
-    //internal class ResolveContext : IResolveContext
-    //{
-    //    public ResolveContext(Tpn<WeakBlockDefinition, OrType<WeakTypeDefinition, WeakGenericTypeDefinition>, WeakObjectDefinition, WeakTypeOrOperation, WeakMethodDefinition, PlaceholderValue, WeakMemberDefinition,  WeakTypeReference>.ITypeSolution solution)
-    //    {
-    //        Solution = solution ?? throw new ArgumentNullException(nameof(solution));
-    //    }
-
-    //    public Tpn.ITypeSolution Solution
-    //    {
-    //        get;
-    //    }
-    //}
-
     internal interface IResolve<out TCodeElement> 
     {
         IBox<TCodeElement> Run(Tpn.ITypeSolution context);

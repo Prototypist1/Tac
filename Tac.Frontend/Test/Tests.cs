@@ -67,8 +67,8 @@ namespace Tac.Frontend.TypeProblem.Test
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var hello = x.CreateType(x.ModuleRoot, new NameKey("hello"), new WeakTypeDefinitionConverter());
-            var hello_x = x.CreateMember(hello, new NameKey("x"), new WeakMemberDefinitionConverter(false,new NameKey("x")));
-            var hello_y = x.CreateMember(hello, new NameKey("y"), new WeakMemberDefinitionConverter(false,new NameKey("y")));
+            x.CreateMember(hello, new NameKey("x"), new WeakMemberDefinitionConverter(false,new NameKey("x")));
+            x.CreateMember(hello, new NameKey("y"), new WeakMemberDefinitionConverter(false,new NameKey("y")));
 
             var input = x.CreateValue(x.ModuleRoot, new NameKey("hello"), new PlaceholderValueConverter());
             var method = x.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()),false), new WeakMemberDefinitionConverter(false, new NameKey("input")));
