@@ -37,9 +37,9 @@ namespace Tac.SemanticModel
         WeakAbstractBlockDefinition<IEntryPointDefinition>
     {
         public WeakEntryPointDefinition(
-            IBox<IFrontendCodeElement>[] body,
+            OrType<IBox<IFrontendCodeElement>,IError>[] body,
             IBox<WeakScope> scope,
-            IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+            IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             
         }
@@ -51,7 +51,7 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Scope.GetValue().Convert(context),
-                    Body.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
+                    Body.Select(x => x.Convert(x=>x.GetValue().ConvertElementOrThrow(context))).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -78,8 +78,7 @@ namespace Tac.SemanticModel
                     return TokenMatching<ISetUp<WeakEntryPointDefinition, Tpn.IScope>>.MakeMatch(
                         matched.Tokens,
                         matched.Context,
-                        new EntryPointDefinitionPopulateScope(
-                            elements)
+                        new EntryPointDefinitionPopulateScope(elements)
                         );
                 }
 
@@ -92,10 +91,10 @@ namespace Tac.SemanticModel
 
         private class EntryPointDefinitionPopulateScope : ISetUp<WeakEntryPointDefinition, Tpn.IScope>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] elements;
 
             public EntryPointDefinitionPopulateScope(
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements
+                OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] elements
                 )
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -103,11 +102,15 @@ namespace Tac.SemanticModel
 
             public ISetUpResult<WeakEntryPointDefinition, Tpn.IScope> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var box = new Box<IResolve<IFrontendCodeElement>[]>();
+                var box = new Box<OrType<IResolve<IFrontendCodeElement>, IError>[]>();
                 var innerScope = context.TypeProblem.CreateScope(scope, new WeakEntryPointConverter(box));
                 context.TypeProblem.HasEntryPoint(scope, innerScope);
 
-                box.Fill(elements.Select(x => x.Run(innerScope, context).Resolve).ToArray());
+                box.Fill(elements.Select(x => 
+                    x.SwitchReturns(
+                        y=> new OrType<IResolve<IFrontendCodeElement>, IError>(y.Run(innerScope, context).Resolve),
+                        y=> new OrType<IResolve<IFrontendCodeElement>, IError>(y)))
+                .ToArray());
 
                 return new SetUpResult<WeakEntryPointDefinition, Tpn.IScope>(new EntryPointDefinitionResolveReferance(innerScope), innerScope);
             }

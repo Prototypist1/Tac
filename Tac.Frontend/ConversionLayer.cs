@@ -12,6 +12,7 @@ using Tac.Infastructure;
 using Tac.SemanticModel;
 using Tac.SemanticModel.Operations;
 using Tac.SyntaxModel.Elements.AtomicTypes;
+using Tac.Parser;
 
 namespace Tac.Frontend
 {
@@ -359,9 +360,9 @@ namespace Tac.Frontend
     internal class WeakEntryPointConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>
     {
 
-        private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
+        private readonly IBox<OrType<IResolve<IFrontendCodeElement>, IError>[]> body;
 
-        public WeakEntryPointConverter(IBox<IResolve<IFrontendCodeElement>[]> body)
+        public WeakEntryPointConverter(IBox<OrType<IResolve<IFrontendCodeElement>, IError>[]> body)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
@@ -370,7 +371,7 @@ namespace Tac.Frontend
         {
             return new OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakEntryPointDefinition(
-                    body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
+                    body.GetValue().Select(x => x.Convert(y=>y.Run(typeSolution))).ToArray(),
                     new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                     Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
@@ -425,7 +426,7 @@ namespace Tac.Frontend
             }
             else {
                 weakEntryPoint = new WeakEntryPointDefinition(
-                    Array.Empty<IBox<IFrontendCodeElement>>(),
+                    Array.Empty<OrType<IBox<IFrontendCodeElement>,IError>>(),
                     new Box<WeakScope>(new WeakScope(new List<IBox<WeakMemberDefinition>>())),
                     Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>());
             }

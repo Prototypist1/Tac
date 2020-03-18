@@ -1,12 +1,8 @@
 ﻿using Tac.Parser;
-using Tac.TestCases;
 using Tac.Tests.Tokenizer;
 
 namespace Tac.Tests.Samples
 {
-    internal interface IWrappedTestCase: ITestCase {
-        IToken Token { get; }
-    }
 
     internal class WrappedArithmetic : Arithmetic, IWrappedTestCase
     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Parser;
 
 namespace Tac.SemanticModel
 {
@@ -13,8 +14,8 @@ namespace Tac.SemanticModel
     {
         protected WeakAbstractBlockDefinition(
             IBox<WeakScope> scope,
-            IBox<IFrontendCodeElement>[] body, 
-            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers){
+            IReadOnlyList<OrType<IBox<IFrontendCodeElement>, IError>> body, 
+            IReadOnlyList<IIsPossibly<IFrontendCodeElement>> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Body = body ?? throw new ArgumentNullException(nameof(body));
             StaticInitailizers = staticInitailizers ?? throw new ArgumentNullException(nameof(staticInitailizers));
@@ -22,10 +23,10 @@ namespace Tac.SemanticModel
 
 
         public IBox<WeakScope> Scope { get; }
-        public IBox<IFrontendCodeElement>[] Body { get; }
+        public IReadOnlyList<OrType<IBox<IFrontendCodeElement>, IError>> Body { get; }
         // I think I am gettting well ahead of myself with these...
         // I think I should build this I plan on using soonish
-        public IEnumerable<IIsPossibly<IFrontendCodeElement>> StaticInitailizers { get; }
+        public IReadOnlyList<IIsPossibly<IFrontendCodeElement>> StaticInitailizers { get; }
         public abstract IBuildIntention<T> GetBuildIntention(IConversionContext context);
     }
 }

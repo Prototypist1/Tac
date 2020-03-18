@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -59,8 +60,8 @@ namespace Tac.Model.Instantiated
 
         void Build(
             IFinalizedScope scope,
-            ICodeElement[] body,
-            IEnumerable<ICodeElement> staticInitailizers);
+            IReadOnlyList<OrType<ICodeElement, IError>> body,
+            IReadOnlyList<ICodeElement> staticInitailizers);
     }
 
     public class MethodDefinition : IInternalMethodDefinition,

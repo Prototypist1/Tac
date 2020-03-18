@@ -17,6 +17,7 @@ using Tac.SemanticModel.CodeStuff;
 using Tac.Tests.Help;
 using Tac.Tests.Samples;
 using Xunit;
+using Tac.TestCases;
 
 namespace Tac.Tests
 {
@@ -26,69 +27,83 @@ namespace Tac.Tests
         [Fact]
         public void Token_CodeElements_Factorial()
         {
-            Toke_CodeElements(new WrappedFactorial());
+            Token_CodeElements(new WrappedFactorial());
         }
 
         [Fact]
         public void Token_CodeElements_Arithmetic()
         {
-            Toke_CodeElements(new WrappedArithmetic());
+            Token_CodeElements(new WrappedArithmetic());
         }
 
         [Fact]
         public void Token_CodeElements_PointObject()
         {
-            Toke_CodeElements(new WrappedPointObject());
+            Token_CodeElements(new WrappedPointObject());
         }
 
         [Fact]
         public void Token_CodeElements_MirrorPointImplementation()
         {
-            Toke_CodeElements(new WrappedMirrorPointImplementation());
+            Token_CodeElements(new WrappedMirrorPointImplementation());
         }
 
         [Fact]
         public void Token_CodeElements_Closoure()
         {
-            Toke_CodeElements(new WrappedClosoure());
+            Token_CodeElements(new WrappedClosoure());
         }
 
         [Fact]
         public void Token_CodeElements_PairType()
         {
-            Toke_CodeElements(new WrappedPairType());
+            Token_CodeElements(new WrappedPairType());
         }
 
         [Fact]
         public void Token_CodeElements_Token_Or()
         {
-            Toke_CodeElements(new WrappedOr());
+            Token_CodeElements(new WrappedOr());
         }
 
-        private static void Toke_CodeElements(IWrappedTestCase sample) { 
+        private static void Token_CodeElements(IWrappedTestCase sample)
+        {
 
+            var target = sample.ModuleDefinition;
+
+            var converted = Convert(sample.Token.SafeCastTo<IToken, FileToken>());
+
+            converted.ValueEqualOrThrow(target);
+        }
+
+        private static IModuleDefinition Convert(FileToken fileToken)
+        {
             var elementMatchingContest = new ElementMatchingContext();
 
-            var scopePopulators = elementMatchingContest.ParseFile(sample.Token.SafeCastTo<IToken,FileToken>());
+            var scopePopulators = elementMatchingContest.ParseFile(fileToken);
 
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
 
             var populateScopeContex = new SetUpContext(problem);
-            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve).ToArray();
+            var referanceResolvers = scopePopulators.Select(or => or.Convert(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
 
 
             var solution = problem.Solve();
 
-            var result = referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray().Single().GetValue().CastTo<WeakModuleDefinition>();
+            var result = referanceResolvers
+                .Select(or=>or.Convert( reranceResolver => reranceResolver.Run(solution)))
+                .ToArray()
+                .Single()
+                .Is1OrThrow()
+                .GetValue()
+                .CastTo<WeakModuleDefinition>();
 
-            var target = sample.ModuleDefinition;
 
             var context = TransformerExtensions.NewConversionContext();
 
             var converted = result.Convert(context);
-            
-            converted.ValueEqualOrThrow(target);
+            return converted;
         }
 
         [Fact]
@@ -133,12 +148,15 @@ namespace Tac.Tests
             Text_Token(new WrappedClosoure());
         }
 
+        [Fact]
+        public void TokenizeMissingElement() {
+            var res =Tokenize("5 + + 10;");
+            var converted = Convert(res);
+        }
+
         private static void Text_Token(IWrappedTestCase sample)
         {
-            var text = sample.Text;
-            
-            var tokenizer = new Parser.Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
-            var res = tokenizer.Tokenize(text);
+            var res = Tokenize(sample.Text);
 
             var target = sample.Token;
 
@@ -148,6 +166,22 @@ namespace Tac.Tests
 #pragma warning restore IDE0059 // Value assigned to symbol is never used
 
             Assert.Equal(target.ToString(), res.ToString());
+        }
+
+        private static FileToken Tokenize(string text)
+        {
+
+            var tokenizer = new Parser.Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
+            var res = tokenizer.Tokenize(text);
+            return res;
+        }
+
+        private static void TokenizeAndConvert(ITestCase sample)
+        {
+            var fileToken = Tokenize(sample.Text);
+            var converted = Convert(fileToken);
+
+            converted.ValueEqualOrThrow(sample.ModuleDefinition);
         }
 
 

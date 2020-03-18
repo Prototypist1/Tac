@@ -37,9 +37,9 @@ namespace Tac.SemanticModel
     internal class WeakBlockDefinition : WeakAbstractBlockDefinition<IBlockDefinition>
     {
         public WeakBlockDefinition(
-            IBox<IFrontendCodeElement>[] body,
+            IReadOnlyList<OrType<IBox<IFrontendCodeElement>, IError>> body,
             IBox<WeakScope> scope,
-            IEnumerable<IIsPossibly<IFrontendCodeElement>> staticInitailizers) :
+            IReadOnlyList<IIsPossibly<IFrontendCodeElement>> staticInitailizers) :
             base(scope, body, staticInitailizers)
         { }
 
@@ -79,18 +79,15 @@ namespace Tac.SemanticModel
             return TokenMatching<ISetUp<WeakBlockDefinition, Tpn.IScope>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<WeakBlockDefinition, Tpn.IScope> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
-        {
-            return new BlockDefinitionPopulateScope(elements);
-        }
+
         private class BlockDefinitionPopulateScope : ISetUp<WeakBlockDefinition, Tpn.IScope>
         {
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] Elements { get; }
+            private OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] Elements { get; }
 
-            public BlockDefinitionPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
+            public BlockDefinitionPopulateScope(OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
