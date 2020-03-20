@@ -55,11 +55,11 @@ namespace Tac.Frontend
             }
 
             var populateScopeContex = new SetUpContext(problem);
-            var referanceResolvers = scopePopulators.Select(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve).ToArray();
+            var referanceResolvers = scopePopulators.Select(or => or.Convert(populateScope=> populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
 
             var solution = problem.Solve();
 
-            referanceResolvers.Select(reranceResolver => reranceResolver.Run(solution)).ToArray();
+            referanceResolvers.Select(or=>or.Convert(reranceResolver => reranceResolver.Run(solution))).ToArray();
 
             var moduleDefinition = solution.GetObject(problem.ModuleRoot).GetValue().Is2OrThrow();
 

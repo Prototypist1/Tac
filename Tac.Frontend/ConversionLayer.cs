@@ -340,9 +340,9 @@ namespace Tac.Frontend
     internal class WeakBlockDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, OrType<WeakBlockDefinition, WeakScope,WeakEntryPointDefinition>>
     {
 
-        private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
+        private readonly IBox<OrType<IResolve<IFrontendCodeElement>, IError>[]> body;
 
-        public WeakBlockDefinitionConverter(IBox<IResolve<IFrontendCodeElement>[]> body)
+        public WeakBlockDefinitionConverter(IBox<OrType<IResolve<IFrontendCodeElement>,IError>[]> body)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
@@ -351,7 +351,7 @@ namespace Tac.Frontend
         {
             return new OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakBlockDefinition(
-                    body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
+                    body.GetValue().Select(or => or.Convert(x=>x.Run(typeSolution))).ToArray(),
                     new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                     Array.Empty<IIsPossibly<IFrontendCodeElement>>()));
         }

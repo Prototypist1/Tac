@@ -13,6 +13,7 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
+using Prototypist.Toolbox;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -46,7 +47,7 @@ namespace Tac.SemanticModel.Operations
 
     internal class WeakAddOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAddOperation>
     {
-        public WeakAddOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
+        public WeakAddOperation(OrType<IBox<IFrontendCodeElement>,IError> left, OrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
 
@@ -55,14 +56,16 @@ namespace Tac.SemanticModel.Operations
             var (toBuild, maker) = AddOperation.Create();
             return new BuildIntention<IAddOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetValue().ConvertElementOrThrow(context),Right.GetValue().ConvertElementOrThrow(context));
+                maker.Build(
+                    Left.Convert(y=>y.GetValue().ConvertElementOrThrow(context)),
+                    Right.Convert(y => y.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation, IAddOperation>
     {
-        public AddOperationMaker() : base(SymbolsRegistry.StaticAddSymbol, (l,r)=>new Box<WeakAddOperation>(new WeakAddOperation(l,r)),(s,c,l,r)=>c.TypeProblem.CreateValue(s, new NameKey("number"),new PlaceholderValueConverter()))
+        public AddOperationMaker() : base(SymbolsRegistry.StaticAddSymbol, (l,r)=> new Box<WeakAddOperation>(new WeakAddOperation(l, r)),(s,c,l,r)=>c.TypeProblem.CreateValue(s, new NameKey("number"),new PlaceholderValueConverter()))
         {
         }
     }

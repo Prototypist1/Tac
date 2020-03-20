@@ -10,7 +10,7 @@ namespace Tac.Model.Instantiated
     public class EntryPointDefinition: IEntryPointDefinition,IEntryPointDefinitionBuilder
     {
         private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitailizers = new Buildable<IEnumerable<ICodeElement>>();
-        private readonly Buildable<ICodeElement[]> buildableBody = new Buildable<ICodeElement[]>();
+        private readonly Buildable<IReadOnlyList<OrType<ICodeElement, IError>>> buildableBody = new Buildable<IReadOnlyList<OrType<ICodeElement, IError>>>();
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
 
         private EntryPointDefinition() { }
@@ -21,13 +21,13 @@ namespace Tac.Model.Instantiated
         }
 
         public IFinalizedScope Scope { get => buildableScope.Get(); }
-        public ICodeElement[] Body { get => buildableBody.Get(); }
+        public IReadOnlyList<OrType<ICodeElement, IError>> Body { get => buildableBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
 
 
         public void Build(
             IFinalizedScope scope,
-            ICodeElement[] body,
+            IReadOnlyList<OrType<ICodeElement, IError>> body,
             IEnumerable<ICodeElement> staticInitailizers)
         {
             buildableScope.Set(scope);

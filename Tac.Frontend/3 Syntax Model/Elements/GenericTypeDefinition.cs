@@ -92,7 +92,7 @@ namespace Tac.SemanticModel
 
         public static ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType> PopulateScope(
                 NameKey nameKey,
-                IEnumerable<ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>> lines,
+                IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
@@ -104,12 +104,12 @@ namespace Tac.SemanticModel
         private class GenericTypeDefinitionPopulateScope : ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>
         {
             private readonly NameKey nameKey;
-            private readonly IEnumerable<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines;
+            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IEnumerable<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> lines,
+                IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -123,7 +123,7 @@ namespace Tac.SemanticModel
                 // I generic types are erased 
                 // what on earth does this return?
                 var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),new WeakGenericTypeDefinitionConverter(nameKey, genericParameters));
-                var nextLines = lines.Select(x => x.Run(myScope, context).Resolve).ToArray();
+                var nextLines = lines.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray();
                 return new SetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), myScope);
             }
         }
@@ -131,9 +131,9 @@ namespace Tac.SemanticModel
         private class GenericTypeDefinitionResolveReferance : IResolve<WeakGenericTypeDefinition>
         {
             private readonly Tpn.TypeProblem2.Type myScope;
-            private readonly IResolve<IFrontendCodeElement>[] nextLines;
+            private readonly OrType< IResolve<IFrontendCodeElement>,IError>[] nextLines;
 
-            public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IResolve<IFrontendCodeElement>[] nextLines)
+            public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, OrType<IResolve<IFrontendCodeElement>, IError>[] nextLines)
             {
                 this.myScope = myScope;
                 this.nextLines = nextLines;
@@ -143,7 +143,7 @@ namespace Tac.SemanticModel
             public IBox<WeakGenericTypeDefinition> Run(Tpn.ITypeSolution context)
             {
                 // uhhh it is werid that I have to do this
-                nextLines.Select(x => x.Run(context)).ToArray();
+                nextLines.Select(x => x.Convert(y=>y.Run(context))).ToArray();
                 if (context.GetExplicitType(myScope).GetValue().Is2(out var v2)) {
                     return new Box<WeakGenericTypeDefinition>( v2);
                 }
