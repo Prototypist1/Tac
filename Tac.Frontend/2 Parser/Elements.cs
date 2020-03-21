@@ -293,12 +293,12 @@ namespace Tac.Parser
             throw new Exception("");
         }
         
-        public OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] ParseFile(FileToken file)
+        public IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> ParseFile(FileToken file)
         {
             return file.Tokens.Select(x => ParseLine(x.CastTo<LineToken>().Tokens)).ToArray();
         }
 
-        public OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] ParseBlock(CurleyBracketToken block)
+        public IReadOnlyList< OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> ParseBlock(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {

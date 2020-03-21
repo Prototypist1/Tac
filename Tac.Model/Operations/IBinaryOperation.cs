@@ -1,18 +1,19 @@
-﻿using Tac.Model.Elements;
+﻿using Prototypist.Toolbox;
+using Tac.Model.Elements;
 
 namespace Tac.Model.Operations
 {
     public interface IOperation : ICodeElement
     {
-        ICodeElement[] Operands { get; }
+        OrType<ICodeElement,IError>[] Operands { get; }
     }
 
     public interface IBinaryOperation<TLeft, TRight> : IOperation
         where TLeft : ICodeElement
         where TRight : ICodeElement
     {
-        TLeft Left { get; }
-        TRight Right { get; }
+        OrType<TLeft,IError> Left { get; }
+        OrType<TRight,IError> Right { get; }
     }
 
 

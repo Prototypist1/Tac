@@ -146,7 +146,7 @@ namespace Tac.SemanticModel
         {
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition;
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition;
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
@@ -154,7 +154,7 @@ namespace Tac.SemanticModel
             public PopulateScopeImplementationDefinition(
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition,
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
+                IReadOnlyList<OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
                 string contextName,
                 string parameterName)

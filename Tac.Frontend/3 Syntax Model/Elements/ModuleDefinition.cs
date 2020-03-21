@@ -38,7 +38,7 @@ namespace Tac.SemanticModel
 
     internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IFrontendType
     {
-        public WeakModuleDefinition(IBox<WeakScope> scope, IEnumerable<IBox<IFrontendCodeElement>> staticInitialization, IKey Key, IBox<WeakEntryPointDefinition> entryPoint)
+        public WeakModuleDefinition(IBox<WeakScope> scope, IReadOnlyList<OrType<IBox<IFrontendCodeElement>,IError>> staticInitialization, IKey Key, IBox<WeakEntryPointDefinition> entryPoint)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
@@ -48,7 +48,7 @@ namespace Tac.SemanticModel
         
         public IBox<WeakScope> Scope { get; }
         IBox<WeakEntryPointDefinition> EntryPoint { get; }
-        public IEnumerable<IBox<IFrontendCodeElement>> StaticInitialization { get; }
+        public IReadOnlyList<OrType<IBox<IFrontendCodeElement>, IError>> StaticInitialization { get; }
 
         public IKey Key
         {
@@ -60,13 +60,24 @@ namespace Tac.SemanticModel
             var (toBuild, maker) = ModuleDefinition.Create();
             return new BuildIntention<IModuleDefinition>(toBuild, () =>
             {
+                var staticInit = new List<OrType<ICodeElement, IError>>();
+
+                foreach (var item in StaticInitialization)
+                {
+                    item.Switch(x1=> {
+                        var converted = x1.GetValue().PossiblyConvert(context);
+                        if (converted is IIsDefinately<ICodeElement> isCodeElement) {
+                            staticInit.Add(new OrType<ICodeElement, IError>(isCodeElement.Value));
+                        }
+                    },x2=> {
+                        staticInit.Add(new OrType<ICodeElement, IError>(x2));
+                    });
+                }
+
+
                 maker.Build(
-                    Scope.GetValue().Convert(context), 
-                    StaticInitialization
-                        .Select(x=>x.GetValue().PossiblyConvert(context))
-                        .OfType<IIsDefinately<ICodeElement>>()
-                        .Select(x=>x.Value)
-                        .ToArray(),
+                    Scope.GetValue().Convert(context),
+                    staticInit,
                     Key,
                     EntryPoint.GetValue().Convert(context));
             });
@@ -115,11 +126,11 @@ namespace Tac.SemanticModel
 
         private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionPopulateScope(
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
+                IReadOnlyList<OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -128,9 +139,9 @@ namespace Tac.SemanticModel
 
             public ISetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var box = new Box<IResolve<IFrontendCodeElement>[]>();
+                var box = new Box<IReadOnlyList<OrType< IResolve<IFrontendCodeElement>,IError>>>();
                 var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey));
-                box.Fill(elements.Select(x => x.Run(myScope, context).Resolve).ToArray());
+                box.Fill(elements.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray());
 
                 return new SetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope),myScope);
             }

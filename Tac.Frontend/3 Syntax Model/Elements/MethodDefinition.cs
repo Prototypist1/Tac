@@ -40,9 +40,9 @@ namespace Tac.SemanticModel
         public WeakMethodDefinition(
             IBox<IFrontendType> outputType,
             IBox<IWeakMemberDefinition> parameterDefinition,
-            IBox<IFrontendCodeElement>[] body,
+            IReadOnlyList<OrType< IBox<IFrontendCodeElement>,IError>> body,
             IBox<WeakScope> scope,
-            IEnumerable<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+            IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -62,7 +62,7 @@ namespace Tac.SemanticModel
                     OutputType.GetValue().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
-                    Body.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
+                    Body.Select(x => x.Convert(y=>y .GetValue().ConvertElementOrThrow(context))).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -117,14 +117,14 @@ namespace Tac.SemanticModel
         private class MethodDefinitionPopulateScope : ISetUp<WeakMethodDefinition, Tpn.IValue>
         {
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition;
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output;
             private readonly bool isEntryPoint;
             private readonly string parameterName;
 
             public MethodDefinitionPopulateScope(
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements,
+                IReadOnlyList<OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
                 bool isEntryPoint,
                 string parameterName
@@ -142,11 +142,11 @@ namespace Tac.SemanticModel
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);
 
-                var box = new Box<IResolve<IFrontendCodeElement>[]>();
+                var box = new Box<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>,IError>>>();
                 var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
                 var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
-                box.Fill(elements.Select(x => x.Run(method, context).Resolve).ToArray());
+                box.Fill(elements.Select(x => x.Convert(y=>y.Run(method, context).Resolve)).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new IKey[] {
                     realizedInput.SetUpSideNode.Key(),

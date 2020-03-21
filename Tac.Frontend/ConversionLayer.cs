@@ -243,10 +243,10 @@ namespace Tac.Frontend
 
     internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, OrType<WeakMethodDefinition, WeakImplementationDefinition>>
     {
-        private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
+        private readonly IBox<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>, IError>>> body;
         private readonly bool isEntryPoint;
 
-        public WeakMethodDefinitionConverter(IBox<IResolve<IFrontendCodeElement>[]> body, bool isEntryPoint)
+        public WeakMethodDefinitionConverter(IBox<IReadOnlyList<OrType< IResolve<IFrontendCodeElement>,IError>>> body, bool isEntryPoint)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
             this.isEntryPoint = isEntryPoint;
@@ -257,7 +257,7 @@ namespace Tac.Frontend
             return new OrType<WeakMethodDefinition, WeakImplementationDefinition>( new WeakMethodDefinition(
                 Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
                 typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
-                body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
+                body.GetValue().Select(x => x.Convert(y=>y.Run(typeSolution))).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
@@ -408,10 +408,10 @@ namespace Tac.Frontend
 
     internal class WeakModuleConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, OrType<WeakObjectDefinition, WeakModuleDefinition>>
     {
-        private readonly Box<IResolve<IFrontendCodeElement>[]> box;
+        private readonly Box<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>,IError>>> box;
         private readonly IKey key;
 
-        public WeakModuleConverter(Box<IResolve<IFrontendCodeElement>[]> box, IKey key)
+        public WeakModuleConverter(Box<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>,IError>>> box, IKey key)
         {
             this.box = box;
             this.key = key;
@@ -434,7 +434,7 @@ namespace Tac.Frontend
 
             return new OrType<WeakObjectDefinition, WeakModuleDefinition>(new WeakModuleDefinition(
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
-                box.GetValue().Select(x => x.Run(typeSolution)).ToArray(), 
+                box.GetValue().Select(x => x.Convert(y=> y.Run(typeSolution))).ToArray(), 
                 key,
                 new Box<WeakEntryPointDefinition>(weakEntryPoint)));
         }

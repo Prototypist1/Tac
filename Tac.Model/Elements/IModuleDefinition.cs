@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Prototypist.Toolbox;
+using System.Collections.Generic;
 
 namespace Tac.Model.Elements
 {
@@ -6,7 +7,7 @@ namespace Tac.Model.Elements
     {
         IKey Key { get; }
         IFinalizedScope Scope { get; }
-        IReadOnlyList<ICodeElement> StaticInitialization { get; }
+        IReadOnlyList<OrType<ICodeElement, IError>> StaticInitialization { get; }
 
         IEntryPointDefinition EntryPoint { get; }
     }
