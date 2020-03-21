@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac.Model;
@@ -35,21 +36,23 @@ namespace Tac.Tests.Samples
                                     new NumberType(),
                                     input,
                                     methodScope,
-                                    new ICodeElement[]{
-                                            ElseOperation.CreateAndBuild(
+                                    new OrType<ICodeElement,IError>[]{
+                                            new OrType<ICodeElement,IError>(ElseOperation.CreateAndBuild(
                                                 IfOperation.CreateAndBuild(
                                                     LessThanOperation.CreateAndBuild(
                                                         MemberReference.CreateAndBuild(input),
                                                         ConstantNumber.CreateAndBuild(2)),
                                                     BlockDefinition.CreateAndBuild(
                                                         ifBlockScope,
-                                                        new ICodeElement[]{
-                                                            ReturnOperation.CreateAndBuild(
-                                                                ConstantNumber.CreateAndBuild(1))},
+                                                        new OrType<ICodeElement,IError>[]{
+                                                            new OrType<ICodeElement,IError>(
+                                                                ReturnOperation.CreateAndBuild(
+                                                                    ConstantNumber.CreateAndBuild(1)))},
                                                         Array.Empty<ICodeElement>())),
                                                 BlockDefinition.CreateAndBuild(
                                                     elseBlock,
-                                                    new ICodeElement[]{
+                                                    new OrType<ICodeElement,IError>[]{
+                                                       new OrType<ICodeElement,IError>(
                                                         ReturnOperation.CreateAndBuild(
                                                             MultiplyOperation.CreateAndBuild(
                                                                 NextCallOperation.CreateAndBuild(
@@ -57,13 +60,13 @@ namespace Tac.Tests.Samples
                                                                         MemberReference.CreateAndBuild(input),
                                                                         ConstantNumber.CreateAndBuild(1)),
                                                                     MemberReference.CreateAndBuild(fac)),
-                                                                MemberReference.CreateAndBuild(input)))},
-                                                    Array.Empty<ICodeElement>()))},
+                                                                MemberReference.CreateAndBuild(input))))},
+                                                    Array.Empty<ICodeElement>())))},
                                     Array.Empty<ICodeElement>()),
                                 MemberReference.CreateAndBuild(fac)
                         ) },
                     new NameKey("factorial"),
-                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>())
+                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>())
                     );
         }
 

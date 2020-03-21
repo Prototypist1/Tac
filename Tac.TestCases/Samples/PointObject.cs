@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac.Model;
@@ -47,7 +48,7 @@ namespace Tac.Tests.Samples
                         MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false)))
                     },
                     new NameKey("point-module"),
-                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
+                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
         }
     }
 }

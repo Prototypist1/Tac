@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -54,26 +55,27 @@ module pair-type {
                             pairTypeNumber,
                             input,
                             methodScope,
-                            new ICodeElement[]{
-                                ReturnOperation.CreateAndBuild(
-                                    ObjectDefiniton.CreateAndBuild(
-                                            Scope.CreateAndBuild(
-                                            new List<IsStatic> {
-                                                new IsStatic(localX ,false),
-                                                new IsStatic(localY, false)
-                                            }),
-                                        new IAssignOperation[]{
-                                            AssignOperation.CreateAndBuild(
-                                                MemberReference.CreateAndBuild(input),
-                                                MemberReference.CreateAndBuild(localX)),
-                                            AssignOperation.CreateAndBuild(
-                                                MemberReference.CreateAndBuild(input),
-                                                MemberReference.CreateAndBuild(localY))
-                                        }))},
+                            new OrType<ICodeElement,IError>[]{
+                                new OrType<ICodeElement,IError>(
+                                    ReturnOperation.CreateAndBuild(
+                                        ObjectDefiniton.CreateAndBuild(
+                                                Scope.CreateAndBuild(
+                                                new List<IsStatic> {
+                                                    new IsStatic(localX ,false),
+                                                    new IsStatic(localY, false)
+                                                }),
+                                            new IAssignOperation[]{
+                                                AssignOperation.CreateAndBuild(
+                                                    MemberReference.CreateAndBuild(input),
+                                                    MemberReference.CreateAndBuild(localX)),
+                                                AssignOperation.CreateAndBuild(
+                                                    MemberReference.CreateAndBuild(input),
+                                                    MemberReference.CreateAndBuild(localY))
+                                            })))},
                             Array.Empty<ICodeElement>()),
                     MemberReference.CreateAndBuild(pairify))},
                 new NameKey("pair-type"),
-                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
+                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
         }
     }
 }

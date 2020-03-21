@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -91,7 +92,7 @@ module mirror-module {
                     MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))
                 },
                 new NameKey("mirror-module"),
-                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
+                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
             
         }
 

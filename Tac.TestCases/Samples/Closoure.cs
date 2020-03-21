@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -33,29 +34,29 @@ namespace Tac.Tests.Samples
                                 new NumberType()),
                             x,
                             methodScope,
-                            new ICodeElement[]{
-                                ReturnOperation.CreateAndBuild(
+                            new OrType<ICodeElement,IError>[]{
+                                new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(
                                     MethodDefinition.CreateAndBuild(
                                         new NumberType(),
                                         new NumberType(),
                                         y,
                                         innerMethodScope,
-                                        new ICodeElement[]{
-                                            AssignOperation.CreateAndBuild(
+                                        new OrType<ICodeElement,IError>[]{
+                                            new OrType<ICodeElement,IError>( AssignOperation.CreateAndBuild(
                                                 AddOperation.CreateAndBuild(
                                                     MemberReference.CreateAndBuild(x),
                                                     MemberReference.CreateAndBuild(y)),
-                                                MemberReference.CreateAndBuild(x)),
-                                            ReturnOperation.CreateAndBuild(
-                                                MemberReference.CreateAndBuild(x))
+                                                MemberReference.CreateAndBuild(x))),
+                                            new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(
+                                                MemberReference.CreateAndBuild(x)))
                                         },
                                         Array.Empty<ICodeElement>())
-                                    )},
+                                    ))},
                             Array.Empty<ICodeElement>()),
                         MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))
                  },
                 new NameKey("closoure"),
-                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
+                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
         }
 
         public string Text

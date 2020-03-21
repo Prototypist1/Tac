@@ -6,7 +6,7 @@ namespace Tac.Model.Instantiated
 {
     public class BlockDefinition : IBlockDefinition, IBlockDefinitionBuilder
     {
-        private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitailizers = new Buildable<IEnumerable<ICodeElement>>();
+        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new Buildable<IReadOnlyList<ICodeElement>>();
         private readonly Buildable<IReadOnlyList<OrType<ICodeElement, IError>>> buildableBody = new Buildable<IReadOnlyList<OrType<ICodeElement, IError>>>();
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
 
@@ -18,7 +18,7 @@ namespace Tac.Model.Instantiated
 
         public IFinalizedScope Scope { get => buildableScope.Get(); }
         public IReadOnlyList< OrType<ICodeElement, IError>> Body { get => buildableBody.Get(); }
-        public IEnumerable<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
+        public IReadOnlyList<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking
         {
@@ -33,7 +33,7 @@ namespace Tac.Model.Instantiated
 
         #region IBlockDefinitionBuilder
 
-        public void Build(IFinalizedScope scope, OrType<ICodeElement, IError>[] body, IEnumerable<ICodeElement> staticInitailizers)
+        public void Build(IFinalizedScope scope, IReadOnlyList<OrType<ICodeElement, IError>> body, IReadOnlyList<ICodeElement> staticInitailizers)
         {
             buildableScope.Set(scope);
             buildableBody.Set(body);
@@ -50,7 +50,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IBlockDefinition CreateAndBuild(IFinalizedScope scope, OrType<ICodeElement, IError>[] body, IEnumerable<ICodeElement> staticInitailizers) {
+        public static IBlockDefinition CreateAndBuild(IFinalizedScope scope, IReadOnlyList<OrType<ICodeElement, IError>> body, IReadOnlyList<ICodeElement> staticInitailizers) {
             var (x, y) = Create();
             y.Build(scope, body, staticInitailizers);
             return x;
@@ -62,6 +62,6 @@ namespace Tac.Model.Instantiated
 
     public interface IBlockDefinitionBuilder
     {
-        void Build(IFinalizedScope scope, OrType<ICodeElement,IError>[] body, IEnumerable<ICodeElement> staticInitailizers);
+        void Build(IFinalizedScope scope, IReadOnlyList<OrType<ICodeElement,IError>> body, IReadOnlyList<ICodeElement> staticInitailizers);
     }
 }
