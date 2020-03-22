@@ -91,16 +91,16 @@ namespace Tac.SemanticModel
                     matching.Context);
         }
 
-        public static ISetUp<WeakObjectDefinition, Tpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
-        {
-            return new ObjectDefinitionPopulateScope(elements);
-        }
+        //public static ISetUp<WeakObjectDefinition, Tpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
+        //{
+        //    return new ObjectDefinitionPopulateScope(elements);
+        //}
 
         private class ObjectDefinitionPopulateScope : ISetUp<WeakObjectDefinition, Tpn.IValue>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
 
-            public ObjectDefinitionPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements)
+            public ObjectDefinitionPopulateScope(IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
@@ -109,9 +109,9 @@ namespace Tac.SemanticModel
             {
                 var key = new ImplicitKey(Guid.NewGuid());
 
-                var box = new Box<IResolve<IFrontendCodeElement>[]>();
+                var box = new Box<IReadOnlyList< OrType<IResolve<IFrontendCodeElement>,IError>>>();
                 var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box));
-                box.Fill(elements.Select(x => x.Run(myScope, context).Resolve).ToArray());
+                box.Fill(elements.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, key, new PlaceholderValueConverter());
                 // ugh! an object is a type

@@ -391,9 +391,9 @@ namespace Tac.Frontend
 
     internal class WeakObjectConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, OrType<WeakObjectDefinition, WeakModuleDefinition>>
     {
-        private readonly Box<IResolve<IFrontendCodeElement>[]> box;
+        private readonly Box<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>, IError>>> box;
 
-        public WeakObjectConverter(Box<IResolve<IFrontendCodeElement>[]> box)
+        public WeakObjectConverter(Box<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>, IError>>> box)
         {
             this.box = box;
         }

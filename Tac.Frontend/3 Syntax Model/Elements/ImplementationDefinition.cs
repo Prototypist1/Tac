@@ -125,22 +125,22 @@ namespace Tac.SemanticModel
             return TokenMatching<ISetUp<WeakImplementationDefinition, Tpn.IValue>>.MakeNotMatch(match.Context);
         }
         
-        public static ISetUp<WeakImplementationDefinition, Tpn.IValue> PopulateScope(
-                                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition,
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-                ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
-                string contextName,
-                string parameterName)
-        {
-            return new PopulateScopeImplementationDefinition(
-                                 contextDefinition,
-                 parameterDefinition,
-                 elements,
-                 output,
-                 contextName,
-                 parameterName);
-        }
+        //public static ISetUp<WeakImplementationDefinition, Tpn.IValue> PopulateScope(
+        //                        ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition,
+        //        ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+        //        ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
+        //        ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
+        //        string contextName,
+        //        string parameterName)
+        //{
+        //    return new PopulateScopeImplementationDefinition(
+        //                         contextDefinition,
+        //         parameterDefinition,
+        //         elements,
+        //         output,
+        //         contextName,
+        //         parameterName);
+        //}
         
         private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition, Tpn.IValue>
         {
@@ -185,12 +185,12 @@ namespace Tac.SemanticModel
                 }),new WeakTypeReferenceConverter());
 
                 var innerBox = new Box<Tpn.TypeProblem2.Method>();
-                var linesBox = new Box<IResolve<IFrontendCodeElement>[]>();
+                var linesBox = new Box<OrType< IResolve<IFrontendCodeElement>,IError>[]>();
                 var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
                 var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
                 innerBox.Fill(inner);
-                linesBox.Fill(elements.Select(y => y.Run(inner, context).Resolve).ToArray());
+                linesBox.Fill(elements.Select(y => y.Convert(x=>x.Run(inner, context).Resolve)).ToArray());
 
                var innerValue = context.TypeProblem.CreateValue(outer, 
                     new GenericNameKey(new NameKey("method"), new[] {

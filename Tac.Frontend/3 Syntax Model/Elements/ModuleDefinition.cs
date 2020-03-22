@@ -116,12 +116,12 @@ namespace Tac.SemanticModel
         }
 
 
-        public static ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
-                NameKey nameKey)
-        {
-            return new ModuleDefinitionPopulateScope(elements,
-                nameKey);
-        }
+        //public static ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
+        //        NameKey nameKey)
+        //{
+        //    return new ModuleDefinitionPopulateScope(elements,
+        //        nameKey);
+        //}
 
 
         private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>
