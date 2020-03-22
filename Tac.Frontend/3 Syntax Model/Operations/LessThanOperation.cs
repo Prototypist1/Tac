@@ -11,6 +11,7 @@ using Tac.Model.Operations;
 using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel.CodeStuff;
+using Prototypist.Toolbox;
 
 namespace Tac.Parser
 {
@@ -38,7 +39,7 @@ namespace Tac.SemanticModel.CodeStuff
 
     internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILessThanOperation>
     {
-        public WeakLessThanOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
+        public WeakLessThanOperation(OrType<IBox<IFrontendCodeElement>,IError> left, OrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
         
@@ -47,7 +48,9 @@ namespace Tac.SemanticModel.CodeStuff
             var (toBuild, maker) = LessThanOperation.Create();
             return new BuildIntention<ILessThanOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
+                maker.Build(
+                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }

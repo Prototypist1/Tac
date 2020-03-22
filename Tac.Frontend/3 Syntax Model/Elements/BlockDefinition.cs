@@ -85,9 +85,9 @@ namespace Tac.SemanticModel
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] Elements { get; }
+            private IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> Elements { get; }
 
-            public BlockDefinitionPopulateScope(OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] elements)
+            public BlockDefinitionPopulateScope(IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }

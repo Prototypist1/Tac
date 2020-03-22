@@ -91,10 +91,10 @@ namespace Tac.SemanticModel
 
         private class EntryPointDefinitionPopulateScope : ISetUp<WeakEntryPointDefinition, Tpn.IScope>
         {
-            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] elements;
+            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
 
             public EntryPointDefinitionPopulateScope(
-                OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>[] elements
+                IReadOnlyList< OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements
                 )
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));

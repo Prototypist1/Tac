@@ -10,6 +10,7 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
+using Prototypist.Toolbox;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -42,7 +43,7 @@ namespace Tac.SemanticModel.Operations
     {
         public const string Identifier = "*";
 
-        public WeakMultiplyOperation(IBox<IFrontendCodeElement> left, IBox<IFrontendCodeElement> right) : base(left, right)
+        public WeakMultiplyOperation(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         
@@ -51,7 +52,9 @@ namespace Tac.SemanticModel.Operations
             var (toBuild, maker) = MultiplyOperation.Create();
             return new BuildIntention<IMultiplyOperation>(toBuild, () =>
             {
-                maker.Build(Left.GetValue().ConvertElementOrThrow(context), Right.GetValue().ConvertElementOrThrow(context));
+                maker.Build(
+                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
 

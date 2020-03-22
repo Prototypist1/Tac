@@ -34,7 +34,7 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), new NameKey("test module")));
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>, IError>>>(Array.Empty<OrType<IResolve<IFrontendCodeElement>, IError>>()), new NameKey("test module")));
 
             foreach (var dependency in dependencies)
             {
