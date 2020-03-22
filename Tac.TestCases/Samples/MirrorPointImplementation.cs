@@ -68,28 +68,28 @@ module mirror-module {
                     new List<IsStatic>() {
                         new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false) ,false) }),
                 new[] {
-                    AssignOperation.CreateAndBuild(
-                    ImplementationDefinition.CreateAndBuild(
+                    new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                    new OrType<ICodeElement, IError>(ImplementationDefinition.CreateAndBuild(
                         new EmptyType(),
                         context,
                         input,
                         implementationScope,
                         new ICodeElement[] {
                                 AssignOperation.CreateAndBuild(
-                                    PathOperation.CreateAndBuild(MemberReference.CreateAndBuild(context),MemberReference.CreateAndBuild(localX)),
-                                    MemberReference.CreateAndBuild(temp)
+                                    new OrType<ICodeElement, IError>(PathOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
+                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(temp))
                                     ),
                                 AssignOperation.CreateAndBuild(
-                                    PathOperation.CreateAndBuild(MemberReference.CreateAndBuild(context),MemberReference.CreateAndBuild(localY)),
-                                    PathOperation.CreateAndBuild(MemberReference.CreateAndBuild(context),MemberReference.CreateAndBuild(localX))
+                                    new OrType<ICodeElement, IError>(PathOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY)))),
+                                    new OrType<ICodeElement, IError>(PathOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX))))
                                     ),
                                 AssignOperation.CreateAndBuild(
-                                    MemberReference.CreateAndBuild(temp),
-                                    PathOperation.CreateAndBuild(MemberReference.CreateAndBuild(context),MemberReference.CreateAndBuild(localY))
+                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(temp)),
+                                    new OrType<ICodeElement, IError>(PathOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
                                     )
                         },
-                        Array.Empty<ICodeElement>()),
-                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))
+                        Array.Empty<ICodeElement>())),
+                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))))
                 },
                 new NameKey("mirror-module"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));

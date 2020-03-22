@@ -1,4 +1,5 @@
 ﻿
+using Prototypist.Toolbox;
 using Tac.Model.Elements;
 
 namespace Tac.Model
@@ -11,6 +12,6 @@ namespace Tac.Model
 
     public interface ICodeElement: IConvertable
     {
-        IVerifiableType Returns();
+        OrType<IVerifiableType, IError> Returns();
     }
 }

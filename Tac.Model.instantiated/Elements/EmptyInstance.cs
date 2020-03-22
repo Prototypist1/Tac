@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac.Model.Elements;
@@ -17,9 +18,9 @@ namespace Tac.Model.Instantiated.Elements
             return context.EmptyInstance(this);
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return new EmptyType();
+            return new OrType<IVerifiableType, IError>(new EmptyType());
         }
 
         #endregion

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -33,9 +34,9 @@ namespace Tac.Model.Instantiated
             return context.ImplementationDefinition(this);
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return ImplementationType.CreateAndBuild(ParameterDefinition.Type,OutputType, ContextDefinition.Type);
+            return new OrType<IVerifiableType, IError>(ImplementationType.CreateAndBuild(ParameterDefinition.Type,OutputType, ContextDefinition.Type));
         }
 
         #endregion

@@ -48,9 +48,9 @@ module pair-type {
             ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
                     new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
-                new ICodeElement[] {
-                    AssignOperation.CreateAndBuild(
-                        MethodDefinition.CreateAndBuild(
+                new [] {
+                    new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                        new OrType<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
                             new NumberType(),
                             pairTypeNumber,
                             input,
@@ -66,14 +66,14 @@ module pair-type {
                                                 }),
                                             new IAssignOperation[]{
                                                 AssignOperation.CreateAndBuild(
-                                                    MemberReference.CreateAndBuild(input),
-                                                    MemberReference.CreateAndBuild(localX)),
+                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
+                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX))),
                                                 AssignOperation.CreateAndBuild(
-                                                    MemberReference.CreateAndBuild(input),
-                                                    MemberReference.CreateAndBuild(localY))
+                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
+                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY)))
                                             })))},
-                            Array.Empty<ICodeElement>()),
-                    MemberReference.CreateAndBuild(pairify))},
+                            Array.Empty<ICodeElement>())),
+                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(pairify))))},
                 new NameKey("pair-type"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
         }

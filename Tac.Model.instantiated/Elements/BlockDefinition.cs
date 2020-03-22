@@ -24,9 +24,9 @@ namespace Tac.Model.Instantiated
         {
             return context.BlockDefinition(this);
         }
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType,IError> Returns()
         {
-            return new EmptyType();
+            return new OrType<IVerifiableType, IError>(new EmptyType());
         }
         
         #endregion

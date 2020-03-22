@@ -30,12 +30,7 @@ namespace Tac.Parser
         public string Message { get; }
     }
 
-    internal static class ErrorExtensions{
-        public static OrType<TT, IError> Convert<T, TT>(this OrType<T, IError> self, Func<T, TT> transform)
-            =>
-            self.SwitchReturns(x => new OrType<TT, IError>(transform(x)), y => new OrType<TT, IError>(y));
-        
-    }
+
 
     internal partial class MakerRegistry {
 

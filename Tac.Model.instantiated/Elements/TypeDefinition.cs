@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Tac.Model;
@@ -86,9 +87,9 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return this;
+            return new OrType<IVerifiableType, IError>( this);
         }
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking

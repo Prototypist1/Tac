@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
@@ -18,9 +19,9 @@ namespace Tac.Model.Instantiated
             return context.MemberReferance(this);
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return MemberDefinition.Type;
+            return new OrType<IVerifiableType, IError>(MemberDefinition.Type);
         }
 
         public void Build(IMemberDefinition memberDefinition)

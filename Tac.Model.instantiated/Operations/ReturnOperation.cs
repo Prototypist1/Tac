@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
@@ -20,9 +21,9 @@ namespace Tac.Model.Instantiated
             return context.ReturnOperation(this);
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return new EmptyType();
+            return new OrType<IVerifiableType, IError>(new EmptyType());
         }
 
         private ReturnOperation() { }

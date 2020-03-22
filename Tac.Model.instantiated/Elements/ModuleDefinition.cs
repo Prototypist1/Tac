@@ -46,9 +46,9 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x=>x.Value).ToList());
+            return new OrType<IVerifiableType, IError>(InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x=>x.Value).ToList()));
         }
     }
 

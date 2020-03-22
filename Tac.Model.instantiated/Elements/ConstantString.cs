@@ -1,4 +1,5 @@
-﻿using Tac.Model.Elements;
+﻿using Prototypist.Toolbox;
+using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
@@ -17,9 +18,9 @@ namespace Tac.Model.Instantiated
             return context.ConstantString(this);
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return new StringType();
+            return new OrType<IVerifiableType, IError>(new StringType());
         }
 
         #endregion

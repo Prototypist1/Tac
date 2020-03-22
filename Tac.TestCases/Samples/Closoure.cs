@@ -25,9 +25,9 @@ namespace Tac.Tests.Samples
                 Scope.CreateAndBuild(
                     new List<IsStatic>() {
                         new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(), false) ,false) }),
-                new[]{
-                    AssignOperation.CreateAndBuild(
-                        MethodDefinition.CreateAndBuild(
+                new []{
+                    new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                        new OrType<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
                             new NumberType(),
                             MethodType.CreateAndBuild(
                                 new NumberType(),
@@ -43,17 +43,17 @@ namespace Tac.Tests.Samples
                                         innerMethodScope,
                                         new OrType<ICodeElement,IError>[]{
                                             new OrType<ICodeElement,IError>( AssignOperation.CreateAndBuild(
-                                                AddOperation.CreateAndBuild(
-                                                    MemberReference.CreateAndBuild(x),
-                                                    MemberReference.CreateAndBuild(y)),
-                                                MemberReference.CreateAndBuild(x))),
+                                                new OrType<ICodeElement, IError>(AddOperation.CreateAndBuild(
+                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(x)),
+                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(y)))),
+                                                new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(x)))),
                                             new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(
                                                 MemberReference.CreateAndBuild(x)))
                                         },
                                         Array.Empty<ICodeElement>())
                                     ))},
-                            Array.Empty<ICodeElement>()),
-                        MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))
+                            Array.Empty<ICodeElement>())),
+                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))))
                  },
                 new NameKey("closoure"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));

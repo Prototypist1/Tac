@@ -1,4 +1,5 @@
 ﻿using Tac.Model.Elements;
+using Prototypist.Toolbox;
 
 namespace Tac.Model.Instantiated
 {
@@ -17,9 +18,9 @@ namespace Tac.Model.Instantiated
             return context.ConstantBool(this);
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return new BooleanType();
+            return new OrType<IVerifiableType, IError>(new BooleanType());
         }
 
         #endregion

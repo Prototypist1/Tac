@@ -45,9 +45,9 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return new EntryPointType();
+            return new OrType<IVerifiableType, IError>(new EntryPointType());
         }
 
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context) where TBacking : IBacking
@@ -93,9 +93,9 @@ namespace Tac.Model.Instantiated
             return context.MethodDefinition(this);
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType, IError> Returns()
         {
-            return MethodType.CreateAndBuild(InputType, OutputType);
+            return  new OrType<IVerifiableType, IError>(MethodType.CreateAndBuild(InputType, OutputType));
         }
         
         #endregion

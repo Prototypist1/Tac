@@ -1,5 +1,6 @@
 ﻿using Prototypist.Toolbox;
 using System;
+using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
@@ -18,7 +19,7 @@ namespace Tac.Model.Instantiated
 
         public OrType<ICodeElement, IError> Left => buildableLeft.Get();
         public OrType<ICodeElement, IError> Right => buildableRight.Get();
-        public OrType<ICodeElement, IError>[] Operands => new[] { Left, Right };
+        public IReadOnlyList<OrType<ICodeElement, IError>> Operands => new[] { Left, Right };
 
         private AddOperation() { }
 
@@ -34,9 +35,9 @@ namespace Tac.Model.Instantiated
             return context.AddOperation(this);
         }
 
-        public IVerifiableType Returns()
+        public OrType<IVerifiableType,IError> Returns()
         {
-            return new NumberType();
+            return new OrType<IVerifiableType, IError>(new NumberType());
         }
         
         public static IAddOperation CreateAndBuild(OrType<ICodeElement, IError> left, OrType<ICodeElement, IError> right)

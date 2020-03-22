@@ -29,42 +29,42 @@ namespace Tac.Tests.Samples
                 Model.Instantiated.ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
                         new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false), false) }),
-                    new ICodeElement[]{
-                        AssignOperation.CreateAndBuild(
-                                MethodDefinition.CreateAndBuild(
+                    new OrType<ICodeElement, IError>[]{
+                        new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                                new OrType<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
                                     new NumberType(),
                                     new NumberType(),
                                     input,
                                     methodScope,
                                     new OrType<ICodeElement,IError>[]{
                                             new OrType<ICodeElement,IError>(ElseOperation.CreateAndBuild(
-                                                IfOperation.CreateAndBuild(
-                                                    LessThanOperation.CreateAndBuild(
-                                                        MemberReference.CreateAndBuild(input),
-                                                        ConstantNumber.CreateAndBuild(2)),
-                                                    BlockDefinition.CreateAndBuild(
+                                                new OrType<ICodeElement, IError>(IfOperation.CreateAndBuild(
+                                                    new OrType<ICodeElement, IError>(LessThanOperation.CreateAndBuild(
+                                                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
+                                                        new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)))),
+                                                    new OrType<ICodeElement, IError>(BlockDefinition.CreateAndBuild(
                                                         ifBlockScope,
                                                         new OrType<ICodeElement,IError>[]{
                                                             new OrType<ICodeElement,IError>(
                                                                 ReturnOperation.CreateAndBuild(
                                                                     ConstantNumber.CreateAndBuild(1)))},
-                                                        Array.Empty<ICodeElement>())),
-                                                BlockDefinition.CreateAndBuild(
+                                                        Array.Empty<ICodeElement>())))),
+                                                new OrType<ICodeElement, IError>(BlockDefinition.CreateAndBuild(
                                                     elseBlock,
                                                     new OrType<ICodeElement,IError>[]{
                                                        new OrType<ICodeElement,IError>(
                                                         ReturnOperation.CreateAndBuild(
                                                             MultiplyOperation.CreateAndBuild(
-                                                                NextCallOperation.CreateAndBuild(
-                                                                    SubtractOperation.CreateAndBuild(
-                                                                        MemberReference.CreateAndBuild(input),
-                                                                        ConstantNumber.CreateAndBuild(1)),
-                                                                    MemberReference.CreateAndBuild(fac)),
-                                                                MemberReference.CreateAndBuild(input))))},
-                                                    Array.Empty<ICodeElement>())))},
-                                    Array.Empty<ICodeElement>()),
-                                MemberReference.CreateAndBuild(fac)
-                        ) },
+                                                                new OrType<ICodeElement, IError>(NextCallOperation.CreateAndBuild(
+                                                                    new OrType<ICodeElement, IError>(SubtractOperation.CreateAndBuild(
+                                                                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
+                                                                        new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(1)))),
+                                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(fac)))),
+                                                                new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)))))},
+                                                    Array.Empty<ICodeElement>()))))},
+                                    Array.Empty<ICodeElement>())),
+                                new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(fac))
+                        )) },
                     new NameKey("factorial"),
                     EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>())
                     );

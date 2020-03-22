@@ -16,15 +16,15 @@ namespace Tac.Tests.Samples
              Scope.CreateAndBuild(
                 new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), false), false) }),
             new[] {
-                AssignOperation.CreateAndBuild(
-                    MultiplyOperation.CreateAndBuild(
-                        AddOperation.CreateAndBuild(
-                            ConstantNumber.CreateAndBuild(2),
-                            ConstantNumber.CreateAndBuild(5)),
-                        AddOperation.CreateAndBuild(
-                            ConstantNumber.CreateAndBuild(2),
-                            ConstantNumber.CreateAndBuild(7))),
-                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false)))},
+                new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                    new OrType<ICodeElement, IError>(MultiplyOperation.CreateAndBuild(
+                        new OrType<ICodeElement, IError>(AddOperation.CreateAndBuild(
+                            new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
+                            new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(5)))),
+                        new OrType<ICodeElement, IError>(AddOperation.CreateAndBuild(
+                            new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
+                            new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(7)))))),
+                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false)))))},
             new NameKey("math-module"),
             EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement,IError>>(), Array.Empty<ICodeElement>()));
 

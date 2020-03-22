@@ -1,11 +1,12 @@
 ﻿using Prototypist.Toolbox;
+using System.Collections.Generic;
 using Tac.Model.Elements;
 
 namespace Tac.Model.Operations
 {
     public interface IOperation : ICodeElement
     {
-        OrType<ICodeElement,IError>[] Operands { get; }
+        IReadOnlyList<OrType<ICodeElement,IError>> Operands { get; }
     }
 
     public interface IBinaryOperation<TLeft, TRight> : IOperation
