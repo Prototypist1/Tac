@@ -46,14 +46,14 @@ namespace Tac.SemanticModel.Operations
         public WeakPathOperation(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
-        
+
         public override IBuildIntention<IPathOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = PathOperation.Create();
             return new BuildIntention<IPathOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)), 
+                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)),
                     Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
@@ -74,8 +74,9 @@ namespace Tac.SemanticModel.Operations
                 .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching)
             {
-                if (tokenMatching.Tokens[tokenMatching.Tokens.Count - 1] is ElementToken elementToken && 
-                    elementToken.Tokens.Single() is AtomicToken atomic ) {
+                if (tokenMatching.Tokens[tokenMatching.Tokens.Count - 1] is ElementToken elementToken &&
+                    elementToken.Tokens.Single() is AtomicToken atomic)
+                {
                     var left = matching.Context.ParseLine(match.perface);
                     //var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);
 
@@ -93,10 +94,10 @@ namespace Tac.SemanticModel.Operations
 
         private class WeakPathOperationPopulateScope : ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
+            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
             private readonly string name;
 
-            public WeakPathOperationPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
+            public WeakPathOperationPopulateScope(OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left,
                 string name)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -105,23 +106,50 @@ namespace Tac.SemanticModel.Operations
 
             public ISetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var nextLeft = left.Run(scope, context);
-                var member = context.TypeProblem.CreateHopefulMember(nextLeft.SetUpSideNode.CastTo<Tpn.IValue>(), new NameKey(name), new WeakMemberDefinitionConverter(false,new NameKey(name)));
+                var nextLeft = left.Convert(x => x.Run(scope, context));
+
+                OrType<Tpn.TypeProblem2.Member, IError> member;
+
+
+                if (nextLeft.Is1(out var leftResult))
+                {
+                    if (leftResult.SetUpSideNode is Tpn.IValue value)
+                    {
+                        member = new OrType<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
+                            value,
+                            new NameKey(name),
+                            new WeakMemberDefinitionConverter(false, new NameKey(name))));
+                    }
+                    else
+                    {
+                        member = new OrType<Tpn.TypeProblem2.Member, IError>(new Error(""));
+                        // todo better error handling 
+                        throw new Exception($"can not . off {leftResult.SetUpSideNode}");
+                    }
+                }
+                else if (nextLeft.Is2(out var rightResult))
+                {
+                    member = new OrType<Tpn.TypeProblem2.Member, IError>(new Error("We needed ", rightResult));
+                }
+                else {
+                    throw new Exception("uhh we are outside the else");
+                }
 
                 return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
-                    left.Run(scope, context).Resolve,
-                     member),member);
+                    nextLeft.Convert(x=>x.Resolve),
+                    member), 
+                    member);
             }
         }
 
         private class WeakPathOperationResolveReference : IResolve<WeakPathOperation>
         {
-            readonly IResolve<IFrontendCodeElement> left;
-            readonly Tpn.TypeProblem2.Member member;
+            readonly OrType<IResolve<IFrontendCodeElement>,IError> left;
+            readonly OrType<Tpn.TypeProblem2.Member,IError> member;
 
             public WeakPathOperationResolveReference(
-                IResolve<IFrontendCodeElement> resolveReference, 
-                Tpn.TypeProblem2.Member member)
+                OrType<IResolve<IFrontendCodeElement>, IError> resolveReference,
+                OrType<Tpn.TypeProblem2.Member, IError> member)
             {
                 left = resolveReference ?? throw new ArgumentNullException(nameof(resolveReference));
                 this.member = member ?? throw new ArgumentNullException(nameof(member));
@@ -129,11 +157,11 @@ namespace Tac.SemanticModel.Operations
 
             public IBox<WeakPathOperation> Run(Tpn.ITypeSolution context)
             {
-                var convertedMember = context.GetMember(member);
-
                 var res = new Box<WeakPathOperation>(new WeakPathOperation(
-                    left.Run(context),
-                    new Box<WeakMemberReference>(new WeakMemberReference(convertedMember))));
+                    left.Convert(x => x.Run(context)),
+                    member.SwitchReturns(
+                        x => new OrType<IBox<IFrontendCodeElement>, IError>(new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(x)))),
+                        y => new OrType<IBox<IFrontendCodeElement>, IError>(new Error("", y)))));
                 return res;
             }
         }

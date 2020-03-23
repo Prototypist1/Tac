@@ -14,7 +14,7 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
-
+using Prototypist.Toolbox;
 
 namespace Tac.Parser
 {
@@ -98,10 +98,10 @@ namespace Tac.SemanticModel
         
         private class TypeDefinitionPopulateScope : ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements;
+            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly IKey key;
 
-            public TypeDefinitionPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>[] elements, IKey typeName)
+            public TypeDefinitionPopulateScope(IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements, IKey typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
@@ -111,8 +111,8 @@ namespace Tac.SemanticModel
             {
                 var type= context.TypeProblem.CreateType(scope, key,new WeakTypeDefinitionConverter());
                 var typeReference = context.TypeProblem.CreateTypeReference(scope, key, new WeakTypeReferenceConverter());
-                elements.Select(x => x.Run(type, context)).ToArray();
-                return new SetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference>( new TypeReferanceMaker.TypeReferanceResolveReference(typeReference), typeReference);
+                elements.Select(x => x.Convert(y=>y.Run(type, context))).ToArray();
+                return new SetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference>( new TypeReferanceMaker.TypeReferanceResolveReference(typeReference), new OrType<Tpn.TypeProblem2.TypeReference, IError>(typeReference));
             }
         }
     }

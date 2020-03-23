@@ -220,7 +220,7 @@ namespace Tac.SemanticModel.CodeStuff
                 return new SetUpResult<TFrontendCodeElement, Tpn.IValue>(new BinaryResolveReferance(
                     nextLeft.Convert(x=>x.Resolve),
                     nextRight.Convert(x => x.Resolve),
-                    make), value);
+                    make), new OrType<Tpn.IValue, IError>(value));
             }
         }
 
@@ -354,7 +354,7 @@ namespace Tac.SemanticModel.CodeStuff
                     nextLeft.Resolve,
                     nextRight.Resolve,
                     make
-                    ), type);
+                    ), new OrType<Tpn.TypeProblem2.TypeReference, IError>( type));
             }
         }
 

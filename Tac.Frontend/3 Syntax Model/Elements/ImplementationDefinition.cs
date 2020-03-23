@@ -209,7 +209,7 @@ namespace Tac.SemanticModel
                 }),new PlaceholderValueConverter());
 
                 return new SetUpResult<WeakImplementationDefinition, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
-                    outer), value);
+                    outer), new OrType<Tpn.IValue, IError>(value));
             }
         }
 

@@ -95,7 +95,7 @@ namespace Tac.SemanticModel.Operations
             {
 
                 var value = context.TypeProblem.CreateValue(scope,new NameKey("number"), new PlaceholderValueConverter());
-                return new SetUpResult<WeakConstantNumber, Tpn.IValue>(new ConstantNumberResolveReferance(dub),value);
+                return new SetUpResult<WeakConstantNumber, Tpn.IValue>(new ConstantNumberResolveReferance(dub), new OrType<Tpn.IValue, IError>(value));
             }
         }
 

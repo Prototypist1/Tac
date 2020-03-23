@@ -93,11 +93,12 @@ namespace Tac.SemanticModel.Operations
 
         private class WeakAssignOperationPopulateScope : ISetUp<WeakAssignOperation, Tpn.IValue>
         {
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left;
-            private readonly ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right;
+            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
+            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> right;
 
-            public WeakAssignOperationPopulateScope(ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> left,
-                ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode> right)
+            public WeakAssignOperationPopulateScope(
+                OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left,
+                OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));;
@@ -106,31 +107,41 @@ namespace Tac.SemanticModel.Operations
             public ISetUpResult<WeakAssignOperation, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
 
-                var nextLeft = left.Run(scope, context);
-                var nextRight = right.Run(scope, context);
+                var nextLeft = left.Convert(x=>x.Run(scope, context));
+                var nextRight = right.Convert(x => x.Run(scope, context));
 
-                if (nextLeft.SetUpSideNode is Tpn.ICanAssignFromMe from && nextRight.SetUpSideNode is Tpn.ICanBeAssignedTo to) {
-                    from.AssignTo(to);
+                if (nextLeft.Is1(out var nextLeft1) && !(nextLeft1.SetUpSideNode is Tpn.ICanAssignFromMe)) {
+                    // I need real error handling
+                    // where does this error??
+                    throw new Exception($"can not assign from {nextLeft1.SetUpSideNode}");
                 }
-                else {
-                    throw new Exception("I need real error handling");
+
+                if (nextRight.Is1(out var nextRight1) && !(nextRight1.SetUpSideNode is Tpn.ICanBeAssignedTo)) {
+                    // I need real error handling
+                    // where does this error??
+                    throw new Exception($"can not assign to {nextRight1.SetUpSideNode}");
                 }
+
+                nextLeft1.SetUpSideNode.SafeCastTo<Tpn.ITypeProblemNode, Tpn.ICanAssignFromMe>().AssignTo(nextRight1.SetUpSideNode.SafeCastTo<Tpn.ITypeProblemNode, Tpn.ICanBeAssignedTo>());
+                
+ 
+                
 
                 return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(
-                    nextLeft.Resolve,
-                    nextRight.Resolve),
+                    nextLeft.Convert(x=>x.Resolve),
+                    nextRight.Convert(x => x.Resolve)),
                     nextLeft.SetUpSideNode.CastTo<Tpn.IValue>());
             }
         }
 
         private class WeakAssignOperationResolveReferance : IResolve<WeakAssignOperation>
         {
-            public readonly IResolve<IFrontendCodeElement> left;
-            public readonly IResolve<IFrontendCodeElement> right;
+            public readonly OrType<IResolve<IFrontendCodeElement>, IError> left;
+            public readonly OrType<IResolve<IFrontendCodeElement>, IError> right;
 
             public WeakAssignOperationResolveReferance(
-                IResolve<IFrontendCodeElement> resolveReferance1,
-                IResolve<IFrontendCodeElement> resolveReferance2)
+                OrType<IResolve<IFrontendCodeElement>,IError> resolveReferance1,
+                OrType<IResolve<IFrontendCodeElement>, IError> resolveReferance2)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
@@ -139,10 +150,9 @@ namespace Tac.SemanticModel.Operations
 
             public IBox<WeakAssignOperation> Run(Tpn.ITypeSolution context)
             {
-                var leftRes = left.Run( context);
                 var res = new Box<WeakAssignOperation>(new WeakAssignOperation(
-                    leftRes,
-                    right.Run( context)));
+                    left.Convert(x=>x.Run(context)),
+                    right.Convert(x => x.Run( context))));
                 return res;
             }
         }

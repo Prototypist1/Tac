@@ -156,7 +156,7 @@ namespace Tac.SemanticModel
 
 
                 return new SetUpResult<WeakMemberReference, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
-                    member),member);
+                    member), new OrType<Tpn.TypeProblem2.Member, IError>(member));
             }
 
         }

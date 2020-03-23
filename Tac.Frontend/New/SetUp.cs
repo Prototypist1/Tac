@@ -10,6 +10,8 @@ using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
+using Prototypist.Toolbox;
+using Tac.Model;
 
 namespace Tac.Infastructure
 {
@@ -34,20 +36,20 @@ namespace Tac.Infastructure
         where TSetUpSideNode : Tpn.ITypeProblemNode
     {
         IResolve<TCodeElement> Resolve { get; }
-        TSetUpSideNode SetUpSideNode { get; }
+        IOrType<TSetUpSideNode, IError> SetUpSideNode { get; }
     }
 
     internal struct SetUpResult<TCodeElement, TSetUpSideNode>: ISetUpResult<TCodeElement, TSetUpSideNode>
         where TSetUpSideNode : Tpn.ITypeProblemNode
     {
-        public SetUpResult(IResolve<TCodeElement> populateBoxes, TSetUpSideNode setUpSideNode)
+        public SetUpResult(IResolve<TCodeElement> populateBoxes, IOrType< TSetUpSideNode,IError> setUpSideNode)
         {
             Resolve = populateBoxes ?? throw new ArgumentNullException(nameof(populateBoxes));
             SetUpSideNode = setUpSideNode;
         }
 
         public IResolve<TCodeElement> Resolve { get; }
-        public TSetUpSideNode SetUpSideNode { get; }
+        public IOrType<TSetUpSideNode, IError> SetUpSideNode { get; }
     }
 
     internal interface ISetUp<out TCodeElement, out TSetUpSideNode>

@@ -22,9 +22,17 @@ namespace Tac.Parser
 {
 
     internal class Error: IError {
+        private IError rightResult;
+
         public Error(string message)
         {
             Message = message ?? throw new ArgumentNullException(nameof(message));
+        }
+
+        public Error(string message,IError rightResult)
+        {
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            this.rightResult = rightResult;
         }
 
         public string Message { get; }

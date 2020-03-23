@@ -71,7 +71,7 @@ namespace Tac.SemanticModel
                 var nameKey = new NameKey(memberName);
                 var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, nameKey,new WeakMemberDefinitionConverter(false,nameKey));
 
-                return new SetUpResult<WeakMemberReference, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member),member);
+                return new SetUpResult<WeakMemberReference, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member), new OrType<Tpn.TypeProblem2.Member, IError>(member));
             }
 
         }

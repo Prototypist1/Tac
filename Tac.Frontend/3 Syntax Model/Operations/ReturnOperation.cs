@@ -46,19 +46,19 @@ namespace Tac.SemanticModel.Operations
 {
     internal class WeakReturnOperation : TrailingOperation, IConvertableFrontendCodeElement<IReturnOperation>
     {
-        public WeakReturnOperation(IBox<IFrontendCodeElement> result)
+        public WeakReturnOperation(OrType< IBox<IFrontendCodeElement>,IError> result)
         {
             Result = result;
         }
         
-        public IBox<IFrontendCodeElement> Result { get; }
+        public OrType<IBox<IFrontendCodeElement>, IError> Result { get; }
         
         public IBuildIntention<IReturnOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = ReturnOperation.Create();
             return new BuildIntention<IReturnOperation>(toBuild, () =>
             {
-                maker.Build(Result.GetValue().ConvertElementOrThrow(context));
+                maker.Build(Result.Convert(x=>x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }
@@ -117,12 +117,12 @@ namespace Tac.SemanticModel.Operations
         //    return new TrailingPopulateScope(left, make, getReturnedValue);
         //}
 
-        public static IResolve<TFrontendCodeElement> PopulateBoxes(IResolve<IConvertableFrontendCodeElement<ICodeElement>> left,
-                TrailingOperation.Make<TFrontendCodeElement> make)
-        {
-            return new TrailingResolveReferance(left,
-                make);
-        }
+        //public static IResolve<TFrontendCodeElement> PopulateBoxes(IResolve<IConvertableFrontendCodeElement<ICodeElement>> left,
+        //        TrailingOperation.Make<TFrontendCodeElement> make)
+        //{
+        //    return new TrailingResolveReferance(left,
+        //        make);
+        //}
 
 
         private class TrailingPopulateScope : ISetUp<TFrontendCodeElement, Tpn.IValue>
@@ -141,7 +141,9 @@ namespace Tac.SemanticModel.Operations
             public ISetUpResult<TFrontendCodeElement, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var nextLeft = left.Convert(x=>x.Run(scope, context));
-                return new SetUpResult<TFrontendCodeElement, Tpn.IValue>(new TrailingResolveReferance(nextLeft.Convert(x=>x.Resolve), make), nextLeft.Convert(x=> getReturnedValue(scope, context, x)));
+                return new SetUpResult<TFrontendCodeElement, Tpn.IValue>(
+                    new TrailingResolveReferance(nextLeft.Convert(x=>x.Resolve), make), 
+                    nextLeft.Convert(x=> getReturnedValue(scope, context, x)));
             }
         }
 

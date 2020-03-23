@@ -112,7 +112,7 @@ namespace Tac.SemanticModel
                         y=> new OrType<IResolve<IFrontendCodeElement>, IError>(y)))
                 .ToArray());
 
-                return new SetUpResult<WeakEntryPointDefinition, Tpn.IScope>(new EntryPointDefinitionResolveReferance(innerScope), innerScope);
+                return new SetUpResult<WeakEntryPointDefinition, Tpn.IScope>(new EntryPointDefinitionResolveReferance(innerScope), new OrType<Tpn.IScope, IError>(innerScope));
             }
         }
 

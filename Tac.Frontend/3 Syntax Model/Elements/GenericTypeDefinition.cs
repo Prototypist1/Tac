@@ -124,7 +124,7 @@ namespace Tac.SemanticModel
                 // what on earth does this return?
                 var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),new WeakGenericTypeDefinitionConverter(nameKey, genericParameters));
                 var nextLines = lines.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray();
-                return new SetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), myScope);
+                return new SetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), new OrType<Tpn.IExplicitType, IError>(myScope));
             }
         }
 

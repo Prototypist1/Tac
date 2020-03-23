@@ -117,7 +117,7 @@ namespace Tac.SemanticModel
                 // ugh! an object is a type
                 //
 
-                return new SetUpResult<WeakObjectDefinition, Tpn.IValue>(new ResolveReferanceObjectDefinition(myScope),value);
+                return new SetUpResult<WeakObjectDefinition, Tpn.IValue>(new ResolveReferanceObjectDefinition(myScope), new OrType<Tpn.IValue, IError>(value));
             }
         }
 
