@@ -10,7 +10,7 @@ namespace Tac.Model.Instantiated
     public class EntryPointDefinition: IEntryPointDefinition,IEntryPointDefinitionBuilder
     {
         private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new Buildable<IReadOnlyList<ICodeElement>>();
-        private readonly Buildable<IReadOnlyList<OrType<ICodeElement, IError>>> buildableBody = new Buildable<IReadOnlyList<OrType<ICodeElement, IError>>>();
+        private readonly Buildable<IReadOnlyList<IOrType<ICodeElement, IError>>> buildableBody = new Buildable<IReadOnlyList<IOrType<ICodeElement, IError>>>();
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
 
         private EntryPointDefinition() { }
@@ -21,13 +21,13 @@ namespace Tac.Model.Instantiated
         }
 
         public IFinalizedScope Scope { get => buildableScope.Get(); }
-        public IReadOnlyList<OrType<ICodeElement, IError>> Body { get => buildableBody.Get(); }
+        public IReadOnlyList<IOrType<ICodeElement, IError>> Body { get => buildableBody.Get(); }
         public IReadOnlyList<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
 
 
         public void Build(
             IFinalizedScope scope,
-            IReadOnlyList<OrType<ICodeElement, IError>> body,
+            IReadOnlyList<IOrType<ICodeElement, IError>> body,
             IReadOnlyList<ICodeElement> staticInitailizers)
         {
             buildableScope.Set(scope);
@@ -37,7 +37,7 @@ namespace Tac.Model.Instantiated
 
         public static IEntryPointDefinition CreateAndBuild(
             IFinalizedScope scope,
-            IReadOnlyList<OrType<ICodeElement, IError>> body,
+            IReadOnlyList<IOrType<ICodeElement, IError>> body,
             IReadOnlyList<ICodeElement> staticInitailizers)
         {
             var (x, y) = Create();
@@ -45,7 +45,7 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return new OrType<IVerifiableType, IError>(new EntryPointType());
         }
@@ -61,7 +61,7 @@ namespace Tac.Model.Instantiated
 
         void Build(
             IFinalizedScope scope,
-            IReadOnlyList<OrType<ICodeElement, IError>> body,
+            IReadOnlyList<IOrType<ICodeElement, IError>> body,
             IReadOnlyList<ICodeElement> staticInitailizers);
     }
 
@@ -69,7 +69,7 @@ namespace Tac.Model.Instantiated
         IMethodDefinitionBuilder
     {
         private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new Buildable<IReadOnlyList<ICodeElement>>();
-        private readonly Buildable<IReadOnlyList<OrType<ICodeElement, IError>>> buildableBody = new Buildable<IReadOnlyList<OrType<ICodeElement, IError>>>();
+        private readonly Buildable<IReadOnlyList<IOrType<ICodeElement, IError>>> buildableBody = new Buildable<IReadOnlyList<IOrType<ICodeElement, IError>>>();
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
         private readonly Buildable<IVerifiableType> buildableInputType = new Buildable<IVerifiableType>();
         private readonly Buildable<IVerifiableType> buildableOutputType = new Buildable<IVerifiableType>();
@@ -83,7 +83,7 @@ namespace Tac.Model.Instantiated
         public IVerifiableType OutputType => buildableOutputType.Get();
         public IMemberDefinition ParameterDefinition => buildableParameterDefinition.Get();
         public IFinalizedScope Scope { get => buildableScope.Get(); }
-        public IReadOnlyList<OrType<ICodeElement, IError>> Body { get => buildableBody.Get(); }
+        public IReadOnlyList<IOrType<ICodeElement, IError>> Body { get => buildableBody.Get(); }
         public IReadOnlyList<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
 
 
@@ -93,7 +93,7 @@ namespace Tac.Model.Instantiated
             return context.MethodDefinition(this);
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return  new OrType<IVerifiableType, IError>(MethodType.CreateAndBuild(InputType, OutputType));
         }
@@ -105,7 +105,7 @@ namespace Tac.Model.Instantiated
             IVerifiableType outputType,
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
-            IReadOnlyList<OrType<ICodeElement, IError>> body,
+            IReadOnlyList<IOrType<ICodeElement, IError>> body,
             IReadOnlyList<ICodeElement> staticInitailizers)
         {
             buildableInputType.Set(inputType);
@@ -127,7 +127,7 @@ namespace Tac.Model.Instantiated
             IVerifiableType outputType,
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
-            IReadOnlyList<OrType<ICodeElement, IError>> body,
+            IReadOnlyList<IOrType<ICodeElement, IError>> body,
             IReadOnlyList<ICodeElement> staticInitailizers)
         {
             var (x, y) = Create();
@@ -143,7 +143,7 @@ namespace Tac.Model.Instantiated
             IVerifiableType outputType,
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
-            IReadOnlyList<OrType<ICodeElement, IError>> body,
+            IReadOnlyList<IOrType<ICodeElement, IError>> body,
             IReadOnlyList<ICodeElement> staticInitailizers);
     }
 }

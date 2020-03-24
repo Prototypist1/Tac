@@ -44,7 +44,7 @@ namespace Tac.SemanticModel.Operations
     internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IElseOperation>
     {
         // right should have more validation
-        public WeakElseOperation(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakElseOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         

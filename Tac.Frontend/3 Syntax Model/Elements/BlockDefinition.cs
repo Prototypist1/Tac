@@ -37,7 +37,7 @@ namespace Tac.SemanticModel
     internal class WeakBlockDefinition : WeakAbstractBlockDefinition<IBlockDefinition>
     {
         public WeakBlockDefinition(
-            IReadOnlyList<OrType<IBox<IFrontendCodeElement>, IError>> body,
+            IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>> body,
             IBox<WeakScope> scope,
             IReadOnlyList<IIsPossibly<IFrontendCodeElement>> staticInitailizers) :
             base(scope, body, staticInitailizers)
@@ -85,16 +85,16 @@ namespace Tac.SemanticModel
             // TODO object??
             // is it worth adding another T?
             // this is the type the backend owns
-            private IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> Elements { get; }
+            private IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> Elements { get; }
 
-            public BlockDefinitionPopulateScope(IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements)
+            public BlockDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements)
             {
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
             public ISetUpResult<WeakBlockDefinition, Tpn.IScope> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var box = new Box<OrType<IResolve<IFrontendCodeElement>,IError>[]>();
+                var box = new Box<IOrType<IResolve<IFrontendCodeElement>,IError>[]>();
                 var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));
                 box.Fill(Elements.Select(or=>or.Convert(y=>y.Run(scope,context).Resolve)).ToArray());
                 return new SetUpResult<WeakBlockDefinition, Tpn.IScope>(new ResolveReferanceBlockDefinition(myScope), new OrType<Tpn.IScope,IError>( myScope));

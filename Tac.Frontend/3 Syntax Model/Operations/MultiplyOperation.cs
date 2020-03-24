@@ -43,7 +43,7 @@ namespace Tac.SemanticModel.Operations
     {
         public const string Identifier = "*";
 
-        public WeakMultiplyOperation(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakMultiplyOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         

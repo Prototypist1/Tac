@@ -19,7 +19,7 @@ namespace Tac.Model.Instantiated
             return context.MemberReferance(this);
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return new OrType<IVerifiableType, IError>(MemberDefinition.Type);
         }

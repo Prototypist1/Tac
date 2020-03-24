@@ -98,10 +98,10 @@ namespace Tac.SemanticModel
         
         private class TypeDefinitionPopulateScope : ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>
         {
-            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly IKey key;
 
-            public TypeDefinitionPopulateScope(IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements, IKey typeName)
+            public TypeDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements, IKey typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));

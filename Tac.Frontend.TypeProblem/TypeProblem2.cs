@@ -375,9 +375,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            public class OrType : TypeProblemNode<OrType,TOrType>, IHaveMembers
+            public class OrType : TypeProblemNode<IOrType,TOrType>, IHaveMembers
             {
-                public OrType(TypeProblem2 problem, string debugName, IConvertTo<OrType,TOrType> converter) : base(problem, debugName, converter)
+                public OrType(TypeProblem2 problem, string debugName, IConvertTo<IOrType,TOrType> converter) : base(problem, debugName, converter)
                 {
                 }
             }
@@ -424,7 +424,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly Dictionary<IScope, Dictionary<IKey, Object>> objects = new Dictionary<IScope, Dictionary<IKey, Object>>();
             private readonly Dictionary<IScope, Dictionary<IKey, IHaveMembers>> genericOverlays = new Dictionary<IScope, Dictionary<IKey, IHaveMembers>>();
 
-            private readonly Dictionary<OrType, (TypeReference, TypeReference)> orTypeComponets = new Dictionary<OrType, (TypeReference, TypeReference)>();
+            private readonly Dictionary<IOrType, (TypeReference, TypeReference)> orTypeComponets = new Dictionary<IOrType, (TypeReference, TypeReference)>();
 
             private readonly Dictionary<IScope, Dictionary<IKey, Member>> possibleMembers = new Dictionary<IScope, Dictionary<IKey, Member>>();
             private readonly Dictionary<IHaveHopefulMembers, Dictionary<IKey, Member>> hopefulMembers = new Dictionary<IHaveHopefulMembers, Dictionary<IKey, Member>>();
@@ -637,7 +637,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public OrType CreateOrType(IScope s, IKey key, TypeReference setUpSideNode1, TypeReference setUpSideNode2, IConvertTo<OrType,TOrType> converter)
+            public OrType CreateOrType(IScope s, IKey key, TypeReference setUpSideNode1, TypeReference setUpSideNode2, IConvertTo<IOrType,TOrType> converter)
             {
                 var res = new OrType(this, $"{((TypeProblemNode)setUpSideNode1).debugName} || {((TypeProblemNode)setUpSideNode2).debugName}", converter);
                 Ors(res, setUpSideNode1, setUpSideNode2);
@@ -746,7 +746,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                var orTypeMembers = new Dictionary<OrType, Dictionary<IKey, Member>>();
+                var orTypeMembers = new Dictionary<IOrType, Dictionary<IKey, Member>>();
 
                 // hopeful members 
 

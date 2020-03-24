@@ -146,7 +146,7 @@ namespace Tac.SemanticModel
         {
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition;
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition;
-            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
@@ -154,7 +154,7 @@ namespace Tac.SemanticModel
             public PopulateScopeImplementationDefinition(
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition,
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-                IReadOnlyList<OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
+                IReadOnlyList<IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
                 string contextName,
                 string parameterName)
@@ -185,7 +185,7 @@ namespace Tac.SemanticModel
                 }),new WeakTypeReferenceConverter());
 
                 var innerBox = new Box<Tpn.TypeProblem2.Method>();
-                var linesBox = new Box<OrType< IResolve<IFrontendCodeElement>,IError>[]>();
+                var linesBox = new Box<IOrType< IResolve<IFrontendCodeElement>,IError>[]>();
                 var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
                 var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));

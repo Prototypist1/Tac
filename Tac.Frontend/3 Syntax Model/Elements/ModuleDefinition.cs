@@ -38,7 +38,7 @@ namespace Tac.SemanticModel
 
     internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IFrontendType
     {
-        public WeakModuleDefinition(IBox<WeakScope> scope, IReadOnlyList<OrType<IBox<IFrontendCodeElement>,IError>> staticInitialization, IKey Key, IBox<WeakEntryPointDefinition> entryPoint)
+        public WeakModuleDefinition(IBox<WeakScope> scope, IReadOnlyList<IOrType<IBox<IFrontendCodeElement>,IError>> staticInitialization, IKey Key, IBox<WeakEntryPointDefinition> entryPoint)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
@@ -48,7 +48,7 @@ namespace Tac.SemanticModel
         
         public IBox<WeakScope> Scope { get; }
         IBox<WeakEntryPointDefinition> EntryPoint { get; }
-        public IReadOnlyList<OrType<IBox<IFrontendCodeElement>, IError>> StaticInitialization { get; }
+        public IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>> StaticInitialization { get; }
 
         public IKey Key
         {
@@ -60,7 +60,7 @@ namespace Tac.SemanticModel
             var (toBuild, maker) = ModuleDefinition.Create();
             return new BuildIntention<IModuleDefinition>(toBuild, () =>
             {
-                var staticInit = new List<OrType<ICodeElement, IError>>();
+                var staticInit = new List<IOrType<ICodeElement, IError>>();
 
                 foreach (var item in StaticInitialization)
                 {
@@ -126,11 +126,11 @@ namespace Tac.SemanticModel
 
         private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>
         {
-            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionPopulateScope(
-                IReadOnlyList<OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
+                IReadOnlyList<IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
@@ -139,7 +139,7 @@ namespace Tac.SemanticModel
 
             public ISetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var box = new Box<IReadOnlyList<OrType< IResolve<IFrontendCodeElement>,IError>>>();
+                var box = new Box<IReadOnlyList<IOrType< IResolve<IFrontendCodeElement>,IError>>>();
                 var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey));
                 box.Fill(elements.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray());
 

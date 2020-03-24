@@ -8,25 +8,25 @@ namespace Tac.Model.Instantiated
 {
     public class SubtractOperation : ISubtractOperation, IBinaryOperationBuilder
     {
-        private readonly Buildable<OrType<ICodeElement, IError>> buildableLeft = new Buildable<OrType<ICodeElement, IError>>();
-        private readonly Buildable<OrType<ICodeElement, IError>> buildableRight = new Buildable<OrType<ICodeElement, IError>>();
+        private readonly Buildable<IOrType<ICodeElement, IError>> buildableLeft = new Buildable<IOrType<ICodeElement, IError>>();
+        private readonly Buildable<IOrType<ICodeElement, IError>> buildableRight = new Buildable<IOrType<ICodeElement, IError>>();
 
-        public void Build(OrType<ICodeElement, IError> left, OrType<ICodeElement, IError> right)
+        public void Build(OrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
         {
             buildableLeft.Set(left);
             buildableRight.Set(right);
         }
 
-        public OrType<ICodeElement, IError> Left => buildableLeft.Get();
-        public OrType<ICodeElement, IError> Right => buildableRight.Get();
-        public IReadOnlyList<OrType<ICodeElement, IError>> Operands => new[] { Left, Right };
+        public IOrType<ICodeElement, IError> Left => buildableLeft.Get();
+        public IOrType<ICodeElement, IError> Right => buildableRight.Get();
+        public IReadOnlyList<IOrType<ICodeElement, IError>> Operands => new[] { Left, Right };
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking
         {
             return context.SubtractOperation(this);
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return new OrType < IVerifiableType,IError > (new NumberType());
         }
@@ -39,7 +39,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
         
-        public static ISubtractOperation CreateAndBuild(OrType<ICodeElement, IError> left, OrType<ICodeElement, IError> right)
+        public static ISubtractOperation CreateAndBuild(OrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
         {
             var (x, y) = Create();
             y.Build(left, right);

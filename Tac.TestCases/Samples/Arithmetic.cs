@@ -26,7 +26,7 @@ namespace Tac.Tests.Samples
                             new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(7)))))),
                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false)))))},
             new NameKey("math-module"),
-            EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement,IError>>(), Array.Empty<ICodeElement>()));
+            EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement,IError>>(), Array.Empty<ICodeElement>()));
 
     }
 }

@@ -41,7 +41,7 @@ namespace Tac.SemanticModel.Operations
 {
     internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ISubtractOperation>
     {
-        public WeakSubtractOperation(OrType<IBox<IFrontendCodeElement>,IError> left, OrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
+        public WeakSubtractOperation(OrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
         

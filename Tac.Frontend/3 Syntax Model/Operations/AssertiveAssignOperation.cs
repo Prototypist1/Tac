@@ -50,7 +50,7 @@ namespace Tac.SemanticModel.Operations
 
     internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAssignOperation>
     {
-        public WeakAssignOperation(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakAssignOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
 
@@ -93,12 +93,12 @@ namespace Tac.SemanticModel.Operations
 
         private class WeakAssignOperationPopulateScope : ISetUp<WeakAssignOperation, Tpn.IValue>
         {
-            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
-            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> right;
+            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
+            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> right;
 
             public WeakAssignOperationPopulateScope(
-                OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left,
-                OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right)
+                IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left,
+                IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));;
@@ -130,18 +130,18 @@ namespace Tac.SemanticModel.Operations
                 return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(
                     nextLeft.Convert(x=>x.Resolve),
                     nextRight.Convert(x => x.Resolve)),
-                    nextLeft.SetUpSideNode.CastTo<Tpn.IValue>());
+                    nextLeft.ConvertAndFlatten(x=>x.SetUpSideNode).Convert(x=>x.CastToOr<Tpn.ITypeProblemNode,Tpn.IValue>("")).Flatten());
             }
         }
 
         private class WeakAssignOperationResolveReferance : IResolve<WeakAssignOperation>
         {
-            public readonly OrType<IResolve<IFrontendCodeElement>, IError> left;
-            public readonly OrType<IResolve<IFrontendCodeElement>, IError> right;
+            public readonly IOrType<IResolve<IFrontendCodeElement>, IError> left;
+            public readonly IOrType<IResolve<IFrontendCodeElement>, IError> right;
 
             public WeakAssignOperationResolveReferance(
-                OrType<IResolve<IFrontendCodeElement>,IError> resolveReferance1,
-                OrType<IResolve<IFrontendCodeElement>, IError> resolveReferance2)
+                IOrType<IResolve<IFrontendCodeElement>,IError> resolveReferance1,
+                IOrType<IResolve<IFrontendCodeElement>, IError> resolveReferance2)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));

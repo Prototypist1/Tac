@@ -18,7 +18,7 @@ namespace Tac.Model.Instantiated.Elements
             return context.EmptyInstance(this);
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return new OrType<IVerifiableType, IError>(new EmptyType());
         }

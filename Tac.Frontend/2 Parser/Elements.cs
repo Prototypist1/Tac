@@ -21,22 +21,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Tac.Parser
 {
 
-    internal class Error: IError {
-        private IError rightResult;
 
-        public Error(string message)
-        {
-            Message = message ?? throw new ArgumentNullException(nameof(message));
-        }
-
-        public Error(string message,IError rightResult)
-        {
-            Message = message ?? throw new ArgumentNullException(nameof(message));
-            this.rightResult = rightResult;
-        }
-
-        public string Message { get; }
-    }
 
 
 
@@ -221,7 +206,7 @@ namespace Tac.Parser
             throw new Exception("");
         }
 
-        public OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> ParseParenthesisOrElement(IToken token)
+        public IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> ParseParenthesisOrElement(IToken token)
         {
             if (token is ElementToken elementToken)
             {
@@ -254,7 +239,7 @@ namespace Tac.Parser
             return new OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>(new Error($"No element matches {token.ToString()}"));
         }
 
-        public OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> ParseLine(IEnumerable<IToken> tokens)
+        public IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> ParseLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in operationMatchers)
             {
@@ -296,12 +281,12 @@ namespace Tac.Parser
             throw new Exception("");
         }
         
-        public IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> ParseFile(FileToken file)
+        public IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> ParseFile(FileToken file)
         {
             return file.Tokens.Select(x => ParseLine(x.CastTo<LineToken>().Tokens)).ToArray();
         }
 
-        public IReadOnlyList< OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> ParseBlock(CurleyBracketToken block)
+        public IReadOnlyList< IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> ParseBlock(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {

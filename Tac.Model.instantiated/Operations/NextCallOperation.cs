@@ -8,18 +8,18 @@ namespace Tac.Model.Instantiated
 {
     public class NextCallOperation : INextCallOperation, IBinaryOperationBuilder
     {
-        private readonly Buildable<OrType<ICodeElement, IError>> buildableLeft = new Buildable<OrType<ICodeElement, IError>>();
-        private readonly Buildable<OrType<ICodeElement, IError>> buildableRight = new Buildable<OrType<ICodeElement, IError>>();
+        private readonly Buildable<IOrType<ICodeElement, IError>> buildableLeft = new Buildable<IOrType<ICodeElement, IError>>();
+        private readonly Buildable<IOrType<ICodeElement, IError>> buildableRight = new Buildable<IOrType<ICodeElement, IError>>();
 
-        public void Build(OrType<ICodeElement, IError> left, OrType<ICodeElement, IError> right)
+        public void Build(OrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
         {
             buildableLeft.Set(left);
             buildableRight.Set(right);
         }
 
-        public OrType<ICodeElement, IError> Left => buildableLeft.Get();
-        public OrType<ICodeElement, IError> Right => buildableRight.Get();
-        public IReadOnlyList<OrType<ICodeElement, IError>> Operands=> new[] { Left, Right };
+        public IOrType<ICodeElement, IError> Left => buildableLeft.Get();
+        public IOrType<ICodeElement, IError> Right => buildableRight.Get();
+        public IReadOnlyList<IOrType<ICodeElement, IError>> Operands=> new[] { Left, Right };
 
         private NextCallOperation() { }
 
@@ -35,12 +35,12 @@ namespace Tac.Model.Instantiated
             return context.NextCallOperation(this);
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return Right.Convert(x => x.Returns()).Flatten();
         }
 
-        public static INextCallOperation CreateAndBuild(OrType<ICodeElement, IError> left, OrType<ICodeElement, IError> right)
+        public static INextCallOperation CreateAndBuild(OrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
         {
             var (x, y) = Create();
             y.Build(left, right);

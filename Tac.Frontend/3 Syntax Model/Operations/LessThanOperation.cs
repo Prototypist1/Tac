@@ -39,7 +39,7 @@ namespace Tac.SemanticModel.CodeStuff
 
     internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILessThanOperation>
     {
-        public WeakLessThanOperation(OrType<IBox<IFrontendCodeElement>,IError> left, OrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
+        public WeakLessThanOperation(OrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
         

@@ -51,7 +51,7 @@ namespace Tac.SemanticModel.Operations
             Result = result;
         }
         
-        public OrType<IBox<IFrontendCodeElement>, IError> Result { get; }
+        public IOrType<IBox<IFrontendCodeElement>, IError> Result { get; }
         
         public IBuildIntention<IReturnOperation> GetBuildIntention(IConversionContext context)
         {
@@ -71,7 +71,7 @@ namespace Tac.SemanticModel.Operations
     }
 
     internal class TrailingOperation {
-        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, OrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> parm);
+        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> parm);
 
         public delegate IBox<T> Make<out T>(OrType< IBox<IFrontendCodeElement>,IError> codeElement);
     }
@@ -127,7 +127,7 @@ namespace Tac.SemanticModel.Operations
 
         private class TrailingPopulateScope : ISetUp<TFrontendCodeElement, Tpn.IValue>
         {
-            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
+            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
             private readonly TrailingOperation.GetReturnedValue getReturnedValue;
 
@@ -150,7 +150,7 @@ namespace Tac.SemanticModel.Operations
 
         private class TrailingResolveReferance: IResolve<TFrontendCodeElement>
         {
-            public readonly OrType<IResolve<IFrontendCodeElement>, IError> left;
+            public readonly IOrType<IResolve<IFrontendCodeElement>, IError> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
 
             public TrailingResolveReferance(OrType<IResolve<IFrontendCodeElement>,IError> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make)

@@ -47,7 +47,7 @@ namespace Tac.SemanticModel.Operations
 
     internal class WeakAddOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAddOperation>
     {
-        public WeakAddOperation(OrType<IBox<IFrontendCodeElement>,IError> left, OrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
+        public WeakAddOperation(OrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
 

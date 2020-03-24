@@ -6,7 +6,7 @@ namespace Tac.Model.Operations
 {
     public interface IOperation : ICodeElement
     {
-        IReadOnlyList<OrType<ICodeElement,IError>> Operands { get; }
+        IReadOnlyList<IOrType<ICodeElement,IError>> Operands { get; }
     }
 
     public interface IBinaryOperation<TLeft, TRight> : IOperation

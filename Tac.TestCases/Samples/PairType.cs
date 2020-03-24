@@ -75,7 +75,7 @@ module pair-type {
                             Array.Empty<ICodeElement>())),
                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(pairify))))},
                 new NameKey("pair-type"),
-                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
+                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
         }
     }
 }

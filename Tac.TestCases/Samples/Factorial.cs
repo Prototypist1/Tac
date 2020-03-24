@@ -66,7 +66,7 @@ namespace Tac.Tests.Samples
                                 new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(fac))
                         )) },
                     new NameKey("factorial"),
-                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<OrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>())
+                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>())
                     );
         }
 

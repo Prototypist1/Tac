@@ -52,7 +52,7 @@ namespace Tac.SemanticModel.Operations
 
     internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, INextCallOperation>
     {
-        public WeakNextCallOperation(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakNextCallOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         
@@ -86,7 +86,7 @@ namespace Tac.SemanticModel.Operations
     {
         public const string Identifier = "<";
 
-        public WeakLastCallOperation(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakLastCallOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         

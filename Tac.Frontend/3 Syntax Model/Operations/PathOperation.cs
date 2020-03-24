@@ -43,7 +43,7 @@ namespace Tac.SemanticModel.Operations
 {
     internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IPathOperation>
     {
-        public WeakPathOperation(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakPathOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
 
@@ -94,7 +94,7 @@ namespace Tac.SemanticModel.Operations
 
         private class WeakPathOperationPopulateScope : ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>
         {
-            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
+            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
             private readonly string name;
 
             public WeakPathOperationPopulateScope(OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left,
@@ -144,8 +144,8 @@ namespace Tac.SemanticModel.Operations
 
         private class WeakPathOperationResolveReference : IResolve<WeakPathOperation>
         {
-            readonly OrType<IResolve<IFrontendCodeElement>,IError> left;
-            readonly OrType<Tpn.TypeProblem2.Member,IError> member;
+            readonly IOrType<IResolve<IFrontendCodeElement>,IError> left;
+            readonly IOrType<Tpn.TypeProblem2.Member,IError> member;
 
             public WeakPathOperationResolveReference(
                 OrType<IResolve<IFrontendCodeElement>, IError> resolveReference,

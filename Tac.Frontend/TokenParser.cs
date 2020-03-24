@@ -34,7 +34,7 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>, IError>>>(Array.Empty<OrType<IResolve<IFrontendCodeElement>, IError>>()), new NameKey("test module")));
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>, IError>>>(Array.Empty<IOrType<IResolve<IFrontendCodeElement>, IError>>()), new NameKey("test module")));
 
             foreach (var dependency in dependencies)
             {
@@ -68,7 +68,7 @@ namespace Tac.Frontend
             return new Project<TBacking>(moduleDefinition.Convert(context), dependencies);
         }
 
-        private OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>> ConvertType(
+        private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>> ConvertType(
             Tpn.ISetUpTypeProblem problem,
             Tpn.IScope scope,
             IVerifiableType type)
@@ -76,15 +76,15 @@ namespace Tac.Frontend
 
             if (type is NumberType numberType)
             {
-                return new OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new NameKey("number"));
+                return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new NameKey("number"));
             }
             else if (type is EmptyType emptyType)
             {
-                return new OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new NameKey("empty"));
+                return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new NameKey("empty"));
             }
             else if (type is BooleanType booleanTyp)
             {
-                return new OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new NameKey("bool"));
+                return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new NameKey("bool"));
             }
             else if (type is BlockType blockType)
             {
@@ -92,7 +92,7 @@ namespace Tac.Frontend
             }
             else if (type is StringType stringType)
             {
-                return new OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new NameKey("string"));
+                return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new NameKey("string"));
             }
             else if (type is AnyType anyType)
             {
@@ -103,7 +103,7 @@ namespace Tac.Frontend
             {
                 if (!typeCache.TryGetValue(type, out var res))
                 {
-                    return new OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>(res!));
+                    return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>(res!));
                 }
 
                 // we don't know the type key...
@@ -121,7 +121,7 @@ namespace Tac.Frontend
                         problem.CreateMember(tpnType, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
                     });
                 }
-                return new OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(orType);
+                return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(orType);
             }
             else if (type is TypeOr typeOr)
             {
@@ -141,7 +141,7 @@ namespace Tac.Frontend
                 }
                 else if (input.Is1(out var i1) && output.Is1(out var o1))
                 {
-                    return new OrType<IKey, OrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new GenericNameKey(new NameKey("method"), new IKey[] { 
+                    return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new GenericNameKey(new NameKey("method"), new IKey[] { 
                         i1,o1
                     }));
                 }

@@ -13,7 +13,7 @@
 //    public static partial class TypeManager
 //    {
 
-//        public static IInterpetedOrType<T1, T2> OrType<T1, T2>()
+//        public static IInterpetedOrType<T1, T2> IOrType<T1, T2>()
 //            where T1 : IInterpetedAnyType
 //            where T2 : IInterpetedAnyType 
 //            => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, IInterpetedOrType<T1, T2>>[] { OrTypeIntention<T1, T2>() }).Has<IInterpetedOrType<T1, T2>>();

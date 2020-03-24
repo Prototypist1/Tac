@@ -65,8 +65,8 @@ namespace Tac.SemanticModel.CodeStuff
 
     internal class BinaryOperation
     {
-        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, OrType< ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left, OrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right);
-        public delegate IBox<T> Make<out T>(OrType<IBox<IFrontendCodeElement>, IError> left, OrType<IBox<IFrontendCodeElement>,IError> right);
+        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType< ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left, IOrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right);
+        public delegate IBox<T> Make<out T>(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right);
 
         public delegate Tpn.TypeProblem2.TypeReference ToTypeProblemThings(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendType, Tpn.ITypeProblemNode> left, ISetUpResult<IFrontendType, Tpn.ITypeProblemNode> right);
         public delegate IBox<T> MakeBinaryType<out T>(IBox<IFrontendType> left, IBox<IFrontendType> right);
@@ -79,8 +79,8 @@ namespace Tac.SemanticModel.CodeStuff
         where TRight : class, IFrontendCodeElement
         where TCodeElement: class, ICodeElement
     {
-        public OrType<IBox<TLeft>,IError> Left { get; }
-        public OrType<IBox<TRight>,IError> Right { get; }
+        public IOrType<IBox<TLeft>,IError> Left { get; }
+        public IOrType<IBox<TRight>,IError> Right { get; }
         public IOrType<IBox<IFrontendCodeElement>,IError>[] Operands
         {
             get
@@ -89,7 +89,7 @@ namespace Tac.SemanticModel.CodeStuff
             }
         }
         
-        public BinaryOperation(OrType<IBox<TLeft>, IError> left, OrType<IBox<TRight>, IError> right)
+        public BinaryOperation(OrType<IBox<TLeft>, IError> left, IOrType<IBox<TRight>, IError> right)
         {
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -194,8 +194,8 @@ namespace Tac.SemanticModel.CodeStuff
 
         private class BinaryPopulateScope : ISetUp<TFrontendCodeElement, Tpn.IValue>
         {
-            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
-            private readonly OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> right;
+            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
+            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
             private readonly BinaryOperation.GetReturnedValue keyMaker;
 
@@ -227,8 +227,8 @@ namespace Tac.SemanticModel.CodeStuff
 
         private class BinaryResolveReferance : IResolve<TFrontendCodeElement>
         {
-            public readonly OrType<IResolve<IFrontendCodeElement>, IError> left;
-            public readonly OrType<IResolve<IFrontendCodeElement>, IError> right;
+            public readonly IOrType<IResolve<IFrontendCodeElement>, IError> left;
+            public readonly IOrType<IResolve<IFrontendCodeElement>, IError> right;
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
 
             public BinaryResolveReferance(

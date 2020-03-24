@@ -87,7 +87,7 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return new OrType<IVerifiableType, IError>( this);
         }

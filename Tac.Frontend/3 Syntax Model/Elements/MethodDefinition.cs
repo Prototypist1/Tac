@@ -40,7 +40,7 @@ namespace Tac.SemanticModel
         public WeakMethodDefinition(
             IBox<IFrontendType> outputType,
             IBox<IWeakMemberDefinition> parameterDefinition,
-            IReadOnlyList<OrType< IBox<IFrontendCodeElement>,IError>> body,
+            IReadOnlyList<IOrType< IBox<IFrontendCodeElement>,IError>> body,
             IBox<WeakScope> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
@@ -117,14 +117,14 @@ namespace Tac.SemanticModel
         private class MethodDefinitionPopulateScope : ISetUp<WeakMethodDefinition, Tpn.IValue>
         {
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition;
-            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output;
             private readonly bool isEntryPoint;
             private readonly string parameterName;
 
             public MethodDefinitionPopulateScope(
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-                IReadOnlyList<OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
+                IReadOnlyList<IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
                 bool isEntryPoint,
                 string parameterName
@@ -142,7 +142,7 @@ namespace Tac.SemanticModel
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);
 
-                var box = new Box<IReadOnlyList<OrType<IResolve<IFrontendCodeElement>,IError>>>();
+                var box = new Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>,IError>>>();
                 var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
                 var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 

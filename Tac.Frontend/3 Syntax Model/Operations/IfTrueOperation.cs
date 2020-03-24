@@ -43,7 +43,7 @@ namespace Tac.SemanticModel.Operations
     internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IIfOperation>
     {
         // right should have more validation
-        public WeakIfTrueOperation(OrType<IBox<IFrontendCodeElement>,IError> left, OrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
+        public WeakIfTrueOperation(OrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
         

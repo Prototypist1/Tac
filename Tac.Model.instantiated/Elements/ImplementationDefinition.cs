@@ -34,7 +34,7 @@ namespace Tac.Model.Instantiated
             return context.ImplementationDefinition(this);
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return new OrType<IVerifiableType, IError>(ImplementationType.CreateAndBuild(ParameterDefinition.Type,OutputType, ContextDefinition.Type));
         }

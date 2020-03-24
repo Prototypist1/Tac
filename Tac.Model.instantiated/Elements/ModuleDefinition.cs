@@ -9,14 +9,14 @@ namespace Tac.Model.Instantiated
     public class ModuleDefinition : IModuleDefinition, IModuleDefinitionBuilder
     {
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
-        private readonly Buildable<IReadOnlyList<OrType<ICodeElement, IError>>> buildableStaticInitialization = new Buildable<IReadOnlyList<OrType<ICodeElement, IError>>>();
+        private readonly Buildable<IReadOnlyList<IOrType<ICodeElement, IError>>> buildableStaticInitialization = new Buildable<IReadOnlyList<IOrType<ICodeElement, IError>>>();
         private readonly Buildable<IKey> buildableKey = new Buildable<IKey>();
         private readonly Buildable<IEntryPointDefinition> buildableEntryPoint = new Buildable<IEntryPointDefinition>();
 
         private ModuleDefinition() { }
 
         public IFinalizedScope Scope => buildableScope.Get();
-        public IReadOnlyList<OrType<ICodeElement, IError>> StaticInitialization => buildableStaticInitialization.Get();
+        public IReadOnlyList<IOrType<ICodeElement, IError>> StaticInitialization => buildableStaticInitialization.Get();
         public IKey Key => buildableKey.Get();
         public IEntryPointDefinition EntryPoint => buildableEntryPoint.Get();
 
@@ -26,7 +26,7 @@ namespace Tac.Model.Instantiated
             return context.ModuleDefinition(this);
         }
 
-        public void Build(IFinalizedScope scope, IReadOnlyList<OrType<ICodeElement, IError>> staticInitialization, IKey key, IEntryPointDefinition entryPoint)
+        public void Build(IFinalizedScope scope, IReadOnlyList<IOrType<ICodeElement, IError>> staticInitialization, IKey key, IEntryPointDefinition entryPoint)
         {
             buildableScope.Set(scope);
             buildableStaticInitialization.Set(staticInitialization);
@@ -40,13 +40,13 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IReadOnlyList<OrType<ICodeElement, IError>> staticInitialization, IKey key, IEntryPointDefinition entryPoint) {
+        public static IModuleDefinition CreateAndBuild(IFinalizedScope scope, IReadOnlyList<IOrType<ICodeElement, IError>> staticInitialization, IKey key, IEntryPointDefinition entryPoint) {
             var (x, y) = Create();
             y.Build(scope, staticInitialization, key, entryPoint);
             return x;
         }
 
-        public OrType<IVerifiableType, IError> Returns()
+        public IOrType<IVerifiableType, IError> Returns()
         {
             return new OrType<IVerifiableType, IError>(InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x=>x.Value).ToList()));
         }
@@ -54,6 +54,6 @@ namespace Tac.Model.Instantiated
 
     public interface IModuleDefinitionBuilder
     {
-        void Build(IFinalizedScope scope, IReadOnlyList<OrType<ICodeElement, IError>> staticInitialization, IKey key, IEntryPointDefinition entryPoint);
+        void Build(IFinalizedScope scope, IReadOnlyList<IOrType<ICodeElement, IError>> staticInitialization, IKey key, IEntryPointDefinition entryPoint);
     }
 }

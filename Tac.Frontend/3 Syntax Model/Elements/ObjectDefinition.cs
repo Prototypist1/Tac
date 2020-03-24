@@ -98,9 +98,9 @@ namespace Tac.SemanticModel
 
         private class ObjectDefinitionPopulateScope : ISetUp<WeakObjectDefinition, Tpn.IValue>
         {
-            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
 
-            public ObjectDefinitionPopulateScope(IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements)
+            public ObjectDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
@@ -109,7 +109,7 @@ namespace Tac.SemanticModel
             {
                 var key = new ImplicitKey(Guid.NewGuid());
 
-                var box = new Box<IReadOnlyList< OrType<IResolve<IFrontendCodeElement>,IError>>>();
+                var box = new Box<IReadOnlyList< IOrType<IResolve<IFrontendCodeElement>,IError>>>();
                 var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box));
                 box.Fill(elements.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray());
 

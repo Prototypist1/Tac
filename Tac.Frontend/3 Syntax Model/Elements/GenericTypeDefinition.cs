@@ -92,7 +92,7 @@ namespace Tac.SemanticModel
 
         public static ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType> PopulateScope(
                 NameKey nameKey,
-                IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> lines,
+                IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
@@ -104,12 +104,12 @@ namespace Tac.SemanticModel
         private class GenericTypeDefinitionPopulateScope : ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>
         {
             private readonly NameKey nameKey;
-            private readonly IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> lines;
+            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IReadOnlyList<OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> lines,
+                IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -131,9 +131,9 @@ namespace Tac.SemanticModel
         private class GenericTypeDefinitionResolveReferance : IResolve<WeakGenericTypeDefinition>
         {
             private readonly Tpn.TypeProblem2.Type myScope;
-            private readonly OrType< IResolve<IFrontendCodeElement>,IError>[] nextLines;
+            private readonly IOrType< IResolve<IFrontendCodeElement>,IError>[] nextLines;
 
-            public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, OrType<IResolve<IFrontendCodeElement>, IError>[] nextLines)
+            public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IOrType<IResolve<IFrontendCodeElement>, IError>[] nextLines)
             {
                 this.myScope = myScope;
                 this.nextLines = nextLines;
