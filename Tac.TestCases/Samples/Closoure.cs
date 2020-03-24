@@ -35,7 +35,7 @@ namespace Tac.Tests.Samples
                             x,
                             methodScope,
                             new OrType<ICodeElement,IError>[]{
-                                new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(
+                                new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(new OrType<ICodeElement, IError>(
                                     MethodDefinition.CreateAndBuild(
                                         new NumberType(),
                                         new NumberType(),
@@ -47,10 +47,9 @@ namespace Tac.Tests.Samples
                                                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(x)),
                                                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(y)))),
                                                 new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(x)))),
-                                            new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(
-                                                MemberReference.CreateAndBuild(x)))
+                                            new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(x))))
                                         },
-                                        Array.Empty<ICodeElement>())
+                                        Array.Empty<ICodeElement>()))
                                     ))},
                             Array.Empty<ICodeElement>())),
                         new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))))

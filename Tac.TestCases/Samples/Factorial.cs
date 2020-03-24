@@ -46,21 +46,21 @@ namespace Tac.Tests.Samples
                                                         ifBlockScope,
                                                         new OrType<ICodeElement,IError>[]{
                                                             new OrType<ICodeElement,IError>(
-                                                                ReturnOperation.CreateAndBuild(
-                                                                    ConstantNumber.CreateAndBuild(1)))},
+                                                                ReturnOperation.CreateAndBuild(new OrType<ICodeElement, IError>(
+                                                                    ConstantNumber.CreateAndBuild(1))))},
                                                         Array.Empty<ICodeElement>())))),
                                                 new OrType<ICodeElement, IError>(BlockDefinition.CreateAndBuild(
                                                     elseBlock,
                                                     new OrType<ICodeElement,IError>[]{
                                                        new OrType<ICodeElement,IError>(
-                                                        ReturnOperation.CreateAndBuild(
+                                                        ReturnOperation.CreateAndBuild(new OrType<ICodeElement, IError>(
                                                             MultiplyOperation.CreateAndBuild(
                                                                 new OrType<ICodeElement, IError>(NextCallOperation.CreateAndBuild(
                                                                     new OrType<ICodeElement, IError>(SubtractOperation.CreateAndBuild(
                                                                         new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
                                                                         new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(1)))),
                                                                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(fac)))),
-                                                                new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)))))},
+                                                                new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input))))))},
                                                     Array.Empty<ICodeElement>()))))},
                                     Array.Empty<ICodeElement>())),
                                 new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(fac))

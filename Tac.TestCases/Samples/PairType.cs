@@ -57,7 +57,7 @@ module pair-type {
                             methodScope,
                             new OrType<ICodeElement,IError>[]{
                                 new OrType<ICodeElement,IError>(
-                                    ReturnOperation.CreateAndBuild(
+                                    ReturnOperation.CreateAndBuild(new OrType<ICodeElement, IError>(
                                         ObjectDefiniton.CreateAndBuild(
                                                 Scope.CreateAndBuild(
                                                 new List<IsStatic> {
@@ -71,7 +71,7 @@ module pair-type {
                                                 AssignOperation.CreateAndBuild(
                                                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
                                                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY)))
-                                            })))},
+                                            }))))},
                             Array.Empty<ICodeElement>())),
                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(pairify))))},
                 new NameKey("pair-type"),

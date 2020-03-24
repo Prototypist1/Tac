@@ -71,7 +71,7 @@ namespace Tac.SemanticModel.Operations
     }
 
     internal class TrailingOperation {
-        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode> parm);
+        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, OrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> parm);
 
         public delegate IBox<T> Make<out T>(OrType< IBox<IFrontendCodeElement>,IError> codeElement);
     }
@@ -143,7 +143,7 @@ namespace Tac.SemanticModel.Operations
                 var nextLeft = left.Convert(x=>x.Run(scope, context));
                 return new SetUpResult<TFrontendCodeElement, Tpn.IValue>(
                     new TrailingResolveReferance(nextLeft.Convert(x=>x.Resolve), make), 
-                    nextLeft.Convert(x=> getReturnedValue(scope, context, x)));
+                    getReturnedValue(scope, context, nextLeft));
             }
         }
 
