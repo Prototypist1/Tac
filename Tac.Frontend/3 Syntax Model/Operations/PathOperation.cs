@@ -108,7 +108,7 @@ namespace Tac.SemanticModel.Operations
             {
                 var nextLeft = left.Convert(x => x.Run(scope, context));
 
-                OrType<Tpn.TypeProblem2.Member, IError> member;
+                IOrType<Tpn.TypeProblem2.Member, IError> member;
 
 
                 if (nextLeft.Is1(out var leftResult))
@@ -148,8 +148,8 @@ namespace Tac.SemanticModel.Operations
             readonly IOrType<Tpn.TypeProblem2.Member,IError> member;
 
             public WeakPathOperationResolveReference(
-                OrType<IResolve<IFrontendCodeElement>, IError> resolveReference,
-                OrType<Tpn.TypeProblem2.Member, IError> member)
+                IOrType<IResolve<IFrontendCodeElement>, IError> resolveReference,
+                IOrType<Tpn.TypeProblem2.Member, IError> member)
             {
                 left = resolveReference ?? throw new ArgumentNullException(nameof(resolveReference));
                 this.member = member ?? throw new ArgumentNullException(nameof(member));

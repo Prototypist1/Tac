@@ -90,7 +90,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             IBox<WeakTypeOrOperation> GetOrType(TypeProblem2.OrType orType);
             IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>> GetMethod(TypeProblem2.Method method);
             IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
-            OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> GetType(ILookUpType from);
+            IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> GetType(ILookUpType from);
             (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from);
             bool TryGetResultMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, out TypeProblem2.TransientMember? transientMember);
             bool TryGetInputMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, out TypeProblem2.Member? member);
@@ -1329,7 +1329,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                OrType<MethodType, Type, Object, OrType, InferredType> LookUpOrOverlayOrThrow(ILookUpType node)
+                IOrType<MethodType, Type, Object, OrType, InferredType> LookUpOrOverlayOrThrow(ILookUpType node)
                 {
 
                     if (node.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>> nodeLooksUp)
@@ -1349,7 +1349,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
 
-                OrType<MethodType, Type, Object, OrType, InferredType> LookUpOrOverlayOrThrow2(IScope from, IKey key)
+                IOrType<MethodType, Type, Object, OrType, InferredType> LookUpOrOverlayOrThrow2(IScope from, IKey key)
                 {
                     if (!TryLookUpOrOverlay(from, key, out var res))
                     {
@@ -1503,7 +1503,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                         if (haveTypes is Type || haveTypes is MethodType)
                         {
-                            OrType<MethodType, Type> orType;
+                            IOrType<MethodType, Type> orType;
                             if (haveTypes is Type type)
                             {
                                 orType = new OrType<MethodType, Type>(type);
@@ -1548,7 +1548,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                OrType<MethodType, Type> CopyTree(OrType<MethodType, Type> from, IOrType<MethodType, Type> to, IReadOnlyDictionary<IOrType<MethodType, Type, Object, OrType, InferredType>, IOrType<MethodType, Type, Object, OrType, InferredType>> overlayed)
+                IOrType<MethodType, Type> CopyTree(OrType<MethodType, Type> from, IOrType<MethodType, Type> to, IReadOnlyDictionary<IOrType<MethodType, Type, Object, OrType, InferredType>, IOrType<MethodType, Type, Object, OrType, InferredType>> overlayed)
                 {
 
                     var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();

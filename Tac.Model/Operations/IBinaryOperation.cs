@@ -13,8 +13,8 @@ namespace Tac.Model.Operations
         where TLeft : ICodeElement
         where TRight : ICodeElement
     {
-        OrType<TLeft,IError> Left { get; }
-        OrType<TRight,IError> Right { get; }
+        IOrType<TLeft,IError> Left { get; }
+        IOrType<TRight,IError> Right { get; }
     }
 
 

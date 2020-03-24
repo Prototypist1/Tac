@@ -6,7 +6,7 @@ using Tac.Model.Operations;
 namespace Tac.Model.Instantiated
 {
     public class ReturnOperation : IReturnOperation, ITrailingOperationBuilder
-    {
+    
         private readonly Buildable<IOrType<ICodeElement, IError>> buildableResult = new Buildable<IOrType<ICodeElement, IError>>();
 
         public void Build(OrType<ICodeElement, IError> result)

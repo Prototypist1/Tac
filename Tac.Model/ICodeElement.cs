@@ -12,6 +12,6 @@ namespace Tac.Model
 
     public interface ICodeElement: IConvertable
     {
-        OrType<IVerifiableType, IError> Returns();
+        IOrType<IVerifiableType, IError> Returns();
     }
 }

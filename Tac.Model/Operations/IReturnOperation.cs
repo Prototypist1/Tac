@@ -3,6 +3,6 @@
 namespace Tac.Model.Operations
 {
     public interface IReturnOperation : ICodeElement{
-        OrType<ICodeElement, IError> Result { get; }
+        IOrType<ICodeElement, IError> Result { get; }
     }
 }

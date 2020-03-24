@@ -169,8 +169,8 @@ namespace Tac.SemanticModel.CodeStuff
 
 
         public static ISetUp<TFrontendCodeElement, Tpn.IValue> PopulateScope(
-                OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left,
-                OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> right,
+                IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left,
+                IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> right,
                 BinaryOperation.Make<TFrontendCodeElement> make,
                 BinaryOperation.GetReturnedValue key)
         {
@@ -180,8 +180,8 @@ namespace Tac.SemanticModel.CodeStuff
                  key);
         }
         //public static IResolve<TFrontendCodeElement> PopulateBoxes(
-        //        OrType<IResolve<IConvertableFrontendCodeElement<ICodeElement>>, IError> resolveReferance1,
-        //        OrType<IResolve<IConvertableFrontendCodeElement<ICodeElement>>, IError> resolveReferance2,
+        //        IOrType<IResolve<IConvertableFrontendCodeElement<ICodeElement>>, IError> resolveReferance1,
+        //        IOrType<IResolve<IConvertableFrontendCodeElement<ICodeElement>>, IError> resolveReferance2,
         //        BinaryOperation.Make<TFrontendCodeElement> make)
         //{
         //    return new BinaryResolveReferance(
@@ -200,8 +200,8 @@ namespace Tac.SemanticModel.CodeStuff
             private readonly BinaryOperation.GetReturnedValue keyMaker;
 
             public BinaryPopulateScope(
-                OrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left,
-                OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right,
+                IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left,
+                IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right,
                 BinaryOperation.Make<TFrontendCodeElement> make,
                 BinaryOperation.GetReturnedValue key)
             {
@@ -232,8 +232,8 @@ namespace Tac.SemanticModel.CodeStuff
             private readonly BinaryOperation.Make<TFrontendCodeElement> make;
 
             public BinaryResolveReferance(
-                OrType< IResolve<IFrontendCodeElement>, IError> resolveReferance1,
-                OrType<IResolve<IFrontendCodeElement>, IError> resolveReferance2,
+                IOrType< IResolve<IFrontendCodeElement>, IError> resolveReferance1,
+                IOrType<IResolve<IFrontendCodeElement>, IError> resolveReferance2,
                 BinaryOperation.Make<TFrontendCodeElement> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
