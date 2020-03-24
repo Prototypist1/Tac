@@ -86,13 +86,13 @@ namespace Tac.Tests
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>, IError>>>(new List<IOrType<IResolve<IFrontendCodeElement>, IError>>()), new NameKey("test module")));
 
             var populateScopeContex = new SetUpContext(problem);
-            var referanceResolvers = scopePopulators.Select(or => or.Convert(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
+            var referanceResolvers = scopePopulators.Select(or => or.TransformInner(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
 
 
             var solution = problem.Solve();
 
             var result = referanceResolvers
-                .Select(or=>or.Convert( reranceResolver => reranceResolver.Run(solution)))
+                .Select(or=>or.TransformInner( reranceResolver => reranceResolver.Run(solution)))
                 .ToArray()
                 .Single()
                 .Is1OrThrow()

@@ -59,7 +59,9 @@ namespace Tac.SemanticModel.Operations
             var (toBuild, maker) = AssignOperation.Create();
             return new BuildIntention<IAssignOperation>(toBuild, () =>
             {
-                maker.Build(Left.Convert(x=>x.GetValue().ConvertElementOrThrow(context)), Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
+                maker.Build(
+                    Left.TransformInner(x=>x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }
@@ -107,8 +109,8 @@ namespace Tac.SemanticModel.Operations
             public ISetUpResult<WeakAssignOperation, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
 
-                var nextLeft = left.Convert(x=>x.Run(scope, context));
-                var nextRight = right.Convert(x => x.Run(scope, context));
+                var nextLeft = left.TransformInner(x=>x.Run(scope, context));
+                var nextRight = right.TransformInner(x => x.Run(scope, context));
 
                 if (nextLeft.Is1(out var nextLeft1) && !(nextLeft1.SetUpSideNode is Tpn.ICanAssignFromMe)) {
                     // I need real error handling
@@ -128,9 +130,9 @@ namespace Tac.SemanticModel.Operations
                 
 
                 return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(
-                    nextLeft.Convert(x=>x.Resolve),
-                    nextRight.Convert(x => x.Resolve)),
-                    nextLeft.ConvertAndFlatten(x=>x.SetUpSideNode).Convert(x=>x.CastToOr<Tpn.ITypeProblemNode,Tpn.IValue>("")).Flatten());
+                    nextLeft.TransformInner(x=>x.Resolve),
+                    nextRight.TransformInner(x => x.Resolve)),
+                    nextLeft.TransformAndFlatten(x=>x.SetUpSideNode).TransformInner(x=>x.CastToOr<Tpn.ITypeProblemNode,Tpn.IValue>("")));
             }
         }
 
@@ -151,8 +153,8 @@ namespace Tac.SemanticModel.Operations
             public IBox<WeakAssignOperation> Run(Tpn.ITypeSolution context)
             {
                 var res = new Box<WeakAssignOperation>(new WeakAssignOperation(
-                    left.Convert(x=>x.Run(context)),
-                    right.Convert(x => x.Run( context))));
+                    left.TransformInner(x=>x.Run(context)),
+                    right.TransformInner(x => x.Run( context))));
                 return res;
             }
         }
