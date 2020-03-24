@@ -123,7 +123,7 @@ namespace Tac.SemanticModel
                 // I generic types are erased 
                 // what on earth does this return?
                 var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),new WeakGenericTypeDefinitionConverter(nameKey, genericParameters));
-                var nextLines = lines.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray();
+                var nextLines = lines.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray();
                 return new SetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), new OrType<Tpn.IExplicitType, IError>(myScope));
             }
         }
@@ -143,7 +143,7 @@ namespace Tac.SemanticModel
             public IBox<WeakGenericTypeDefinition> Run(Tpn.ITypeSolution context)
             {
                 // uhhh it is werid that I have to do this
-                nextLines.Select(x => x.Convert(y=>y.Run(context))).ToArray();
+                nextLines.Select(x => x.TransformInner(y=>y.Run(context))).ToArray();
                 if (context.GetExplicitType(myScope).GetValue().Is2(out var v2)) {
                     return new Box<WeakGenericTypeDefinition>( v2);
                 }

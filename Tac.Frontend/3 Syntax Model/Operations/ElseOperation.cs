@@ -44,7 +44,7 @@ namespace Tac.SemanticModel.Operations
     internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IElseOperation>
     {
         // right should have more validation
-        public WeakElseOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakElseOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         
@@ -53,7 +53,9 @@ namespace Tac.SemanticModel.Operations
             var (toBuild, maker) = ElseOperation.Create();
             return new BuildIntention<IElseOperation>(toBuild, () =>
             {
-                maker.Build(Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)), Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
+                maker.Build(
+                    Left.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }

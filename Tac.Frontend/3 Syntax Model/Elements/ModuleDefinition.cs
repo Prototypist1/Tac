@@ -141,7 +141,7 @@ namespace Tac.SemanticModel
             {
                 var box = new Box<IReadOnlyList<IOrType< IResolve<IFrontendCodeElement>,IError>>>();
                 var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey));
-                box.Fill(elements.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray());
+                box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
                 return new SetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), new OrType<Tpn.TypeProblem2.Object, IError>(myScope));
             }

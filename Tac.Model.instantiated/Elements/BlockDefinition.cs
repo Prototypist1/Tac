@@ -17,7 +17,7 @@ namespace Tac.Model.Instantiated
         #region IBlockDefinition
 
         public IFinalizedScope Scope { get => buildableScope.Get(); }
-        public IReadOnlyList< OrType<ICodeElement, IError>> Body { get => buildableBody.Get(); }
+        public IReadOnlyList<IOrType<ICodeElement, IError>> Body { get => buildableBody.Get(); }
         public IReadOnlyList<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking

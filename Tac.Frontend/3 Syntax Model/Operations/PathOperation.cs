@@ -43,7 +43,7 @@ namespace Tac.SemanticModel.Operations
 {
     internal class WeakPathOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IPathOperation>
     {
-        public WeakPathOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakPathOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
 
@@ -53,8 +53,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<IPathOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)),
-                    Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
+                    Left.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)),
+                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }
@@ -97,7 +97,7 @@ namespace Tac.SemanticModel.Operations
             private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
             private readonly string name;
 
-            public WeakPathOperationPopulateScope(OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left,
+            public WeakPathOperationPopulateScope(IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left,
                 string name)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -106,7 +106,7 @@ namespace Tac.SemanticModel.Operations
 
             public ISetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var nextLeft = left.Convert(x => x.Run(scope, context));
+                var nextLeft = left.TransformInner(x => x.Run(scope, context));
 
                 IOrType<Tpn.TypeProblem2.Member, IError> member;
 
@@ -136,7 +136,7 @@ namespace Tac.SemanticModel.Operations
                 }
 
                 return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
-                    nextLeft.Convert(x=>x.Resolve),
+                    nextLeft.TransformInner(x=>x.Resolve),
                     member), 
                     member);
             }
@@ -158,7 +158,7 @@ namespace Tac.SemanticModel.Operations
             public IBox<WeakPathOperation> Run(Tpn.ITypeSolution context)
             {
                 var res = new Box<WeakPathOperation>(new WeakPathOperation(
-                    left.Convert(x => x.Run(context)),
+                    left.TransformInner(x => x.Run(context)),
                     member.SwitchReturns(
                         x => new OrType<IBox<IFrontendCodeElement>, IError>(new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(x)))),
                         y => new OrType<IBox<IFrontendCodeElement>, IError>(new Error("", y)))));

@@ -16,7 +16,7 @@ namespace Tac.SemanticModel.Operations
     internal class WeakTryAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ITryAssignOperation>
     {
 
-        public WeakTryAssignOperation(OrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
+        public WeakTryAssignOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
 
@@ -26,8 +26,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<ITryAssignOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(x=>x.GetValue().ConvertElementOrThrow(context)), 
-                    Right.Convert(x=>x.GetValue().ConvertElementOrThrow(context)));
+                    Left.TransformInner(x=>x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.TransformInner(x=>x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }

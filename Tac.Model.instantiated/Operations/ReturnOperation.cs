@@ -5,11 +5,11 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
-    public class ReturnOperation : IReturnOperation, ITrailingOperationBuilder
+    public class ReturnOperation : IReturnOperation, ITrailingOperationBuilder { 
     
         private readonly Buildable<IOrType<ICodeElement, IError>> buildableResult = new Buildable<IOrType<ICodeElement, IError>>();
 
-        public void Build(OrType<ICodeElement, IError> result)
+        public void Build(IOrType<ICodeElement, IError> result)
         {
             buildableResult.Set(result);
         }
@@ -34,7 +34,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IReturnOperation CreateAndBuild(OrType<ICodeElement, IError> result) {
+        public static IReturnOperation CreateAndBuild(IOrType<ICodeElement, IError> result) {
             var (x, y) = Create();
             y.Build(result);
             return x;
@@ -43,6 +43,6 @@ namespace Tac.Model.Instantiated
 
     public interface ITrailingOperationBuilder
     {
-        void Build(OrType< ICodeElement,IError> result);
+        void Build(IOrType< ICodeElement,IError> result);
     }
 }

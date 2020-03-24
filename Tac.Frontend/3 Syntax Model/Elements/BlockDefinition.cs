@@ -50,7 +50,7 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Scope.GetValue().Convert(context),
-                    Body.Select(or => or.Convert(x=>x.GetValue().ConvertElementOrThrow(context))).ToArray(),
+                    Body.Select(or => or.TransformInner(x=>x.GetValue().ConvertElementOrThrow(context))).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -96,7 +96,7 @@ namespace Tac.SemanticModel
             {
                 var box = new Box<IOrType<IResolve<IFrontendCodeElement>,IError>[]>();
                 var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));
-                box.Fill(Elements.Select(or=>or.Convert(y=>y.Run(scope,context).Resolve)).ToArray());
+                box.Fill(Elements.Select(or=>or.TransformInner(y=>y.Run(scope,context).Resolve)).ToArray());
                 return new SetUpResult<WeakBlockDefinition, Tpn.IScope>(new ResolveReferanceBlockDefinition(myScope), new OrType<Tpn.IScope,IError>( myScope));
             }
         }

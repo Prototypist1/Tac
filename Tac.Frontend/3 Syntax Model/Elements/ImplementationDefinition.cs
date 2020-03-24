@@ -190,7 +190,7 @@ namespace Tac.SemanticModel
 
                 var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
                 innerBox.Fill(inner);
-                linesBox.Fill(elements.Select(y => y.Convert(x=>x.Run(inner, context).Resolve)).ToArray());
+                linesBox.Fill(elements.Select(y => y.TransformInner(x=>x.Run(inner, context).Resolve)).ToArray());
 
                var innerValue = context.TypeProblem.CreateValue(outer, 
                     new GenericNameKey(new NameKey("method"), new[] {

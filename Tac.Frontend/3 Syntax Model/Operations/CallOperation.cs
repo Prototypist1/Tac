@@ -52,7 +52,7 @@ namespace Tac.SemanticModel.Operations
 
     internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, INextCallOperation>
     {
-        public WeakNextCallOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakNextCallOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         
@@ -62,8 +62,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<INextCallOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)), 
-                    Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
+                    Left.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }
@@ -86,7 +86,7 @@ namespace Tac.SemanticModel.Operations
     {
         public const string Identifier = "<";
 
-        public WeakLastCallOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakLastCallOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         
@@ -96,8 +96,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<ILastCallOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)), 
-                    Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
+                    Left.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }

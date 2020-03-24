@@ -11,7 +11,7 @@ namespace Tac.Model.Instantiated
         private readonly Buildable<IOrType<ICodeElement,IError>> buildableLeft = new Buildable<IOrType<ICodeElement, IError>>();
         private readonly Buildable<IOrType<ICodeElement, IError>> buildableRight = new Buildable<IOrType<ICodeElement, IError>>();
 
-        public void Build(OrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
+        public void Build(IOrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
         {
             buildableLeft.Set(left);
             buildableRight.Set(right);
@@ -19,7 +19,7 @@ namespace Tac.Model.Instantiated
 
         public IOrType<ICodeElement, IError> Left => buildableLeft.Get();
         public IOrType<ICodeElement, IError> Right => buildableRight.Get();
-        public IReadOnlyList< OrType<ICodeElement, IError>> Operands => new[] { Left, Right };
+        public IReadOnlyList<IOrType<ICodeElement, IError>> Operands => new[] { Left, Right };
 
         private IfOperation() { }
 
@@ -40,7 +40,7 @@ namespace Tac.Model.Instantiated
             return new OrType<IVerifiableType, IError>(new BooleanType());
         }
         
-        public static IIfOperation CreateAndBuild(OrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
+        public static IIfOperation CreateAndBuild(IOrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
         {
             var (x, y) = Create();
             y.Build(left, right);

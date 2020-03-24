@@ -43,7 +43,7 @@ namespace Tac.SemanticModel.Operations
     {
         public const string Identifier = "*";
 
-        public WeakMultiplyOperation(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
+        public WeakMultiplyOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }
         
@@ -53,8 +53,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<IMultiplyOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)), 
-                    Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
+                    Left.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
 

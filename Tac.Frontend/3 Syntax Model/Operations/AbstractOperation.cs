@@ -66,7 +66,7 @@ namespace Tac.SemanticModel.CodeStuff
     internal class BinaryOperation
     {
         public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType< ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left, IOrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right);
-        public delegate IBox<T> Make<out T>(OrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right);
+        public delegate IBox<T> Make<out T>(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right);
 
         public delegate Tpn.TypeProblem2.TypeReference ToTypeProblemThings(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendType, Tpn.ITypeProblemNode> left, ISetUpResult<IFrontendType, Tpn.ITypeProblemNode> right);
         public delegate IBox<T> MakeBinaryType<out T>(IBox<IFrontendType> left, IBox<IFrontendType> right);
@@ -89,7 +89,7 @@ namespace Tac.SemanticModel.CodeStuff
             }
         }
         
-        public BinaryOperation(OrType<IBox<TLeft>, IError> left, IOrType<IBox<TRight>, IError> right)
+        public BinaryOperation(IOrType<IBox<TLeft>, IError> left, IOrType<IBox<TRight>, IError> right)
         {
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -213,13 +213,13 @@ namespace Tac.SemanticModel.CodeStuff
 
             public ISetUpResult<TFrontendCodeElement, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var nextLeft = left.Convert(x=>x.Run(scope, context));
-                var nextRight = right.Convert(x => x.Run(scope, context));
+                var nextLeft = left.TransformInner(x=>x.Run(scope, context));
+                var nextRight = right.TransformInner(x => x.Run(scope, context));
                 var value = keyMaker(scope, context,nextLeft, nextRight);
 
                 return new SetUpResult<TFrontendCodeElement, Tpn.IValue>(new BinaryResolveReferance(
-                    nextLeft.Convert(x=>x.Resolve),
-                    nextRight.Convert(x => x.Resolve),
+                    nextLeft.TransformInner(x=>x.Resolve),
+                    nextRight.TransformInner(x => x.Resolve),
                     make), new OrType<Tpn.IValue, IError>(value));
             }
         }
@@ -245,8 +245,8 @@ namespace Tac.SemanticModel.CodeStuff
             public IBox<TFrontendCodeElement> Run(Tpn.ITypeSolution context)
             {
                 var res = make(
-                    left.Convert(x=>x.Run(context)),
-                    right.Convert(x => x.Run( context)));
+                    left.TransformInner(x=>x.Run(context)),
+                    right.TransformInner(x => x.Run( context)));
                 return res;
             }
         }

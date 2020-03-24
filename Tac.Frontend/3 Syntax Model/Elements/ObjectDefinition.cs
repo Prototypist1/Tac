@@ -111,7 +111,7 @@ namespace Tac.SemanticModel
 
                 var box = new Box<IReadOnlyList< IOrType<IResolve<IFrontendCodeElement>,IError>>>();
                 var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box));
-                box.Fill(elements.Select(x => x.Convert(y=>y.Run(myScope, context).Resolve)).ToArray());
+                box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, key, new PlaceholderValueConverter());
                 // ugh! an object is a type

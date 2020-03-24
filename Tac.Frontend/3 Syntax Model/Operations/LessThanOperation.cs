@@ -39,7 +39,7 @@ namespace Tac.SemanticModel.CodeStuff
 
     internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILessThanOperation>
     {
-        public WeakLessThanOperation(OrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
+        public WeakLessThanOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
         
@@ -49,8 +49,8 @@ namespace Tac.SemanticModel.CodeStuff
             return new BuildIntention<ILessThanOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(x => x.GetValue().ConvertElementOrThrow(context)), 
-                    Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
+                    Left.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }

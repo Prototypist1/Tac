@@ -66,7 +66,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member GetInput(IValue method);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
-            TypeProblem2.MethodType GetMethod(OrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> input, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> output);
+            TypeProblem2.MethodType GetMethod(IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> input, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> output);
             void IsNumber(IScope parent, ICanAssignFromMe target);
             void IsString(IScope parent, ICanAssignFromMe target);
             void IsEmpty(IScope parent, ICanAssignFromMe target);
@@ -92,11 +92,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             IReadOnlyList<TypeProblem2.Member> GetMembers(IHaveMembers from);
             IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> GetType(ILookUpType from);
             (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from);
-            bool TryGetResultMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, out TypeProblem2.TransientMember? transientMember);
-            bool TryGetInputMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, out TypeProblem2.Member? member);
+            bool TryGetResultMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, out TypeProblem2.TransientMember? transientMember);
+            bool TryGetInputMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, out TypeProblem2.Member? member);
 
-            TypeProblem2.TransientMember GetResultMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from);
-            TypeProblem2.Member GetInputMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from);
+            TypeProblem2.TransientMember GetResultMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from);
+            TypeProblem2.Member GetInputMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from);
             IIsPossibly<TypeProblem2.Scope> GetEntryPoint(TypeProblem2.Object from);
         }
 
@@ -274,23 +274,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return orTypeElememts[from];
             }
 
-            public bool TryGetResultMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out TypeProblem2.TransientMember? transientMember)
+            public bool TryGetResultMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out TypeProblem2.TransientMember? transientMember)
             {
                 return methodOut.TryGetValue(from, out transientMember);
             }
 
-            public bool TryGetInputMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out TypeProblem2.Member? member)
+            public bool TryGetInputMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out TypeProblem2.Member? member)
             {
                 return methodIn.TryGetValue(from, out member);
             }
 
 
-            public TypeProblem2.TransientMember GetResultMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from)
+            public TypeProblem2.TransientMember GetResultMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from)
             {
                 return methodOut[from];
             }
 
-            public TypeProblem2.Member GetInputMember(OrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from)
+            public TypeProblem2.Member GetInputMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from)
             {
                 return methodIn[from];
             }
@@ -515,9 +515,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
             }
 
-            public class OrType : TypeProblemNode<IOrType, WeakTypeOrOperation>, IHaveMembers
+            public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation>, IHaveMembers
             {
-                public OrType(TypeProblem2 problem, string debugName, IConvertTo<IOrType, WeakTypeOrOperation> converter) : base(problem, debugName, converter)
+                public OrType(TypeProblem2 problem, string debugName, IConvertTo<OrType, WeakTypeOrOperation> converter) : base(problem, debugName, converter)
                 {
                 }
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
@@ -642,7 +642,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 parent.Objects.Add(key, @object);
             }
 
-            public void HasPlaceholderType(OrType<MethodType, Type> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType> type)
+            public void HasPlaceholderType(IOrType<MethodType, Type> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType> type)
             {
                 if (!genericOverlays.ContainsKey(parent))
                 {
@@ -837,7 +837,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public OrType CreateOrType(IScope s, IKey key, TypeReference setUpSideNode1, TypeReference setUpSideNode2, IConvertTo<IOrType, WeakTypeOrOperation> converter)
+            public OrType CreateOrType(IScope s, IKey key, TypeReference setUpSideNode1, TypeReference setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
             {
                 var res = new OrType(this, $"{((TypeProblemNode)setUpSideNode1).debugName} || {((TypeProblemNode)setUpSideNode2).debugName}", converter);
                 Ors(res, setUpSideNode1, setUpSideNode2);
@@ -846,7 +846,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
 
             }
-            public MethodType GetMethod(OrType<MethodType, Type, Object, OrType, InferredType> input, IOrType<MethodType, Type, Object, OrType, InferredType> output)
+            public MethodType GetMethod(IOrType<MethodType, Type, Object, OrType, InferredType> input, IOrType<MethodType, Type, Object, OrType, InferredType> output)
             {
                 throw new NotImplementedException();
             }
@@ -1044,7 +1044,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // members that might be on parents 
 
-                var orTypeMembers = new Dictionary<IOrType, Dictionary<IKey, Member>>();
+                var orTypeMembers = new Dictionary<OrType, Dictionary<IKey, Member>>();
 
                 foreach (var (node, possibleMembers) in typeProblemNodes.OfType<IScope>().Select(x => (x, x.PossibleMembers)))
                 {
@@ -1140,7 +1140,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new TypeSolution(
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
                     typeProblemNodes.OfType<IHaveMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.Members.Select(y => y.Value).ToArray()),
-                    typeProblemNodes.OfType<IOrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
+                    typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
                     typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<IOrType<Method, MethodType, InferredType>>>(x =>
                     {
                         if (x is Method m)
@@ -1548,7 +1548,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                IOrType<MethodType, Type> CopyTree(OrType<MethodType, Type> from, IOrType<MethodType, Type> to, IReadOnlyDictionary<IOrType<MethodType, Type, Object, OrType, InferredType>, IOrType<MethodType, Type, Object, OrType, InferredType>> overlayed)
+                IOrType<MethodType, Type> CopyTree(IOrType<MethodType, Type> from, IOrType<MethodType, Type> to, IReadOnlyDictionary<IOrType<MethodType, Type, Object, OrType, InferredType>, IOrType<MethodType, Type, Object, OrType, InferredType>> overlayed)
                 {
 
                     var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();
@@ -1807,7 +1807,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                static bool IsHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers)
+                static bool IsHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers)
                 {
                     if (type.Is1(out var v1))
                     {
@@ -1838,7 +1838,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     throw new Exception("boom!");
                 }
 
-                static bool IsNotInferedHasMembers(OrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers)
+                static bool IsNotInferedHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers)
                 {
                     if (type.Is1(out var v1))
                     {
@@ -1902,7 +1902,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // returns true if the target was modified 
-                bool Flow(OrType<MethodType, Type, Object, OrType, InferredType> flowFrom, IOrType<MethodType, Type, Object, OrType, InferredType> flowTo)
+                bool Flow(IOrType<MethodType, Type, Object, OrType, InferredType> flowFrom, IOrType<MethodType, Type, Object, OrType, InferredType> flowTo)
                 {
                     var res = false;
 
@@ -2041,7 +2041,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 }
 
-                IReadOnlyDictionary<IKey, Member> GetMembers2(OrType<MethodType, Type, Object, OrType, InferredType> or)
+                IReadOnlyDictionary<IKey, Member> GetMembers2(IOrType<MethodType, Type, Object, OrType, InferredType> or)
                 {
                     if (or.Is1(out var _))
                     {
@@ -2070,7 +2070,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                IReadOnlyDictionary<IKey, Member> GetMembers(OrType<IHaveMembers, OrType> type)
+                IReadOnlyDictionary<IKey, Member> GetMembers(IOrType<IHaveMembers, OrType> type)
                 {
                     if (type.Is1(out var explictType))
                     {
@@ -2177,7 +2177,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 private readonly IOrType<MethodType, Type> primary;
                 private readonly IOrType<MethodType, Type, Object, OrType, InferredType>[] parameters;
 
-                public GenericTypeKey(OrType<MethodType, Type> primary, IOrType<MethodType, Type, Object, OrType, InferredType>[] parameters)
+                public GenericTypeKey(IOrType<MethodType, Type> primary, IOrType<MethodType, Type, Object, OrType, InferredType>[] parameters)
                 {
                     this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
                     this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));

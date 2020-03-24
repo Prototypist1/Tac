@@ -257,7 +257,7 @@ namespace Tac.Frontend
             return new OrType<WeakMethodDefinition, WeakImplementationDefinition>( new WeakMethodDefinition(
                 Help.GetType(typeSolution, typeSolution.GetResultMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
                 typeSolution.GetMember(typeSolution.GetInputMember(new OrType<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
-                body.GetValue().Select(x => x.Convert(y=>y.Run(typeSolution))).ToArray(),
+                body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
@@ -351,7 +351,7 @@ namespace Tac.Frontend
         {
             return new OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakBlockDefinition(
-                    body.GetValue().Select(or => or.Convert(x=>x.Run(typeSolution))).ToArray(),
+                    body.GetValue().Select(or => or.TransformInner(x=>x.Run(typeSolution))).ToArray(),
                     new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                     Array.Empty<IIsPossibly<IFrontendCodeElement>>()));
         }
@@ -371,7 +371,7 @@ namespace Tac.Frontend
         {
             return new OrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakEntryPointDefinition(
-                    body.GetValue().Select(x => x.Convert(y=>y.Run(typeSolution))).ToArray(),
+                    body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
                     new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                     Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
@@ -434,7 +434,7 @@ namespace Tac.Frontend
 
             return new OrType<WeakObjectDefinition, WeakModuleDefinition>(new WeakModuleDefinition(
                 new Box<WeakScope>(Help.GetScope(typeSolution, from)),
-                box.GetValue().Select(x => x.Convert(y=> y.Run(typeSolution))).ToArray(), 
+                box.GetValue().Select(x => x.TransformInner(y=> y.Run(typeSolution))).ToArray(), 
                 key,
                 new Box<WeakEntryPointDefinition>(weakEntryPoint)));
         }

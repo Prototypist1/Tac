@@ -46,7 +46,7 @@ namespace Tac.SemanticModel.Operations
 {
     internal class WeakReturnOperation : TrailingOperation, IConvertableFrontendCodeElement<IReturnOperation>
     {
-        public WeakReturnOperation(OrType< IBox<IFrontendCodeElement>,IError> result)
+        public WeakReturnOperation(IOrType< IBox<IFrontendCodeElement>,IError> result)
         {
             Result = result;
         }
@@ -58,7 +58,7 @@ namespace Tac.SemanticModel.Operations
             var (toBuild, maker) = ReturnOperation.Create();
             return new BuildIntention<IReturnOperation>(toBuild, () =>
             {
-                maker.Build(Result.Convert(x=>x.GetValue().ConvertElementOrThrow(context)));
+                maker.Build(Result.TransformInner(x=>x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }
@@ -73,7 +73,7 @@ namespace Tac.SemanticModel.Operations
     internal class TrailingOperation {
         public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> parm);
 
-        public delegate IBox<T> Make<out T>(OrType< IBox<IFrontendCodeElement>,IError> codeElement);
+        public delegate IBox<T> Make<out T>(IOrType< IBox<IFrontendCodeElement>,IError> codeElement);
     }
 
     internal class TrailingOperationMaker<TFrontendCodeElement, TCodeElement> : IMaker<ISetUp<TFrontendCodeElement, Tpn.IValue>>
@@ -131,7 +131,7 @@ namespace Tac.SemanticModel.Operations
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
             private readonly TrailingOperation.GetReturnedValue getReturnedValue;
 
-            public TrailingPopulateScope(OrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
+            public TrailingPopulateScope(IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -140,9 +140,9 @@ namespace Tac.SemanticModel.Operations
 
             public ISetUpResult<TFrontendCodeElement, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var nextLeft = left.Convert(x=>x.Run(scope, context));
+                var nextLeft = left.TransformInner(x=>x.Run(scope, context));
                 return new SetUpResult<TFrontendCodeElement, Tpn.IValue>(
-                    new TrailingResolveReferance(nextLeft.Convert(x=>x.Resolve), make), 
+                    new TrailingResolveReferance(nextLeft.TransformInner(x=>x.Resolve), make), 
                     getReturnedValue(scope, context, nextLeft));
             }
         }
@@ -153,7 +153,7 @@ namespace Tac.SemanticModel.Operations
             public readonly IOrType<IResolve<IFrontendCodeElement>, IError> left;
             private readonly TrailingOperation.Make<TFrontendCodeElement> make;
 
-            public TrailingResolveReferance(OrType<IResolve<IFrontendCodeElement>,IError> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make)
+            public TrailingResolveReferance(IOrType<IResolve<IFrontendCodeElement>,IError> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
@@ -161,7 +161,7 @@ namespace Tac.SemanticModel.Operations
 
             public IBox<TFrontendCodeElement> Run(Tpn.ITypeSolution context)
             {
-                return make(left.Convert(x => x.Run(context)));
+                return make(left.TransformInner(x => x.Run(context)));
             }
         }
     }

@@ -43,7 +43,7 @@ namespace Tac.SemanticModel.Operations
     internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IIfOperation>
     {
         // right should have more validation
-        public WeakIfTrueOperation(OrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
+        public WeakIfTrueOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
         
@@ -53,8 +53,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<IIfOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(x=>x.GetValue().ConvertElementOrThrow(context)), 
-                    Right.Convert(x => x.GetValue().ConvertElementOrThrow(context)));
+                    Left.TransformInner(x=>x.GetValue().ConvertElementOrThrow(context)), 
+                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }

@@ -62,7 +62,7 @@ namespace Tac.SemanticModel
                     OutputType.GetValue().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
-                    Body.Select(x => x.Convert(y=>y .GetValue().ConvertElementOrThrow(context))).ToArray(),
+                    Body.Select(x => x.TransformInner(y=>y .GetValue().ConvertElementOrThrow(context))).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -146,7 +146,7 @@ namespace Tac.SemanticModel
                 var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
                 var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
-                box.Fill(elements.Select(x => x.Convert(y=>y.Run(method, context).Resolve)).ToArray());
+                box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(method, context).Resolve)).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new IKey[] {
                     realizedInput.SetUpSideNode.Key(),

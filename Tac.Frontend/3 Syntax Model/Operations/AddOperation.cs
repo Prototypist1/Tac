@@ -47,7 +47,7 @@ namespace Tac.SemanticModel.Operations
 
     internal class WeakAddOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAddOperation>
     {
-        public WeakAddOperation(OrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
+        public WeakAddOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
 
@@ -57,8 +57,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<IAddOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.Convert(y=>y.GetValue().ConvertElementOrThrow(context)),
-                    Right.Convert(y => y.GetValue().ConvertElementOrThrow(context)));
+                    Left.TransformInner(y=>y.GetValue().ConvertElementOrThrow(context)),
+                    Right.TransformInner(y => y.GetValue().ConvertElementOrThrow(context)));
             });
         }
     }
