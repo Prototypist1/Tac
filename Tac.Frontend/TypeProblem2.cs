@@ -1359,7 +1359,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 //[MaybeNullWhen(false)]
-                bool TryLookUpOrOverlay(IScope from, IKey key, out OrType<MethodType, Type, Object, OrType, InferredType>? res)
+                bool TryLookUpOrOverlay(IScope from, IKey key, out IOrType<MethodType, Type, Object, OrType, InferredType>? res)
                 {
 
                     if (key is GenericNameKey genericNameKey)

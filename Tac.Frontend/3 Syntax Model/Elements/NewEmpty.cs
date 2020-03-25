@@ -14,6 +14,7 @@ using Tac.Model;
 using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Frontend.Parser;
+using Prototypist.Toolbox;
 
 namespace Tac.Parser
 {
@@ -89,7 +90,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
             public ISetUpResult<WeakEmptyInstance, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope,new NameKey("empty"),new PlaceholderValueConverter());
-                return new SetUpResult<WeakEmptyInstance, Tpn.IValue>(new EmptyInstanceResolveReferance(),value);
+                return new SetUpResult<WeakEmptyInstance, Tpn.IValue>(new EmptyInstanceResolveReferance(),new OrType<Tpn.IValue,IError>(value));
             }
         }
 

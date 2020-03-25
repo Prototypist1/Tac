@@ -73,10 +73,28 @@ namespace Tac.SemanticModel.Operations
         public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> new Box<WeakNextCallOperation>( new WeakNextCallOperation(l,r)),(s,c,l,r)=> {
 
             // nearly duplicate code 3930174039475
-            // really this should not throw if the type requirement are not met
-            // it is just a compliation error
-            s.Problem.IsAssignedTo(l.SetUpSideNode.CastTo<Tpn.ICanAssignFromMe>(), r.SetUpSideNode.CastTo<Tpn.IValue>().Input());
-            return r.SetUpSideNode.CastTo<Tpn.IValue>().Returns(); 
+            if (l.Is2(out var error1)){
+                return new OrType<Tpn.IValue, IError>(error1);
+            }
+
+            if (r.Is2(out var error2)) {
+                return new OrType<Tpn.IValue, IError>(error2);
+            }
+
+            var left = l.Is1OrThrow();
+            var right = r.Is2OrThrow();
+
+            if (!(left is Tpn.ICanAssignFromMe assignFrom)) {
+                return new OrType<Tpn.IValue, IError>(new Error("can not assign from the left"));
+            }
+
+            if (!(right is Tpn.IValue value))
+            {
+                return new OrType<Tpn.IValue, IError>(new Error("right is not value"));
+            }
+
+            s.Problem.IsAssignedTo(assignFrom, value.Input());
+            return new OrType<Tpn.IValue, IError>(value.Returns()); 
         })
         {
         }
@@ -107,10 +125,31 @@ namespace Tac.SemanticModel.Operations
         public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>new Box<WeakLastCallOperation>( new WeakLastCallOperation(l,r)), (s, c, l, r) =>
         {
             // nearly duplicate code 3930174039475
-            // really this should not throw if the type requirement are not met
-            // it is just a compliation error
-            s.Problem.IsAssignedTo(r.SetUpSideNode.CastTo<Tpn.ICanAssignFromMe>(), l.SetUpSideNode.CastTo<Tpn.IValue>().Input()); ;
-            return l.SetUpSideNode.CastTo<Tpn.IValue>().Returns();
+            if (l.Is2(out var error1))
+            {
+                return new OrType<Tpn.IValue, IError>(error1);
+            }
+
+            if (r.Is2(out var error2))
+            {
+                return new OrType<Tpn.IValue, IError>(error2);
+            }
+
+            var left = l.Is1OrThrow();
+            var right = r.Is2OrThrow();
+
+            if (!(left is Tpn.IValue value))
+            {
+                return new OrType<Tpn.IValue, IError>(new Error("left is not value"));
+            }
+
+            if (!(right is Tpn.ICanAssignFromMe assignFrom ))
+            {
+                return new OrType<Tpn.IValue, IError>(new Error("can not assign from the right" ));
+            }
+
+            s.Problem.IsAssignedTo(assignFrom, value.Input());
+            return new OrType<Tpn.IValue, IError>(value.Returns());
         })
         {
         }

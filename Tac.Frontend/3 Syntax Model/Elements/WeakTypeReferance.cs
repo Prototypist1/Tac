@@ -175,7 +175,7 @@ namespace Tac.SemanticModel
             {
                 var type = context.TypeProblem.CreateTypeReference(scope,key, new WeakTypeReferenceConverter());
                 return new SetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
-                    type), type);
+                    type), new OrType<Tpn.TypeProblem2.TypeReference,IError>( type));
             }
         }
 

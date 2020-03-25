@@ -71,7 +71,7 @@ namespace Tac.SemanticModel.Operations
     }
 
     internal class TrailingOperation {
-        public delegate Tpn.IValue GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> parm);
+        public delegate OrType<Tpn.IValue,IError> GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType<ISetUpResult<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> parm);
 
         public delegate IBox<T> Make<out T>(IOrType< IBox<IFrontendCodeElement>,IError> codeElement);
     }
@@ -176,12 +176,31 @@ namespace Tac.SemanticModel.Operations
             // I am using this delegate for more than it was ment to do
 
             var  mem = c.TypeProblem.GetReturns(s);
-            
+
+            if (x.Is2(out var error)) {
+                return new OrType<Tpn.IValue, IError>(error);
+            }
+
+            var val1 = x.Is1OrThrow();
+
+            if (val1.SetUpSideNode.Is2(out var error2))
+            {
+                return new OrType<Tpn.IValue, IError>(error);
+            }
+
+            var val1node= val1.SetUpSideNode.Is1OrThrow();
+
+            if (!(val1node is Tpn.IValue finalVal))
+            {
+                return new OrType<Tpn.IValue, IError>(new Error($"can not return {val1node}"));
+            }
+
+
             // this is shit, with good code this is fine, but with bad code this will throw
             // I will need to change this when I do a pass to communitcate error better
-            x.SetUpSideNode.CastTo<Tpn.IValue>().AssignTo(mem);
+            finalVal.AssignTo(mem);
 
-            return c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter());
+            return new OrType<Tpn.IValue, IError>( c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter()));
         })
         {
         }

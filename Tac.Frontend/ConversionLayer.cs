@@ -401,8 +401,19 @@ namespace Tac.Frontend
         public IOrType<WeakObjectDefinition, WeakModuleDefinition> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
             return new OrType<WeakObjectDefinition, WeakModuleDefinition>(new WeakObjectDefinition(
-                new Box<WeakScope>(Help.GetScope(typeSolution, from)), 
-                box.GetValue().Select(x=>new Box<WeakAssignOperation>(x.Run(typeSolution).GetValue().CastTo<WeakAssignOperation>())).ToArray()));
+                new Box<WeakScope>(Help.GetScope(typeSolution, from)),
+                box.GetValue().Select(x => x.SwitchReturns<IOrType<IBox<WeakAssignOperation>, IError>>(
+                    y=> { 
+                        var res = y.Run(typeSolution).GetValue();
+                        if (res is WeakAssignOperation weakAssign)
+                        {
+                            return new OrType<IBox<WeakAssignOperation>, IError>(new Box<WeakAssignOperation>(weakAssign));
+                        }
+                        else {
+                            return new OrType<IBox<WeakAssignOperation>, IError>(new Error("lines in an object must me assignments"));
+                        }
+                    },
+                    y=> new OrType<IBox<WeakAssignOperation>, IError>(y))).ToArray()));
         }
     }
 

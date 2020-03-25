@@ -117,7 +117,7 @@ namespace Tac.SemanticModel.Operations
             public ISetUpResult<WeakConstantString, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope, new NameKey("string"), new PlaceholderValueConverter());
-                return new SetUpResult<WeakConstantString, Tpn.IValue>(new ConstantStringResolveReferance(str),value);
+                return new SetUpResult<WeakConstantString, Tpn.IValue>(new ConstantStringResolveReferance(str),new OrType<Tpn.IValue,IError>(value));
             }
         }
 
