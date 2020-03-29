@@ -1,4 +1,4 @@
-﻿namespace Tac.Model.Operations
+﻿namespace Tac.Model.WithErrors.Operations
 {
     public interface ISubtractOperation: IBinaryOperation<ICodeElement, ICodeElement>
     {

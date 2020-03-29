@@ -1,4 +1,4 @@
-﻿namespace Tac.Model.Operations
+﻿namespace Tac.Model.WithErrors.Operations
 {
     public interface ILessThanOperation : IBinaryOperation<ICodeElement, ICodeElement>
     {

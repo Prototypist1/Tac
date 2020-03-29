@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Tac.Model.Elements;
+using Tac.Model.WithErrors.Elements;
 using System.Linq;
 
-namespace Tac.Model
+namespace Tac.Model.WithErrors
 {
     public class TypeEntry {
         public TypeEntry(IKey key, IVerifiableType type)

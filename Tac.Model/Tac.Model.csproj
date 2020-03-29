@@ -16,4 +16,8 @@
     <ProjectReference Include="..\Tac.Frontend.Common\Tac.Frontend.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="WithoutErrors\" />
+  </ItemGroup>
+
 </Project>

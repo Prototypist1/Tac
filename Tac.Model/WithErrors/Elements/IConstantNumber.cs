@@ -1,4 +1,4 @@
-﻿namespace Tac.Model.Elements
+﻿namespace Tac.Model.WithErrors.Elements
 {
     public interface IConstantNumber: ICodeElement {
         double Value { get; }

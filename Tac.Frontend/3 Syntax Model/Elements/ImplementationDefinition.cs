@@ -179,37 +179,49 @@ namespace Tac.SemanticModel
                 var realizeContext = contextDefinition.Run(scope, context);
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);
-                var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"),new[] {
-                    realizedInput.SetUpSideNode.Key(),
-                    realizedOutput.SetUpSideNode.Key(),
-                }),new WeakTypeReferenceConverter());
+                
+                if (realizedInput.SetUpSideNode.Is1(out var realizedInputSetUpSideNode) && realizedOutput.SetUpSideNode.Is1(out var realizedOutputSetUpSideNode) && realizeContext.SetUpSideNode.Is1(out var realizeContextSetUpSideNode)) {
+                    var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"), new[] {
+                        realizedInputSetUpSideNode.Key(),
+                        realizedOutputSetUpSideNode.Key(),
+                    }), new WeakTypeReferenceConverter());
 
-                var innerBox = new Box<Tpn.TypeProblem2.Method>();
-                var linesBox = new Box<IOrType< IResolve<IFrontendCodeElement>,IError>[]>();
-                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
-                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
-                innerBox.Fill(inner);
-                linesBox.Fill(elements.Select(y => y.TransformInner(x=>x.Run(inner, context).Resolve)).ToArray());
+                    var innerBox = new Box<Tpn.TypeProblem2.Method>();
+                    var linesBox = new Box<IOrType<IResolve<IFrontendCodeElement>, IError>[]>();
+                    var outer = context.TypeProblem.CreateMethod(scope, realizeContextSetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
-               var innerValue = context.TypeProblem.CreateValue(outer, 
-                    new GenericNameKey(new NameKey("method"), new[] {
-                         realizedInput.SetUpSideNode.Key(),
-                         realizedOutput.SetUpSideNode.Key(),
+                    var inner = context.TypeProblem.CreateMethod(outer, realizedInputSetUpSideNode, realizedOutputSetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox, false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
+                    innerBox.Fill(inner);
+                    linesBox.Fill(elements.Select(y => y.TransformInner(x => x.Run(inner, context).Resolve)).ToArray());
+
+
+
+                    var innerValue = context.TypeProblem.CreateValue(outer,
+                        new GenericNameKey(new NameKey("method"), new[] {
+                         realizedInputSetUpSideNode.Key(),
+                         realizedOutputSetUpSideNode.Key(),
+                        }), new PlaceholderValueConverter());
+
+                    innerValue.AssignTo(outer.Returns());
+
+                    var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new[] {
+                        realizeContextSetUpSideNode.Key(),
+                        new GenericNameKey(new NameKey("method"), new[] {
+                             realizedInputSetUpSideNode.Key(),
+                             realizedOutputSetUpSideNode.Key(),
+                        }),
                     }), new PlaceholderValueConverter());
 
-                innerValue.AssignTo(outer.Returns());
+                    return new SetUpResult<WeakImplementationDefinition, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
+                        outer), new OrType<Tpn.IValue, IError>(value));
+                }
 
-                var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new[] {
-                    realizeContext.SetUpSideNode.Key(),
-                    new GenericNameKey(new NameKey("method"), new[] {
-                         realizedInput.SetUpSideNode.Key(),
-                         realizedOutput.SetUpSideNode.Key(),
-                    }),
-                }),new PlaceholderValueConverter());
+                // if the types are not defined I think I need to flow those in the tpn
+                // but that is a pretty scary idea so I am not going to think about it for a while 
 
-                return new SetUpResult<WeakImplementationDefinition, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
-                    outer), new OrType<Tpn.IValue, IError>(value));
+                throw new NotImplementedException("asfdasf");
+
             }
         }
 
