@@ -1,6 +1,6 @@
 ﻿using Tac.Model.Elements;
 
-namespace Tac.Model.WithErrors.Operations
+namespace Tac.Model.Operations
 {
     public interface IAssignOperation : IBinaryOperation<ICodeElement, ICodeElement>
     {

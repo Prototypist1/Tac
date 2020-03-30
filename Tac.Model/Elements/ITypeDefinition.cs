@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Tac.Model;
 
-namespace Tac.Model.WithErrors.Elements
+namespace Tac.Model.Elements
 {
 
     // maybe I don't want to write equals for all these types

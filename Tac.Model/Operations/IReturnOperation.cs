@@ -1,6 +1,6 @@
 ﻿using Prototypist.Toolbox;
 
-namespace Tac.Model.WithErrors.Operations
+namespace Tac.Model.Operations
 {
     public interface IReturnOperation : ICodeElement{
         IOrType<ICodeElement, IError> Result { get; }

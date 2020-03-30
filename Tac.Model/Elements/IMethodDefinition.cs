@@ -1,7 +1,7 @@
 ﻿using System;
 using Tac.Model.Operations;
 
-namespace Tac.Model.WithErrors.Elements
+namespace Tac.Model.Elements
 {
     // what is internal about this??
     // well, it is not external... 

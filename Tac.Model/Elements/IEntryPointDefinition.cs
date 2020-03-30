@@ -1,4 +1,4 @@
-﻿namespace Tac.Model.WithErrors.Elements
+﻿namespace Tac.Model.Elements
 {
     public interface IEntryPointDefinition: IAbstractBlockDefinition
     {

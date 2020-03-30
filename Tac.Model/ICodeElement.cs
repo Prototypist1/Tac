@@ -1,8 +1,8 @@
 ﻿
 using Prototypist.Toolbox;
-using Tac.Model.WithErrors.Elements;
+using Tac.Model.Elements;
 
-namespace Tac.Model.WithErrors
+namespace Tac.Model
 {
 
     public interface IConvertable {

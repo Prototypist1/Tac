@@ -1,6 +1,6 @@
 ﻿using Tac.Model.Elements;
 
-namespace Tac.Model.WithErrors.Elements
+namespace Tac.Model.Elements
 {
     public interface IMemberDefinition : IConvertable
     {

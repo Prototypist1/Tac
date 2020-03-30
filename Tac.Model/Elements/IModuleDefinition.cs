@@ -1,7 +1,7 @@
 ﻿using Prototypist.Toolbox;
 using System.Collections.Generic;
 
-namespace Tac.Model.WithErrors.Elements
+namespace Tac.Model.Elements
 {
     public interface IModuleDefinition : ICodeElement
     {

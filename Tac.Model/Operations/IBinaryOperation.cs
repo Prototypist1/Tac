@@ -1,8 +1,8 @@
 ﻿using Prototypist.Toolbox;
 using System.Collections.Generic;
-using Tac.Model.WithErrors.Elements;
+using Tac.Model.Elements;
 
-namespace Tac.Model.WithErrors.Operations
+namespace Tac.Model.Operations
 {
     public interface IOperation : ICodeElement
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Tac.Model.Operations;
 
-namespace Tac.Model.WithErrors.Elements
+namespace Tac.Model.Elements
 {
     public interface IAbstractBlockDefinition: ICodeElement {
         IFinalizedScope Scope { get; }
