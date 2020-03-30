@@ -112,22 +112,26 @@ namespace Tac.SemanticModel.Operations
                 var nextLeft = left.TransformInner(x=>x.Run(scope, context));
                 var nextRight = right.TransformInner(x => x.Run(scope, context));
 
-                if (nextLeft.Is1(out var nextLeft1) && !(nextLeft1.SetUpSideNode is Tpn.ICanAssignFromMe)) {
-                    // I need real error handling
-                    // where does this error??
-                    throw new Exception($"can not assign from {nextLeft1.SetUpSideNode}");
-                }
+                if (nextLeft.Is1(out var nextLeft1) && nextRight.Is1(out var nextRight1))
+                {
+                    if (!(nextLeft1.SetUpSideNode is Tpn.ICanAssignFromMe canAssignFromMe))
+                    {
+                        // todo I need real error handling
+                        throw new Exception($"can not assign from {nextLeft1.SetUpSideNode}");
+                    }
 
-                if (nextRight.Is1(out var nextRight1) && !(nextRight1.SetUpSideNode is Tpn.ICanBeAssignedTo)) {
-                    // I need real error handling
-                    // where does this error??
-                    throw new Exception($"can not assign to {nextRight1.SetUpSideNode}");
-                }
+                    if (!(nextRight1.SetUpSideNode is Tpn.ICanBeAssignedTo canBeAssignedTo))
+                    {
+                        // todo I need real error handling
+                        throw new Exception($"can not assign to {nextRight1.SetUpSideNode}");
+                    }
 
-                nextLeft1.SetUpSideNode.SafeCastTo<Tpn.ITypeProblemNode, Tpn.ICanAssignFromMe>().AssignTo(nextRight1.SetUpSideNode.SafeCastTo<Tpn.ITypeProblemNode, Tpn.ICanBeAssignedTo>());
-                
- 
-                
+                    canAssignFromMe.AssignTo(canBeAssignedTo);
+
+                }
+                else { 
+                    // uhhh probably something here right?
+                }
 
                 return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(
                     nextLeft.TransformInner(x=>x.Resolve),

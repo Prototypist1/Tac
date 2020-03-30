@@ -61,7 +61,7 @@ namespace Tac.SemanticModel.Operations
     {
         public SubtractOperationMaker() : base(SymbolsRegistry.StaticSubtractSymbol, (l,r)=>
            new Box<WeakSubtractOperation>(
-                new WeakSubtractOperation(l,r)), (s, c, l, r) => c.TypeProblem.CreateValue(s, new NameKey("number"), new PlaceholderValueConverter()))
+                new WeakSubtractOperation(l,r)), (s, c, l, r) => new OrType<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("number"), new PlaceholderValueConverter())))
         {}
     }
 }

@@ -18,6 +18,7 @@ namespace Tac.Frontend.New.CrzayNamespace
     // I think I like isPossibly more than IKey? atm it is stronger
     // if there is anywhere I need comments it is here
 
+    internal class Unset { }
 
     // this static class is here just to make us all think in terms of these bros
     internal class Tpn
@@ -46,7 +47,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
             TypeProblem2.Value CreateValue(IScope scope, IKey typeKey, IConvertTo<TypeProblem2.Value, PlaceholderValue> converter);
-            TypeProblem2.Member CreateMember(IScope scope, IKey key, IKey typeKey, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
+            TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<IKey,IError> typeKey, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType> type, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
@@ -330,7 +331,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
         internal interface ILookUpType : ITypeProblemNode
         {
-            public IIsPossibly<IKey> TypeKey { get; set; }
+            public IOrType<IKey, IError, Unset> TypeKey { get; set; }
             public IIsPossibly<IScope> Context { get; set; }
             public IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>> LooksUp { get; set; }
 
@@ -424,7 +425,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
+                public IOrType<IKey, IError, Unset> TypeKey { get; set; } = new OrType<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType>>();
                 public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
@@ -697,12 +698,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMember(IScope scope, IKey key, IKey typeKey, IConvertTo<Member, WeakMemberDefinition> converter)
+            public Member CreateMember(IScope scope, IKey key, IOrType<IKey, IError> typeKey, IConvertTo<Member, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
                 res.Context = Possibly.Is(scope);
-                res.TypeKey = Possibly.Is(typeKey);
+                res.TypeKey = typeKey.SwitchReturns(x=>new OrType<IKey, IError, Unset>(x),x=>new OrType<IKey, IError, Unset>(x));
                 return res;
             }
 
@@ -818,7 +819,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (inputType.TypeKey is IIsDefinately<IKey> typeKey)
                     {
-                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), typeKey.Value, inputConverter));
+                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), new OrType<IKey, IError>(typeKey.Value), inputConverter));
                     }
                     else
                     {
@@ -1000,12 +1001,17 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => x.LooksUp is IIsDefinatelyNot && x.TypeKey is IIsDefinatelyNot))
+                foreach (var node in toLookUp.Where(x => x.LooksUp is IIsDefinatelyNot && x.TypeKey.Is3(out var _))) 
                 {
                     var type = new InferredType(this, $"for {((TypeProblemNode)node).debugName}");
                     node.LooksUp = Possibly.Is(new OrType<MethodType, Type, Object, OrType, InferredType>(type));
                 }
 
+                // what happens here if x.TypeKey.Is2??
+                if (toLookUp.Any(x => x.LooksUp is IIsDefinatelyNot && x.TypeKey.Is2(out var _)))
+                {
+                    throw new NotImplementedException();
+                }
 
                 // generics register themsleves 
                 var realizedGeneric = new Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType>>();
@@ -1338,7 +1344,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     // if we don't have a lookup we damn well better have a context and a key
-                    if (!TryLookUpOrOverlay(node.Context.GetOrThrow(), node.TypeKey.GetOrThrow(), out var res))
+                    if (!TryLookUpOrOverlay(node.Context.GetOrThrow(), node.TypeKey.Is1OrThrow(), out var res))
                     {
                         throw new Exception("could not find type");
                     }
@@ -1611,10 +1617,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (pair.Key is ILookUpType lookUpFrom && pair.Value is ILookUpType lookUpTo)
                         {
 
-                            if (lookUpFrom.TypeKey is IIsDefinately<IKey> definateKey)
-                            {
-                                lookUpTo.TypeKey =  definateKey;
-                            }
+                            lookUpTo.TypeKey = lookUpFrom.TypeKey.SwitchReturns(x => new OrType<IKey, IError, Unset>(x), x => new OrType<IKey, IError, Unset>(x), x => new OrType<IKey, IError, Unset>(x));
 
                             if (lookUpFrom.Context is IIsDefinately<IScope> definateContext)
                             {
@@ -2167,7 +2170,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
-                res.Input = Possibly.Is(CreateMember(res, methodInputKey, new NameKey("T1"), new WeakMemberDefinitionConverter(false, methodInputKey)));
+                res.Input = Possibly.Is(CreateMember(res, methodInputKey, new OrType<IKey, IError>( new NameKey("T1")), new WeakMemberDefinitionConverter(false, methodInputKey)));
                 res.Returns = Possibly.Is(CreateTransientMember(res, new NameKey("T2")));
                 IsChildOf(Primitive, res);
             }

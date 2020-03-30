@@ -64,13 +64,13 @@ module pair-type {
                                                     new IsStatic(localX ,false),
                                                     new IsStatic(localY, false)
                                                 }),
-                                            new IAssignOperation[]{
-                                                AssignOperation.CreateAndBuild(
+                                            new IOrType<IAssignOperation,IError>[]{
+                                                new OrType<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
                                                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
-                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX))),
-                                                AssignOperation.CreateAndBuild(
+                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
+                                                new OrType<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
                                                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
-                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY)))
+                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
                                             }))))},
                             Array.Empty<ICodeElement>())),
                     new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(pairify))))},

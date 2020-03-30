@@ -37,13 +37,13 @@ namespace Tac.Tests.Samples
                                         new IsStatic( localX ,false),
                                         new IsStatic( localY ,false)
                                     }),
-                                new IAssignOperation[]{
-                                    AssignOperation.CreateAndBuild(
+                                new IOrType<IAssignOperation,IError>[]{
+                                    new OrType<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
                                         new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(5)),
-                                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX))),
-                                    AssignOperation.CreateAndBuild(
+                                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
+                                    new OrType<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
                                         new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
-                                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY)))
+                                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
                                 })),
                             new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false)))))},
                     new NameKey("point-module"),

@@ -152,7 +152,7 @@ namespace Tac.SemanticModel
             {
 
                 var type = this.type.Run(scope, context);
-                var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.Key(), new WeakMemberDefinitionConverter(isReadonly,memberName));
+                var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x=>x.Key()), new WeakMemberDefinitionConverter(isReadonly,memberName));
 
 
                 return new SetUpResult<WeakMemberReference, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(

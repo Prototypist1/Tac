@@ -56,7 +56,7 @@ namespace Tac.SemanticModel.Operations
                     BinaryOperationMaker<WeakTryAssignOperation, ITryAssignOperation>.PopulateScope(left, right, (l, r) =>
                        new Box<WeakTryAssignOperation>(
                             new WeakTryAssignOperation(l, r)),
-                    (s,c,l,r)=> c.TypeProblem.CreateValue(s,new NameKey("bool"),new PlaceholderValueConverter())));
+                    (s,c,l,r)=> new OrType<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s,new NameKey("bool"),new PlaceholderValueConverter()))));
             }
 
             return TokenMatching<ISetUp<WeakTryAssignOperation, Tpn.IValue>>.MakeNotMatch(
