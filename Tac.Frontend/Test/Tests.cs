@@ -207,13 +207,13 @@ namespace Tac.Frontend.TypeProblem.Test
                 new WeakTypeDefinitionConverter());
 
             x.CreateMember(pairType, new NameKey("x"),
-                new NameKey("T"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+                new OrType<IKey, IError>(new NameKey("T")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var chickenType = x.CreateType(x.ModuleRoot, new NameKey("chicken"), new WeakTypeDefinitionConverter());
 
             x.CreateMember(chickenType, new NameKey("eggs"), new WeakMemberDefinitionConverter(false, new NameKey("eggs")));
 
-            var chickenPair = x.CreateMember(x.ModuleRoot, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+            var chickenPair = x.CreateMember(x.ModuleRoot, new NameKey("x"), new OrType<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") })), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var solution = x.Solve();
 
@@ -239,16 +239,16 @@ namespace Tac.Frontend.TypeProblem.Test
                     new Tpn.TypeAndConverter(new NameKey("node-t"), new WeakTypeDefinitionConverter())
             }, new WeakTypeDefinitionConverter());
 
-            x.CreateMember(type, new NameKey("next"), new GenericNameKey(new NameKey("node"), new IKey[] {
+            x.CreateMember(type, new NameKey("next"), new OrType<IKey, IError>(new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("node-t")
-            }), new WeakMemberDefinitionConverter(false, new NameKey("next")));
+            })), new WeakMemberDefinitionConverter(false, new NameKey("next")));
 
             x.CreateType(x.ModuleRoot, new NameKey("chicken"), new WeakTypeDefinitionConverter());
 
 
-            var thing = x.CreateMember(x.ModuleRoot, new NameKey("thing"), new GenericNameKey(new NameKey("node"), new IKey[] {
+            var thing = x.CreateMember(x.ModuleRoot, new NameKey("thing"), new OrType<IKey, IError>(new GenericNameKey(new NameKey("node"), new IKey[] {
                 new NameKey("chicken")
-            }), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
+            })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
             var solution = x.Solve();
 
@@ -274,23 +274,23 @@ namespace Tac.Frontend.TypeProblem.Test
                     new Tpn.TypeAndConverter(new NameKey("left-t"), new WeakTypeDefinitionConverter())
             }, new WeakTypeDefinitionConverter());
 
-            x.CreateMember(left, new NameKey("thing"), new GenericNameKey(new NameKey("right"), new IKey[] {
+            x.CreateMember(left, new NameKey("thing"), new OrType<IKey, IError>(new GenericNameKey(new NameKey("right"), new IKey[] {
                 new NameKey("left-t")
-            }), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
+            })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
             var right = x.CreateGenericType(x.ModuleRoot, new NameKey("right"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("right-t"), new WeakTypeDefinitionConverter())
             }, new WeakTypeDefinitionConverter());
 
-            x.CreateMember(right, new NameKey("thing"), new GenericNameKey(new NameKey("left"), new IKey[] {
+            x.CreateMember(right, new NameKey("thing"), new OrType<IKey, IError>(new GenericNameKey(new NameKey("left"), new IKey[] {
                 new NameKey("right-t")
-            }), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
+            })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
             x.CreateType(x.ModuleRoot, new NameKey("chicken"), new WeakTypeDefinitionConverter());
 
-            var leftMember = x.CreateMember(x.ModuleRoot, new NameKey("left-member"), new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") }), new WeakMemberDefinitionConverter(false, new NameKey("left-member")));
+            var leftMember = x.CreateMember(x.ModuleRoot, new NameKey("left-member"), new OrType<IKey, IError>(new GenericNameKey(new NameKey("left"), new IKey[] { new NameKey("chicken") })), new WeakMemberDefinitionConverter(false, new NameKey("left-member")));
 
-            var rightMember = x.CreateMember(x.ModuleRoot, new NameKey("right-member"), new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") }), new WeakMemberDefinitionConverter(false, new NameKey("right-member")));
+            var rightMember = x.CreateMember(x.ModuleRoot, new NameKey("right-member"), new OrType<IKey, IError>(new GenericNameKey(new NameKey("right"), new IKey[] { new NameKey("chicken") })), new WeakMemberDefinitionConverter(false, new NameKey("right-member")));
 
             var solution = x.Solve();
 
@@ -324,15 +324,14 @@ namespace Tac.Frontend.TypeProblem.Test
                     new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
             }, new WeakTypeDefinitionConverter());
 
-
             x.CreateMember(pairType, new NameKey("x"),
-                new NameKey("T"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+                new OrType<IKey, IError>(new NameKey("T")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var chickenType = x.CreateType(x.ModuleRoot, new NameKey("chicken"), new WeakTypeDefinitionConverter());
 
             x.CreateMember(chickenType, new NameKey("eggs"), new WeakMemberDefinitionConverter(false, new NameKey("eggs")));
 
-            var xMember = x.CreateMember(x.ModuleRoot, new NameKey("x"), new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) }), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+            var xMember = x.CreateMember(x.ModuleRoot, new NameKey("x"), new OrType<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IKey[] { new GenericNameKey(new NameKey("pair"), new IKey[] { new NameKey("chicken") }) })), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var solution = x.Solve();
 

@@ -401,7 +401,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
+                public IOrType<IKey, IError, Unset> TypeKey { get; set; } = new OrType<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType>>();
             }
@@ -412,7 +412,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
+                public IOrType<IKey, IError, Unset> TypeKey { get; set; } = new OrType<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType>>();
 
@@ -438,7 +438,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public IIsPossibly<IKey> TypeKey { get; set; } = Possibly.IsNot<IKey>();
+                public IOrType<IKey, IError, Unset> TypeKey { get; set; } = new OrType<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType>>();
                 public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
@@ -694,7 +694,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Value(this, typeKey.ToString()!, converter);
                 HasValue(scope, res);
                 res.Context = Possibly.Is(scope);
-                res.TypeKey = Possibly.Is(typeKey);
+                res.TypeKey = new OrType<IKey, IError, Unset>(typeKey);
                 return res;
             }
 
@@ -740,7 +740,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new TypeReference(this, typeKey.ToString()!, converter);
                 HasReference(context, res);
                 res.Context = Possibly.Is(context);
-                res.TypeKey = Possibly.Is(typeKey);
+                res.TypeKey =  new OrType<IKey, IError, Unset>(typeKey);
                 return res;
             }
 
@@ -902,7 +902,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
                 res.Context = Possibly.Is(parent);
-                res.TypeKey = Possibly.Is(typeKey);
+                res.TypeKey = new OrType<IKey, IError, Unset>(typeKey);
                 return res;
             }
 
@@ -993,7 +993,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IIsPossibly<IKey> GetKey(TypeReference type)
             {
-                return type.TypeKey;
+                return type.TypeKey.Possibly1();
             }
 
             // pretty sure it is not safe to solve more than once 
