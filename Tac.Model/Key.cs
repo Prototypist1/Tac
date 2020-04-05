@@ -41,7 +41,7 @@ namespace Tac.Model
             Types = types ?? throw new System.ArgumentNullException(nameof(types));
         }
 
-        public IKey[] Types { get; }
+        public IOrType<IKey, IError>[] Types { get; }
 
         public override bool Equals(object obj)
         {

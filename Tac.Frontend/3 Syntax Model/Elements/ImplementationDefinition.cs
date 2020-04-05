@@ -15,6 +15,7 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
+using static Tac.Frontend.New.CrzayNamespace.Tpn;
 
 namespace Tac.Parser
 {
@@ -180,13 +181,13 @@ namespace Tac.SemanticModel
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);
                 var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"),new[] {
-                    realizedInput.SetUpSideNode.Key(),
-                    realizedOutput.SetUpSideNode.Key(),
+                    realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
+                    realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                 }),new WeakTypeReferenceConverter());
 
                 var innerBox = new Box<Tpn.TypeProblem2.Method>();
                 var linesBox = new Box<IOrType< IResolve<IFrontendCodeElement>,IError>[]>();
-                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, outputTypeRef, contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
+                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, new OrType<TypeProblem2.TypeReference, IError>(outputTypeRef), contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
                 var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
                 innerBox.Fill(inner);
@@ -194,18 +195,18 @@ namespace Tac.SemanticModel
 
                var innerValue = context.TypeProblem.CreateValue(outer, 
                     new GenericNameKey(new NameKey("method"), new[] {
-                         realizedInput.SetUpSideNode.Key(),
-                         realizedOutput.SetUpSideNode.Key(),
+                         realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
+                         realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                     }), new PlaceholderValueConverter());
 
                 innerValue.AssignTo(outer.Returns());
 
                 var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new[] {
-                    realizeContext.SetUpSideNode.Key(),
-                    new GenericNameKey(new NameKey("method"), new[] {
-                         realizedInput.SetUpSideNode.Key(),
-                         realizedOutput.SetUpSideNode.Key(),
-                    }),
+                    realizeContext.SetUpSideNode.TransformInner(x=>x.Key()),
+                    new OrType<IKey,IError>(new GenericNameKey(new NameKey("method"), new[] {
+                         realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
+                         realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
+                    })),
                 }),new PlaceholderValueConverter());
 
                 return new SetUpResult<WeakImplementationDefinition, Tpn.IValue>(new ImplementationDefinitionResolveReferance(

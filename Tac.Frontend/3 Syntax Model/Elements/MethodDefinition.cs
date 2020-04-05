@@ -148,9 +148,9 @@ namespace Tac.SemanticModel
 
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(method, context).Resolve)).ToArray());
 
-                var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new IKey[] {
-                    realizedInput.SetUpSideNode.Key(),
-                    realizedOutput.SetUpSideNode.Key(),
+                var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new IOrType<IKey,IError>[] {
+                    realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
+                    realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                 }), new PlaceholderValueConverter());
 
                 return new SetUpResult<WeakMethodDefinition, Tpn.IValue>(new MethodDefinitionResolveReferance(method), new OrType<Tpn.IValue, IError>(value));

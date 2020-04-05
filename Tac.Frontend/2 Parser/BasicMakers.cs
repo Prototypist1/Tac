@@ -5,6 +5,7 @@ using Tac.Model;
 using Tac.Infastructure;
 using Tac.Parser;
 using Prototypist.Toolbox.Object;
+using Prototypist.Toolbox;
 
 namespace Tac.Frontend.Parser
 {
@@ -72,7 +73,7 @@ namespace Tac.Frontend.Parser
                     return TokenMatching<IKey>.MakeMatch(
                         self.Tokens.Skip(2).ToArray(),
                         self.Context,
-                        new GenericNameKey(new NameKey(first.Item), mathced.Value));
+                        new GenericNameKey(new NameKey(first.Item), mathced.Value.Select(x=>new OrType<IKey,IError>(x)).ToArray()));
                 }
 
                 return TokenMatching<IKey>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, new NameKey(first.Item));

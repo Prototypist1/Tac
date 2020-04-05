@@ -44,7 +44,7 @@ namespace Tac.Frontend
                 {
                     var innerType = ConvertType(problem,type, memberPair.Value.Value.Type); 
                     innerType.Switch(x => {
-                        problem.CreateMember(type, memberPair.Key, x, new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        problem.CreateMember(type, memberPair.Key, new OrType<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
                     }, y =>
                     {
                         problem.CreateMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
@@ -115,7 +115,7 @@ namespace Tac.Frontend
                     var innerType = ConvertType(problem,tpnType,memberPair.Type);
                     innerType.Switch(x => { 
                     
-                        problem.CreateMember(tpnType, memberPair.Key, x, new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        problem.CreateMember(tpnType, memberPair.Key, new OrType<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
                     }, y =>
                     {
                         problem.CreateMember(tpnType, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
@@ -141,8 +141,8 @@ namespace Tac.Frontend
                 }
                 else if (input.Is1(out var i1) && output.Is1(out var o1))
                 {
-                    return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new GenericNameKey(new NameKey("method"), new IKey[] { 
-                        i1,o1
+                    return new OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType>>(new GenericNameKey(new NameKey("method"), new OrType<IKey, IError>[] { 
+                        new OrType<IKey, IError>(i1), new OrType<IKey, IError>(o1)
                     }));
                 }
                 else {

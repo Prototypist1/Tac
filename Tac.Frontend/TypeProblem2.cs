@@ -58,7 +58,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Object CreateObjectOrModule(IScope parent, IKey key, IConvertTo<TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter);
             TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
-            TypeProblem2.Method CreateMethod(IScope parent, TypeProblem2.TypeReference inputType, TypeProblem2.TypeReference outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
+            TypeProblem2.Method CreateMethod(IScope parent, IOrType<TypeProblem2.TypeReference,IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
             TypeProblem2.TransientMember GetReturns(IValue s);
             TypeProblem2.TransientMember GetReturns(IScope s);
             TypeProblem2.Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
@@ -806,18 +806,25 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Method CreateMethod(IScope parent, TypeReference inputType, TypeReference outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
             {
+                if (!inputType.Is1(out var inputTypeValue)) {
+                    throw new NotImplementedException();
+                }
+                if (!outputType.Is1(out var outputTypeValue))
+                {
+                    throw new NotImplementedException();
+                }
 
-                var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputType.debugName},outputType:{outputType.debugName}}}", converter);
+                var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputTypeValue.debugName},outputType:{outputTypeValue.debugName}}}", converter);
                 IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                 {
-                    var returns = inputType.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value) : CreateTransientMember(res);
+                    var returns = inputTypeValue.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value) : CreateTransientMember(res);
                     res.Returns = Possibly.Is(returns);
                 }
                 {
-                    if (inputType.TypeKey is IIsDefinately<IKey> typeKey)
+                    if (inputTypeValue.TypeKey is IIsDefinately<IKey> typeKey)
                     {
                         res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), new OrType<IKey, IError>(typeKey.Value), inputConverter));
                     }
@@ -1371,7 +1378,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (key is GenericNameKey genericNameKey)
                     {
 
-                        var types = genericNameKey.Types.Select(typeKey => LookUpOrOverlayOrThrow2(from, typeKey)).ToArray();
+                        var types = genericNameKey.Types.Select(typeKey => typeKey.SwitchReturns(
+                            x=> LookUpOrOverlayOrThrow2(from, x),
+                            y=>throw new NotImplementedException("Type could not be resolved")) // I want to use NIEs to keep my code near compilablity. once I have a lot in type problem node, I can think about how to handle them.
+                        ).ToArray();
 
 
                         var outerLookedUp = LookUpOrOverlayOrThrow2(from, genericNameKey.Name);

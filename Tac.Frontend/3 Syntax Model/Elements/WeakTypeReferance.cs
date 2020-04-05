@@ -131,7 +131,7 @@ namespace Tac.SemanticModel
 
             if (genericMatachig is IMatchedTokenMatching genericMatched)
             {
-                return TokenMatching<IKey>.MakeMatch(genericMatched.Tokens, genericMatched.Context, new GenericNameKey(new NameKey(typeName!.Item), list.ToArray()));
+                return TokenMatching<IKey>.MakeMatch(genericMatched.Tokens, genericMatched.Context, new GenericNameKey(new NameKey(typeName!.Item), list.Select(x => new OrType<IKey, IError>(x)).ToArray().ToArray()));
             }
 
             if (matching is IMatchedTokenMatching matched)

@@ -12,8 +12,4 @@
     <PackageReference Include="Prototypist.Toolbox" Version="1.0.0.13" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Tac.Frontend.Common\Tac.Frontend.Common.csproj" />
-  </ItemGroup>
-
 </Project>
