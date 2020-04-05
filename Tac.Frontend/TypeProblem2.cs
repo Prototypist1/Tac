@@ -1037,18 +1037,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var node in new[] { localScopes, localMethodTypes }.SelectMany(x => x))
                 {
                     var key = new GenericTypeKey(node, genericOverlays[node].Values.ToArray());
-                    if (node.Is1(out var v1))
+                    node.Switch(v1 =>
                     {
                         realizedGeneric[key] = new OrType<MethodType, Type, Object, OrType, InferredType>(v1);
-                    }
-                    else if (node.Is2(out var v2))
+                    },
+                    v2 =>
                     {
                         realizedGeneric[key] = new OrType<MethodType, Type, Object, OrType, InferredType>(v2);
-                    }
-                    else
-                    {
-                        throw new Exception("you are outside of the or type");
-                    }
+                    });
                 }
 
                 toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinatelyNot).ToArray();
@@ -1388,21 +1384,19 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         var types = genericNameKey.Types.Select(typeKey => typeKey.SwitchReturns(
                             x=> LookUpOrOverlayOrThrow2(from, x),
-                            y=>throw new NotImplementedException("Type could not be resolved")) // I want to use NIEs to keep my code near compilablity. once I have a lot in type problem node, I can think about how to handle them.
+                            y=> throw new NotImplementedException("Type could not be resolved")) // I want to use NIEs to keep my code near compilablity. once I have a lot in type problem node, I can think about how to handle them.
                         ).ToArray();
 
 
                         var outerLookedUp = LookUpOrOverlayOrThrow2(from, genericNameKey.Name);
 
-                        if (outerLookedUp.Is1(out var method))
+                        res = outerLookedUp.SwitchReturns<IOrType<MethodType, Type, Object, OrType, InferredType>>(method =>
                         {
                             var genericTypeKey = new GenericTypeKey(new OrType<MethodType, Type>(method), types);
 
-
                             if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
                             {
-                                res = res2;
-                                return true;
+                                return res2;
                             }
 
                             // this is duplicate code - 94875369485
@@ -1413,30 +1407,24 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
 
                             var @explicit = CopyTree(new OrType<MethodType, Type>(method), new OrType<MethodType, Type>(new MethodType(this, $"generated-generic-{method.debugName}", method.Converter)), map);
-                            if (@explicit.Is1(out var v1))
+
+                            return @explicit.SwitchReturns(v1 =>
                             {
                                 realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType, InferredType>(v1));
-                                res = new OrType<MethodType, Type, Object, OrType, InferredType>(v1);
-                            }
-                            else if (@explicit.Is2(out var v2))
+                                return new OrType<MethodType, Type, Object, OrType, InferredType>(v1);
+                            }, v2 =>
                             {
                                 realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType, InferredType>(v2));
-                                res = new OrType<MethodType, Type, Object, OrType, InferredType>(v2);
-                            }
-                            else
-                            {
-                                throw new Exception();
-                            }
-                            return true;
-                        }
-                        else if (outerLookedUp.Is2(out var type))
-                        {
+                                return new OrType<MethodType, Type, Object, OrType, InferredType>(v2);
+                            });
+
+                        }, 
+                        type => {
                             var genericTypeKey = new GenericTypeKey(new OrType<MethodType, Type>(type), types);
 
                             if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
                             {
-                                res = res2;
-                                return true;
+                                return res2;
                             }
 
                             // this is duplicate code - 94875369485
@@ -1447,39 +1435,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
 
                             var @explicit = CopyTree(new OrType<MethodType, Type>(type), new OrType<MethodType, Type>(new Type(this, $"generated-generic-{type.debugName}", type.Converter)), map);
-                            if (@explicit.Is1(out var v1))
+
+                            return @explicit.SwitchReturns(v1 =>
                             {
                                 realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType, InferredType>(v1));
-                                res = new OrType<MethodType, Type, Object, OrType, InferredType>(v1);
-                            }
-                            else if (@explicit.Is2(out var v2))
+                                return new OrType<MethodType, Type, Object, OrType, InferredType>(v1);
+                            },
+                            v2 =>
                             {
                                 realizedGeneric.Add(genericTypeKey, new OrType<MethodType, Type, Object, OrType, InferredType>(v2));
-                                res = new OrType<MethodType, Type, Object, OrType, InferredType>(v2);
-                            }
-                            else
-                            {
-                                throw new Exception();
-                            }
-                            return true;
-                        }
-                        else if (outerLookedUp.Is3(out var @object))
-                        {
-                            res = new OrType<MethodType, Type, Object, OrType, InferredType>(@object);
-                            return true;
-                        }
-                        else if (outerLookedUp.Is4(out var orType))
-                        {
-                            res = new OrType<MethodType, Type, Object, OrType, InferredType>(orType);
-                            return true;
-                        }
-                        else
-                        {
-                            throw new Exception();
-                        }
+                                return new OrType<MethodType, Type, Object, OrType, InferredType>(v2);
+                            });
+
+                        }, 
+                        @object => new OrType<MethodType, Type, Object, OrType, InferredType>(@object),
+                        orType => new OrType<MethodType, Type, Object, OrType, InferredType>(orType),
+                        inferredType => new OrType<MethodType, Type, Object, OrType, InferredType>(inferredType));
+                        return true;
                     }
-                    else
-                    if (TryLookUp(from, key, out var res2))
+                    else if (TryLookUp(from, key, out var res2))
                     {
                         //:'(
                         res = res2;
@@ -1576,31 +1550,42 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
 
                     var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();
-                    if (from.Is1(out var from1) && to.Is1(out var to1))
+
+                    from.Switch(from1 =>
                     {
-                        Copy(from1, to1);
-                    }
-                    else if (from.Is2(out var from2) && to.Is2(out var to2))
+                        if (to.Is1(out var to1))
+                        {
+                            Copy(from1, to1);
+                        }
+                        else
+                        {
+                            throw new Exception("or exception");
+                        }
+                    },
+                    from2 =>
                     {
-                        Copy(from2, to2);
-                    }
-                    else
-                    {
-                        throw new Exception("or exception");
-                    }
+                        if (to.Is2(out var to2))
+                        {
+                            Copy(from2, to2);
+                        }
+                        else
+                        {
+                            throw new Exception("or exception");
+                        }
+                    });
 
                     foreach (var pair in map)
                     {
                         if (pair.Key is IScope fromScope && fromScope.Parent is IIsDefinately<IScope> defScope)
                         {
-                            if (to.Is1(out var method))
+                            to.Switch(method =>
                             {
-                                method.Parent =  Possibly.Is( CopiedToOrSelf(defScope.Value));
-                            }
-                            else if (to.Is2(out var type))
+                                method.Parent = Possibly.Is(CopiedToOrSelf(defScope.Value));
+                            },
+                            type =>
                             {
                                 type.Parent = Possibly.Is(CopiedToOrSelf(defScope.Value));
-                            }
+                            });
                         }
                     }
 
@@ -1830,64 +1815,28 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 static bool IsHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers)
                 {
-                    if (type.Is1(out var v1))
-                    {
-                        haveMembers = default;
-                        return false;
-                    }
-                    else if (type.Is2(out var v2))
-                    {
-                        haveMembers = v2;
-                        return true;
-                    }
-                    else if (type.Is3(out var v3))
-                    {
-                        haveMembers = v3;
-                        return true;
-                    }
-                    else if (type.Is4(out var v4))
-                    {
-                        haveMembers = v4;
-                        return true;
-                    }
-                    else if (type.Is5(out var v5))
-                    {
-                        haveMembers = v5;
-                        return true;
-                    }
+                    var res = false;
+                    (haveMembers, res) = type.SwitchReturns<(IHaveMembers?,bool) >(
+                        v1 => (default,false),
+                        v2 => (v2,true),
+                        v3 => (v3, true),
+                        v4 => (v4, true),
+                        v5 => (v5, true));
 
-                    throw new Exception("boom!");
+                    return res;
                 }
 
                 static bool IsNotInferedHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType> type, out IHaveMembers? haveMembers)
                 {
-                    if (type.Is1(out var v1))
-                    {
-                        haveMembers = default;
-                        return false;
-                    }
-                    else if (type.Is2(out var v2))
-                    {
-                        haveMembers = v2;
-                        return true;
-                    }
-                    else if (type.Is3(out var v3))
-                    {
-                        haveMembers = v3;
-                        return true;
-                    }
-                    else if (type.Is4(out var v4))
-                    {
-                        haveMembers = v4;
-                        return true;
-                    }
-                    else if (type.Is5(out var v5))
-                    {
-                        haveMembers = default;
-                        return false;
-                    }
+                    var res = false;
+                    (haveMembers, res) = type.SwitchReturns<(IHaveMembers?, bool)>(
+                        v1 => (default, false),
+                        v2 => (v2, true),
+                        v3 => (v3, true),
+                        v4 => (v4, true),
+                        v5 => (default, false));
 
-                    throw new Exception("boom!");
+                    return res;
                 }
 
                 static IOrType<MethodType, Type, Object, OrType, InferredType> GetType(ITypeProblemNode value)
@@ -2064,31 +2013,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 IReadOnlyDictionary<IKey, Member> GetMembers2(IOrType<MethodType, Type, Object, OrType, InferredType> or)
                 {
-                    if (or.Is1(out var _))
-                    {
-                        return new Dictionary<IKey, Member>();
-                    }
-                    else if (or.Is2(out var v2))
-                    {
-                        return GetMembers(new OrType<IHaveMembers, OrType>(v2));
-                    }
-                    else if (or.Is3(out var v3))
-                    {
-                        return GetMembers(new OrType<IHaveMembers, OrType>(v3));
-                    }
-                    else if (or.Is4(out var v4))
-                    {
-                        return GetMembers(new OrType<IHaveMembers, OrType>(v4));
 
-                    }
-                    else if (or.Is5(out var v5))
-                    {
-                        return new Dictionary<IKey, Member>();
-                    }
-                    else
-                    {
-                        throw new Exception("unexpected");
-                    }
+                    return or.SwitchReturns(
+                        _ => new Dictionary<IKey, Member>(),
+                        v2 => GetMembers(new OrType<IHaveMembers, OrType>(v2)),
+                        v3 => GetMembers(new OrType<IHaveMembers, OrType>(v3)),
+                        v4 => GetMembers(new OrType<IHaveMembers, OrType>(v4)),
+                        _ => new Dictionary<IKey, Member>()
+                        );
                 }
 
                 IReadOnlyDictionary<IKey, Member> GetMembers(IOrType<IHaveMembers, OrType> type)

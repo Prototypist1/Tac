@@ -108,32 +108,24 @@ namespace Tac.SemanticModel.Operations
             {
                 var nextLeft = left.TransformInner(x => x.Run(scope, context));
 
-                IOrType<Tpn.TypeProblem2.Member, IError> member;
-
-
-                if (nextLeft.Is1(out var leftResult))
-                {
-                    if (leftResult.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
+                var member = nextLeft.SwitchReturns(
+                    good =>
                     {
-                        member = new OrType<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
-                            value,
-                            new NameKey(name),
-                            new WeakMemberDefinitionConverter(false, new NameKey(name))));
-                    }
-                    else
-                    {
-                        member = new OrType<Tpn.TypeProblem2.Member, IError>(new Error(""));
-                        // todo better error handling 
-                        throw new NotImplementedException($"can not . off {leftResult.SetUpSideNode}");
-                    }
-                }
-                else if (nextLeft.Is2(out var rightResult))
-                {
-                    member = new OrType<Tpn.TypeProblem2.Member, IError>(new Error("We needed ", rightResult));
-                }
-                else {
-                    throw new Exception("uhh we are outside the else");
-                }
+                        if (good.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
+                        {
+                            return new OrType<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
+                                value,
+                                new NameKey(name),
+                                new WeakMemberDefinitionConverter(false, new NameKey(name))));
+                        }
+                        else
+                        {
+                            return new OrType<Tpn.TypeProblem2.Member, IError>(new Error(""));
+                            // todo better error handling 
+                            throw new NotImplementedException($"can not . off {good.SetUpSideNode}");
+                        }
+                    },
+                    error => new OrType<Tpn.TypeProblem2.Member, IError>(new Error("We needed ", error)));
 
                 return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
                     nextLeft.TransformInner(x=>x.Resolve),

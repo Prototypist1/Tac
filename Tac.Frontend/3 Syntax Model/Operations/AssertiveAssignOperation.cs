@@ -117,6 +117,7 @@ namespace Tac.SemanticModel.Operations
                     if (!(node1 is Tpn.ICanAssignFromMe canAssignFromMe))
                     {
                         // todo I need real error handling
+                        // probably I need somewhere to stuff additional errors
                         throw new NotImplementedException($"can not assign from {nextLeft1.SetUpSideNode}");
                     }
 
