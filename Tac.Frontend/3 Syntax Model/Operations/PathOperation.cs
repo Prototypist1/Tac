@@ -113,7 +113,7 @@ namespace Tac.SemanticModel.Operations
 
                 if (nextLeft.Is1(out var leftResult))
                 {
-                    if (leftResult.SetUpSideNode is Tpn.IValue value)
+                    if (leftResult.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
                     {
                         member = new OrType<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
                             value,
@@ -124,7 +124,7 @@ namespace Tac.SemanticModel.Operations
                     {
                         member = new OrType<Tpn.TypeProblem2.Member, IError>(new Error(""));
                         // todo better error handling 
-                        throw new Exception($"can not . off {leftResult.SetUpSideNode}");
+                        throw new NotImplementedException($"can not . off {leftResult.SetUpSideNode}");
                     }
                 }
                 else if (nextLeft.Is2(out var rightResult))

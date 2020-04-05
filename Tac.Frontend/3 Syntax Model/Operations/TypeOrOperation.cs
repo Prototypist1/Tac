@@ -14,7 +14,7 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
-
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Parser
 {
@@ -68,7 +68,7 @@ namespace Tac.Frontend.SyntaxModel.Operations
             (l, r) => new Box<WeakTypeOrOperation>(new WeakTypeOrOperation(l, r)),
             (s,c,l,r)=> {
                 var key = new ImplicitKey(Guid.NewGuid());
-                c.TypeProblem.CreateOrType(s, key,(Tpn.TypeProblem2.TypeReference)l.SetUpSideNode, (Tpn.TypeProblem2.TypeReference)r.SetUpSideNode,new WeakTypeOrOperationConverter());
+                c.TypeProblem.CreateOrType(s, key,l.SetUpSideNode.TransformInner(x=>x.SafeCastTo<Tpn.ITypeProblemNode,Tpn.TypeProblem2.TypeReference>()), r.SetUpSideNode.TransformInner(x => x.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), new WeakTypeOrOperationConverter());
                 var reference = c.TypeProblem.CreateTypeReference(s, key, new WeakTypeReferenceConverter());
                 return reference;
             })

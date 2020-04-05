@@ -112,25 +112,25 @@ namespace Tac.SemanticModel.Operations
                 var nextLeft = left.TransformInner(x=>x.Run(scope, context));
                 var nextRight = right.TransformInner(x => x.Run(scope, context));
 
-                if (nextLeft.Is1(out var nextLeft1) && nextRight.Is1(out var nextRight1))
+                if (nextLeft.Is1(out var nextLeft1) && nextLeft1.SetUpSideNode.Is1(out var node1) && nextRight.Is1(out var nextRight1) && nextRight1.SetUpSideNode.Is1(out var node2))
                 {
-                    if (!(nextLeft1.SetUpSideNode is Tpn.ICanAssignFromMe canAssignFromMe))
+                    if (!(node1 is Tpn.ICanAssignFromMe canAssignFromMe))
                     {
                         // todo I need real error handling
-                        throw new Exception($"can not assign from {nextLeft1.SetUpSideNode}");
+                        throw new NotImplementedException($"can not assign from {nextLeft1.SetUpSideNode}");
                     }
 
-                    if (!(nextRight1.SetUpSideNode is Tpn.ICanBeAssignedTo canBeAssignedTo))
+                    if (!(node2 is Tpn.ICanBeAssignedTo canBeAssignedTo))
                     {
                         // todo I need real error handling
-                        throw new Exception($"can not assign to {nextRight1.SetUpSideNode}");
+                        throw new NotImplementedException($"can not assign to {nextRight1.SetUpSideNode}");
                     }
 
                     canAssignFromMe.AssignTo(canBeAssignedTo);
 
                 }
-                else { 
-                    // uhhh probably something here right?
+                else {
+                    throw new NotImplementedException();
                 }
 
                 return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(

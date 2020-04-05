@@ -82,7 +82,7 @@ namespace Tac.SemanticModel.Operations
             }
 
             var left = l.Is1OrThrow();
-            var right = r.Is2OrThrow();
+            var right = r.Is1OrThrow();
 
             if (!(left is Tpn.ICanAssignFromMe assignFrom)) {
                 return new OrType<Tpn.IValue, IError>(new Error("can not assign from the left"));

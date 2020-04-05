@@ -18,6 +18,7 @@ using Tac.Tests.Help;
 using Tac.Tests.Samples;
 using Xunit;
 using Tac.TestCases;
+using Tac.Model.Operations;
 
 namespace Tac.Tests
 {
@@ -97,7 +98,7 @@ namespace Tac.Tests
                 .Single()
                 .Is1OrThrow()
                 .GetValue()
-                .CastTo<WeakModuleDefinition>();
+                .SafeCastTo<IFrontendCodeElement,WeakModuleDefinition>();
 
 
             var context = TransformerExtensions.NewConversionContext();
@@ -150,8 +151,14 @@ namespace Tac.Tests
 
         [Fact]
         public void TokenizeMissingElement() {
-            var res =Tokenize("5 + + 10;");
+            var res =Tokenize("module tokenize-missing-element { 5 + + 10 =: x ; }");
             var converted = Convert(res);
+            var line = Assert.Single(converted.StaticInitialization);
+            var validLine = line.Is1OrThrow();
+            var assignOperation=  validLine.SafeCastTo<ICodeElement, IAssignOperation>();
+            var addition =  assignOperation.Left.Is1OrThrow();
+            var addOperation = addition.SafeCastTo<ICodeElement, IAddOperation>();
+            addOperation.Left.Is2OrThrow();
         }
 
         private static void Text_Token(IWrappedTestCase sample)

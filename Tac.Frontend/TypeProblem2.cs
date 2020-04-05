@@ -62,7 +62,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.TransientMember GetReturns(IValue s);
             TypeProblem2.TransientMember GetReturns(IScope s);
             TypeProblem2.Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.OrType CreateOrType(IScope s, IKey key, TypeProblem2.TypeReference setUpSideNode1, TypeProblem2.TypeReference setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
+            TypeProblem2.OrType CreateOrType(IScope s, IKey key, IOrType< TypeProblem2.TypeReference,IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
             IIsPossibly<IKey> GetKey(TypeProblem2.TypeReference type);
             TypeProblem2.Member GetInput(IValue method);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
@@ -845,10 +845,18 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public OrType CreateOrType(IScope s, IKey key, TypeReference setUpSideNode1, TypeReference setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
+            public OrType CreateOrType(IScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
             {
-                var res = new OrType(this, $"{((TypeProblemNode)setUpSideNode1).debugName} || {((TypeProblemNode)setUpSideNode2).debugName}", converter);
-                Ors(res, setUpSideNode1, setUpSideNode2);
+                if (!setUpSideNode1.Is1(out var node1)) {
+                    throw new NotImplementedException();
+                }
+                if (!setUpSideNode2.Is1(out var node2))
+                {
+                    throw new NotImplementedException();
+                }
+
+                var res = new OrType(this, $"{node1.debugName} || {node2.debugName}", converter);
+                Ors(res, node1, node2);
                 HasOrType(s, key, res);
 
                 return res;
