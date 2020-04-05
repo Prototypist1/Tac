@@ -313,6 +313,22 @@ namespace Tac.Parser
     {
     }
 
+    internal interface ITokenMatching<out T1, out T2> : ITokenMatching
+    {
+    }
+
+    internal interface ITokenMatching<out T1, out T2, out T3> : ITokenMatching
+    {
+    }
+
+    internal interface ITokenMatching<out T1, out T2, out T3, out T4> : ITokenMatching
+    {
+    }
+
+    internal interface ITokenMatching<out T1, out T2, out T3, out T4, out T5> : ITokenMatching
+    {
+    }
+
     internal interface IMatchedTokenMatching: ITokenMatching
     {
         IReadOnlyList<IToken> Tokens { get; }
@@ -322,7 +338,38 @@ namespace Tac.Parser
     {
         T Value { get; }
     }
-    
+
+    internal interface IMatchedTokenMatching<out T1, out T2> : ITokenMatching<T1,T2>, IMatchedTokenMatching
+    {
+        T1 Value1 { get; }
+        T2 Value2 { get; }
+    }
+
+    internal interface IMatchedTokenMatching<out T1, out T2 ,out T3> : ITokenMatching<T1,T2,T3>, IMatchedTokenMatching
+    {
+        T1 Value1 { get; }
+        T2 Value2 { get; }
+        T3 Value3 { get; }
+    }
+
+    internal interface IMatchedTokenMatching<out T1, out T2, out T3, out T4> : ITokenMatching<T1, T2, T3, T4>, IMatchedTokenMatching
+    {
+        T1 Value1 { get; }
+        T2 Value2 { get; }
+        T3 Value3 { get; }
+        T4 Value4 { get; }
+    }
+
+    internal interface IMatchedTokenMatching<out T1, out T2, out T3, out T4, out T5> : ITokenMatching<T1, T2, T3, T4, T5>, IMatchedTokenMatching
+    {
+        T1 Value1 { get; }
+        T2 Value2 { get; }
+        T3 Value3 { get; }
+        T4 Value4 { get; }
+        T5 Value5 { get; }
+    }
+
+
     internal static class TokenMatching<T>
     {
         private class Start : IMatchedTokenMatching
@@ -400,7 +447,6 @@ namespace Tac.Parser
         {
             return new NotMatched(context);
         }
-
     }
 
     // this is a good api
@@ -408,6 +454,272 @@ namespace Tac.Parser
     // matchOne fails a bit too
     // composing is hard because you are limited to a single return
     
+    internal static class TokenMatching<T1,T2> {
+        private class Matched : IMatchedTokenMatching<T1,T2>
+        {
+            public Matched(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T1 value1, T2 value2)
+            {
+                Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+                Value1 = value1; 
+                Value2 = value2;
+            }
+
+            public IReadOnlyList<IToken> Tokens
+            {
+                get;
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+
+            public T1 Value1
+            {
+                get;
+            }
+            public T2 Value2
+            {
+                get;
+            }
+        }
+
+        private class NotMatched : ITokenMatching<T1,T2>
+        {
+            public NotMatched(ElementMatchingContext context)
+            {
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+        }
+
+        public static IMatchedTokenMatching<T1,T2> MakeMatch(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T1 value1, T2 value2)
+        {
+            return new Matched(tokens, context, value1, value2);
+        }
+
+        public static ITokenMatching<T1,T2> MakeNotMatch(ElementMatchingContext context)
+        {
+            return new NotMatched(context);
+        }
+    }
+
+    internal static class TokenMatching<T1, T2,T3>
+    {
+        private class Matched : IMatchedTokenMatching<T1, T2, T3>
+        {
+            public Matched(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3)
+            {
+                Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+                Value1 = value1;
+                Value2 = value2;
+                Value3 = value3;
+            }
+
+            public IReadOnlyList<IToken> Tokens
+            {
+                get;
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+
+            public T1 Value1
+            {
+                get;
+            }
+            public T2 Value2
+            {
+                get;
+            }
+            public T3 Value3
+            {
+                get;
+            }
+        }
+
+        private class NotMatched : ITokenMatching<T1, T2,T3>
+        {
+            public NotMatched(ElementMatchingContext context)
+            {
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+        }
+
+        public static IMatchedTokenMatching<T1, T2, T3> MakeMatch(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3)
+        {
+            return new Matched(tokens, context, value1, value2, value3);
+        }
+
+        public static ITokenMatching<T1, T2,T3> MakeNotMatch(ElementMatchingContext context)
+        {
+            return new NotMatched(context);
+        }
+    }
+
+    internal static class TokenMatching<T1, T2, T3, T4>
+    {
+        private class Matched : IMatchedTokenMatching<T1, T2, T3, T4>
+        {
+            public Matched(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, T4 value4)
+            {
+                Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+                Value1 = value1;
+                Value2 = value2;
+                Value3 = value3;
+                Value4 = value4;
+            }
+
+            public IReadOnlyList<IToken> Tokens
+            {
+                get;
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+
+            public T1 Value1
+            {
+                get;
+            }
+            public T2 Value2
+            {
+                get;
+            }
+            public T3 Value3
+            {
+                get;
+            }
+            public T4 Value4
+            {
+                get;
+            }
+        }
+
+        private class NotMatched : ITokenMatching<T1, T2, T3, T4>
+        {
+            public NotMatched(ElementMatchingContext context)
+            {
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+        }
+
+        public static IMatchedTokenMatching<T1, T2, T3, T4> MakeMatch(
+            IReadOnlyList<IToken> tokens, 
+            ElementMatchingContext context, 
+            T1 value1, 
+            T2 value2, 
+            T3 value3,
+            T4 value4)
+        {
+            return new Matched(tokens, context, value1, value2, value3, value4);
+        }
+
+        public static ITokenMatching<T1, T2, T3,T4> MakeNotMatch(ElementMatchingContext context)
+        {
+            return new NotMatched(context);
+        }
+    }
+
+    internal static class TokenMatching<T1, T2, T3, T4, T5>
+    {
+        private class Matched : IMatchedTokenMatching<T1, T2, T3, T4, T5>
+        {
+            public Matched(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, T4 value4, T5 value5)
+            {
+                Tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+                Value1 = value1;
+                Value2 = value2;
+                Value3 = value3;
+                Value4 = value4;
+                Value5 = value5;
+            }
+
+            public IReadOnlyList<IToken> Tokens
+            {
+                get;
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+
+            public T1 Value1
+            {
+                get;
+            }
+            public T2 Value2
+            {
+                get;
+            }
+            public T3 Value3
+            {
+                get;
+            }
+            public T4 Value4
+            {
+                get;
+            }
+            public T5 Value5
+            {
+                get;
+            }
+        }
+
+        private class NotMatched : ITokenMatching<T1, T2, T3, T4, T5>
+        {
+            public NotMatched(ElementMatchingContext context)
+            {
+                Context = context ?? throw new ArgumentNullException(nameof(context));
+            }
+
+            public ElementMatchingContext Context
+            {
+                get;
+            }
+        }
+
+        public static IMatchedTokenMatching<T1, T2, T3, T4, T5> MakeMatch(
+            IReadOnlyList<IToken> tokens,
+            ElementMatchingContext context,
+            T1 value1,
+            T2 value2,
+            T3 value3,
+            T4 value4,
+            T5 value5)
+        {
+            return new Matched(tokens, context, value1, value2, value3, value4, value5);
+        }
+
+        public static ITokenMatching<T1, T2, T3,T4,T5> MakeNotMatch(ElementMatchingContext context)
+        {
+            return new NotMatched(context);
+        }
+    }
+
     internal static class ElementMatcher
     {
         public static ITokenMatching<T> GetValue<T>(this ITokenMatching<T> self, out T? value)
@@ -440,6 +752,99 @@ namespace Tac.Parser
 
             t = default;
             return res;
+        }
+
+        public static ITokenMatching<T> Has<T>(this ITokenMatching self, IMaker<T> pattern)
+            where T : class
+        {
+
+            if (!(self is IMatchedTokenMatching firstMatched))
+            {
+                return TokenMatching<T>.MakeNotMatch(self.Context);
+            }
+
+            var res = pattern.TryMake(firstMatched);
+            if (res is IMatchedTokenMatching<T> matched)
+            {
+                return res;
+            }
+
+            return res;
+        }
+
+        public static ITokenMatching<T1,T2> Has<T1,T2>(this ITokenMatching<T1> self, IMaker<T2> pattern)
+            where T1 : class
+            where T2 : class
+        {
+
+            if (self is IMatchedTokenMatching<T1> firstMatched)
+            {
+
+                var res = pattern.TryMake(firstMatched);
+                if (res is IMatchedTokenMatching<T2> matched)
+                {
+                    return TokenMatching<T1, T2>.MakeMatch(matched.Tokens, firstMatched.Context, firstMatched.Value, matched.Value);
+                }
+            }
+
+            return TokenMatching<T1, T2>.MakeNotMatch(self.Context);
+        }
+
+        public static ITokenMatching<T1, T2, T3> Has<T1, T2,T3>(this ITokenMatching<T1,T2> self, IMaker<T3> pattern)
+            where T1 : class
+            where T2 : class
+            where T3 : class
+        {
+
+            if (self is IMatchedTokenMatching<T1,T2> firstMatched)
+            {
+
+                var res = pattern.TryMake(firstMatched);
+                if (res is IMatchedTokenMatching<T3> matched)
+                {
+                    return TokenMatching<T1, T2,T3>.MakeMatch(matched.Tokens, firstMatched.Context, firstMatched.Value1, firstMatched.Value2, matched.Value);
+                }
+            }
+
+            return TokenMatching<T1, T2,T3>.MakeNotMatch(self.Context);
+        }
+
+        public static ITokenMatching<T1, T2, T3,T4> Has<T1, T2, T3,T4>(this ITokenMatching<T1, T2,T3> self, IMaker<T4> pattern)
+            where T1 : class
+            where T2 : class
+            where T3 : class
+        {
+
+            if (self is IMatchedTokenMatching<T1, T2,T3> firstMatched)
+            {
+
+                var res = pattern.TryMake(firstMatched);
+                if (res is IMatchedTokenMatching<T4> matched)
+                {
+                    return TokenMatching<T1, T2, T3,T4>.MakeMatch(matched.Tokens, firstMatched.Context, firstMatched.Value1, firstMatched.Value2, firstMatched.Value3, matched.Value);
+                }
+            }
+
+            return TokenMatching<T1, T2, T3,T4>.MakeNotMatch(self.Context);
+        }
+
+        public static ITokenMatching<T1, T2, T3, T4,T5> Has<T1, T2, T3, T4,T5>(this ITokenMatching<T1, T2, T3,T4> self, IMaker<T5> pattern)
+            where T1 : class
+            where T2 : class
+            where T3 : class
+        {
+
+            if (self is IMatchedTokenMatching<T1, T2, T3,T4> firstMatched)
+            {
+
+                var res = pattern.TryMake(firstMatched);
+                if (res is IMatchedTokenMatching<T5> matched)
+                {
+                    return TokenMatching<T1, T2, T3, T4,T5>.MakeMatch(matched.Tokens, firstMatched.Context, firstMatched.Value1, firstMatched.Value2, firstMatched.Value3, firstMatched.Value4, matched.Value);
+                }
+            }
+
+            return TokenMatching<T1, T2, T3, T4,T5>.MakeNotMatch(self.Context);
         }
 
         public static ITokenMatching<T> HasStruct<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
