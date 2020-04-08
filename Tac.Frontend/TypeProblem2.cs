@@ -1016,14 +1016,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately< IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>>) && x.TypeKey.Is3(out var _))) 
+                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately< IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>) && x.TypeKey.Is3(out var _))) 
                 {
                     var type = new InferredType(this, $"for {((TypeProblemNode)node).debugName}");
                     node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType>(type));
                 }
 
                 // what happens here if x.TypeKey.Is2??
-                if (toLookUp.Any(x => !(x.LooksUp is IIsDefinately<IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>>) && x.TypeKey.Is2(out var _)))
+                if (toLookUp.Any(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>) && x.TypeKey.Is2(out var _)))
                 {
                     throw new NotImplementedException();
                 }
@@ -1047,7 +1047,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     });
                 }
 
-                toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>>)).ToArray();
+                toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>)).ToArray();
 
                 // overlay generics
                 while (toLookUp.Any())
@@ -1056,7 +1056,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         LookUpOrOverlayOrThrow(node);
                     }
-                    toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>>)).ToArray();
+                    toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType>>)).ToArray();
                 }
 
                 // members that might be on parents 
