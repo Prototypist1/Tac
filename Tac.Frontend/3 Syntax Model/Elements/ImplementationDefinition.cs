@@ -187,7 +187,7 @@ namespace Tac.SemanticModel
 
                 var innerBox = new Box<Tpn.TypeProblem2.Method>();
                 var linesBox = new Box<IOrType< IResolve<IFrontendCodeElement>,IError>[]>();
-                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, new OrType<TypeProblem2.TypeReference, IError>(outputTypeRef), contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
+                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, OrType.Make<TypeProblem2.TypeReference, IError>(outputTypeRef), contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IFrontendCodeElement>[]>(Array.Empty<IResolve<IFrontendCodeElement>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
                 var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
                 innerBox.Fill(inner);
@@ -203,14 +203,14 @@ namespace Tac.SemanticModel
 
                 var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new[] {
                     realizeContext.SetUpSideNode.TransformInner(x=>x.Key()),
-                    new OrType<IKey,IError>(new GenericNameKey(new NameKey("method"), new[] {
+                    OrType.Make<IKey,IError>(new GenericNameKey(new NameKey("method"), new[] {
                          realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                          realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                     })),
                 }),new PlaceholderValueConverter());
 
                 return new SetUpResult<WeakImplementationDefinition, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
-                    outer), new OrType<Tpn.IValue, IError>(value));
+                    outer), OrType.Make<Tpn.IValue, IError>(value));
             }
         }
 

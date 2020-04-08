@@ -108,11 +108,11 @@ namespace Tac.SemanticModel
 
                 box.Fill(elements.Select(x => 
                     x.SwitchReturns(
-                        y=> new OrType<IResolve<IFrontendCodeElement>, IError>(y.Run(innerScope, context).Resolve),
-                        y=> new OrType<IResolve<IFrontendCodeElement>, IError>(y)))
+                        y=> OrType.Make<IResolve<IFrontendCodeElement>, IError>(y.Run(innerScope, context).Resolve),
+                        y=> OrType.Make<IResolve<IFrontendCodeElement>, IError>(y)))
                 .ToArray());
 
-                return new SetUpResult<WeakEntryPointDefinition, Tpn.IScope>(new EntryPointDefinitionResolveReferance(innerScope), new OrType<Tpn.IScope, IError>(innerScope));
+                return new SetUpResult<WeakEntryPointDefinition, Tpn.IScope>(new EntryPointDefinitionResolveReferance(innerScope), OrType.Make<Tpn.IScope, IError>(innerScope));
             }
         }
 

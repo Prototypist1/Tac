@@ -113,19 +113,19 @@ namespace Tac.SemanticModel.Operations
                     {
                         if (good.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
                         {
-                            return new OrType<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
+                            return OrType.Make<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
                                 value,
                                 new NameKey(name),
                                 new WeakMemberDefinitionConverter(false, new NameKey(name))));
                         }
                         else
                         {
-                            return new OrType<Tpn.TypeProblem2.Member, IError>(new Error(""));
+                            return OrType.Make<Tpn.TypeProblem2.Member, IError>(new Error(""));
                             // todo better error handling 
                             throw new NotImplementedException($"can not . off {good.SetUpSideNode}");
                         }
                     },
-                    error => new OrType<Tpn.TypeProblem2.Member, IError>(new Error("We needed ", error)));
+                    error => OrType.Make<Tpn.TypeProblem2.Member, IError>(new Error("We needed ", error)));
 
                 return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
                     nextLeft.TransformInner(x=>x.Resolve),
@@ -152,8 +152,8 @@ namespace Tac.SemanticModel.Operations
                 var res = new Box<WeakPathOperation>(new WeakPathOperation(
                     left.TransformInner(x => x.Run(context)),
                     member.SwitchReturns(
-                        x => new OrType<IBox<IFrontendCodeElement>, IError>(new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(x)))),
-                        y => new OrType<IBox<IFrontendCodeElement>, IError>(new Error("", y)))));
+                        x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(x)))),
+                        y => OrType.Make<IBox<IFrontendCodeElement>, IError>(new Error("", y)))));
                 return res;
             }
         }

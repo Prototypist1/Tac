@@ -89,7 +89,7 @@ namespace Tac.Model.Instantiated
 
         public IOrType<IVerifiableType, IError> Returns()
         {
-            return new OrType<IVerifiableType, IError>( this);
+            return OrType.Make<IVerifiableType, IError>( this);
         }
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking

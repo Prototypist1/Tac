@@ -48,7 +48,7 @@ namespace Tac.Model.Instantiated
 
         public IOrType<IVerifiableType, IError> Returns()
         {
-            return new OrType<IVerifiableType, IError>(InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x=>x.Value).ToList()));
+            return OrType.Make<IVerifiableType, IError>(InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x=>x.Value).ToList()));
         }
     }
 

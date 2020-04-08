@@ -68,28 +68,28 @@ module mirror-module {
                     new List<IsStatic>() {
                         new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false) ,false) }),
                 new[] {
-                    new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
-                    new OrType<ICodeElement, IError>(ImplementationDefinition.CreateAndBuild(
+                    OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                    OrType.Make<ICodeElement, IError>(ImplementationDefinition.CreateAndBuild(
                         new EmptyType(),
                         context,
                         input,
                         implementationScope,
                         new ICodeElement[] {
                                 AssignOperation.CreateAndBuild(
-                                    new OrType<ICodeElement, IError>(PathOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
-                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(temp))
+                                    OrType.Make<ICodeElement, IError>(PathOperation.CreateAndBuild(OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
+                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(temp))
                                     ),
                                 AssignOperation.CreateAndBuild(
-                                    new OrType<ICodeElement, IError>(PathOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY)))),
-                                    new OrType<ICodeElement, IError>(PathOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX))))
+                                    OrType.Make<ICodeElement, IError>(PathOperation.CreateAndBuild(OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localY)))),
+                                    OrType.Make<ICodeElement, IError>(PathOperation.CreateAndBuild(OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localX))))
                                     ),
                                 AssignOperation.CreateAndBuild(
-                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(temp)),
-                                    new OrType<ICodeElement, IError>(PathOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
+                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(temp)),
+                                    OrType.Make<ICodeElement, IError>(PathOperation.CreateAndBuild(OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(context)),OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
                                     )
                         },
                         Array.Empty<ICodeElement>())),
-                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))))
+                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))))
                 },
                 new NameKey("mirror-module"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));

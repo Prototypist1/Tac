@@ -153,7 +153,7 @@ namespace Tac.SemanticModel
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                 }), new PlaceholderValueConverter());
 
-                return new SetUpResult<WeakMethodDefinition, Tpn.IValue>(new MethodDefinitionResolveReferance(method), new OrType<Tpn.IValue, IError>(value));
+                return new SetUpResult<WeakMethodDefinition, Tpn.IValue>(new MethodDefinitionResolveReferance(method), OrType.Make<Tpn.IValue, IError>(value));
             }
         }
 

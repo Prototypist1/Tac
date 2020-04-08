@@ -74,27 +74,27 @@ namespace Tac.SemanticModel.Operations
 
             // nearly duplicate code 3930174039475
             if (l.Is2(out var error1)){
-                return new OrType<Tpn.IValue, IError>(error1);
+                return OrType.Make<Tpn.IValue, IError>(error1);
             }
 
             if (r.Is2(out var error2)) {
-                return new OrType<Tpn.IValue, IError>(error2);
+                return OrType.Make<Tpn.IValue, IError>(error2);
             }
 
             var left = l.Is1OrThrow();
             var right = r.Is1OrThrow();
 
             if (!(left is Tpn.ICanAssignFromMe assignFrom)) {
-                return new OrType<Tpn.IValue, IError>(new Error("can not assign from the left"));
+                return OrType.Make<Tpn.IValue, IError>(new Error("can not assign from the left"));
             }
 
             if (!(right is Tpn.IValue value))
             {
-                return new OrType<Tpn.IValue, IError>(new Error("right is not value"));
+                return OrType.Make<Tpn.IValue, IError>(new Error("right is not value"));
             }
 
             s.Problem.IsAssignedTo(assignFrom, value.Input());
-            return new OrType<Tpn.IValue, IError>(value.Returns()); 
+            return OrType.Make<Tpn.IValue, IError>(value.Returns()); 
         })
         {
         }
@@ -127,12 +127,12 @@ namespace Tac.SemanticModel.Operations
             // nearly duplicate code 3930174039475
             if (l.Is2(out var error1))
             {
-                return new OrType<Tpn.IValue, IError>(error1);
+                return OrType.Make<Tpn.IValue, IError>(error1);
             }
 
             if (r.Is2(out var error2))
             {
-                return new OrType<Tpn.IValue, IError>(error2);
+                return OrType.Make<Tpn.IValue, IError>(error2);
             }
 
             var left = l.Is1OrThrow();
@@ -140,16 +140,16 @@ namespace Tac.SemanticModel.Operations
 
             if (!(left is Tpn.IValue value))
             {
-                return new OrType<Tpn.IValue, IError>(new Error("left is not value"));
+                return OrType.Make<Tpn.IValue, IError>(new Error("left is not value"));
             }
 
             if (!(right is Tpn.ICanAssignFromMe assignFrom ))
             {
-                return new OrType<Tpn.IValue, IError>(new Error("can not assign from the right" ));
+                return OrType.Make<Tpn.IValue, IError>(new Error("can not assign from the right" ));
             }
 
             s.Problem.IsAssignedTo(assignFrom, value.Input());
-            return new OrType<Tpn.IValue, IError>(value.Returns());
+            return OrType.Make<Tpn.IValue, IError>(value.Returns());
         })
         {
         }

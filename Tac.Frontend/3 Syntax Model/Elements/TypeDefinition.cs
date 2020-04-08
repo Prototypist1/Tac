@@ -112,7 +112,7 @@ namespace Tac.SemanticModel
                 var type= context.TypeProblem.CreateType(scope, key,new WeakTypeDefinitionConverter());
                 var typeReference = context.TypeProblem.CreateTypeReference(scope, key, new WeakTypeReferenceConverter());
                 elements.Select(x => x.TransformInner(y=>y.Run(type, context))).ToArray();
-                return new SetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference>( new TypeReferanceMaker.TypeReferanceResolveReference(typeReference), new OrType<Tpn.TypeProblem2.TypeReference, IError>(typeReference));
+                return new SetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference>( new TypeReferanceMaker.TypeReferanceResolveReference(typeReference), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(typeReference));
             }
         }
     }

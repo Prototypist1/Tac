@@ -37,7 +37,7 @@ namespace Tac.Model.Instantiated
         }
         public void Set(T t)
         {
-            if (t is IIsDefinatelyNot<T>)
+            if (!(t is IIsDefinately<T>))
             {
                 throw new ApplicationException();
             }

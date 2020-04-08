@@ -26,33 +26,33 @@ namespace Tac.Tests.Samples
                     new List<IsStatic>() {
                         new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(), false) ,false) }),
                 new []{
-                    new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
-                        new OrType<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
+                    OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                        OrType.Make<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
                             new NumberType(),
                             MethodType.CreateAndBuild(
                                 new NumberType(),
                                 new NumberType()),
                             x,
                             methodScope,
-                            new OrType<ICodeElement,IError>[]{
-                                new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(new OrType<ICodeElement, IError>(
+                            new IOrType<ICodeElement,IError>[]{
+                                OrType.Make<ICodeElement,IError>(ReturnOperation.CreateAndBuild(OrType.Make<ICodeElement, IError>(
                                     MethodDefinition.CreateAndBuild(
                                         new NumberType(),
                                         new NumberType(),
                                         y,
                                         innerMethodScope,
-                                        new OrType<ICodeElement,IError>[]{
-                                            new OrType<ICodeElement,IError>( AssignOperation.CreateAndBuild(
-                                                new OrType<ICodeElement, IError>(AddOperation.CreateAndBuild(
-                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(x)),
-                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(y)))),
-                                                new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(x)))),
-                                            new OrType<ICodeElement,IError>(ReturnOperation.CreateAndBuild(new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(x))))
+                                        new IOrType<ICodeElement,IError>[]{
+                                            OrType.Make<ICodeElement,IError>( AssignOperation.CreateAndBuild(
+                                                OrType.Make<ICodeElement, IError>(AddOperation.CreateAndBuild(
+                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(x)),
+                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(y)))),
+                                                OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(x)))),
+                                            OrType.Make<ICodeElement,IError>(ReturnOperation.CreateAndBuild(OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(x))))
                                         },
                                         Array.Empty<ICodeElement>()))
                                     ))},
                             Array.Empty<ICodeElement>())),
-                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))))
+                        OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))))
                  },
                 new NameKey("closoure"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));

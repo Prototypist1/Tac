@@ -90,7 +90,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
             public ISetUpResult<WeakEmptyInstance, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope,new NameKey("empty"),new PlaceholderValueConverter());
-                return new SetUpResult<WeakEmptyInstance, Tpn.IValue>(new EmptyInstanceResolveReferance(),new OrType<Tpn.IValue,IError>(value));
+                return new SetUpResult<WeakEmptyInstance, Tpn.IValue>(new EmptyInstanceResolveReferance(),OrType.Make<Tpn.IValue,IError>(value));
             }
         }
 

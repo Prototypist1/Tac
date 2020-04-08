@@ -354,7 +354,7 @@ namespace Tac.SemanticModel.CodeStuff
                     nextLeft.Resolve,
                     nextRight.Resolve,
                     make
-                    ), new OrType<Tpn.TypeProblem2.TypeReference, IError>( type));
+                    ), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>( type));
             }
         }
 

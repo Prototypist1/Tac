@@ -20,7 +20,7 @@ namespace Tac.Model.Instantiated
 
         public IOrType<IVerifiableType, IError> Returns()
         {
-            return new OrType<IVerifiableType, IError>(new NumberType());
+            return OrType.Make<IVerifiableType, IError>(new NumberType());
         }
 
         #endregion

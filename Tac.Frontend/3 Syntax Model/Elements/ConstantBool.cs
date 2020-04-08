@@ -120,7 +120,7 @@ namespace Tac.SemanticModel.Operations
                 // TODO 
                 // this applies to my other constants 
                 var value = context.TypeProblem.CreateValue(scope, new NameKey("bool"), new PlaceholderValueConverter());
-                return new SetUpResult<WeakConstantBool, Tpn.IValue>(new ConstantBoolResolveReferance(dub),new OrType<Tpn.IValue,IError>(value));
+                return new SetUpResult<WeakConstantBool, Tpn.IValue>(new ConstantBoolResolveReferance(dub),OrType.Make<Tpn.IValue,IError>(value));
             }
         }
 

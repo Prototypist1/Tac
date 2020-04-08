@@ -16,15 +16,15 @@ namespace Tac.Tests.Samples
              Scope.CreateAndBuild(
                 new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), false), false) }),
             new[] {
-                new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
-                    new OrType<ICodeElement, IError>(MultiplyOperation.CreateAndBuild(
-                        new OrType<ICodeElement, IError>(AddOperation.CreateAndBuild(
-                            new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
-                            new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(5)))),
-                        new OrType<ICodeElement, IError>(AddOperation.CreateAndBuild(
-                            new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
-                            new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(7)))))),
-                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false)))))},
+                OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                    OrType.Make<ICodeElement, IError>(MultiplyOperation.CreateAndBuild(
+                        OrType.Make<ICodeElement, IError>(AddOperation.CreateAndBuild(
+                            OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
+                            OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(5)))),
+                        OrType.Make<ICodeElement, IError>(AddOperation.CreateAndBuild(
+                            OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
+                            OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(7)))))),
+                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false)))))},
             new NameKey("math-module"),
             EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement,IError>>(), Array.Empty<ICodeElement>()));
 

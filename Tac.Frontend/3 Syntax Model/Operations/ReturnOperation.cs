@@ -178,21 +178,21 @@ namespace Tac.SemanticModel.Operations
             var  mem = c.TypeProblem.GetReturns(s);
 
             if (x.Is2(out var error)) {
-                return new OrType<Tpn.IValue, IError>(error);
+                return OrType.Make<Tpn.IValue, IError>(error);
             }
 
             var val1 = x.Is1OrThrow();
 
             if (val1.SetUpSideNode.Is2(out var error2))
             {
-                return new OrType<Tpn.IValue, IError>(error);
+                return OrType.Make<Tpn.IValue, IError>(error);
             }
 
             var val1node= val1.SetUpSideNode.Is1OrThrow();
 
             if (!(val1node is Tpn.IValue finalVal))
             {
-                return new OrType<Tpn.IValue, IError>(new Error($"can not return {val1node}"));
+                return OrType.Make<Tpn.IValue, IError>(new Error($"can not return {val1node}"));
             }
 
 
@@ -200,7 +200,7 @@ namespace Tac.SemanticModel.Operations
             // I will need to change this when I do a pass to communitcate error better
             finalVal.AssignTo(mem);
 
-            return new OrType<Tpn.IValue, IError>( c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter()));
+            return OrType.Make<Tpn.IValue, IError>( c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter()));
         })
         {
         }

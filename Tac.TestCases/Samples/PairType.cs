@@ -49,15 +49,15 @@ module pair-type {
                 Scope.CreateAndBuild(
                     new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
                 new [] {
-                    new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
-                        new OrType<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
+                    OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                        OrType.Make<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
                             new NumberType(),
                             pairTypeNumber,
                             input,
                             methodScope,
-                            new OrType<ICodeElement,IError>[]{
-                                new OrType<ICodeElement,IError>(
-                                    ReturnOperation.CreateAndBuild(new OrType<ICodeElement, IError>(
+                            new IOrType<ICodeElement,IError>[]{
+                                OrType.Make<ICodeElement,IError>(
+                                    ReturnOperation.CreateAndBuild(OrType.Make<ICodeElement, IError>(
                                         ObjectDefiniton.CreateAndBuild(
                                                 Scope.CreateAndBuild(
                                                 new List<IsStatic> {
@@ -65,15 +65,15 @@ module pair-type {
                                                     new IsStatic(localY, false)
                                                 }),
                                             new IOrType<IAssignOperation,IError>[]{
-                                                new OrType<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
-                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
-                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
-                                                new OrType<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
-                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
-                                                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
+                                                OrType.Make<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
+                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
+                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
+                                                OrType.Make<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
+                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
+                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
                                             }))))},
                             Array.Empty<ICodeElement>())),
-                    new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(pairify))))},
+                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(pairify))))},
                 new NameKey("pair-type"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
         }

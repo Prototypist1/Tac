@@ -30,22 +30,22 @@ namespace Tac.Tests.Samples
                      Scope.CreateAndBuild(
                         new List<IsStatic>(){new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false),false) } ),
                     new[] {
-                        new OrType<ICodeElement, IError>(AssignOperation.CreateAndBuild(
-                            new OrType<ICodeElement, IError>(ObjectDefiniton.CreateAndBuild(
+                        OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
+                            OrType.Make<ICodeElement, IError>(ObjectDefiniton.CreateAndBuild(
                                  Scope.CreateAndBuild(
                                     new List<IsStatic> {
                                         new IsStatic( localX ,false),
                                         new IsStatic( localY ,false)
                                     }),
                                 new IOrType<IAssignOperation,IError>[]{
-                                    new OrType<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
-                                        new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(5)),
-                                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
-                                    new OrType<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
-                                        new OrType<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
-                                        new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
+                                    OrType.Make<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
+                                        OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(5)),
+                                        OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
+                                    OrType.Make<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
+                                        OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
+                                        OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
                                 })),
-                            new OrType<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false)))))},
+                            OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), false)))))},
                     new NameKey("point-module"),
                     EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
         }

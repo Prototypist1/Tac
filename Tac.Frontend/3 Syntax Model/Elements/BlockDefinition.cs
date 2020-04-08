@@ -97,7 +97,7 @@ namespace Tac.SemanticModel
                 var box = new Box<IOrType<IResolve<IFrontendCodeElement>,IError>[]>();
                 var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));
                 box.Fill(Elements.Select(or=>or.TransformInner(y=>y.Run(scope,context).Resolve)).ToArray());
-                return new SetUpResult<WeakBlockDefinition, Tpn.IScope>(new ResolveReferanceBlockDefinition(myScope), new OrType<Tpn.IScope,IError>( myScope));
+                return new SetUpResult<WeakBlockDefinition, Tpn.IScope>(new ResolveReferanceBlockDefinition(myScope), OrType.Make<Tpn.IScope,IError>( myScope));
             }
         }
 

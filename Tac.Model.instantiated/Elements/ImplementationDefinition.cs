@@ -36,7 +36,7 @@ namespace Tac.Model.Instantiated
 
         public IOrType<IVerifiableType, IError> Returns()
         {
-            return new OrType<IVerifiableType, IError>(ImplementationType.CreateAndBuild(ParameterDefinition.Type,OutputType, ContextDefinition.Type));
+            return OrType.Make<IVerifiableType, IError>(ImplementationType.CreateAndBuild(ParameterDefinition.Type,OutputType, ContextDefinition.Type));
         }
 
         #endregion

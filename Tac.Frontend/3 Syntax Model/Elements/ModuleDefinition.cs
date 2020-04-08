@@ -67,10 +67,10 @@ namespace Tac.SemanticModel
                     item.Switch(x1=> {
                         var converted = x1.GetValue().PossiblyConvert(context);
                         if (converted is IIsDefinately<ICodeElement> isCodeElement) {
-                            staticInit.Add(new OrType<ICodeElement, IError>(isCodeElement.Value));
+                            staticInit.Add(OrType.Make<ICodeElement, IError>(isCodeElement.Value));
                         }
                     },x2=> {
-                        staticInit.Add(new OrType<ICodeElement, IError>(x2));
+                        staticInit.Add(OrType.Make<ICodeElement, IError>(x2));
                     });
                 }
 
@@ -143,7 +143,7 @@ namespace Tac.SemanticModel
                 var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey));
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
-                return new SetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), new OrType<Tpn.TypeProblem2.Object, IError>(myScope));
+                return new SetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), OrType.Make<Tpn.TypeProblem2.Object, IError>(myScope));
             }
         }
 

@@ -36,7 +36,7 @@ namespace Tac.Model.Instantiated
 
         public IOrType<IVerifiableType, IError> Returns()
         {
-            return new OrType<IVerifiableType, IError>(new BooleanType());
+            return OrType.Make<IVerifiableType, IError>(new BooleanType());
         }
         
         public static ILessThanOperation CreateAndBuild(IOrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
