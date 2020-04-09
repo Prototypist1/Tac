@@ -69,25 +69,17 @@ namespace Tac.SemanticModel
 
         public ITokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            var matching = tokenMatching
+            return tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
-                .Has(new DefineGenericNMaker(), out var genericTypes)
-                .Has(new NameMaker(), out var typeName)
-                .Has(new BodyMaker(), out var body);
-            if (matching is IMatchedTokenMatching matched)
-            {
-                return TokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context,
+                .Has(new DefineGenericNMaker())
+                .Has(new NameMaker())
+                .Has(new BodyMaker())
+                .ConvertIfMatched((generics, name, lines) =>
                     new GenericTypeDefinitionPopulateScope(
-                        new NameKey(typeName!.Item),
-                        tokenMatching.Context.ParseBlock(body!),
-                        genericTypes.Select(x =>
-                        new GenericTypeParameterPlacholder(new NameKey(x)) as IGenericTypeParameterPlacholder).ToArray()));
-            }
-
-            return TokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>>.MakeNotMatch(
-                    matching.Context);
+                        new NameKey(name.Item),
+                        tokenMatching.Context.ParseBlock(lines),
+                        generics.Select(x => 
+                            new GenericTypeParameterPlacholder(new NameKey(x)) as IGenericTypeParameterPlacholder).ToArray()));
         }
 
         public static ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType> PopulateScope(

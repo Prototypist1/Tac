@@ -65,27 +65,10 @@ namespace Tac.SemanticModel
 
         public ITokenMatching<ISetUp<WeakEntryPointDefinition, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            {
-                var matching = tokenMatching
+            var matching = tokenMatching
                     .Has(new KeyWordMaker("entry-point"), out var _)
-                    .Has(new BodyMaker(), out var body);
-                if (matching
-                     is IMatchedTokenMatching matched)
-                {
-                    var elements = matching.Context.ParseBlock(body!);
-
-
-                    return TokenMatching<ISetUp<WeakEntryPointDefinition, Tpn.IScope>>.MakeMatch(
-                        matched.Tokens,
-                        matched.Context,
-                        new EntryPointDefinitionPopulateScope(elements)
-                        );
-                }
-
-                return TokenMatching<ISetUp<WeakEntryPointDefinition, Tpn.IScope>>.MakeNotMatch(
-                        matching.Context);
-            }
-
+                    .Has(new BodyMaker());
+            return matching.ConvertIfMatched(block => new EntryPointDefinitionPopulateScope(matching.Context.ParseBlock(block)));
         }
 
 

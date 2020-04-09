@@ -370,6 +370,62 @@ namespace Tac.Parser
     }
 
 
+    internal static class TokenMatchingExtensions {
+        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3, T4, T5>(this ITokenMatching<T1, T2, T3, T4, T5> tokenMatching, Func<T1,T2,T3,T4,T5, T> convert) {
+            if (tokenMatching.Is(out IMatchedTokenMatching<T1,T2,T3,T4,T5> matched)) {
+                return TokenMatching < T >.MakeMatch(matched.Tokens,matched.Context, convert(matched.Value1, matched.Value2, matched.Value3, matched.Value4, matched.Value5));
+            }
+            return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
+        }
+
+        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3, T4>(this ITokenMatching<T1, T2, T3, T4> tokenMatching, Func<T1, T2, T3, T4, T> convert)
+        {
+            if (tokenMatching.Is(out IMatchedTokenMatching<T1, T2, T3, T4> matched))
+            {
+                return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert(matched.Value1, matched.Value2, matched.Value3, matched.Value4));
+            }
+            return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
+        }
+
+        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3>(this ITokenMatching<T1, T2, T3> tokenMatching, Func<T1, T2, T3, T> convert)
+        {
+            if (tokenMatching.Is(out IMatchedTokenMatching<T1, T2, T3> matched))
+            {
+                return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert(matched.Value1, matched.Value2, matched.Value3));
+            }
+            return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
+        }
+
+
+        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2>(this ITokenMatching<T1, T2> tokenMatching, Func<T1, T2, T> convert)
+        {
+            if (tokenMatching.Is(out IMatchedTokenMatching<T1, T2> matched))
+            {
+                return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert(matched.Value1, matched.Value2));
+            }
+            return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
+        }
+
+
+        public static ITokenMatching<T> ConvertIfMatched<T, T1>(this ITokenMatching<T1> tokenMatching, Func<T1,  T> convert)
+        {
+            if (tokenMatching.Is(out IMatchedTokenMatching<T1> matched))
+            {
+                return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert(matched.Value));
+            }
+            return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
+        }
+
+        public static ITokenMatching<T> ConvertIfMatched<T>(this ITokenMatching tokenMatching, Func<T> convert)
+        {
+            if (tokenMatching.Is(out IMatchedTokenMatching matched))
+            {
+                return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert());
+            }
+            return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
+        }
+    }
+
     internal static class TokenMatching<T>
     {
         private class Start : IMatchedTokenMatching
@@ -733,7 +789,9 @@ namespace Tac.Parser
             return self;
         }
 
-        public static ITokenMatching<T> Has<T>(this ITokenMatching self, IMaker<T> pattern, out T? t)
+
+
+        public static ITokenMatching Has<T>(this ITokenMatching self, IMaker<T> pattern, out T? t)
             where T:class
         {
 
