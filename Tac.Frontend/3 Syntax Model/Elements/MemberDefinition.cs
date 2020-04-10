@@ -111,19 +111,11 @@ namespace Tac.SemanticModel
         
         public ITokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            var matching = tokenMatching
+            return tokenMatching
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
-                .Has(new TypeMaker(), out var type)
-                .Has(new NameMaker(), out var nameToken);
-            if (matching is IMatchedTokenMatching matched)
-            {
-                return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context,
-                    new MemberDefinitionPopulateScope(new NameKey(nameToken!.Item), readonlyToken != default, type!));
-            }
-            return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeNotMatch(
-                               matching.Context);
+                .Has(new TypeMaker())
+                .Has(new NameMaker())
+                .ConvertIfMatched((type, nameToken)=> new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type)) ;
         }
 
 

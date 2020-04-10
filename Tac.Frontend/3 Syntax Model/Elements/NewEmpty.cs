@@ -63,7 +63,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
         {
             // change key word to nothing?
             var match = tokenMatching
-                .Has(new KeyWordMaker("new-empty"), out var _);
+                .Has(new KeyWordMaker("new-empty"));
 
             if (match
                  is IMatchedTokenMatching matched)

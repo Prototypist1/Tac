@@ -39,17 +39,9 @@ namespace Tac.SemanticModel
         
         public ITokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            var matching = tokenMatching
-                .Has(new NameMaker(), out var first);
-            if (matching is IMatchedTokenMatching matched)
-            {
-                return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context, 
-                    new MemberPopulateScope(first!.Item)); ;
-            }
-            return TokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>.MakeNotMatch(
-                    matching.Context);
+           return tokenMatching
+                .Has(new NameMaker())
+                .ConvertIfMatched(token => new MemberPopulateScope(token.Item));
         }
 
         public static ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member> PopulateScope(string item)
