@@ -929,6 +929,8 @@ namespace Tac.Parser
 
 
 
+
+
         public static ITokenMatching HasSquare(this ITokenMatching self, Func<IMatchedTokenMatching, ITokenMatching> inner)
         {
             if (!(self is IMatchedTokenMatching matchedTokenMatching))

@@ -62,15 +62,9 @@ namespace Tac.Frontend.SyntaxModel.Elements
         public ITokenMatching<ISetUp<WeakEmptyInstance, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             // change key word to nothing?
-            var match = tokenMatching
-                .Has(new KeyWordMaker("new-empty"));
-
-            if (match
-                 is IMatchedTokenMatching matched)
-            {
-                return TokenMatching<ISetUp<WeakEmptyInstance, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new EmptyInstancePopulateScope());
-            }
-            return TokenMatching<ISetUp<WeakEmptyInstance, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
+            return tokenMatching
+                .Has(new KeyWordMaker("new-empty"), out var _)
+                .ConvertIfMatched(()=> new EmptyInstancePopulateScope());
         }
 
         public static ISetUp<WeakEmptyInstance, Tpn.IValue> PopulateScope()

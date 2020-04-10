@@ -191,7 +191,7 @@ namespace Tac.Frontend.Parser
         }
     }
 
-    internal class BinaryOperationMatcher : IMaker<(IReadOnlyList<IToken>, AtomicToken, IToken)>
+    internal class BinaryOperationMatcher : IMaker<(IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs)>
     {
         private readonly string s;
 
@@ -224,7 +224,7 @@ namespace Tac.Frontend.Parser
         }
     }
 
-    internal class TrailingOperationMatcher : IMaker<(IEnumerable<IToken>, AtomicToken)>
+    internal class TrailingOperationMatcher : IMaker<(IEnumerable<IToken> perface, AtomicToken atom)>
     {
         private readonly string s;
 

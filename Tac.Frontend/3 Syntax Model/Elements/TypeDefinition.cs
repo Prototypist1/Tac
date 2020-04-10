@@ -75,25 +75,12 @@ namespace Tac.SemanticModel
         
         public ITokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            var matching = tokenMatching
+            return tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
                 .OptionalHas(new NameMaker(), out var typeName)
-                .Has(new BodyMaker(), out var body);
-
-            if (matching is IMatchedTokenMatching matched)
-            {
-               var elements = tokenMatching.Context.ParseBlock(body!);
-                
-               return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context, 
-                    new TypeDefinitionPopulateScope(
-                       elements, 
-                       typeName != default ? new NameKey(typeName.Item).CastTo<IKey>(): new ImplicitKey(Guid.NewGuid())));
-            }
-
-            return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(
-                    matching.Context);
+                .Has(new BodyMaker()).ConvertIfMatched(body=> new TypeDefinitionPopulateScope(
+                       tokenMatching.Context.ParseBlock(body),
+                       typeName != default ? new NameKey(typeName.Item).CastTo<IKey>() : new ImplicitKey(Guid.NewGuid())));
         }
         
         private class TypeDefinitionPopulateScope : ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>

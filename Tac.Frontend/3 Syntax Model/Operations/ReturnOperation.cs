@@ -94,37 +94,12 @@ namespace Tac.SemanticModel.Operations
 
         public ITokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            
-
             var matching = tokenMatching
-                .HasStruct(new TrailingOperationMatcher(Symbol), out (IEnumerable<IToken> perface, AtomicToken _) res);
-            if (matching is IMatchedTokenMatching matched)
-            {
-                var left = matching.Context.ParseLine(res.perface);
-                
-                return TokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context, 
-                    new TrailingPopulateScope(left,Make, getReturnedValue));
-            }
-            return TokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>>.MakeNotMatch(
-                    matching.Context);
+                .HasStruct(new TrailingOperationMatcher(Symbol), out var _);
+
+            return matching.ConvertIfMatched(res => new TrailingPopulateScope(matching.Context.ParseLine(res.perface), Make, getReturnedValue));
         }
         
-        //public static ISetUp<TFrontendCodeElement, Tpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.IValue> left,
-        //        TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
-        //{
-        //    return new TrailingPopulateScope(left, make, getReturnedValue);
-        //}
-
-        //public static IResolve<TFrontendCodeElement> PopulateBoxes(IResolve<IConvertableFrontendCodeElement<ICodeElement>> left,
-        //        TrailingOperation.Make<TFrontendCodeElement> make)
-        //{
-        //    return new TrailingResolveReferance(left,
-        //        make);
-        //}
-
-
         private class TrailingPopulateScope : ISetUp<TFrontendCodeElement, Tpn.IValue>
         {
             private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
@@ -146,7 +121,6 @@ namespace Tac.SemanticModel.Operations
                     getReturnedValue(scope, context, nextLeft));
             }
         }
-
 
         private class TrailingResolveReferance: IResolve<TFrontendCodeElement>
         {

@@ -150,21 +150,11 @@ namespace Tac.SemanticModel.CodeStuff
 
         public ITokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
+
             var matching = tokenMatching
-                .HasStruct(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
-            if (matching is IMatchedTokenMatching matched)
-            {
-                var left = matching.Context.ParseLine(match.perface);
-                var right = matching.Context.ParseParenthesisOrElement(match.rhs);
+                .HasStruct(new BinaryOperationMatcher(Symbol), out var _);
 
-                return TokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context,
-                    new BinaryPopulateScope(left, right, Make, keyMaker));
-            }
-
-            return TokenMatching<ISetUp<TFrontendCodeElement, Tpn.IValue>>.MakeNotMatch(
-                    matching.Context);
+            return matching.ConvertIfMatched(match => new BinaryPopulateScope(matching.Context.ParseLine(match.perface), matching.Context.ParseParenthesisOrElement(match.rhs), Make, keyMaker));
         }
 
 

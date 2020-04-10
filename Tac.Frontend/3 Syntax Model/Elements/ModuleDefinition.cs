@@ -97,32 +97,12 @@ namespace Tac.SemanticModel
         public ITokenMatching<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new KeyWordMaker("module"), out _)
-                .Has(new NameMaker(), out var name)
-                .Has(new BodyMaker(), out var third);
-            if (matching is IMatchedTokenMatching matched)
-            {
-                var elements = matching.Context.ParseBlock(third!);
-                var nameKey = new NameKey(name!.Item);
+                .Has(new KeyWordMaker("module"), out var _)
+                .Has(new NameMaker())
+                .Has(new BodyMaker());
 
-                return TokenMatching<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context, 
-                    new ModuleDefinitionPopulateScope(elements, nameKey));
-
-            }
-            return TokenMatching<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>>.MakeNotMatch(
-                    matching.Context);
+            return matching.ConvertIfMatched((name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseBlock(third), new NameKey(name.Item)));
         }
-
-
-        //public static ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
-        //        NameKey nameKey)
-        //{
-        //    return new ModuleDefinitionPopulateScope(elements,
-        //        nameKey);
-        //}
-
 
         private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>
         {

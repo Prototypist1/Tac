@@ -75,27 +75,11 @@ namespace Tac.SemanticModel
 
         public ITokenMatching<ISetUp<WeakObjectDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            var matching = tokenMatching
+            return tokenMatching
                 .Has(new KeyWordMaker("object"), out var _)
-                .Has(new BodyMaker(), out var block);
-            if (matching is IMatchedTokenMatching matched)
-            {
-
-                var elements = tokenMatching.Context.ParseBlock(block!);
-                
-                return TokenMatching<ISetUp<WeakObjectDefinition, Tpn.IValue>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context, 
-                    new ObjectDefinitionPopulateScope(elements));
-            }
-            return TokenMatching<ISetUp<WeakObjectDefinition, Tpn.IValue>>.MakeNotMatch(
-                    matching.Context);
+                .Has(new BodyMaker())
+                .ConvertIfMatched(block => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseBlock(block)));
         }
-
-        //public static ISetUp<WeakObjectDefinition, Tpn.IValue> PopulateScope(ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements)
-        //{
-        //    return new ObjectDefinitionPopulateScope(elements);
-        //}
 
         private class ObjectDefinitionPopulateScope : ISetUp<WeakObjectDefinition, Tpn.IValue>
         {
