@@ -14,7 +14,7 @@ namespace Tac.Tests.Samples
 
         public IModuleDefinition ModuleDefinition => Model.Instantiated.ModuleDefinition.CreateAndBuild(
              Scope.CreateAndBuild(
-                new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), false), false) }),
+                new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), OrType.Make< IVerifiableType ,IError>( new AnyType()), false), false) }),
             new[] {
                 OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
                     OrType.Make<ICodeElement, IError>(MultiplyOperation.CreateAndBuild(
@@ -24,7 +24,7 @@ namespace Tac.Tests.Samples
                         OrType.Make<ICodeElement, IError>(AddOperation.CreateAndBuild(
                             OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(2)),
                             OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(7)))))),
-                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), false)))))},
+                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),OrType.Make< IVerifiableType ,IError>(new AnyType()), false)))))},
             new NameKey("math-module"),
             EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement,IError>>(), Array.Empty<ICodeElement>()));
 

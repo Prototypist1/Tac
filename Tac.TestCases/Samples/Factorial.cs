@@ -17,10 +17,10 @@ namespace Tac.Tests.Samples
             var elseBlock = Scope.CreateAndBuild(new List<IsStatic> { });
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, OrType.Make<IVerifiableType, IError>(new NumberType()), false);
 
             var facKey = new NameKey("fac");
-            var fac = MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false);
+            var fac = MemberDefinition.CreateAndBuild(facKey, OrType.Make<IVerifiableType, IError>(MethodType.CreateAndBuild(OrType.Make<IVerifiableType, IError>(new NumberType()), OrType.Make<IVerifiableType, IError>(new NumberType()))), false);
 
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input ,false) });
 
@@ -28,12 +28,14 @@ namespace Tac.Tests.Samples
             ModuleDefinition =
                 Model.Instantiated.ModuleDefinition.CreateAndBuild(
                      Scope.CreateAndBuild(
-                        new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false), false) }),
+                        new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(facKey, OrType.Make< IVerifiableType ,IError>(MethodType.CreateAndBuild(
+                            OrType.Make< IVerifiableType ,IError>(new NumberType()),
+                            OrType.Make< IVerifiableType ,IError>(new NumberType()))), false), false) }),
                     new IOrType<ICodeElement, IError>[]{
                         OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
                                 OrType.Make<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
-                                    new NumberType(),
-                                    new NumberType(),
+                                    OrType.Make< IVerifiableType ,IError>(new NumberType()),
+                                    OrType.Make< IVerifiableType ,IError>(new NumberType()),
                                     input,
                                     methodScope,
                                     new IOrType<ICodeElement,IError>[]{

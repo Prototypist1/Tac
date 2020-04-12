@@ -41,14 +41,14 @@ namespace Tac.SemanticModel
     // very tac-ian 
     internal static class MemberDefinitionShared {
 
-        public static IMemberDefinition Convert(IBox<IFrontendType> Type,IConversionContext context, bool ReadOnly, IKey Key)
+        public static IMemberDefinition Convert(IOrType<IBox<IFrontendType>, IError> Type,IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (def, builder) = MemberDefinition.Create();
 
             //uhh seems bad
-            var buildIntention = Type.GetValue().CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context);
-            buildIntention.Build();
-            builder.Build(Key, buildIntention.Tobuild, ReadOnly);
+            var buildIntention = Type.TransformInner(x=>x.GetValue().CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context));
+            var built = buildIntention.TransformInner( x=> { x.Build(); return x.Tobuild; });
+            builder.Build(Key, built, ReadOnly);
             return def;
         }
         public static IBuildIntention<IMemberDefinition> GetBuildIntention(IOrType<IBox<IFrontendType>, IError> Type, IConversionContext context, bool ReadOnly, IKey Key)
@@ -58,7 +58,7 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Key,
-                    Type.GetValue().ConvertTypeOrThrow(context),
+                    Type.TransformInner(x=>x.GetValue().ConvertTypeOrThrow(context)),
                     ReadOnly);
             });
         }
@@ -68,7 +68,7 @@ namespace Tac.SemanticModel
     // is this really a frontend type??
     internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>
     {
-        IBox<IFrontendType> Type { get; }
+        IOrType<IBox<IFrontendType>, IError> Type { get; }
         bool ReadOnly { get; }
         IKey Key { get; }
         IMemberDefinition Convert(IConversionContext context);

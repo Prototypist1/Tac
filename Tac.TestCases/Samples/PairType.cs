@@ -30,29 +30,29 @@ module pair-type {
             var pairTypeNumber =
                 InterfaceType.CreateAndBuild(
                         new List<IMemberDefinition>{
-                                MemberDefinition.CreateAndBuild(new NameKey("x"),new NumberType(), false) ,
-                                MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false)
+                                MemberDefinition.CreateAndBuild(new NameKey("x"),OrType.Make< IVerifiableType ,IError>(new NumberType()), false) ,
+                                MemberDefinition.CreateAndBuild(new NameKey("y"), OrType.Make< IVerifiableType ,IError>(new NumberType()), false)
                         });
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, OrType.Make<IVerifiableType, IError>(new NumberType()), false);
             
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input, false) });
 
-            var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), false);
-            var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false);
+            var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), OrType.Make<IVerifiableType, IError>(new NumberType()), false);
+            var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), OrType.Make<IVerifiableType, IError>(new NumberType()), false);
 
             var pairifyKey = new NameKey("pairify");
-            var pairify = MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false);
+            var pairify = MemberDefinition.CreateAndBuild(pairifyKey, OrType.Make<IVerifiableType, IError>(MethodType.CreateAndBuild(OrType.Make<IVerifiableType, IError>(new NumberType()), OrType.Make<IVerifiableType, IError>(pairTypeNumber))), false);
 
             ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
-                    new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
+                    new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, OrType.Make<IVerifiableType, IError>(MethodType.CreateAndBuild(OrType.Make<IVerifiableType, IError>(new NumberType()), OrType.Make<IVerifiableType, IError>(pairTypeNumber))), false), false) }),
                 new [] {
                     OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
                         OrType.Make<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
-                            new NumberType(),
-                            pairTypeNumber,
+                            OrType.Make< IVerifiableType ,IError>(new NumberType()),
+                            OrType.Make< IVerifiableType ,IError>(pairTypeNumber),
                             input,
                             methodScope,
                             new IOrType<ICodeElement,IError>[]{

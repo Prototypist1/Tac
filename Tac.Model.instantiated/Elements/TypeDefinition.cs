@@ -21,7 +21,7 @@ namespace Tac.Model.Instantiated
         public static IInterfaceModuleType ToVerifiableType(this IFinalizedScope scope) => scope.Members.Select(x => (x.Key, x.Value.Value.Type)).ToArray().ToVerifiableType();
 
 
-        public static IInterfaceModuleType ToVerifiableType(this (IKey, IVerifiableType)[] scope)
+        public static IInterfaceModuleType ToVerifiableType(this (IKey, IOrType<IVerifiableType,IError>)[] scope)
         {
             return InterfaceType.CreateAndBuild(scope.Select(x => MemberDefinition.CreateAndBuild(x.Item1, x.Item2, false)).ToList());
         }
@@ -36,34 +36,36 @@ namespace Tac.Model.Instantiated
 
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
-            if (they is IInterfaceType otherObject)
-            {
-                // they have all our members
-                return Members.All(member => otherObject.Members.Any(otherMember => otherMember.Type.TheyAreUs(member.Type, false)));
-            }
+            throw new NotImplementedException();
+            //if (they is IInterfaceType otherObject)
+            //{
+            //    // they have all our members
+            //    return Members.All(member => otherObject.Members.Any(otherMember => otherMember.Type.TheyAreUs(member.Type, false)));
+            //}
 
-            if (noTagBacks)
-            {
-                return false;
-            }
+            //if (noTagBacks)
+            //{
+            //    return false;
+            //}
 
-            return they.WeAreThem(this, true);
+            //return they.WeAreThem(this, true);
         }
 
         public bool WeAreThem(IVerifiableType them, bool noTagBacks)
         {
-            if (them is IInterfaceType otherObject)
-            {
-                // we have all their members
-                return otherObject.Members.All(otherMember => Members.Any(member => otherMember.Type.WeAreThem(member.Type, false)));
-            }
+            throw new NotImplementedException();
+            //if (them is IInterfaceType otherObject)
+            //{
+            //    // we have all their members
+            //    return otherObject.Members.All(otherMember => Members.Any(member => otherMember.Type.WeAreThem(member.Type, false)));
+            //}
 
-            if (noTagBacks)
-            {
-                return false;
-            }
+            //if (noTagBacks)
+            //{
+            //    return false;
+            //}
 
-            return this.WeAreThem(this, true);
+            //return this.WeAreThem(this, true);
         }
 
 

@@ -21,7 +21,7 @@ namespace Tac.Model.Instantiated
 
         public IOrType<IVerifiableType, IError> Returns()
         {
-            return OrType.Make<IVerifiableType, IError>(MemberDefinition.Type);
+            return MemberDefinition.Type;
         }
 
         public void Build(IMemberDefinition memberDefinition)

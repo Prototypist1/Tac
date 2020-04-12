@@ -8,7 +8,7 @@ namespace Tac.Model.Instantiated
 {
     public class ImplementationDefinition : IImplementationDefinition, IImplementationDefinitionBuilder
     {
-        private readonly Buildable<IVerifiableType> buildableOutputType = new Buildable<IVerifiableType>();
+        private readonly Buildable<IOrType<IVerifiableType, IError>> buildableOutputType = new Buildable<IOrType<IVerifiableType, IError>>();
         private readonly Buildable<IMemberDefinition> buildableContextDefinition = new Buildable<IMemberDefinition>();
         private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new Buildable<IMemberDefinition>();
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
@@ -21,7 +21,7 @@ namespace Tac.Model.Instantiated
 
         #region IImplementationDefinition
         
-        public IVerifiableType OutputType { get => buildableOutputType.Get(); }
+        public IOrType<IVerifiableType,IError> OutputType { get => buildableOutputType.Get(); }
         public IMemberDefinition ContextDefinition { get => buildableContextDefinition.Get(); }
         public IMemberDefinition ParameterDefinition { get => buildableParameterDefinition.Get(); }
         public IFinalizedScope Scope { get => buildableScope.Get(); }
@@ -41,7 +41,7 @@ namespace Tac.Model.Instantiated
 
         #endregion
         
-        public void Build(IVerifiableType outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers) {
+        public void Build(IOrType<IVerifiableType, IError> outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers) {
             buildableOutputType.Set(outputType);
             buildableContextDefinition.Set(contextDefinition);
             buildableParameterDefinition.Set(parameterDefinition);
@@ -56,7 +56,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IImplementationDefinition CreateAndBuild(IVerifiableType outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers) {
+        public static IImplementationDefinition CreateAndBuild(IOrType<IVerifiableType, IError> outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers) {
             var (x, y) = Create();
             y.Build(outputType, contextDefinition, parameterDefinition, scope, methodBody, staticInitialzers);
             return x;
@@ -65,6 +65,6 @@ namespace Tac.Model.Instantiated
 
     public interface IImplementationDefinitionBuilder
     {
-        void Build(IVerifiableType outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers);
+        void Build(IOrType<IVerifiableType, IError> outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers);
     }
 }

@@ -34,28 +34,28 @@ module mirror-module {
         public MirrorPointImplementation()
         {
             var keyX = new NameKey("x");
-            var localX = MemberDefinition.CreateAndBuild(keyX, new AnyType(), false);
+            var localX = MemberDefinition.CreateAndBuild(keyX, OrType.Make<IVerifiableType, IError>(new AnyType()), false);
 
             var keyY = new NameKey("y");
-            var localY = MemberDefinition.CreateAndBuild(keyY, new AnyType(), false);
+            var localY = MemberDefinition.CreateAndBuild(keyY, OrType.Make<IVerifiableType, IError>(new AnyType()), false);
 
             var contextKey = new NameKey("context");
 
             var context = MemberDefinition.CreateAndBuild(
-                contextKey, 
-                    InterfaceType.CreateAndBuild(
+                contextKey,
+                    OrType.Make<IVerifiableType, IError>(InterfaceType.CreateAndBuild(
                         Scope.CreateAndBuild(
                             new List<IsStatic>() {
                                 new IsStatic(localX ,false),
                                 new IsStatic(localY ,false),
-                            }).Members.Values.Select(x => x.Value).ToList()),
+                            }).Members.Values.Select(x => x.Value).ToList())),
                 false); ;
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, new EmptyType(), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, OrType.Make<IVerifiableType, IError>(new EmptyType()), false);
 
             var tempKey = new NameKey("temp");
-            var temp = MemberDefinition.CreateAndBuild(tempKey, new AnyType(), false);
+            var temp = MemberDefinition.CreateAndBuild(tempKey, OrType.Make<IVerifiableType, IError>(new AnyType()), false);
 
             var implementationScope = Scope.CreateAndBuild(
                 new List<IsStatic> {
@@ -66,11 +66,11 @@ module mirror-module {
             ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                  Scope.CreateAndBuild(
                     new List<IsStatic>() {
-                        new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false) ,false) }),
+                        new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), OrType.Make< IVerifiableType ,IError>(new AnyType()), false) ,false) }),
                 new[] {
                     OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
                     OrType.Make<ICodeElement, IError>(ImplementationDefinition.CreateAndBuild(
-                        new EmptyType(),
+                        OrType.Make< IVerifiableType ,IError>(new EmptyType()),
                         context,
                         input,
                         implementationScope,
@@ -89,7 +89,7 @@ module mirror-module {
                                     )
                         },
                         Array.Empty<ICodeElement>())),
-                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))))
+                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), OrType.Make< IVerifiableType ,IError>(new AnyType()), false)))))
                 },
                 new NameKey("mirror-module"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));

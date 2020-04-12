@@ -126,23 +126,6 @@ namespace Tac.SemanticModel
             return TokenMatching<ISetUp<WeakImplementationDefinition, Tpn.IValue>>.MakeNotMatch(match.Context);
         }
         
-        //public static ISetUp<WeakImplementationDefinition, Tpn.IValue> PopulateScope(
-        //                        ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition,
-        //        ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-        //        ISetUp<IConvertableFrontendCodeElement<ICodeElement>, Tpn.ITypeProblemNode>[] elements,
-        //        ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
-        //        string contextName,
-        //        string parameterName)
-        //{
-        //    return new PopulateScopeImplementationDefinition(
-        //                         contextDefinition,
-        //         parameterDefinition,
-        //         elements,
-        //         output,
-        //         contextName,
-        //         parameterName);
-        //}
-        
         private class PopulateScopeImplementationDefinition : ISetUp<WeakImplementationDefinition, Tpn.IValue>
         {
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition;

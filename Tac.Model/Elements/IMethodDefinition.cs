@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using Tac.Model.Operations;
 
 namespace Tac.Model.Elements
@@ -7,8 +8,8 @@ namespace Tac.Model.Elements
     // well, it is not external... 
     public interface IInternalMethodDefinition: IBlockDefinition
     {
-        IVerifiableType InputType { get; }
-        IVerifiableType OutputType { get; }
+        IOrType<IVerifiableType, IError> InputType { get; }
+        IOrType<IVerifiableType, IError> OutputType { get; }
         IMemberDefinition ParameterDefinition { get; }
     }
 }
