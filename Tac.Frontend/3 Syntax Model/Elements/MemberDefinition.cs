@@ -51,7 +51,7 @@ namespace Tac.SemanticModel
             builder.Build(Key, buildIntention.Tobuild, ReadOnly);
             return def;
         }
-        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IBox<IFrontendType> Type, IConversionContext context, bool ReadOnly, IKey Key)
+        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IOrType<IBox<IFrontendType>, IError> Type, IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (toBuild, maker) = MemberDefinition.Create();
             return new BuildIntention<IMemberDefinition>(toBuild, () =>
@@ -80,14 +80,14 @@ namespace Tac.SemanticModel
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition:  IWeakMemberDefinition
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, IBox<IFrontendType> type)
+        public WeakMemberDefinition(bool readOnly, IKey key, IOrType<IBox<IFrontendType>,IError> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IBox<IFrontendType> Type { get; }
+        public IOrType<IBox<IFrontendType>, IError> Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
 
