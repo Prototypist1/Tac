@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Prototypist.Toolbox;
+using System.Collections.Generic;
 using Tac.Model;
 
 namespace Tac.Model.Elements
@@ -23,13 +24,13 @@ namespace Tac.Model.Elements
     }
 
     public interface ITypeOr : IVerifiableType {
-        IVerifiableType Left { get; }
-        IVerifiableType Right { get; }
+        IOrType<IVerifiableType, IError> Left { get; }
+        IOrType<IVerifiableType, IError> Right { get; }
     }
 
     public interface ITypeAnd : IVerifiableType {
-        IVerifiableType Left { get; }
-        IVerifiableType Right { get; }
+        IOrType<IVerifiableType, IError> Left { get; }
+        IOrType<IVerifiableType, IError> Right { get; }
     }
 
 
@@ -60,8 +61,8 @@ namespace Tac.Model.Elements
     }
 
     public interface IMethodType : IVerifiableType {
-        IVerifiableType InputType { get; }
-        IVerifiableType OutputType { get; }
+        IOrType<IVerifiableType, IError> InputType { get; }
+        IOrType<IVerifiableType, IError> OutputType { get; }
     }
 
     // what is this??
@@ -82,9 +83,9 @@ namespace Tac.Model.Elements
 
     // TODO an implementation type is a method type!
     public interface IImplementationType : IVerifiableType {
-        IVerifiableType InputType { get; }
-        IVerifiableType OutputType { get; }
-        IVerifiableType ContextType { get; }
+        IOrType<IVerifiableType, IError> InputType { get; }
+        IOrType<IVerifiableType, IError> OutputType { get; }
+        IOrType<IVerifiableType, IError> ContextType { get; }
     }
 
     //public interface IGenericImplementationType : IGenericType

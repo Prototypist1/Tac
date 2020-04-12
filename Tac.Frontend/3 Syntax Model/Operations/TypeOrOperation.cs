@@ -15,6 +15,7 @@ using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
 using Prototypist.Toolbox.Object;
+using Prototypist.Toolbox;
 
 namespace Tac.Parser
 {
@@ -45,7 +46,7 @@ namespace Tac.Frontend.SyntaxModel.Operations
 {
     internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>
     {
-        public WeakTypeOrOperation(IBox<IFrontendType> left, IBox<IFrontendType> right) : base(left, right)
+        public WeakTypeOrOperation(IOrType<IBox<IFrontendType>,IError> left, IOrType<IBox<IFrontendType>, IError> right) : base(left, right)
         {
         }
 
@@ -55,8 +56,8 @@ namespace Tac.Frontend.SyntaxModel.Operations
 
             var (res, builder) = TypeOr.Create();
             return new BuildIntention<ITypeOr>(res, () => builder.Build(
-                Left.GetValue().ConvertTypeOrThrow(context),
-                Right.GetValue().ConvertTypeOrThrow(context)
+                Left.TransformInner(x=>x.GetValue().ConvertTypeOrThrow(context)),
+                Right.TransformInner(x => x.GetValue().ConvertTypeOrThrow(context))
                 ));
         }
     }

@@ -109,21 +109,23 @@ namespace Tac.Model.Instantiated
         {
         }
 
-        private readonly Buildable<IVerifiableType> left = new Buildable<IVerifiableType>();
-        private readonly Buildable<IVerifiableType> right = new Buildable<IVerifiableType>();
+        private readonly Buildable<IOrType<IVerifiableType, IError>> left = new Buildable<IOrType<IVerifiableType, IError>>();
+        private readonly Buildable<IOrType<IVerifiableType, IError>> right = new Buildable<IOrType<IVerifiableType, IError>>();
 
-        public IVerifiableType Left => left.Get();
+        public IOrType<IVerifiableType, IError> Left => left.Get();
 
-        public IVerifiableType Right => right.Get();
+        public IOrType<IVerifiableType, IError> Right => right.Get();
 
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
-            return Left.TheyAreUs(they, noTagBacks) || Left.TheyAreUs(they, noTagBacks);
+            throw new NotImplementedException("how does this work with errors");
+            //return Left.TheyAreUs(they, noTagBacks) || Left.TheyAreUs(they, noTagBacks);
         }
 
         public bool WeAreThem(IVerifiableType them,bool noTagBacks)
         {
-            return Left.WeAreThem(them, noTagBacks) && Left.WeAreThem(them, noTagBacks);
+            throw new NotImplementedException("how does this work with errors");
+            //return Left.WeAreThem(them, noTagBacks) && Left.WeAreThem(them, noTagBacks);
         }
 
 
@@ -133,7 +135,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static ITypeOr CreateAndBuild(IVerifiableType left, IVerifiableType right)
+        public static ITypeOr CreateAndBuild(IOrType<IVerifiableType, IError> left, IOrType<IVerifiableType, IError> right)
         {
             var res = new TypeOr();
             res.Build(left, right);
@@ -141,7 +143,7 @@ namespace Tac.Model.Instantiated
         }
 
 
-        public void Build(IVerifiableType left, IVerifiableType right)
+        public void Build(IOrType<IVerifiableType, IError> left, IOrType<IVerifiableType, IError> right)
         {
             if (left == null)
             {
@@ -160,29 +162,31 @@ namespace Tac.Model.Instantiated
 
     public interface ITypeOrBuilder
     {
-        void Build(IVerifiableType left, IVerifiableType right);
+        void Build(IOrType<IVerifiableType,IError> left, IOrType<IVerifiableType, IError> right);
     }
 
     public struct TypeAnd : ITypeAnd
     {
-        public TypeAnd(IVerifiableType left, IVerifiableType right)
+        public TypeAnd(IOrType<IVerifiableType, IError> left, IOrType<IVerifiableType, IError> right)
         {
             Left = left ?? throw new ArgumentNullException(nameof(left));
             Right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public IVerifiableType Left { get; }
+        public IOrType<IVerifiableType, IError> Left { get; }
 
-        public IVerifiableType Right { get; }
+        public IOrType<IVerifiableType, IError> Right { get; }
 
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
-            return Left.TheyAreUs(they, noTagBacks) && Left.TheyAreUs(they, noTagBacks);
+            throw new NotImplementedException("how does this work with errors");
+            //return Left.TheyAreUs(they, noTagBacks) && Left.TheyAreUs(they, noTagBacks);
         }
 
         public bool WeAreThem(IVerifiableType them, bool noTagBacks)
         {
-            return Left.WeAreThem(them, noTagBacks) || Left.WeAreThem(them, noTagBacks);
+            throw new NotImplementedException("how does this work with errors");
+            //return Left.WeAreThem(them, noTagBacks) || Left.WeAreThem(them, noTagBacks);
         }
     }
 
@@ -350,7 +354,7 @@ namespace Tac.Model.Instantiated
     {
         private MethodType() { }
 
-        public void Build(IVerifiableType inputType, IVerifiableType outputType)
+        public void Build(IOrType<IVerifiableType,IError>  inputType, IOrType<IVerifiableType, IError> outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -364,7 +368,7 @@ namespace Tac.Model.Instantiated
 
         // TOOD I am not sure I need to create and build any of these types...
         // good old constructors would do
-        public static IMethodType CreateAndBuild(IVerifiableType inputType, IVerifiableType outputType) {
+        public static IMethodType CreateAndBuild(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType) {
             var (x, y) = Create();
             y.Build(inputType, outputType);
             return x;
@@ -372,42 +376,45 @@ namespace Tac.Model.Instantiated
 
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
-            if (they is IMethodType method) {
-                return InputType.TheyAreUs(method.InputType, false) && OutputType.WeAreThem(method.OutputType, false);
-            }
 
-            if (noTagBacks)
-            {
-                return false;
-            }
+            throw new NotImplementedException("how does this work with errors");
+            //if (they is IMethodType method) {
+            //    return InputType.TheyAreUs(method.InputType, false) && OutputType.WeAreThem(method.OutputType, false);
+            //}
 
-            return this.WeAreThem(this, true);
+            //if (noTagBacks)
+            //{
+            //    return false;
+            //}
+
+            //return this.WeAreThem(this, true);
         }
 
         public bool WeAreThem(IVerifiableType them, bool noTagBacks)
         {
-            if (them is IMethodType method)
-            {
-                return InputType.WeAreThem(method.InputType, false) && OutputType.TheyAreUs(method.OutputType, false);
-            }
+            throw new NotImplementedException("how does this work with errors");
+            //if (them is IMethodType method)
+            //{
+            //    return InputType.WeAreThem(method.InputType, false) && OutputType.TheyAreUs(method.OutputType, false);
+            //}
 
-            if (noTagBacks)
-            {
-                return false;
-            }
+            //if (noTagBacks)
+            //{
+            //    return false;
+            //}
 
-            return this.WeAreThem(this, true);
+            //return this.WeAreThem(this, true);
         }
 
-        private IVerifiableType? inputType; 
-        public IVerifiableType InputType { get=> inputType?? throw new NullReferenceException(nameof(inputType)); private set=>inputType = value; }
-        private IVerifiableType? outputType;
-        public IVerifiableType OutputType { get => outputType ?? throw new NullReferenceException(nameof(outputType)); private set => outputType = value; }
+        private IOrType<IVerifiableType, IError>? inputType; 
+        public IOrType<IVerifiableType, IError> InputType { get=> inputType?? throw new NullReferenceException(nameof(inputType)); private set=>inputType = value; }
+        private IOrType<IVerifiableType, IError>? outputType;
+        public IOrType<IVerifiableType, IError> OutputType { get => outputType ?? throw new NullReferenceException(nameof(outputType)); private set => outputType = value; }
     }
     
     public interface IMethodTypeBuilder
     {
-        void Build(IVerifiableType inputType, IVerifiableType outputType);
+        void Build(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType);
     }
 
     // TODO struct?
@@ -418,7 +425,7 @@ namespace Tac.Model.Instantiated
     {
         private ImplementationType() { }
 
-        public void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
+        public void Build(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType, IOrType<IVerifiableType, IError> contextType)
         {
             ImplementationInputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             ImplementationOutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -426,7 +433,7 @@ namespace Tac.Model.Instantiated
             MethodInputType = contextType ?? throw new ArgumentNullException(nameof(contextType));
             var (outputMethod, outputMethodBuilder) = MethodType.Create();
             outputMethodBuilder.Build(inputType, outputType);
-            MethodOutputType = outputMethod;
+            MethodOutputType = OrType.Make<IVerifiableType,IError>( outputMethod);
 
         }
         
@@ -436,7 +443,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IImplementationType CreateAndBuild(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
+        public static IImplementationType CreateAndBuild(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType, IOrType<IVerifiableType, IError> contextType)
         {
             var (res, builder) = Create();
             builder.Build(inputType, outputType, contextType);
@@ -445,45 +452,47 @@ namespace Tac.Model.Instantiated
 
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
-            if (they is IMethodType method)
-            {
-                return (this as IMethodType).InputType.TheyAreUs(method.InputType, false) && (this as IMethodType).OutputType.WeAreThem(method.OutputType, false);
-            }
+            throw new NotImplementedException("how does it work when these could be errors");
+            //if (they is IMethodType method)
+            //{
+            //    return (this as IMethodType).InputType.TheyAreUs(method.InputType, false) && (this as IMethodType).OutputType.WeAreThem(method.OutputType, false);
+            //}
 
-            if (noTagBacks)
-            {
-                return false;
-            }
+            //if (noTagBacks)
+            //{
+            //    return false;
+            //}
 
-            return this.WeAreThem(this, true);
+            //return this.WeAreThem(this, true);
         }
 
         public bool WeAreThem(IVerifiableType them, bool noTagBacks)
         {
-            if (them is IMethodType method)
-            {
-                return (this as IMethodType).InputType.WeAreThem(method.InputType, false) && (this as IMethodType).OutputType.TheyAreUs(method.OutputType, false);
-            }
+            throw new NotImplementedException("how does it work when these could be errors");
+            //if (them is IMethodType method)
+            //{
+            //    return (this as IMethodType).InputType.WeAreThem(method.InputType, false) && (this as IMethodType).OutputType.TheyAreUs(method.OutputType, false);
+            //}
 
-            if (noTagBacks)
-            {
-                return false;
-            }
+            //if (noTagBacks)
+            //{
+            //    return false;
+            //}
 
-            return this.WeAreThem(this, true);
+            //return this.WeAreThem(this, true);
         }
 
-        private IVerifiableType? ImplementationInputType;
-        private IVerifiableType? ImplementationOutputType;
-        private IVerifiableType? MethodInputType;
-        private IVerifiableType? MethodOutputType;
+        private IOrType<IVerifiableType, IError>? ImplementationInputType;
+        private IOrType<IVerifiableType, IError>? ImplementationOutputType;
+        private IOrType<IVerifiableType, IError>? MethodInputType;
+        private IOrType<IVerifiableType, IError>? MethodOutputType;
 
-        IVerifiableType IImplementationType.InputType => ImplementationInputType ?? throw new NullReferenceException(nameof(ImplementationInputType));
-        IVerifiableType IImplementationType.OutputType => ImplementationOutputType ?? throw new NullReferenceException(nameof(ImplementationOutputType));
-        IVerifiableType IMethodType.InputType => MethodInputType ?? throw new NullReferenceException(nameof(MethodInputType));
-        IVerifiableType IMethodType.OutputType => MethodOutputType ?? throw new NullReferenceException(nameof(MethodOutputType));
-        private IVerifiableType? contextType;
-        public IVerifiableType ContextType { get => contextType ?? throw new NullReferenceException(nameof(contextType)); private set => contextType = value ?? throw new NullReferenceException(nameof(value)); }
+        IOrType<IVerifiableType, IError> IImplementationType.InputType => ImplementationInputType ?? throw new NullReferenceException(nameof(ImplementationInputType));
+        IOrType<IVerifiableType, IError> IImplementationType.OutputType => ImplementationOutputType ?? throw new NullReferenceException(nameof(ImplementationOutputType));
+        IOrType<IVerifiableType, IError> IMethodType.InputType => MethodInputType ?? throw new NullReferenceException(nameof(MethodInputType));
+        IOrType<IVerifiableType, IError> IMethodType.OutputType => MethodOutputType ?? throw new NullReferenceException(nameof(MethodOutputType));
+        private IOrType<IVerifiableType, IError>? contextType;
+        public IOrType<IVerifiableType, IError> ContextType { get => contextType ?? throw new NullReferenceException(nameof(contextType)); private set => contextType = value ?? throw new NullReferenceException(nameof(value)); }
     }
 
     public interface IGenericImplementationBuilder
@@ -493,7 +502,7 @@ namespace Tac.Model.Instantiated
 
     public interface IImplementationTypeBuilder
     {
-        void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType);
+        void Build(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType, IOrType<IVerifiableType, IError> contextType);
     }
 
 }

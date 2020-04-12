@@ -69,7 +69,7 @@ namespace Tac.SemanticModel.CodeStuff
         public delegate IBox<T> Make<out T>(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right);
 
         public delegate Tpn.TypeProblem2.TypeReference ToTypeProblemThings(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IFrontendType, Tpn.ITypeProblemNode> left, ISetUpResult<IFrontendType, Tpn.ITypeProblemNode> right);
-        public delegate IBox<T> MakeBinaryType<out T>(IBox<IFrontendType> left, IBox<IFrontendType> right);
+        public delegate IBox<T> MakeBinaryType<out T>(IOrType<IBox<IFrontendType>,IError> left, IOrType<IBox<IFrontendType>,IError> right);
 
 
     }
@@ -104,8 +104,8 @@ namespace Tac.SemanticModel.CodeStuff
         where TRight : IFrontendType
         where TType: IVerifiableType 
     { 
-        public IBox<TLeft> Left { get; }
-        public IBox<TRight> Right { get; }
+        public IOrType<IBox<TLeft>, IError> Left { get; }
+        public IOrType<IBox<TRight>, IError> Right { get; }
         public IEnumerable<IBox<IConvertableFrontendType<IVerifiableType>>> Operands { get {
                 // this make me sad,
                 // if we could mark TLeft, TRight as classes and I would need these ugly casts
@@ -118,7 +118,7 @@ namespace Tac.SemanticModel.CodeStuff
             }
         }
 
-        public BinaryTypeOperation(IBox<TLeft> left, IBox<TRight> right)
+        public BinaryTypeOperation(IOrType<IBox<TLeft>,IError> left, IOrType<IBox<TRight>, IError> right)
         {
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -369,8 +369,8 @@ namespace Tac.SemanticModel.CodeStuff
             public IBox<IFrontendType> Run(Tpn.ITypeSolution context)
             {
                 var res = make(
-                    left.Run(context),
-                    right.Run( context));
+                    OrType.Make<IBox<IFrontendType>,IError>( left.Run(context)),
+                    OrType.Make<IBox<IFrontendType>, IError>(right.Run( context)));
 
                 return res;
             }

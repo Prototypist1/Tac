@@ -104,14 +104,16 @@ namespace Tac.Frontend
             }
         }
 
-        public static IBox<IFrontendType> GetType(Tpn.ITypeSolution typeSolution, Tpn.ILookUpType lookUpType)
+        public static IOrType< IBox<IFrontendType>,IError> GetType(Tpn.ITypeSolution typeSolution, Tpn.ILookUpType lookUpType)
         {
             return typeSolution.GetType(lookUpType).SwitchReturns(
-                v1 => new Box<IFrontendType>(typeSolution.GetMethodType(v1).GetValue()),
-                v2 => new UnWrappingTypeBox(typeSolution.GetExplicitType(v2)),
-                v3 => new UnWrappingObjectBox(typeSolution.GetObject(v3)),
-                v4 => typeSolution.GetOrType(v4),
-                v5 => typeSolution.GetInferredType(v5, new InferredTypeConverter()));
+                v1 => OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(typeSolution.GetMethodType(v1).GetValue())),
+                v2 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingTypeBox(typeSolution.GetExplicitType(v2))),
+                v3 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingObjectBox(typeSolution.GetObject(v3))),
+                v4 => OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetOrType(v4)),
+                v5 => OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(v5, new InferredTypeConverter())),
+                v6 => OrType.Make<IBox<IFrontendType>, IError>(v6)
+                );
         }
     }
 
@@ -139,19 +141,19 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        Help.GetType(typeSolution, input).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
-                        Help.GetType(typeSolution, output).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>());
+                        Help.GetType(typeSolution, input).TransformInner(x=> x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
+                        Help.GetType(typeSolution, output).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()));
             }
 
 
             if (input != default)
             {
                 // I don't think this is safe see:
-                //  {D27D98BA-96CF-402C-824C-744DACC63FEE}e
+                //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        Help.GetType(typeSolution, input).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
-                        new EmptyType());
+                        Help.GetType(typeSolution, input).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType,IConvertableFrontendType<IVerifiableType>>()),
+                        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType()));
             }
 
             if (output != default)
@@ -160,8 +162,8 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        new EmptyType(),
-                        Help.GetType(typeSolution, output).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>());
+                        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>( new EmptyType()),
+                        Help.GetType(typeSolution, output).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
             }
 
             return new WeakTypeDefinition(new Box<WeakScope>(scope));
@@ -236,8 +238,10 @@ namespace Tac.Frontend
             //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
             return
                 new MethodType(
-                    Help.GetType(typeSolution, typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from))).GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>(),
-                    Help.GetType(typeSolution, typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from))).GetValue().CastTo< IConvertableFrontendType<IVerifiableType>>());
+                    Help.GetType(typeSolution, typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from)))
+                    .TransformInner(x=>x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
+                    Help.GetType(typeSolution, typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from)))
+                    .TransformInner(x => x.GetValue().CastTo< IConvertableFrontendType<IVerifiableType>>()));
         }
     }
 
@@ -310,13 +314,13 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IFrontendType>
+    internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IOrType< IFrontendType,IError>>
     {
-        public IFrontendType Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
+        public IOrType< IFrontendType,IError> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
         {
             // I don't think this is safe see:
             // {D27D98BA-96CF-402C-824C-744DACC63FEE}
-            return Help.GetType(typeSolution, from).GetValue();
+            return Help.GetType(typeSolution, from).TransformInner(x=>x.GetValue());
         }
     }
 

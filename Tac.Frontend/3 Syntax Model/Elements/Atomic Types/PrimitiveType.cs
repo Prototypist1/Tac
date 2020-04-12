@@ -104,16 +104,16 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     }
     internal struct ImplementationType : IConvertableFrontendType<IImplementationType>, IPrimitiveType
     {
-        public ImplementationType(IConvertableFrontendType<IVerifiableType> inputType, IConvertableFrontendType<IVerifiableType> outputType, IConvertableFrontendType<IVerifiableType> contextType)
+        public ImplementationType(IOrType<IConvertableFrontendType<IVerifiableType>, IError> inputType, IOrType<IConvertableFrontendType<IVerifiableType>, IError> outputType, IOrType<IConvertableFrontendType<IVerifiableType>, IError> contextType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
         }
 
-        public IConvertableFrontendType<IVerifiableType> InputType { get; }
-        public IConvertableFrontendType<IVerifiableType> OutputType { get; }
-        public IConvertableFrontendType<IVerifiableType> ContextType { get; }
+        public IOrType<IConvertableFrontendType<IVerifiableType>,IError> InputType { get; }
+        public IOrType<IConvertableFrontendType<IVerifiableType>, IError> OutputType { get; }
+        public IOrType<IConvertableFrontendType<IVerifiableType>, IError> ContextType { get; }
 
         public IBuildIntention<IImplementationType> GetBuildIntention(IConversionContext context)
         {
@@ -128,22 +128,22 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.Convert(context),
-                        outputType.Convert(context),
-                        contextType.Convert(context));
+                        inputType.TransformInner(x=>x.Convert(context)),
+                        outputType.TransformInner(x => x.Convert(context)),
+                        contextType.TransformInner(x => x.Convert(context)));
                 });
         }
     }
     internal class MethodType : IConvertableFrontendType<IMethodType>, IPrimitiveType
     {
-        public MethodType(IConvertableFrontendType<IVerifiableType> inputType, IConvertableFrontendType<IVerifiableType> outputType)
+        public MethodType(IOrType<IConvertableFrontendType<IVerifiableType>, IError> inputType, IOrType<IConvertableFrontendType<IVerifiableType>, IError> outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         }
 
-        public IConvertableFrontendType<IVerifiableType> InputType { get; }
-        public IConvertableFrontendType<IVerifiableType> OutputType { get; }
+        public IOrType< IConvertableFrontendType<IVerifiableType>,IError> InputType { get; }
+        public IOrType<IConvertableFrontendType<IVerifiableType>, IError> OutputType { get; }
 
         public IBuildIntention<IMethodType> GetBuildIntention(IConversionContext context)
         {
@@ -157,8 +157,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.Convert(context),
-                        outputType.Convert(context));
+                        inputType.TransformInner(x=>x.Convert(context)),
+                        outputType.TransformInner(x=>x.Convert(context)));
                 });
         }
     }

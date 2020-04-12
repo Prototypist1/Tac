@@ -22,6 +22,114 @@ using Tac.Model.Operations;
 
 namespace Tac.Tests
 {
+
+    public class BadCode {
+
+        [Fact]
+        public void TokenizeMissingElement()
+        {
+            var res = TestSupport.Tokenize("module tokenize-missing-element { 5 + + 10 =: x ; }");
+            var converted = TestSupport.Convert(res);
+            var line = Assert.Single(converted.StaticInitialization);
+            var validLine = line.Is1OrThrow();
+            var assignOperation = validLine.SafeCastTo<ICodeElement, IAssignOperation>();
+            var addition = assignOperation.Left.Is1OrThrow();
+            var addOperation = addition.SafeCastTo<ICodeElement, IAddOperation>();
+            addOperation.Left.Is2OrThrow();
+        }
+
+        [Fact]
+        public void MissingCurleyBracket()
+        {
+            var res = TestSupport.Tokenize("module test { 5 + 10 =: x ; ");
+            var converted = TestSupport.Convert(res);
+
+            throw new NotImplementedException();
+        }
+
+        [Fact]
+        public void MissingSquareBracket()
+        {
+            var res = TestSupport.Tokenize(@" module tet { method [ number ; number ;  input { input return ;} =: pass-through ; }");
+            var converted = TestSupport.Convert(res);
+
+            throw new NotImplementedException();
+        }
+
+        [Fact]
+        public void YouCantInvokeANumber()
+        {
+            var res = TestSupport.Tokenize("module test { 5 =: x ; 5 > x ; }");
+            var converted = TestSupport.Convert(res);
+
+            throw new NotImplementedException();
+        }
+
+        // I think this actaully will not error out here
+        // a is used before it is assigned 
+        // but that is flow analysis 
+        [Fact]
+        public void UndefinedVariable()
+        {
+            var res = TestSupport.Tokenize("module test { a + 2 =: x ; }");
+            var converted = TestSupport.Convert(res);
+
+            throw new NotImplementedException();
+        }
+
+        [Fact]
+        public void UndefinedType()
+        {
+            var res = TestSupport.Tokenize(@" module test { method [ chicken ; number ; ] input { 1 return ;} =: chicken-to-one ; }");
+            var converted = TestSupport.Convert(res);
+
+            throw new NotImplementedException();
+        }
+    }
+
+    internal static class TestSupport {
+
+        internal static FileToken Tokenize(string text)
+        {
+
+            var tokenizer = new Parser.Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
+            var res = tokenizer.Tokenize(text);
+            return res;
+        }
+
+        internal static IModuleDefinition Convert(FileToken fileToken)
+        {
+            var elementMatchingContest = new ElementMatchingContext();
+
+            var scopePopulators = elementMatchingContest.ParseFile(fileToken);
+
+
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>, IError>>>(new List<IOrType<IResolve<IFrontendCodeElement>, IError>>()), new NameKey("test module")));
+
+            var populateScopeContex = new SetUpContext(problem);
+            var referanceResolvers = scopePopulators.Select(or => or.TransformInner(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
+
+
+            var solution = problem.Solve();
+
+            var result = referanceResolvers
+                .Select(or => or.TransformInner(reranceResolver => reranceResolver.Run(solution)))
+                .ToArray()
+                .Single()
+                .Is1OrThrow()
+                .GetValue()
+                .SafeCastTo<IFrontendCodeElement, WeakModuleDefinition>();
+
+
+            var context = TransformerExtensions.NewConversionContext();
+
+            var converted = result.Convert(context);
+            return converted;
+        }
+
+    }
+
+
     public class PipelineTests
     {
 #pragma warning disable CA1707 // Identifiers should not contain underscores
@@ -72,40 +180,12 @@ namespace Tac.Tests
 
             var target = sample.ModuleDefinition;
 
-            var converted = Convert(sample.Token.SafeCastTo<IToken, FileToken>());
+            var converted = TestSupport.Convert(sample.Token.SafeCastTo<IToken, FileToken>());
 
             converted.ValueEqualOrThrow(target);
         }
 
-        private static IModuleDefinition Convert(FileToken fileToken)
-        {
-            var elementMatchingContest = new ElementMatchingContext();
 
-            var scopePopulators = elementMatchingContest.ParseFile(fileToken);
-
-
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>, IError>>>(new List<IOrType<IResolve<IFrontendCodeElement>, IError>>()), new NameKey("test module")));
-
-            var populateScopeContex = new SetUpContext(problem);
-            var referanceResolvers = scopePopulators.Select(or => or.TransformInner(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
-
-
-            var solution = problem.Solve();
-
-            var result = referanceResolvers
-                .Select(or=>or.TransformInner( reranceResolver => reranceResolver.Run(solution)))
-                .ToArray()
-                .Single()
-                .Is1OrThrow()
-                .GetValue()
-                .SafeCastTo<IFrontendCodeElement,WeakModuleDefinition>();
-
-
-            var context = TransformerExtensions.NewConversionContext();
-
-            var converted = result.Convert(context);
-            return converted;
-        }
 
         [Fact]
         public void Text_Token_Factorial()
@@ -149,21 +229,10 @@ namespace Tac.Tests
             Text_Token(new WrappedClosoure());
         }
 
-        [Fact]
-        public void TokenizeMissingElement() {
-            var res =Tokenize("module tokenize-missing-element { 5 + + 10 =: x ; }");
-            var converted = Convert(res);
-            var line = Assert.Single(converted.StaticInitialization);
-            var validLine = line.Is1OrThrow();
-            var assignOperation=  validLine.SafeCastTo<ICodeElement, IAssignOperation>();
-            var addition =  assignOperation.Left.Is1OrThrow();
-            var addOperation = addition.SafeCastTo<ICodeElement, IAddOperation>();
-            addOperation.Left.Is2OrThrow();
-        }
 
         private static void Text_Token(IWrappedTestCase sample)
         {
-            var res = Tokenize(sample.Text);
+            var res = TestSupport.Tokenize(sample.Text);
 
             var target = sample.Token;
 
@@ -175,18 +244,10 @@ namespace Tac.Tests
             Assert.Equal(target.ToString(), res.ToString());
         }
 
-        private static FileToken Tokenize(string text)
-        {
-
-            var tokenizer = new Parser.Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
-            var res = tokenizer.Tokenize(text);
-            return res;
-        }
-
         private static void TokenizeAndConvert(ITestCase sample)
         {
-            var fileToken = Tokenize(sample.Text);
-            var converted = Convert(fileToken);
+            var fileToken = TestSupport.Tokenize(sample.Text);
+            var converted = TestSupport.Convert(fileToken);
 
             converted.ValueEqualOrThrow(sample.ModuleDefinition);
         }

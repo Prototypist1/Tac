@@ -372,7 +372,7 @@ namespace Tac.Parser
 
     internal static class TokenMatchingExtensions {
         public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3, T4, T5>(this ITokenMatching<T1, T2, T3, T4, T5> tokenMatching, Func<T1,T2,T3,T4,T5, T> convert) {
-            if (tokenMatching.Is(out IMatchedTokenMatching<T1,T2,T3,T4,T5> matched)) {
+            if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1,T2,T3,T4,T5> matched)) {
                 return TokenMatching < T >.MakeMatch(matched.Tokens,matched.Context, convert(matched.Value1, matched.Value2, matched.Value3, matched.Value4, matched.Value5));
             }
             return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
@@ -380,7 +380,7 @@ namespace Tac.Parser
 
         public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3, T4>(this ITokenMatching<T1, T2, T3, T4> tokenMatching, Func<T1, T2, T3, T4, T> convert)
         {
-            if (tokenMatching.Is(out IMatchedTokenMatching<T1, T2, T3, T4> matched))
+            if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1, T2, T3, T4> matched))
             {
                 return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert(matched.Value1, matched.Value2, matched.Value3, matched.Value4));
             }
@@ -389,7 +389,7 @@ namespace Tac.Parser
 
         public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3>(this ITokenMatching<T1, T2, T3> tokenMatching, Func<T1, T2, T3, T> convert)
         {
-            if (tokenMatching.Is(out IMatchedTokenMatching<T1, T2, T3> matched))
+            if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1, T2, T3> matched))
             {
                 return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert(matched.Value1, matched.Value2, matched.Value3));
             }
@@ -399,7 +399,7 @@ namespace Tac.Parser
 
         public static ITokenMatching<T> ConvertIfMatched<T, T1, T2>(this ITokenMatching<T1, T2> tokenMatching, Func<T1, T2, T> convert)
         {
-            if (tokenMatching.Is(out IMatchedTokenMatching<T1, T2> matched))
+            if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1, T2> matched))
             {
                 return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert(matched.Value1, matched.Value2));
             }
@@ -409,7 +409,7 @@ namespace Tac.Parser
 
         public static ITokenMatching<T> ConvertIfMatched<T, T1>(this ITokenMatching<T1> tokenMatching, Func<T1,  T> convert)
         {
-            if (tokenMatching.Is(out IMatchedTokenMatching<T1> matched))
+            if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1> matched))
             {
                 return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert(matched.Value));
             }
@@ -418,7 +418,7 @@ namespace Tac.Parser
 
         public static ITokenMatching<T> ConvertIfMatched<T>(this ITokenMatching tokenMatching, Func<T> convert)
         {
-            if (tokenMatching.Is(out IMatchedTokenMatching matched))
+            if (tokenMatching.SafeIs(out IMatchedTokenMatching matched))
             {
                 return TokenMatching<T>.MakeMatch(matched.Tokens, matched.Context, convert());
             }
@@ -506,7 +506,7 @@ namespace Tac.Parser
     }
 
     // this is a good api
-    // but it falls down a bit when you start working wiht hasSquare, hasLine, hasElement the out vars don't play nice with the method
+    // but it falls down a bit when you start working with hasSquare, hasLine, hasElement the out vars don't play nice with the method
     // matchOne fails a bit too
     // composing is hard because you are limited to a single return
     
