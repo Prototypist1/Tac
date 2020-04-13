@@ -38,7 +38,7 @@ namespace Tac.SemanticModel
         WeakAbstractBlockDefinition<IInternalMethodDefinition>
     {
         public WeakMethodDefinition(
-            IBox<IFrontendType> outputType,
+            IOrType<IBox<IFrontendType>, IError> outputType,
             IBox<IWeakMemberDefinition> parameterDefinition,
             IReadOnlyList<IOrType< IBox<IFrontendCodeElement>,IError>> body,
             IBox<WeakScope> scope,
@@ -48,8 +48,8 @@ namespace Tac.SemanticModel
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
 
-        public IBox<IFrontendType> InputType => ParameterDefinition.GetValue().Type;
-        public IBox<IFrontendType> OutputType { get; }
+        public IOrType<IBox<IFrontendType>,IError> InputType => ParameterDefinition.GetValue().Type;
+        public IOrType<IBox<IFrontendType>, IError> OutputType { get; }
         public IBox<IWeakMemberDefinition> ParameterDefinition { get; }
 
         public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(IConversionContext context)
@@ -58,8 +58,8 @@ namespace Tac.SemanticModel
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    InputType.GetValue().ConvertTypeOrThrow(context),
-                    OutputType.GetValue().ConvertTypeOrThrow(context),
+                    InputType.TransformInner(x=>x.GetValue().ConvertTypeOrThrow(context)),
+                    OutputType.TransformInner(x => x.GetValue().ConvertTypeOrThrow(context)),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
                     Body.Select(x => x.TransformInner(y=>y .GetValue().ConvertElementOrThrow(context))).ToArray(),

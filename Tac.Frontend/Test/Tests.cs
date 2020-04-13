@@ -31,7 +31,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
         private static WeakTypeDefinition MemberToType(WeakMemberDefinition member)
         {
-            return (WeakTypeDefinition)member.Type.GetValue();
+            return (WeakTypeDefinition)member.Type.Is1OrThrow().GetValue();
         }
 
         #endregion

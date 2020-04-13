@@ -83,8 +83,7 @@ namespace Tac.Frontend
                 var interpetedMemberDefinition = new WeakMemberDefinition(
                     member.ReadOnly,
                     member.Key,
-                    new Box<IFrontendType>(
-                                        TypeMap.MapType(member.Type)));
+                    TypeMap.MapType(member.Type).TransformInner(x=>new Box<IFrontendType>(x)));
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition;
             }
@@ -124,49 +123,57 @@ namespace Tac.Frontend
     internal static class TypeMap
     {
 
-        public static IConvertableFrontendType<IVerifiableType> MapType(IVerifiableType verifiableType)
+        public static IOrType<IConvertableFrontendType<IVerifiableType>,IError> MapType(IOrType< IVerifiableType,IError> verifiableType)
         {
-            if (verifiableType is INumberType)
+            return verifiableType.SwitchReturns(x =>
             {
-                return new NumberType();
-            }
-            if (verifiableType is IBooleanType)
-            {
-                return new BooleanType();
-            }
-            if (verifiableType is IStringType)
-            {
-                return new StringType();
-            }
-            if (verifiableType is IBlockType)
-            {
-                return new BlockType();
-            }
-            if (verifiableType is IEmptyType)
-            {
-                return new EmptyType();
-            }
-            if (verifiableType is IAnyType)
-            {
-                return new AnyType();
-            }
-            if (verifiableType is IMethodType method)
-            {
-                return new MethodType(
-                    MapType(method.InputType),
-                    MapType(method.OutputType)
-                    );
-            }
-            if (verifiableType is IImplementationType implementation)
-            {
-                return new ImplementationType(
-                    MapType(implementation.ContextType),
-                    MapType(implementation.InputType),
-                    MapType(implementation.OutputType)
-                    );
-            }
 
-            throw new NotImplementedException();
+                if (x is INumberType)
+                {
+                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new NumberType());
+                }
+                if (x is IBooleanType)
+                {
+                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new BooleanType());
+                }
+                if (x is IStringType)
+                {
+                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new StringType());
+                }
+                if (x is IBlockType)
+                {
+                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new BlockType());
+                }
+                if (x is IEmptyType)
+                {
+                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType());
+                }
+                if (x is IAnyType)
+                {
+                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new AnyType());
+                }
+                if (x is IMethodType method)
+                {
+                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new MethodType(
+                        MapType(method.InputType),
+                        MapType(method.OutputType)
+                        ));
+                }
+                if (x is IImplementationType implementation)
+                {
+                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new ImplementationType(
+                        MapType(implementation.ContextType),
+                        MapType(implementation.InputType),
+                        MapType(implementation.OutputType)
+                        ));
+                }
+
+                throw new NotImplementedException();
+
+            }, 
+            x => OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(x));
+
+
         }
 
     }

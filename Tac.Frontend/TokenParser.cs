@@ -42,24 +42,25 @@ namespace Tac.Frontend
                 var type = problem.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
                 foreach (var memberPair in dependency.Scope.Members)
                 {
-                    var innerType = ConvertType(problem,type, memberPair.Value.Value.Type); 
-                    innerType.Switch(x => {
+                    var innerType = ConvertType(problem, type, memberPair.Value.Value.Type);
+                    innerType.Switch(x =>
+                    {
                         problem.CreateMember(type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
                     }, y =>
                     {
                         problem.CreateMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
                     });
                 }
-                problem.CreateMember(problem.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType,IError>(type), new WeakMemberDefinitionConverter(true, dependency.Key));
+                problem.CreateMember(problem.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type), new WeakMemberDefinitionConverter(true, dependency.Key));
 
             }
 
             var populateScopeContex = new SetUpContext(problem);
-            var referanceResolvers = scopePopulators.Select(or => or.TransformInner(populateScope=> populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
+            var referanceResolvers = scopePopulators.Select(or => or.TransformInner(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
 
             var solution = problem.Solve();
 
-            referanceResolvers.Select(or=>or.TransformInner(reranceResolver => reranceResolver.Run(solution))).ToArray();
+            referanceResolvers.Select(or => or.TransformInner(reranceResolver => reranceResolver.Run(solution))).ToArray();
 
             var moduleDefinition = solution.GetObject(problem.ModuleRoot).GetValue().Is2OrThrow();
 
@@ -71,90 +72,98 @@ namespace Tac.Frontend
         private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> ConvertType(
             Tpn.ISetUpTypeProblem problem,
             Tpn.IScope scope,
-            IVerifiableType type)
+            IOrType<IVerifiableType, IError> typeOrError)
         {
 
-            if (type is NumberType numberType)
+            return typeOrError.SwitchReturns(type =>
             {
-                return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new NameKey("number"));
-            }
-            else if (type is EmptyType emptyType)
-            {
-                return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new NameKey("empty"));
-            }
-            else if (type is BooleanType booleanTyp)
-            {
-                return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new NameKey("bool"));
-            }
-            else if (type is BlockType blockType)
-            {
-                throw new Exception("can't be asked");
-            }
-            else if (type is StringType stringType)
-            {
-                return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new NameKey("string"));
-            }
-            else if (type is AnyType anyType)
-            {
-                throw new Exception("can't be asked");
-            }
 
-            if (type is InterfaceType interfaceType)
-            {
-                if (!typeCache.TryGetValue(type, out var res))
+                if (type is NumberType numberType)
                 {
-                    return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(res!));
+                    return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new NameKey("number"));
+                }
+                else if (type is EmptyType emptyType)
+                {
+                    return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new NameKey("empty"));
+                }
+                else if (type is BooleanType booleanTyp)
+                {
+                    return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new NameKey("bool"));
+                }
+                else if (type is BlockType blockType)
+                {
+                    throw new Exception("can't be asked");
+                }
+                else if (type is StringType stringType)
+                {
+                    return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new NameKey("string"));
+                }
+                else if (type is AnyType anyType)
+                {
+                    throw new Exception("can't be asked");
                 }
 
-                // we don't know the type key...
-                var tpnType = problem.CreateType(scope, new WeakTypeDefinitionConverter());
-                typeCache[type] = tpnType;
-                var orType = OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(tpnType);
-                foreach (var memberPair in interfaceType.Members)
+                if (type is InterfaceType interfaceType)
                 {
-                    var innerType = ConvertType(problem,tpnType,memberPair.Type);
-                    innerType.Switch(x => { 
-                    
-                        problem.CreateMember(tpnType, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
-                    }, y =>
+                    if (!typeCache.TryGetValue(type, out var res))
                     {
-                        problem.CreateMember(tpnType, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
-                    });
+                        return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(res!));
+                    }
+
+                    // we don't know the type key...
+                    var tpnType = problem.CreateType(scope, new WeakTypeDefinitionConverter());
+                    typeCache[type] = tpnType;
+                    var orType = OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(tpnType);
+                    foreach (var memberPair in interfaceType.Members)
+                    {
+                        var innerType = ConvertType(problem, tpnType, memberPair.Type);
+                        innerType.Switch(x =>
+                        {
+
+                            problem.CreateMember(tpnType, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        }, y =>
+                        {
+                            problem.CreateMember(tpnType, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        });
+                    }
+                    return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(orType);
                 }
-                return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(orType);
-            }
-            else if (type is TypeOr typeOr)
-            {
-                throw new Exception("i don't want to think about it");
-            }
-            else if (type is TypeAnd typeAnd)
-            {
-                throw new Exception("i don't want to think about it");
-            }
-            else if (type is MethodType methodType)
-            {
-                var input = ConvertType(problem, scope, methodType.InputType);
-                var output = ConvertType(problem, scope, methodType.OutputType);
-                if (input.Is2(out var i2) && output.Is2(out var o2))
+                else if (type is TypeOr typeOr)
                 {
-                    problem.GetMethod(i2, o2);
+                    throw new Exception("i don't want to think about it");
                 }
-                else if (input.Is1(out var i1) && output.Is1(out var o1))
+                else if (type is TypeAnd typeAnd)
                 {
-                    return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] { 
+                    throw new Exception("i don't want to think about it");
+                }
+                else if (type is MethodType methodType)
+                {
+                    var input = ConvertType(problem, scope, methodType.InputType);
+                    var output = ConvertType(problem, scope, methodType.OutputType);
+                    if (input.Is2(out var i2) && output.Is2(out var o2))
+                    {
+                        problem.GetMethod(i2, o2);
+                    }
+                    else if (input.Is1(out var i1) && output.Is1(out var o1))
+                    {
+                        return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
                         OrType.Make<IKey, IError>(i1), OrType.Make<IKey, IError>(o1)
                     }));
+                    }
+                    else
+                    {
+                        throw new Exception("they should not be mixed");
+                    }
                 }
-                else {
-                    throw new Exception("they should not be mixed");
+                else if (type is ImplementationType implementationType)
+                {
+                    throw new Exception("can't be asked");
                 }
+                throw new Exception("you have entered the area that does not exist");
             }
-            else if (type is ImplementationType implementationType)
-            {
-                throw new Exception("can't be asked");
-            }
-            throw new Exception("you have entered the area that does not exist");
-        }
+            , x => OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(
+                 OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(x)));
 
+        }
     }
 }

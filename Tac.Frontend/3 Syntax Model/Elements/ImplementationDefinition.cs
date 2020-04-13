@@ -43,7 +43,7 @@ namespace Tac.SemanticModel
         public WeakImplementationDefinition(
             IBox<IWeakMemberDefinition> contextDefinition,
             IBox<IWeakMemberDefinition> parameterDefinition,
-            IBox<IFrontendType> outputType,
+            IOrType< IBox<IFrontendType>,IError> outputType,
             IReadOnlyList<IBox<IFrontendCodeElement>> metohdBody,
             IBox<WeakScope> scope, 
             IEnumerable<IFrontendCodeElement> staticInitializers)
@@ -56,7 +56,7 @@ namespace Tac.SemanticModel
             StaticInitialzers = staticInitializers ?? throw new ArgumentNullException(nameof(staticInitializers));
         }
 
-        public IBox<IFrontendType> OutputType { get; }
+        public IOrType<IBox<IFrontendType>, IError> OutputType { get; }
         public IBox<IWeakMemberDefinition> ContextDefinition { get; }
         public IBox<IWeakMemberDefinition> ParameterDefinition { get; }
         public IBox<WeakScope> Scope { get; }
@@ -69,7 +69,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    OutputType.GetValue().ConvertTypeOrThrow(context),
+                    OutputType.TransformInner(x=>x.GetValue().ConvertTypeOrThrow(context)),
                     ContextDefinition.GetValue().Convert(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
