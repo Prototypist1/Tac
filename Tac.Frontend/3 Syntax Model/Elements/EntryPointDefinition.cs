@@ -18,12 +18,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticEntryPointDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticEntryPointDefinitionMaker = AddElementMakers(
             () => new EntryPointDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> EntryPointDefinitionMaker = StaticEntryPointDefinitionMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> EntryPointDefinitionMaker = StaticEntryPointDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
@@ -57,13 +57,13 @@ namespace Tac.SemanticModel
         }
     }
 
-    internal class EntryPointDefinitionMaker : IMaker<ISetUp<WeakEntryPointDefinition, Tpn.IScope>>
+    internal class EntryPointDefinitionMaker : IMaker<ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>>
     {
         public EntryPointDefinitionMaker()
         {
         }
 
-        public ITokenMatching<ISetUp<WeakEntryPointDefinition, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                     .Has(new KeyWordMaker("entry-point"), out var _)
@@ -72,34 +72,34 @@ namespace Tac.SemanticModel
         }
 
 
-        private class EntryPointDefinitionPopulateScope : ISetUp<WeakEntryPointDefinition, Tpn.IScope>
+        private class EntryPointDefinitionPopulateScope : ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>
         {
-            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
 
             public EntryPointDefinitionPopulateScope(
-                IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements
+                IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements
                 )
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public ISetUpResult<WeakEntryPointDefinition, Tpn.IScope> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakEntryPointDefinition>, Tpn.IScope> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var box = new Box<IOrType<IResolve<IFrontendCodeElement>, IError>[]>();
+                var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
                 var innerScope = context.TypeProblem.CreateScope(scope, new WeakEntryPointConverter(box));
                 context.TypeProblem.HasEntryPoint(scope, innerScope);
 
                 box.Fill(elements.Select(x => 
                     x.SwitchReturns(
-                        y=> OrType.Make<IResolve<IFrontendCodeElement>, IError>(y.Run(innerScope, context).Resolve),
-                        y=> OrType.Make<IResolve<IFrontendCodeElement>, IError>(y)))
+                        y=> OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(innerScope, context).Resolve),
+                        y=> OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y)))
                 .ToArray());
 
-                return new SetUpResult<WeakEntryPointDefinition, Tpn.IScope>(new EntryPointDefinitionResolveReferance(innerScope), OrType.Make<Tpn.IScope, IError>(innerScope));
+                return new SetUpResult<IBox<WeakEntryPointDefinition>, Tpn.IScope>(new EntryPointDefinitionResolveReferance(innerScope), OrType.Make<Tpn.IScope, IError>(innerScope));
             }
         }
 
-        private class EntryPointDefinitionResolveReferance : IResolve<WeakEntryPointDefinition>
+        private class EntryPointDefinitionResolveReferance : IResolve<IBox<WeakEntryPointDefinition>>
         {
             private readonly Tpn.TypeProblem2.Scope scope;
 

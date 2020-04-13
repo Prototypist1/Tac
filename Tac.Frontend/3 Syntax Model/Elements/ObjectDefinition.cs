@@ -24,12 +24,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticObjectDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticObjectDefinitionMaker = AddElementMakers(
             () => new ObjectDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ObjectDefinitionMaker = StaticObjectDefinitionMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> ObjectDefinitionMaker = StaticObjectDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
 
@@ -67,13 +67,13 @@ namespace Tac.SemanticModel
         }
     }
 
-    internal class ObjectDefinitionMaker : IMaker<ISetUp<WeakObjectDefinition, Tpn.IValue>>
+    internal class ObjectDefinitionMaker : IMaker<ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>>
     {
         public ObjectDefinitionMaker()
         {
         }
 
-        public ITokenMatching<ISetUp<WeakObjectDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             return tokenMatching
                 .Has(new KeyWordMaker("object"), out var _)
@@ -81,20 +81,20 @@ namespace Tac.SemanticModel
                 .ConvertIfMatched(block => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseBlock(block)));
         }
 
-        private class ObjectDefinitionPopulateScope : ISetUp<WeakObjectDefinition, Tpn.IValue>
+        private class ObjectDefinitionPopulateScope : ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>
         {
-            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
 
-            public ObjectDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements)
+            public ObjectDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox< IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public ISetUpResult<WeakObjectDefinition, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var key = new ImplicitKey(Guid.NewGuid());
 
-                var box = new Box<IReadOnlyList< IOrType<IResolve<IFrontendCodeElement>,IError>>>();
+                var box = new Box<IReadOnlyList< IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>>();
                 var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box));
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
@@ -102,11 +102,11 @@ namespace Tac.SemanticModel
                 // ugh! an object is a type
                 //
 
-                return new SetUpResult<WeakObjectDefinition, Tpn.IValue>(new ResolveReferanceObjectDefinition(myScope), OrType.Make<Tpn.IValue, IError>(value));
+                return new SetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue>(new ResolveReferanceObjectDefinition(myScope), OrType.Make<Tpn.IValue, IError>(value));
             }
         }
 
-        private class ResolveReferanceObjectDefinition : IResolve<WeakObjectDefinition>
+        private class ResolveReferanceObjectDefinition : IResolve<IBox<WeakObjectDefinition>>
         {
             private readonly Tpn.TypeProblem2.Object myScope;
 

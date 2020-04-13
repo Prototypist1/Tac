@@ -18,12 +18,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticConstantBoolMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticConstantBoolMaker = AddElementMakers(
             () => new ConstantBoolMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ConstantBoolMaker = StaticConstantBoolMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> ConstantBoolMaker = StaticConstantBoolMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
@@ -53,7 +53,7 @@ namespace Tac.SemanticModel.Operations
         }
     }
 
-    internal class ConstantBoolMaker : IMaker<ISetUp<WeakConstantBool, Tpn.IValue>>
+    internal class ConstantBoolMaker : IMaker<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>
     {
         public ConstantBoolMaker() { }
 
@@ -81,7 +81,7 @@ namespace Tac.SemanticModel.Operations
         }
 
 
-        public ITokenMatching<ISetUp<WeakConstantBool, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .HasStruct(new BoolMaker(), out var dub);
@@ -89,21 +89,21 @@ namespace Tac.SemanticModel.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakConstantBool, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
+                return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
             }
-            return TokenMatching<ISetUp<WeakConstantBool, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<WeakConstantBool, Tpn.IValue> PopulateScope(bool dub)
+        public static ISetUp<IBox<WeakConstantBool>, Tpn.IValue> PopulateScope(bool dub)
         {
             return new ConstantBoolPopulateScope(dub);
         }
-        public static IResolve<WeakConstantBool> PopulateBoxes(bool dub)
+        public static IResolve<IBox<WeakConstantBool>> PopulateBoxes(bool dub)
         {
             return new ConstantBoolResolveReferance(dub);
         }
 
-        private class ConstantBoolPopulateScope : ISetUp<WeakConstantBool, Tpn.IValue>
+        private class ConstantBoolPopulateScope : ISetUp<IBox<WeakConstantBool>, Tpn.IValue>
         {
             private readonly bool dub;
 
@@ -112,7 +112,7 @@ namespace Tac.SemanticModel.Operations
                 this.dub = dub;
             }
 
-            public ISetUpResult<WeakConstantBool, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakConstantBool>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 // PlaceholderValueConverter is a little weird
                 // I kind of think it should make the WeakConstantBool
@@ -120,11 +120,11 @@ namespace Tac.SemanticModel.Operations
                 // TODO 
                 // this applies to my other constants 
                 var value = context.TypeProblem.CreateValue(scope, new NameKey("bool"), new PlaceholderValueConverter());
-                return new SetUpResult<WeakConstantBool, Tpn.IValue>(new ConstantBoolResolveReferance(dub),OrType.Make<Tpn.IValue,IError>(value));
+                return new SetUpResult<IBox<WeakConstantBool>, Tpn.IValue>(new ConstantBoolResolveReferance(dub),OrType.Make<Tpn.IValue,IError>(value));
             }
         }
 
-        private class ConstantBoolResolveReferance : IResolve<WeakConstantBool>
+        private class ConstantBoolResolveReferance : IResolve<IBox<WeakConstantBool>>
         {
             private readonly bool dub;
 

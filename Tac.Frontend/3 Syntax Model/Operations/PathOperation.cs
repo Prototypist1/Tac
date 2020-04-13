@@ -14,6 +14,7 @@ using Tac.Parser;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
+using Tac.SemanticModel;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -30,10 +31,10 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticPathMaker = AddOperationMatcher(() => new PathOperationMaker());
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticPathMaker = AddOperationMatcher(() => new PathOperationMaker());
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> PathMaker = StaticPathMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> PathMaker = StaticPathMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
@@ -60,7 +61,7 @@ namespace Tac.SemanticModel.Operations
     }
 
 
-    internal class PathOperationMaker : IMaker<ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>>
+    internal class PathOperationMaker : IMaker<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>>
     {
 
         public PathOperationMaker()
@@ -68,7 +69,7 @@ namespace Tac.SemanticModel.Operations
         }
 
 
-        public ITokenMatching<ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -80,31 +81,31 @@ namespace Tac.SemanticModel.Operations
                     var left = matching.Context.ParseLine(match.perface);
                     //var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);
 
-                    return TokenMatching<ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>>.MakeMatch(
+                    return TokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>>.MakeMatch(
                         Array.Empty<IToken>(),
                         matching.Context,
                         new WeakPathOperationPopulateScope(left, atomic.Item));
                 }
             }
 
-            return TokenMatching<ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        private class WeakPathOperationPopulateScope : ISetUp<WeakPathOperation, Tpn.TypeProblem2.Member>
+        private class WeakPathOperationPopulateScope : ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>
         {
-            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
+            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
             private readonly string name;
 
-            public WeakPathOperationPopulateScope(IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left,
+            public WeakPathOperationPopulateScope(IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left,
                 string name)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.name = name ?? throw new ArgumentNullException(nameof(name));
             }
 
-            public ISetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var nextLeft = left.TransformInner(x => x.Run(scope, context));
 
@@ -127,20 +128,20 @@ namespace Tac.SemanticModel.Operations
                     },
                     error => OrType.Make<Tpn.TypeProblem2.Member, IError>(new Error("We needed ", error)));
 
-                return new SetUpResult<WeakPathOperation, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
+                return new SetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
                     nextLeft.TransformInner(x=>x.Resolve),
                     member), 
                     member);
             }
         }
 
-        private class WeakPathOperationResolveReference : IResolve<WeakPathOperation>
+        private class WeakPathOperationResolveReference : IResolve<IBox<WeakPathOperation>>
         {
-            readonly IOrType<IResolve<IFrontendCodeElement>,IError> left;
+            readonly IOrType<IResolve<IBox<IFrontendCodeElement>>,IError> left;
             readonly IOrType<Tpn.TypeProblem2.Member,IError> member;
 
             public WeakPathOperationResolveReference(
-                IOrType<IResolve<IFrontendCodeElement>, IError> resolveReference,
+                IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReference,
                 IOrType<Tpn.TypeProblem2.Member, IError> member)
             {
                 left = resolveReference ?? throw new ArgumentNullException(nameof(resolveReference));

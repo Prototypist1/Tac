@@ -13,6 +13,7 @@ using Tac.Parser;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
+using Tac.SemanticModel;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -30,10 +31,10 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticAssertAssignMaker = AddOperationMatcher(() => new AssertAssignOperationMaker());
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticAssertAssignMaker = AddOperationMatcher(() => new AssertAssignOperationMaker());
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> AssertAssignMaker = StaticAssertAssignMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> AssertAssignMaker = StaticAssertAssignMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
 
@@ -66,14 +67,14 @@ namespace Tac.SemanticModel.Operations
         }
     }
 
-    internal class AssertAssignOperationMaker : IMaker<ISetUp<WeakAssignOperation, Tpn.IValue>>
+    internal class AssertAssignOperationMaker : IMaker<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>
     {
 
         public AssertAssignOperationMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -82,31 +83,31 @@ namespace Tac.SemanticModel.Operations
                 var left = matching.Context.ParseLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElement(match.rhs);
 
-                return TokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new WeakAssignOperationPopulateScope(left, right));
             }
 
-            return TokenMatching<ISetUp<WeakAssignOperation, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        private class WeakAssignOperationPopulateScope : ISetUp<WeakAssignOperation, Tpn.IValue>
+        private class WeakAssignOperationPopulateScope : ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>
         {
-            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> left;
-            private readonly IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError> right;
+            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
+            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> right;
 
             public WeakAssignOperationPopulateScope(
-                IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> left,
-                IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError> right)
+                IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> left,
+                IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> right)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right));;
             }
 
-            public ISetUpResult<WeakAssignOperation, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakAssignOperation>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
 
                 var nextLeft = left.TransformInner(x=>x.Run(scope, context));
@@ -134,21 +135,21 @@ namespace Tac.SemanticModel.Operations
                     throw new NotImplementedException();
                 }
 
-                return new SetUpResult<WeakAssignOperation, Tpn.IValue>(new WeakAssignOperationResolveReferance(
+                return new SetUpResult<IBox<WeakAssignOperation>, Tpn.IValue>(new WeakAssignOperationResolveReferance(
                     nextLeft.TransformInner(x=>x.Resolve),
                     nextRight.TransformInner(x => x.Resolve)),
                     nextLeft.TransformAndFlatten(x=>x.SetUpSideNode).TransformInner(x=>x.CastToOr<Tpn.ITypeProblemNode,Tpn.IValue>("")));
             }
         }
 
-        private class WeakAssignOperationResolveReferance : IResolve<WeakAssignOperation>
+        private class WeakAssignOperationResolveReferance : IResolve<IBox<WeakAssignOperation>>
         {
-            public readonly IOrType<IResolve<IFrontendCodeElement>, IError> left;
-            public readonly IOrType<IResolve<IFrontendCodeElement>, IError> right;
+            public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
+            public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> right;
 
             public WeakAssignOperationResolveReferance(
-                IOrType<IResolve<IFrontendCodeElement>,IError> resolveReferance1,
-                IOrType<IResolve<IFrontendCodeElement>, IError> resolveReferance2)
+                IOrType<IResolve<IBox<IFrontendCodeElement>>,IError> resolveReferance1,
+                IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance2)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));

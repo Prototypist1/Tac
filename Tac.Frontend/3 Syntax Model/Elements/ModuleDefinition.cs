@@ -19,12 +19,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticModuleDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticModuleDefinitionMaker = AddElementMakers(
             () => new ModuleDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> ModuleDefinitionMaker = StaticModuleDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
 
@@ -87,14 +87,14 @@ namespace Tac.SemanticModel
     // modules are not really objects tho
     // they have very constrained syntax
     // they only can contain constants, methods and implementations 
-    internal class ModuleDefinitionMaker : IMaker<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>>
+    internal class ModuleDefinitionMaker : IMaker<ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>>
     {
         public ModuleDefinitionMaker()
         {
         }
         
 
-        public ITokenMatching<ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .Has(new KeyWordMaker("module"), out var _)
@@ -104,30 +104,30 @@ namespace Tac.SemanticModel
             return matching.ConvertIfMatched((name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseBlock(third), new NameKey(name.Item)));
         }
 
-        private class ModuleDefinitionPopulateScope : ISetUp<WeakModuleDefinition, Tpn.TypeProblem2.Object>
+        private class ModuleDefinitionPopulateScope : ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>
         {
-            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionPopulateScope(
-                IReadOnlyList<IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
+                IReadOnlyList<IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public ISetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object> Run(Tpn.IScope scope, ISetUpContext context)
             {
-                var box = new Box<IReadOnlyList<IOrType< IResolve<IFrontendCodeElement>,IError>>>();
+                var box = new Box<IReadOnlyList<IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>>>();
                 var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey));
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
-                return new SetUpResult<WeakModuleDefinition, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), OrType.Make<Tpn.TypeProblem2.Object, IError>(myScope));
+                return new SetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), OrType.Make<Tpn.TypeProblem2.Object, IError>(myScope));
             }
         }
 
-        private class ModuleDefinitionResolveReferance : IResolve<WeakModuleDefinition>
+        private class ModuleDefinitionResolveReferance : IResolve<IBox<WeakModuleDefinition>>
         {
             private readonly Tpn.TypeProblem2.Object myScope;
 

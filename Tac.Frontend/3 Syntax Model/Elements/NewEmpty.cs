@@ -21,11 +21,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticEmptyInstanceMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticEmptyInstanceMaker = AddElementMakers(
             () => new EmptyInstanceMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> EmptyInstanceMaker = StaticEmptyInstanceMaker;
 #pragma warning restore CA1823
     }
 }
@@ -55,11 +55,11 @@ namespace Tac.Frontend.SyntaxModel.Elements
         }
     }
 
-    internal class EmptyInstanceMaker : IMaker<ISetUp<WeakEmptyInstance, Tpn.IValue>>
+    internal class EmptyInstanceMaker : IMaker<ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue>>
     {
         public EmptyInstanceMaker() { }
 
-        public ITokenMatching<ISetUp<WeakEmptyInstance, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             // change key word to nothing?
             return tokenMatching
@@ -67,28 +67,28 @@ namespace Tac.Frontend.SyntaxModel.Elements
                 .ConvertIfMatched(()=> new EmptyInstancePopulateScope());
         }
 
-        public static ISetUp<WeakEmptyInstance, Tpn.IValue> PopulateScope()
+        public static ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue> PopulateScope()
         {
             return new EmptyInstancePopulateScope();
         }
-        public static IResolve<WeakEmptyInstance> PopulateBoxes()
+        public static IResolve<IBox<WeakEmptyInstance>> PopulateBoxes()
         {
             return new EmptyInstanceResolveReferance();
         }
 
-        private class EmptyInstancePopulateScope : ISetUp<WeakEmptyInstance, Tpn.IValue>
+        private class EmptyInstancePopulateScope : ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue>
         {
 
             public EmptyInstancePopulateScope() { }
 
-            public ISetUpResult<WeakEmptyInstance, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope,new NameKey("empty"),new PlaceholderValueConverter());
-                return new SetUpResult<WeakEmptyInstance, Tpn.IValue>(new EmptyInstanceResolveReferance(),OrType.Make<Tpn.IValue,IError>(value));
+                return new SetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue>(new EmptyInstanceResolveReferance(),OrType.Make<Tpn.IValue,IError>(value));
             }
         }
 
-        private class EmptyInstanceResolveReferance : IResolve<WeakEmptyInstance>
+        private class EmptyInstanceResolveReferance : IResolve<IBox<WeakEmptyInstance>>
         {
             public EmptyInstanceResolveReferance()
             {

@@ -22,12 +22,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticGenericTypeDefinitionMaker = AddElementMakers(
             () => new GenericTypeDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> GenericTypeDefinitionMaker = StaticGenericTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
@@ -60,14 +60,14 @@ namespace Tac.SemanticModel
         public IBox<WeakScope> Scope { get; }
     }
     
-    internal class GenericTypeDefinitionMaker : IMaker<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>>
+    internal class GenericTypeDefinitionMaker : IMaker<ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>>
     {
 
         public GenericTypeDefinitionMaker()
         {
         }
 
-        public ITokenMatching<ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             return tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -82,9 +82,9 @@ namespace Tac.SemanticModel
                             new GenericTypeParameterPlacholder(new NameKey(x)) as IGenericTypeParameterPlacholder).ToArray()));
         }
 
-        public static ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType> PopulateScope(
+        public static ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> PopulateScope(
                 NameKey nameKey,
-                IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> lines,
+                IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
         {
             return new GenericTypeDefinitionPopulateScope(
@@ -93,15 +93,15 @@ namespace Tac.SemanticModel
                 genericParameters);
         }
 
-        private class GenericTypeDefinitionPopulateScope : ISetUp<WeakGenericTypeDefinition, Tpn.IExplicitType>
+        private class GenericTypeDefinitionPopulateScope : ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>
         {
             private readonly NameKey nameKey;
-            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> lines;
+            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines;
             private readonly IGenericTypeParameterPlacholder[] genericParameters;
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> lines,
+                IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -109,23 +109,23 @@ namespace Tac.SemanticModel
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             }
 
-            public ISetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 // oh geez here is a mountain.
                 // I generic types are erased 
                 // what on earth does this return?
                 var myScope = context.TypeProblem.CreateGenericType(scope, nameKey, genericParameters.Select(x=>new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),new WeakGenericTypeDefinitionConverter(nameKey, genericParameters));
                 var nextLines = lines.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray();
-                return new SetUpResult<WeakGenericTypeDefinition, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), OrType.Make<Tpn.IExplicitType, IError>(myScope));
+                return new SetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), OrType.Make<Tpn.IExplicitType, IError>(myScope));
             }
         }
 
-        private class GenericTypeDefinitionResolveReferance : IResolve<WeakGenericTypeDefinition>
+        private class GenericTypeDefinitionResolveReferance : IResolve<IBox<WeakGenericTypeDefinition>>
         {
             private readonly Tpn.TypeProblem2.Type myScope;
-            private readonly IOrType< IResolve<IFrontendCodeElement>,IError>[] nextLines;
+            private readonly IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>[] nextLines;
 
-            public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IOrType<IResolve<IFrontendCodeElement>, IError>[] nextLines)
+            public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines)
             {
                 this.myScope = myScope;
                 this.nextLines = nextLines;

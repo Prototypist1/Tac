@@ -18,12 +18,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticMethodDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox< IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticMethodDefinitionMaker = AddElementMakers(
             () => new MethodDefinitionMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> MethodDefinitionMaker = StaticMethodDefinitionMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> MethodDefinitionMaker = StaticMethodDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
 
@@ -68,14 +68,14 @@ namespace Tac.SemanticModel
         }
     }
 
-    internal class MethodDefinitionMaker : IMaker<ISetUp<WeakMethodDefinition, Tpn.IValue>>
+    internal class MethodDefinitionMaker : IMaker<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>>
     {
         public MethodDefinitionMaker()
         {
         }
 
 
-        public ITokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
             ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>? inputType = null, outputType = null;
@@ -97,7 +97,7 @@ namespace Tac.SemanticModel
             {
                 var elements = matching.Context.ParseBlock(body!);
 
-                return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     new MethodDefinitionPopulateScope(
@@ -109,22 +109,22 @@ namespace Tac.SemanticModel
                     );
             }
 
-            return TokenMatching<ISetUp<WeakMethodDefinition, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 
 
-        private class MethodDefinitionPopulateScope : ISetUp<WeakMethodDefinition, Tpn.IValue>
+        private class MethodDefinitionPopulateScope : ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>
         {
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition;
-            private readonly IReadOnlyList<IOrType<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output;
             private readonly bool isEntryPoint;
             private readonly string parameterName;
 
             public MethodDefinitionPopulateScope(
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-                IReadOnlyList<IOrType< ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>,IError>> elements,
+                IReadOnlyList<IOrType< ISetUp<IBox< IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements,
                 ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
                 bool isEntryPoint,
                 string parameterName
@@ -137,12 +137,12 @@ namespace Tac.SemanticModel
                 this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
             }
 
-            public ISetUpResult<WeakMethodDefinition, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);
 
-                var box = new Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>,IError>>>();
+                var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>>();
                 var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
                 var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
@@ -153,11 +153,11 @@ namespace Tac.SemanticModel
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                 }), new PlaceholderValueConverter());
 
-                return new SetUpResult<WeakMethodDefinition, Tpn.IValue>(new MethodDefinitionResolveReferance(method), OrType.Make<Tpn.IValue, IError>(value));
+                return new SetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue>(new MethodDefinitionResolveReferance(method), OrType.Make<Tpn.IValue, IError>(value));
             }
         }
 
-        private class MethodDefinitionResolveReferance : IResolve<WeakMethodDefinition>
+        private class MethodDefinitionResolveReferance : IResolve<IBox<WeakMethodDefinition>>
         {
             private readonly Tpn.TypeProblem2.Method method;
 

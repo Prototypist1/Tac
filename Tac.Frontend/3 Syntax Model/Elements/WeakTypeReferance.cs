@@ -143,26 +143,17 @@ namespace Tac.SemanticModel
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>
+    internal class TypeReferanceMaker : IMaker<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>
     {
-        public ITokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            var matching = tokenMatching
-                .Has(new TypeNameMaker(), out var name);
-
-            if (matching is IMatchedTokenMatching matched)
-            {
-                return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                    matched.Tokens,
-                    matched.Context,
-                    new TypeReferancePopulateScope(name!));
-            }
-
-            return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(matching.Context);
+            return tokenMatching
+                .Has(new TypeNameMaker())
+                .ConvertIfMatched(name => new TypeReferancePopulateScope(name));
         }
 
 
-        public class TypeReferancePopulateScope : ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>
+        public class TypeReferancePopulateScope : ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>
         {
             private readonly IKey key;
 
@@ -171,15 +162,15 @@ namespace Tac.SemanticModel
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public ISetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var type = context.TypeProblem.CreateTypeReference(scope,key, new WeakTypeReferenceConverter());
-                return new SetUpResult<IFrontendType, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
+                return new SetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
                     type), OrType.Make<Tpn.TypeProblem2.TypeReference,IError>( type));
             }
         }
 
-        public class TypeReferanceResolveReference : IResolve<IFrontendType>
+        public class TypeReferanceResolveReference : IResolve<IOrType<IBox<IFrontendType>, IError>>
         {
             private readonly Tpn.TypeProblem2.TypeReference type;
 
@@ -188,7 +179,7 @@ namespace Tac.SemanticModel
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
             }
 
-            public IBox<IFrontendType> Run(Tpn.ITypeSolution context)
+            public IOrType<IBox<IFrontendType>, IError> Run(Tpn.ITypeSolution context)
             {
                 return context.GetTypeReference(type);
             }

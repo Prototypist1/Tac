@@ -18,11 +18,11 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticMemberMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticMemberMaker = AddElementMakers(
             () => new MemberMaker());
 #pragma warning disable CA1823 
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> MemberMaker = StaticMemberMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> MemberMaker = StaticMemberMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
@@ -31,25 +31,25 @@ namespace Tac.Parser
 
 namespace Tac.SemanticModel
 {
-    internal class MemberMaker : IMaker<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>>
+    internal class MemberMaker : IMaker<ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>>
     {
         public MemberMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
            return tokenMatching
                 .Has(new NameMaker())
                 .ConvertIfMatched(token => new MemberPopulateScope(token.Item));
         }
 
-        public static ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member> PopulateScope(string item)
+        public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(string item)
         {
             return new MemberPopulateScope(item);
         }
 
-        private class MemberPopulateScope : ISetUp<WeakMemberReference, Tpn.TypeProblem2.Member>
+        private class MemberPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
         {
             private readonly string memberName;
 
@@ -58,17 +58,17 @@ namespace Tac.SemanticModel
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
             }
 
-            public ISetUpResult<WeakMemberReference, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var nameKey = new NameKey(memberName);
                 var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, nameKey,new WeakMemberDefinitionConverter(false,nameKey));
 
-                return new SetUpResult<WeakMemberReference, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+                return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
             }
 
         }
 
-        private class MemberResolveReferance : IResolve<WeakMemberReference>
+        private class MemberResolveReferance : IResolve<IBox< WeakMemberReference>>
         {
             private readonly Tpn.TypeProblem2.Member member;
 

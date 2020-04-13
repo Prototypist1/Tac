@@ -19,12 +19,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticConstantNumberMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticConstantNumberMaker = AddElementMakers(
             () => new ConstantNumberMaker(),
-            MustBeBefore<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> ConstantNumberMaker = StaticConstantNumberMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> ConstantNumberMaker = StaticConstantNumberMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
 
@@ -56,11 +56,11 @@ namespace Tac.SemanticModel.Operations
         }
     }
 
-    internal class ConstantNumberMaker : IMaker<ISetUp<WeakConstantNumber, Tpn.IValue>>
+    internal class ConstantNumberMaker : IMaker<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>>
     {
         public ConstantNumberMaker() {}
 
-        public ITokenMatching<ISetUp<WeakConstantNumber, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
                 .HasStruct(new NumberMaker(), out var dub);
@@ -68,21 +68,21 @@ namespace Tac.SemanticModel.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<WeakConstantNumber, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantNumberPopulateScope(dub));
+                return TokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantNumberPopulateScope(dub));
             }
-            return TokenMatching<ISetUp<WeakConstantNumber, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
+            return TokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<WeakConstantNumber, Tpn.IValue> PopulateScope(double dub)
+        public static ISetUp<IBox<WeakConstantNumber>, Tpn.IValue> PopulateScope(double dub)
         {
             return new ConstantNumberPopulateScope(dub);
         }
-        public static IResolve<WeakConstantNumber> PopulateBoxes(double dub)
+        public static IResolve<IBox<WeakConstantNumber>> PopulateBoxes(double dub)
         {
             return new ConstantNumberResolveReferance(dub);
         }
 
-        private class ConstantNumberPopulateScope : ISetUp<WeakConstantNumber, Tpn.IValue>
+        private class ConstantNumberPopulateScope : ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>
         {
             private readonly double dub;
 
@@ -91,15 +91,15 @@ namespace Tac.SemanticModel.Operations
                 this.dub = dub;
             }
 
-            public ISetUpResult<WeakConstantNumber, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakConstantNumber>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
             {
 
                 var value = context.TypeProblem.CreateValue(scope,new NameKey("number"), new PlaceholderValueConverter());
-                return new SetUpResult<WeakConstantNumber, Tpn.IValue>(new ConstantNumberResolveReferance(dub), OrType.Make<Tpn.IValue, IError>(value));
+                return new SetUpResult<IBox<WeakConstantNumber>, Tpn.IValue>(new ConstantNumberResolveReferance(dub), OrType.Make<Tpn.IValue, IError>(value));
             }
         }
 
-        private class ConstantNumberResolveReferance : IResolve<WeakConstantNumber>
+        private class ConstantNumberResolveReferance : IResolve<IBox< WeakConstantNumber>>
         {
             private readonly double dub;
 

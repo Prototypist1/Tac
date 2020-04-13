@@ -18,9 +18,9 @@ namespace Tac.Frontend
 {
     internal class PlaceholderValue
     {
-        public readonly IBox<IFrontendType> Type;
+        public readonly IOrType<IBox<IFrontendType>,IError> Type;
 
-        public PlaceholderValue(IBox<IFrontendType> testType)
+        public PlaceholderValue(IOrType<IBox<IFrontendType>, IError> testType)
         {
             Type = testType ?? throw new ArgumentNullException(nameof(testType));
         }
@@ -247,10 +247,10 @@ namespace Tac.Frontend
 
     internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>
     {
-        private readonly IBox<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>, IError>>> body;
+        private readonly IBox<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> body;
         private readonly bool isEntryPoint;
 
-        public WeakMethodDefinitionConverter(IBox<IReadOnlyList<IOrType< IResolve<IFrontendCodeElement>,IError>>> body, bool isEntryPoint)
+        public WeakMethodDefinitionConverter(IBox<IReadOnlyList<IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>>> body, bool isEntryPoint)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
             this.isEntryPoint = isEntryPoint;
@@ -272,13 +272,13 @@ namespace Tac.Frontend
     internal class WeakImplementationDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>
     {
 
-        private readonly IBox<IResolve<IFrontendCodeElement>[]> body;
+        private readonly IBox<IResolve<IBox<IFrontendCodeElement>>[]> body;
         private readonly 
             IBox<
                 Tpn.TypeProblem2.Method
             > inner;
 
-        public WeakImplementationDefinitionConverter(IBox<IResolve<IFrontendCodeElement>[]> body, IBox<Tpn.TypeProblem2.Method> inner)
+        public WeakImplementationDefinitionConverter(IBox<IResolve<IBox<IFrontendCodeElement>>[]> body, IBox<Tpn.TypeProblem2.Method> inner)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
             this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
@@ -344,9 +344,9 @@ namespace Tac.Frontend
     internal class WeakBlockDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope,WeakEntryPointDefinition>>
     {
 
-        private readonly IBox<IOrType<IResolve<IFrontendCodeElement>, IError>[]> body;
+        private readonly IBox<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body;
 
-        public WeakBlockDefinitionConverter(IBox<IOrType<IResolve<IFrontendCodeElement>,IError>[]> body)
+        public WeakBlockDefinitionConverter(IBox<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>[]> body)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
@@ -364,9 +364,9 @@ namespace Tac.Frontend
     internal class WeakEntryPointConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>
     {
 
-        private readonly IBox<IOrType<IResolve<IFrontendCodeElement>, IError>[]> body;
+        private readonly IBox<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body;
 
-        public WeakEntryPointConverter(IBox<IOrType<IResolve<IFrontendCodeElement>, IError>[]> body)
+        public WeakEntryPointConverter(IBox<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
@@ -395,9 +395,9 @@ namespace Tac.Frontend
 
     internal class WeakObjectConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>>
     {
-        private readonly Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>, IError>>> box;
+        private readonly Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> box;
 
-        public WeakObjectConverter(Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>, IError>>> box)
+        public WeakObjectConverter(Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> box)
         {
             this.box = box;
         }
@@ -423,10 +423,10 @@ namespace Tac.Frontend
 
     internal class WeakModuleConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>>
     {
-        private readonly Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>,IError>>> box;
+        private readonly Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>> box;
         private readonly IKey key;
 
-        public WeakModuleConverter(Box<IReadOnlyList<IOrType<IResolve<IFrontendCodeElement>,IError>>> box, IKey key)
+        public WeakModuleConverter(Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>> box, IKey key)
         {
             this.box = box;
             this.key = key;
