@@ -87,7 +87,7 @@ namespace Tac.SemanticModel
         
         public ITokenMatching<ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>? context= null, input = null, output = null;
+            ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>? context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -128,18 +128,18 @@ namespace Tac.SemanticModel
         
         private class PopulateScopeImplementationDefinition : ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>
         {
-            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition;
-            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> contextDefinition;
+            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
             private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output;
+            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
 
             public PopulateScopeImplementationDefinition(
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> contextDefinition,
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+                ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> contextDefinition,
+                ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
                 IReadOnlyList<IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements,
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
+                ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> output,
                 string contextName,
                 string parameterName)
             {

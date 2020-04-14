@@ -9,16 +9,17 @@ using Tac.Model;
 using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
+using Prototypist.Toolbox;
 
 namespace Tac.Parser
 {
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> StaticTypeMaker = AddTypeMaker(() => new TypeMaker());
+        private static readonly WithConditions<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>> StaticTypeMaker = AddTypeMaker(() => new TypeMaker());
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> TypeMaker = StaticTypeMaker;
+        private readonly WithConditions<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>> TypeMaker = StaticTypeMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
 
@@ -32,16 +33,16 @@ namespace Tac.SemanticModel
     /// make general types
     /// contains several type makers 
     /// </summary>
-    internal class TypeMaker : IMaker<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>
+    internal class TypeMaker : IMaker<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>
     {
-        public ITokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             {
 
                 if (tokenMatching.Has(new TypeDefinitionMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
+                    return TokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
                             type!);
@@ -53,7 +54,7 @@ namespace Tac.SemanticModel
                 if (tokenMatching.Has(new TypeReferanceMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
+                    return TokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                             matched.Tokens,
                             matched.Context,
                             type!);
@@ -75,7 +76,7 @@ namespace Tac.SemanticModel
                 if (TokenMatching<ISetUp<IFrontendType, Tpn.IExplicitType>>.MakeStart(parenthesisToken.Tokens.ToArray(), tokenMatching.Context).Has(new TypeOrOperationMaker(), out var type)
                         is IMatchedTokenMatching matched)
                 {
-                    return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
+                    return TokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                             tokenMatching.Tokens.Skip(1).ToArray(),
                             matched.Context,
                             type!);
@@ -83,7 +84,7 @@ namespace Tac.SemanticModel
                 }
             }
             
-            return TokenMatching<ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(
                     tokenMatching.Context);
         }
     }

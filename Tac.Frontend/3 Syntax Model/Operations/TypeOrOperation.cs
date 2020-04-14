@@ -22,10 +22,10 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
+        private static readonly WithConditions<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendType, Tpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
+        private readonly WithConditions<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
@@ -66,7 +66,7 @@ namespace Tac.Frontend.SyntaxModel.Operations
     {
         public TypeOrOperationMaker() : base(
             SymbolsRegistry.StaticTypeOrSymbol, 
-            (l, r) => new Box<WeakTypeOrOperation>(new WeakTypeOrOperation(l, r)),
+            (l, r) => OrType.Make<IBox < WeakTypeOrOperation >,IError>(new Box<WeakTypeOrOperation>(new WeakTypeOrOperation(l, r))),
             (s,c,l,r)=> {
                 var key = new ImplicitKey(Guid.NewGuid());
                 c.TypeProblem.CreateOrType(s, key,l.SetUpSideNode.TransformInner(x=>x.SafeCastTo<Tpn.ITypeProblemNode,Tpn.TypeProblem2.TypeReference>()), r.SetUpSideNode.TransformInner(x => x.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), new WeakTypeOrOperationConverter());

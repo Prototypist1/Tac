@@ -119,21 +119,21 @@ namespace Tac.SemanticModel
         }
 
 
-        public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(
-            IKey item, 
-            bool v, 
-            ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> typeToken)
-        {
-            return new MemberDefinitionPopulateScope(item, v,  typeToken);
-        }
+        //public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(
+        //    IKey item, 
+        //    bool v, 
+        //    ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> typeToken)
+        //{
+        //    return new MemberDefinitionPopulateScope(item, v,  typeToken);
+        //}
 
         private class MemberDefinitionPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
         {
             private readonly IKey memberName;
             private readonly bool isReadonly;
-            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> type;
+            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> type;
             
-            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> typeToken)
+            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;

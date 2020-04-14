@@ -181,7 +181,7 @@ namespace Tac.SemanticModel
 
             public IOrType<IBox<IFrontendType>, IError> Run(Tpn.ITypeSolution context)
             {
-                return context.GetTypeReference(type);
+                return context.GetTypeReference(type).GetValue().TransformInner(x=>new Box<IFrontendType>(x));
             }
         }
     }

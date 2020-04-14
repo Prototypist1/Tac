@@ -78,7 +78,7 @@ namespace Tac.SemanticModel
         public ITokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
-            ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference>? inputType = null, outputType = null;
+            ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>? inputType = null, outputType = null;
             var matching = tokenMatching
                 .Has(new KeyWordMaker("method"), out var _)
                 .HasSquare(x => x
@@ -116,16 +116,16 @@ namespace Tac.SemanticModel
 
         private class MethodDefinitionPopulateScope : ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>
         {
-            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
             private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-            private readonly ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output;
+            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> output;
             private readonly bool isEntryPoint;
             private readonly string parameterName;
 
             public MethodDefinitionPopulateScope(
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+                ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
                 IReadOnlyList<IOrType< ISetUp<IBox< IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements,
-                ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> output,
+                ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> output,
                 bool isEntryPoint,
                 string parameterName
                 )

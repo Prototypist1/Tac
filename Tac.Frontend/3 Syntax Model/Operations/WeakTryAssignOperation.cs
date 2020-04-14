@@ -10,6 +10,7 @@ using Tac.Parser;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
+using Tac.SemanticModel;
 
 namespace Tac.SemanticModel.Operations
 {
@@ -32,13 +33,13 @@ namespace Tac.SemanticModel.Operations
         }
     }
 
-    internal class TryAssignOperationMaker : IMaker<ISetUp<WeakTryAssignOperation, Tpn.IValue>>
+    internal class TryAssignOperationMaker : IMaker<ISetUp<IBox< WeakTryAssignOperation>, Tpn.IValue>>
     {
         public TryAssignOperationMaker()
         {
         }
 
-        public ITokenMatching<ISetUp<WeakTryAssignOperation, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakTryAssignOperation>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 
             var matching = tokenMatching
@@ -50,7 +51,7 @@ namespace Tac.SemanticModel.Operations
                 var left = matching.Context.ParseLine(res.perface);
                 var right = matching.Context.ParseParenthesisOrElement(res.rhs);
 
-                return TokenMatching<ISetUp<WeakTryAssignOperation, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<IBox<WeakTryAssignOperation>, Tpn.IValue>>.MakeMatch(
                     matched.Tokens,
                     matched.Context,
                     BinaryOperationMaker<WeakTryAssignOperation, ITryAssignOperation>.PopulateScope(left, right, (l, r) =>
@@ -59,7 +60,7 @@ namespace Tac.SemanticModel.Operations
                     (s,c,l,r)=> OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s,new NameKey("bool"),new PlaceholderValueConverter()))));
             }
 
-            return TokenMatching<ISetUp<WeakTryAssignOperation, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IBox<WeakTryAssignOperation>, Tpn.IValue>>.MakeNotMatch(
                     matching.Context);
         }
 
@@ -74,10 +75,10 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> StaticTryAssignMaker = AddOperationMatcher(() => new TryAssignOperationMaker());
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticTryAssignMaker = AddOperationMatcher(() => new TryAssignOperationMaker());
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> TryAssignMaker = StaticTryAssignMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> TryAssignMaker = StaticTryAssignMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
