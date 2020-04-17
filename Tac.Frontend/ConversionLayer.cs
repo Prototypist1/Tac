@@ -54,26 +54,7 @@ namespace Tac.Frontend
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
-            public IFrontendType GetValue()
-            {
-                var inner = box.GetValue();
-                if (inner.Is1(out var inner1))
-                {
-                    return inner1;
-                }
-                else if (inner.Is2(out var inner2))
-                {
-                    return inner2;
-                }
-                else if (inner.Is3(out var inner3))
-                {
-                    return inner3;
-                }
-                else
-                {
-                    throw new Exception("wish there was a clearner way to do this");
-                }
-            }
+            public IFrontendType GetValue()=> box.GetValue().SwitchReturns<IFrontendType>(x => x, x => x, x => x);
         }
 
 

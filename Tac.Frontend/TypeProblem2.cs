@@ -47,22 +47,22 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
             TypeProblem2.Value CreateValue(IScope scope, IKey typeKey, IConvertTo<TypeProblem2.Value, PlaceholderValue> converter);
-            TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<IKey,IError> typeKey, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
+            TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<IKey, IError> typeKey, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> type, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IOrType<IFrontendType,IError>> converter);
+            TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IOrType<IFrontendType, IError>> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter);
             TypeProblem2.Type CreateType(IScope parent, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Object CreateObjectOrModule(IScope parent, IKey key, IConvertTo<TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter);
             TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
-            TypeProblem2.Method CreateMethod(IScope parent, IOrType<TypeProblem2.TypeReference,IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
+            TypeProblem2.Method CreateMethod(IScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
             TypeProblem2.TransientMember GetReturns(IValue s);
             TypeProblem2.TransientMember GetReturns(IScope s);
             TypeProblem2.Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.OrType CreateOrType(IScope s, IKey key, IOrType< TypeProblem2.TypeReference,IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
+            TypeProblem2.OrType CreateOrType(IScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
             IIsPossibly<IKey> GetKey(TypeProblem2.TypeReference type);
             TypeProblem2.Member GetInput(IValue method);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
@@ -671,7 +671,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 parent.PossibleMembers.TryAdd(key, member);
                 return parent.PossibleMembers[key];
             }
-            public static  Member HasHopefulMember(IValue parent, IKey key, Member member)
+            public static Member HasHopefulMember(IValue parent, IKey key, Member member)
             {
                 parent.HopefulMembers.TryAdd(key, member);
                 return parent.HopefulMembers[key];
@@ -703,7 +703,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
                 res.Context = Possibly.Is(scope);
-                res.TypeKey = typeKey.SwitchReturns(x=>Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x),x=>Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
+                res.TypeKey = typeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
                 return res;
             }
 
@@ -735,12 +735,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeReference, IOrType<IFrontendType,IError>> converter)
+            public TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeReference, IOrType<IFrontendType, IError>> converter)
             {
                 var res = new TypeReference(this, typeKey.ToString()!, converter);
                 HasReference(context, res);
                 res.Context = Possibly.Is(context);
-                res.TypeKey =  Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(typeKey);
+                res.TypeKey = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(typeKey);
                 return res;
             }
 
@@ -808,7 +808,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Method CreateMethod(IScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
             {
-                if (!inputType.Is1(out var inputTypeValue)) {
+                if (!inputType.Is1(out var inputTypeValue))
+                {
                     throw new NotImplementedException();
                 }
                 if (!outputType.Is1(out var outputTypeValue))
@@ -847,7 +848,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public OrType CreateOrType(IScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
             {
-                if (!setUpSideNode1.Is1(out var node1)) {
+                if (!setUpSideNode1.Is1(out var node1))
+                {
                     throw new NotImplementedException();
                 }
                 if (!setUpSideNode2.Is1(out var node2))
@@ -1016,7 +1018,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately< IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>) && x.TypeKey.Is3(out var _))) 
+                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>) && x.TypeKey.Is3(out var _)))
                 {
                     var type = new InferredType(this, $"for {((TypeProblemNode)node).debugName}");
                     node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type));
@@ -1151,7 +1153,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
                     typeProblemNodes.OfType<IHaveMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.Members.Select(y => y.Value).ToArray()),
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
-                    typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<IOrType<Method, MethodType, InferredType>>>(x =>
+                    typeProblemNodes.Select(x =>
                     {
                         if (x is Method m)
                         {
@@ -1171,7 +1173,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }).Where(x => x is IIsDefinately<IOrType<Method, MethodType, InferredType>>)
                     .Select(x => x.CastTo<IIsDefinately<IOrType<Method, MethodType, InferredType>>>().Value)
                     .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Input.GetOrThrow(), v1 => v1.Input.GetOrThrow(), v1 => v1.Input.GetOrThrow())),
-                    typeProblemNodes.Select<ITypeProblemNode, IIsPossibly<IOrType<Method, MethodType, InferredType>>>(x =>
+                    typeProblemNodes.Select(x =>
                     {
                         if (x is Method m)
                         {
@@ -1376,8 +1378,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
 
                         var types = genericNameKey.Types.Select(typeKey => typeKey.SwitchReturns(
-                            x=> LookUpOrOverlayOrThrow2(from, x),
-                            y=> throw new NotImplementedException("Type could not be resolved")) // I want to use NIEs to keep my code near compilablity. once I have a lot in type problem node, I can think about how to handle them.
+                            x => LookUpOrOverlayOrThrow2(from, x),
+                            y => throw new NotImplementedException("Type could not be resolved")) // I want to use NIEs to keep my code near compilablity. once I have a lot in type problem node, I can think about how to handle them.
                         ).ToArray();
 
 
@@ -1411,8 +1413,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
                             });
 
-                        }, 
-                        type => {
+                        },
+                        type =>
+                        {
                             var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), types);
 
                             if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
@@ -1440,7 +1443,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
                             });
 
-                        }, 
+                        },
                         @object => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(@object),
                         orType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType),
                         inferredType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferredType),
@@ -1631,7 +1634,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (pair.Key is Method methodFrom && pair.Value is Method methodTo)
                         {
-                            methodTo.Input =  Possibly.Is(CopiedToOrSelf(methodFrom.Input.GetOrThrow()));
+                            methodTo.Input = Possibly.Is(CopiedToOrSelf(methodFrom.Input.GetOrThrow()));
                             methodTo.Returns = Possibly.Is(CopiedToOrSelf(methodFrom.Returns.GetOrThrow()));
                         }
 
@@ -1745,20 +1748,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (innerFrom is Type innerFromType && innerTo is Type innerTypeTo)
                         {
-
+                            if (genericOverlays.TryGetValue(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerFromType), out var dict))
                             {
-                                if (genericOverlays.TryGetValue(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerFromType), out var dict))
+                                foreach (var type in dict)
                                 {
-                                    foreach (var type in dict)
+                                    if (overlayed.TryGetValue(type.Value, out var toType))
                                     {
-                                        if (overlayed.TryGetValue(type.Value, out var toType))
-                                        {
-                                            HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerTypeTo), type.Key, toType);
-                                        }
-                                        else
-                                        {
-                                            HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerTypeTo), type.Key, type.Value);
-                                        }
+                                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerTypeTo), type.Key, toType);
+                                    }
+                                    else
+                                    {
+                                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerTypeTo), type.Key, type.Value);
                                     }
                                 }
                             }
@@ -1766,20 +1766,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (innerFrom is MethodType innerFromMethodType && innerTo is MethodType innerMethodTypeTo)
                         {
-
+                            if (genericOverlays.TryGetValue(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerFromMethodType), out var dict))
                             {
-                                if (genericOverlays.TryGetValue(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerFromMethodType), out var dict))
+                                foreach (var type in dict)
                                 {
-                                    foreach (var type in dict)
+                                    if (overlayed.TryGetValue(type.Value, out var toType))
                                     {
-                                        if (overlayed.TryGetValue(type.Value, out var toType))
-                                        {
-                                            HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerMethodTypeTo), type.Key, toType);
-                                        }
-                                        else
-                                        {
-                                            HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerMethodTypeTo), type.Key, type.Value);
-                                        }
+                                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerMethodTypeTo), type.Key, toType);
+                                    }
+                                    else
+                                    {
+                                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerMethodTypeTo), type.Key, type.Value);
                                     }
                                 }
                             }
@@ -1810,9 +1807,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 static bool IsHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, out IHaveMembers? haveMembers)
                 {
                     var res = false;
-                    (haveMembers, res) = type.SwitchReturns<(IHaveMembers?,bool) >(
-                        v1 => (default,false),
-                        v2 => (v2,true),
+                    (haveMembers, res) = type.SwitchReturns<(IHaveMembers?, bool)>(
+                        v1 => (default, false),
+                        v2 => (v2, true),
                         v3 => (v3, true),
                         v4 => (v4, true),
                         v5 => (v5, true),
@@ -2080,7 +2077,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         context = defParent.Value;
                     }
-                    else { 
+                    else
+                    {
                         return Possibly.IsNot<Member>();
                     }
                 }
@@ -2116,7 +2114,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
-                res.Input = Possibly.Is(CreateMember(res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>( new NameKey("T1")), new WeakMemberDefinitionConverter(false, methodInputKey)));
+                res.Input = Possibly.Is(CreateMember(res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(false, methodInputKey)));
                 res.Returns = Possibly.Is(CreateTransientMember(res, new NameKey("T2")));
                 IsChildOf(Primitive, res);
             }
