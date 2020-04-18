@@ -138,7 +138,7 @@ namespace Tac.SemanticModel.Operations
                 return new SetUpResult<IBox<WeakAssignOperation>, Tpn.IValue>(new WeakAssignOperationResolveReferance(
                     nextLeft.TransformInner(x=>x.Resolve),
                     nextRight.TransformInner(x => x.Resolve)),
-                    nextLeft.TransformAndFlatten(x=>x.SetUpSideNode).TransformInner(x=>x.CastToOr<Tpn.ITypeProblemNode,Tpn.IValue>("")));
+                    nextLeft.TransformAndFlatten(x=>x.SetUpSideNode).TransformInner(x=>x.CastToOr<Tpn.ITypeProblemNode,Tpn.IValue>(Error.Other(""))));
             }
         }
 

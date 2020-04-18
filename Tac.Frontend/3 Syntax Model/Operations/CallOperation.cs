@@ -86,12 +86,12 @@ namespace Tac.SemanticModel.Operations
             var right = r.Is1OrThrow();
 
             if (!(left is Tpn.ICanAssignFromMe assignFrom)) {
-                return OrType.Make<Tpn.IValue, IError>(new Error("can not assign from the left"));
+                return OrType.Make<Tpn.IValue, IError>(Error.Other("can not assign from the left"));
             }
 
             if (!(right is Tpn.IValue value))
             {
-                return OrType.Make<Tpn.IValue, IError>(new Error("right is not value"));
+                return OrType.Make<Tpn.IValue, IError>(Error.Other("right is not value"));
             }
 
             s.Problem.IsAssignedTo(assignFrom, value.Input());
@@ -141,12 +141,12 @@ namespace Tac.SemanticModel.Operations
 
             if (!(left is Tpn.IValue value))
             {
-                return OrType.Make<Tpn.IValue, IError>(new Error("left is not value"));
+                return OrType.Make<Tpn.IValue, IError>(Error.Other("left is not value"));
             }
 
             if (!(right is Tpn.ICanAssignFromMe assignFrom ))
             {
-                return OrType.Make<Tpn.IValue, IError>(new Error("can not assign from the right" ));
+                return OrType.Make<Tpn.IValue, IError>(Error.Other("can not assign from the right" ));
             }
 
             s.Problem.IsAssignedTo(assignFrom, value.Input());

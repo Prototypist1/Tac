@@ -395,7 +395,7 @@ namespace Tac.Frontend
                             return OrType.Make<IBox<WeakAssignOperation>, IError>(new Box<WeakAssignOperation>(weakAssign));
                         }
                         else {
-                            return OrType.Make<IBox<WeakAssignOperation>, IError>(new Error("lines in an object must me assignments"));
+                            return OrType.Make<IBox<WeakAssignOperation>, IError>(Error.Other("lines in an object must me assignments"));
                         }
                     },
                     y=> OrType.Make<IBox<WeakAssignOperation>, IError>(y))).ToArray()));

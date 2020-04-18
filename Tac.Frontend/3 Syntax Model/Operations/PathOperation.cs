@@ -121,12 +121,12 @@ namespace Tac.SemanticModel.Operations
                         }
                         else
                         {
-                            return OrType.Make<Tpn.TypeProblem2.Member, IError>(new Error(""));
+                            return OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Other(""));
                             // todo better error handling 
                             throw new NotImplementedException($"can not . off {good.SetUpSideNode}");
                         }
                     },
-                    error => OrType.Make<Tpn.TypeProblem2.Member, IError>(new Error("We needed ", error)));
+                    error => OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Cascaded("We needed ", error)));
 
                 return new SetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
                     nextLeft.TransformInner(x=>x.Resolve),
@@ -154,7 +154,7 @@ namespace Tac.SemanticModel.Operations
                     left.TransformInner(x => x.Run(context)),
                     member.SwitchReturns(
                         x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(x)))),
-                        y => OrType.Make<IBox<IFrontendCodeElement>, IError>(new Error("", y)))));
+                        y => OrType.Make<IBox<IFrontendCodeElement>, IError>(Error.Cascaded("", y)))));
                 return res;
             }
         }

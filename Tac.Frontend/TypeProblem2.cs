@@ -821,7 +821,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                 {
-                    var returns = inputTypeValue.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value) : CreateTransientMember(res);
+                    var returns = outputTypeValue.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value) : CreateTransientMember(res);
                     res.Returns = Possibly.Is(returns);
                 }
                 {
@@ -1350,28 +1350,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     // if we don't have a lookup we damn well better have a context and a key
-                    if (!TryLookUpOrOverlay(node.Context.GetOrThrow(), node.TypeKey.Is1OrThrow(), out var res))
-                    {
-                        throw new Exception("could not find type");
-                    }
-                    node.LooksUp = Possibly.Is(res!);
-                    return res!;
-
+                    var res = TryLookUpOrOverlay(node.Context.GetOrThrow(), node.TypeKey.Is1OrThrow());
+                    node.LooksUp = Possibly.Is(res);
+                    return res;
                 }
 
 
 
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrOverlayOrThrow2(IScope from, IKey key)
                 {
-                    if (!TryLookUpOrOverlay(from, key, out var res))
-                    {
-                        throw new Exception("could not find type");
-                    }
-                    return res!;
+                    return TryLookUpOrOverlay(from, key);
                 }
 
-                //[MaybeNullWhen(false)]
-                bool TryLookUpOrOverlay(IScope from, IKey key, out IOrType<MethodType, Type, Object, OrType, InferredType, IError>? res)
+                IOrType<MethodType, Type, Object, OrType, InferredType, IError> TryLookUpOrOverlay(IScope from, IKey key)
                 {
 
                     if (key is GenericNameKey genericNameKey)
@@ -1385,7 +1376,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         var outerLookedUp = LookUpOrOverlayOrThrow2(from, genericNameKey.Name);
 
-                        res = outerLookedUp.SwitchReturns<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>(method =>
+                        return outerLookedUp.SwitchReturns<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>(method =>
                         {
                             var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(method), types);
 
@@ -1448,18 +1439,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                         orType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType),
                         inferredType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferredType),
                         error => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(error));
-                        return true;
                     }
                     else if (TryLookUp(from, key, out var res2))
                     {
                         //:'(
-                        res = res2;
-                        return true;
+                        // I am sad about the !
+                        return res2!;
                     }
                     else
                     {
-                        res = default;
-                        return false;
+                        return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.TypeNotFound($"could not find type for {key.ToString()} in {from.ToString()}"));
                     }
                 }
 
@@ -1522,6 +1511,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 else if (res.Is2(out var innerType))
                                 {
                                     result = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(innerType);
+                                    return true;
+                                }
+                                else if (res.Is6(out var error)) {
+                                    result = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(error);
                                     return true;
                                 }
                                 else

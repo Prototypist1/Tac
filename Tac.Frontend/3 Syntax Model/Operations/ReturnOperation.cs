@@ -167,7 +167,7 @@ namespace Tac.SemanticModel.Operations
 
             if (!(val1node is Tpn.IValue finalVal))
             {
-                return OrType.Make<Tpn.IValue, IError>(new Error($"can not return {val1node}"));
+                return OrType.Make<Tpn.IValue, IError>(Error.Other($"can not return {val1node}"));
             }
 
 

@@ -236,7 +236,7 @@ namespace Tac.Parser
                 return ParseLine(parenthesisToken.Tokens);
             }
 
-            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(new Error($"No element matches {token.ToString()}"));
+            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
         }
 
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> ParseLine(IEnumerable<IToken> tokens)
@@ -256,7 +256,7 @@ namespace Tac.Parser
                 return ParseParenthesisOrElement(tokens.Single());
             }
 
-            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(new Error($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
+            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
         }
 
 
