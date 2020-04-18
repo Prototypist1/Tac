@@ -53,14 +53,14 @@ namespace Tac.Tests
         // I think this actaully will not error out here
         // a is used before it is assigned 
         // but that is flow analysis 
-        [Fact]
-        public void UndefinedVariable()
-        {
-            var res = TestSupport.Tokenize("module test { a + 2 =: x ; }");
-            var converted = TestSupport.Convert(res);
+        //[Fact]
+        //public void UndefinedVariable()
+        //{
+        //    var res = TestSupport.Tokenize("module test { a + 2 =: x ; }");
+        //    var converted = TestSupport.Convert(res);
 
-            throw new NotImplementedException();
-        }
+        //    throw new NotImplementedException();
+        //}
 
         [Fact]
         public void UndefinedType()
