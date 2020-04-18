@@ -451,7 +451,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
 
-                public bool IsPlaceholder { get; }
                 public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
                 public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
 
@@ -466,15 +465,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
-                public List<(IKey, PlaceholderType)> GenericOverlays { get; } = new List<(IKey, PlaceholderType)>();
 
-            }
-
-            public class PlaceholderType : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
-            {
-                public PlaceholderType(TypeProblem2 problem, string debugName, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
-                {
-                }
             }
 
             // methods don't really have members in the way other things do
@@ -501,8 +492,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
-                public List<(IKey, PlaceholderType)> GenericOverlays { get; } = new List<(IKey, PlaceholderType)>();
-
             }
 
             public class InferredType : TypeProblemNode, IHaveInputAndOutput, IHaveMembers, IScope
@@ -612,7 +601,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // the left hand side is the generic
             // the right hand side is the generic type parameter
             // it hold the placeholder and the realized type
-            //private readonly Dictionary<IOrType<MethodType, Type>, Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>> genericOverlays = new Dictionary<IOrType<MethodType, Type>, Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>();
+            private readonly Dictionary<IOrType<MethodType, Type>, Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>> genericOverlays = new Dictionary<IOrType<MethodType, Type>, Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>();
 
 
             private List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
@@ -654,14 +643,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 parent.Objects.Add(key, @object);
             }
 
-            //public void HasPlaceholderType(IOrType<MethodType, Type> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
-            //{
-            //    if (!genericOverlays.ContainsKey(parent))
-            //    {
-            //        genericOverlays.Add(parent, new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>());
-            //    }
-            //    genericOverlays[parent].Add(key, type);
-            //}
+            public void HasPlaceholderType(IOrType<MethodType, Type> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+            {
+                if (!genericOverlays.ContainsKey(parent))
+                {
+                    genericOverlays.Add(parent, new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>());
+                }
+                genericOverlays[parent].Add(key, type);
+            }
             public static void HasMember(IHaveMembers parent, IKey key, Member member)
             {
                 parent.Members.Add(key, member);
@@ -788,8 +777,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 HasType(parent, key, res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new PlaceholderType(this, $"generic-parameter-{placeholder.key.ToString()}", placeholder.converter);
-                    res.GenericOverlays.Add((placeholder.key, placeholderType));
+                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", placeholder.converter);
+                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
                 return res;
             }
@@ -1044,35 +1033,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // generics register themsleves 
                 var realizedGeneric = new Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
 
-                foreach (var genericMethodType in typeProblemNodes.OfType<MethodType>().Where(x => x.GenericOverlays.Any()))
+                var localScopes = typeProblemNodes.OfType<MethodType>().Select(x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x)).Where(x => genericOverlays.ContainsKey(x));
+                var localMethodTypes = typeProblemNodes.OfType<Type>().Select(x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x)).Where(x => genericOverlays.ContainsKey(x));
+
+                foreach (var node in new[] { localScopes, localMethodTypes }.SelectMany(x => x))
                 {
-                    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType,Type>( genericMethodType), genericMethodType.GenericOverlays.Select(y=>y.Item2).ToArray());
-
-                    realizedGeneric[key] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(genericMethodType);
+                    var key = new GenericTypeKey(node, genericOverlays[node].Values.ToArray());
+                    node.Switch(v1 =>
+                    {
+                        realizedGeneric[key] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
+                    },
+                    v2 =>
+                    {
+                        realizedGeneric[key] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
+                    });
                 }
-
-                foreach (var genericType in typeProblemNodes.OfType<Type>().Where(x => x.GenericOverlays.Any()))
-                {
-                    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(genericType), genericType.GenericOverlays.Select(y => y.Item2).ToArray());
-
-                    realizedGeneric[key] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(genericType);
-                }
-
-
-                //var localMethodTypes = typeProblemNodes.OfType<Type>().Where(x => x.GenericOverlays.Any());
-
-                //foreach (var node in new[] { localScopes, localMethodTypes }.SelectMany(x => x))
-                //{
-                //    var key = new GenericTypeKey(node, genericOverlays[node].Values.ToArray());
-                //    node.Switch(v1 =>
-                //    {
-                //        realizedGeneric[key] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
-                //    },
-                //    v2 =>
-                //    {
-                //        realizedGeneric[key] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
-                //    });
-                //}
 
                 toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>)).ToArray();
 
@@ -1446,7 +1421,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 map[oldType] = newType;
                             }
 
-                            var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this, $"generated-generic-{type.debugName}", type.Converter, type.IsPlaceholder)), map);
+                            var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this, $"generated-generic-{type.debugName}", type.Converter)), map);
 
                             return @explicit.SwitchReturns(v1 =>
                             {
@@ -1735,7 +1710,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var type in innerFromScope.Types)
                                 {
-                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter, type.Value.IsPlaceholder));
+                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
                                     HasType(innerScopeTo, type.Key, newValue);
                                 }
                             }
@@ -2127,7 +2102,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 HasMethodType(Primitive, key, res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", placeholder.converter, true);
+                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", placeholder.converter);
                     HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
 
