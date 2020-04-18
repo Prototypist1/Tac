@@ -204,6 +204,7 @@ namespace Tac.Frontend.TypeProblem.Test
                     new Tpn.TypeAndConverter(
                         new NameKey("T"), 
                         new WeakTypeDefinitionConverter())}, 
+                new WeakTypeDefinitionConverter(),// TODO this is not a generic type converter... 
                 new WeakTypeDefinitionConverter());
 
             x.CreateMember(pairType, new NameKey("x"),
@@ -237,7 +238,9 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var type = x.CreateGenericType(x.ModuleRoot, new NameKey("node"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("node-t"), new WeakTypeDefinitionConverter())
-            }, new WeakTypeDefinitionConverter());
+            }, 
+            new WeakTypeDefinitionConverter(), // TODO this is not a generic type converter... 
+            new WeakTypeDefinitionConverter());
 
             x.CreateMember(type, new NameKey("next"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("node-t"))
@@ -272,7 +275,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var left = x.CreateGenericType(x.ModuleRoot, new NameKey("left"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("left-t"), new WeakTypeDefinitionConverter())
-            }, new WeakTypeDefinitionConverter());
+            }, new WeakTypeDefinitionConverter(), // TODO this is not a generic type converter... 
+            new WeakTypeDefinitionConverter());
 
             x.CreateMember(left, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("right"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("left-t"))
@@ -280,7 +284,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var right = x.CreateGenericType(x.ModuleRoot, new NameKey("right"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("right-t"), new WeakTypeDefinitionConverter())
-            }, new WeakTypeDefinitionConverter());
+            }, new WeakTypeDefinitionConverter(), // TODO this is not a generic type converter... 
+            new WeakTypeDefinitionConverter());
 
             x.CreateMember(right, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("left"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("right-t"))
@@ -322,7 +327,9 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var pairType = x.CreateGenericType(x.ModuleRoot, new NameKey("pair"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
-            }, new WeakTypeDefinitionConverter());
+            }, 
+            new WeakTypeDefinitionConverter(), // TODO this is not a generic type converter... 
+            new WeakTypeDefinitionConverter());
 
             x.CreateMember(pairType, new NameKey("x"),
                 OrType.Make<IKey, IError>(new NameKey("T")), new WeakMemberDefinitionConverter(false, new NameKey("x")));

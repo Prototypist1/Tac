@@ -55,7 +55,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter);
             TypeProblem2.Type CreateType(IScope parent, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateType(IScope parent, IKey key, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
-            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
+            TypeProblem2.Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> childConverter);
             TypeProblem2.Object CreateObjectOrModule(IScope parent, IKey key, IConvertTo<TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter);
             TypeProblem2.Method CreateMethod(IScope parent, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
             TypeProblem2.Method CreateMethod(IScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
@@ -447,6 +447,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public class Type : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType
             {
+                public Type(TypeProblem2 problem, string debugName, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> childConverter) : base(problem, debugName, converter)
+                {
+                    ChildConverter = Prototypist.Toolbox.OrType.Make<IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, Unset>(childConverter);
+
+                }
+
                 public Type(TypeProblem2 problem, string debugName, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
                 {
                 }
@@ -465,7 +471,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                
+                // this is a little wonky
+                // it exists on generic types
+                // when this type is copied 
+                // the new copy gets the child convert
 
+                // this is used when you have a generic type
+                // it has a convert that converts to a generic type
+                // but children of the generic type are real types
+                // so they need a real converter
+                public IOrType<IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, Unset> ChildConverter { get; } = Prototypist.Toolbox.OrType.Make<IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, Unset>(new Unset());
             }
 
             // methods don't really have members in the way other things do
@@ -770,9 +786,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
+            public Type CreateGenericType(IScope parent, IKey key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter , IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> childConverter)
             {
-                var res = new Type(this, $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", converter);
+                var res = new Type(this, $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", converter, childConverter);
                 IsChildOf(parent, res);
                 HasType(parent, key, res);
                 foreach (var placeholder in placeholders)
@@ -1710,7 +1726,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var type in innerFromScope.Types)
                                 {
-                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
+                                    var converter = type.Value.Converter;
+
+                                    if (type.Value.ChildConverter.Is1(out var childConverter)) {
+                                        converter = childConverter;
+                                    }
+
+                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", converter));
                                     HasType(innerScopeTo, type.Key, newValue);
                                 }
                             }
