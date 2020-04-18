@@ -136,11 +136,8 @@ namespace Tac.SemanticModel
             {
                 // uhhh it is werid that I have to do this
                 nextLines.Select(x => x.TransformInner(y=>y.Run(context))).ToArray();
-                if (context.GetExplicitType(myScope).GetValue().Is2(out var v2)) {
-                    return new Box<WeakGenericTypeDefinition>( v2);
-                }
 
-                throw new Exception("well that is not good");
+                return new Box<WeakGenericTypeDefinition>(context.GetExplicitType(myScope).GetValue().Is2OrThrow());
             }
         }
     }

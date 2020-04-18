@@ -465,6 +465,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+
 
             }
 
@@ -492,6 +494,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
+
+                public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
             }
 
             public class InferredType : TypeProblemNode, IHaveInputAndOutput, IHaveMembers, IScope
@@ -597,12 +601,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Object ModuleRoot { get; }
 
 
-            // this holds real overlays 
-            // the left hand side is the generic
-            // the right hand side is the generic type parameter
-            // it hold the placeholder and the realized type
-            private readonly Dictionary<IOrType<MethodType, Type>, Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>> genericOverlays = new Dictionary<IOrType<MethodType, Type>, Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>();
-
 
             private List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
 
@@ -645,11 +643,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public void HasPlaceholderType(IOrType<MethodType, Type> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
             {
-                if (!genericOverlays.ContainsKey(parent))
-                {
-                    genericOverlays.Add(parent, new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>());
-                }
-                genericOverlays[parent].Add(key, type);
+                parent.Switch(x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type));
             }
             public static void HasMember(IHaveMembers parent, IKey key, Member member)
             {
@@ -1033,20 +1027,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // generics register themsleves 
                 var realizedGeneric = new Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
 
-                var localScopes = typeProblemNodes.OfType<MethodType>().Select(x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x)).Where(x => genericOverlays.ContainsKey(x));
-                var localMethodTypes = typeProblemNodes.OfType<Type>().Select(x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x)).Where(x => genericOverlays.ContainsKey(x));
-
-                foreach (var node in new[] { localScopes, localMethodTypes }.SelectMany(x => x))
+                foreach (var methodType in typeProblemNodes.OfType<MethodType>().Where(x => x.GenericOverlays.Any()))
                 {
-                    var key = new GenericTypeKey(node, genericOverlays[node].Values.ToArray());
-                    node.Switch(v1 =>
-                    {
-                        realizedGeneric[key] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
-                    },
-                    v2 =>
-                    {
-                        realizedGeneric[key] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
-                    });
+                    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(methodType), methodType.GenericOverlays.Values.ToArray());
+                }
+                foreach (var type in typeProblemNodes.OfType<Type>().Where(x => x.GenericOverlays.Any()))
+                {
+                    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), type.GenericOverlays.Values.ToArray());
                 }
 
                 toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>)).ToArray();
@@ -1387,7 +1374,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             // this is duplicate code - 94875369485
                             var map = new Dictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-                            foreach (var (oldType, newType) in types.Zip(genericOverlays[Prototypist.Toolbox.OrType.Make<MethodType, Type>(method)], (x, y) => (y.Value, x)))
+                            foreach (var (oldType, newType) in types.Zip(method.GenericOverlays, (x, y) => (y.Value, x)))
                             {
                                 map[oldType] = newType;
                             }
@@ -1416,7 +1403,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             // this is duplicate code - 94875369485
                             var map = new Dictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-                            foreach (var (oldType, newType) in types.Zip(genericOverlays[Prototypist.Toolbox.OrType.Make<MethodType, Type>(type)], (x, y) => (y.Value, x)))
+                            foreach (var (oldType, newType) in types.Zip(type.GenericOverlays, (x, y) => (y.Value, x)))
                             {
                                 map[oldType] = newType;
                             }
@@ -1487,21 +1474,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                         if (haveTypes is Type || haveTypes is MethodType)
                         {
-                            IOrType<MethodType, Type> orType;
+                            Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> genericOverlays;
                             if (haveTypes is Type type)
                             {
-                                orType = Prototypist.Toolbox.OrType.Make<MethodType, Type>(type);
+                                genericOverlays = type.GenericOverlays;
                             }
                             else if (haveTypes is MethodType methodType1)
                             {
-                                orType = Prototypist.Toolbox.OrType.Make<MethodType, Type>(methodType1);
+                                genericOverlays = methodType1.GenericOverlays;
                             }
                             else
                             {
                                 throw new Exception("💩💩💩💩💩");
                             }
 
-                            if (genericOverlays.TryGetValue(orType, out var dict) && dict.TryGetValue(key, out var res))
+                            if (genericOverlays.TryGetValue(key, out var res))
                             {
                                 if (res.Is1(out var methodType))
                                 {
@@ -1513,7 +1500,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     result = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(innerType);
                                     return true;
                                 }
-                                else if (res.Is6(out var error)) {
+                                else if (res.Is6(out var error))
+                                {
                                     result = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(error);
                                     return true;
                                 }
@@ -1741,36 +1729,32 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (innerFrom is Type innerFromType && innerTo is Type innerTypeTo)
                         {
-                            if (genericOverlays.TryGetValue(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerFromType), out var dict))
+
+                            foreach (var type in innerFromType.GenericOverlays)
                             {
-                                foreach (var type in dict)
+                                if (overlayed.TryGetValue(type.Value, out var toType))
                                 {
-                                    if (overlayed.TryGetValue(type.Value, out var toType))
-                                    {
-                                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerTypeTo), type.Key, toType);
-                                    }
-                                    else
-                                    {
-                                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerTypeTo), type.Key, type.Value);
-                                    }
+                                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerTypeTo), type.Key, toType);
+                                }
+                                else
+                                {
+                                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerTypeTo), type.Key, type.Value);
                                 }
                             }
                         }
 
                         if (innerFrom is MethodType innerFromMethodType && innerTo is MethodType innerMethodTypeTo)
                         {
-                            if (genericOverlays.TryGetValue(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerFromMethodType), out var dict))
+
+                            foreach (var type in innerFromMethodType.GenericOverlays)
                             {
-                                foreach (var type in dict)
+                                if (overlayed.TryGetValue(type.Value, out var toType))
                                 {
-                                    if (overlayed.TryGetValue(type.Value, out var toType))
-                                    {
-                                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerMethodTypeTo), type.Key, toType);
-                                    }
-                                    else
-                                    {
-                                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerMethodTypeTo), type.Key, type.Value);
-                                    }
+                                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerMethodTypeTo), type.Key, toType);
+                                }
+                                else
+                                {
+                                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(innerMethodTypeTo), type.Key, type.Value);
                                 }
                             }
                         }

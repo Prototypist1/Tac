@@ -204,7 +204,8 @@ namespace Tac.Frontend.TypeProblem.Test
                     new Tpn.TypeAndConverter(
                         new NameKey("T"), 
                         new WeakTypeDefinitionConverter())}, 
-                new WeakTypeDefinitionConverter());
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+                );
 
             x.CreateMember(pairType, new NameKey("x"),
                 OrType.Make<IKey, IError>(new NameKey("T")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
@@ -235,9 +236,13 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
 
-            var type = x.CreateGenericType(x.ModuleRoot, new NameKey("node"), new[]{
+            var type = x.CreateGenericType(
+                x.ModuleRoot, 
+                new NameKey("node"), new[]{
                     new Tpn.TypeAndConverter(new NameKey("node-t"), new WeakTypeDefinitionConverter())
-            }, new WeakTypeDefinitionConverter());
+                }, 
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+            );
 
             x.CreateMember(type, new NameKey("next"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("node-t"))
@@ -270,17 +275,26 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
 
-            var left = x.CreateGenericType(x.ModuleRoot, new NameKey("left"), new[]{
+            var left = x.CreateGenericType(
+                x.ModuleRoot, 
+                new NameKey("left"), 
+                new[]{
                     new Tpn.TypeAndConverter(new NameKey("left-t"), new WeakTypeDefinitionConverter())
-            }, new WeakTypeDefinitionConverter());
+                },
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+                );
 
             x.CreateMember(left, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("right"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("left-t"))
             })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
-            var right = x.CreateGenericType(x.ModuleRoot, new NameKey("right"), new[]{
+            var right = x.CreateGenericType(
+                x.ModuleRoot, new NameKey("right"), 
+                new[]{
                     new Tpn.TypeAndConverter(new NameKey("right-t"), new WeakTypeDefinitionConverter())
-            }, new WeakTypeDefinitionConverter());
+                }, 
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+                );
 
             x.CreateMember(right, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("left"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("right-t"))
@@ -320,9 +334,14 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
 
-            var pairType = x.CreateGenericType(x.ModuleRoot, new NameKey("pair"), new[]{
+            var pairType = x.CreateGenericType(
+                x.ModuleRoot, 
+                new NameKey("pair"), 
+                new[]{
                     new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
-            }, new WeakTypeDefinitionConverter());
+                },
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+                );
 
             x.CreateMember(pairType, new NameKey("x"),
                 OrType.Make<IKey, IError>(new NameKey("T")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
