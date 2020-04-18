@@ -49,17 +49,17 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     internal interface IGenericTypeParameterPlacholder : IFrontendType
     {
-        IKey Key { get; }
+        NameKey Key { get; }
     }
 
     internal struct GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder, IEquatable<GenericTypeParameterPlacholder>
     {
-        public GenericTypeParameterPlacholder(IKey key)
+        public GenericTypeParameterPlacholder(NameKey key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IKey Key { get; }
+        public NameKey Key { get; }
 
         public override bool Equals(object? obj)
         {

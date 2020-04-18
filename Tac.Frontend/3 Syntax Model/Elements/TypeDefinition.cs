@@ -80,15 +80,15 @@ namespace Tac.SemanticModel
                 .OptionalHas(new NameMaker(), out var typeName)
                 .Has(new BodyMaker()).ConvertIfMatched(body=> new TypeDefinitionPopulateScope(
                        tokenMatching.Context.ParseBlock(body),
-                       typeName != default ? new NameKey(typeName.Item).CastTo<IKey>() : new ImplicitKey(Guid.NewGuid())));
+                       typeName != default ? OrType.Make<NameKey, ImplicitKey>(new NameKey(typeName.Item)) : OrType.Make<NameKey, ImplicitKey>(new ImplicitKey(Guid.NewGuid()))));
         }
         
         private class TypeDefinitionPopulateScope : ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>
         {
             private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-            private readonly IKey key;
+            private readonly IOrType< NameKey, ImplicitKey> key;
 
-            public TypeDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements, IKey typeName)
+            public TypeDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements, IOrType<NameKey, ImplicitKey> typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
@@ -97,7 +97,7 @@ namespace Tac.SemanticModel
             public ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IScope scope, ISetUpContext context)
             {
                 var type= context.TypeProblem.CreateType(scope, key,new WeakTypeDefinitionConverter());
-                var typeReference = context.TypeProblem.CreateTypeReference(scope, key, new WeakTypeReferenceConverter());
+                var typeReference = context.TypeProblem.CreateTypeReference(scope, key.SwitchReturns<IKey>(x=>x,x=>x), new WeakTypeReferenceConverter());
                 elements.Select(x => x.TransformInner(y=>y.Run(type, context))).ToArray();
                 return new SetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>( new TypeReferanceMaker.TypeReferanceResolveReference(typeReference), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(typeReference));
             }
