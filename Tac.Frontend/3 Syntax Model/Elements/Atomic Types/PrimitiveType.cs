@@ -49,17 +49,17 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     internal interface IGenericTypeParameterPlacholder : IFrontendType
     {
-        NameKey Key { get; }
+        IOrType<NameKey, ImplicitKey> Key { get; }
     }
 
     internal struct GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder, IEquatable<GenericTypeParameterPlacholder>
     {
-        public GenericTypeParameterPlacholder(NameKey key)
+        public GenericTypeParameterPlacholder(IOrType<NameKey, ImplicitKey> key)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public NameKey Key { get; }
+        public IOrType<NameKey, ImplicitKey> Key { get; }
 
         public override bool Equals(object? obj)
         {
@@ -83,7 +83,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public bool Equals(GenericTypeParameterPlacholder placholder)
         {
-            return EqualityComparer<IKey>.Default.Equals(Key, placholder.Key);
+            return EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
         }
     }
 

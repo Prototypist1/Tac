@@ -160,7 +160,21 @@ namespace Tac.Frontend
 
         public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
-            return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(new WeakTypeDefinition(new Box<WeakScope>(Help.GetScope(typeSolution, from))));//, key
+            var placeHolders = typeSolution.HasPlacholders(from);
+
+            return placeHolders.IfElseReturn(x =>
+            {
+                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(
+                    new WeakGenericTypeDefinition(
+                        from.Key,
+                        new Box<WeakScope>(Help.GetScope(typeSolution, from)),
+                        x.Select(x=> Possibly.Is<IGenericTypeParameterPlacholder>(new GenericTypeParameterPlacholder(x))).ToArray()));//, key
+            },
+            () =>
+            {
+                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(new WeakTypeDefinition(new Box<WeakScope>(Help.GetScope(typeSolution, from))));//, key ?
+            });
+
         }
     }
 
@@ -181,27 +195,27 @@ namespace Tac.Frontend
     }
 
 
-    internal class WeakGenericTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
-    {
+    //internal class WeakGenericTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
+    //{
 
-        private readonly NameKey key;
-        private readonly IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
+    //    private readonly NameKey key;
+    //    private readonly IGenericTypeParameterPlacholder[] TypeParameterDefinitions;
 
-        public WeakGenericTypeDefinitionConverter(NameKey key, IGenericTypeParameterPlacholder[] typeParameterDefinitions)
-        {
-            this.key = key ?? throw new ArgumentNullException(nameof(key));
-            TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
-        }
+    //    public WeakGenericTypeDefinitionConverter(NameKey key, IGenericTypeParameterPlacholder[] typeParameterDefinitions)
+    //    {
+    //        this.key = key ?? throw new ArgumentNullException(nameof(key));
+    //        TypeParameterDefinitions = typeParameterDefinitions ?? throw new ArgumentNullException(nameof(typeParameterDefinitions));
+    //    }
 
-        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
-        {
-            return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(
-                new WeakGenericTypeDefinition(
-                    Possibly.Is(key),
-                    new Box<WeakScope>(Help.GetScope(typeSolution, from)),
-                    TypeParameterDefinitions.Select(x => Possibly.Is(x)).ToArray()));//, key
-        }
-    }
+    //    public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.ITypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+    //    {
+    //        return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(
+    //            new WeakGenericTypeDefinition(
+    //                Possibly.Is(key),
+    //                new Box<WeakScope>(Help.GetScope(typeSolution, from)),
+    //                TypeParameterDefinitions.Select(x => Possibly.Is(x)).ToArray()));//, key
+    //    }
+    //}
 
 
     internal class MethodTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.MethodType, MethodType>

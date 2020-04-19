@@ -202,7 +202,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("pair")), 
                 new []{ 
                     new Tpn.TypeAndConverter(
-                        new NameKey("T"), 
+                        OrType.Make<NameKey, ImplicitKey>(new NameKey("T")), 
                         new WeakTypeDefinitionConverter())}, 
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
@@ -240,7 +240,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 x.ModuleRoot,
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("node")),
                 new[]{
-                    new Tpn.TypeAndConverter(new NameKey("node-t"), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("node-t")), new WeakTypeDefinitionConverter())
                 }, 
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
             );
@@ -280,7 +280,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 x.ModuleRoot,
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("left")), 
                 new[]{
-                    new Tpn.TypeAndConverter(new NameKey("left-t"), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("left-t")), new WeakTypeDefinitionConverter())
                 },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
@@ -292,7 +292,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var right = x.CreateGenericType(
                 x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("right")), 
                 new[]{
-                    new Tpn.TypeAndConverter(new NameKey("right-t"), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("right-t")), new WeakTypeDefinitionConverter())
                 }, 
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
@@ -339,7 +339,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 x.ModuleRoot,
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("pair")), 
                 new[]{
-                    new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("T")), new WeakTypeDefinitionConverter())
                 },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );

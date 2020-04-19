@@ -285,24 +285,24 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IVerifiableType CreateAndBuild(IKey key) {
+        public static IVerifiableType CreateAndBuild(IOrType<NameKey,ImplicitKey> key) {
             var (x, y) = Create();
             y.Build(key);
             return x;
         }
 
-        public void Build(IKey key)
+        public void Build(IOrType<NameKey, ImplicitKey> key)
         {
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        private IKey? key = null;
-        public IKey Key { get=>key?? throw new NullReferenceException(nameof(key)); private set => key = value; }
+        private IOrType<NameKey, ImplicitKey>? key = null;
+        public IOrType<NameKey, ImplicitKey> Key { get=> key ?? throw new NullReferenceException(nameof(key)); private set => key = value; }
 
         public override bool Equals(object obj)
         {
             return obj is GemericTypeParameterPlacholder placholder &&
-                   EqualityComparer<IKey>.Default.Equals(Key, placholder.Key);
+                   EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
         }
 
         public override int GetHashCode()
@@ -343,9 +343,9 @@ namespace Tac.Model.Instantiated
     
     public interface IGemericTypeParameterPlacholderBuilder
     {
-        void Build(IKey key);
+        void Build(IOrType<NameKey, ImplicitKey> key);
 
-        IKey Key { get; }
+        IOrType<NameKey, ImplicitKey> Key { get; }
     }
 
     public interface IGenericMethodTypeBuilder {

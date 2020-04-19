@@ -26,10 +26,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal class TypeAndConverter
         {
-            public readonly NameKey key;
+            public readonly IOrType<NameKey, ImplicitKey> key;
             public readonly IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter;
 
-            public TypeAndConverter(NameKey key, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
+            public TypeAndConverter(IOrType<NameKey, ImplicitKey> key, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
                 this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
@@ -80,6 +80,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface ITypeSolution
         {
+            IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type); 
             IBox<PlaceholderValue> GetValue(TypeProblem2.Value value);
             IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member);
             IBox<IOrType<IFrontendType, IError>> GetTypeReference(TypeProblem2.TypeReference typeReference);
@@ -305,6 +306,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 return Possibly.IsNot<TypeProblem2.Scope>();
             }
+
+            public IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
+            {
+                var res = new List<IOrType<NameKey, ImplicitKey>>();
+                foreach (var value in type.GenericOverlays.Values.Select(x=>x.Possibly2()))
+                {
+                    value.If(definite => {
+                        if (definite.IsPlaceHolder) {
+                            definite.Key.If(x =>
+                            {
+                                res.Add(x);
+                                return 1; // todo I need a version of this api that takes an action
+                            });
+                        }
+                        return 1; // todo I need a version of this api that takes an action
+                    });
+                }
+
+                if (res.Any()) {
+                    return Possibly.Is(res.ToArray());
+                }
+
+                return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
+            }
         }
 
         // the simple model of or-types:
@@ -452,9 +477,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     TypeProblem2 problem, 
                     string debugName, 
                     IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
-                    IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter) : base(problem, debugName, converter)
+                    IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter,
+                    bool isPlaceHolder
+                    ) : base(problem, debugName, converter)
                 {
                     Key = key;
+                    IsPlaceHolder = isPlaceHolder;
                 }
 
                 public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
@@ -473,6 +501,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
                 public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
                 public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
+
+                public bool IsPlaceHolder { get; }
             }
 
             // methods don't really have members in the way other things do
@@ -752,7 +782,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Type CreateType(IScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
-                var res = new Type(this, key.ToString()!, Possibly.Is(key), converter);
+                var res = new Type(this, key.ToString()!, Possibly.Is(key), converter, false);
                 IsChildOf(parent, res);
                 HasType(parent, key.SwitchReturns<IKey>(x => x, x => x), res);
                 return res;
@@ -761,7 +791,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Type CreateType(IScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 var key = new ImplicitKey(Guid.NewGuid());
-                var res = new Type(this, key.ToString()!,Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(),  converter);
+                var res = new Type(this, key.ToString()!,Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(),  converter, false);
                 IsChildOf(parent, res);
                 // migiht need this, let's try without first
                 //HasType(parent, key, res);
@@ -775,13 +805,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     this, 
                     $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", 
                     Possibly.Is(key),
-                    converter);
+                    converter, 
+                    false);
                 IsChildOf(parent, res);
                 HasType(parent, key.SwitchReturns<IKey>(x=>x, x=>x), res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey >( placeholder.key)), placeholder.converter);
-                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
+                    var placeholderType = new Type(
+                        this, 
+                        $"generic-parameter-{placeholder.key.ToString()}", 
+                        Possibly.Is( placeholder.key), 
+                        placeholder.converter,
+                        true);
+                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key.SwitchReturns<IKey>(x=>x,x=>x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
                 return res;
             }
@@ -1417,7 +1453,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 map[oldType] = newType;
                             }
 
-                            var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this, $"generated-generic-{type.debugName}", type.Key, type.Converter)), map);
+                            var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this, $"generated-generic-{type.debugName}", type.Key, type.Converter, type.IsPlaceHolder)), map);
 
                             return @explicit.SwitchReturns(v1 =>
                             {
@@ -1707,7 +1743,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var type in innerFromScope.Types)
                                 {
-                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Key, type.Value.Converter));
+                                    var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder));
                                     HasType(innerScopeTo, type.Key, newValue);
                                 }
                             }
@@ -2083,9 +2119,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("empty")), new PrimitiveTypeConverter(new EmptyType()));
 
                 // shocked this works...
-                IGenericTypeParameterPlacholder[] genericParameters = new IGenericTypeParameterPlacholder[] { new GenericTypeParameterPlacholder(new NameKey("T1")), new GenericTypeParameterPlacholder(new NameKey("T2")) };
+                IGenericTypeParameterPlacholder[] genericParameters = new IGenericTypeParameterPlacholder[] { new GenericTypeParameterPlacholder(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T1"))), new GenericTypeParameterPlacholder(Prototypist.Toolbox. OrType.Make<NameKey, ImplicitKey>(new NameKey("T2"))) };
                 var key = new NameKey("method");
-                var placeholders = new TypeAndConverter[] { new TypeAndConverter(new NameKey("T1"), new WeakTypeDefinitionConverter()), new TypeAndConverter(new NameKey("T2"), new WeakTypeDefinitionConverter()) };
+                var placeholders = new TypeAndConverter[] { new TypeAndConverter(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T1")), new WeakTypeDefinitionConverter()), new TypeAndConverter(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T2")), new WeakTypeDefinitionConverter()) };
 
                 var res = new MethodType(
                     this,
@@ -2095,8 +2131,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 HasMethodType(Primitive, key, res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(placeholder.key)), placeholder.converter);
-                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
+                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", Possibly.Is(placeholder.key), placeholder.converter,true);
+                    HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key.SwitchReturns<IKey>(x=>x,x=>x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());

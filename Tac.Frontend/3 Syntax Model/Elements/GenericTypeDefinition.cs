@@ -40,13 +40,13 @@ namespace Tac.SemanticModel
 
     internal interface IWeakGenericTypeDefinition: IFrontendCodeElement, IScoped, IFrontendType, IFrontendGenericType
     {
-        IIsPossibly<IKey> Key { get; }
+        IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
     }
 
     internal class WeakGenericTypeDefinition : IWeakGenericTypeDefinition
     {
         public WeakGenericTypeDefinition(
-            IIsPossibly<NameKey> key,
+            IIsPossibly<IOrType< NameKey,ImplicitKey>> key,
             IBox<WeakScope> scope,
             IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions)
         {
@@ -56,7 +56,7 @@ namespace Tac.SemanticModel
         }
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
-        public IIsPossibly<IKey> Key { get; }
+        public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
         public IBox<WeakScope> Scope { get; }
     }
     
@@ -79,7 +79,7 @@ namespace Tac.SemanticModel
                         new NameKey(name.Item),
                         tokenMatching.Context.ParseBlock(lines),
                         generics.Select(x => 
-                            new GenericTypeParameterPlacholder(new NameKey(x)) as IGenericTypeParameterPlacholder).ToArray()));
+                            new GenericTypeParameterPlacholder(OrType.Make<NameKey,ImplicitKey>( new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()));
         }
 
         public static ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> PopulateScope(
@@ -114,7 +114,11 @@ namespace Tac.SemanticModel
                 // oh geez here is a mountain.
                 // I generic types are erased 
                 // what on earth does this return?
-                var myScope = context.TypeProblem.CreateGenericType(scope, OrType.Make<NameKey,ImplicitKey>(nameKey), genericParameters.Select(x=>new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),new WeakGenericTypeDefinitionConverter(nameKey, genericParameters));
+                var myScope = context.TypeProblem.CreateGenericType(
+                    scope, 
+                    OrType.Make<NameKey,ImplicitKey>(nameKey), 
+                    genericParameters.Select(x=>new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),
+                    new WeakTypeDefinitionConverter());
                 var nextLines = lines.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray();
                 return new SetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), OrType.Make<Tpn.IExplicitType, IError>(myScope));
             }
