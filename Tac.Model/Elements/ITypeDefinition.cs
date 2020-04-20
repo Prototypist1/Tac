@@ -24,13 +24,13 @@ namespace Tac.Model.Elements
     }
 
     public interface ITypeOr : IVerifiableType {
-        IOrType<IVerifiableType, IError> Left { get; }
-        IOrType<IVerifiableType, IError> Right { get; }
+        IVerifiableType Left { get; }
+        IVerifiableType Right { get; }
     }
 
     public interface ITypeAnd : IVerifiableType {
-        IOrType<IVerifiableType, IError> Left { get; }
-        IOrType<IVerifiableType, IError> Right { get; }
+        IVerifiableType Left { get; }
+        IVerifiableType Right { get; }
     }
 
 
@@ -61,8 +61,8 @@ namespace Tac.Model.Elements
     }
 
     public interface IMethodType : IVerifiableType {
-        IOrType<IVerifiableType, IError> InputType { get; }
-        IOrType<IVerifiableType, IError> OutputType { get; }
+        IVerifiableType InputType { get; }
+        IVerifiableType OutputType { get; }
     }
 
     // what is this??
@@ -83,9 +83,9 @@ namespace Tac.Model.Elements
 
     // TODO an implementation type is a method type!
     public interface IImplementationType : IVerifiableType {
-        IOrType<IVerifiableType, IError> InputType { get; }
-        IOrType<IVerifiableType, IError> OutputType { get; }
-        IOrType<IVerifiableType, IError> ContextType { get; }
+        IVerifiableType InputType { get; }
+        IVerifiableType OutputType { get; }
+        IVerifiableType ContextType { get; }
     }
 
     //public interface IGenericImplementationType : IGenericType

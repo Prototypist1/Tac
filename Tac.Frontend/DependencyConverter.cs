@@ -18,7 +18,7 @@ namespace Tac.Frontend
 
 
         public WeakTypeDefinition ConvertToType<TBaking>(IAssembly<TBaking> assembly)
-            where TBaking:IBacking
+            where TBaking : IBacking
         {
             // is it ok to create a scope here?
             // yeah i think so
@@ -59,7 +59,7 @@ namespace Tac.Frontend
 
 
             var scope = new WeakScope(
-                assembly.Scope.Members.Select(x=> new Box<WeakMemberDefinition>(MemberDefinition(x.Value.Value)).CastTo<IBox<WeakMemberDefinition>>()).ToList());
+                assembly.Scope.Members.Select(x => new Box<WeakMemberDefinition>(MemberDefinition(x.Value.Value)).CastTo<IBox<WeakMemberDefinition>>()).ToList());
 
             return new WeakTypeDefinition(new Box<WeakScope>(scope));
 
@@ -83,7 +83,7 @@ namespace Tac.Frontend
                 var interpetedMemberDefinition = new WeakMemberDefinition(
                     member.ReadOnly,
                     member.Key,
-                    TypeMap.MapType(member.Type).TransformInner(x=>new Box<IFrontendType>(x)));
+                    OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>(TypeMap.MapType(member.Type))));
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition;
             }
@@ -123,60 +123,53 @@ namespace Tac.Frontend
     internal static class TypeMap
     {
 
-        public static IOrType<IConvertableFrontendType<IVerifiableType>,IError> MapType(IOrType< IVerifiableType,IError> verifiableType)
+        public static IConvertableFrontendType<IVerifiableType> MapType(IVerifiableType verifiableType)
         {
-            return verifiableType.SwitchReturns(x =>
+
+
+            if (verifiableType is INumberType)
             {
+                return new NumberType();
+            }
+            if (verifiableType is IBooleanType)
+            {
+                return new BooleanType();
+            }
+            if (verifiableType is IStringType)
+            {
+                return new StringType();
+            }
+            if (verifiableType is IBlockType)
+            {
+                return new BlockType();
+            }
+            if (verifiableType is IEmptyType)
+            {
+                return new EmptyType();
+            }
+            if (verifiableType is IAnyType)
+            {
+                return new AnyType();
+            }
+            if (verifiableType is IMethodType method)
+            {
+                return new MethodType(
+                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(method.InputType)),
+                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(method.OutputType))
+                    );
+            }
+            if (verifiableType is IImplementationType implementation)
+            {
+                return new ImplementationType(
+                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.ContextType)),
+                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.InputType)),
+                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.OutputType))
+                    );
+            }
 
-                if (x is INumberType)
-                {
-                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new NumberType());
-                }
-                if (x is IBooleanType)
-                {
-                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new BooleanType());
-                }
-                if (x is IStringType)
-                {
-                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new StringType());
-                }
-                if (x is IBlockType)
-                {
-                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new BlockType());
-                }
-                if (x is IEmptyType)
-                {
-                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType());
-                }
-                if (x is IAnyType)
-                {
-                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new AnyType());
-                }
-                if (x is IMethodType method)
-                {
-                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new MethodType(
-                        MapType(method.InputType),
-                        MapType(method.OutputType)
-                        ));
-                }
-                if (x is IImplementationType implementation)
-                {
-                    return OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new ImplementationType(
-                        MapType(implementation.ContextType),
-                        MapType(implementation.InputType),
-                        MapType(implementation.OutputType)
-                        ));
-                }
-
-                throw new NotImplementedException();
-
-            }, 
-            x => OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(x));
-
-
+            throw new NotImplementedException();
         }
-
     }
-
 }
+
 

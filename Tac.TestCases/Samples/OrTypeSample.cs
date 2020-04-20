@@ -20,16 +20,16 @@ module or-test
         public IModuleDefinition ModuleDefinition => Model.Instantiated.ModuleDefinition.CreateAndBuild(
              Scope.CreateAndBuild(
                 new List<IsStatic> {
-                    new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), OrType.Make< IVerifiableType ,IError>(TypeOr.CreateAndBuild(OrType.Make< IVerifiableType ,IError>(new BooleanType()),OrType.Make< IVerifiableType ,IError>(new NumberType()))), false), false),
-                    new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("y"), OrType.Make< IVerifiableType ,IError>(TypeOr.CreateAndBuild(OrType.Make< IVerifiableType ,IError>(new BooleanType()),OrType.Make< IVerifiableType ,IError>(new NumberType()))), false), false)}),
+                    new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false), false),
+                    new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("y"), TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false), false)}),
             new[] {
-                OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
-                    OrType.Make<ICodeElement, IError>(ConstantNumber.CreateAndBuild(5)),
-                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),OrType.Make< IVerifiableType ,IError>(TypeOr.CreateAndBuild(OrType.Make< IVerifiableType ,IError>(new BooleanType()),OrType.Make< IVerifiableType ,IError>(new NumberType()))), false))))),
-                OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
-                    OrType.Make<ICodeElement, IError>(ConstantBool.CreateAndBuild(false)),
-                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("y"),OrType.Make< IVerifiableType ,IError>(TypeOr.CreateAndBuild(OrType.Make< IVerifiableType ,IError>(new BooleanType()),OrType.Make< IVerifiableType ,IError>(new NumberType()))), false)))))},
+                AssignOperation.CreateAndBuild(
+                    ConstantNumber.CreateAndBuild(5),
+                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false))),
+                AssignOperation.CreateAndBuild(
+                    ConstantBool.CreateAndBuild(false),
+                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("y"),TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), false)))},
             new NameKey("or-test"),
-            EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
+            EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
     }
 }

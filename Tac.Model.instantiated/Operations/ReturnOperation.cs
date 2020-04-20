@@ -7,23 +7,23 @@ namespace Tac.Model.Instantiated
 {
     public class ReturnOperation : IReturnOperation, ITrailingOperationBuilder { 
     
-        private readonly Buildable<IOrType<ICodeElement, IError>> buildableResult = new Buildable<IOrType<ICodeElement, IError>>();
+        private readonly Buildable<ICodeElement> buildableResult = new Buildable<ICodeElement>();
 
-        public void Build(IOrType<ICodeElement, IError> result)
+        public void Build(ICodeElement result)
         {
             buildableResult.Set(result);
         }
 
-        public IOrType<ICodeElement, IError> Result => buildableResult.Get();
+        public ICodeElement Result => buildableResult.Get();
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking
         {
             return context.ReturnOperation(this);
         }
 
-        public IOrType<IVerifiableType, IError> Returns()
+        public IVerifiableType Returns()
         {
-            return OrType.Make<IVerifiableType, IError>(new EmptyType());
+            return new EmptyType();
         }
 
         private ReturnOperation() { }
@@ -34,7 +34,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IReturnOperation CreateAndBuild(IOrType<ICodeElement, IError> result) {
+        public static IReturnOperation CreateAndBuild(ICodeElement result) {
             var (x, y) = Create();
             y.Build(result);
             return x;
@@ -43,6 +43,6 @@ namespace Tac.Model.Instantiated
 
     public interface ITrailingOperationBuilder
     {
-        void Build(IOrType< ICodeElement,IError> result);
+        void Build(ICodeElement result);
     }
 }

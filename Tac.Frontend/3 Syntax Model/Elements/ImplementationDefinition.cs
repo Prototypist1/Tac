@@ -22,12 +22,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticImplementationDefinitionMaker = AddElementMakers(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, ITypeProblemNode>> StaticImplementationDefinitionMaker = AddElementMakers(
             () => new ImplementationDefinitionMaker(),
-            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, ITypeProblemNode>> ImplementationDefinitionMaker = StaticImplementationDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
 
@@ -69,7 +69,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    OutputType.TransformInner(x=>x.GetValue().ConvertTypeOrThrow(context)),
+                    OutputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
                     ContextDefinition.GetValue().Convert(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),

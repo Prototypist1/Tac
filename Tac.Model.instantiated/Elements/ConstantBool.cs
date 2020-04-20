@@ -18,9 +18,9 @@ namespace Tac.Model.Instantiated
             return context.ConstantBool(this);
         }
 
-        public IOrType<IVerifiableType, IError> Returns()
+        public IVerifiableType Returns()
         {
-            return OrType.Make<IVerifiableType, IError>(new BooleanType());
+            return new BooleanType();
         }
 
         #endregion

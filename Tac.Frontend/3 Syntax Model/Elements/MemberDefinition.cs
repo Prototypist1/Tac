@@ -48,7 +48,7 @@ namespace Tac.SemanticModel
             //uhh seems bad
             var buildIntention = Type.TransformInner(x=>x.GetValue().CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context));
             var built = buildIntention.TransformInner( x=> { x.Build(); return x.Tobuild; });
-            builder.Build(Key, built, ReadOnly);
+            builder.Build(Key, built.Is1OrThrow(), ReadOnly);
             return def;
         }
         public static IBuildIntention<IMemberDefinition> GetBuildIntention(IOrType<IBox<IFrontendType>, IError> Type, IConversionContext context, bool ReadOnly, IKey Key)
@@ -58,7 +58,7 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Key,
-                    Type.TransformInner(x=>x.GetValue().ConvertTypeOrThrow(context)),
+                    Type.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
                     ReadOnly);
             });
         }

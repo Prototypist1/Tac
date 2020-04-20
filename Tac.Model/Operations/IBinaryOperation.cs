@@ -6,15 +6,15 @@ namespace Tac.Model.Operations
 {
     public interface IOperation : ICodeElement
     {
-        IReadOnlyList<IOrType<ICodeElement,IError>> Operands { get; }
+        IReadOnlyList<ICodeElement> Operands { get; }
     }
 
     public interface IBinaryOperation<TLeft, TRight> : IOperation
         where TLeft : ICodeElement
         where TRight : ICodeElement
     {
-        IOrType<TLeft,IError> Left { get; }
-        IOrType<TRight,IError> Right { get; }
+        TLeft Left { get; }
+        TRight Right { get; }
     }
 
 

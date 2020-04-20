@@ -77,7 +77,7 @@ namespace Tac.SemanticModel
 
                 maker.Build(
                     Scope.GetValue().Convert(context),
-                    staticInit,
+                    staticInit.Select(x=>x.Is1OrThrow()).ToArray(),
                     Key,
                     EntryPoint.GetValue().Convert(context));
             });

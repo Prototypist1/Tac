@@ -42,7 +42,7 @@ namespace Tac.Frontend
                 var type = problem.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
                 foreach (var memberPair in dependency.Scope.Members)
                 {
-                    var innerType = ConvertType(problem, type, memberPair.Value.Value.Type);
+                    var innerType = ConvertType(problem, type, OrType.Make<IVerifiableType, IError>( memberPair.Value.Value.Type));
                     innerType.Switch(x =>
                     {
                         problem.CreateMember(type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
@@ -116,7 +116,7 @@ namespace Tac.Frontend
                     var orType = OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(tpnType);
                     foreach (var memberPair in interfaceType.Members)
                     {
-                        var innerType = ConvertType(problem, tpnType, memberPair.Type);
+                        var innerType = ConvertType(problem, tpnType, OrType.Make<IVerifiableType, IError>(memberPair.Type));
                         innerType.Switch(x =>
                         {
 
@@ -138,8 +138,8 @@ namespace Tac.Frontend
                 }
                 else if (type is MethodType methodType)
                 {
-                    var input = ConvertType(problem, scope, methodType.InputType);
-                    var output = ConvertType(problem, scope, methodType.OutputType);
+                    var input = ConvertType(problem, scope, OrType.Make<IVerifiableType, IError>(methodType.InputType));
+                    var output = ConvertType(problem, scope, OrType.Make<IVerifiableType, IError>(methodType.OutputType));
                     if (input.Is2(out var i2) && output.Is2(out var o2))
                     {
                         problem.GetMethod(i2, o2);

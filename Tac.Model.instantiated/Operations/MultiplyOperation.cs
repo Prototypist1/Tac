@@ -8,18 +8,18 @@ namespace Tac.Model.Instantiated
 {
     public class MultiplyOperation : IMultiplyOperation, IBinaryOperationBuilder
     {
-        private readonly Buildable<IOrType<ICodeElement, IError>> buildableLeft = new Buildable<IOrType<ICodeElement, IError>>();
-        private readonly Buildable<IOrType<ICodeElement, IError>> buildableRight = new Buildable<IOrType<ICodeElement, IError>>();
+        private readonly Buildable<ICodeElement> buildableLeft = new Buildable<ICodeElement>();
+        private readonly Buildable<ICodeElement> buildableRight = new Buildable<ICodeElement>();
 
-        public void Build(IOrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
+        public void Build(ICodeElement left, ICodeElement right)
         {
             buildableLeft.Set(left);
             buildableRight.Set(right);
         }
 
-        public IOrType<ICodeElement, IError> Left => buildableLeft.Get();
-        public IOrType<ICodeElement, IError> Right => buildableRight.Get();
-        public IReadOnlyList<IOrType<ICodeElement, IError>> Operands => new[] { Left, Right };
+        public ICodeElement Left => buildableLeft.Get();
+        public ICodeElement Right => buildableRight.Get();
+        public IReadOnlyList<ICodeElement> Operands => new[] { Left, Right };
 
         private MultiplyOperation() { }
 
@@ -34,12 +34,12 @@ namespace Tac.Model.Instantiated
             return context.MultiplyOperation(this);
         }
 
-        public IOrType<IVerifiableType, IError> Returns()
+        public IVerifiableType Returns()
         {
-            return OrType.Make<IVerifiableType, IError>(new NumberType());
+            return new NumberType();
         }
         
-        public static IMultiplyOperation CreateAndBuild(IOrType<ICodeElement, IError> left, IOrType<ICodeElement, IError> right)
+        public static IMultiplyOperation CreateAndBuild(ICodeElement left, ICodeElement right)
         {
             var (x, y) = Create();
             y.Build(left, right);

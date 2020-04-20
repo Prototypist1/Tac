@@ -128,9 +128,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.TransformInner(x=>x.Convert(context)),
-                        outputType.TransformInner(x => x.Convert(context)),
-                        contextType.TransformInner(x => x.Convert(context)));
+                        inputType.Is1OrThrow().Convert(context),
+                        outputType.Is1OrThrow().Convert(context),
+                        contextType.Is1OrThrow().Convert(context));
                 });
         }
     }
@@ -157,8 +157,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.TransformInner(x=>x.Convert(context)),
-                        outputType.TransformInner(x=>x.Convert(context)));
+                        inputType.Is1OrThrow().Convert(context),
+                        outputType.Is1OrThrow().Convert(context));
                 });
         }
     }

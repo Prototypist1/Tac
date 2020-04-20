@@ -58,11 +58,11 @@ namespace Tac.SemanticModel
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    InputType.TransformInner(x=>x.GetValue().ConvertTypeOrThrow(context)),
-                    OutputType.TransformInner(x => x.GetValue().ConvertTypeOrThrow(context)),
+                    InputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
+                    OutputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
-                    Body.Select(x => x.TransformInner(y=>y .GetValue().ConvertElementOrThrow(context))).ToArray(),
+                    Body.Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }

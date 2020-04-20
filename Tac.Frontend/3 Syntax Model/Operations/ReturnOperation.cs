@@ -59,7 +59,7 @@ namespace Tac.SemanticModel.Operations
             var (toBuild, maker) = ReturnOperation.Create();
             return new BuildIntention<IReturnOperation>(toBuild, () =>
             {
-                maker.Build(Result.TransformInner(x=>x.GetValue().ConvertElementOrThrow(context)));
+                maker.Build(Result.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
     }

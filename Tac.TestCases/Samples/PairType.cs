@@ -30,52 +30,50 @@ module pair-type {
             var pairTypeNumber =
                 InterfaceType.CreateAndBuild(
                         new List<IMemberDefinition>{
-                                MemberDefinition.CreateAndBuild(new NameKey("x"),OrType.Make< IVerifiableType ,IError>(new NumberType()), false) ,
-                                MemberDefinition.CreateAndBuild(new NameKey("y"), OrType.Make< IVerifiableType ,IError>(new NumberType()), false)
+                                MemberDefinition.CreateAndBuild(new NameKey("x"),new NumberType(), false) ,
+                                MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false)
                         });
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, OrType.Make<IVerifiableType, IError>(new NumberType()), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
             
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input, false) });
 
-            var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), OrType.Make<IVerifiableType, IError>(new NumberType()), false);
-            var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), OrType.Make<IVerifiableType, IError>(new NumberType()), false);
+            var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), false);
+            var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false);
 
             var pairifyKey = new NameKey("pairify");
-            var pairify = MemberDefinition.CreateAndBuild(pairifyKey, OrType.Make<IVerifiableType, IError>(MethodType.CreateAndBuild(OrType.Make<IVerifiableType, IError>(new NumberType()), OrType.Make<IVerifiableType, IError>(pairTypeNumber))), false);
+            var pairify = MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false);
 
             ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
-                    new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, OrType.Make<IVerifiableType, IError>(MethodType.CreateAndBuild(OrType.Make<IVerifiableType, IError>(new NumberType()), OrType.Make<IVerifiableType, IError>(pairTypeNumber))), false), false) }),
+                    new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
                 new [] {
-                    OrType.Make<ICodeElement, IError>(AssignOperation.CreateAndBuild(
-                        OrType.Make<ICodeElement, IError>(MethodDefinition.CreateAndBuild(
-                            OrType.Make< IVerifiableType ,IError>(new NumberType()),
-                            OrType.Make< IVerifiableType ,IError>(pairTypeNumber),
+                    AssignOperation.CreateAndBuild(
+                        MethodDefinition.CreateAndBuild(
+                            new NumberType(),
+                            pairTypeNumber,
                             input,
                             methodScope,
-                            new IOrType<ICodeElement,IError>[]{
-                                OrType.Make<ICodeElement,IError>(
-                                    ReturnOperation.CreateAndBuild(OrType.Make<ICodeElement, IError>(
-                                        ObjectDefiniton.CreateAndBuild(
-                                                Scope.CreateAndBuild(
-                                                new List<IsStatic> {
-                                                    new IsStatic(localX ,false),
-                                                    new IsStatic(localY, false)
-                                                }),
-                                            new IOrType<IAssignOperation,IError>[]{
-                                                OrType.Make<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
-                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
-                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localX)))),
-                                                OrType.Make<IAssignOperation,IError>(AssignOperation.CreateAndBuild(
-                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(input)),
-                                                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(localY))))
-                                            }))))},
-                            Array.Empty<ICodeElement>())),
-                    OrType.Make<ICodeElement, IError>(MemberReference.CreateAndBuild(pairify))))},
+                            new ICodeElement[]{
+                                ObjectDefiniton.CreateAndBuild(
+                                        Scope.CreateAndBuild(
+                                        new List<IsStatic> {
+                                            new IsStatic(localX ,false),
+                                            new IsStatic(localY, false)
+                                        }),
+                                    new IAssignOperation[]{
+                                        AssignOperation.CreateAndBuild(
+                                            MemberReference.CreateAndBuild(input),
+                                            MemberReference.CreateAndBuild(localX)),
+                                        AssignOperation.CreateAndBuild(
+                                            MemberReference.CreateAndBuild(input),
+                                            MemberReference.CreateAndBuild(localY))
+                                    })},
+                            Array.Empty<ICodeElement>()),
+                    MemberReference.CreateAndBuild(pairify))},
                 new NameKey("pair-type"),
-                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<IOrType<ICodeElement, IError>>(), Array.Empty<ICodeElement>()));
+                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
         }
     }
 }

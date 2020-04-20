@@ -10,19 +10,19 @@ namespace Tac.Model.Instantiated
     public class ObjectDefiniton : IObjectDefiniton, IObjectDefinitonBuilder
     {
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
-        private readonly Buildable<IReadOnlyList<IOrType<IAssignOperation, IError>>> buildableAssignments = new Buildable<IReadOnlyList<IOrType<IAssignOperation, IError>>>();
+        private readonly Buildable<IReadOnlyList<IAssignOperation>> buildableAssignments = new Buildable<IReadOnlyList<IAssignOperation>>();
 
         private ObjectDefiniton() { }
 
         public IFinalizedScope Scope => buildableScope.Get();
-        public IReadOnlyList<IOrType<IAssignOperation, IError>> Assignments => buildableAssignments.Get();
+        public IReadOnlyList<IAssignOperation> Assignments => buildableAssignments.Get();
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking
         {
             return context.ObjectDefinition(this);
         }
 
-        public void Build(IFinalizedScope scope, IReadOnlyList<IOrType<IAssignOperation, IError>> assignments)
+        public void Build(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments)
         {
             buildableScope.Set(scope);
             buildableAssignments.Set(assignments);
@@ -34,20 +34,20 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IObjectDefiniton CreateAndBuild(IFinalizedScope scope, IReadOnlyList<IOrType<IAssignOperation, IError>> assignments) {
+        public static IObjectDefiniton CreateAndBuild(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments) {
             var (x, y) = Create();
             y.Build(scope, assignments);
             return x;
         }
 
-        public IOrType<IVerifiableType, IError> Returns()
+        public IVerifiableType Returns()
         {
-            return OrType.Make<IVerifiableType, IError>( InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x => x.Value).ToList()));
+            return InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x => x.Value).ToList());
         }
     }
 
     public interface IObjectDefinitonBuilder
     {
-        void Build(IFinalizedScope scope, IReadOnlyList<IOrType<IAssignOperation, IError>> assignments);
+        void Build(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments);
     }
 }

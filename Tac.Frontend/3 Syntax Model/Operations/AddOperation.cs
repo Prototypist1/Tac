@@ -58,8 +58,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<IAddOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.TransformInner(y=>y.GetValue().ConvertElementOrThrow(context)),
-                    Right.TransformInner(y => y.GetValue().ConvertElementOrThrow(context)));
+                    Left.Is1OrThrow().GetValue().ConvertElementOrThrow(context),
+                    Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
     }

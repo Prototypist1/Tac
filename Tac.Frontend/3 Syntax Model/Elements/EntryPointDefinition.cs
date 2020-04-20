@@ -51,7 +51,7 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Scope.GetValue().Convert(context),
-                    Body.Select(x => x.TransformInner(x=>x.GetValue().ConvertElementOrThrow(context))).ToArray(),
+                    Body.Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }

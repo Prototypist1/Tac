@@ -7,7 +7,7 @@ namespace Tac.Model.Elements
     {
         IKey Key { get; }
         IFinalizedScope Scope { get; }
-        IReadOnlyList<IOrType<ICodeElement, IError>> StaticInitialization { get; }
+        IReadOnlyList<ICodeElement> StaticInitialization { get; }
 
         IEntryPointDefinition EntryPoint { get; }
     }

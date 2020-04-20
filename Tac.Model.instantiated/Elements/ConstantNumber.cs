@@ -18,9 +18,9 @@ namespace Tac.Model.Instantiated
             return context.ConstantNumber(this);
         }
 
-        public IOrType<IVerifiableType, IError> Returns()
+        public IVerifiableType Returns()
         {
-            return OrType.Make<IVerifiableType, IError>(new NumberType());
+            return new NumberType();
         }
 
         #endregion

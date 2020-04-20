@@ -52,8 +52,8 @@ namespace Tac.SemanticModel.Operations
             return new BuildIntention<ISubtractOperation>(toBuild, () =>
             {
                 maker.Build(
-                    Left.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)), 
-                    Right.TransformInner(x => x.GetValue().ConvertElementOrThrow(context)));
+                    Left.Is1OrThrow().GetValue().ConvertElementOrThrow(context), 
+                    Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
     }

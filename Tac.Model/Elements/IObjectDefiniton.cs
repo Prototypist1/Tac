@@ -7,6 +7,6 @@ namespace Tac.Model.Elements
     public interface IObjectDefiniton : ICodeElement
     {
         IFinalizedScope Scope { get; }
-        IReadOnlyList<IOrType<IAssignOperation, IError>> Assignments { get; }
+        IReadOnlyList<IAssignOperation> Assignments { get; }
     }
 }

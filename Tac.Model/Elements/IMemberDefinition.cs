@@ -6,7 +6,7 @@ namespace Tac.Model.Elements
     public interface IMemberDefinition : IConvertable
     {
         IKey Key { get; }
-        IOrType<IVerifiableType, IError> Type { get; }
+        IVerifiableType Type { get; }
         bool ReadOnly { get; }
     }
 }

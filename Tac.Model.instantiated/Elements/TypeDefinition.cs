@@ -21,7 +21,7 @@ namespace Tac.Model.Instantiated
         public static IInterfaceModuleType ToVerifiableType(this IFinalizedScope scope) => scope.Members.Select(x => (x.Key, x.Value.Value.Type)).ToArray().ToVerifiableType();
 
 
-        public static IInterfaceModuleType ToVerifiableType(this (IKey, IOrType<IVerifiableType,IError>)[] scope)
+        public static IInterfaceModuleType ToVerifiableType(this (IKey, IVerifiableType)[] scope)
         {
             return InterfaceType.CreateAndBuild(scope.Select(x => MemberDefinition.CreateAndBuild(x.Item1, x.Item2, false)).ToList());
         }
@@ -89,9 +89,9 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
-        public IOrType<IVerifiableType, IError> Returns()
+        public IVerifiableType Returns()
         {
-            return OrType.Make<IVerifiableType, IError>( this);
+            return this;
         }
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking
@@ -111,12 +111,12 @@ namespace Tac.Model.Instantiated
         {
         }
 
-        private readonly Buildable<IOrType<IVerifiableType, IError>> left = new Buildable<IOrType<IVerifiableType, IError>>();
-        private readonly Buildable<IOrType<IVerifiableType, IError>> right = new Buildable<IOrType<IVerifiableType, IError>>();
+        private readonly Buildable<IVerifiableType> left = new Buildable<IVerifiableType>();
+        private readonly Buildable<IVerifiableType> right = new Buildable<IVerifiableType>();
 
-        public IOrType<IVerifiableType, IError> Left => left.Get();
+        public IVerifiableType Left => left.Get();
 
-        public IOrType<IVerifiableType, IError> Right => right.Get();
+        public IVerifiableType Right => right.Get();
 
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
@@ -137,7 +137,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static ITypeOr CreateAndBuild(IOrType<IVerifiableType, IError> left, IOrType<IVerifiableType, IError> right)
+        public static ITypeOr CreateAndBuild(IVerifiableType left, IVerifiableType right)
         {
             var res = new TypeOr();
             res.Build(left, right);
@@ -145,7 +145,7 @@ namespace Tac.Model.Instantiated
         }
 
 
-        public void Build(IOrType<IVerifiableType, IError> left, IOrType<IVerifiableType, IError> right)
+        public void Build(IVerifiableType left, IVerifiableType right)
         {
             if (left == null)
             {
@@ -164,20 +164,20 @@ namespace Tac.Model.Instantiated
 
     public interface ITypeOrBuilder
     {
-        void Build(IOrType<IVerifiableType,IError> left, IOrType<IVerifiableType, IError> right);
+        void Build(IVerifiableType left, IVerifiableType right);
     }
 
     public struct TypeAnd : ITypeAnd
     {
-        public TypeAnd(IOrType<IVerifiableType, IError> left, IOrType<IVerifiableType, IError> right)
+        public TypeAnd(IVerifiableType left, IVerifiableType right)
         {
             Left = left ?? throw new ArgumentNullException(nameof(left));
             Right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public IOrType<IVerifiableType, IError> Left { get; }
+        public IVerifiableType Left { get; }
 
-        public IOrType<IVerifiableType, IError> Right { get; }
+        public IVerifiableType Right { get; }
 
         public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
         {
@@ -356,7 +356,7 @@ namespace Tac.Model.Instantiated
     {
         private MethodType() { }
 
-        public void Build(IOrType<IVerifiableType,IError>  inputType, IOrType<IVerifiableType, IError> outputType)
+        public void Build(IVerifiableType  inputType, IVerifiableType outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -370,7 +370,7 @@ namespace Tac.Model.Instantiated
 
         // TOOD I am not sure I need to create and build any of these types...
         // good old constructors would do
-        public static IMethodType CreateAndBuild(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType) {
+        public static IMethodType CreateAndBuild(IVerifiableType inputType, IVerifiableType outputType) {
             var (x, y) = Create();
             y.Build(inputType, outputType);
             return x;
@@ -408,15 +408,15 @@ namespace Tac.Model.Instantiated
             //return this.WeAreThem(this, true);
         }
 
-        private IOrType<IVerifiableType, IError>? inputType; 
-        public IOrType<IVerifiableType, IError> InputType { get=> inputType?? throw new NullReferenceException(nameof(inputType)); private set=>inputType = value; }
-        private IOrType<IVerifiableType, IError>? outputType;
-        public IOrType<IVerifiableType, IError> OutputType { get => outputType ?? throw new NullReferenceException(nameof(outputType)); private set => outputType = value; }
+        private IVerifiableType? inputType; 
+        public IVerifiableType InputType { get=> inputType?? throw new NullReferenceException(nameof(inputType)); private set=>inputType = value; }
+        private IVerifiableType? outputType;
+        public IVerifiableType OutputType { get => outputType ?? throw new NullReferenceException(nameof(outputType)); private set => outputType = value; }
     }
     
     public interface IMethodTypeBuilder
     {
-        void Build(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType);
+        void Build(IVerifiableType inputType, IVerifiableType outputType);
     }
 
     // TODO struct?
@@ -427,7 +427,7 @@ namespace Tac.Model.Instantiated
     {
         private ImplementationType() { }
 
-        public void Build(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType, IOrType<IVerifiableType, IError> contextType)
+        public void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
         {
             ImplementationInputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             ImplementationOutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -435,7 +435,7 @@ namespace Tac.Model.Instantiated
             MethodInputType = contextType ?? throw new ArgumentNullException(nameof(contextType));
             var (outputMethod, outputMethodBuilder) = MethodType.Create();
             outputMethodBuilder.Build(inputType, outputType);
-            MethodOutputType = OrType.Make<IVerifiableType,IError>( outputMethod);
+            MethodOutputType =  outputMethod;
 
         }
         
@@ -445,7 +445,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IImplementationType CreateAndBuild(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType, IOrType<IVerifiableType, IError> contextType)
+        public static IImplementationType CreateAndBuild(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
         {
             var (res, builder) = Create();
             builder.Build(inputType, outputType, contextType);
@@ -484,17 +484,17 @@ namespace Tac.Model.Instantiated
             //return this.WeAreThem(this, true);
         }
 
-        private IOrType<IVerifiableType, IError>? ImplementationInputType;
-        private IOrType<IVerifiableType, IError>? ImplementationOutputType;
-        private IOrType<IVerifiableType, IError>? MethodInputType;
-        private IOrType<IVerifiableType, IError>? MethodOutputType;
+        private IVerifiableType? ImplementationInputType;
+        private IVerifiableType? ImplementationOutputType;
+        private IVerifiableType? MethodInputType;
+        private IVerifiableType? MethodOutputType;
 
-        IOrType<IVerifiableType, IError> IImplementationType.InputType => ImplementationInputType ?? throw new NullReferenceException(nameof(ImplementationInputType));
-        IOrType<IVerifiableType, IError> IImplementationType.OutputType => ImplementationOutputType ?? throw new NullReferenceException(nameof(ImplementationOutputType));
-        IOrType<IVerifiableType, IError> IMethodType.InputType => MethodInputType ?? throw new NullReferenceException(nameof(MethodInputType));
-        IOrType<IVerifiableType, IError> IMethodType.OutputType => MethodOutputType ?? throw new NullReferenceException(nameof(MethodOutputType));
-        private IOrType<IVerifiableType, IError>? contextType;
-        public IOrType<IVerifiableType, IError> ContextType { get => contextType ?? throw new NullReferenceException(nameof(contextType)); private set => contextType = value ?? throw new NullReferenceException(nameof(value)); }
+        IVerifiableType IImplementationType.InputType => ImplementationInputType ?? throw new NullReferenceException(nameof(ImplementationInputType));
+        IVerifiableType IImplementationType.OutputType => ImplementationOutputType ?? throw new NullReferenceException(nameof(ImplementationOutputType));
+        IVerifiableType IMethodType.InputType => MethodInputType ?? throw new NullReferenceException(nameof(MethodInputType));
+        IVerifiableType IMethodType.OutputType => MethodOutputType ?? throw new NullReferenceException(nameof(MethodOutputType));
+        private IVerifiableType? contextType;
+        public IVerifiableType ContextType { get => contextType ?? throw new NullReferenceException(nameof(contextType)); private set => contextType = value ?? throw new NullReferenceException(nameof(value)); }
     }
 
     public interface IGenericImplementationBuilder
@@ -504,7 +504,7 @@ namespace Tac.Model.Instantiated
 
     public interface IImplementationTypeBuilder
     {
-        void Build(IOrType<IVerifiableType, IError> inputType, IOrType<IVerifiableType, IError> outputType, IOrType<IVerifiableType, IError> contextType);
+        void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType);
     }
 
 }

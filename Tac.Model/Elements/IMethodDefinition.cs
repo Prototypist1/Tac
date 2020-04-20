@@ -8,8 +8,8 @@ namespace Tac.Model.Elements
     // well, it is not external... 
     public interface IInternalMethodDefinition: IBlockDefinition
     {
-        IOrType<IVerifiableType, IError> InputType { get; }
-        IOrType<IVerifiableType, IError> OutputType { get; }
+        IVerifiableType InputType { get; }
+        IVerifiableType OutputType { get; }
         IMemberDefinition ParameterDefinition { get; }
     }
 }
