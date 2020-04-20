@@ -56,20 +56,21 @@ module pair-type {
                             input,
                             methodScope,
                             new ICodeElement[]{
-                                ObjectDefiniton.CreateAndBuild(
-                                        Scope.CreateAndBuild(
-                                        new List<IsStatic> {
-                                            new IsStatic(localX ,false),
-                                            new IsStatic(localY, false)
-                                        }),
-                                    new IAssignOperation[]{
-                                        AssignOperation.CreateAndBuild(
-                                            MemberReference.CreateAndBuild(input),
-                                            MemberReference.CreateAndBuild(localX)),
-                                        AssignOperation.CreateAndBuild(
-                                            MemberReference.CreateAndBuild(input),
-                                            MemberReference.CreateAndBuild(localY))
-                                    })},
+                                ReturnOperation.CreateAndBuild(
+                                    ObjectDefiniton.CreateAndBuild(
+                                            Scope.CreateAndBuild(
+                                            new List<IsStatic> {
+                                                new IsStatic(localX ,false),
+                                                new IsStatic(localY, false)
+                                            }),
+                                        new IAssignOperation[]{
+                                            AssignOperation.CreateAndBuild(
+                                                MemberReference.CreateAndBuild(input),
+                                                MemberReference.CreateAndBuild(localX)),
+                                            AssignOperation.CreateAndBuild(
+                                                MemberReference.CreateAndBuild(input),
+                                                MemberReference.CreateAndBuild(localY))
+                                        }))},
                             Array.Empty<ICodeElement>()),
                     MemberReference.CreateAndBuild(pairify))},
                 new NameKey("pair-type"),
