@@ -51,6 +51,9 @@ namespace Tac.SemanticModel.Operations
 
     internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAssignOperation>
     {
+        // right is really a member reference or a member definition
+        // I think a member defintion return a member reference
+        // so always a member referece
         public WeakAssignOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
         }

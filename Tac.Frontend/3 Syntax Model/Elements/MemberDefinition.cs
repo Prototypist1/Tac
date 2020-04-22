@@ -66,6 +66,8 @@ namespace Tac.SemanticModel
     }
 
     // is this really a frontend type??
+    // do I really need an interface?
+    // an internal interface?
     internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>
     {
         IOrType<IBox<IFrontendType>, IError> Type { get; }

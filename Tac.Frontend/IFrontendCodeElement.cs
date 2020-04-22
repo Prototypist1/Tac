@@ -13,6 +13,7 @@ namespace Tac.Frontend
     {
         // we can do better, but what does it get us?
         // let's wait and see
+        IEnumerable<IError> Validate();
     }
 
     internal static class IFrontendCodeElementStatic{
@@ -42,6 +43,9 @@ namespace Tac.Frontend
 
     internal interface IFrontendType
     {
+        // comming soon!
+        //bool WeAreThem(IFrontendType frontendType);
+        //bool TheyAreUs(IFrontendType frontendType);
     }
 
 

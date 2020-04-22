@@ -65,6 +65,20 @@ namespace Tac.SemanticModel
                     Assignments.Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray());
             });
         }
+
+        public IEnumerable<IError> Validate() {
+            foreach (var item in Scope.GetValue().Validate())
+            {
+                yield return item;
+            }
+            foreach (var assignment in Assignments)
+            {
+                foreach (var error in assignment.SwitchReturns<IEnumerable<IError>>(x => x.GetValue().Validate(), x => new List<IError>() { x}))
+                {
+                    yield return error;
+                }
+            }
+        }
     }
 
     internal class ObjectDefinitionMaker : IMaker<ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>>

@@ -39,5 +39,7 @@ namespace Tac.SemanticModel
                 maker.Build(MemberDefinition.GetValue().Convert(context));
             });
         }
+
+        public IEnumerable<IError> Validate() => MemberDefinition.GetValue().Validate();
     }
 }

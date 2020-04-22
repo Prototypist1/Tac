@@ -95,6 +95,7 @@ namespace Tac.SemanticModel.CodeStuff
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
         public abstract IBuildIntention<TCodeElement> GetBuildIntention(IConversionContext context);
+        public abstract IEnumerable<IError> Validate();
     }
 
 

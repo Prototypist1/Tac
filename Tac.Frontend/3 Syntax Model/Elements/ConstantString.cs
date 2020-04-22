@@ -12,6 +12,8 @@ using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
+using System.Collections.Generic;
+using System;
 
 namespace Tac.Parser
 {
@@ -59,6 +61,8 @@ namespace Tac.SemanticModel.Operations
                     Value.GetOrThrow());
             });
         }
+
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
     internal class ConstantStringMaker : IMaker<ISetUp<IBox<WeakConstantString>, Tpn.IValue>>

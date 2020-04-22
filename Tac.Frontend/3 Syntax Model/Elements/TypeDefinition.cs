@@ -64,6 +64,8 @@ namespace Tac.SemanticModel
                 maker.Build(Scope.GetValue().Convert(context).Members.Values.Select(x=>x.Value).ToArray());
             });
         }
+
+        public IEnumerable<IError> Validate() => Scope.GetValue().Validate();
     }
 
 
