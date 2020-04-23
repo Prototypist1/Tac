@@ -41,8 +41,8 @@ namespace Tac.SemanticModel
     {
 
         public WeakImplementationDefinition(
-            IBox<IWeakMemberDefinition> contextDefinition,
-            IBox<IWeakMemberDefinition> parameterDefinition,
+            IBox<WeakMemberDefinition> contextDefinition,
+            IBox<WeakMemberDefinition> parameterDefinition,
             IOrType< IBox<IFrontendType>,IError> outputType,
             IReadOnlyList<IBox<IFrontendCodeElement>> metohdBody,
             IBox<WeakScope> scope, 
@@ -57,8 +57,8 @@ namespace Tac.SemanticModel
         }
 
         public IOrType<IBox<IFrontendType>, IError> OutputType { get; }
-        public IBox<IWeakMemberDefinition> ContextDefinition { get; }
-        public IBox<IWeakMemberDefinition> ParameterDefinition { get; }
+        public IBox<WeakMemberDefinition> ContextDefinition { get; }
+        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
         public IBox<WeakScope> Scope { get; }
         public IReadOnlyList<IBox<IFrontendCodeElement>> MethodBody { get; }
         public IEnumerable<IFrontendCodeElement> StaticInitialzers { get; }
@@ -76,6 +76,40 @@ namespace Tac.SemanticModel
                     MethodBody.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitialzers.Select(x => x.ConvertElementOrThrow(context)).ToArray());
             });
+        }
+
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in OutputType.SwitchReturns(x=>x.GetValue().Validate(),x=> new[] { x}))
+            {
+                yield return error;
+            }
+            foreach (var error in ContextDefinition.GetValue().Validate())
+            {
+                yield return error;
+            }
+            foreach (var error in ParameterDefinition.GetValue().Validate())
+            {
+                yield return error;
+            }
+            foreach (var error in Scope.GetValue().Validate())
+            {
+                yield return error;
+            }
+            foreach (var line in MethodBody)
+            {
+                foreach (var error in line.GetValue().Validate())
+                {
+                    yield return error;
+                }
+            }
+            foreach (var line in StaticInitialzers)
+            {
+                foreach (var error in line.Validate())
+                {
+                    yield return error;
+                }
+            }
         }
     }
 

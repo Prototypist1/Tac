@@ -53,6 +53,8 @@ namespace Tac.Frontend.SyntaxModel.Elements
                 maker.Build();
             });
         }
+
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
     internal class EmptyInstanceMaker : IMaker<ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue>>

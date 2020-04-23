@@ -16,6 +16,6 @@ namespace Tac.Frontend.SyntaxModel.Elements
     {
         IIsPossibly<IFrontendType> InputType { get; }
         IIsPossibly<IFrontendType> OutputType { get; }
-        IIsPossibly<IBox<IIsPossibly<IWeakMemberDefinition>>> ParameterDefinition { get; }
+        IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
     }
 }

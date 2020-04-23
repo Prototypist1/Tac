@@ -8,12 +8,17 @@ using Tac.Model.Instantiated;
 
 namespace Tac.Frontend
 {
-    // not every frontend code element is convertable. type definitions are not.
-    internal interface IFrontendCodeElement
-    {
+
+    internal interface IValidate {
         // we can do better, but what does it get us?
         // let's wait and see
         IEnumerable<IError> Validate();
+    }
+
+    // not every frontend code element is convertable. type definitions are not.
+    internal interface IFrontendCodeElement: IValidate
+    {
+
     }
 
     internal static class IFrontendCodeElementStatic{
@@ -41,7 +46,7 @@ namespace Tac.Frontend
     {
     }
 
-    internal interface IFrontendType
+    internal interface IFrontendType: IValidate
     {
         // comming soon!
         //bool WeAreThem(IFrontendType frontendType);

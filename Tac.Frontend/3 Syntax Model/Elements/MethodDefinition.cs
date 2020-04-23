@@ -39,7 +39,7 @@ namespace Tac.SemanticModel
     {
         public WeakMethodDefinition(
             IOrType<IBox<IFrontendType>, IError> outputType,
-            IBox<IWeakMemberDefinition> parameterDefinition,
+            IBox<WeakMemberDefinition> parameterDefinition,
             IReadOnlyList<IOrType< IBox<IFrontendCodeElement>,IError>> body,
             IBox<WeakScope> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
@@ -50,7 +50,7 @@ namespace Tac.SemanticModel
 
         public IOrType<IBox<IFrontendType>,IError> InputType => ParameterDefinition.GetValue().Type;
         public IOrType<IBox<IFrontendType>, IError> OutputType { get; }
-        public IBox<IWeakMemberDefinition> ParameterDefinition { get; }
+        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
 
         public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(IConversionContext context)
         {

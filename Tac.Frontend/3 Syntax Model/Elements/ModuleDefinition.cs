@@ -82,6 +82,25 @@ namespace Tac.SemanticModel
                     EntryPoint.GetValue().Convert(context));
             });
         }
+
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in Scope.GetValue().Validate())
+            {
+                yield return error;
+            }
+            foreach (var error in EntryPoint.GetValue().Validate())
+            {
+                yield return error;
+            }
+            foreach (var line in StaticInitialization)
+            {
+                foreach (var error in line.SwitchReturns(x=>x.GetValue().Validate(),x=>new[] { x}))
+                {
+                    yield return error;
+                }
+            }
+        }
     }
     
     // modules are not really objects tho

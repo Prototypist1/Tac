@@ -95,7 +95,17 @@ namespace Tac.SemanticModel.CodeStuff
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
         }
         public abstract IBuildIntention<TCodeElement> GetBuildIntention(IConversionContext context);
-        public abstract IEnumerable<IError> Validate();
+
+        public virtual IEnumerable<IError> Validate() {
+            foreach (var item in Left.SwitchReturns(x => x.GetValue().Validate(), x => new List<IError>() { x }))
+            {
+                yield return item;
+            }
+            foreach (var item in Right.SwitchReturns(x => x.GetValue().Validate(), x => new List<IError>() { x }))
+            {
+                yield return item;
+            }
+        }
     }
 
 
@@ -127,6 +137,18 @@ namespace Tac.SemanticModel.CodeStuff
 
 
         public abstract IBuildIntention<TType> GetBuildIntention(IConversionContext context);
+
+        public virtual IEnumerable<IError> Validate()
+        {
+            foreach (var error in Left.SwitchReturns(x=>x.GetValue().Validate(),x=>new[] { x}))
+            {
+                yield return error;
+            }
+            foreach (var error in Right.SwitchReturns(x => x.GetValue().Validate(), x => new[] { x }))
+            {
+                yield return error;
+            }
+        }
     }
 
 

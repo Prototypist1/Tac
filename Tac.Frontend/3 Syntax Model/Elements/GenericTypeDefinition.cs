@@ -58,6 +58,8 @@ namespace Tac.SemanticModel
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
         public IBox<WeakScope> Scope { get; }
+
+        public IEnumerable<IError> Validate() => Scope.GetValue().Validate();
     }
     
     internal class GenericTypeDefinitionMaker : IMaker<ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>>

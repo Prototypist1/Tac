@@ -68,19 +68,19 @@ namespace Tac.SemanticModel
     // is this really a frontend type??
     // do I really need an interface?
     // an internal interface?
-    internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>
-    {
-        IOrType<IBox<IFrontendType>, IError> Type { get; }
-        bool ReadOnly { get; }
-        IKey Key { get; }
-        IMemberDefinition Convert(IConversionContext context);
-    }
+    //internal interface IWeakMemberDefinition:  IConvertable<IMemberDefinition>
+    //{
+    //    IOrType<IBox<IFrontendType>, IError> Type { get; }
+    //    bool ReadOnly { get; }
+    //    IKey Key { get; }
+    //    IMemberDefinition Convert(IConversionContext context);
+    //}
 
     // it is possible members are single instances with look up
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    internal class WeakMemberDefinition:  IWeakMemberDefinition
+    internal class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate
     {
         public WeakMemberDefinition(bool readOnly, IKey key, IOrType<IBox<IFrontendType>,IError> type)
         {
@@ -103,6 +103,13 @@ namespace Tac.SemanticModel
             return MemberDefinitionShared.GetBuildIntention(Type, context, ReadOnly, Key);
         }
 
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in Type.SwitchReturns(x=>x.GetValue().Validate(),x=>new[] { x }))
+            {
+                yield return error;
+            }
+        }
     }
 
     internal class MemberDefinitionMaker : IMaker<ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>>

@@ -22,6 +22,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<IBlockType>(new Model.Instantiated.BlockType(), () => { });
         }
+
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
     internal struct StringType : IConvertableFrontendType<IStringType>, IPrimitiveType
@@ -30,6 +32,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<IStringType>(new Model.Instantiated.StringType(), () => { });
         }
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
     internal struct EmptyType : IConvertableFrontendType<IEmptyType>, IPrimitiveType
     {
@@ -37,6 +40,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<IEmptyType>(new Model.Instantiated.EmptyType(), () => { });
         }
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
     internal struct NumberType : IConvertableFrontendType<INumberType>, IPrimitiveType
@@ -45,6 +49,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<INumberType>(new Model.Instantiated.NumberType(), () => { });
         }
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
     internal interface IGenericTypeParameterPlacholder : IFrontendType
@@ -85,6 +90,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
         }
+
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
     internal struct AnyType : IConvertableFrontendType<IAnyType>, IPrimitiveType
@@ -93,6 +100,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<IAnyType>(new Model.Instantiated.AnyType(), () => { });
         }
+
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
     internal struct BooleanType : IConvertableFrontendType<IBooleanType>, IPrimitiveType
@@ -101,6 +110,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<IBooleanType>(new Tac.Model.Instantiated.BooleanType(), () => { });
         }
+
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
     internal struct ImplementationType : IConvertableFrontendType<IImplementationType>, IPrimitiveType
     {
@@ -133,6 +144,22 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                         contextType.Is1OrThrow().Convert(context));
                 });
         }
+
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in InputType.SwitchReturns(x => x.Validate(), x => new[]{x})) 
+            {
+                yield return error;
+            }
+            foreach (var error in OutputType.SwitchReturns(x => x.Validate(), x => new[] { x }))
+            {
+                yield return error;
+            }
+            foreach (var error in ContextType.SwitchReturns(x => x.Validate(), x => new[] { x }))
+            {
+                yield return error;
+            }
+        }
     }
     internal class MethodType : IConvertableFrontendType<IMethodType>, IPrimitiveType
     {
@@ -161,6 +188,18 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                         outputType.Is1OrThrow().Convert(context));
                 });
         }
+
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in InputType.SwitchReturns(x => x.Validate(), x => new[] { x }))
+            {
+                yield return error;
+            }
+            foreach (var error in OutputType.SwitchReturns(x => x.Validate(), x => new[] { x }))
+            {
+                yield return error;
+            }
+        }
     }
 
     // uhhh do I still need these?? (GenericMethodType, GenericImplementationType, IGenericMethodType, IGenericImplementationType)
@@ -173,8 +212,6 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         private readonly IFrontendType input;
         private readonly IFrontendType output;
 
-
-
         public GenericMethodType(IFrontendType input, IFrontendType output)
         {
             this.input = input ?? throw new ArgumentNullException(nameof(input));
@@ -184,6 +221,17 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in input.Validate())
+            {
+                yield return error;
+            }
+            foreach (var error in output.Validate())
+            {
+                yield return error;
+            }
+        }
     }
 
 
@@ -205,6 +253,22 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
+
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in input.Validate())
+            {
+                yield return error;
+            }
+            foreach (var error in output.Validate())
+            {
+                yield return error;
+            }
+            foreach (var error in context.Validate())
+            {
+                yield return error;
+            }
+        }
         //public IOrType<IFrontendGenericType, IConvertableFrontendType<IVerifiableType>> Overlay(TypeParameter[] typeParameters)
         //{
         //    var overlay = new Overlay(typeParameters.ToDictionary(x => x.parameterDefinition, x => x.frontendType));

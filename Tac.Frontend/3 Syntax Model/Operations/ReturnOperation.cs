@@ -62,6 +62,14 @@ namespace Tac.SemanticModel.Operations
                 maker.Build(Result.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
+
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in Result.SwitchReturns(x=>x.GetValue().Validate(),x=>new[] { x }))
+            {
+                yield return error;
+            }
+        }
     }
 
     internal abstract class TrailingOperion<T> 
