@@ -37,7 +37,7 @@ namespace Tac.Parser
 namespace Tac.SemanticModel
 {
 
-    internal class WeakImplementationDefinition: IConvertableFrontendCodeElement<IImplementationDefinition>
+    internal class WeakImplementationDefinition: IConvertableFrontendCodeElement<IImplementationDefinition>, IReturn
     {
 
         public WeakImplementationDefinition(

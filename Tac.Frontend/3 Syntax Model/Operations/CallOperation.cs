@@ -15,6 +15,7 @@ using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
 using Tac.SemanticModel;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -51,7 +52,7 @@ namespace Tac.Parser
 namespace Tac.SemanticModel.Operations
 {
 
-    internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, INextCallOperation>
+    internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, INextCallOperation>, IReturn
     {
         public WeakNextCallOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
         {
@@ -68,6 +69,70 @@ namespace Tac.SemanticModel.Operations
             });
         }
 
+
+        public override IEnumerable<IError> Validate()
+        {
+            foreach (var error in base.Validate())
+            {
+                yield return error;
+            }
+
+            var intermittentLeft = Left.Possibly1().AsEnummerable()
+                .Select(x => x.GetValue()).ToArray();
+
+            foreach (var thing in intermittentLeft)
+            {
+                if (!(thing is IReturn))
+                {
+                    yield return Error.Other($"{thing} should return");
+                }
+            }
+
+            var leftList = intermittentLeft
+                .OfType<IReturn>()
+                .Select(x => x.Returns().Possibly1())
+                .OfType<IIsDefinately<IFrontendType>>()
+                .Select(x => x.Value.UnwrapRefrence())
+                .ToArray();
+
+            var intermittentRight = Right.Possibly1().AsEnummerable()
+                .Select(x => x.GetValue()).ToArray();
+
+
+            foreach (var thing in intermittentRight)
+            {
+                if (!(thing is IReturn))
+                {
+                    yield return Error.Other($"{thing} should return");
+                }
+            }
+
+            var rightList = intermittentRight
+                .OfType<IReturn>()
+                .Select(x => x.Returns().Possibly1())
+                .OfType<IIsDefinately<IFrontendType>>()
+                .Select(x => x.Value.UnwrapRefrence())
+                .ToArray();
+
+            throw new NotImplementedException();
+
+            if (leftList.Length == rightList.Length)
+            {
+                foreach (var error in leftList.Zip(rightList, (leftReturns, rightReturns) => {
+                    if (leftReturns.IsAssignableTo(rightReturns))
+                    {
+                        return Possibly.Is(Error.Other($"can not assign {leftReturns} to {rightReturns}"));
+                    }
+                    else
+                    {
+                        return Possibly.IsNot<IError>();
+                    }
+                }).OfType<IIsDefinately<IError>>().Select(x => x.Value))
+                {
+                    yield return error;
+                }
+            }
+        }
 
     }
 
@@ -103,7 +168,7 @@ namespace Tac.SemanticModel.Operations
         }
     }
 
-    internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILastCallOperation>
+    internal class WeakLastCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILastCallOperation>, IReturn
     {
         public const string Identifier = "<";
 

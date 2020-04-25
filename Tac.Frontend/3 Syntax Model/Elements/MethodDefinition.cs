@@ -35,7 +35,7 @@ namespace Tac.SemanticModel
 {
 
     internal class WeakMethodDefinition :
-        WeakAbstractBlockDefinition<IInternalMethodDefinition>
+        WeakAbstractBlockDefinition<IInternalMethodDefinition>, IReturn
     {
         public WeakMethodDefinition(
             IOrType<IBox<IFrontendType>, IError> outputType,

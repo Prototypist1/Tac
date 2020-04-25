@@ -18,7 +18,7 @@ namespace Tac.Frontend
 
     // ref
     internal interface IReturn {
-        IFrontendType Returns();
+        IOrType<IFrontendType,IError> Returns();
     }
 
     // not every frontend code element is convertable. type definitions are not.

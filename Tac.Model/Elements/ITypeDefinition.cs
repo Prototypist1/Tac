@@ -36,6 +36,7 @@ namespace Tac.Model.Elements
 
     public interface IBlockType : IVerifiableType { }
     public interface IEntryPointType : IVerifiableType { }
+    public interface IReferanceType : IVerifiableType { }
 
     public interface INumberType: IVerifiableType { }
     public interface IBooleanType: IVerifiableType { }

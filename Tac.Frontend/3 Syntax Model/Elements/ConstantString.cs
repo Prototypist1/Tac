@@ -43,7 +43,7 @@ namespace Tac.SemanticModel.Operations
     // but we do know more about constants
     // I guess maybe there should be a class number extended by constant number?
     // IDK!
-    internal class WeakConstantString : IConvertableFrontendCodeElement<IConstantString>
+    internal class WeakConstantString : IConvertableFrontendCodeElement<IConstantString>, IReturn
     {
         public WeakConstantString(IIsPossibly<string> value)
         {

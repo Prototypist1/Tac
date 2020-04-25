@@ -35,7 +35,7 @@ namespace Tac.Parser
 namespace Tac.SemanticModel.Operations
 {
 
-    internal class WeakConstantBool : IConvertableFrontendCodeElement<IConstantBool>
+    internal class WeakConstantBool : IConvertableFrontendCodeElement<IConstantBool>, IReturn
     {
         public WeakConstantBool(IIsPossibly<bool> value)
         {

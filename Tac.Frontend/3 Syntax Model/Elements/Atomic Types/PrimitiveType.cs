@@ -10,10 +10,33 @@ using Tac.SemanticModel;
 
 namespace Tac.SyntaxModel.Elements.AtomicTypes
 {
-    // reference is a type!
+    internal static class FrontendTypeExtensions{
+        public static IFrontendType UnwrapRefrence(this IFrontendType frontendType) 
+        {
+            if (frontendType is RefType refType) {
+                return refType.inner;
+            }
+            return frontendType;
+        }
+    }
 
     internal interface IPrimitiveType: IFrontendType
     {
+    }
+
+    // reference is a type! it 
+    // but it probably does not mean what you think it means
+    // it really means you can assign to it
+    // this is what is returned by member and member reference 
+    internal class RefType : IConvertableFrontendType<IReferanceType>, IPrimitiveType {
+        public IBuildIntention<IBlockType> GetBuildIntention(IConversionContext context)
+        {
+            return new BuildIntention<IBlockType>(new Model.Instantiated.BlockType(), () => { });
+        }
+
+        public IEnumerable<IError> Validate() => Array.Empty<IError>();
+
+        public readonly IFrontendType inner;
     }
 
     internal struct BlockType : IConvertableFrontendType<IBlockType>, IPrimitiveType

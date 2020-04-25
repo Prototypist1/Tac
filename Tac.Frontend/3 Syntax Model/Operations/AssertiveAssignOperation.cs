@@ -15,6 +15,7 @@ using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
 using Tac.SemanticModel;
 using System.Linq;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -50,7 +51,7 @@ namespace Tac.SemanticModel.Operations
 
 
 
-    internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAssignOperation>
+    internal class WeakAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IAssignOperation>, IReturn
     {
         // right is really a member reference or a member definition
         // I think a member defintion return a member reference
@@ -69,6 +70,13 @@ namespace Tac.SemanticModel.Operations
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
+
+        public IOrType<IFrontendType, IError> Returns() => Left.TransformAndFlatten(x => {
+            if (x is IReturn @return) {
+                return @return.Returns();
+            }
+            return OrType.Make<IFrontendType, IError>(Error.Other("left needs to return"));
+        } );
 
         public override IEnumerable<IError> Validate()
         {
@@ -90,6 +98,9 @@ namespace Tac.SemanticModel.Operations
 
             var leftList = intermittentLeft
                 .OfType<IReturn>()
+                .Select(x => x.Returns().Possibly1())
+                .OfType<IIsDefinately<IFrontendType>>()
+                .Select(x => x.Value.UnwrapRefrence())
                 .ToArray();
 
             var intermittentRight = Right.Possibly1().AsEnummerable()
@@ -106,12 +117,13 @@ namespace Tac.SemanticModel.Operations
 
             var rightList = intermittentRight
                 .OfType<IReturn>()
+                .Select(x => x.Returns().Possibly1())
+                .OfType<IIsDefinately<IFrontendType>>()
+                .Select(x => x.Value.UnwrapRefrence())
                 .ToArray();
 
             if (leftList.Length == rightList.Length) {
-                foreach (var error in leftList.Zip(rightList, (x,y)=> {
-                    var leftReturns = x.Returns();
-                    var rightReturns = y.Returns();
+                foreach (var error in leftList.Zip(rightList, (leftReturns, rightReturns) => {
                     if (leftReturns.IsAssignableTo(rightReturns))
                     {
                         return Possibly.Is(Error.Other($"can not assign {leftReturns} to {rightReturns}"));

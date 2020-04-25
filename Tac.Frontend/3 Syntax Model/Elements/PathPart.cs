@@ -22,7 +22,7 @@ namespace Tac.SemanticModel
 
     // TODO I don't think I want this...
     // just use member definition 
-    internal class WeakMemberReference : IWeakMemberReference
+    internal class WeakMemberReference : IWeakMemberReference, IReturn
     {
         public WeakMemberReference(IBox<WeakMemberDefinition> memberDefinition)
         {

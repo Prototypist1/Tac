@@ -39,7 +39,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
     // more analgous to something like a bool with a single value
     // than the null reference 
     // yeah but you still need to be able to create one...
-    internal class WeakEmptyInstance : IConvertableFrontendCodeElement<IEmptyInstance>
+    internal class WeakEmptyInstance : IConvertableFrontendCodeElement<IEmptyInstance>, IReturn
     {
         public WeakEmptyInstance()
         {

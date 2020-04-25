@@ -37,7 +37,7 @@ namespace Tac.Parser
 namespace Tac.SemanticModel.Operations
 {
 
-    internal class WeakConstantNumber : IConvertableFrontendCodeElement<IConstantNumber>
+    internal class WeakConstantNumber : IConvertableFrontendCodeElement<IConstantNumber>, IReturn
     {
         public WeakConstantNumber(IIsPossibly<double> value) 
         {

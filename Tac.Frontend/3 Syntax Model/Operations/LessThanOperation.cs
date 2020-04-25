@@ -13,6 +13,7 @@ using Tac.Parser;
 using Tac.SemanticModel.CodeStuff;
 using Prototypist.Toolbox;
 using Tac.SemanticModel;
+using System.Linq;
 
 namespace Tac.Parser
 {
@@ -38,7 +39,7 @@ namespace Tac.SemanticModel.CodeStuff
     }
     
 
-    internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILessThanOperation>
+    internal class WeakLessThanOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ILessThanOperation>, IReturn
     {
         public WeakLessThanOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
@@ -53,6 +54,70 @@ namespace Tac.SemanticModel.CodeStuff
                     Left.Is1OrThrow().GetValue().ConvertElementOrThrow(context), 
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
+        }
+
+        public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType());
+
+        public override IEnumerable<IError> Validate()
+        {
+            foreach (var error in base.Validate())
+            {
+                yield return error;
+            }
+
+            var intermittentLeft = Left.Possibly1().AsEnummerable()
+                .Select(x => x.GetValue()).ToArray();
+
+            foreach (var thing in intermittentLeft)
+            {
+                if (!(thing is IReturn))
+                {
+                    yield return Error.Other($"{thing} should return");
+                }
+            }
+
+            var leftList = intermittentLeft
+                .OfType<IReturn>()
+                .Select(x => x.Returns().Possibly1())
+                .OfType<IIsDefinately<IFrontendType>>()
+                .Select(x => x.Value.UnwrapRefrence())
+                .ToArray();
+
+            var intermittentRight = Right.Possibly1().AsEnummerable()
+                .Select(x => x.GetValue()).ToArray();
+
+
+            foreach (var thing in intermittentRight)
+            {
+                if (!(thing is IReturn))
+                {
+                    yield return Error.Other($"{thing} should return");
+                }
+            }
+
+            var rightList = intermittentRight
+                .OfType<IReturn>()
+                .Select(x => x.Returns().Possibly1())
+                .OfType<IIsDefinately<IFrontendType>>() // I really need a safe OfType
+                .Select(x => x.Value.UnwrapRefrence())
+                .ToArray();
+
+            if (leftList.Length == rightList.Length)
+            {
+                foreach (var error in leftList.Zip(rightList, (leftReturns, rightReturns) => {
+                    if (leftReturns.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()) && rightReturns.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()))
+                    {
+                        return Possibly.IsNot<IError>();
+                    }
+                    else
+                    {
+                        return Possibly.Is(Error.Other($"cannot add {leftReturns} to {rightReturns}"));
+                    }
+                }).OfType<IIsDefinately<IError>>().Select(x => x.Value))
+                {
+                    yield return error;
+                }
+            }
         }
     }
 

@@ -80,7 +80,7 @@ namespace Tac.SemanticModel
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
-    internal class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate
+    internal class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate, IReturn
     {
         public WeakMemberDefinition(bool readOnly, IKey key, IOrType<IBox<IFrontendType>,IError> type)
         {

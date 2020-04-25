@@ -42,7 +42,7 @@ namespace Tac.SemanticModel.Operations
 {
 
     // really an if not
-    internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IElseOperation>
+    internal class WeakElseOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IElseOperation>, IReturn
     {
         // right should have more validation
         public WeakElseOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
@@ -59,6 +59,8 @@ namespace Tac.SemanticModel.Operations
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
+
+        public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType());
     }
 
 

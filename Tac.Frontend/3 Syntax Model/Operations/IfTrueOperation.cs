@@ -41,13 +41,17 @@ namespace Tac.Parser
 
 namespace Tac.SemanticModel.Operations
 {
-    internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IIfOperation>
+    internal class WeakIfTrueOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, IIfOperation>, IReturn
     {
         // right should have more validation
         public WeakIfTrueOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
         }
-        
+
+
+        public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType());
+
+
         public override IBuildIntention<IIfOperation> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = IfOperation.Create();

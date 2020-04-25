@@ -42,7 +42,7 @@ namespace Tac.Parser
 
 namespace Tac.SemanticModel.Operations
 {
-    internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ISubtractOperation>
+    internal class WeakSubtractOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ISubtractOperation>, IReturn
     {
         public WeakSubtractOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)
         {
@@ -58,6 +58,8 @@ namespace Tac.SemanticModel.Operations
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
+
+        public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType());
 
 
         public override IEnumerable<IError> Validate()
@@ -80,6 +82,9 @@ namespace Tac.SemanticModel.Operations
 
             var leftList = intermittentLeft
                 .OfType<IReturn>()
+                .Select(x => x.Returns().Possibly1())
+                .OfType<IIsDefinately<IFrontendType>>() // I really need a safe OfType
+                .Select(x => x.Value.UnwrapRefrence())
                 .ToArray();
 
             var intermittentRight = Right.Possibly1().AsEnummerable()
@@ -96,13 +101,14 @@ namespace Tac.SemanticModel.Operations
 
             var rightList = intermittentRight
                 .OfType<IReturn>()
+                .Select(x => x.Returns().Possibly1())
+                .OfType<IIsDefinately<IFrontendType>>() // I really need a safe OfType
+                .Select(x => x.Value.UnwrapRefrence())
                 .ToArray();
 
             if (leftList.Length == rightList.Length)
             {
-                foreach (var error in leftList.Zip(rightList, (x, y) => {
-                    var leftReturns = x.Returns();
-                    var rightReturns = y.Returns();
+                foreach (var error in leftList.Zip(rightList, (leftReturns, rightReturns) => {
                     if (leftReturns.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()) && rightReturns.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()))
                     {
                         return Possibly.IsNot<IError>();
