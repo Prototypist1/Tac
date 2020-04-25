@@ -114,24 +114,41 @@ namespace Tac.SemanticModel.Operations
                 .Select(x => x.Value.UnwrapRefrence())
                 .ToArray();
 
-            throw new NotImplementedException();
-
-            if (leftList.Length == rightList.Length)
+            foreach (var thing in intermittentRight)
             {
-                foreach (var error in leftList.Zip(rightList, (leftReturns, rightReturns) => {
-                    if (leftReturns.IsAssignableTo(rightReturns))
-                    {
-                        return Possibly.Is(Error.Other($"can not assign {leftReturns} to {rightReturns}"));
-                    }
-                    else
-                    {
-                        return Possibly.IsNot<IError>();
-                    }
-                }).OfType<IIsDefinately<IError>>().Select(x => x.Value))
+                if (!(thing is MethodDefinition) && !(thing is ImplementationDefinition))
                 {
-                    yield return error;
+                    yield return Error.Other($"{thing} should return");
                 }
             }
+
+            if (rightList.Any() && leftList.Any()) {
+                var called = rightList.First();
+                var input = leftList.First();
+
+                {
+                    if (called.SafeIs(out SyntaxModel.Elements.AtomicTypes.MethodType method) && method.InputType.Is1(out var inputType))
+                    {
+                        if (!input.IsAssignableTo(inputType))
+                        {
+                            yield return Error.Other($"{method} does not accept {input}");
+                        }
+                    }
+                }
+
+                {
+                    if (called.SafeIs(out SyntaxModel.Elements.AtomicTypes.ImplementationType implementation) && implementation.InputType.Is1(out var inputType))
+                    {
+
+                        if (!input.IsAssignableTo(inputType))
+                        {
+                            yield return Error.Other($"{implementation} does not accept {input}");
+                        }
+                    }
+                }
+
+            }
+
         }
 
     }

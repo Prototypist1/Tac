@@ -122,18 +122,14 @@ namespace Tac.SemanticModel.Operations
                 .Select(x => x.Value.UnwrapRefrence())
                 .ToArray();
 
-            if (leftList.Length == rightList.Length) {
-                foreach (var error in leftList.Zip(rightList, (leftReturns, rightReturns) => {
-                    if (leftReturns.IsAssignableTo(rightReturns))
-                    {
-                        return Possibly.Is(Error.Other($"can not assign {leftReturns} to {rightReturns}"));
-                    }
-                    else {
-                        return Possibly.IsNot<IError>();
-                    }
-                }).OfType<IIsDefinately<IError>>().Select(x=>x.Value))
+
+            if (rightList.Any() && leftList.Any())
+            {
+                var left = rightList.First();
+                var right = leftList.First();
+                if (left.IsAssignableTo(right))
                 {
-                    yield return error;
+                    yield return Error.Other($"can not assign {left} to {right}");
                 }
             }
         }

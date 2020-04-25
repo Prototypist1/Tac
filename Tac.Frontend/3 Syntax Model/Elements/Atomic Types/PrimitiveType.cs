@@ -136,6 +136,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
+
+    // this so is a method....
     internal struct ImplementationType : IConvertableFrontendType<IImplementationType>, IPrimitiveType
     {
         public ImplementationType(IOrType<IConvertableFrontendType<IVerifiableType>, IError> inputType, IOrType<IConvertableFrontendType<IVerifiableType>, IError> outputType, IOrType<IConvertableFrontendType<IVerifiableType>, IError> contextType)

@@ -107,20 +107,13 @@ namespace Tac.SemanticModel.Operations
                 .Select(x => x.Value.UnwrapRefrence())
                 .ToArray();
 
-            if (leftList.Length == rightList.Length)
+            if (rightList.Any() && leftList.Any())
             {
-                foreach (var error in leftList.Zip(rightList, (leftReturns, rightReturns) => {
-                    if (leftReturns.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()) && rightReturns.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()))
-                    {
-                        return Possibly.IsNot<IError>();
-                    }
-                    else
-                    {
-                        return Possibly.Is(Error.Other($"cannot multiply {leftReturns} to {rightReturns}"));
-                    }
-                }).OfType<IIsDefinately<IError>>().Select(x => x.Value))
+                var left = rightList.First();
+                var right = leftList.First();
+                if (!(left.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()) && right.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType())))
                 {
-                    yield return error;
+                    yield return Error.Other($"can not multiply {left} with {right}");
                 }
             }
         }
