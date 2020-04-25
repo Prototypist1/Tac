@@ -62,6 +62,62 @@ namespace Tac.SemanticModel.Operations
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
+
+        public override IEnumerable<IError> Validate()
+        {
+            foreach (var error in base.Validate())
+            {
+                yield return error;
+            }
+
+            var intermittentLeft = Left.Possibly1().AsEnummerable()
+                .Select(x => x.GetValue()).ToArray();
+
+            foreach (var thing in intermittentLeft) {
+                if (!(thing is IReturn)) {
+                    yield return Error.Other($"{thing} should return");
+                }
+            }
+
+            var leftList = intermittentLeft
+                .OfType<IReturn>()
+                .ToArray();
+
+            var intermittentRight = Right.Possibly1().AsEnummerable()
+                .Select(x => x.GetValue()).ToArray();
+
+
+            foreach (var thing in intermittentRight)
+            {
+                if (!(thing is IReturn))
+                {
+                    yield return Error.Other($"{thing} should return");
+                }
+            }
+
+            var rightList = intermittentRight
+                .OfType<IReturn>()
+                .ToArray();
+
+            if (leftList.Length == rightList.Length)
+            {
+                foreach (var error in leftList.Zip(rightList, (x, y) => {
+                    var leftReturns = x.Returns();
+                    var rightReturns = y.Returns();
+                    if (leftReturns.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()) && rightReturns.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()))
+                    {
+                        return Possibly.IsNot<IError>();
+                    }
+                    else
+                    {
+                        return Possibly.Is(Error.Other($"cannot add {leftReturns} to {rightReturns}"));
+                    }
+                }).OfType<IIsDefinately<IError>>().Select(x => x.Value))
+                {
+                    yield return error;
+                }
+            }
+        }
     }
 
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation, IAddOperation>

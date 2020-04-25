@@ -16,6 +16,7 @@ using Tac.Frontend.Parser;
 using Prototypist.Toolbox.Object;
 using Prototypist.Toolbox;
 using Tac.SemanticModel;
+using System.Linq;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -70,6 +71,26 @@ namespace Tac.SemanticModel.Operations
                 yield return error;
             }
         }
+
+        public IEnumerable<IError> Validate()
+        {
+            // TODO this goes in the base class!
+            foreach (var error in Result.SwitchReturns(x => x.GetValue().Validate(), x => new List<IError>() { x }))
+            {
+                yield return error;
+            }
+
+            var intermittentResult = Result.Possibly1().AsEnummerable()
+                .Select(x => x.GetValue()).ToArray();
+
+            foreach (var thing in intermittentResult)
+            {
+                if (!(thing is IReturn))
+                {
+                    yield return Error.Other($"{thing} should return");
+                }
+            }
+        }
     }
 
     internal abstract class TrailingOperion<T> 
@@ -83,6 +104,8 @@ namespace Tac.SemanticModel.Operations
         public delegate OrType<Tpn.IValue,IError> GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType<ISetUpResult<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> parm);
 
         public delegate IBox<T> Make<out T>(IOrType< IBox<IFrontendCodeElement>,IError> codeElement);
+
+
     }
 
     internal class TrailingOperationMaker<TFrontendCodeElement, TCodeElement> : IMaker<ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>>

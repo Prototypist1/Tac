@@ -15,6 +15,12 @@ namespace Tac.Frontend
         IEnumerable<IError> Validate();
     }
 
+
+    // ref
+    internal interface IReturn {
+        IFrontendType Returns();
+    }
+
     // not every frontend code element is convertable. type definitions are not.
     internal interface IFrontendCodeElement: IValidate
     {
@@ -48,9 +54,7 @@ namespace Tac.Frontend
 
     internal interface IFrontendType: IValidate
     {
-        // comming soon!
-        //bool WeAreThem(IFrontendType frontendType);
-        //bool TheyAreUs(IFrontendType frontendType);
+        bool IsAssignableTo(IFrontendType frontendType);
     }
 
 

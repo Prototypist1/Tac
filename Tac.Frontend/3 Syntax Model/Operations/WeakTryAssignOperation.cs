@@ -14,6 +14,15 @@ using Tac.SemanticModel;
 
 namespace Tac.SemanticModel.Operations
 {
+
+    // the syntax for this...
+    // really needs to be
+    // 5 is number n { ... } 
+    // n only exists in the { ... }
+    // otherwise you could write 
+    // 5 is Cat cat { ... } ; cat.age > some-method
+    // and that will error out
+    
     internal class WeakTryAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ITryAssignOperation>
     {
 
