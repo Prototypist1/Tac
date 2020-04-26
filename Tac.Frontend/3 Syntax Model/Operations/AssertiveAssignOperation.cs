@@ -85,52 +85,22 @@ namespace Tac.SemanticModel.Operations
                 yield return error;
             }
 
-            var intermittentLeft = Left.Possibly1().AsEnummerable()
-                .Select(x => x.GetValue()).ToArray();
+            var leftTypeOrErrors = Left.GetTypeOrErrors();
+            var rightTypeOrErrors = Right.GetTypeOrErrors();
 
-            foreach (var thing in intermittentLeft)
+            foreach (var error in leftTypeOrErrors.SwitchReturns(l =>
+               rightTypeOrErrors.SwitchReturns<IEnumerable<IError>>(r => {
+                   if (!l.IsAssignableTo(r))
+                   {
+                       return new[] { Error.Other($"can not assign {l} to {r}") };
+                   }
+                   return Array.Empty<IError>();
+               }, r => {
+                   return new IError[] { r };
+               })
+            , l => rightTypeOrErrors.SwitchReturns<IEnumerable<IError>>(r => new IError[] { l }, r => new IError[] { l, r })))
             {
-                if (!(thing is IReturn))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
-            }
-
-            var leftList = intermittentLeft
-                .OfType<IReturn>()
-                .Select(x => x.Returns().Possibly1())
-                .OfType<IIsDefinately<IFrontendType>>()
-                .Select(x => x.Value.UnwrapRefrence())
-                .ToArray();
-
-            var intermittentRight = Right.Possibly1().AsEnummerable()
-                .Select(x => x.GetValue()).ToArray();
-
-
-            foreach (var thing in intermittentRight)
-            {
-                if (!(thing is IReturn))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
-            }
-
-            var rightList = intermittentRight
-                .OfType<IReturn>()
-                .Select(x => x.Returns().Possibly1())
-                .OfType<IIsDefinately<IFrontendType>>()
-                .Select(x => x.Value.UnwrapRefrence())
-                .ToArray();
-
-
-            if (rightList.Any() && leftList.Any())
-            {
-                var left = rightList.First();
-                var right = leftList.First();
-                if (left.IsAssignableTo(right))
-                {
-                    yield return Error.Other($"can not assign {left} to {right}");
-                }
+                yield return error;
             }
         }
     }

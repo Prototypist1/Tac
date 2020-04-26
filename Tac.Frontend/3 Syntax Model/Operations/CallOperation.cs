@@ -52,6 +52,43 @@ namespace Tac.Parser
 namespace Tac.SemanticModel.Operations
 {
 
+    internal static class CallOperationSharedCode {
+        public static IEnumerable<IError> Validate(IOrType<IBox<IFrontendCodeElement>, IError> input, IOrType<IBox<IFrontendCodeElement>, IError> method) {
+            var inputTypeOrErrors = input.GetTypeOrErrors();
+            var methodTypeOrErrors = method.GetTypeOrErrors().TransformAndFlatten<IFrontendType,  IFrontendType> (thing => {
+                if (thing is Tac.SyntaxModel.Elements.AtomicTypes.MethodType method)
+                {
+                    return method.InputType;
+                }
+                if (thing is Tac.SyntaxModel.Elements.AtomicTypes.ImplementationType implementation ) {
+
+                    return implementation.InputType;
+                }
+                return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"));
+            });
+
+            return inputTypeOrErrors.SwitchReturns(
+                i => methodTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
+                    mi=> {
+                        if (!i.IsAssignableTo(mi))
+                        {
+                            return new[] { Error.Other($"{method} does not accept {input}") };
+                        }
+                        return Array.Empty<IError>();
+                    },
+                    mi=> {
+                        return new IError[] { mi };
+                    }), 
+                i => methodTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
+                    m => {
+                        return new IError[] { i };
+                    }, 
+                    m => {
+                        return new IError[] { i,m };
+                    }));
+        }
+    }
+
     internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, INextCallOperation>, IReturn
     {
         public WeakNextCallOperation(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>, IError> right) : base(left, right)
@@ -77,76 +114,8 @@ namespace Tac.SemanticModel.Operations
                 yield return error;
             }
 
-            var intermittentLeft = Left.Possibly1().AsEnummerable()
-                .Select(x => x.GetValue()).ToArray();
-
-            foreach (var thing in intermittentLeft)
-            {
-                if (!(thing is IReturn))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
-            }
-
-            var leftList = intermittentLeft
-                .OfType<IReturn>()
-                .Select(x => x.Returns().Possibly1())
-                .OfType<IIsDefinately<IFrontendType>>()
-                .Select(x => x.Value.UnwrapRefrence())
-                .ToArray();
-
-            var intermittentRight = Right.Possibly1().AsEnummerable()
-                .Select(x => x.GetValue()).ToArray();
-
-
-            foreach (var thing in intermittentRight)
-            {
-                if (!(thing is IReturn))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
-            }
-
-            var rightList = intermittentRight
-                .OfType<IReturn>()
-                .Select(x => x.Returns().Possibly1())
-                .OfType<IIsDefinately<IFrontendType>>()
-                .Select(x => x.Value.UnwrapRefrence())
-                .ToArray();
-
-            foreach (var thing in intermittentRight)
-            {
-                if (!(thing is MethodDefinition) && !(thing is ImplementationDefinition))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
-            }
-
-            if (rightList.Any() && leftList.Any()) {
-                var called = rightList.First();
-                var input = leftList.First();
-
-                {
-                    if (called.SafeIs(out SyntaxModel.Elements.AtomicTypes.MethodType method) && method.InputType.Is1(out var inputType))
-                    {
-                        if (!input.IsAssignableTo(inputType))
-                        {
-                            yield return Error.Other($"{method} does not accept {input}");
-                        }
-                    }
-                }
-
-                {
-                    if (called.SafeIs(out SyntaxModel.Elements.AtomicTypes.ImplementationType implementation) && implementation.InputType.Is1(out var inputType))
-                    {
-
-                        if (!input.IsAssignableTo(inputType))
-                        {
-                            yield return Error.Other($"{implementation} does not accept {input}");
-                        }
-                    }
-                }
-
+            foreach (var error in CallOperationSharedCode.Validate(Left, Right)) {
+                yield return error;
             }
 
         }
@@ -202,6 +171,20 @@ namespace Tac.SemanticModel.Operations
                     Left.Is1OrThrow().GetValue().ConvertElementOrThrow(context), 
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
+        }
+
+        public override IEnumerable<IError> Validate()
+        {
+            foreach (var error in base.Validate())
+            {
+                yield return error;
+            }
+
+            foreach (var error in CallOperationSharedCode.Validate(Right, Left))
+            {
+                yield return error;
+            }
+
         }
     }
 
