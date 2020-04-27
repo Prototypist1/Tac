@@ -23,7 +23,7 @@ namespace Tac.SemanticModel.Operations
     // 5 is Cat cat { ... } ; cat.age > some-method
     // and that will error out
     
-    internal class WeakTryAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ITryAssignOperation>, IReturn
+    internal class WeakTryAssignOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, ITryAssignOperation>
     {
 
         public WeakTryAssignOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right) : base(left, right)

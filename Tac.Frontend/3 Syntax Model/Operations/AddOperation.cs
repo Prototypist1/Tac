@@ -81,7 +81,6 @@ namespace Tac.SemanticModel.Operations
             {
                 yield return error;
             }
-
         }
     }
 

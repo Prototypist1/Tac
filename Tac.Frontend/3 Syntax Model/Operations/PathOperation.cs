@@ -58,6 +58,29 @@ namespace Tac.SemanticModel.Operations
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
+
+        public IOrType<IFrontendType, IError> Returns()
+        {
+            return Right.TransformAndFlatten(x =>
+            {
+                if (x is IReturn @return) {
+                    return @return.Returns();
+                }
+                return OrType.Make<IFrontendType, IError>(Error.Other($"{Right} should return"));
+            });
+        }
+
+        public override IEnumerable<IError> Validate()
+        {
+            foreach (var error in base.Validate())
+            {
+                yield return error;
+            }
+
+            // really not sure how to validate this
+            // this will do for now
+        }
+
     }
 
 

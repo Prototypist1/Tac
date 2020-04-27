@@ -54,15 +54,15 @@ namespace Tac.SemanticModel.Operations
 
     internal static class CallOperationSharedCode {
         public static IEnumerable<IError> Validate(IOrType<IBox<IFrontendCodeElement>, IError> input, IOrType<IBox<IFrontendCodeElement>, IError> method) {
-            var inputTypeOrErrors = input.GetTypeOrErrors();
-            var methodTypeOrErrors = method.GetTypeOrErrors().TransformAndFlatten<IFrontendType,  IFrontendType> (thing => {
+            var inputTypeOrErrors = input.ReturnsTypeOrErrors();
+            var methodTypeOrErrors = method.ReturnsTypeOrErrors().TransformAndFlatten<IFrontendType,  IFrontendType> (thing => {
                 if (thing is Tac.SyntaxModel.Elements.AtomicTypes.MethodType method)
                 {
                     return method.InputType;
                 }
                 if (thing is Tac.SyntaxModel.Elements.AtomicTypes.ImplementationType implementation ) {
 
-                    return implementation.InputType;
+                    return implementation.ContextType;
                 }
                 return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"));
             });
@@ -87,6 +87,21 @@ namespace Tac.SemanticModel.Operations
                         return new IError[] { i,m };
                     }));
         }
+
+        public static IOrType<IFrontendType, IError> Returns(IOrType<IBox<IFrontendCodeElement>, IError> method) { 
+            return method.ReturnsTypeOrErrors().TransformAndFlatten<IFrontendType, IFrontendType>(thing => {
+                if (thing is Tac.SyntaxModel.Elements.AtomicTypes.MethodType method)
+                {
+                    return method.OutputType;
+                }
+                if (thing is Tac.SyntaxModel.Elements.AtomicTypes.ImplementationType implementation)
+                {
+
+                    return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(implementation.InputType, implementation.OutputType));
+                }
+                return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"));
+            });
+        }
     }
 
     internal class WeakNextCallOperation : BinaryOperation<IFrontendCodeElement, IFrontendCodeElement, INextCallOperation>, IReturn
@@ -106,6 +121,8 @@ namespace Tac.SemanticModel.Operations
             });
         }
 
+        public IOrType<IFrontendType, IError> Returns()=>CallOperationSharedCode.Returns(Right);
+        
 
         public override IEnumerable<IError> Validate()
         {
@@ -172,6 +189,9 @@ namespace Tac.SemanticModel.Operations
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
         }
+
+
+        public IOrType<IFrontendType, IError> Returns() => CallOperationSharedCode.Returns(Left);
 
         public override IEnumerable<IError> Validate()
         {

@@ -11,7 +11,7 @@ namespace Tac.SemanticModel.Operations
     internal static class ValidationHelp {
 
         public static IEnumerable<IError> TypeCheck(this IOrType<IBox<IFrontendCodeElement>, IError> self, IFrontendType targetType) {
-            return GetTypeOrErrors(self).SwitchReturns<IEnumerable<IError>>(
+            return ReturnsTypeOrErrors(self).SwitchReturns<IEnumerable<IError>>(
             x => {
                 if (!x.IsAssignableTo(targetType))
                 {
@@ -22,7 +22,7 @@ namespace Tac.SemanticModel.Operations
             x => new[] { x });
         }
 
-        public static IOrType<IFrontendType, IError> GetTypeOrErrors(this IOrType<IBox<IFrontendCodeElement>, IError> self)
+        public static IOrType<IFrontendType, IError> ReturnsTypeOrErrors(this IOrType<IBox<IFrontendCodeElement>, IError> self)
         {
             var intermittentLeft = self.Possibly1().AsEnummerable().Select(x => x.GetValue()).ToArray();
 

@@ -14,6 +14,7 @@ using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
 using Tac.SemanticModel;
+using System.Linq;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -61,6 +62,24 @@ namespace Tac.SemanticModel.Operations
                     Left.Is1OrThrow().GetValue().ConvertElementOrThrow(context), 
                     Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
             });
+        }
+
+        public override IEnumerable<IError> Validate()
+        {
+            foreach (var error in base.Validate())
+            {
+                yield return error;
+            }
+
+            if (!Right.Possibly1().AsEnummerable().OfType<WeakBlockDefinition>().Any())
+            {
+                yield return Error.Other($"right hand side must be a block");
+            }
+
+            foreach (var error in Left.TypeCheck(new Tac.SyntaxModel.Elements.AtomicTypes.BlockType()))
+            {
+                yield return error;
+            }
         }
     }
 

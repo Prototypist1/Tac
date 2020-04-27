@@ -14,6 +14,7 @@ using Prototypist.Toolbox;
 using Tac.SemanticModel;
 using System.Linq;
 using System.Collections.Generic;
+using Prototypist.Toolbox.Bool;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -64,8 +65,6 @@ namespace Tac.SemanticModel.Operations
 
         public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType());
 
-
-
         public override IEnumerable<IError> Validate()
         {
             foreach (var error in base.Validate())
@@ -73,58 +72,13 @@ namespace Tac.SemanticModel.Operations
                 yield return error;
             }
 
-            var intermittentLeft = Left.Possibly1().AsEnummerable()
-                .Select(x => x.GetValue()).ToArray();
-
-            foreach (var thing in intermittentLeft)
-            {
-                if (!(thing is IReturn))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
+            if (!Right.Possibly1().AsEnummerable().OfType<WeakBlockDefinition>().Any()) {
+                yield return Error.Other($"right hand side must be a block");
             }
 
-            var leftList = intermittentLeft
-                .OfType<IReturn>()
-                .Select(x => x.Returns().Possibly1())
-                .OfType<IIsDefinately<IFrontendType>>()
-                .Select(x => x.Value.UnwrapRefrence())
-                .ToArray();
-
-            if (leftList.Any())
+            foreach (var error in Left.TypeCheck(new Tac.SyntaxModel.Elements.AtomicTypes.BlockType()))
             {
-                var left = leftList.First();
-                if (!left.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType()))
-                {
-                    yield return Error.Other($"left cannot be {left}");
-                }
-            }
-
-            var intermittentRight = Right.Possibly1().AsEnummerable()
-                .Select(x => x.GetValue()).ToArray();
-
-
-            foreach (var thing in intermittentRight)
-            {
-                if (!(thing is IReturn))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
-            }
-
-            var rightList = intermittentRight
-                .OfType<IReturn>()
-                .Select(x => x.Returns().Possibly1())
-                .OfType<IIsDefinately<IFrontendType>>()
-                .Select(x => x.Value.UnwrapRefrence())
-                .ToArray();
-
-            if (rightList.Any()) { 
-                var right = leftList.First();
-                if (!right.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.BlockType())) {
-                    yield return Error.Other($"right cannot be {right}");
-
-                }
+                yield return error;
             }
         }
     }

@@ -85,8 +85,8 @@ namespace Tac.SemanticModel.Operations
                 yield return error;
             }
 
-            var leftTypeOrErrors = Left.GetTypeOrErrors();
-            var rightTypeOrErrors = Right.GetTypeOrErrors();
+            var leftTypeOrErrors = Left.ReturnsTypeOrErrors();
+            var rightTypeOrErrors = Right.ReturnsTypeOrErrors();
 
             foreach (var error in leftTypeOrErrors.SwitchReturns(l =>
                rightTypeOrErrors.SwitchReturns<IEnumerable<IError>>(r => {

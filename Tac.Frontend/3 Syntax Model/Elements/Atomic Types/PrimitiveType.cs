@@ -24,7 +24,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     {
     }
 
-    // reference is a type! it 
+    // reference is a type!
     // but it probably does not mean what you think it means
     // it really means you can assign to it
     // this is what is returned by member and member reference 

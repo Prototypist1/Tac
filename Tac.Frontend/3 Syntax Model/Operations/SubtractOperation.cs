@@ -69,51 +69,14 @@ namespace Tac.SemanticModel.Operations
                 yield return error;
             }
 
-            var intermittentLeft = Left.Possibly1().AsEnummerable()
-                .Select(x => x.GetValue()).ToArray();
-
-            foreach (var thing in intermittentLeft)
+            foreach (var error in Left.TypeCheck(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()))
             {
-                if (!(thing is IReturn))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
+                yield return error;
             }
 
-            var leftList = intermittentLeft
-                .OfType<IReturn>()
-                .Select(x => x.Returns().Possibly1())
-                .OfType<IIsDefinately<IFrontendType>>() // I really need a safe OfType
-                .Select(x => x.Value.UnwrapRefrence())
-                .ToArray();
-
-            var intermittentRight = Right.Possibly1().AsEnummerable()
-                .Select(x => x.GetValue()).ToArray();
-
-
-            foreach (var thing in intermittentRight)
+            foreach (var error in Right.TypeCheck(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()))
             {
-                if (!(thing is IReturn))
-                {
-                    yield return Error.Other($"{thing} should return");
-                }
-            }
-
-            var rightList = intermittentRight
-                .OfType<IReturn>()
-                .Select(x => x.Returns().Possibly1())
-                .OfType<IIsDefinately<IFrontendType>>() // I really need a safe OfType
-                .Select(x => x.Value.UnwrapRefrence())
-                .ToArray();
-
-            if (rightList.Any() && leftList.Any())
-            {
-                var left = rightList.First();
-                var right = leftList.First();
-                if (!(left.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType()) && right.IsAssignableTo(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType())))
-                {
-                    yield return Error.Other($"can not subtract {right} from {left}");
-                }
+                yield return error;
             }
         }
     }

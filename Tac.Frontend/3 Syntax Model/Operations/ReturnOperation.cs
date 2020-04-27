@@ -46,7 +46,7 @@ namespace Tac.Parser
 
 namespace Tac.SemanticModel.Operations
 {
-    internal class WeakReturnOperation : TrailingOperation, IConvertableFrontendCodeElement<IReturnOperation>, IReturn
+    internal class WeakReturnOperation : TrailingOperation, IConvertableFrontendCodeElement<IReturnOperation>
     {
         public WeakReturnOperation(IOrType< IBox<IFrontendCodeElement>,IError> result)
         {
@@ -68,11 +68,6 @@ namespace Tac.SemanticModel.Operations
         {
             // TODO this goes in the base class!
             foreach (var error in Result.SwitchReturns(x=>x.GetValue().Validate(),x=>new[] { x }))
-            {
-                yield return error;
-            }
-
-            foreach (var error in Result.SwitchReturns(x => x.GetValue().Validate(), x => new List<IError>() { x }))
             {
                 yield return error;
             }
