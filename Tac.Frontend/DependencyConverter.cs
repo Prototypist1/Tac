@@ -158,14 +158,14 @@ namespace Tac.Frontend
                     OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(method.OutputType))
                     );
             }
-            if (verifiableType is IImplementationType implementation)
-            {
-                return new ImplementationType(
-                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.ContextType)),
-                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.InputType)),
-                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.OutputType))
-                    );
-            }
+            //if (verifiableType is IImplementationType implementation)
+            //{
+            //    return new ImplementationType(
+            //        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.ContextType)),
+            //        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.InputType)),
+            //        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(implementation.OutputType))
+            //        );
+            //}
 
             throw new NotImplementedException();
         }

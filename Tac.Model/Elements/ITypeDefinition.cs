@@ -83,11 +83,11 @@ namespace Tac.Model.Elements
     //}
 
     // TODO an implementation type is a method type!
-    public interface IImplementationType : IVerifiableType {
-        IVerifiableType InputType { get; }
-        IVerifiableType OutputType { get; }
-        IVerifiableType ContextType { get; }
-    }
+    //public interface IImplementationType : IVerifiableType {
+    //    IVerifiableType InputType { get; }
+    //    IVerifiableType OutputType { get; }
+    //    IVerifiableType ContextType { get; }
+    //}
 
     //public interface IGenericImplementationType : IGenericType
     //{

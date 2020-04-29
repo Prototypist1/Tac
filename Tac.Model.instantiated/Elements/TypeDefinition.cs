@@ -423,6 +423,7 @@ namespace Tac.Model.Instantiated
     // no, anything that is built can not be a struct
     //
     // TODO TODO ok so I need this not to exist it is just a method ...
+    // definately
     public class ImplementationType : IImplementationType, IMethodType, IImplementationTypeBuilder
     {
         private ImplementationType() { }

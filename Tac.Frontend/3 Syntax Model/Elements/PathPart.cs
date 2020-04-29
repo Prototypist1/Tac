@@ -10,6 +10,7 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
+using Prototypist.Toolbox;
 
 namespace Tac.SemanticModel
 {
@@ -38,6 +39,11 @@ namespace Tac.SemanticModel
             {
                 maker.Build(MemberDefinition.GetValue().Convert(context));
             });
+        }
+
+        public IOrType<IFrontendType, IError> Returns()
+        {
+            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(MemberDefinition.GetValue().Type.TransformInner(x=>x.GetValue())));
         }
 
         public IEnumerable<IError> Validate() => MemberDefinition.GetValue().Validate();

@@ -78,6 +78,17 @@ namespace Tac.SemanticModel
             });
         }
 
+        public IOrType<IFrontendType, IError> Returns()
+        {
+            // TODO
+            // are there really frontend types that arnt convertable?!
+            return OrType.Make<IFrontendType, IError>(SyntaxModel.Elements.AtomicTypes.MethodType.ImplementationType(
+                ParameterDefinition.GetValue().Type.TransformInner(x=>x.GetValue()),
+                OutputType.TransformInner(x=>x.GetValue()),
+                ContextDefinition.GetValue().Type.TransformInner(x=>x.GetValue())
+                ));
+        }
+
         public IEnumerable<IError> Validate()
         {
             foreach (var error in OutputType.SwitchReturns(x=>x.GetValue().Validate(),x=> new[] { x}))

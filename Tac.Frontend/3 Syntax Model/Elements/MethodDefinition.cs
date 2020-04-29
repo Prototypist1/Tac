@@ -66,6 +66,16 @@ namespace Tac.SemanticModel
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
+
+        public IOrType<IFrontendType, IError> Returns()
+        {
+            // TODO
+            // are there really frontend types that arn't convertable?
+            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
+                InputType.TransformInner(x=>x.GetValue()),
+                OutputType.TransformInner(x=>x.GetValue())
+                ));
+        }
     }
 
     internal class MethodDefinitionMaker : IMaker<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>>

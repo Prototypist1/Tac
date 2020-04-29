@@ -103,6 +103,11 @@ namespace Tac.SemanticModel
             return MemberDefinitionShared.GetBuildIntention(Type, context, ReadOnly, Key);
         }
 
+        public IOrType<IFrontendType, IError> Returns()
+        {
+            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(Type.TransformInner( x => x.GetValue())));
+        }
+
         public IEnumerable<IError> Validate()
         {
             foreach (var error in Type.SwitchReturns(x=>x.GetValue().Validate(),x=>new[] { x }))

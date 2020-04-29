@@ -42,6 +42,7 @@ namespace Tac.SemanticModel
         //IIsPossibly<IKey> Key { get; }
     }
 
+    
     internal class WeakTypeDefinition : IWeakTypeDefinition
     {
         public WeakTypeDefinition(IBox<WeakScope> scope)//, IIsPossibly<IKey> key
@@ -63,6 +64,11 @@ namespace Tac.SemanticModel
             {
                 maker.Build(Scope.GetValue().Convert(context).Members.Values.Select(x=>x.Value).ToArray());
             });
+        }
+
+        public bool IsAssignableTo(IFrontendType frontendType)
+        {
+
         }
 
         public IEnumerable<IError> Validate() => Scope.GetValue().Validate();

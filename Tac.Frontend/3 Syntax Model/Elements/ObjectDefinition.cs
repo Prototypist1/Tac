@@ -39,7 +39,10 @@ namespace Tac.Parser
 
 namespace Tac.SemanticModel
 {
-
+    // honestly these being types is wierd
+    // espially since this is probably the same type as an module
+    // I think this returns a WeakTypeDefinition or maybe there should be a class for that
+    // I think there should be a class for that
     internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>, IScoped, IFrontendType, IReturn
     {
         public WeakObjectDefinition(IBox<WeakScope> scope, IReadOnlyList<IOrType<IBox<WeakAssignOperation>,IError>> assigns) {
