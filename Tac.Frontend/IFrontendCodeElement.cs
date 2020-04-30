@@ -56,7 +56,7 @@ namespace Tac.Frontend
     internal interface IFrontendType: IValidate
     {
         bool IsAssignableTo(IFrontendType frontendType);
-        IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key);
+        IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key);
     }
 
 
