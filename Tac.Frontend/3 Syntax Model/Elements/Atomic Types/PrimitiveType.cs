@@ -26,11 +26,56 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     internal class HasMembersType : IConvertableFrontendType<IInterfaceModuleType> {
 
-        public bool IsAssignableTo(IFrontendType frontendType) { 
-        
+
+
+        // for now the members all need to be the same type
+        // say A is { Human thing; } and B is { Animal thing; }
+        // B := A
+        // B.thing := () > Method [Empty, Chicken] { .... }
+        // breaks A, A.thing is a chicken
+        // 
+        // now 
+        // A := B
+        // B.thing := () > Method [Empty, Chicken] { .... }
+        // agains breaks A, A.thing is a chicken
+
+        // this is going to be more interesting when things can be read-only 
+        // I think readonly means: you never get to changes this but it can change
+        // I probably need another work for: this never changes
+
+        // if B is { readonly Animal thing; } then
+        // B := A
+        // is ok, humnas are always animals and you can't set on be to breaak things
+        // A := B is still not since B.thing might not be a Human
+        public bool IsAssignableTo(IFrontendType frontendType) {
+            
+            foreach (var member in members)
+            {
+                var theirMember = frontendType.TryGetMember(member.key);
+                if (!member.orType.Is1(out var ourType)) {
+                    continue;
+                }
+                if (!(theirMember is IIsDefinately<HowTypesThinkOfMembers> definately)) {
+                    return false;
+                }
+                if (!definately.Value.orType.Is1(out var theirType))
+                {
+                    continue;
+                }
+                if (!(theirType.IsAssignableTo(ourType) && ourType.IsAssignableTo(theirType))){
+                    return false;
+                }
+            }
+            return true;
         }
+        
 
         public IEnumerable<IError> Validate() => members.Select(x => x.orType.Possibly1()).OfType<IIsDefinately<IFrontendType>>().SelectMany(x => x.Value.Validate());
+
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key)
+        {
+
+        }
 
 
         public readonly IReadOnlyList<HowTypesThinkOfMembers> members;
@@ -59,6 +104,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IEnumerable<IError> Validate() => inner.SwitchReturns(x=>x.Validate(), x=>Array.Empty<IError>());
 
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
+
         public readonly IOrType< IFrontendType,IError> inner;
 
         public RefType(IOrType<IFrontendType, IError> inner)
@@ -77,6 +124,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public bool IsAssignableTo(IFrontendType frontendType) => frontendType is BlockType;
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
     }
 
     internal struct StringType : IConvertableFrontendType<IStringType>, IPrimitiveType
@@ -87,6 +135,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
 
         public bool IsAssignableTo(IFrontendType frontendType) => frontendType is StringType;
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
@@ -97,6 +146,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IEmptyType>(new Model.Instantiated.EmptyType(), () => { });
         }
         public bool IsAssignableTo(IFrontendType frontendType) => frontendType is EmptyType;
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
@@ -107,6 +157,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<INumberType>(new Model.Instantiated.NumberType(), () => { });
         }
         public bool IsAssignableTo(IFrontendType frontendType) => frontendType is NumberType;
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
@@ -152,6 +203,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
     }
 
     internal struct AnyType : IConvertableFrontendType<IAnyType>, IPrimitiveType
@@ -163,6 +215,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public bool IsAssignableTo(IFrontendType frontendType) => true;
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
     }
 
     internal struct BooleanType : IConvertableFrontendType<IBooleanType>, IPrimitiveType
@@ -175,6 +228,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public bool IsAssignableTo(IFrontendType frontendType) => frontendType is BooleanType;
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
     }
 
     // this so is a method....
@@ -296,6 +350,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
             return true;
         }
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
     }
 
     // uhhh do I still need these?? (GenericMethodType, GenericImplementationType, IGenericMethodType, IGenericImplementationType)
@@ -322,6 +377,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             throw new NotImplementedException();
         }
 
+        public IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key) => Possibly.IsNot<HowTypesThinkOfMembers>();
         public IEnumerable<IError> Validate()
         {
             foreach (var error in input.Validate())

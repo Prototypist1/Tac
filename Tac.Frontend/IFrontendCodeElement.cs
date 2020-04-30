@@ -5,6 +5,7 @@ using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Frontend
 {
@@ -55,6 +56,7 @@ namespace Tac.Frontend
     internal interface IFrontendType: IValidate
     {
         bool IsAssignableTo(IFrontendType frontendType);
+        IIsPossibly<HowTypesThinkOfMembers> TryGetMember(IKey key);
     }
 
 
