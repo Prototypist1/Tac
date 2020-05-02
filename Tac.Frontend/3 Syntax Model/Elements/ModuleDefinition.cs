@@ -13,6 +13,7 @@ using Tac.Model.Instantiated;
 using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Parser
 {
@@ -39,7 +40,7 @@ namespace Tac.SemanticModel
     // espially since this is probably the same type as an object
     // I think this returns a WeakTypeDefinition or maybe there should be a class for that
     // I think there should be a class for that
-    internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IFrontendType, IReturn
+    internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IReturn
     {
         public WeakModuleDefinition(IBox<WeakScope> scope, IReadOnlyList<IOrType<IBox<IFrontendCodeElement>,IError>> staticInitialization, IKey Key, IBox<WeakEntryPointDefinition> entryPoint)
         {
@@ -103,6 +104,11 @@ namespace Tac.SemanticModel
                     yield return error;
                 }
             }
+        }
+
+        public IOrType<IFrontendType, IError> Returns()
+        {
+            return OrType.Make< IFrontendType, IError > (new HasMembersType(Scope.GetValue()));
         }
     }
     

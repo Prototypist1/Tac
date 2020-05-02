@@ -10,8 +10,11 @@ namespace Tac.Model
         where TBacking : IBacking;
     }
 
+    
     public interface ICodeElement: IConvertable
     {
+        // I am not sure I need this
+        // I am not vetting this model
         IVerifiableType Returns();
     }
 }

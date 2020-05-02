@@ -11,12 +11,12 @@ using Tac.SemanticModel;
 namespace Tac.SyntaxModel.Elements.AtomicTypes
 {
     internal static class FrontendTypeExtensions{
-        public static IFrontendType UnwrapRefrence(this IFrontendType frontendType) 
+        public static IOrType<IFrontendType,IError> UnwrapRefrence(this IFrontendType frontendType) 
         {
             if (frontendType is RefType refType) {
                 return refType.inner;
             }
-            return frontendType;
+            return OrType.Make< IFrontendType,IError >(frontendType);
         }
     }
 
@@ -24,9 +24,74 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     {
     }
 
+    internal class FrontEndOrType : IConvertableFrontendType<ITypeOr>
+    {
+        private IConvertableFrontendType<ITypeOr> left, right;
+
+        public IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsAssignableTo(IFrontendType frontendType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key)
+        {
+            var leftMember = left.TryGetMember(key);
+            var rightMember = right.TryGetMember(key);
+
+            // "is" is not safe!
+            // sronger it!
+            if (leftMember is IIsDefinately<IOrType<IFrontendType, IError>> definateLeft && rightMember is IIsDefinately<IOrType<IFrontendType, IError>> definateRight) {
+
+                // if either is an error pass that up
+                // otherwise we pass the less general
+
+                return Possibly.Is(definateLeft.Value.SwitchReturns(
+                    x => definateRight.Value.SwitchReturns<IOrType<IFrontendType, IError>>(
+                        y => {
+                            if (x.IsAssignableTo(y) && y.IsAssignableTo(x)) {
+                                // they are the same, pick one
+                                return OrType.Make<IFrontendType, IError>(x);
+                            }
+                            if (x.IsAssignableTo(y) )
+                            {
+                                // x is less general
+                                return OrType.Make<IFrontendType, IError>(x);
+                            }
+                            if (y.IsAssignableTo(x))
+                            {
+                                // y is less general
+                                return OrType.Make<IFrontendType, IError>(y);
+                            }
+                            throw new Exception("these types are totally different!");
+                        }, 
+                        y =>  OrType.Make<IFrontendType, IError>(y)) , 
+                    x => definateRight.Value.SwitchReturns<IOrType<IFrontendType, IError>>(
+                        y => OrType.Make<IFrontendType, IError>(x), 
+                        y => OrType.Make<IFrontendType, IError>(Error.Cascaded("errors all over!",new[] { x, y })))));
+
+            }
+            return Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        }
+
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var item in left.Validate())
+            {
+                yield return item;
+            }
+            foreach (var item in right.Validate())
+            {
+                yield return item;
+            }
+        }
+    }
+
     internal class HasMembersType : IConvertableFrontendType<IInterfaceModuleType> {
-
-
 
         // for now the members all need to be the same type
         // say A is { Human thing; } and B is { Animal thing; }
@@ -49,10 +114,10 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         // A := B is still not since B.thing might not be a Human
         public bool IsAssignableTo(IFrontendType frontendType) {
             
-            foreach (var member in members)
+            foreach (var member in weakScope.membersList.Select(x=>x.GetValue()))
             {
                 var theirMember = frontendType.TryGetMember(member.Key);
-                if (!member.Value.Is1(out var ourType)) {
+                if (!member.Type.Is1(out var ourTypeBox)) {
                     continue;
                 }
                 if (!(theirMember is IIsDefinately<IOrType<IFrontendType, IError>> definately)) {
@@ -62,6 +127,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 {
                     continue;
                 }
+                var ourType = ourTypeBox.GetValue();
                 if (!(theirType.IsAssignableTo(ourType) && ourType.IsAssignableTo(theirType))){
                     return false;
                 }
@@ -69,24 +135,36 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return true;
         }
         
-        public IEnumerable<IError> Validate() => members.Select(x => x.Value.Possibly1()).OfType<IIsDefinately<IFrontendType>>().SelectMany(x => x.Value.Validate());
+        public IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.GetValue().Type.Possibly1()).OfType<IIsDefinately<IFrontendType>>().SelectMany(x => x.Value.Validate());
 
         public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key)
         {
-            if (members.TryGetValue(key,out var value))
+            var matches = weakScope.membersList.Where(x => x.GetValue().Key == key);
+            if (matches.Count() == 1)
             {
-                return Possibly.Is(value);
+                return Possibly.Is(matches.First().GetValue().Type.TransformInner(x=>x.GetValue()));
             }
             else { 
                 return Possibly.IsNot<IOrType<IFrontendType, IError>>();
             }
         }
 
-        public readonly IReadOnlyDictionary<IKey, IOrType<IFrontendType, IError>> members;
-
-        public HasMembersType(IReadOnlyDictionary<IKey, IOrType<IFrontendType, IError>> members)
+        public IBuildIntention<IInterfaceModuleType> GetBuildIntention(IConversionContext context)
         {
-            this.members = members ?? throw new ArgumentNullException(nameof(members));
+            var (toBuild, maker) = InterfaceType.Create();
+            return new BuildIntention<IInterfaceType>(toBuild, () =>
+            {
+                maker.Build(weakScope.Convert(context).Members.Values.Select(x => x.Value).ToArray());
+            });
+        }
+
+        //public readonly IReadOnlyDictionary<IKey, IOrType<IFrontendType, IError>> members;
+
+        private readonly WeakScope weakScope;
+
+        public HasMembersType(WeakScope weakScope)
+        {
+            this.weakScope = weakScope ?? throw new ArgumentNullException(nameof(weakScope));
         }
     }
 
@@ -109,6 +187,15 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IEnumerable<IError> Validate() => inner.SwitchReturns(x=>x.Validate(), x=>Array.Empty<IError>());
 
         public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+
+        public bool IsAssignableTo(IFrontendType frontendType)
+        {
+            // the method calling this
+            // is in charge of unwrapping
+            throw new Exception("I don't think this should ever happen");
+
+            // this is a bit of a smell
+        }
 
         public readonly IOrType< IFrontendType,IError> inner;
 
@@ -167,7 +254,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     // I don't think this is a type....
     // placeholders are effectively defined by constraints really just metadata
-    internal interface IGenericTypeParameterPlacholder : IFrontendType
+    internal interface IGenericTypeParameterPlacholder //: IFrontendType
     {
         IOrType<NameKey, ImplicitKey> Key { get; }
     }
@@ -207,7 +294,6 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
     }
 
     internal struct AnyType : IConvertableFrontendType<IAnyType>, IPrimitiveType

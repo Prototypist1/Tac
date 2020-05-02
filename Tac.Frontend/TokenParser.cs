@@ -155,10 +155,6 @@ namespace Tac.Frontend
                         throw new Exception("they should not be mixed");
                     }
                 }
-                else if (type is ImplementationType implementationType)
-                {
-                    throw new Exception("can't be asked");
-                }
                 throw new Exception("you have entered the area that does not exist");
             }
             , x => OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(

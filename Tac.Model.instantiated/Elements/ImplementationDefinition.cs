@@ -36,7 +36,8 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-            return ImplementationType.CreateAndBuild(ParameterDefinition.Type, OutputType, ContextDefinition.Type);
+            return MethodType.CreateAndBuild(ContextDefinition.Type,
+                MethodType.CreateAndBuild(ParameterDefinition.Type, OutputType));
         }
 
         #endregion

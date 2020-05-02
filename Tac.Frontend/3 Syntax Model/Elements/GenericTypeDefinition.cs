@@ -38,15 +38,18 @@ namespace Tac.Parser
 namespace Tac.SemanticModel
 {
 
-    internal interface IWeakGenericTypeDefinition: IFrontendCodeElement, IScoped, IFrontendType, IFrontendGenericType
-    {
-        IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
-    }
+    //internal interface IWeakGenericTypeDefinition: IFrontendCodeElement, IScoped
+    //{
+    //    IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
+    //}
 
-    internal class WeakGenericTypeDefinition : IWeakGenericTypeDefinition
+
+    // TODO this returns a type
+    // it is probably just an object type tho
+    internal class WeakGenericTypeDefinition : IFrontendCodeElement //: //IWeakGenericTypeDefinition
     {
         public WeakGenericTypeDefinition(
-            IIsPossibly<IOrType< NameKey,ImplicitKey>> key,
+            IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
             IBox<WeakScope> scope,
             IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions)
         {
@@ -61,7 +64,7 @@ namespace Tac.SemanticModel
 
         public IEnumerable<IError> Validate() => Scope.GetValue().Validate();
     }
-    
+
     internal class GenericTypeDefinitionMaker : IMaker<ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>>
     {
 
@@ -80,8 +83,8 @@ namespace Tac.SemanticModel
                     new GenericTypeDefinitionPopulateScope(
                         new NameKey(name.Item),
                         tokenMatching.Context.ParseBlock(lines),
-                        generics.Select(x => 
-                            new GenericTypeParameterPlacholder(OrType.Make<NameKey,ImplicitKey>( new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()));
+                        generics.Select(x =>
+                            new GenericTypeParameterPlacholder(OrType.Make<NameKey, ImplicitKey>(new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()));
         }
 
         public static ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> PopulateScope(
@@ -103,7 +106,7 @@ namespace Tac.SemanticModel
 
             public GenericTypeDefinitionPopulateScope(
                 NameKey nameKey,
-                IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> lines,
+                IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines,
                 IGenericTypeParameterPlacholder[] genericParameters)
             {
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
@@ -117,11 +120,11 @@ namespace Tac.SemanticModel
                 // I generic types are erased 
                 // what on earth does this return?
                 var myScope = context.TypeProblem.CreateGenericType(
-                    scope, 
-                    OrType.Make<NameKey,ImplicitKey>(nameKey), 
-                    genericParameters.Select(x=>new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),
+                    scope,
+                    OrType.Make<NameKey, ImplicitKey>(nameKey),
+                    genericParameters.Select(x => new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),
                     new WeakTypeDefinitionConverter());
-                var nextLines = lines.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray();
+                var nextLines = lines.Select(x => x.TransformInner(y => y.Run(myScope, context).Resolve)).ToArray();
                 return new SetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), OrType.Make<Tpn.IExplicitType, IError>(myScope));
             }
         }
@@ -129,7 +132,7 @@ namespace Tac.SemanticModel
         private class GenericTypeDefinitionResolveReferance : IResolve<IBox<WeakGenericTypeDefinition>>
         {
             private readonly Tpn.TypeProblem2.Type myScope;
-            private readonly IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>[] nextLines;
+            private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines;
 
             public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines)
             {
@@ -141,7 +144,7 @@ namespace Tac.SemanticModel
             public IBox<WeakGenericTypeDefinition> Run(Tpn.ITypeSolution context)
             {
                 // uhhh it is werid that I have to do this
-                nextLines.Select(x => x.TransformInner(y=>y.Run(context))).ToArray();
+                nextLines.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
 
                 return new Box<WeakGenericTypeDefinition>(context.GetExplicitType(myScope).GetValue().Is2OrThrow());
             }

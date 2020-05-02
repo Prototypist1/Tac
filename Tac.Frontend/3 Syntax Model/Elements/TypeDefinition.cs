@@ -38,7 +38,7 @@ namespace Tac.Parser
 namespace Tac.SemanticModel
 {
 
-    internal interface IWeakTypeDefinition: IConvertableFrontendCodeElement<IInterfaceType>, IScoped, IConvertableFrontendType<IInterfaceType> {
+    internal interface IWeakTypeDefinition: IConvertableFrontendCodeElement<IInterfaceType>, IScoped {
         //IIsPossibly<IKey> Key { get; }
     }
 
@@ -64,11 +64,6 @@ namespace Tac.SemanticModel
             {
                 maker.Build(Scope.GetValue().Convert(context).Members.Values.Select(x=>x.Value).ToArray());
             });
-        }
-
-        public bool IsAssignableTo(IFrontendType frontendType)
-        {
-
         }
 
         public IEnumerable<IError> Validate() => Scope.GetValue().Validate();

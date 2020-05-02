@@ -37,6 +37,18 @@ namespace Tac.Model
             }
         }
 
+        //public static IOrType<TT, IError> CastToOr<T, TT>(this T self, IError[] error) where TT : T
+        //{
+        //    if (self is TT tt)
+        //    {
+        //        return OrType.Make<TT, IError>(tt);
+        //    }
+        //    else
+        //    {
+        //        return OrType.Make<TT, IError>(error);
+        //    }
+        //}
+
     }
 
     public static class ErrorCodes{
@@ -51,8 +63,9 @@ namespace Tac.Model
         public static IError TypeNotFound(string message) => new Error(ErrorCodes.TypeNotFound, message);
         public static IError Other(string message) => new Error(ErrorCodes.Other, message);
         public static IError Cascaded(string message,IError inner) => new Error(ErrorCodes.Cascaded, message, inner);
+        public static IError Cascaded(string message, IError[] inner) => new Error(ErrorCodes.Cascaded, message, inner);
 
-        private IError rightResult;
+        private IError[] rightResult;
 
         private Error(Guid code) {
             this.Code = code;
@@ -66,7 +79,13 @@ namespace Tac.Model
         private Error(Guid code, string message, IError rightResult):this(code, message)
         {
             Message = message ?? throw new ArgumentNullException(nameof(message));
-            this.rightResult = rightResult;
+            this.rightResult = new[] { rightResult };
+        }
+
+        private Error(Guid code, string message, IError[] rightResult) : this(code, message)
+        {
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            this.rightResult = rightResult ;
         }
 
         public string Message { get; }

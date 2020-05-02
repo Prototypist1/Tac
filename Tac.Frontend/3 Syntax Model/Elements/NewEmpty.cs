@@ -54,6 +54,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
             });
         }
 
+        public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.EmptyType());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 

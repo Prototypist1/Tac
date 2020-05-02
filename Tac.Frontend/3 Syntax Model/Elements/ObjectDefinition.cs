@@ -18,6 +18,7 @@ using Tac.Frontend.New.CrzayNamespace;
 using Prototypist.Toolbox;
 using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Frontend.Parser;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Parser
 {
@@ -43,7 +44,7 @@ namespace Tac.SemanticModel
     // espially since this is probably the same type as an module
     // I think this returns a WeakTypeDefinition or maybe there should be a class for that
     // I think there should be a class for that
-    internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>, IScoped, IFrontendType, IReturn
+    internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>, IScoped, IReturn
     {
         public WeakObjectDefinition(IBox<WeakScope> scope, IReadOnlyList<IOrType<IBox<WeakAssignOperation>,IError>> assigns) {
             if (assigns == null)
@@ -81,6 +82,11 @@ namespace Tac.SemanticModel
                     yield return error;
                 }
             }
+        }
+
+        public IOrType<IFrontendType, IError> Returns()
+        {
+            return OrType.Make<IFrontendType, IError>(new HasMembersType(Scope.GetValue()));
         }
     }
 

@@ -16,8 +16,8 @@ namespace Tac.Model.Elements
 
     public interface IVerifiableType {
 
-        bool TheyAreUs(IVerifiableType they, bool noTagBacks);
-        bool WeAreThem(IVerifiableType them, bool noTagBacks);
+        //bool TheyAreUs(IVerifiableType they, bool noTagBacks);
+        //bool WeAreThem(IVerifiableType them, bool noTagBacks);
     }
 
     public interface ILogicalOperationType {

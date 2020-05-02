@@ -60,10 +60,6 @@ namespace Tac.SemanticModel.Operations
                 {
                     return method.InputType;
                 }
-                if (thing is Tac.SyntaxModel.Elements.AtomicTypes.ImplementationType implementation ) {
-
-                    return implementation.ContextType;
-                }
                 return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"));
             });
 
@@ -94,11 +90,7 @@ namespace Tac.SemanticModel.Operations
                 {
                     return method.OutputType;
                 }
-                if (thing is Tac.SyntaxModel.Elements.AtomicTypes.ImplementationType implementation)
-                {
 
-                    return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(implementation.InputType, implementation.OutputType));
-                }
                 return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"));
             });
         }

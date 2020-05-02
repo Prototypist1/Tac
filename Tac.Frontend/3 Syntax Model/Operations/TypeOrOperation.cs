@@ -44,7 +44,7 @@ namespace Tac.SemanticModel.CodeStuff
 
 namespace Tac.Frontend.SyntaxModel.Operations
 {
-    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>
+    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>, IFrontendCodeElement
     {
         public WeakTypeOrOperation(IOrType<IBox<IFrontendType>,IError> left, IOrType<IBox<IFrontendType>, IError> right) : base(left, right)
         {
