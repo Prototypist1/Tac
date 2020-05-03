@@ -70,6 +70,8 @@ namespace Tac.SemanticModel
             });
         }
 
+        internal IFrontendType AssuredReturns() => new HasMembersType(Scope.GetValue());
+
         public IEnumerable<IError> Validate() {
             foreach (var item in Scope.GetValue().Validate())
             {
@@ -86,7 +88,7 @@ namespace Tac.SemanticModel
 
         public IOrType<IFrontendType, IError> Returns()
         {
-            return OrType.Make<IFrontendType, IError>(new HasMembersType(Scope.GetValue()));
+            return OrType.Make<IFrontendType, IError>(AssuredReturns());
         }
     }
 

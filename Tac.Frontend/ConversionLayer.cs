@@ -54,7 +54,7 @@ namespace Tac.Frontend
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
-            public IFrontendType GetValue()=> box.GetValue().SwitchReturns<IFrontendType>(x => x, x => x, x => x);
+            public IFrontendType GetValue()=> box.GetValue().SwitchReturns<IFrontendType>(x => x.Type(), x => x.Type(), x => x);
         }
 
 
@@ -72,11 +72,11 @@ namespace Tac.Frontend
                 var inner = box.GetValue();
                 if (inner.Is1(out var inner1))
                 {
-                    return inner1;
+                    return inner1.AssuredReturns();
                 }
                 else if (inner.Is2(out var inner2))
                 {
-                    return inner2;
+                    return inner2.AssuredReturns();
                 }
                 else
                 {
@@ -147,7 +147,7 @@ namespace Tac.Frontend
                         Help.GetType(typeSolution, output).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
             }
 
-            return new WeakTypeDefinition(new Box<WeakScope>(scope));
+            return new WeakTypeDefinition(new Box<WeakScope>(scope)).Type();
         }
     }
 

@@ -46,7 +46,7 @@ namespace Tac.SemanticModel
 
     // TODO this returns a type
     // it is probably just an object type tho
-    internal class WeakGenericTypeDefinition : IFrontendCodeElement //: //IWeakGenericTypeDefinition
+    internal class WeakGenericTypeDefinition : IFrontendCodeElement, IIsType //: //IWeakGenericTypeDefinition
     {
         public WeakGenericTypeDefinition(
             IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
@@ -61,6 +61,10 @@ namespace Tac.SemanticModel
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
         public IBox<WeakScope> Scope { get; }
+
+        public IFrontendType Type()
+        {
+        }
 
         public IEnumerable<IError> Validate() => Scope.GetValue().Validate();
     }

@@ -39,6 +39,8 @@ namespace Tac.SemanticModel.Operations
                 .Select(x => x.Returns().Possibly1())
                 .OfType<IIsDefinately<IFrontendType>>()
                 .Select(x => x.Value.UnwrapRefrence())
+                .OfType<IIsDefinately<IFrontendType>>()
+                .Select(x=>x.Value)
                 .ToArray();
 
             if (leftList.Any())

@@ -373,19 +373,25 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     internal class MethodType : IConvertableFrontendType<IMethodType>, IPrimitiveType
     {
         // is the meta-data here worth capturing
-        public static MethodType ImplementationType(IOrType<IConvertableFrontendType<IVerifiableType>, IError> inputType, IOrType<IConvertableFrontendType<IVerifiableType>, IError> outputType, IOrType<IConvertableFrontendType<IVerifiableType>, IError> contextType) {
+        public static MethodType ImplementationType(
+            IOrType<IFrontendType, IError> inputType, 
+            IOrType<IFrontendType, IError> outputType, 
+            IOrType<IFrontendType, IError> contextType) {
             return new MethodType(
                 contextType,
                 OrType.Make<IConvertableFrontendType<IVerifiableType>, IError> (new MethodType(inputType, outputType)));
         }
 
-        public MethodType(IOrType<IConvertableFrontendType<IVerifiableType>, IError> inputType, IOrType<IConvertableFrontendType<IVerifiableType>, IError> outputType)
+        public MethodType(
+            IOrType<IFrontendType, IError> inputType, 
+            IOrType<IFrontendType, IError> outputType)
         {
-            InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
-            OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
+
+            InputType = inputType?.CastToOr<IFrontendType,IConvertableFrontendType<IVerifiableType>>(Error.Other("")) ?? throw new ArgumentNullException(nameof(inputType));
+            OutputType = outputType?.CastToOr<IFrontendType, IConvertableFrontendType<IVerifiableType>>(Error.Other("")) ?? throw new ArgumentNullException(nameof(outputType));
         }
 
-        public IOrType< IConvertableFrontendType<IVerifiableType>,IError> InputType { get; }
+        public IOrType<IConvertableFrontendType<IVerifiableType>, IError> InputType { get; }
         public IOrType<IConvertableFrontendType<IVerifiableType>, IError> OutputType { get; }
 
         public IBuildIntention<IMethodType> GetBuildIntention(IConversionContext context)

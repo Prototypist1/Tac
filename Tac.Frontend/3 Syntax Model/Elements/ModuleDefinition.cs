@@ -106,9 +106,14 @@ namespace Tac.SemanticModel
             }
         }
 
+        public IFrontendType AssuredReturns()
+        {
+            return new HasMembersType(Scope.GetValue());
+        }
+
         public IOrType<IFrontendType, IError> Returns()
         {
-            return OrType.Make< IFrontendType, IError > (new HasMembersType(Scope.GetValue()));
+            return OrType.Make< IFrontendType, IError > (AssuredReturns());
         }
     }
     

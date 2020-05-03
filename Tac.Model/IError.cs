@@ -27,12 +27,27 @@ namespace Tac.Model
             return self.SwitchReturns(x => transform(x), x => OrType.Make<TT, IError>(x));
         }
 
-        public static IOrType<TT, IError> CastToOr<T, TT>(this T self, IError error) where TT : T {
+        //public static IOrType<TT, IError> CastToOr<T, TT>(this T self, IError error) 
+        //    where TT : T 
+        //{
+        //    if (self is TT tt)
+        //    {
+        //        return OrType.Make<TT, IError>(tt);
+        //    }
+        //    else {
+        //        return OrType.Make<TT, IError>(error);
+        //    }
+        //}
+
+        public static IOrType<TT, IError> CastToOr<T, TT>(this IOrType<T, IError> self, IError error)
+            where TT : T
+        {
             if (self is TT tt)
             {
                 return OrType.Make<TT, IError>(tt);
             }
-            else {
+            else
+            {
                 return OrType.Make<TT, IError>(error);
             }
         }
