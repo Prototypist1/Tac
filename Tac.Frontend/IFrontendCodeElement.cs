@@ -53,10 +53,14 @@ namespace Tac.Frontend
     {
     }
 
+
+    internal struct No { } 
     internal interface IFrontendType: IValidate
     {
-        bool IsAssignableTo(IFrontendType frontendType);
-        IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key);
+        IOrType<bool,IError> TheyAreUs(IFrontendType they);
+        IOrType<IOrType<IFrontendType, IError>, No,IError> TryGetMember(IKey key);
+        IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn();
+        IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput();
     }
 
 

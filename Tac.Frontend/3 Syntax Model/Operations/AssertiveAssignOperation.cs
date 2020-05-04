@@ -90,7 +90,7 @@ namespace Tac.SemanticModel.Operations
 
             foreach (var error in leftTypeOrErrors.SwitchReturns(l =>
                rightTypeOrErrors.SwitchReturns<IEnumerable<IError>>(r => {
-                   if (!l.IsAssignableTo(r))
+                   if (!l.TheyAreUs(r))
                    {
                        return new[] { Error.Other($"can not assign {l} to {r}") };
                    }
@@ -176,7 +176,7 @@ namespace Tac.SemanticModel.Operations
                 return new SetUpResult<IBox<WeakAssignOperation>, Tpn.IValue>(new WeakAssignOperationResolveReferance(
                     nextLeft.TransformInner(x=>x.Resolve),
                     nextRight.TransformInner(x => x.Resolve)),
-                    nextLeft.TransformAndFlatten(x=>x.SetUpSideNode).CastToOr<Tpn.ITypeProblemNode,Tpn.IValue>(Error.Other("")));
+                    nextLeft.TransformAndFlatten(x=>x.SetUpSideNode).OrCastToOr<Tpn.ITypeProblemNode,Tpn.IValue>(Error.Other("")));
             }
         }
 

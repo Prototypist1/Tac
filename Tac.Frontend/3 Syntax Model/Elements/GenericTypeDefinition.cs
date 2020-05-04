@@ -64,6 +64,7 @@ namespace Tac.SemanticModel
 
         public IFrontendType Type()
         {
+            return new SyntaxModel.Elements.AtomicTypes.AnyType();
         }
 
         public IEnumerable<IError> Validate() => Scope.GetValue().Validate();

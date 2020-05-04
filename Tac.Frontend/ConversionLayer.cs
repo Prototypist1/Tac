@@ -57,6 +57,18 @@ namespace Tac.Frontend
             public IFrontendType GetValue()=> box.GetValue().SwitchReturns<IFrontendType>(x => x.Type(), x => x.Type(), x => x);
         }
 
+        private class UnWrappingOrBox : IBox<IFrontendType>
+        {
+            private readonly IBox<WeakTypeOrOperation> box;
+
+            public UnWrappingOrBox(IBox<WeakTypeOrOperation> box)
+            {
+                this.box = box ?? throw new ArgumentNullException(nameof(box));
+            }
+
+            public IFrontendType GetValue() => box.GetValue().Type();
+        }
+
 
         private class UnWrappingObjectBox : IBox<IFrontendType>
         {
@@ -91,7 +103,7 @@ namespace Tac.Frontend
                 v1 => OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(typeSolution.GetMethodType(v1).GetValue())),
                 v2 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingTypeBox(typeSolution.GetExplicitType(v2))),
                 v3 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingObjectBox(typeSolution.GetObject(v3))),
-                v4 => OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetOrType(v4)),
+                v4 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingOrBox(typeSolution.GetOrType(v4))),
                 v5 => OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(v5, new InferredTypeConverter())),
                 v6 => OrType.Make<IBox<IFrontendType>, IError>(v6)
                 );

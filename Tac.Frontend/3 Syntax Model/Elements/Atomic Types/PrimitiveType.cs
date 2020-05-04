@@ -1,4 +1,5 @@
 ﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,65 +27,217 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     internal class FrontEndOrType : IConvertableFrontendType<ITypeOr>
     {
-        private IConvertableFrontendType<ITypeOr> left, right;
+        private readonly IOrType<IFrontendType,IError> left, right;
+
+        public FrontEndOrType(IOrType<IFrontendType, IError> left, IOrType<IFrontendType, IError> right)
+        {
+            // TODO this is wrong
+            // I think
+            // I don't think this should be a validation error
+            // it should be an exception at converstion type
+            // Idk this design is a little werid
+            this.left = left ?? throw new ArgumentNullException(nameof(left));
+            this.right = right ?? throw new ArgumentNullException(nameof(right));
+        }
 
         public IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
         {
-            throw new NotImplementedException();
+            var (res, builder) = Tac.Model.Instantiated.TypeOr.Create();
+
+
+            var inputType = left;
+            var outputType = right;
+            return new BuildIntention<ITypeOr>(res
+                , () =>
+                {
+                    builder.Build(
+                        inputType.Is1OrThrow().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>().Convert(context),
+                        outputType.Is1OrThrow().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>().Convert(context));
+                });
         }
 
-        public bool IsAssignableTo(IFrontendType frontendType)
+        // ugh
+        // this probaly needs to be able to return an erro
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they)
         {
-            throw new NotImplementedException();
+
+            var leftRes = left.TransformInner(x => x.TheyAreUs(they));
+            var rightRes = right.TransformInner(x => x.TheyAreUs(they));
+
+
+            return leftRes.SwitchReturns(x=> rightRes.SwitchReturns(
+                    y=> OrType.Make<bool, IError>(x || y),
+                    y=> OrType.Make<bool, IError>(y)),
+                x => rightRes.SwitchReturns(
+                    y => OrType.Make<bool, IError>(x), 
+                    y => OrType.Make<bool, IError>(Error.Cascaded("", new[] { x, y }))));
         }
 
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key)
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key)
         {
-            var leftMember = left.TryGetMember(key);
-            var rightMember = right.TryGetMember(key);
 
-            // "is" is not safe!
-            // sronger it!
-            if (leftMember is IIsDefinately<IOrType<IFrontendType, IError>> definateLeft && rightMember is IIsDefinately<IOrType<IFrontendType, IError>> definateRight) {
+            return left.SwitchReturns(
+                leftType => right.SwitchReturns(
+                    rightType => 
+                    {
+                        var leftMember = leftType.TryGetMember(key);
+                        var rightMember = rightType.TryGetMember(key);
 
-                // if either is an error pass that up
-                // otherwise we pass the less general
+                        if (leftMember is IIsDefinately<IOrType<IFrontendType, IError>> definateLeft && rightMember is IIsDefinately<IOrType<IFrontendType, IError>> definateRight)
+                        {
+                            return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
 
-                return Possibly.Is(definateLeft.Value.SwitchReturns(
-                    x => definateRight.Value.SwitchReturns<IOrType<IFrontendType, IError>>(
-                        y => {
-                            if (x.IsAssignableTo(y) && y.IsAssignableTo(x)) {
-                                // they are the same, pick one
-                                return OrType.Make<IFrontendType, IError>(x);
-                            }
-                            if (x.IsAssignableTo(y) )
-                            {
-                                // x is less general
-                                return OrType.Make<IFrontendType, IError>(x);
-                            }
-                            if (y.IsAssignableTo(x))
-                            {
-                                // y is less general
-                                return OrType.Make<IFrontendType, IError>(y);
-                            }
-                            throw new Exception("these types are totally different!");
-                        }, 
-                        y =>  OrType.Make<IFrontendType, IError>(y)) , 
-                    x => definateRight.Value.SwitchReturns<IOrType<IFrontendType, IError>>(
-                        y => OrType.Make<IFrontendType, IError>(x), 
-                        y => OrType.Make<IFrontendType, IError>(Error.Cascaded("errors all over!",new[] { x, y })))));
+                            //Possibly.Is(definateLeft.Value.SwitchReturns(
+                            //    x => definateRight.Value.SwitchReturns<IOrType<IOrType<IFrontendType, IError>, No, IError>> (
+                            //        y => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(new FrontEndOrType(OrType.Make<IFrontendType, IError>(x), OrType.Make<IFrontendType, IError>(y)))),
+                            //        y => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(y))),
+                            //    x => definateRight.Value.SwitchReturns<IOrType<IOrType<IFrontendType, IError>, No, IError>>(
+                            //        y => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(x)),
+                            //        y => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(Error.Cascaded("errors all over!", new[] { x, y })))));
 
-            }
-            return Possibly.IsNot<IOrType<IFrontendType, IError>>();
+                        }
+                        return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+                    }, 
+                    rightError => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(rightError)), 
+                leftError => right.SwitchReturns(
+                    rightType => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(leftError), 
+                    rightError => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
+
+            //// I am not sure these are right 
+            //// the return type here is not really right
+            //// these say, it has it but it is an error
+            //// when really we don't know if we have it 
+            //if (left.Is2(out var errorLeft)){
+            //    return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(errorLeft);
+            //}
+            //if (right.Is2(out var errorRight))
+            //{
+            //    return Possibly.Is(OrType.Make<IFrontendType, IError>(errorRight));
+            //}
+
+            //var leftMember = left.Is1OrThrow().TryGetMember(key);
+            //var rightMember = right.Is1OrThrow().TryGetMember(key);
+
+            //// "is" is not safe!
+            //// sronger it!
+            //if (leftMember is IIsDefinately<IOrType<IFrontendType, IError>> definateLeft && rightMember is IIsDefinately<IOrType<IFrontendType, IError>> definateRight) {
+
+            //    // if either is an error pass that up
+            //    // otherwise we pass the less general
+
+            //    return Possibly.Is(definateLeft.Value.SwitchReturns(
+            //        x => definateRight.Value.SwitchReturns<IOrType<IFrontendType, IError>>(
+            //            y => {
+            //                if (x.TheyAreUs(y) && y.TheyAreUs(x)) {
+            //                    // they are the same, pick one
+            //                    return OrType.Make<IFrontendType, IError>(x);
+            //                }
+            //                if (x.TheyAreUs(y) )
+            //                {
+            //                    // x is less general
+            //                    return OrType.Make<IFrontendType, IError>(x);
+            //                }
+            //                if (y.TheyAreUs(x))
+            //                {
+            //                    // y is less general
+            //                    return OrType.Make<IFrontendType, IError>(y);
+            //                }
+            //                throw new Exception("these types are totally different!");
+            //            }, 
+            //            y =>  OrType.Make<IFrontendType, IError>(y)) , 
+            //        x => definateRight.Value.SwitchReturns<IOrType<IFrontendType, IError>>(
+            //            y => OrType.Make<IFrontendType, IError>(x), 
+            //            y => OrType.Make<IFrontendType, IError>(Error.Cascaded("errors all over!",new[] { x, y })))));
+
+            //}
+            //return Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        }
+
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn()
+        {
+            return left.SwitchReturns(
+                leftReturns => right.SwitchReturns(
+                    rightReturns => {
+
+                        var leftReturn = leftReturns.TryGetReturn();
+                        var rightReturn = rightReturns.TryGetReturn();
+
+                        if (leftReturn is IIsDefinately<IOrType<IFrontendType, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<IFrontendType, IError>> definateRight)
+                        {
+
+                            return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
+
+                            // if either is an error pass that up
+                            // otherwise we return the or of the two returns
+
+                            //return definateLeft.Value.SwitchReturns(
+                            //    x => definateRight.Value.SwitchReturns<IOrType<IOrType<IFrontendType, IError>, No, IError>>(
+                            //        y => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(new FrontEndOrType(OrType.Make<IFrontendType, IError>(x), OrType.Make<IFrontendType, IError>(y)))),
+                            //        y => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(y))),
+                            //    x => definateRight.Value.SwitchReturns<IOrType<IOrType<IFrontendType, IError>, No, IError>>(
+                            //        y => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(x)),
+                            //        y => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(Error.Cascaded("errors all over!", new[] { x, y })))));
+
+                        }
+                        return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+
+                    },
+                    rightError => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(rightError)),
+                leftError => right.SwitchReturns(
+                    rightReturns => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(leftError),
+                    rightError => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(Error.Cascaded("",new[] { leftError,rightError}))));
+
+
+            //var leftReturn = left.TryGetReturn();
+            //var rightReturn = right.TryGetReturn();
+
+            //if (leftReturn is IIsDefinately<IOrType<IFrontendType, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<IFrontendType, IError>> definateRight)
+            //{
+
+            //    // if either is an error pass that up
+            //    // otherwise we return the or of the two returns
+
+            //    return Possibly.Is(definateLeft.Value.SwitchReturns(
+            //        x => definateRight.Value.SwitchReturns<IOrType<IFrontendType, IError>>(
+            //            y => OrType.Make<IFrontendType, IError>(new FrontEndOrType(x,y)),
+            //            y => OrType.Make<IFrontendType, IError>(y)),
+            //        x => definateRight.Value.SwitchReturns<IOrType<IFrontendType, IError>>(
+            //            y => OrType.Make<IFrontendType, IError>(x),
+            //            y => OrType.Make<IFrontendType, IError>(Error.Cascaded("errors all over!", new[] { x, y })))));
+
+            //}
+            //return Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        }
+
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput()
+        {
+            return left.SwitchReturns(
+               leftReturns => right.SwitchReturns(
+                   rightReturns => {
+
+                       var leftReturn = leftReturns.TryGetInput();
+                       var rightReturn = rightReturns.TryGetInput();
+
+                       if (leftReturn is IIsDefinately<IOrType<IFrontendType, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<IFrontendType, IError>> definateRight)
+                       {
+                           return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OrType.Make<IFrontendType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
+                        }
+                       return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+
+                   },
+                   rightError => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(rightError)),
+               leftError => right.SwitchReturns(
+                   rightReturns => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(leftError),
+                   rightError => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
         }
 
         public IEnumerable<IError> Validate()
         {
-            foreach (var item in left.Validate())
+            foreach (var item in left.SwitchReturns(x => x.Validate(), x => new[] { x }))
             {
                 yield return item;
             }
-            foreach (var item in right.Validate())
+            foreach (var item in right.SwitchReturns(x => x.Validate(), x => new[] { x }))
             {
                 yield return item;
             }
@@ -92,6 +245,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     }
 
     internal class HasMembersType : IConvertableFrontendType<IInterfaceModuleType> {
+
+        private struct Yes { }
 
         // for now the members all need to be the same type
         // say A is { Human thing; } and B is { Animal thing; }
@@ -112,40 +267,79 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         // B := A
         // is ok, humnas are always animals and you can't set on be to breaak things
         // A := B is still not since B.thing might not be a Human
-        public bool IsAssignableTo(IFrontendType frontendType) {
-            
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they) {
+
+            var list = new List<IOrType<IError[], No, Yes>>();
+
             foreach (var member in weakScope.membersList.Select(x=>x.GetValue()))
             {
-                var theirMember = frontendType.TryGetMember(member.Key);
-                if (!member.Type.Is1(out var ourTypeBox)) {
-                    continue;
-                }
-                if (!(theirMember is IIsDefinately<IOrType<IFrontendType, IError>> definately)) {
-                    return false;
-                }
-                if (!definately.Value.Is1(out var theirType))
-                {
-                    continue;
-                }
-                var ourType = ourTypeBox.GetValue();
-                if (!(theirType.IsAssignableTo(ourType) && ourType.IsAssignableTo(theirType))){
-                    return false;
-                }
+                
+                
+                var theirMember = they.TryGetMember(member.Key);
+
+                var ourMemberType = member.Type.TransformInner(x => x.GetValue());
+
+                // this is horrifying
+                list.Add(theirMember.SwitchReturns(
+                    or => or.SwitchReturns(
+                        theirType => ourMemberType.SwitchReturns(
+                            ourType => theirType.TheyAreUs(ourType).SwitchReturns(
+                                    boolean1=> ourType.TheyAreUs(theirType).SwitchReturns(
+                                        boolean2 => boolean1 && boolean2 ? OrType.Make<IError[], No, Yes>(new Yes()): OrType.Make<IError[], No, Yes>(new No()), // if they are us and we are them the types are the same
+                                        error2 => OrType.Make<IError[], No, Yes>(new[] { error2 })),
+                                    error1 => ourType.TheyAreUs(theirType).SwitchReturns(
+                                        boolean2 => OrType.Make<IError[], No, Yes>(new[] { error1 }),
+                                        error2 => OrType.Make<IError[], No, Yes>(new[] { error1, error2 }))),
+                            ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })), 
+                        error => ourMemberType.SwitchReturns(
+                            ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
+                            ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))),
+                    no => OrType.Make<IError[], No, Yes>(no),
+                    error => ourMemberType.SwitchReturns(
+                        ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
+                        ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))));
+
+
+
+                //if (!member.Type.Is1(out var ourTypeBox)) {
+                //    continue;
+                //}
+                //if (!(theirMember is IIsDefinately<IOrType<IFrontendType, IError>> definately)) {
+                //    return OrType.Make<bool, IError>(false);
+                //}
+                //if (!definately.Value.Is1(out var theirType))
+                //{
+                //    continue;
+                //}
+                //var ourType = ourTypeBox.GetValue();
+                //if (!(theirType.TheyAreUs(ourType) && ourType.TheyAreUs(theirType))){
+                //    return OrType.Make<bool, IError>(false);
+                //}
             }
-            return true;
+
+            if (list.All(x =>x.Is3(out var _))) {
+                return OrType.Make<bool, IError>(true);
+            }
+
+            if (list.Any(x => x.Is2(out var _)))
+            {
+                return OrType.Make<bool, IError>(false);
+            }
+
+            return OrType.Make<bool, IError>(Error.Cascaded("", list.Select(x=> x.Possibly1()).OfType<IIsDefinately<IError[]>>().SelectMany(x=>x.Value).ToArray()));
         }
         
         public IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.GetValue().Type.Possibly1()).OfType<IIsDefinately<IFrontendType>>().SelectMany(x => x.Value.Validate());
 
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key)
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key)
         {
             var matches = weakScope.membersList.Where(x => x.GetValue().Key == key);
             if (matches.Count() == 1)
             {
-                return Possibly.Is(matches.First().GetValue().Type.TransformInner(x=>x.GetValue()));
+                return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(matches.First().GetValue().Type.TransformInner(x=>x.GetValue()));
             }
             else { 
-                return Possibly.IsNot<IOrType<IFrontendType, IError>>();
+                return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
             }
         }
 
@@ -157,6 +351,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 maker.Build(weakScope.Convert(context).Members.Values.Select(x => x.Value).ToArray());
             });
         }
+
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
 
         //public readonly IReadOnlyDictionary<IKey, IOrType<IFrontendType, IError>> members;
 
@@ -186,9 +383,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IEnumerable<IError> Validate() => inner.SwitchReturns(x=>x.Validate(), x=>Array.Empty<IError>());
 
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
 
-        public bool IsAssignableTo(IFrontendType frontendType)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they)
         {
             // the method calling this
             // is in charge of unwrapping
@@ -203,6 +400,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
     internal struct BlockType : IConvertableFrontendType<IBlockType>, IPrimitiveType
@@ -212,10 +411,14 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IBlockType>(new Model.Instantiated.BlockType(), () => { });
         }
 
-        public bool IsAssignableTo(IFrontendType frontendType) => frontendType is BlockType;
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError> (they is BlockType);
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+
+
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
     internal struct StringType : IConvertableFrontendType<IStringType>, IPrimitiveType
@@ -225,10 +428,12 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IStringType>(new Model.Instantiated.StringType(), () => { });
         }
 
-        public bool IsAssignableTo(IFrontendType frontendType) => frontendType is StringType;
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(they is StringType);
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
     internal struct EmptyType : IConvertableFrontendType<IEmptyType>, IPrimitiveType
     {
@@ -236,9 +441,11 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<IEmptyType>(new Model.Instantiated.EmptyType(), () => { });
         }
-        public bool IsAssignableTo(IFrontendType frontendType) => frontendType is EmptyType;
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(they is EmptyType);
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
     internal struct NumberType : IConvertableFrontendType<INumberType>, IPrimitiveType
@@ -247,9 +454,11 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<INumberType>(new Model.Instantiated.NumberType(), () => { });
         }
-        public bool IsAssignableTo(IFrontendType frontendType) => frontendType is NumberType;
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(they is NumberType);
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
     // I don't think this is a type....
@@ -303,9 +512,11 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IAnyType>(new Model.Instantiated.AnyType(), () => { });
         }
 
-        public bool IsAssignableTo(IFrontendType frontendType) => true;
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(true);
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
     internal struct BooleanType : IConvertableFrontendType<IBooleanType>, IPrimitiveType
@@ -315,10 +526,12 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IBooleanType>(new Tac.Model.Instantiated.BooleanType(), () => { });
         }
 
-        public bool IsAssignableTo(IFrontendType frontendType) => frontendType is BooleanType;
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(they is BooleanType);
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
     // this so is a method....
@@ -372,6 +585,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     //}
     internal class MethodType : IConvertableFrontendType<IMethodType>, IPrimitiveType
     {
+
+        private struct Yes { }
+
         // is the meta-data here worth capturing
         public static MethodType ImplementationType(
             IOrType<IFrontendType, IError> inputType, 
@@ -386,13 +602,12 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             IOrType<IFrontendType, IError> inputType, 
             IOrType<IFrontendType, IError> outputType)
         {
-
-            InputType = inputType?.CastToOr<IFrontendType,IConvertableFrontendType<IVerifiableType>>(Error.Other("")) ?? throw new ArgumentNullException(nameof(inputType));
-            OutputType = outputType?.CastToOr<IFrontendType, IConvertableFrontendType<IVerifiableType>>(Error.Other("")) ?? throw new ArgumentNullException(nameof(outputType));
+            InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
+            OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         }
 
-        public IOrType<IConvertableFrontendType<IVerifiableType>, IError> InputType { get; }
-        public IOrType<IConvertableFrontendType<IVerifiableType>, IError> OutputType { get; }
+        public IOrType<IFrontendType, IError> InputType { get; }
+        public IOrType<IFrontendType, IError> OutputType { get; }
 
         public IBuildIntention<IMethodType> GetBuildIntention(IConversionContext context)
         {
@@ -406,8 +621,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.Is1OrThrow().Convert(context),
-                        outputType.Is1OrThrow().Convert(context));
+                        inputType.Is1OrThrow().SafeCastTo<IFrontendType,IConvertableFrontendType<IVerifiableType>>().Convert(context),
+                        outputType.Is1OrThrow().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>().Convert(context));
                 });
         }
 
@@ -423,30 +638,86 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             }
         }
 
-        public bool IsAssignableTo(IFrontendType frontendType)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they)
         {
-            if (!(frontendType is MethodType methodType)) {
-                return false;
-            }
 
-            // thier input must be assignable to our input
-            // if they take a Human and we take an Animal that is fine
-            // if they take a Animal and we take a Human that is not fine
-            if (methodType.InputType.Is1(out var inThat) && InputType.Is1(out var inThis) && !inThat.IsAssignableTo(inThis)) {
-                return false;
-            }
+            var list = new List<IOrType<IError[], No, Yes>>();
 
-            // our output must be assignable to their output
-            // if they return a Human and we return an Animal that is not fine
-            // if they return a Animal and we return a Human that is fine
-            if (methodType.OutputType.Is1(out var outThat) && OutputType.Is1(out var outThis) && !outThis.IsAssignableTo(outThat))
+            list.Add(they.TryGetInput().SwitchReturns(
+                or => or.SwitchReturns(
+                    theirType => InputType.SwitchReturns(
+                        ourType=> theirType.TheyAreUs(ourType).SwitchReturns(
+                            boolean=> boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
+                            error=> OrType.Make<IError[], No, Yes>(new[] { error })),
+                        ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
+                    theirError => InputType.SwitchReturns(
+                        ourType => OrType.Make<IError[], No, Yes>(new[] { theirError }),
+                        ourError => OrType.Make<IError[], No, Yes>(new[] { theirError, ourError }))),
+                no => OrType.Make<IError[], No, Yes>(new No()),
+                error => InputType.SwitchReturns(
+                        ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
+                        ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))));
+
+            list.Add(they.TryGetReturn().SwitchReturns(
+                or => or.SwitchReturns(
+                    theirType => OutputType.SwitchReturns(
+                        ourType => theirType.TheyAreUs(ourType).SwitchReturns(
+                            boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
+                            error => OrType.Make<IError[], No, Yes>(new[] { error })),
+                        ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
+                    theirError => OutputType.SwitchReturns(
+                        ourType => OrType.Make<IError[], No, Yes>(new[] { theirError }),
+                        ourError => OrType.Make<IError[], No, Yes>(new[] { theirError, ourError }))),
+                no => OrType.Make<IError[], No, Yes>(new No()),
+                error => OutputType.SwitchReturns(
+                        ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
+                        ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))));
+
+
+
+            if (list.All(x => x.Is3(out var _)))
             {
-                return false;
+                return OrType.Make<bool, IError>(true);
             }
 
-            return true;
+            if (list.Any(x => x.Is2(out var _)))
+            {
+                return OrType.Make<bool, IError>(false);
+            }
+
+            return OrType.Make<bool, IError>(Error.Cascaded("", list.Select(x => x.Possibly1()).OfType<IIsDefinately<IError[]>>().SelectMany(x => x.Value).ToArray()));
+
+            //if (!(they.TryGetInput().SafeIs(out IIsDefinately<IOrType<IFrontendType,IError>> inputType))) {
+            //    return OrType.Make<bool, IError>(false);
+            //}
+
+            //if (!(they.TryGetReturn().SafeIs(out IIsDefinately<IOrType<IFrontendType, IError>> outputType)))
+            //{
+            //    return OrType.Make<bool, IError>(false);
+            //}
+
+            //// thier input must be assignable to our input
+            //// if they take a Human and we take an Animal that is fine
+            //// if they take a Animal and we take a Human that is not fine
+            //if (inputType.Value.Is1(out var inThat) && InputType.Is1(out var inThis) && !inThat.TheyAreUs(inThis)) {
+            //    return OrType.Make<bool, IError>(false);
+            //}
+
+            //// our output must be assignable to their output
+            //// if they return a Human and we return an Animal that is not fine
+            //// if they return a Animal and we return a Human that is fine
+            //if (outputType.Value.Is1(out var outThat) && OutputType.Is1(out var outThis) && !outThis.TheyAreUs(outThat))
+            //{
+            //    return OrType.Make<bool, IError>(false);
+            //}
+
+            //return OrType.Make<bool, IError>(true);
         }
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+
+
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OutputType);
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(InputType);
     }
 
     // uhhh do I still need these?? (GenericMethodType, GenericImplementationType, IGenericMethodType, IGenericImplementationType)
@@ -454,38 +725,40 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     internal interface IGenericMethodType : IFrontendType, IFrontendGenericType { }
 
-    internal struct GenericMethodType : IGenericMethodType, IPrimitiveType
-    {
-        private readonly IFrontendType input;
-        private readonly IFrontendType output;
+    //internal struct GenericMethodType : IGenericMethodType, IPrimitiveType
+    //{
+    //    private readonly IOrType<IFrontendType, IError> input;
+    //    private readonly IOrType<IFrontendType, IError> output;
 
-        public GenericMethodType(IFrontendType input, IFrontendType output)
-        {
-            this.input = input ?? throw new ArgumentNullException(nameof(input));
-            this.output = output ?? throw new ArgumentNullException(nameof(output));
-            TypeParameterDefinitions = new[] { input, output }.OfType<IGenericTypeParameterPlacholder>().Select(x => Possibly.Is(x)).ToArray();
-        }
+    //    public GenericMethodType(IOrType<IFrontendType, IError> input, IOrType<IFrontendType, IError> output)
+    //    {
+    //        this.input = input ?? throw new ArgumentNullException(nameof(input));
+    //        this.output = output ?? throw new ArgumentNullException(nameof(output));
+    //        TypeParameterDefinitions = new[] { input, output }.OfType<IGenericTypeParameterPlacholder>().Select(x => Possibly.Is(x)).ToArray();
+    //    }
 
-        public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
+    //    public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
-        public bool IsAssignableTo(IFrontendType frontendType)
-        {
-            throw new NotImplementedException();
-        }
+    //    public bool TheyAreUs(IFrontendType they)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
-        public IEnumerable<IError> Validate()
-        {
-            foreach (var error in input.Validate())
-            {
-                yield return error;
-            }
-            foreach (var error in output.Validate())
-            {
-                yield return error;
-            }
-        }
-    }
+    //    public IIsPossibly<IOrType<IFrontendType, IError>> TryGetMember(IKey key) => Possibly.IsNot<IOrType<IFrontendType, IError>>();
+    //    public IEnumerable<IError> Validate()
+    //    {
+    //        foreach (var error in input.Validate())
+    //        {
+    //            yield return error;
+    //        }
+    //        foreach (var error in output.Validate())
+    //        {
+    //            yield return error;
+    //        }
+    //    }
+    //    public IIsPossibly<IFrontendType> TryGetReturn() => Possibly.Is(output);
+    //    public IIsPossibly<IFrontendType> TryGetInput() => Possibly.Is(input);
+    //}
 
 
     //internal interface IGenericImplementationType : IFrontendType, IFrontendGenericType { }

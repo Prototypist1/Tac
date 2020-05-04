@@ -27,19 +27,20 @@ namespace Tac.Model
             return self.SwitchReturns(x => transform(x), x => OrType.Make<TT, IError>(x));
         }
 
-        //public static IOrType<TT, IError> CastToOr<T, TT>(this T self, IError error) 
-        //    where TT : T 
-        //{
-        //    if (self is TT tt)
-        //    {
-        //        return OrType.Make<TT, IError>(tt);
-        //    }
-        //    else {
-        //        return OrType.Make<TT, IError>(error);
-        //    }
-        //}
+        public static IOrType<TT, IError> OrCastToOr<T, TT>(this IOrType<T, IError> self, IError error)
+            where TT : T
+        {
+            if (self is IOrType<TT, IError> tt)
+            {
+                return tt;
+            }
+            else
+            {
+                return OrType.Make<TT, IError>(error);
+            }
+        }
 
-        public static IOrType<TT, IError> CastToOr<T, TT>(this IOrType<T, IError> self, IError error)
+        public static IOrType<TT, IError> CastToOr<T, TT>(this T self, IError error)
             where TT : T
         {
             if (self is TT tt)
@@ -51,19 +52,6 @@ namespace Tac.Model
                 return OrType.Make<TT, IError>(error);
             }
         }
-
-        //public static IOrType<TT, IError> CastToOr<T, TT>(this T self, IError[] error) where TT : T
-        //{
-        //    if (self is TT tt)
-        //    {
-        //        return OrType.Make<TT, IError>(tt);
-        //    }
-        //    else
-        //    {
-        //        return OrType.Make<TT, IError>(error);
-        //    }
-        //}
-
     }
 
     public static class ErrorCodes{
@@ -80,7 +68,7 @@ namespace Tac.Model
         public static IError Cascaded(string message,IError inner) => new Error(ErrorCodes.Cascaded, message, inner);
         public static IError Cascaded(string message, IError[] inner) => new Error(ErrorCodes.Cascaded, message, inner);
 
-        private IError[] rightResult;
+        private readonly IError[] rightResult;
 
         private Error(Guid code) {
             this.Code = code;

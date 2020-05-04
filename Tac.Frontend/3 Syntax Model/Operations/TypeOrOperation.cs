@@ -44,10 +44,16 @@ namespace Tac.SemanticModel.CodeStuff
 
 namespace Tac.Frontend.SyntaxModel.Operations
 {
-    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>, IFrontendCodeElement
+    // what even is the point of this? it just defers to the type
+    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>, IFrontendCodeElement, IIsType
     {
+        private readonly IOrType<IBox<IFrontendType>, IError> left;
+        private readonly IOrType<IBox<IFrontendType>, IError> right;
+
         public WeakTypeOrOperation(IOrType<IBox<IFrontendType>,IError> left, IOrType<IBox<IFrontendType>, IError> right) : base(left, right)
         {
+            this.left = left ?? throw new ArgumentNullException(nameof(left));
+            this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
         public override IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
@@ -60,13 +66,24 @@ namespace Tac.Frontend.SyntaxModel.Operations
                 Right.Is1OrThrow().GetValue().ConvertTypeOrThrow(context)
                 ));
         }
+
+
+        public FrontEndOrType AcutalType()
+        {
+            return new FrontEndOrType(left.TransformInner(x=>x.GetValue()), right.TransformInner(x => x.GetValue()));
+        }
+
+        public IFrontendType Type()
+        {
+            return AcutalType();
+        }
     }
 
     internal class TypeOrOperationMaker : BinaryTypeMaker
     {
         public TypeOrOperationMaker() : base(
             SymbolsRegistry.StaticTypeOrSymbol, 
-            (l, r) => OrType.Make<IBox < WeakTypeOrOperation >,IError>(new Box<WeakTypeOrOperation>(new WeakTypeOrOperation(l, r))),
+            (l, r) => OrType.Make<IBox <FrontEndOrType>,IError>(new Box<FrontEndOrType>(new WeakTypeOrOperation(l, r).AcutalType())),
             (s,c,l,r)=> {
                 var key = new ImplicitKey(Guid.NewGuid());
                 c.TypeProblem.CreateOrType(s, key,l.SetUpSideNode.TransformInner(x=>x.SafeCastTo<Tpn.ITypeProblemNode,Tpn.TypeProblem2.TypeReference>()), r.SetUpSideNode.TransformInner(x => x.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), new WeakTypeOrOperationConverter());

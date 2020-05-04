@@ -271,7 +271,7 @@ namespace Tac.SemanticModel.CodeStuff
     {
         private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
-        public BinaryTypeMaker(string symbol, BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendCodeElement>, IError>> make,
+        public BinaryTypeMaker(string symbol, BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendType>, IError>> make,
             BinaryOperation.ToTypeProblemThings toTypeProblemThings
             )
         {
@@ -281,7 +281,7 @@ namespace Tac.SemanticModel.CodeStuff
         }
 
         public string Symbol { get; }
-        private BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendCodeElement>, IError>> Make { get; }
+        private BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendType>, IError>> Make { get; }
 
         public ITokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {

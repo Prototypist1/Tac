@@ -55,18 +55,14 @@ namespace Tac.SemanticModel.Operations
     internal static class CallOperationSharedCode {
         public static IEnumerable<IError> Validate(IOrType<IBox<IFrontendCodeElement>, IError> input, IOrType<IBox<IFrontendCodeElement>, IError> method) {
             var inputTypeOrErrors = input.ReturnsTypeOrErrors();
-            var methodTypeOrErrors = method.ReturnsTypeOrErrors().TransformAndFlatten<IFrontendType,  IFrontendType> (thing => {
-                if (thing is Tac.SyntaxModel.Elements.AtomicTypes.MethodType method)
-                {
-                    return method.InputType;
-                }
-                return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"));
-            });
+            var methodInputTypeOrErrors = method
+                .ReturnsTypeOrErrors()
+                .TransformAndFlatten(thing => thing.TryGetInput().IfElseReturn(x=>x,()=> OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"))));
 
             return inputTypeOrErrors.SwitchReturns(
-                i => methodTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
+                i => methodInputTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
                     mi=> {
-                        if (!i.IsAssignableTo(mi))
+                        if (!i.TheyAreUs(mi))
                         {
                             return new[] { Error.Other($"{method} does not accept {input}") };
                         }
@@ -75,7 +71,7 @@ namespace Tac.SemanticModel.Operations
                     mi=> {
                         return new IError[] { mi };
                     }), 
-                i => methodTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
+                i => methodInputTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
                     m => {
                         return new IError[] { i };
                     }, 
