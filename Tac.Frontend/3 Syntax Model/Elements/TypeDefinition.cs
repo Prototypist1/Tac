@@ -15,6 +15,7 @@ using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
 using Prototypist.Toolbox;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Parser
 {
@@ -73,7 +74,7 @@ namespace Tac.SemanticModel
 
         public IFrontendType Type()
         {
-            throw new NotImplementedException();
+            return new HasMembersType(Scope.GetValue());
         }
 
         public IEnumerable<IError> Validate() => Scope.GetValue().Validate();

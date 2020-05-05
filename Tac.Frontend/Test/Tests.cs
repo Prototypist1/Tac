@@ -9,6 +9,7 @@ using Tac.Model;
 using Tac.Infastructure;
 using Tac.SemanticModel;
 using Xunit;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.Frontend.TypeProblem.Test
 {
@@ -18,20 +19,22 @@ namespace Tac.Frontend.TypeProblem.Test
     {
         #region Help
 
-        private static void HasCount(int count, IScoped result)
+        private static void HasCount(int count, IFrontendType result)
         {
-            Assert.Equal(count, result.Scope.GetValue().membersList.Count);
+            string error = 0;
         }
 
-        private static WeakMemberDefinition HasMember(IScoped result, IKey key)
+        private static IFrontendType HasMember(IFrontendType result, IKey key)
         {
-            var thing = Assert.Single(result.Scope.GetValue().membersList.Where(x => key.Equals(x.GetValue().Key)));
-            return thing.GetValue();
+            return result.TryGetMember(key).Is1OrThrow().Is1OrThrow();
+
+            //var thing = Assert.Single(result.Scope.GetValue().membersList.Where(x => key.Equals(x.GetValue().Key)));
+            //return thing.GetValue();
         }
 
-        private static WeakTypeDefinition MemberToType(WeakMemberDefinition member)
+        private static IFrontendType MemberToType(WeakMemberDefinition member)
         {
-            return (WeakTypeDefinition)member.Type.Is1OrThrow().GetValue();
+            return member.Type.Is1OrThrow().GetValue();
         }
 
         #endregion
@@ -55,9 +58,9 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var resultHello = solution.GetExplicitType(hello).GetValue().Is1OrThrow();
 
-            HasCount(2, resultHello);
-            HasMember(resultHello, new NameKey("x"));
-            HasMember(resultHello, new NameKey("y"));
+            HasCount(2, resultHello.Type());
+            HasMember(resultHello.Type(), new NameKey("x"));
+            HasMember(resultHello.Type(), new NameKey("y"));
         }
 
 
