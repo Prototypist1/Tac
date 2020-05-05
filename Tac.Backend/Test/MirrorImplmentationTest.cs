@@ -28,7 +28,7 @@ namespace Tac.Backend.Test
             Assert.False(res.IsReturn(out var _, out var value));
 
             var scope = value!.Value.CastTo<IInterpetedScope>();
-            var implementation = scope.GetMember<IInterpetedAnyType>(new NameKey("mirror")).Value.CastTo<IInterpetedImplementation<IInterpetedScope, IInterpedEmpty, IInterpedEmpty>>();
+            var implementation = scope.GetMember<IInterpetedAnyType>(new NameKey("mirror")).Value.CastTo<IInterpetedMethod<IInterpetedScope, IInterpetedMethod<IInterpedEmpty, IInterpedEmpty>>>();
 
             var context = TypeManager.InstanceScope(
                 (new NameKey("x"), TypeManager.AnyMember(TypeManager.Double( 5))),

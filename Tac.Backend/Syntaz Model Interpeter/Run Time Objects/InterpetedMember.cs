@@ -153,11 +153,14 @@ namespace Tac.Syntaz_Model_Interpeter
                 var incommingType = o.Convert(TransformerExtensions.NewConversionContext());
                 // also don't like passing in false here
                 // forces me to know too much about that is going on under the hood 
-                if (VerifiableType.TheyAreUs(incommingType, false)) {
-                    Set(o.CastTo<T>());
-                    return true;
-                }
-                return false;
+
+                throw new NotImplementedException();
+
+                //if (VerifiableType.TheyAreUs(incommingType, false)) {
+                //    Set(o.CastTo<T>());
+                //    return true;
+                //}
+                //return false;
             }
         }
 
