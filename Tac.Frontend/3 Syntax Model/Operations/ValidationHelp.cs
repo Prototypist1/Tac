@@ -13,7 +13,7 @@ namespace Tac.SemanticModel.Operations
         public static IEnumerable<IError> TypeCheck(this IOrType<IBox<IFrontendCodeElement>, IError> self, IFrontendType targetType) {
             return ReturnsTypeOrErrors(self).SwitchReturns<IEnumerable<IError>>(
             x => {
-                if (!x.TheyAreUs(targetType))
+                if (!x.TheyAreUs(targetType).SwitchReturns(x => x, x => false))
                 {
                     return new[] { Error.Other($"left cannot be {x}") };
                 }

@@ -57,12 +57,12 @@ namespace Tac.SemanticModel.Operations
             var inputTypeOrErrors = input.ReturnsTypeOrErrors();
             var methodInputTypeOrErrors = method
                 .ReturnsTypeOrErrors()
-                .TransformAndFlatten(thing => thing.TryGetInput().IfElseReturn(x=>x,()=> OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"))));
+                .TransformAndFlatten(thing => thing.TryGetInput().SwitchReturns(orType=> orType, no=> OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return")), error => OrType.Make<IFrontendType, IError>(error)));
 
             return inputTypeOrErrors.SwitchReturns(
                 i => methodInputTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
                     mi=> {
-                        if (!i.TheyAreUs(mi))
+                        if (!i.TheyAreUs(mi).SwitchReturns(x => x, x => false))
                         {
                             return new[] { Error.Other($"{method} does not accept {input}") };
                         }
