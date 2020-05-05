@@ -54,7 +54,7 @@ namespace Tac.Frontend
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
-            public IFrontendType GetValue()=> box.GetValue().SwitchReturns<IFrontendType>(x => x.Type(), x => x.Type(), x => x);
+            public IFrontendType GetValue()=> box.GetValue().SwitchReturns<IFrontendType>(x => x.FrontendType(), x => x.FrontendType(), x => x);
         }
 
         private class UnWrappingOrBox : IBox<IFrontendType>
@@ -66,7 +66,7 @@ namespace Tac.Frontend
                 this.box = box ?? throw new ArgumentNullException(nameof(box));
             }
 
-            public IFrontendType GetValue() => box.GetValue().Type();
+            public IFrontendType GetValue() => box.GetValue().FrontendType();
         }
 
 
@@ -159,7 +159,7 @@ namespace Tac.Frontend
                         Help.GetType(typeSolution, output).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
             }
 
-            return new WeakTypeDefinition(new Box<WeakScope>(scope)).Type();
+            return new WeakTypeDefinition(new Box<WeakScope>(scope)).FrontendType();
         }
     }
 

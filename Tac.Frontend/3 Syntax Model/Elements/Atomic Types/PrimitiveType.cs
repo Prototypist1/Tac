@@ -333,7 +333,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key)
         {
-            var matches = weakScope.membersList.Where(x => x.GetValue().Key == key);
+            var matches = weakScope.membersList.Where(x => 
+                x.GetValue().Key.Equals(key));
             if (matches.Count() == 1)
             {
                 return OrType.Make<IOrType<IFrontendType, IError>, No, IError>(matches.First().GetValue().Type.TransformInner(x=>x.GetValue()));
@@ -357,7 +358,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         //public readonly IReadOnlyDictionary<IKey, IOrType<IFrontendType, IError>> members;
 
-        private readonly WeakScope weakScope;
+        public readonly WeakScope weakScope;
 
         public HasMembersType(WeakScope weakScope)
         {

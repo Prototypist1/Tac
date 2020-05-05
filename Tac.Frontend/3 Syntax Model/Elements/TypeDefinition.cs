@@ -45,7 +45,7 @@ namespace Tac.SemanticModel
 
 
     internal interface IIsType {
-        public IFrontendType Type();
+        public IFrontendType FrontendType();
     }
 
 
@@ -72,7 +72,7 @@ namespace Tac.SemanticModel
             });
         }
 
-        public IFrontendType Type()
+        public IFrontendType FrontendType()
         {
             return new HasMembersType(Scope.GetValue());
         }

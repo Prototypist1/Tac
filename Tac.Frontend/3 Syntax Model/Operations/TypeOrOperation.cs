@@ -73,7 +73,7 @@ namespace Tac.Frontend.SyntaxModel.Operations
             return new FrontEndOrType(left.TransformInner(x=>x.GetValue()), right.TransformInner(x => x.GetValue()));
         }
 
-        public IFrontendType Type()
+        public IFrontendType FrontendType()
         {
             return AcutalType();
         }

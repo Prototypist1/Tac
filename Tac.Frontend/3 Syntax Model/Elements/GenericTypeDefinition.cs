@@ -62,7 +62,7 @@ namespace Tac.SemanticModel
         public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
         public IBox<WeakScope> Scope { get; }
 
-        public IFrontendType Type()
+        public IFrontendType FrontendType()
         {
             return new SyntaxModel.Elements.AtomicTypes.AnyType();
         }

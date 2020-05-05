@@ -19,17 +19,26 @@ namespace Tac.Frontend.TypeProblem.Test
     {
         #region Help
 
-        private static void HasCount(int count, IFrontendType result)
-        {
-            string error = 0;
-        }
+        //private static void HasCount(int count, IFrontendType result)
+        //{
+        //    var members = 0;
+        //    if (result.SafeIs(out HasMembersType membersType)) {
+        //        members =membersType.weakScope.membersList.Count();
+        //    }
+
+
+
+        //    string error = 0;
+        //}
 
         private static IFrontendType HasMember(IFrontendType result, IKey key)
         {
             return result.TryGetMember(key).Is1OrThrow().Is1OrThrow();
+        }
 
-            //var thing = Assert.Single(result.Scope.GetValue().membersList.Where(x => key.Equals(x.GetValue().Key)));
-            //return thing.GetValue();
+        private static void DoesNotHaveMember(IFrontendType result, IKey key)
+        {
+            result.TryGetMember(key).Is2OrThrow();
         }
 
         private static IFrontendType MemberToType(WeakMemberDefinition member)
@@ -58,9 +67,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var resultHello = solution.GetExplicitType(hello).GetValue().Is1OrThrow();
 
-            HasCount(2, resultHello.Type());
-            HasMember(resultHello.Type(), new NameKey("x"));
-            HasMember(resultHello.Type(), new NameKey("y"));
+            HasMember(resultHello.FrontendType(), new NameKey("x"));
+            HasMember(resultHello.FrontendType(), new NameKey("y"));
         }
 
 
@@ -93,24 +101,24 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var methodResult = result.GetMethod(method).GetValue().Is1OrThrow();
 
-            HasCount(3, methodResult);
-            HasMember(methodResult, new NameKey("input"));
-            HasMember(methodResult, new NameKey("x"));
-            HasMember(methodResult, new NameKey("y"));
-            var inputResult = MemberToType(HasMember(methodResult, new NameKey("input")));
+            var HackToLookAtScope = new HasMembersType(methodResult.Scope.GetValue());
 
-            HasCount(2, inputResult);
+            HasMember(HackToLookAtScope, new NameKey("input"));
+            HasMember(HackToLookAtScope, new NameKey("x"));
+            HasMember(HackToLookAtScope, new NameKey("y"));
+            var inputResult = HasMember(HackToLookAtScope, new NameKey("input"));
+
             HasMember(inputResult, new NameKey("x"));
             HasMember(inputResult, new NameKey("y"));
 
-            var helloResult = result.GetExplicitType(hello).GetValue().Is1OrThrow();
-            HasCount(2, helloResult);
+            var helloResult = result.GetExplicitType(hello).GetValue().Is1OrThrow().FrontendType();
             HasMember(helloResult, new NameKey("x"));
             HasMember(helloResult, new NameKey("y"));
 
             // things don't flow downstream 
-            var methodReturns = methodResult.OutputType.Is1OrThrow().GetValue().CastTo<WeakTypeDefinition>();
-            HasCount(0, methodReturns);
+            var methodReturns = methodResult.OutputType.Is1OrThrow().GetValue();
+            DoesNotHaveMember(methodReturns, new NameKey("x"));
+            DoesNotHaveMember(methodReturns, new NameKey("y"));
         }
 
         [Fact]
@@ -134,11 +142,25 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            HasCount(1, MemberToType(solution.GetMember(m1).GetValue()));
-            HasCount(1, MemberToType(solution.GetMember(m2).GetValue()));
-            HasCount(0, MemberToType(solution.GetMember(m3).GetValue()));
-            HasCount(0, MemberToType(solution.GetMember(m4).GetValue()));
-            HasCount(0, MemberToType(solution.GetMember(m5).GetValue()));
+            var m1t = MemberToType(solution.GetMember(m1).GetValue());
+            HasMember(m1t, new NameKey("x"));
+            DoesNotHaveMember(m1t, new NameKey("y"));
+
+            var m2t = MemberToType(solution.GetMember(m2).GetValue());
+            DoesNotHaveMember(m2t, new NameKey("x"));
+            HasMember(m2t, new NameKey("y"));
+
+            var m3t = MemberToType(solution.GetMember(m3).GetValue());
+            DoesNotHaveMember(m3t, new NameKey("x"));
+            DoesNotHaveMember(m3t, new NameKey("y"));
+
+            var m4t = MemberToType(solution.GetMember(m4).GetValue());
+            DoesNotHaveMember(m4t, new NameKey("x"));
+            DoesNotHaveMember(m4t, new NameKey("y"));
+
+            var m5t = MemberToType(solution.GetMember(m5).GetValue());
+            DoesNotHaveMember(m5t, new NameKey("x"));
+            DoesNotHaveMember(m5t, new NameKey("y"));
 
         }
 
@@ -165,11 +187,31 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            HasCount(2, MemberToType(solution.GetMember(m1).GetValue()));
-            HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
-            HasCount(2, MemberToType(solution.GetMember(m3).GetValue()));
-            HasCount(1, MemberToType(solution.GetMember(m4).GetValue()));
-            HasCount(1, MemberToType(solution.GetMember(m5).GetValue()));
+            //HasCount(2, MemberToType(solution.GetMember(m1).GetValue()));
+            //HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
+            //HasCount(2, MemberToType(solution.GetMember(m3).GetValue()));
+            //HasCount(1, MemberToType(solution.GetMember(m4).GetValue()));
+            //HasCount(1, MemberToType(solution.GetMember(m5).GetValue()));
+
+            var m1t = MemberToType(solution.GetMember(m1).GetValue());
+            HasMember(m1t, new NameKey("x"));
+            HasMember(m1t, new NameKey("y"));
+
+            var m2t = MemberToType(solution.GetMember(m2).GetValue());
+            HasMember(m2t, new NameKey("x"));
+            HasMember(m2t, new NameKey("y"));
+
+            var m3t = MemberToType(solution.GetMember(m3).GetValue());
+            HasMember(m3t, new NameKey("x"));
+            HasMember(m3t, new NameKey("y"));
+
+            var m4t = MemberToType(solution.GetMember(m4).GetValue());
+            HasMember(m4t, new NameKey("x"));
+            DoesNotHaveMember(m4t, new NameKey("y"));
+
+            var m5t = MemberToType(solution.GetMember(m5).GetValue());
+            DoesNotHaveMember(m5t, new NameKey("x"));
+            HasMember(m5t, new NameKey("y"));
 
         }
 
@@ -189,8 +231,16 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            HasCount(2, MemberToType(solution.GetMember(m1).GetValue()));
-            HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
+            var m1t = MemberToType(solution.GetMember(m1).GetValue());
+            HasMember(m1t, new NameKey("x"));
+            HasMember(m1t, new NameKey("y"));
+
+            var m2t = MemberToType(solution.GetMember(m2).GetValue());
+            HasMember(m2t, new NameKey("x"));
+            HasMember(m2t, new NameKey("y"));
+
+            //HasCount(2, MemberToType(solution.GetMember(m1).GetValue()));
+            //HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
         }
 
 
@@ -225,10 +275,10 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var chickePairResultType = MemberToType(chickenPairResult);
 
-            HasCount(1, chickePairResultType);
-            var xResult = HasMember(chickePairResultType, new NameKey("x"));
-            var xResultType = MemberToType(xResult);
-            HasCount(1, xResultType);
+            //HasCount(1, chickePairResultType);
+            var xResultType = HasMember(chickePairResultType, new NameKey("x"));
+            //var xResultType = MemberToType(xResult);
+            //HasCount(1, xResultType);
             HasMember(xResultType, new NameKey("eggs"));
 
         }
@@ -264,12 +314,13 @@ namespace Tac.Frontend.TypeProblem.Test
             var thingResult = solution.GetMember(thing).GetValue();
             var thingResultType = MemberToType(thingResult);
 
-            HasCount(1, thingResultType);
+            //HasCount(1, thingResultType);
             var nextResult = HasMember(thingResultType, new NameKey("next"));
-            var nextResultType = MemberToType(nextResult);
-            HasCount(1, nextResultType);
+            //var nextResultType = MemberToType(nextResult);
+            //HasCount(1, nextResultType);
+            HasMember(nextResult, new NameKey("next"));
 
-            Assert.Equal(thingResultType, nextResultType);
+            Assert.Equal(thingResultType, nextResult);
         }
 
 
@@ -318,14 +369,14 @@ namespace Tac.Frontend.TypeProblem.Test
             var leftResultType = MemberToType(leftResult);
             var rightResultType = MemberToType(rightResult);
 
-            HasCount(1, leftResultType);
-            HasCount(1, rightResultType);
+            //HasCount(1, leftResultType);
+            //HasCount(1, rightResultType);
 
-            var leftThing = HasMember(leftResultType, new NameKey("thing"));
-            var rightThing = HasMember(rightResultType, new NameKey("thing"));
+            var rightThingType = HasMember(leftResultType, new NameKey("thing"));
+            var leftThingType = HasMember(rightResultType, new NameKey("thing"));
 
-            var leftThingType = MemberToType(leftThing);
-            var rightThingType = MemberToType(rightThing);
+            //var leftThingType = MemberToType(leftThing);
+            //var rightThingType = MemberToType(rightThing);
 
             Assert.Equal(leftResultType, rightThingType);
             Assert.Equal(rightResultType, leftThingType);
@@ -360,14 +411,14 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var xMemberResult = solution.GetMember(xMember).GetValue();
             var xMemberResultType = MemberToType(xMemberResult);
-            HasCount(1, xMemberResultType);
+            //HasCount(1, xMemberResultType);
             var xMemberResultX = HasMember(xMemberResultType, new NameKey("x"));
-            var xMemberResultXType = MemberToType(xMemberResultX);
-            HasCount(1, xMemberResultXType);
-            var xMemberResultXTypeX = HasMember(xMemberResultXType, new NameKey("x"));
-            var xMemberResultXTypeXType = MemberToType(xMemberResultXTypeX);
-            HasCount(1, xMemberResultXTypeXType);
-            HasMember(xMemberResultXTypeXType, new NameKey("eggs"));
+            //var xMemberResultXType = MemberToType(xMemberResultX);
+            //HasCount(1, xMemberResultXType);
+            var xMemberResultXTypeX = HasMember(xMemberResultX, new NameKey("x"));
+            //var xMemberResultXTypeXType = MemberToType(xMemberResultXTypeX);
+            //HasCount(1, xMemberResultXTypeXType);
+            HasMember(xMemberResultXTypeX, new NameKey("eggs"));
         }
     }
 }
