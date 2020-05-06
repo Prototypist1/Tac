@@ -57,7 +57,7 @@ namespace Tac.Frontend
     internal struct No { } 
     internal interface IFrontendType: IValidate
     {
-        IOrType<bool,IError> TheyAreUs(IFrontendType they);
+        IOrType<bool,IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue);
         IOrType<IOrType<IFrontendType, IError>, No,IError> TryGetMember(IKey key);
         IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn();
         IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput();

@@ -49,11 +49,13 @@ namespace Tac.Frontend.SyntaxModel.Operations
     {
         private readonly IOrType<IBox<IFrontendType>, IError> left;
         private readonly IOrType<IBox<IFrontendType>, IError> right;
+        private readonly Lazy<FrontEndOrType> lazy;
 
         public WeakTypeOrOperation(IOrType<IBox<IFrontendType>,IError> left, IOrType<IBox<IFrontendType>, IError> right) : base(left, right)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
+            lazy = new Lazy<FrontEndOrType>(()=> new FrontEndOrType(left.TransformInner(x => x.GetValue()), right.TransformInner(x => x.GetValue())));
         }
 
         public override IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
@@ -70,7 +72,7 @@ namespace Tac.Frontend.SyntaxModel.Operations
 
         public FrontEndOrType AcutalType()
         {
-            return new FrontEndOrType(left.TransformInner(x=>x.GetValue()), right.TransformInner(x => x.GetValue()));
+            return lazy.Value;
         }
 
         public IFrontendType FrontendType()

@@ -55,12 +55,15 @@ namespace Tac.SemanticModel
         {
             //Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            lazy = new Lazy<IFrontendType>(() => new HasMembersType(Scope.GetValue()));
         }
 
         //public IIsPossibly<IKey> Key { get; }
         // I am not sure I agree with this
         // it is an ordered set of types, names and acccessablity modifiers
         public IBox<WeakScope> Scope { get; }
+
+        private readonly  Lazy<IFrontendType> lazy;
         
 
         public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
@@ -74,7 +77,7 @@ namespace Tac.SemanticModel
 
         public IFrontendType FrontendType()
         {
-            return new HasMembersType(Scope.GetValue());
+            return lazy.Value;
         }
 
         public IEnumerable<IError> Validate() => Scope.GetValue().Validate();

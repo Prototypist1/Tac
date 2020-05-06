@@ -58,11 +58,37 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         // ugh
         // this probaly needs to be able to return an erro
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
         {
+            if (assumeTrue.Contains((this, they))) {
+                return OrType.Make<bool, IError>(true);
+            }
+            assumeTrue.Add((this, they));
 
-            var leftRes = left.TransformInner(x => x.TheyAreUs(they));
-            var rightRes = right.TransformInner(x => x.TheyAreUs(they));
+            var leftRes = left.TransformInner(x => {
+
+                // {6DF11CC3-E6AB-438E-9AC2-7683A047CBC8}
+                // same idea
+                // this has to applied everywhere TheyAreUs is in TheyAreUs
+                if (ReferenceEquals(x, this))
+                {
+                    return OrType.Make<bool, IError>(true);
+                }
+
+                return x.TheyAreUs(they, assumeTrue);
+            });
+            var rightRes = right.TransformInner(x => {
+
+                // {6DF11CC3-E6AB-438E-9AC2-7683A047CBC8}
+                // same idea
+                // this has to applied everywhere TheyAreUs is in TheyAreUs
+                if (ReferenceEquals(x, this))
+                {
+                    return OrType.Make<bool, IError>(true);
+                }
+
+                return x.TheyAreUs(they, assumeTrue); 
+            });
 
 
             return leftRes.SwitchReturns(x=> rightRes.SwitchReturns(
@@ -248,6 +274,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         private struct Yes { }
 
+        static List<IFrontendType> List = new List<IFrontendType>();
+
         // for now the members all need to be the same type
         // say A is { Human thing; } and B is { Animal thing; }
         // B := A
@@ -266,8 +294,26 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         // if B is { readonly Animal thing; } then
         // B := A
         // is ok, humnas are always animals and you can't set on be to breaak things
-        // A := B is still not since B.thing might not be a Human
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they) {
+        // A := B is still not since B.thing might not be a Human  List<(IFrontendType, IFrontendType)>
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) {
+
+            if (!List.Contains(this)) {
+                List.Add(this);
+            }
+
+            if (!List.Contains(they))
+            {
+                List.Add(they);
+            }
+
+            var us = List.IndexOf(this);
+            var them = List.IndexOf(they);
+
+            var debug = $"{us}:{them}";
+
+            if (object.ReferenceEquals(they,this)) {
+                return OrType.Make<bool, IError>(true);
+            }
 
             var list = new List<IOrType<IError[], No, Yes>>();
 
@@ -283,13 +329,37 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 list.Add(theirMember.SwitchReturns(
                     or => or.SwitchReturns(
                         theirType => ourMemberType.SwitchReturns(
-                            ourType => theirType.TheyAreUs(ourType).SwitchReturns(
-                                    boolean1=> ourType.TheyAreUs(theirType).SwitchReturns(
-                                        boolean2 => boolean1 && boolean2 ? OrType.Make<IError[], No, Yes>(new Yes()): OrType.Make<IError[], No, Yes>(new No()), // if they are us and we are them the types are the same
-                                        error2 => OrType.Make<IError[], No, Yes>(new[] { error2 })),
-                                    error1 => ourType.TheyAreUs(theirType).SwitchReturns(
-                                        boolean2 => OrType.Make<IError[], No, Yes>(new[] { error1 }),
-                                        error2 => OrType.Make<IError[], No, Yes>(new[] { error1, error2 }))),
+                            ourType => {
+
+                                // so ...
+                                // X { A s } and A { X s }
+                                // these are the same right?
+                                // yeah.
+                                // so are 
+                                // A { B x } and B { C x } and C { A x }
+
+
+                                // {6DF11CC3-E6AB-438E-9AC2-7683A047CBC8}
+                                // we are about to call "ourType.TheyAreUs(theirType)" 
+                                // if "ourType" is "this" and "heirType" is "they"
+                                // than we are going in circles!
+                                // it counts as a yes
+                                // the result is type X { X a } is the same as X1 { X1 a} and i think that is right
+                                if (ReferenceEquals(ourType, this) && ReferenceEquals(theirType, they))
+                                {
+                                    return OrType.Make<IError[], No, Yes>(new Yes());
+                                }
+
+                                return ourType.TheyAreUs(theirType).SwitchReturns(
+                                         boolean1 => theirType.TheyAreUs(ourType).SwitchReturns(
+                                             boolean2 => boolean1 && boolean2 ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()), // if they are us and we are them the types are the same
+                                             error2 => OrType.Make<IError[], No, Yes>(new[] { error2 })),
+                                         error1 => theirType.TheyAreUs(ourType).SwitchReturns(
+                                             boolean2 => OrType.Make<IError[], No, Yes>(new[] { error1 }),
+                                             error2 => OrType.Make<IError[], No, Yes>(new[] { error1, error2 })));
+                                
+                                
+                                },
                             ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })), 
                         error => ourMemberType.SwitchReturns(
                             ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
@@ -386,7 +456,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
         {
             // the method calling this
             // is in charge of unwrapping
@@ -412,7 +482,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IBlockType>(new Model.Instantiated.BlockType(), () => { });
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError> (they is BlockType);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError> (they is BlockType);
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -429,7 +499,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IStringType>(new Model.Instantiated.StringType(), () => { });
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(they is StringType);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is StringType);
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
@@ -442,7 +512,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<IEmptyType>(new Model.Instantiated.EmptyType(), () => { });
         }
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(they is EmptyType);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is EmptyType);
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -455,7 +525,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         {
             return new BuildIntention<INumberType>(new Model.Instantiated.NumberType(), () => { });
         }
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(they is NumberType);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is NumberType);
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -513,7 +583,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IAnyType>(new Model.Instantiated.AnyType(), () => { });
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(true);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(true);
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -527,7 +597,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IBooleanType>(new Tac.Model.Instantiated.BooleanType(), () => { });
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they) => OrType.Make<bool, IError>(they is BooleanType);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is BooleanType);
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -639,17 +709,36 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             }
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
         {
 
+            if (object.ReferenceEquals(they, this))
+            {
+                return OrType.Make<bool, IError>(true);
+            }
+
             var list = new List<IOrType<IError[], No, Yes>>();
+
 
             list.Add(they.TryGetInput().SwitchReturns(
                 or => or.SwitchReturns(
                     theirType => InputType.SwitchReturns(
-                        ourType=> theirType.TheyAreUs(ourType).SwitchReturns(
-                            boolean=> boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
-                            error=> OrType.Make<IError[], No, Yes>(new[] { error })),
+                        ourType=> {
+
+                            // {6DF11CC3-E6AB-438E-9AC2-7683A047CBC8}
+                            // we are about to call "ourType.TheyAreUs(theirType)" 
+                            // if "ourType" is "this" and "heirType" is "they"
+                            // than we are going in circles!
+                            // it counts as a yes
+                            if (ReferenceEquals(ourType, this) && ReferenceEquals(theirType, they))
+                            {
+                                return OrType.Make<IError[], No, Yes>(new Yes());
+                            }
+
+                            return theirType.TheyAreUs(ourType, assumeTrue).SwitchReturns(
+                                 boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
+                                 error => OrType.Make<IError[], No, Yes>(new[] { error }));
+                        },
                         ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
                     theirError => InputType.SwitchReturns(
                         ourType => OrType.Make<IError[], No, Yes>(new[] { theirError }),
@@ -662,9 +751,22 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             list.Add(they.TryGetReturn().SwitchReturns(
                 or => or.SwitchReturns(
                     theirType => OutputType.SwitchReturns(
-                        ourType => theirType.TheyAreUs(ourType).SwitchReturns(
-                            boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
-                            error => OrType.Make<IError[], No, Yes>(new[] { error })),
+                        ourType => {
+
+                            // {6DF11CC3-E6AB-438E-9AC2-7683A047CBC8}
+                            // we are about to call "ourType.TheyAreUs(theirType)" 
+                            // if "ourType" is "this" and "heirType" is "they"
+                            // than we are going in circles!
+                            // it counts as a yes
+                            if (ReferenceEquals(ourType, this) && ReferenceEquals(theirType, they))
+                            {
+                                return OrType.Make<IError[], No, Yes>(new Yes());
+                            }
+
+                            return theirType.TheyAreUs(ourType, assumeTrue).SwitchReturns(
+                                 boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
+                                 error => OrType.Make<IError[], No, Yes>(new[] { error }));
+                        },
                         ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
                     theirError => OutputType.SwitchReturns(
                         ourType => OrType.Make<IError[], No, Yes>(new[] { theirError }),
@@ -740,7 +842,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     //    public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
-    //    public bool TheyAreUs(IFrontendType they)
+    //    public bool TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
     //    {
     //        throw new NotImplementedException();
     //    }

@@ -46,6 +46,10 @@ namespace Tac.Frontend.TypeProblem.Test
             return member.Type.Is1OrThrow().GetValue();
         }
 
+        private static void Equal(IFrontendType a, IFrontendType b) {
+            Assert.True(a.TheyAreUs(b).Is1OrThrow() && b.TheyAreUs(a).Is1OrThrow());
+        }
+
         #endregion
 
 
@@ -320,7 +324,7 @@ namespace Tac.Frontend.TypeProblem.Test
             //HasCount(1, nextResultType);
             HasMember(nextResult, new NameKey("next"));
 
-            Assert.Equal(thingResultType, nextResult);
+            Equal(thingResultType, nextResult);
         }
 
 
@@ -378,8 +382,8 @@ namespace Tac.Frontend.TypeProblem.Test
             //var leftThingType = MemberToType(leftThing);
             //var rightThingType = MemberToType(rightThing);
 
-            Assert.Equal(leftResultType, rightThingType);
-            Assert.Equal(rightResultType, leftThingType);
+            Equal(leftResultType, rightThingType);
+            Equal(rightResultType, leftThingType);
         }
 
 
