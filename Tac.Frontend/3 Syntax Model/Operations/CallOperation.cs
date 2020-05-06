@@ -62,7 +62,7 @@ namespace Tac.SemanticModel.Operations
             return inputTypeOrErrors.SwitchReturns(
                 i => methodInputTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
                     mi=> {
-                        if (!i.TheyAreUs(mi).SwitchReturns(x => x, x => false))
+                        if (!i.TheyAreUs(mi, new List<(IFrontendType, IFrontendType)>()).SwitchReturns(x => x, x => false))
                         {
                             return new[] { Error.Other($"{method} does not accept {input}") };
                         }

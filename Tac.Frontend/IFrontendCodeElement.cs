@@ -57,6 +57,13 @@ namespace Tac.Frontend
     internal struct No { } 
     internal interface IFrontendType: IValidate
     {
+        // we need to pass around a list of assumed true
+        // TheyAreUs is often called inside TheyAreUs
+        // and the parameters to the inner can be the same as the outer
+        // this happens in cases like: A { A x }  TheyAreUs B { B x }
+        // this are actaully the same
+        // another case A { B x },  B { C x },  C { A x }
+        // these are the same as well
         IOrType<bool,IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue);
         IOrType<IOrType<IFrontendType, IError>, No,IError> TryGetMember(IKey key);
         IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn();

@@ -47,7 +47,7 @@ namespace Tac.Frontend.TypeProblem.Test
         }
 
         private static void Equal(IFrontendType a, IFrontendType b) {
-            Assert.True(a.TheyAreUs(b).Is1OrThrow() && b.TheyAreUs(a).Is1OrThrow());
+            Assert.True(a.TheyAreUs(b, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow() && b.TheyAreUs(a, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
         #endregion
