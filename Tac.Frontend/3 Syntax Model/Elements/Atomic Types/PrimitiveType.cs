@@ -65,20 +65,52 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             }
             assumeTrue.Add((this, they));
 
-            var leftRes = left.TransformInner(x => {
-                return x.TheyAreUs(they, assumeTrue);
-            });
-            var rightRes = right.TransformInner(x => {
-                return x.TheyAreUs(they, assumeTrue); 
-            });
 
 
-            return leftRes.SwitchReturns(x=> rightRes.SwitchReturns(
-                    y=> OrType.Make<bool, IError>(x || y),
-                    y=> OrType.Make<bool, IError>(y)),
-                x => rightRes.SwitchReturns(
-                    y => OrType.Make<bool, IError>(x), 
-                    y => OrType.Make<bool, IError>(Error.Cascaded("", new[] { x, y }))));
+            if (they.SafeIs(out FrontEndOrType frontEndOrType))
+            {
+
+                // both of their type must be assignable to one of our types...
+
+                var leftRes = frontEndOrType.left.TransformInner(x =>
+                {
+                    return TheyAreUs(x, assumeTrue);
+                });
+                var rightRes = frontEndOrType.right.TransformInner(x =>
+                {
+                    return TheyAreUs(x, assumeTrue);
+                });
+
+
+                return leftRes.SwitchReturns(x => rightRes.SwitchReturns(
+                        y => OrType.Make<bool, IError>(x && y),
+                        y => OrType.Make<bool, IError>(y)),
+                    x => rightRes.SwitchReturns(
+                        y => OrType.Make<bool, IError>(x),
+                        y => OrType.Make<bool, IError>(Error.Cascaded("", new[] { x, y }))));
+
+            }
+            else
+            {
+                // they must be assignable to one of our types
+
+                var leftRes = left.TransformInner(x =>
+                {
+                    return x.TheyAreUs(they, assumeTrue);
+                });
+                var rightRes = right.TransformInner(x =>
+                {
+                    return x.TheyAreUs(they, assumeTrue);
+                });
+
+
+                return leftRes.SwitchReturns(x => rightRes.SwitchReturns(
+                        y => OrType.Make<bool, IError>(x || y),
+                        y => x ? OrType.Make<bool, IError>(true) : OrType.Make<bool, IError>(y)),
+                    x => rightRes.SwitchReturns(
+                        y => y ? OrType.Make<bool, IError>(true) : OrType.Make<bool, IError>(x),
+                        y => OrType.Make<bool, IError>(Error.Cascaded("", new[] { x, y }))));
+            }
         }
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key)
@@ -256,7 +288,6 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         private struct Yes { }
 
-        static List<IFrontendType> List = new List<IFrontendType>();
 
         // for now the members all need to be the same type
         // say A is { Human thing; } and B is { Animal thing; }
@@ -279,20 +310,6 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         // A := B is still not since B.thing might not be a Human  List<(IFrontendType, IFrontendType)>
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) {
 
-            if (!List.Contains(this)) {
-                List.Add(this);
-            }
-
-            if (!List.Contains(they))
-            {
-                List.Add(they);
-            }
-
-            var us = List.IndexOf(this);
-            var them = List.IndexOf(they);
-
-            var debug = $"{us}:{them}";
-
             if (assumeTrue.Contains((this, they)))
             {
                 return OrType.Make<bool, IError>(true);
@@ -308,6 +325,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 var ourMemberType = member.Type.TransformInner(x => x.GetValue());
 
                 // this is horrifying
+                // I think I need an extension
                 list.Add(theirMember.SwitchReturns(
                     or => or.SwitchReturns(
                         theirType => ourMemberType.SwitchReturns(
@@ -663,7 +681,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             list.Add(they.TryGetInput().SwitchReturns(
                 or => or.SwitchReturns(
                     theirType => InputType.SwitchReturns(
-                        ourType=> theirType.TheyAreUs(ourType, assumeTrue).SwitchReturns(
+                        ourType=> ourType.TheyAreUs(theirType, assumeTrue).SwitchReturns(
                             boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
                             error => OrType.Make<IError[], No, Yes>(new[] { error })),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),

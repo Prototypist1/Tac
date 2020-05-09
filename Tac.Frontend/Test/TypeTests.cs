@@ -11,9 +11,105 @@ namespace Tac.Frontend.Test
 {
     public class TypeTests
     {
+        #region Help
+
+        // a2 is a1
+        // a1 is not b2
+        // b2 is b1
+        // b1 is not b2
+
+        private IFrontendType A1()
+        {
+            var member1Key = new NameKey("am1");
+            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
+
+            return type1;
+        }
+
+        private IFrontendType A2()
+        {
+            var member1Key = new NameKey("am1");
+            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+            var member2Key = new NameKey("am2");
+            var member2 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member2Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1, member2 }));
+
+            return type1;
+        }
+
+        private IFrontendType B1()
+        {
+            var member1Key = new NameKey("bm1");
+            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
+
+            return type1;
+        }
+
+        private IFrontendType B2()
+        {
+            var member1Key = new NameKey("bm1");
+            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+            var member2Key = new NameKey("bm2");
+            var member2 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member2Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1, member2 }));
+
+            return type1;
+        }
+
+        private IFrontendType B3()
+        {
+            var member1Key = new NameKey("bm1");
+            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+            var member2Key = new NameKey("bm2");
+            var member2 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member2Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+
+            var member3Key = new NameKey("bm3");
+            var member3 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, member3Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1, member2, member3 }));
+
+            return type1;
+        }
+
+        #endregion
+
 
         [Fact]
-        public void PrimitivesAreThemselves() {
+        public void A2IsA1()
+        {
+            Assert.True(A1().TheyAreUs(A2(), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
+
+        [Fact]
+        public void A1IsNotA2()
+        {
+            Assert.False(A2().TheyAreUs(A1(), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
+
+
+        [Fact]
+        public void B2IsB1()
+        {
+            Assert.True(B1().TheyAreUs(B2(), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
+
+        [Fact]
+        public void B1IsNotB2()
+        {
+            Assert.False(B2().TheyAreUs(B1(), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
+
+        [Fact]
+        public void PrimitivesAreThemselves()
+        {
 
             var left = new IFrontendType[] { new NumberType(), new StringType(), new BooleanType() };
             var right = new IFrontendType[] { new NumberType(), new StringType(), new BooleanType() };
@@ -34,9 +130,9 @@ namespace Tac.Frontend.Test
             }
         }
 
-
         [Fact]
-        public void OrTypesWork() {
+        public void OrTypesWork()
+        {
 
             var or = new FrontEndOrType(OrType.Make<IFrontendType, IError>(new NumberType()), OrType.Make<IFrontendType, IError>(new StringType()));
 
@@ -47,14 +143,81 @@ namespace Tac.Frontend.Test
             Assert.False(new StringType().TheyAreUs(or, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
+        // more interesting or type test (co/contra varience)
+        [Fact]
+        public void OrTypesAreVarient()
+        {
+            var a1 = A1();
+            var a2 = A2();
+            var b1 = B1();
+            var b2 = B2();
+
+            var or1 = new FrontEndOrType(OrType.Make<IFrontendType, IError>(a1), OrType.Make<IFrontendType, IError>(b1));
+            var or2 = new FrontEndOrType(OrType.Make<IFrontendType, IError>(a2), OrType.Make<IFrontendType, IError>(b2));
+
+            Assert.True(or1.TheyAreUs(or2, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.False(or2.TheyAreUs(or1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
+
+        [Fact]
+        public void OrTypesJustNeedBothToMatchOne()
+        {
+            var a1 = A1();
+            var b1 = B1();
+            var b2 = B2();
+            var b3 = B3();
+
+            var or1 = new FrontEndOrType(OrType.Make<IFrontendType, IError>(a1), OrType.Make<IFrontendType, IError>(b1));
+            var or2 = new FrontEndOrType(OrType.Make<IFrontendType, IError>(b2), OrType.Make<IFrontendType, IError>(b3));
+
+            // this works since both b2 and b3 are b1
+            Assert.True(or1.TheyAreUs(or2, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            // this does not work because niether b2 nor b3 are a1
+            Assert.False(or2.TheyAreUs(or1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
+
+        [Fact]
+        public void OrTypesOrderDoesNotMatter()
+        {
+            var a1 = A1();
+            var b1 = B1();
+
+            var or1 = new FrontEndOrType(OrType.Make<IFrontendType, IError>(a1), OrType.Make<IFrontendType, IError>(b1));
+            var or2 = new FrontEndOrType(OrType.Make<IFrontendType, IError>(b1), OrType.Make<IFrontendType, IError>(a1));
+
+            Assert.True(or1.TheyAreUs(or2, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.True(or2.TheyAreUs(or1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+
+        }
+
+        [Fact]
+        public void BasicTypes()
+        {
+            var member1Key = new NameKey("x");
+            var member1 = new Box<WeakMemberDefinition>();
+            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
+            member1.Fill(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+            var member2Key = new NameKey("x");
+            var member2 = new Box<WeakMemberDefinition>();
+            var member3Key = new NameKey("y");
+            var member3 = new Box<WeakMemberDefinition>();
+            var type2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member2, member3 }));
+            member2.Fill(new WeakMemberDefinition(false, member2Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+            member3.Fill(new WeakMemberDefinition(false, member3Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(new NumberType()))));
+
+            Assert.True(type1.TheyAreUs(type2, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.False(type2.TheyAreUs(type1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
 
         // A { A x } is B { B x }
         [Fact]
-        public void InterestingCase1() {
+        public void InterestingCase1()
+        {
             var member1Key = new NameKey("x");
-            var member1 =new Box<WeakMemberDefinition>();
+            var member1 = new Box<WeakMemberDefinition>();
             var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
-            member1.Fill(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>(type1))));
+            member1.Fill(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(type1))));
 
             var member2Key = new NameKey("x");
             var member2 = new Box<WeakMemberDefinition>();
@@ -75,8 +238,8 @@ namespace Tac.Frontend.Test
             member1.Fill(new WeakMemberDefinition(false, member1Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(type1))));
 
             var member2Key = new NameKey("x");
-            var member2 = new Box<WeakMemberDefinition>(); 
-            var member3Key = new NameKey("x");
+            var member2 = new Box<WeakMemberDefinition>();
+            var member3Key = new NameKey("y");
             var member3 = new Box<WeakMemberDefinition>();
             var type2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member2, member3 }));
             member2.Fill(new WeakMemberDefinition(false, member2Key, OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(type2))));
@@ -89,7 +252,8 @@ namespace Tac.Frontend.Test
 
         // A { B x } is B { A x }
         [Fact]
-        public void InterestingCase3() {
+        public void InterestingCase3()
+        {
             var member1Key = new NameKey("x");
             var member1 = new Box<WeakMemberDefinition>();
             var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
@@ -135,8 +299,69 @@ namespace Tac.Frontend.Test
             Assert.True(type3.TheyAreUs(type1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
+        // this is not true
+        // T2 { A2 a, B2 b } is T1 { A1 a, B1 b } where A2 is A1 and B2 is B1
+        [Fact]
+        public void TypeDontHaveVariance()
+        {
+            var a1 = A1();
+            var a2 = A2();
+            var b1 = B1();
+            var b2 = B2();
+
+            var t1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> {
+                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, new NameKey("a"), OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(a1)))),
+                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, new NameKey("b"), OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(b1))))}));
+
+            var t2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { 
+                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, new NameKey("a"), OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(a2)))),
+                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, new NameKey("b"), OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(b2))))}));
+
+
+            Assert.False(t2.TheyAreUs(t1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.False(t1.TheyAreUs(t2, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
 
         // method co/contra-variance 
-        // any
+        // m1<a2,b1> is m2<a1,b2>
+        [Fact]
+        public void MethodVariance()
+        {
+            var a1 = A1();
+            var a2 = A2();
+            var b1 = B1();
+            var b2 = B2();
+
+            var m1 = new MethodType(OrType.Make<IFrontendType, IError>(a2),OrType.Make<IFrontendType, IError>(b1));
+
+            var m2 = new MethodType(OrType.Make<IFrontendType, IError>(a1), OrType.Make<IFrontendType, IError>(b2));
+
+            Assert.True(m2.TheyAreUs(m1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.False(m1.TheyAreUs(m2, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+        }
+
+        [Fact]
+        public void Any()
+        {
+            var a1 = A1();
+            var a2 = A2();
+            var b1 = B1();
+            var b2 = B2();
+            var m1 = new MethodType(OrType.Make<IFrontendType, IError>(a2), OrType.Make<IFrontendType, IError>(b1));
+            var m2 = new MethodType(OrType.Make<IFrontendType, IError>(a1), OrType.Make<IFrontendType, IError>(b2));
+            var t1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> {
+                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, new NameKey("a"), OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(a1)))),
+                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, new NameKey("b"), OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(b1))))}));
+            var t2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> {
+                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, new NameKey("a"), OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(a2)))),
+                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false, new NameKey("b"), OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(b2))))}));
+            var or1 = new FrontEndOrType(OrType.Make<IFrontendType, IError>(a1), OrType.Make<IFrontendType, IError>(b1));
+            var or2 = new FrontEndOrType(OrType.Make<IFrontendType, IError>(b1), OrType.Make<IFrontendType, IError>(a1));
+
+            var any = new AnyType();
+
+            Assert.All(new[] { a1, a2, b1, b2, m1, m2, t1, t2, or1, or2 }, x => any.TheyAreUs(x, new List<(IFrontendType, IFrontendType)>()));
+        }
     }
 }
+
