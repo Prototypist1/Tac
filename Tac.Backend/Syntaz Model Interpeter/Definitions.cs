@@ -237,28 +237,28 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             return method.Invoke(this, new object[] { codeElement }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
-        //private IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition<TContext,TIn,TOut>(IImplementationDefinition codeElement)
-        //    where TContext : class, IInterpetedAnyType
-        //    where TIn      : class, IInterpetedAnyType
-        //    where TOut     : class, IInterpetedAnyType
-        //{
-        //    if (backing.TryGetValue(codeElement, out var res))
-        //    {
-        //        return res;
-        //    }
-        //    else
-        //    {
-        //        var op = new InterpetedImplementationDefinition<TContext, TIn, TOut>();
-        //        backing.Add(codeElement, op);
-        //        op.Init(
-        //            MemberDefinition(codeElement.ParameterDefinition).CastTo<InterpetedMemberDefinition<TIn>>(),
-        //            MemberDefinition(codeElement.ContextDefinition).CastTo<InterpetedMemberDefinition<TContext>>(),
-        //            codeElement.MethodBody.Select(x => x.Convert(this)).ToArray(),
-        //            new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
-        //            codeElement.Returns().CastTo<IImplementationType>());
-        //        return op;
-        //    }
-        //}
+        private IInterpetedOperation<IInterpetedAnyType> ImplementationDefinition<TContext, TIn, TOut>(IImplementationDefinition codeElement)
+            where TContext : class, IInterpetedAnyType
+            where TIn : class, IInterpetedAnyType
+            where TOut : class, IInterpetedAnyType
+        {
+            if (backing.TryGetValue(codeElement, out var res))
+            {
+                return res;
+            }
+            else
+            {
+                var op = new InterpetedImplementationDefinition<TContext, TIn, TOut>();
+                backing.Add(codeElement, op);
+                op.Init(
+                    MemberDefinition(codeElement.ParameterDefinition).CastTo<InterpetedMemberDefinition<TIn>>(),
+                    MemberDefinition(codeElement.ContextDefinition).CastTo<InterpetedMemberDefinition<TContext>>(),
+                    codeElement.MethodBody.Select(x => x.Convert(this)).ToArray(),
+                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
+                    codeElement.Returns().CastTo<IMethodType>());
+                return op;
+            }
+        }
 
         public IInterpetedOperation<IInterpetedAnyType> LastCallOperation(ILastCallOperation co)
         {
@@ -280,7 +280,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 var op = new InterpetedLastCallOperation<TIn, TOut>();
                 backing.Add(co, op);
                 op.Init(
-                    co.Left.Convert(this).CastTo<IInterpetedOperation<IInterpetedCallable<TIn, TOut>>>(),
+                    co.Left.Convert(this).CastTo<IInterpetedOperation<IInterpetedMethod<TIn, TOut>>>(),
                     co.Right.Convert(this).CastTo<IInterpetedOperation<TIn>>());
                 return op;
             }
@@ -439,7 +439,7 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
                 backing.Add(co, op);
                 op.Init(
                     co.Left.Convert(this).CastTo<IInterpetedOperation<TIn>>(),
-                    co.Right.Convert(this).CastTo<IInterpetedOperation<IInterpetedCallable<TIn, TOut>>>());
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<IInterpetedMethod<TIn, TOut>>>());
                 return op;
             }
         }

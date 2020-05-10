@@ -6,16 +6,10 @@ using Tac.Model.Instantiated;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedMethod<in TIn,  out TOut> : IInterpetedCallable<TIn, TOut>
+    public interface IInterpetedMethod<in TIn, out TOut>: IInterpetedAnyType
         where TOut : IInterpetedAnyType
         where TIn : IInterpetedAnyType
-    {
-    }
-
-    public interface IInterpetedCallable<in TIn, out TOut> : IInterpetedAnyType
-        where TOut : IInterpetedAnyType
-        where TIn : IInterpetedAnyType
-    {
+    { 
         IInterpetedResult<IInterpetedMember<TOut>> Invoke(IInterpetedMember<TIn> input);
     }
 

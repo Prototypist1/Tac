@@ -301,6 +301,8 @@ entry-point {
         }
 
 
+        // ?=: needs to be redone
+        // types in the backend need to be redone
         [Fact]
         public void OrType1()
         {
@@ -324,6 +326,8 @@ entry-point {
             verifyBoolIn();
         }
 
+        // ?=: needs to be redone
+        // types in the backend need to be redone
         [Fact]
         public void OrType2()
         {

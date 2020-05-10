@@ -4,7 +4,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedLastCallOperation<TIn,TOut> : InterpetedBinaryOperation<IInterpetedCallable<TIn,TOut>, TIn,TOut>
+    internal class InterpetedLastCallOperation<TIn,TOut> : InterpetedBinaryOperation<IInterpetedMethod<TIn,TOut>, TIn,TOut>
         where TOut : IInterpetedAnyType
         where TIn: class, IInterpetedAnyType
     {
@@ -33,7 +33,7 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    internal class InterpetedNextCallOperation<TIn, TOut> : InterpetedBinaryOperation<TIn, IInterpetedCallable<TIn, TOut>, TOut>
+    internal class InterpetedNextCallOperation<TIn, TOut> : InterpetedBinaryOperation<TIn, IInterpetedMethod<TIn, TOut>, TOut>
         where TOut : IInterpetedAnyType
         where TIn : class, IInterpetedAnyType
     {
