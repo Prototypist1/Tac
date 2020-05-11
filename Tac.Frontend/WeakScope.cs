@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Tac.Model;
 using Tac.SemanticModel;
 
@@ -25,7 +26,7 @@ namespace Tac.Frontend
 
         internal IEnumerable<IError> Validate()
         {
-            throw new NotImplementedException();
+            return membersList.SelectMany(x => x.GetValue().Validate());
         }
     }
 }

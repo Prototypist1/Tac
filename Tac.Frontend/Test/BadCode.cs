@@ -7,6 +7,7 @@ using Tac.SemanticModel;
 using Tac.Model.Elements;
 using Tac.SemanticModel.Operations;
 using Tac.Frontend;
+using System.Linq;
 
 namespace Tac.Tests
 {
@@ -46,26 +47,31 @@ namespace Tac.Tests
         //    lineOr.Is2OrThrow();
         //}
 
-        //[Fact]
-        //public void YouCantInvokeANumber()
-        //{
-        //    var res = TestSupport.Tokenize("module test { 5 =: x ; 5 > x ; }");
-        //    var converted = TestSupport.ConvertToWeak(res);
+        [Fact]
+        public void YouCantInvokeANumber()
+        {
+            var res = TestSupport.Tokenize("module test { 5 =: x ; 5 > x ; }");
+            var converted = TestSupport.ConvertToWeak(res);
 
-        //    throw new NotImplementedException();
-        //}
+            var db = converted.Validate().ToArray();
+
+            Assert.NotEmpty(db);
+
+        }
 
         // I think this actaully will not error out here
         // a is used before it is assigned 
         // but that is flow analysis 
-        //[Fact]
-        //public void UndefinedVariable()
-        //{
-        //    var res = TestSupport.Tokenize("module test { a + 2 =: x ; }");
-        //    var converted = TestSupport.Convert(res);
+        [Fact]
+        public void UndefinedVariable()
+        {
+            var res = TestSupport.Tokenize("module test { a + 2 =: x ; }");
+            var converted = TestSupport.ConvertToWeak(res);
 
-        //    throw new NotImplementedException();
-        //}
+            var db = converted.Validate().ToArray();
+
+            Assert.NotEmpty(db);
+        }
 
         [Fact]
         public void UndefinedType()
