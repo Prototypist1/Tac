@@ -14,6 +14,7 @@ using Prototypist.Toolbox;
 using Tac.SemanticModel;
 using System.Collections.Generic;
 using System.Linq;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -85,7 +86,21 @@ namespace Tac.SemanticModel.Operations
 
     internal class MultiplyOperationMaker : BinaryOperationMaker<WeakMultiplyOperation, IMultiplyOperation>
     {
-        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>new Box<WeakMultiplyOperation>(new WeakMultiplyOperation(l,r)), (s, c, l, r) => OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("number"),new PlaceholderValueConverter())))
+        public MultiplyOperationMaker() : base(SymbolsRegistry.StaticMultiplySymbols, (l,r)=>new Box<WeakMultiplyOperation>(new WeakMultiplyOperation(l,r)), (s, c, l, r) => {
+            
+            l
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("left should be a look up type, but I don't know where or how the error should happen"))
+            .IfNotError(x => c.TypeProblem.IsNumber(s, x));
+
+            r
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("right should be a look up type, but I don't know where or how the error should happen"))
+            .IfNotError(x => c.TypeProblem.IsNumber(s, x));
+
+
+            return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("number"), new PlaceholderValueConverter()));
+        })
         {
         }
     }

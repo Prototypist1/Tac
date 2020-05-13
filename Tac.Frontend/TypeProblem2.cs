@@ -76,6 +76,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             void IsString(IScope parent, ILookUpType target);
             void IsEmpty(IScope parent, ILookUpType target);
             void IsBool(IScope parent, ILookUpType target);
+            void IsBlock(IScope parent, ILookUpType target);
 
             void HasEntryPoint(IScope parent, TypeProblem2.Scope entry);
             TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
@@ -936,6 +937,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             public void IsNumber(IScope parent, ILookUpType target)
             {
                 var thing = CreateTransientMember(parent, new NameKey("number"));
+                AssertIs(target, thing);
+            }
+
+            public void IsBlock(IScope parent, ILookUpType target)
+            {
+                var thing = CreateTransientMember(parent, new NameKey("block"));
                 AssertIs(target, thing);
             }
 
@@ -2137,6 +2144,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 Dependency = CreateScope(Primitive, rootConverter);
                 ModuleRoot = CreateObjectOrModule(CreateScope(Dependency, rootConverter), new ImplicitKey(Guid.NewGuid()), moduleConverter);
 
+                CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("block")), new PrimitiveTypeConverter(new BlockType()));
                 NumberType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make <NameKey,ImplicitKey>( new NameKey("number")), new PrimitiveTypeConverter(new NumberType()));
                 StringType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("string")), new PrimitiveTypeConverter(new StringType()));
                 BooleanType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("bool")), new PrimitiveTypeConverter(new BooleanType()));

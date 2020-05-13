@@ -15,6 +15,7 @@ using Tac.SemanticModel;
 using System.Linq;
 using System.Collections.Generic;
 using Prototypist.Toolbox.Bool;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -86,7 +87,19 @@ namespace Tac.SemanticModel.Operations
 
     internal class ElseOperationMaker : BinaryOperationMaker<WeakElseOperation,IElseOperation>
     {
-        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>new Box<WeakElseOperation>(new WeakElseOperation(l,r)), (s, c, l, r) => OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("bool"),new PlaceholderValueConverter())))
+        public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>new Box<WeakElseOperation>(new WeakElseOperation(l,r)), (s, c, l, r) => {
+
+            l
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("left should be a look up type, but I don't know where or how the error should happen"))
+            .IfNotError(x => c.TypeProblem.IsNumber(s, x));
+
+            r
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("right should be a look up type, but I don't know where or how the error should happen"))
+            .IfNotError(x => c.TypeProblem.IsBlock(s, x));
+
+            return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("bool"), new PlaceholderValueConverter())); })
         {
         }
     }

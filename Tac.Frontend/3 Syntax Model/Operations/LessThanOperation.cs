@@ -15,6 +15,7 @@ using Prototypist.Toolbox;
 using Tac.SemanticModel;
 using System.Linq;
 using Tac.SemanticModel.Operations;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Parser
 {
@@ -80,7 +81,20 @@ namespace Tac.SemanticModel.CodeStuff
 
     internal class LessThanOperationMaker : BinaryOperationMaker<WeakLessThanOperation, ILessThanOperation>
     {
-        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> new Box<WeakLessThanOperation>(new WeakLessThanOperation(l,r)), (s, c, l, r) => OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("bool"), new PlaceholderValueConverter())))
+        public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> new Box<WeakLessThanOperation>(new WeakLessThanOperation(l,r)), (s, c, l, r) =>
+         {
+             l
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("left should be a look up type, but I don't know where or how the error should happen"))
+            .IfNotError(x => c.TypeProblem.IsNumber(s, x));
+
+             r
+             .TransformInner(x => x.SetUpSideNode)
+             .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("right should be a look up type, but I don't know where or how the error should happen"))
+             .IfNotError(x => c.TypeProblem.IsNumber(s, x));
+
+             return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("bool"), new PlaceholderValueConverter()));
+         })
         {
         }
     }

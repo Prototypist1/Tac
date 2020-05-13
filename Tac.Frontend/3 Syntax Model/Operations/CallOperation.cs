@@ -132,28 +132,32 @@ namespace Tac.SemanticModel.Operations
         public NextCallOperationMaker() : base(SymbolsRegistry.StaticNextCallSymbol, (l,r)=> new Box<WeakNextCallOperation>( new WeakNextCallOperation(l,r)),(s,c,l,r)=> {
 
             // nearly duplicate code 3930174039475
-            if (l.Is2(out var error1)){
-                return OrType.Make<Tpn.IValue, IError>(error1);
-            }
+            // you lazy shit extract this!
+            var inputOr = l
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => 
+                x.SafeIs(out Tpn.ICanAssignFromMe assignFrom) ? 
+                OrType.Make<Tpn.ICanAssignFromMe, IError>(assignFrom) : 
+                throw new NotImplementedException("left should be assignable from, but I don't know where or how the error should happen"));
 
-            if (r.Is2(out var error2)) {
-                return OrType.Make<Tpn.IValue, IError>(error2);
-            }
 
-            var left = l.Is1OrThrow();
-            var right = r.Is1OrThrow();
+            var methodOr = r
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => 
+                x.SafeIs(out Tpn.IValue value) ?
+                OrType.Make<Tpn.IValue, IError>(value) : 
+                throw new NotImplementedException("right should be a value type, but I don't know where or how the error should happen"));
 
-            if (!(left is Tpn.ICanAssignFromMe assignFrom)) {
-                return OrType.Make<Tpn.IValue, IError>(Error.Other("can not assign from the left"));
-            }
-
-            if (!(right is Tpn.IValue value))
-            {
-                return OrType.Make<Tpn.IValue, IError>(Error.Other("right is not value"));
-            }
-
-            s.Problem.IsAssignedTo(assignFrom, value.Input());
-            return OrType.Make<Tpn.IValue, IError>(value.Returns()); 
+           return inputOr.SwitchReturns(
+                x => methodOr.SwitchReturns(
+                    y => {
+                        s.Problem.IsAssignedTo(x, y.Input());
+                        return OrType.Make<Tpn.IValue, IError>(y.Returns());
+                    }, 
+                    y => OrType.Make<Tpn.IValue, IError>(y)), 
+                x => methodOr.SwitchReturns(
+                    y => OrType.Make<Tpn.IValue, IError>(y.Returns()),
+                    y => OrType.Make<Tpn.IValue, IError>(y)));
         })
         {
         }
@@ -201,31 +205,32 @@ namespace Tac.SemanticModel.Operations
         public LastCallOperationMaker() : base(SymbolsRegistry.StaticLastCallSymbol, (l,r)=>new Box<WeakLastCallOperation>( new WeakLastCallOperation(l,r)), (s, c, l, r) =>
         {
             // nearly duplicate code 3930174039475
-            if (l.Is2(out var error1))
-            {
-                return OrType.Make<Tpn.IValue, IError>(error1);
-            }
+            // you lazy shit extract this!
+            var methodOr = l
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x =>
+                x.SafeIs(out Tpn.IValue value) ?
+                OrType.Make<Tpn.IValue, IError>(value) :
+                throw new NotImplementedException("left should be a value type, but I don't know where or how the error should happen"));
 
-            if (r.Is2(out var error2))
-            {
-                return OrType.Make<Tpn.IValue, IError>(error2);
-            }
+            var inputOr = r
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x =>
+                x.SafeIs(out Tpn.ICanAssignFromMe assignFrom) ?
+                OrType.Make<Tpn.ICanAssignFromMe, IError>(assignFrom) :
+                throw new NotImplementedException("right should be assignable from, but I don't know where or how the error should happen"));
 
-            var left = l.Is1OrThrow();
-            var right = r.Is2OrThrow();
+            return inputOr.SwitchReturns(
+                 x => methodOr.SwitchReturns(
+                     y => {
+                         s.Problem.IsAssignedTo(x, y.Input());
+                         return OrType.Make<Tpn.IValue, IError>(y.Returns());
+                     },
+                     y => OrType.Make<Tpn.IValue, IError>(y)),
+                 x => methodOr.SwitchReturns(
+                     y => OrType.Make<Tpn.IValue, IError>(y.Returns()),
+                     y => OrType.Make<Tpn.IValue, IError>(y)));
 
-            if (!(left is Tpn.IValue value))
-            {
-                return OrType.Make<Tpn.IValue, IError>(Error.Other("left is not value"));
-            }
-
-            if (!(right is Tpn.ICanAssignFromMe assignFrom ))
-            {
-                return OrType.Make<Tpn.IValue, IError>(Error.Other("can not assign from the right" ));
-            }
-
-            s.Problem.IsAssignedTo(assignFrom, value.Input());
-            return OrType.Make<Tpn.IValue, IError>(value.Returns());
         })
         {
         }

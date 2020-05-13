@@ -88,44 +88,16 @@ namespace Tac.SemanticModel.Operations
     internal class AddOperationMaker : BinaryOperationMaker<WeakAddOperation, IAddOperation>
     {
         public AddOperationMaker() : base(SymbolsRegistry.StaticAddSymbol, (l,r)=> new Box<WeakAddOperation>(new WeakAddOperation(l, r)),(s,c,l,r)=> {
-            IError error;
 
-            if (l.Is2(out error))
-            {
-                return OrType.Make<Tpn.IValue, IError>(error);
-            }
+            l
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("left should be a look up type, but I don't know where or how the error should happen"))
+            .IfNotError(x => c.TypeProblem.IsNumber(s, x));
 
-            if (r.Is2(out error))
-            {
-                return OrType.Make<Tpn.IValue, IError>(error);
-            }
-
-            var left = l.Is1OrThrow().SetUpSideNode;
-            var right = r.Is1OrThrow().SetUpSideNode;
-
-            if (left.Is2(out error))
-            {
-                return OrType.Make<Tpn.IValue, IError>(error);
-            }
-
-            if (right.Is2(out error))
-            {
-                return OrType.Make<Tpn.IValue, IError>(error);
-            }
-
-            if (!left.Is1OrThrow().SafeIs(out Tpn.ILookUpType leftLookup))
-            {
-                return OrType.Make<Tpn.IValue, IError>(Error.Other("left should be a look up"));
-            }
-
-            c.TypeProblem.IsNumber(s,leftLookup);
-
-            if (!right.Is1OrThrow().SafeIs(out Tpn.ILookUpType rightLookup))
-            {
-                return OrType.Make<Tpn.IValue, IError>(Error.Other("right should be a look up"));
-            }
-
-            c.TypeProblem.IsNumber(s,rightLookup);
+            r
+            .TransformInner(x => x.SetUpSideNode)
+            .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("right should be a look up type, but I don't know where or how the error should happen"))
+            .IfNotError(x => c.TypeProblem.IsNumber(s, x));
 
             return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("number"), new PlaceholderValueConverter()));
         }){}
