@@ -1417,8 +1417,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-
-
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrOverlayOrThrow2(IScope from, IKey key)
                 {
                     return TryLookUpOrOverlay(from, key);
@@ -1854,7 +1852,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return innerTo;
                     }
                 }
-
 
                 static bool IsHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, out IHaveMembers? haveMembers)
                 {

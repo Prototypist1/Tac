@@ -159,7 +159,14 @@ namespace Tac.Frontend
                         Help.GetType(typeSolution, output).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
             }
 
-            return new WeakTypeDefinition(new Box<WeakScope>(scope)).FrontendType();
+            // if it has members it must be a scope
+            if (scope.membersList.Any())
+            {
+                return new WeakTypeDefinition(new Box<WeakScope>(scope)).FrontendType();
+            }
+
+            // otherwise, it could be anything
+            return new AnyType();
         }
     }
 

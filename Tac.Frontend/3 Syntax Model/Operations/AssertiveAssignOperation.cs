@@ -90,7 +90,7 @@ namespace Tac.SemanticModel.Operations
 
             foreach (var error in leftTypeOrErrors.SwitchReturns(l =>
                rightTypeOrErrors.SwitchReturns<IEnumerable<IError>>(r => {
-                   if (!l.TheyAreUs(r, new List<(IFrontendType, IFrontendType)>()).SwitchReturns(x=>x,x=>false))
+                   if (!r.TheyAreUs(l, new List<(IFrontendType, IFrontendType)>()).SwitchReturns(x=>x,x=>false))
                    {
                        return new[] { Error.Other($"can not assign {l} to {r}") };
                    }
