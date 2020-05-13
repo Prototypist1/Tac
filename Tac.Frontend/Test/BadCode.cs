@@ -19,6 +19,11 @@ namespace Tac.Tests
         {
             var res = TestSupport.Tokenize("module tokenize-missing-element { 5 + + 10 =: x ; }");
             var converted = TestSupport.ConvertToWeak(res);
+
+            var errors = converted.Validate().ToArray();
+
+            Assert.NotEmpty(errors);
+
             var line = Assert.Single(converted.StaticInitialization);
             var validLine = line.Is1OrThrow();
             var assignOperation = validLine.GetValue().SafeCastTo<IFrontendCodeElement, WeakAssignOperation>();
@@ -31,6 +36,10 @@ namespace Tac.Tests
         {
             var res = TestSupport.Tokenize(@" module tet { method [ number ; number ;  input { input return ;} =: pass-through ; }");
             var converted = TestSupport.ConvertToWeak(res);
+
+            var errors = converted.Validate().ToArray();
+
+            Assert.NotEmpty(errors);
 
             var lineOr = Assert.Single(converted.StaticInitialization);
             lineOr.Is2OrThrow();
@@ -55,6 +64,7 @@ namespace Tac.Tests
 
             var db = converted.Validate().ToArray();
 
+            // there is more to test here !
             Assert.NotEmpty(db);
 
         }
@@ -68,9 +78,9 @@ namespace Tac.Tests
             var res = TestSupport.Tokenize("module test { a + 2 =: x ; }");
             var converted = TestSupport.ConvertToWeak(res);
 
-            var db = converted.Validate().ToArray();
+            var errors = converted.Validate().ToArray();
 
-            Assert.NotEmpty(db);
+            Assert.Empty(errors);
         }
 
         [Fact]
@@ -78,6 +88,10 @@ namespace Tac.Tests
         {
             var res = TestSupport.Tokenize(@" module test { method [ chicken ; number ; ] input { 1 return ;} =: chicken-to-one ; }");
             var converted = TestSupport.ConvertToWeak(res);
+
+            var errors = converted.Validate().ToArray();
+
+            Assert.NotEmpty(errors);
 
             var lineOr = Assert.Single(converted.StaticInitialization);
             var line = lineOr.Is1OrThrow().GetValue();

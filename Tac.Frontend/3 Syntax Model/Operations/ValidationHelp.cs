@@ -24,6 +24,10 @@ namespace Tac.SemanticModel.Operations
 
         public static IOrType<IFrontendType, IError> ReturnsTypeOrErrors(this IOrType<IBox<IFrontendCodeElement>, IError> self)
         {
+            if (self.Is2(out var v2)) {
+                return OrType.Make<IFrontendType, IError>(v2);
+            }
+
             var intermittentLeft = self.Possibly1().AsEnummerable().Select(x => x.GetValue()).ToArray();
 
             foreach (var thing in intermittentLeft)

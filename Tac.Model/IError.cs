@@ -91,7 +91,7 @@ namespace Tac.Model
             this.rightResult = rightResult ;
         }
 
-        public string Message { get; }
+        public string? Message { get; }
         public Guid Code { get; }
     }
 }

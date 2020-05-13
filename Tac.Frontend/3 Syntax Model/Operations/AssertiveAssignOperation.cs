@@ -170,6 +170,7 @@ namespace Tac.SemanticModel.Operations
 
                 }
                 else {
+                    // left or right are errors 
                     throw new NotImplementedException();
                 }
 

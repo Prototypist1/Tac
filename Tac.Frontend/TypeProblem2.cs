@@ -45,7 +45,10 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface ISetUpTypeProblem
         {
             // a =: x
-
+            TypeProblem2.Type NumberType { get; }
+            TypeProblem2.Type StringType { get; }
+            TypeProblem2.Type BooleanType { get; }
+            TypeProblem2.Type EmptyType { get; }
             void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
             TypeProblem2.Value CreateValue(IScope scope, IKey typeKey, IConvertTo<TypeProblem2.Value, PlaceholderValue> converter);
             TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<IKey, IError> typeKey, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
@@ -69,10 +72,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
             TypeProblem2.MethodType GetMethod(IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> input, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> output);
-            void IsNumber(IScope parent, ICanAssignFromMe target);
-            void IsString(IScope parent, ICanAssignFromMe target);
-            void IsEmpty(IScope parent, ICanAssignFromMe target);
-            void IsBool(IScope parent, ICanAssignFromMe target);
+            void IsNumber(IScope parent, ILookUpType target);
+            void IsString(IScope parent, ILookUpType target);
+            void IsEmpty(IScope parent, ILookUpType target);
+            void IsBool(IScope parent, ILookUpType target);
 
             void HasEntryPoint(IScope parent, TypeProblem2.Scope entry);
             TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
@@ -80,6 +83,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface ITypeSolution
         {
+
             IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type); 
             IBox<PlaceholderValue> GetValue(TypeProblem2.Value value);
             IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member);
@@ -355,12 +359,12 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             public Dictionary<IKey, TypeProblem2.Member> Members { get; }
         }
+
         internal interface ILookUpType : ITypeProblemNode
         {
             public IOrType<IKey, IError, Unset> TypeKey { get; set; }
             public IIsPossibly<IScope> Context { get; set; }
             public IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> LooksUp { get; set; }
-
         }
 
         internal interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }
@@ -634,11 +638,15 @@ namespace Tac.Frontend.New.CrzayNamespace
             private Scope Primitive { get; }
             public Scope Dependency { get; }
             public Object ModuleRoot { get; }
+            public Type NumberType { get; }
+            public Type StringType { get; }
+            public Type BooleanType { get; }
+            public Type EmptyType { get; }
 
 
-
-            private List<(ICanAssignFromMe, ICanBeAssignedTo)> assignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
-
+            // these are pretty much the same
+            private List<(ILookUpType, ILookUpType)> assignments = new List<(ILookUpType, ILookUpType)>();
+            
 
             #region Building APIs
 
@@ -714,6 +722,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             public void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo)
+            {
+                AssertIs(assignedFrom, assignedTo);
+            }
+
+            public void AssertIs(ILookUpType assignedFrom, ILookUpType assignedTo)
             {
                 assignments.Add((assignedFrom, assignedTo));
             }
@@ -803,7 +816,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = new Type(
                     this, 
-                    $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.ToString())}", 
+                    $"generic-{key}-{placeholders.Aggregate("", (x, y) => x + "-" + y)}", 
                     Possibly.Is(key),
                     converter, 
                     false);
@@ -813,7 +826,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var placeholderType = new Type(
                         this, 
-                        $"generic-parameter-{placeholder.key.ToString()}", 
+                        $"generic-parameter-{placeholder.key}", 
                         Possibly.Is( placeholder.key), 
                         placeholder.converter,
                         true);
@@ -920,28 +933,28 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public void IsNumber(IScope parent, ICanAssignFromMe target)
+            public void IsNumber(IScope parent, ILookUpType target)
             {
                 var thing = CreateTransientMember(parent, new NameKey("number"));
-                IsAssignedTo(target, thing);
+                AssertIs(target, thing);
             }
 
-            public void IsBool(IScope parent, ICanAssignFromMe target)
+            public void IsBool(IScope parent, ILookUpType target)
             {
                 var thing = CreateTransientMember(parent, new NameKey("bool"));
-                IsAssignedTo(target, thing);
+                AssertIs(target, thing);
             }
 
-            public void IsEmpty(IScope parent, ICanAssignFromMe target)
+            public void IsEmpty(IScope parent, ILookUpType target)
             {
                 var thing = CreateTransientMember(parent, new NameKey("empty"));
-                IsAssignedTo(target, thing);
+                AssertIs(target, thing);
             }
 
-            public void IsString(IScope parent, ICanAssignFromMe target)
+            public void IsString(IScope parent, ILookUpType target)
             {
                 var thing = CreateTransientMember(parent, new NameKey("string"));
-                IsAssignedTo(target, thing);
+                AssertIs(target, thing);
             }
 
             private TransientMember CreateTransientMember(IScope parent)
@@ -1177,6 +1190,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                         go |= Flow(toType, fromType);
 
                     }
+
+                    //foreach (var (from, to) in assertions)
+                    //{
+                    //    // nothing should look up to null at this point
+                    //    var fromType = from.LooksUp.GetOrThrow();
+
+                    //    go |= Flow(to, fromType);
+
+                    //}
+
                 } while (go);
 
                 // we dont flow downstream
@@ -1187,17 +1210,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
                     typeProblemNodes.Select(x =>
                     {
-                        if (x is Method m)
+                        if (x.SafeIs(out Method m))
                         {
                             return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(m));
                         }
 
-                        if (x is MethodType mt)
+                        if (x.SafeIs(out MethodType mt))
                         {
                             return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(mt));
                         }
 
-                        if (x is InferredType it && it.Input is IIsDefinately<Member>)
+                        if (x.SafeIs(out InferredType it) && it.Input is IIsDefinately<Member>)
                         {
                             return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(it));
                         }
@@ -1207,15 +1230,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Input.GetOrThrow(), v1 => v1.Input.GetOrThrow(), v1 => v1.Input.GetOrThrow())),
                     typeProblemNodes.Select(x =>
                     {
-                        if (x is Method m)
+                        if (x.SafeIs(out Method m))
                         {
                             return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(m));
                         }
-                        if (x is MethodType mt)
+                        if (x.SafeIs(out MethodType mt))
                         {
                             return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(mt));
                         }
-                        if (x is InferredType it && it.Returns is IIsDefinately<TransientMember>)
+                        if (x.SafeIs(out InferredType it) && it.Returns is IIsDefinately<TransientMember>)
                         {
                             return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(it));
                         }
@@ -1255,11 +1278,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // why do I need this?
                     // 
                     {
-                        if (deferredTo is ICanAssignFromMe deferredToLeft)
+                        if (deferredTo.SafeIs<ITypeProblemNode,ICanAssignFromMe>(out var deferredToLeft))
                         {
-                            if (deferredTo is ICanBeAssignedTo deferredToRight)
+                            if (deferredTo.SafeIs<ITypeProblemNode, ICanBeAssignedTo>(out var deferredToRight))
                             {
-                                var nextAssignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+                                var nextAssignments = new List<(ILookUpType, ILookUpType)>();
                                 foreach (var assignment in assignments)
                                 {
                                     var left = assignment.Item1 == deferer ? deferredToLeft : assignment.Item1;
@@ -1270,7 +1293,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                             else
                             {
-                                var nextAssignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+                                var nextAssignments = new List<(ILookUpType, ILookUpType)>();
                                 foreach (var assignment in assignments)
                                 {
                                     var left = assignment.Item1 == deferer ? deferredToLeft : assignment.Item1;
@@ -1279,9 +1302,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 assignments = nextAssignments;
                             }
                         }
-                        else if (deferredTo is ICanBeAssignedTo deferredToRight)
+                        else if (deferredTo.SafeIs<ITypeProblemNode, ICanBeAssignedTo>(out var deferredToRight))
                         {
-                            var nextAssignments = new List<(ICanAssignFromMe, ICanBeAssignedTo)>();
+                            var nextAssignments = new List<(ILookUpType, ILookUpType)>();
 
                             foreach (var assignment in assignments)
                             {
@@ -1408,7 +1431,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         var outerLookedUp = LookUpOrOverlayOrThrow2(from, genericNameKey.Name);
 
-                        return outerLookedUp.SwitchReturns<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>(method =>
+                        return outerLookedUp.SwitchReturns(method =>
                         {
                             var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(method), types);
 
@@ -1485,7 +1508,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // [MaybeNullWhen(false)] grumble
-                bool TryLookUp(IScope haveTypes, IKey key, out OrType<MethodType, Type, Object, OrType, InferredType, IError>? result)
+                static bool TryLookUp(IScope haveTypes, IKey key, out OrType<MethodType, Type, Object, OrType, InferredType, IError>? result)
                 {
                     while (true)
                     {
@@ -1517,14 +1540,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return true;
                             }
                         }
-                        if (haveTypes is Type || haveTypes is MethodType)
+                        if (haveTypes.SafeIs(out Type _) || haveTypes.SafeIs(out MethodType _))
                         {
                             Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> genericOverlays;
-                            if (haveTypes is Type type)
+                            if (haveTypes.SafeIs(out Type type))
                             {
                                 genericOverlays = type.GenericOverlays;
                             }
-                            else if (haveTypes is MethodType methodType1)
+                            else if (haveTypes.SafeIs(out MethodType methodType1))
                             {
                                 genericOverlays = methodType1.GenericOverlays;
                             }
@@ -1557,7 +1580,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
 
-                        if (haveTypes.Parent is IIsDefinately<IScope> defScope)
+                        if (haveTypes.Parent.SafeIs(out IIsDefinately<IScope> defScope))
                         {
                             haveTypes = defScope.Value;
                         }
@@ -1599,7 +1622,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var pair in map)
                     {
-                        if (pair.Key is IScope fromScope && fromScope.Parent is IIsDefinately<IScope> defScope)
+                        if (pair.Key.SafeIs(out IScope fromScope) && fromScope.Parent.SafeIs(out IIsDefinately<IScope> defScope))
                         {
                             to.Switch(method =>
                             {
@@ -1615,7 +1638,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var oldAssignments = assignments.ToArray();
                     foreach (var pair in map)
                     {
-                        if (pair.Key is ICanBeAssignedTo assignedToFrom && pair.Value is ICanBeAssignedTo assignedToTo)
+                        if (pair.Key.SafeIs(out ICanBeAssignedTo assignedToFrom) && pair.Value.SafeIs(out ICanBeAssignedTo assignedToTo))
                         {
                             foreach (var item in oldAssignments)
                             {
@@ -1626,7 +1649,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
 
-                        if (pair.Value is ICanAssignFromMe assignFromFrom && pair.Value is ICanAssignFromMe assignFromTo)
+                        if (pair.Value.SafeIs(out ICanAssignFromMe assignFromFrom) && pair.Value.SafeIs(out ICanAssignFromMe assignFromTo))
                         {
                             foreach (var item in oldAssignments)
                             {
@@ -1640,37 +1663,37 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var pair in map)
                     {
-                        if (pair.Key is ILookUpType lookUpFrom && pair.Value is ILookUpType lookUpTo)
+                        if (pair.Key.SafeIs(out ILookUpType lookUpFrom) && pair.Value.SafeIs(out ILookUpType lookUpTo))
                         {
 
                             lookUpTo.TypeKey = lookUpFrom.TypeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
 
-                            if (lookUpFrom.Context is IIsDefinately<IScope> definateContext)
+                            if (lookUpFrom.Context.SafeIs(out IIsDefinately<IScope> definateContext))
                             {
                                 lookUpTo.Context = Possibly.Is(CopiedToOrSelf(definateContext.Value));
                             }
                         }
 
-                        if (pair.Key is OrType orFrom && pair.Value is OrType orTo)
+                        if (pair.Key.SafeIs(out OrType orFrom) && pair.Value.SafeIs(out OrType orTo))
                         {
                             // from should have been populated
                             Ors(orTo, CopiedToOrSelf(orFrom.Left.GetOrThrow()), CopiedToOrSelf(orFrom.Right.GetOrThrow()));
                         }
 
 
-                        if (pair.Key is Method methodFrom && pair.Value is Method methodTo)
+                        if (pair.Key.SafeIs(out Method methodFrom) && pair.Value.SafeIs(out Method methodTo))
                         {
                             methodTo.Input = Possibly.Is(CopiedToOrSelf(methodFrom.Input.GetOrThrow()));
                             methodTo.Returns = Possibly.Is(CopiedToOrSelf(methodFrom.Returns.GetOrThrow()));
                         }
 
-                        if (pair.Key is MethodType methodFromType && pair.Value is MethodType methodToType)
+                        if (pair.Key.SafeIs(out MethodType methodFromType) && pair.Value.SafeIs(out MethodType methodToType))
                         {
                             methodToType.Input = Possibly.Is(CopiedToOrSelf(methodFromType.Input.GetOrThrow()));
                             methodToType.Returns = Possibly.Is(CopiedToOrSelf(methodFromType.Returns.GetOrThrow()));
                         }
 
-                        if (pair.Key is InferredType inferedFrom && pair.Value is InferredType inferedTo)
+                        if (pair.Key.SafeIs(out InferredType inferedFrom) && pair.Value.SafeIs(out InferredType inferedTo))
                         {
                             inferedTo.Input = Possibly.Is(CopiedToOrSelf(inferedFrom.Input.GetOrThrow()));
                             inferedTo.Returns = Possibly.Is(CopiedToOrSelf(inferedFrom.Returns.GetOrThrow()));
@@ -1696,7 +1719,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         map.Add(innerFrom, innerTo);
 
-                        if (innerFrom is IScope innerFromScope && innerTo is IScope innerScopeTo)
+                        if (innerFrom.SafeIs<ITypeProblemNode, IScope>(out var innerFromScope) && innerTo.SafeIs<ITypeProblemNode, IScope>(out var innerScopeTo))
                         {
 
                             {
@@ -1772,7 +1795,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
 
-                        if (innerFrom is Type innerFromType && innerTo is Type innerTypeTo)
+                        if (innerFrom.SafeIs<ITypeProblemNode, Type>(out var innerFromType) && innerTo.SafeIs<ITypeProblemNode, Type>(out var innerTypeTo))
                         {
 
                             foreach (var type in innerFromType.GenericOverlays)
@@ -1788,7 +1811,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
 
-                        if (innerFrom is MethodType innerFromMethodType && innerTo is MethodType innerMethodTypeTo)
+                        if (innerFrom.SafeIs<ITypeProblemNode, MethodType>(out var innerFromMethodType) && innerTo.SafeIs<ITypeProblemNode, MethodType>(out var innerMethodTypeTo))
                         {
 
                             foreach (var type in innerFromMethodType.GenericOverlays)
@@ -1804,7 +1827,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
 
-                        if (innerFrom is IValue innerFromHopeful && innerTo is IValue innerToHopeful)
+                        if (innerFrom.SafeIs<ITypeProblemNode, IValue>(out var innerFromHopeful) && innerTo.SafeIs<ITypeProblemNode, IValue>(out var innerToHopeful))
                         {
 
                             foreach (var possible in innerFromHopeful.HopefulMembers)
@@ -1814,7 +1837,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
 
 
-                            if (innerFromHopeful.HopefulMethod is IIsDefinately<InferredType> infered)
+                            if (innerFromHopeful.HopefulMethod  is IIsDefinately<InferredType> infered)
                             {
                                 var newValue = Copy(infered.Value, new InferredType(this, $"copied from {((TypeProblemNode)infered.Value).debugName}"));
                                 innerToHopeful.HopefulMethod = Possibly.Is(newValue);
@@ -1856,26 +1879,26 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 static IOrType<MethodType, Type, Object, OrType, InferredType, IError> GetType(ITypeProblemNode value)
                 {
-                    if (value is ILookUpType lookup)
+                    if (value.SafeIs(out ILookUpType lookup))
                     {
                         // look up needs to be populated at this point
                         return lookup.LooksUp.GetOrThrow();
                     }
-                    if (value is MethodType methodType)
+                    if (value.SafeIs(out MethodType methodType))
                     {
                         return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType);
                     }
 
-                    if (value is Type type)
+                    if (value.SafeIs(out Type type))
                     {
                         return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type);
 
                     }
-                    if (value is Object @object)
+                    if (value.SafeIs(out Object @object))
                     {
                         return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(@object);
                     }
-                    if (value is OrType orType)
+                    if (value.SafeIs(out OrType orType))
                     {
                         return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType);
                     }
@@ -2106,6 +2129,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
+
             public TypeProblem2(IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> moduleConverter)
             {
 
@@ -2113,10 +2137,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 Dependency = CreateScope(Primitive, rootConverter);
                 ModuleRoot = CreateObjectOrModule(CreateScope(Dependency, rootConverter), new ImplicitKey(Guid.NewGuid()), moduleConverter);
 
-                CreateType(Primitive, Prototypist.Toolbox.OrType.Make <NameKey,ImplicitKey>( new NameKey("number")), new PrimitiveTypeConverter(new NumberType()));
-                CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("string")), new PrimitiveTypeConverter(new StringType()));
-                CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("bool")), new PrimitiveTypeConverter(new BooleanType()));
-                CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("empty")), new PrimitiveTypeConverter(new EmptyType()));
+                NumberType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make <NameKey,ImplicitKey>( new NameKey("number")), new PrimitiveTypeConverter(new NumberType()));
+                StringType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("string")), new PrimitiveTypeConverter(new StringType()));
+                BooleanType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("bool")), new PrimitiveTypeConverter(new BooleanType()));
+                EmptyType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("empty")), new PrimitiveTypeConverter(new EmptyType()));
 
                 // shocked this works...
                 IGenericTypeParameterPlacholder[] genericParameters = new IGenericTypeParameterPlacholder[] { new GenericTypeParameterPlacholder(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T1"))), new GenericTypeParameterPlacholder(Prototypist.Toolbox. OrType.Make<NameKey, ImplicitKey>(new NameKey("T2"))) };
@@ -2131,7 +2155,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 HasMethodType(Primitive, key, res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key.ToString()}", Possibly.Is(placeholder.key), placeholder.converter,true);
+                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter,true);
                     HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key.SwitchReturns<IKey>(x=>x,x=>x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
 

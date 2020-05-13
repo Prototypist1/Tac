@@ -201,7 +201,7 @@ namespace Tac.Model.Instantiated
 
         public override int GetHashCode()
         {
-            return Key.GetHashCode();
+            return HashCode.Combine(Key);
         }
     }
     
