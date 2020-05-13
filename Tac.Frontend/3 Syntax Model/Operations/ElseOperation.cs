@@ -94,11 +94,6 @@ namespace Tac.SemanticModel.Operations
             .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("left should be a look up type, but I don't know where or how the error should happen"))
             .IfNotError(x => c.TypeProblem.IsNumber(s, x));
 
-            r
-            .TransformInner(x => x.SetUpSideNode)
-            .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("right should be a look up type, but I don't know where or how the error should happen"))
-            .IfNotError(x => c.TypeProblem.IsBlock(s, x));
-
             return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("bool"), new PlaceholderValueConverter())); })
         {
         }
