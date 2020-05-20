@@ -57,16 +57,11 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 });
         }
 
-        // TODO IIsPossibly
-        private static bool IsOrType(IFrontendType them, out IOrType<IFrontendType, IError> left, out IOrType<IFrontendType, IError> right) {
+        private static IIsPossibly<(IOrType<IFrontendType, IError> fromLeft, IOrType<IFrontendType, IError> fromRight)> IsOrType(IFrontendType them) {
             if (them.SafeIs(out FrontEndOrType orType)) {
-                left = orType.left;
-                right = orType.right;
-                return true;
+                return Possibly.Is<(IOrType<IFrontendType, IError> fromLeft, IOrType<IFrontendType, IError> fromRight)>((orType.left, orType.right));
             }
-            left = default;
-            right = default;
-            return false;
+            return Possibly.IsNot<(IOrType<IFrontendType, IError> fromLeft, IOrType<IFrontendType, IError> fromRight)>();
         }
 
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)

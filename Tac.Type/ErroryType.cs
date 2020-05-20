@@ -25,7 +25,7 @@ namespace Tac.Type
     public static class OrTypeLibrary {
 
 
-        public delegate bool IsOrType<T>(T them, out IOrType<T, IError> left, out IOrType<T, IError> right);
+        public delegate IIsPossibly<(IOrType<T, IError> fromLeft , IOrType<T, IError> fromRight)> IsOrType<T>(T them);
 
         public static IOrType<bool, IError> CanAssign<T>(
             T from,
@@ -44,20 +44,18 @@ namespace Tac.Type
 
 
 
-            if (check(from, out var fromLeft, out var fromRight))
+            return check(from).IfElseReturn(x =>
             {
-
                 // both of their type must be assignable to one of our types...
 
-                var leftRes = fromLeft.TransformInner(x =>
+                var leftRes = x.fromLeft.TransformInner(x =>
                 {
-                    return theyAreUs(to,x, assumeTrue);
+                    return theyAreUs(to, x, assumeTrue);
                 });
-                var rightRes = fromRight.TransformInner(x =>
+                var rightRes = x.fromRight.TransformInner(x =>
                 {
-                    return theyAreUs(to,x, assumeTrue);
+                    return theyAreUs(to, x, assumeTrue);
                 });
-
 
                 return leftRes.SwitchReturns(x => rightRes.SwitchReturns(
                         y => OrType.Make<bool, IError>(x && y),
@@ -65,19 +63,17 @@ namespace Tac.Type
                     x => rightRes.SwitchReturns(
                         y => OrType.Make<bool, IError>(x),
                         y => OrType.Make<bool, IError>(Error.Cascaded("", new[] { x, y }))));
-
-            }
-            else
+            }, () =>
             {
                 // they must be assignable to one of our types
 
                 var leftRes = toLeft.TransformInner(x =>
                 {
-                    return theyAreUs(x,from, assumeTrue);
+                    return theyAreUs(x, from, assumeTrue);
                 });
                 var rightRes = toRight.TransformInner(x =>
                 {
-                    return theyAreUs(x,from, assumeTrue);
+                    return theyAreUs(x, from, assumeTrue);
                 });
 
 
@@ -87,7 +83,7 @@ namespace Tac.Type
                     x => rightRes.SwitchReturns(
                         y => y ? OrType.Make<bool, IError>(true) : OrType.Make<bool, IError>(x),
                         y => OrType.Make<bool, IError>(Error.Cascaded("", new[] { x, y }))));
-            }
+            });
         }
 
         public static IOrType<IOrType<T, IError>, No, IError> GetMember<T>(
@@ -248,6 +244,8 @@ namespace Tac.Type
 
             return OrType.Make<bool, IError>(Error.Cascaded("", list.Select(x => x.Possibly1()).OfType<IIsDefinately<IError[]>>().SelectMany(x => x.Value).ToArray()));
         }
+
+
 
         public static IOrType<IOrType<T, IError>, No, IError> TryGetMember<T>(
             IKey key, 

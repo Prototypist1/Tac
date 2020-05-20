@@ -44,9 +44,9 @@ namespace Tac.Parser
 
         private delegate bool Condition<T>(IEnumerable<IMaker<T>> makers);
 
-        private static Condition<T> MustBeBefore<T>(Type type) => list => !list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
+        private static Condition<T> MustBeBefore<T>(System.Type type) => list => !list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
 
-        private static Condition<T> MustBeAfter<T>(Type type) => list => list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
+        private static Condition<T> MustBeAfter<T>(System.Type type) => list => list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
 
         private static readonly List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>>> implicitElementMakers = new List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<ISetUp<IFrontendCodeElement,Tpn.ITypeProblemNode>>>>();
         private static readonly List<WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>> operationMatchers = new List<WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>>();

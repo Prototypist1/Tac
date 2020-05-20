@@ -17,7 +17,7 @@ namespace Tac.Tests.Help
             var sharedTypes = target.GetSharedTypes(actual);
 
             if (!sharedTypes.Any()) {
-                sharedTypes = new List<Type>() { typeof(T) };
+                sharedTypes = new List<System.Type>() { typeof(T) };
             }
 
             if (PublicStateIsValueNotEqual(target, actual,new List<(object,object)>(), sharedTypes) is IIsDefinately<string> value)
@@ -26,15 +26,15 @@ namespace Tac.Tests.Help
             }
         }
 
-        private static IEnumerable<Type> GetSharedTypes(this object target, object actual)
+        private static IEnumerable<System.Type> GetSharedTypes(this object target, object actual)
         {
             if (target == null || actual == null) {
-                return new List<Type> { };
+                return new List<System.Type> { };
             }
 
             if (target.GetType() == actual.GetType())
             {
-                return new List<Type> { target.GetType() };
+                return new List<System.Type> { target.GetType() };
             }
             return target.GetType().FindInterfaces((x, y) => true, new object()).Intersect(actual.GetType().FindInterfaces((x, y) => true, new object()));
         }
@@ -44,7 +44,7 @@ namespace Tac.Tests.Help
         /// and
         /// Possibly.Is when not equal
         /// <returns></returns>
-        private static IIsPossibly<string> PublicStateIsValueNotEqual(this object target, object actual,IEnumerable<(object,object)> assumed, IEnumerable<Type> types)
+        private static IIsPossibly<string> PublicStateIsValueNotEqual(this object target, object actual,IEnumerable<(object,object)> assumed, IEnumerable<System.Type> types)
         {
             if (target == null && actual == null)
             {

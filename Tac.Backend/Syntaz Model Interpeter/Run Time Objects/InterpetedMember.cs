@@ -34,7 +34,7 @@ namespace Tac.Syntaz_Model_Interpeter
         {
             var method = typeof(TypeManager).GetMethods(BindingFlags.Public | BindingFlags.Static).Single(x =>
               x.Name == nameof(Member) && x.IsGenericMethod && x.GetParameters().Count() == 1);
-            var made = method.MakeGenericMethod(new Type[] { TypeMap.MapType(type) });
+            var made = method.MakeGenericMethod(new System.Type[] { TypeMap.MapType(type) });
             return made.Invoke(null,new object[] { type }).CastTo<IInterpetedMember>();
         }
 
@@ -154,13 +154,14 @@ namespace Tac.Syntaz_Model_Interpeter
                 // also don't like passing in false here
                 // forces me to know too much about that is going on under the hood 
 
-                throw new NotImplementedException();
 
-                //if (VerifiableType.TheyAreUs(incommingType, false)) {
-                //    Set(o.CastTo<T>());
-                //    return true;
-                //}
-                //return false;
+
+                if (VerifiableType.TheyAreUs(incommingType, new System.Collections.Generic.List<(IVerifiableType, IVerifiableType)>()))
+                {
+                    Set(o.CastTo<T>());
+                    return true;
+                }
+                return false;
             }
         }
 

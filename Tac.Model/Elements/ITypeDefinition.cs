@@ -18,6 +18,11 @@ namespace Tac.Model.Elements
 
         //bool TheyAreUs(IVerifiableType they, bool noTagBacks);
         //bool WeAreThem(IVerifiableType them, bool noTagBacks);
+
+        bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue);
+        IIsPossibly<IVerifiableType> TryGetMember(IKey key);
+        IIsPossibly<IVerifiableType> TryGetReturn();
+        IIsPossibly<IVerifiableType> TryGetInput();
     }
 
     public interface ILogicalOperationType {
