@@ -22,30 +22,6 @@ namespace Tac.Type
     public struct Yes { }
     public struct No { }
 
-    //internal interface ITacType
-    //{
-    //    bool TheyAreUsThrowOnError(ITacType they, List<(ITacType, ITacType)> assumeTrue);
-    //    IOrType<ITacType, No> TryGetMemberThrowOnError(IKey key);
-    //    IOrType<ITacType, No> TryGetReturnThrowOnError();
-    //    IOrType<ITacType, No> TryGetInputThrowOnError();
-    //}
-
-    public interface IErroryTacType<T>
-        where T: IErroryTacType<T>
-    {
-        // we need to pass around a list of assumed true
-        // TheyAreUs is often called inside TheyAreUs
-        // and the parameters to the inner can be the same as the outer
-        // this happens in cases like: A { A x }  TheyAreUs B { B x }
-        // this are actaully the same
-        // another case A { B x },  B { C x },  C { A x }
-        // these are the same as well
-        IOrType<bool, IError> TheyAreUs(T they, IReadOnlyList<(T, T)> assumeTrue);
-        IOrType<IOrType<T, IError>, No, IError> TryGetMember(IKey key);
-        IOrType<IOrType<T, IError>, No, IError> TryGetReturn();
-        IOrType<IOrType<T, IError>, No, IError> TryGetInput();
-    }
-
     public static class OrTypeLibrary {
 
 
@@ -57,8 +33,8 @@ namespace Tac.Type
             T to,
             IOrType<T, IError> toLeft,
             IOrType<T, IError> toRight,
+            Func<T,T, IReadOnlyList<(T, T)>, IOrType<bool, IError>> theyAreUs,
             List<(T, T)> assumeTrue)
-                where T : IErroryTacType<T>
         {
             if (assumeTrue.Contains((to, from)))
             {
@@ -75,11 +51,11 @@ namespace Tac.Type
 
                 var leftRes = fromLeft.TransformInner(x =>
                 {
-                    return to.TheyAreUs(x, assumeTrue);
+                    return theyAreUs(to,x, assumeTrue);
                 });
                 var rightRes = fromRight.TransformInner(x =>
                 {
-                    return to.TheyAreUs(x, assumeTrue);
+                    return theyAreUs(to,x, assumeTrue);
                 });
 
 
@@ -97,11 +73,11 @@ namespace Tac.Type
 
                 var leftRes = toLeft.TransformInner(x =>
                 {
-                    return x.TheyAreUs(from, assumeTrue);
+                    return theyAreUs(x,from, assumeTrue);
                 });
                 var rightRes = toRight.TransformInner(x =>
                 {
-                    return x.TheyAreUs(from, assumeTrue);
+                    return theyAreUs(x,from, assumeTrue);
                 });
 
 
@@ -118,15 +94,15 @@ namespace Tac.Type
             IKey key, 
             IOrType<T, IError> left, 
             IOrType<T, IError> right,
+            Func<T, IKey, IOrType<IOrType<T, IError>, No, IError>> tryGetMember,
             Func<IOrType<T, IError>, IOrType<T, IError>, T> make)
-                where T : IErroryTacType<T>
         {
             return left.SwitchReturns(
                     leftType => right.SwitchReturns(
                         rightType =>
                         {
-                            var leftMember = leftType.TryGetMember(key);
-                            var rightMember = rightType.TryGetMember(key);
+                            var leftMember = tryGetMember(leftType,key);
+                            var rightMember = tryGetMember(rightType,key);
 
                             if (leftMember is IIsDefinately<IOrType<T, IError>> definateLeft && rightMember is IIsDefinately<IOrType<T, IError>> definateRight)
                             {
@@ -143,15 +119,15 @@ namespace Tac.Type
         public static IOrType<IOrType<T, IError>, No, IError> TryGetReturn<T>(
             IOrType<T, IError> left, 
             IOrType<T, IError> right,
+            Func<T, IOrType<IOrType<T, IError>, No, IError>> tryGetReturn,
             Func<IOrType<T, IError>, IOrType<T, IError>, T> make)
-                where T : IErroryTacType<T>
         {
             return left.SwitchReturns(
                 leftReturns => right.SwitchReturns(
                     rightReturns => {
 
-                        var leftReturn = leftReturns.TryGetReturn();
-                        var rightReturn = rightReturns.TryGetReturn();
+                        var leftReturn = tryGetReturn(leftReturns);
+                        var rightReturn = tryGetReturn(rightReturns);
 
                         if (leftReturn is IIsDefinately<IOrType<T, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<T, IError>> definateRight)
                         {
@@ -170,15 +146,15 @@ namespace Tac.Type
         public static IOrType<IOrType<T, IError>, No, IError> TryGetInput<T>(
             IOrType<T, IError> left, 
             IOrType<T, IError> right,
+            Func<T, IOrType<IOrType<T, IError>, No, IError>> tryGetInput,
             Func<IOrType<T, IError>, IOrType<T, IError>, T> make)
-                where T : IErroryTacType<T>
         {
             return left.SwitchReturns(
                leftReturns => right.SwitchReturns(
                    rightReturns => {
 
-                       var leftReturn = leftReturns.TryGetInput();
-                       var rightReturn = rightReturns.TryGetInput();
+                       var leftReturn = tryGetInput(leftReturns);
+                       var rightReturn = tryGetInput(rightReturns);
 
                        if (leftReturn is IIsDefinately<IOrType<T, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<T, IError>> definateRight)
                        {
@@ -218,9 +194,10 @@ namespace Tac.Type
         public static IOrType<bool, IError> CanAssign<T>(
             T from, 
             T to, 
-            IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers,  
+            IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers,
+            Func<T, IKey, IOrType<IOrType<T, IError>, No, IError>> tryGetMember,
+            Func<T, T, IReadOnlyList<(T, T)>, IOrType<bool, IError>> theyAreUs,
             List<(T, T)> assumeTrue)
-                where T : IErroryTacType<T>
         {
 
             if (assumeTrue.Contains((to, from)))
@@ -233,7 +210,7 @@ namespace Tac.Type
 
             foreach (var member in ourMembers)
             {
-                var theirMember = from.TryGetMember(member.key);
+                var theirMember = tryGetMember(from,member.key);
 
                 var ourMemberType = member.type;
 
@@ -242,11 +219,11 @@ namespace Tac.Type
                 list.Add(theirMember.SwitchReturns(
                     or => or.SwitchReturns(
                         theirType => ourMemberType.SwitchReturns(
-                            ourType => ourType.TheyAreUs(theirType, assumeTrue).SwitchReturns(
-                                boolean1 => theirType.TheyAreUs(ourType, assumeTrue).SwitchReturns(
+                            ourType => theyAreUs(ourType,theirType, assumeTrue).SwitchReturns(
+                                boolean1 => theyAreUs(theirType,ourType, assumeTrue).SwitchReturns(
                                     boolean2 => boolean1 && boolean2 ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()), // if they are us and we are them the types are the same
                                     error2 => OrType.Make<IError[], No, Yes>(new[] { error2 })),
-                                error1 => theirType.TheyAreUs(ourType, assumeTrue).SwitchReturns(
+                                error1 => theyAreUs(theirType,ourType, assumeTrue).SwitchReturns(
                                     boolean2 => OrType.Make<IError[], No, Yes>(new[] { error1 }),
                                     error2 => OrType.Make<IError[], No, Yes>(new[] { error1, error2 }))),
                             ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
@@ -273,7 +250,6 @@ namespace Tac.Type
         }
 
         public static IOrType<IOrType<T, IError>, No, IError> TryGetMember<T>(IKey key, IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers)
-            where T : IErroryTacType<T>
         {
             var matches = ourMembers.Where(x =>
                 x.key.Equals(key));
@@ -295,9 +271,11 @@ namespace Tac.Type
             T from, 
             T to, 
             IOrType<T, IError> inputType,
-            IOrType<T, IError> outputType, 
+            IOrType<T, IError> outputType,
+            Func<T, IOrType<IOrType<T, IError>, No, IError>> tryGetInput,
+            Func<T, IOrType<IOrType<T, IError>, No, IError>> tryGetReturn,
+            Func<T, T, IReadOnlyList<(T, T)>, IOrType<bool, IError>> theyAreUs,
             List<(T, T)> assumeTrue)
-                where T : IErroryTacType<T>
         {
             if (assumeTrue.Contains((to, from)))
             {
@@ -307,10 +285,10 @@ namespace Tac.Type
 
             var list = new List<IOrType<IError[], No, Yes>>();
 
-            list.Add(from.TryGetInput().SwitchReturns(
+            list.Add(tryGetInput(from).SwitchReturns(
                 or => or.SwitchReturns(
                     theirType => inputType.SwitchReturns(
-                        ourType => ourType.TheyAreUs(theirType, assumeTrue).SwitchReturns(
+                        ourType => theyAreUs(ourType,theirType, assumeTrue).SwitchReturns(
                             boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
                             error => OrType.Make<IError[], No, Yes>(new[] { error })),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
@@ -322,10 +300,10 @@ namespace Tac.Type
                         ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))));
 
-            list.Add(from.TryGetReturn().SwitchReturns(
+            list.Add(tryGetReturn(from).SwitchReturns(
                 or => or.SwitchReturns(
                     theirType => outputType.SwitchReturns(
-                        ourType => theirType.TheyAreUs(ourType, assumeTrue).SwitchReturns(
+                        ourType => theyAreUs(theirType,ourType, assumeTrue).SwitchReturns(
                             boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
                             error => OrType.Make<IError[], No, Yes>(new[] { error })),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
