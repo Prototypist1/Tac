@@ -6,7 +6,7 @@ using System.Linq;
 using Tac.Model;
 using Tac.Model.Elements;
 
-namespace Tac.SyntaxModel.Elements.AtomicTypes
+namespace Tac.Type
 {
 
     // these types are shared by front and back
@@ -30,7 +30,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     //    IOrType<ITacType, No> TryGetInputThrowOnError();
     //}
 
-    public interface IErroryTacType 
+    public interface IErroryTacType<T>
+        where T: IErroryTacType<T>
     {
         // we need to pass around a list of assumed true
         // TheyAreUs is often called inside TheyAreUs
@@ -39,24 +40,25 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         // this are actaully the same
         // another case A { B x },  B { C x },  C { A x }
         // these are the same as well
-        IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue);
-        IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key);
-        IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn();
-        IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput();
+        IOrType<bool, IError> TheyAreUs(T they, IReadOnlyList<(T, T)> assumeTrue);
+        IOrType<IOrType<T, IError>, No, IError> TryGetMember(IKey key);
+        IOrType<IOrType<T, IError>, No, IError> TryGetReturn();
+        IOrType<IOrType<T, IError>, No, IError> TryGetInput();
     }
 
     public static class OrTypeLibrary {
 
 
-        public delegate bool IsOrType(IErroryTacType them, out IOrType<IErroryTacType, IError> left, out IOrType<IErroryTacType, IError> right);
+        public delegate bool IsOrType<T>(T them, out IOrType<T, IError> left, out IOrType<T, IError> right);
 
-        public static IOrType<bool, IError> CanAssign(
-            IErroryTacType from,
-            IsOrType check,
-            IErroryTacType to,
-            IOrType<IErroryTacType, IError> toLeft,
-            IOrType<IErroryTacType, IError> toRight,
-            List<(IErroryTacType, IErroryTacType)> assumeTrue)
+        public static IOrType<bool, IError> CanAssign<T>(
+            T from,
+            IsOrType<T> check,
+            T to,
+            IOrType<T, IError> toLeft,
+            IOrType<T, IError> toRight,
+            List<(T, T)> assumeTrue)
+                where T : IErroryTacType<T>
         {
             if (assumeTrue.Contains((to, from)))
             {
@@ -112,7 +114,13 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             }
         }
 
-        public static IOrType<IOrType<IErroryTacType, IError>, No, IError> GetMember(IKey key, IOrType<IErroryTacType, IError> left, IOrType<IErroryTacType, IError> right) {
+        public static IOrType<IOrType<T, IError>, No, IError> GetMember<T>(
+            IKey key, 
+            IOrType<T, IError> left, 
+            IOrType<T, IError> right,
+            Func<IOrType<T, IError>, IOrType<T, IError>, T> make)
+                where T : IErroryTacType<T>
+        {
             return left.SwitchReturns(
                     leftType => right.SwitchReturns(
                         rightType =>
@@ -120,19 +128,23 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                             var leftMember = leftType.TryGetMember(key);
                             var rightMember = rightType.TryGetMember(key);
 
-                            if (leftMember is IIsDefinately<IOrType<IErroryTacType, IError>> definateLeft && rightMember is IIsDefinately<IOrType<IErroryTacType, IError>> definateRight)
+                            if (leftMember is IIsDefinately<IOrType<T, IError>> definateLeft && rightMember is IIsDefinately<IOrType<T, IError>> definateRight)
                             {
-                                return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(OrType.Make<IErroryTacType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
+                                return OrType.Make<IOrType<T, IError>, No, IError>(OrType.Make<T, IError>(make(definateLeft.Value, definateRight.Value)));
                             }
-                            return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
+                            return OrType.Make<IOrType<T, IError>, No, IError>(new No());
                         },
-                        rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(rightError)),
+                        rightError => OrType.Make<IOrType<T, IError>, No, IError>(rightError)),
                     leftError => right.SwitchReturns(
-                        rightType => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(leftError),
-                        rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
+                        rightType => OrType.Make<IOrType<T, IError>, No, IError>(leftError),
+                        rightError => OrType.Make<IOrType<T, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
         }
 
-        public static IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn(IOrType<IErroryTacType, IError> left, IOrType<IErroryTacType, IError> right)
+        public static IOrType<IOrType<T, IError>, No, IError> TryGetReturn<T>(
+            IOrType<T, IError> left, 
+            IOrType<T, IError> right,
+            Func<IOrType<T, IError>, IOrType<T, IError>, T> make)
+                where T : IErroryTacType<T>
         {
             return left.SwitchReturns(
                 leftReturns => right.SwitchReturns(
@@ -141,21 +153,25 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                         var leftReturn = leftReturns.TryGetReturn();
                         var rightReturn = rightReturns.TryGetReturn();
 
-                        if (leftReturn is IIsDefinately<IOrType<IErroryTacType, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<IErroryTacType, IError>> definateRight)
+                        if (leftReturn is IIsDefinately<IOrType<T, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<T, IError>> definateRight)
                         {
-                            return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(OrType.Make<IErroryTacType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
+                            return OrType.Make<IOrType<T, IError>, No, IError>(OrType.Make<T, IError>(make(definateLeft.Value, definateRight.Value)));
                         }
-                        return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
+                        return OrType.Make<IOrType<T, IError>, No, IError>(new No());
 
                     },
-                    rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(rightError)),
+                    rightError => OrType.Make<IOrType<T, IError>, No, IError>(rightError)),
                 leftError => right.SwitchReturns(
-                    rightReturns => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(leftError),
-                    rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
+                    rightReturns => OrType.Make<IOrType<T, IError>, No, IError>(leftError),
+                    rightError => OrType.Make<IOrType<T, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
 
         }
 
-        public static IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput(IOrType<IErroryTacType, IError> left, IOrType<IErroryTacType, IError> right)
+        public static IOrType<IOrType<T, IError>, No, IError> TryGetInput<T>(
+            IOrType<T, IError> left, 
+            IOrType<T, IError> right,
+            Func<IOrType<T, IError>, IOrType<T, IError>, T> make)
+                where T : IErroryTacType<T>
         {
             return left.SwitchReturns(
                leftReturns => right.SwitchReturns(
@@ -164,17 +180,17 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                        var leftReturn = leftReturns.TryGetInput();
                        var rightReturn = rightReturns.TryGetInput();
 
-                       if (leftReturn is IIsDefinately<IOrType<IErroryTacType, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<IErroryTacType, IError>> definateRight)
+                       if (leftReturn is IIsDefinately<IOrType<T, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<T, IError>> definateRight)
                        {
-                           return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(OrType.Make<IErroryTacType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
+                           return OrType.Make<IOrType<T, IError>, No, IError>(OrType.Make<T, IError>(make(definateLeft.Value, definateRight.Value)));
                        }
-                       return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
+                       return OrType.Make<IOrType<T, IError>, No, IError>(new No());
 
                    },
-                   rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(rightError)),
+                   rightError => OrType.Make<IOrType<T, IError>, No, IError>(rightError)),
                leftError => right.SwitchReturns(
-                   rightReturns => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(leftError),
-                   rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
+                   rightReturns => OrType.Make<IOrType<T, IError>, No, IError>(leftError),
+                   rightError => OrType.Make<IOrType<T, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
         }
 
     }
@@ -199,7 +215,12 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         // B := A
         // is ok, humnas are always animals and you can't set on be to breaak things
         // A := B is still not since B.thing might not be a Human  List<(IFrontendType, IFrontendType)>
-        public static IOrType<bool, IError> CanAssign(IErroryTacType from, IErroryTacType to, IReadOnlyList<(IKey key, IOrType<IErroryTacType, IError> type)> ourMembers,  List<(IErroryTacType, IErroryTacType)> assumeTrue)
+        public static IOrType<bool, IError> CanAssign<T>(
+            T from, 
+            T to, 
+            IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers,  
+            List<(T, T)> assumeTrue)
+                where T : IErroryTacType<T>
         {
 
             if (assumeTrue.Contains((to, from)))
@@ -251,17 +272,18 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return OrType.Make<bool, IError>(Error.Cascaded("", list.Select(x => x.Possibly1()).OfType<IIsDefinately<IError[]>>().SelectMany(x => x.Value).ToArray()));
         }
 
-        public static IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key, IReadOnlyList<(IKey key, IOrType<IErroryTacType, IError> type)> ourMembers)
+        public static IOrType<IOrType<T, IError>, No, IError> TryGetMember<T>(IKey key, IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers)
+            where T : IErroryTacType<T>
         {
             var matches = ourMembers.Where(x =>
                 x.key.Equals(key));
             if (matches.Count() == 1)
             {
-                return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(matches.First().type);
+                return OrType.Make<IOrType<T, IError>, No, IError>(matches.First().type);
             }
             else
             {
-                return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
+                return OrType.Make<IOrType<T, IError>, No, IError>(new No());
             }
         }
 
@@ -269,11 +291,13 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     public static class MethodLibrary {
 
-        public static IOrType<bool, IError> CanAssign(
-            IErroryTacType from, 
-            IErroryTacType to, 
-            IOrType<IErroryTacType, IError> inputType,
-            IOrType<IErroryTacType, IError> outputType, List<(IErroryTacType, IErroryTacType)> assumeTrue)
+        public static IOrType<bool, IError> CanAssign<T>(
+            T from, 
+            T to, 
+            IOrType<T, IError> inputType,
+            IOrType<T, IError> outputType, 
+            List<(T, T)> assumeTrue)
+                where T : IErroryTacType<T>
         {
             if (assumeTrue.Contains((to, from)))
             {
