@@ -19,6 +19,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     // and model has types too! ahh!
 
+    public struct Yes { }
     public struct No { }
 
     //internal interface ITacType
@@ -43,24 +44,6 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn();
         IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput();
     }
-
-
-    //public static class TacTypeLibrary {
-    //    public static class OrType { 
-
-    //    }
-    //}
-
-    //internal static class TypeExtensions{
-    //    public static IOrType<IErroryTacType,IError> UnwrapRefrence(this IErroryTacType frontendType) 
-    //    {
-    //        if (frontendType is RefType refType) {
-    //            return refType.inner;
-    //        }
-    //        return OrType.Make< IErroryTacType,IError >(frontendType);
-    //    }
-    //}
-
 
     public static class OrTypeLibrary {
 
@@ -196,154 +179,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     }
 
-    internal class FrontEndOrType : IErroryTacType
-    {
-        private readonly IOrType<IErroryTacType,IError> left, right;
-
-        public FrontEndOrType(IOrType<IErroryTacType, IError> left, IOrType<IErroryTacType, IError> right)
-        {
-            // TODO this is wrong
-            // I think
-            // I don't think this should be a validation error
-            // it should be an exception at converstion type
-            // Idk this design is a little werid
-            this.left = left ?? throw new ArgumentNullException(nameof(left));
-            this.right = right ?? throw new ArgumentNullException(nameof(right));
-        }
-
-        // ugh
-        // this probaly needs to be able to return an erro
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue)
-        {
-            if (assumeTrue.Contains((this, they))) {
-                return OrType.Make<bool, IError>(true);
-            }
-            assumeTrue.Add((this, they));
-
-
-
-            if (they.SafeIs(out FrontEndOrType frontEndOrType))
-            {
-
-                // both of their type must be assignable to one of our types...
-
-                var leftRes = frontEndOrType.left.TransformInner(x =>
-                {
-                    return TheyAreUs(x, assumeTrue);
-                });
-                var rightRes = frontEndOrType.right.TransformInner(x =>
-                {
-                    return TheyAreUs(x, assumeTrue);
-                });
-
-
-                return leftRes.SwitchReturns(x => rightRes.SwitchReturns(
-                        y => OrType.Make<bool, IError>(x && y),
-                        y => OrType.Make<bool, IError>(y)),
-                    x => rightRes.SwitchReturns(
-                        y => OrType.Make<bool, IError>(x),
-                        y => OrType.Make<bool, IError>(Error.Cascaded("", new[] { x, y }))));
-
-            }
-            else
-            {
-                // they must be assignable to one of our types
-
-                var leftRes = left.TransformInner(x =>
-                {
-                    return x.TheyAreUs(they, assumeTrue);
-                });
-                var rightRes = right.TransformInner(x =>
-                {
-                    return x.TheyAreUs(they, assumeTrue);
-                });
-
-
-                return leftRes.SwitchReturns(x => rightRes.SwitchReturns(
-                        y => OrType.Make<bool, IError>(x || y),
-                        y => x ? OrType.Make<bool, IError>(true) : OrType.Make<bool, IError>(y)),
-                    x => rightRes.SwitchReturns(
-                        y => y ? OrType.Make<bool, IError>(true) : OrType.Make<bool, IError>(x),
-                        y => OrType.Make<bool, IError>(Error.Cascaded("", new[] { x, y }))));
-            }
-        }
-
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key)
-        {
-
-            return left.SwitchReturns(
-                leftType => right.SwitchReturns(
-                    rightType => 
-                    {
-                        var leftMember = leftType.TryGetMember(key);
-                        var rightMember = rightType.TryGetMember(key);
-
-                        if (leftMember is IIsDefinately<IOrType<IErroryTacType, IError>> definateLeft && rightMember is IIsDefinately<IOrType<IErroryTacType, IError>> definateRight)
-                        {
-                            return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(OrType.Make<IErroryTacType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
-                        }
-                        return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-                    }, 
-                    rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(rightError)), 
-                leftError => right.SwitchReturns(
-                    rightType => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(leftError), 
-                    rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
-
-        }
-
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn()
-        {
-            return left.SwitchReturns(
-                leftReturns => right.SwitchReturns(
-                    rightReturns => {
-
-                        var leftReturn = leftReturns.TryGetReturn();
-                        var rightReturn = rightReturns.TryGetReturn();
-
-                        if (leftReturn is IIsDefinately<IOrType<IErroryTacType, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<IErroryTacType, IError>> definateRight)
-                        {
-                            return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(OrType.Make<IErroryTacType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
-                        }
-                        return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-
-                    },
-                    rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(rightError)),
-                leftError => right.SwitchReturns(
-                    rightReturns => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(leftError),
-                    rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(Error.Cascaded("",new[] { leftError,rightError}))));
-
-        }
-
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput()
-        {
-            return left.SwitchReturns(
-               leftReturns => right.SwitchReturns(
-                   rightReturns => {
-
-                       var leftReturn = leftReturns.TryGetInput();
-                       var rightReturn = rightReturns.TryGetInput();
-
-                       if (leftReturn is IIsDefinately<IOrType<IErroryTacType, IError>> definateLeft && rightReturn is IIsDefinately<IOrType<IErroryTacType, IError>> definateRight)
-                       {
-                           return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(OrType.Make<IErroryTacType, IError>(new FrontEndOrType(definateLeft.Value, definateRight.Value)));
-                        }
-                       return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-
-                   },
-                   rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(rightError)),
-               leftError => right.SwitchReturns(
-                   rightReturns => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(leftError),
-                   rightError => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
-        }
-
-    }
-
-    internal class HasMembersType : IErroryTacType
-    {
-
-        private struct Yes { }
-
-
+    public static class HasMembersLibrary {
         // for now the members all need to be the same type
         // say A is { Human thing; } and B is { Animal thing; }
         // B := A
@@ -363,19 +199,20 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         // B := A
         // is ok, humnas are always animals and you can't set on be to breaak things
         // A := B is still not since B.thing might not be a Human  List<(IFrontendType, IFrontendType)>
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue) {
+        public static IOrType<bool, IError> CanAssign(IErroryTacType from, IErroryTacType to, IReadOnlyList<(IKey key, IOrType<IErroryTacType, IError> type)> ourMembers,  List<(IErroryTacType, IErroryTacType)> assumeTrue)
+        {
 
-            if (assumeTrue.Contains((this, they)))
+            if (assumeTrue.Contains((to, from)))
             {
                 return OrType.Make<bool, IError>(true);
             }
-            assumeTrue.Add((this, they));
+            assumeTrue.Add((to, from));
 
             var list = new List<IOrType<IError[], No, Yes>>();
 
-            foreach (var member in weakScope)
+            foreach (var member in ourMembers)
             {
-                var theirMember = they.TryGetMember(member.key);
+                var theirMember = from.TryGetMember(member.key);
 
                 var ourMemberType = member.type;
 
@@ -391,7 +228,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                                 error1 => theirType.TheyAreUs(ourType, assumeTrue).SwitchReturns(
                                     boolean2 => OrType.Make<IError[], No, Yes>(new[] { error1 }),
                                     error2 => OrType.Make<IError[], No, Yes>(new[] { error1, error2 }))),
-                            ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })), 
+                            ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
                         error => ourMemberType.SwitchReturns(
                             ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
                             ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))),
@@ -401,7 +238,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                         ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))));
             }
 
-            if (list.All(x =>x.Is3(out var _))) {
+            if (list.All(x => x.Is3(out var _)))
+            {
                 return OrType.Make<bool, IError>(true);
             }
 
@@ -410,103 +248,70 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 return OrType.Make<bool, IError>(false);
             }
 
-            return OrType.Make<bool, IError>(Error.Cascaded("", list.Select(x=> x.Possibly1()).OfType<IIsDefinately<IError[]>>().SelectMany(x=>x.Value).ToArray()));
+            return OrType.Make<bool, IError>(Error.Cascaded("", list.Select(x => x.Possibly1()).OfType<IIsDefinately<IError[]>>().SelectMany(x => x.Value).ToArray()));
         }
-        
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key)
+
+        public static IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key, IReadOnlyList<(IKey key, IOrType<IErroryTacType, IError> type)> ourMembers)
         {
-            var matches = weakScope.Where(x => 
+            var matches = ourMembers.Where(x =>
                 x.key.Equals(key));
             if (matches.Count() == 1)
             {
                 return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(matches.First().type);
             }
-            else { 
+            else
+            {
                 return OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
             }
         }
 
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-
-        //public readonly IReadOnlyDictionary<IKey, IOrType<IFrontendType, IError>> members;
-
-        public readonly IReadOnlyList<(IKey key, IOrType<IErroryTacType, IError> type)> weakScope;
-
-        public HasMembersType(IReadOnlyList<(IKey key, IOrType<IErroryTacType, IError> type)> weakScope)
-        {
-            this.weakScope = weakScope ?? throw new ArgumentNullException(nameof(weakScope));
-        }
     }
 
-    internal class MethodType : IErroryTacType
-    {
+    public static class MethodLibrary {
 
-        private struct Yes { }
-
-        // is the meta-data here worth capturing
-        public static MethodType ImplementationType(
+        public static IOrType<bool, IError> CanAssign(
+            IErroryTacType from, 
+            IErroryTacType to, 
             IOrType<IErroryTacType, IError> inputType,
-            IOrType<IErroryTacType, IError> outputType,
-            IOrType<IErroryTacType, IError> contextType)
+            IOrType<IErroryTacType, IError> outputType, List<(IErroryTacType, IErroryTacType)> assumeTrue)
         {
-            return new MethodType(
-                contextType,
-                OrType.Make<IErroryTacType, IError>(new MethodType(inputType, outputType)));
-        }
-
-        public MethodType(
-            IOrType<IErroryTacType, IError> inputType,
-            IOrType<IErroryTacType, IError> outputType)
-        {
-            InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
-            OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
-        }
-
-        public IOrType<IErroryTacType, IError> InputType { get; }
-        public IOrType<IErroryTacType, IError> OutputType { get; }
-
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue)
-        {
-            if (assumeTrue.Contains((this, they)))
+            if (assumeTrue.Contains((to, from)))
             {
                 return OrType.Make<bool, IError>(true);
             }
-            assumeTrue.Add((this, they));
+            assumeTrue.Add((to, from));
 
             var list = new List<IOrType<IError[], No, Yes>>();
 
-            list.Add(they.TryGetInput().SwitchReturns(
+            list.Add(from.TryGetInput().SwitchReturns(
                 or => or.SwitchReturns(
-                    theirType => InputType.SwitchReturns(
+                    theirType => inputType.SwitchReturns(
                         ourType => ourType.TheyAreUs(theirType, assumeTrue).SwitchReturns(
                             boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
                             error => OrType.Make<IError[], No, Yes>(new[] { error })),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
-                    theirError => InputType.SwitchReturns(
+                    theirError => inputType.SwitchReturns(
                         ourType => OrType.Make<IError[], No, Yes>(new[] { theirError }),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { theirError, ourError }))),
                 no => OrType.Make<IError[], No, Yes>(new No()),
-                error => InputType.SwitchReturns(
+                error => inputType.SwitchReturns(
                         ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))));
 
-            list.Add(they.TryGetReturn().SwitchReturns(
+            list.Add(from.TryGetReturn().SwitchReturns(
                 or => or.SwitchReturns(
-                    theirType => OutputType.SwitchReturns(
+                    theirType => outputType.SwitchReturns(
                         ourType => theirType.TheyAreUs(ourType, assumeTrue).SwitchReturns(
                             boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
                             error => OrType.Make<IError[], No, Yes>(new[] { error })),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
-                    theirError => OutputType.SwitchReturns(
+                    theirError => outputType.SwitchReturns(
                         ourType => OrType.Make<IError[], No, Yes>(new[] { theirError }),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { theirError, ourError }))),
                 no => OrType.Make<IError[], No, Yes>(new No()),
-                error => OutputType.SwitchReturns(
+                error => outputType.SwitchReturns(
                         ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
                         ourError => OrType.Make<IError[], No, Yes>(new[] { error, ourError }))));
-
-
 
             if (list.All(x => x.Is3(out var _)))
             {
@@ -521,124 +326,5 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return OrType.Make<bool, IError>(Error.Cascaded("", list.Select(x => x.Possibly1()).OfType<IIsDefinately<IError[]>>().SelectMany(x => x.Value).ToArray()));
 
         }
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-
-
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(OutputType);
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(InputType);
     }
-    // still bad at structs is this a struct?
-    //internal struct HowTypesThinkOfMembers {
-    //    public IOrType<IFrontendType, IError> orType;
-    //    public IKey key;
-    //}
-
-    // reference is a type!
-    // but it probably does not mean what you think it means
-    // it really means you can assign to it
-    // this is what is returned by member and member reference 
-    internal class RefType : IErroryTacType {
-
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue)
-        {
-            // the method calling this
-            // is in charge of unwrapping
-            throw new Exception("I don't think this should ever happen");
-
-            // this is a bit of a smell
-        }
-
-        public readonly IOrType< IErroryTacType,IError> inner;
-
-        public RefType(IOrType<IErroryTacType, IError> inner)
-        {
-            this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
-        }
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-    }
-
-    internal class BlockType : IErroryTacType
-    {
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue) => OrType.Make<bool, IError> (they is BlockType);
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-    }
-
-    internal struct StringType : IErroryTacType
-    {
-
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue) => OrType.Make<bool, IError>(they is StringType);
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-    }
-    internal struct EmptyType : IErroryTacType
-    {
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue) => OrType.Make<bool, IError>(they is EmptyType);
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-    }
-
-    internal struct NumberType : IErroryTacType
-    {
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue) => OrType.Make<bool, IError>(they is NumberType);
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-    }
-
-    // I don't think this is a type....
-    // placeholders are effectively defined by constraints really just metadata
-    internal interface IGenericTypeParameterPlacholder //: IFrontendType
-    {
-        IOrType<NameKey, ImplicitKey> Key { get; }
-    }
-
-    internal struct GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder, IEquatable<GenericTypeParameterPlacholder>
-    {
-        public GenericTypeParameterPlacholder(IOrType<NameKey, ImplicitKey> key)
-        {
-            Key = key ?? throw new ArgumentNullException(nameof(key));
-        }
-
-        public IOrType<NameKey, ImplicitKey> Key { get; }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is GenericTypeParameterPlacholder placholder && Equals(placholder);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Key);
-        }
-
-        public bool Equals(GenericTypeParameterPlacholder placholder)
-        {
-            return EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
-        }
-    }
-
-    internal struct AnyType : IErroryTacType
-    {
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue) => OrType.Make<bool, IError>(true);
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-    }
-
-    internal struct BooleanType : IErroryTacType
-    {
-        public IOrType<bool, IError> TheyAreUs(IErroryTacType they, List<(IErroryTacType, IErroryTacType)> assumeTrue) => OrType.Make<bool, IError>(they is BooleanType);
-
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IErroryTacType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IErroryTacType, IError>, No, IError>(new No());
-    }
-
 }
