@@ -6,6 +6,7 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.SyntaxModel.Elements.AtomicTypes;
+using Tac.Type;
 
 namespace Tac.Frontend
 {
@@ -54,7 +55,6 @@ namespace Tac.Frontend
     }
 
 
-    internal struct No { } 
     internal interface IFrontendType: IValidate
     {
         // we need to pass around a list of assumed true

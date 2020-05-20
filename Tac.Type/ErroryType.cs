@@ -33,7 +33,7 @@ namespace Tac.Type
             T to,
             IOrType<T, IError> toLeft,
             IOrType<T, IError> toRight,
-            Func<T,T, IReadOnlyList<(T, T)>, IOrType<bool, IError>> theyAreUs,
+            Func<T,T, List<(T, T)>, IOrType<bool, IError>> theyAreUs,
             List<(T, T)> assumeTrue)
         {
             if (assumeTrue.Contains((to, from)))
@@ -196,7 +196,7 @@ namespace Tac.Type
             T to, 
             IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers,
             Func<T, IKey, IOrType<IOrType<T, IError>, No, IError>> tryGetMember,
-            Func<T, T, IReadOnlyList<(T, T)>, IOrType<bool, IError>> theyAreUs,
+            Func<T, T, List<(T, T)>, IOrType<bool, IError>> theyAreUs,
             List<(T, T)> assumeTrue)
         {
 
@@ -249,7 +249,9 @@ namespace Tac.Type
             return OrType.Make<bool, IError>(Error.Cascaded("", list.Select(x => x.Possibly1()).OfType<IIsDefinately<IError[]>>().SelectMany(x => x.Value).ToArray()));
         }
 
-        public static IOrType<IOrType<T, IError>, No, IError> TryGetMember<T>(IKey key, IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers)
+        public static IOrType<IOrType<T, IError>, No, IError> TryGetMember<T>(
+            IKey key, 
+            IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers)
         {
             var matches = ourMembers.Where(x =>
                 x.key.Equals(key));
@@ -274,7 +276,7 @@ namespace Tac.Type
             IOrType<T, IError> outputType,
             Func<T, IOrType<IOrType<T, IError>, No, IError>> tryGetInput,
             Func<T, IOrType<IOrType<T, IError>, No, IError>> tryGetReturn,
-            Func<T, T, IReadOnlyList<(T, T)>, IOrType<bool, IError>> theyAreUs,
+            Func<T, T, List<(T, T)>, IOrType<bool, IError>> theyAreUs,
             List<(T, T)> assumeTrue)
         {
             if (assumeTrue.Contains((to, from)))
