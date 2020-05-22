@@ -51,9 +51,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Type EmptyType { get; }
             void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
             TypeProblem2.Value CreateValue(IScope scope, IKey typeKey, IConvertTo<TypeProblem2.Value, PlaceholderValue> converter);
-            TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<IKey, IError> typeKey, bool isExposed, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.Member CreateMember(IScope scope, IKey key, bool isExposed, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> type,  IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.Member CreateMember(IScope scope, IKey key, bool isExposed, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
+            TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<IKey, IError> typeKey, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
+            TypeProblem2.Member CreateMember(IScope scope, IKey key, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> type, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
+            TypeProblem2.Member CreateMember(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.TypeReference CreateTypeReference(IScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IOrType<IFrontendType, IError>> converter);
             TypeProblem2.Scope CreateScope(IScope parent, IConvertTo<TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter);
@@ -356,17 +356,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             ISetUpTypeProblem Problem { get; }
         }
 
-        //internal class PossiblyExposedMember {
-        //    public readonly bool isExposed;
-        //    public readonly TypeProblem2.Member member;
-
-        //    public PossiblyExposedMember(bool isExposed, TypeProblem2.Member member)
-        //    {
-        //        this.isExposed = isExposed;
-        //        this.member = member ?? throw new ArgumentNullException(nameof(member));
-        //    }
-        //}
-
         internal interface IHaveMembers : ITypeProblemNode
         {
             public Dictionary<IKey, TypeProblem2.Member> Members { get; }
@@ -463,12 +452,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public class Member : TypeProblemNode<Member, WeakMemberDefinition>, IMember
             {
-                public Member(TypeProblem2 problem, bool isExposed, string debugName, IConvertTo<Member, WeakMemberDefinition> converter) : base(problem, debugName, converter)
+                public Member(TypeProblem2 problem, string debugName, IConvertTo<Member, WeakMemberDefinition> converter) : base(problem, debugName, converter)
                 {
-                    this.IsExposed = isExposed;
                 }
 
-                public bool IsExposed { get; set; }
                 public IOrType<IKey, IError, Unset> TypeKey { get; set; } = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IScope> Context { get; set; } = Possibly.IsNot<IScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
@@ -754,26 +741,26 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMember(IScope scope, IKey key, IOrType<IKey, IError> typeKey, bool exposed, IConvertTo<Member, WeakMemberDefinition> converter)
+            public Member CreateMember(IScope scope, IKey key, IOrType<IKey, IError> typeKey, IConvertTo<Member, WeakMemberDefinition> converter)
             {
-                var res = new Member(this,exposed, key.ToString()!,  converter);
+                var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
                 res.Context = Possibly.Is(scope);
                 res.TypeKey = typeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
                 return res;
             }
 
-            public Member CreateMember(IScope scope, IKey key, bool exposed, IConvertTo<Member,  WeakMemberDefinition> converter)
+            public Member CreateMember(IScope scope, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
             {
-                var res = new Member(this,exposed, key.ToString()!,  converter);
+                var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
                 res.Context = Possibly.Is(scope);
                 return res;
             }
 
-            public Member CreateMember(IScope scope, IKey key, bool exposed, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, IConvertTo<Member, WeakMemberDefinition> converter)
+            public Member CreateMember(IScope scope, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, IConvertTo<Member, WeakMemberDefinition> converter)
             {
-                var res = new Member(this, exposed, key.ToString()!, converter);
+                var res = new Member(this, key.ToString()!, converter);
                 HasMember(scope, key, res);
                 res.LooksUp = Possibly.Is(type);
                 return res;
@@ -785,7 +772,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return res1;
                 }
-                var res = new Member(this, false, "possibly on parent -" + key.ToString(), converter);
+                var res = new Member(this, "possibly on parent -" + key.ToString(), converter);
                 res = HasMembersPossiblyOnParent(scope, key, res);
                 res.Context = Possibly.Is(scope);
                 return res;
@@ -866,7 +853,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                 var returns = CreateTransientMember(res);
                 res.Returns = Possibly.Is(returns);
-                var input = CreateMember(res, new NameKey(inputName),false, inputConverter);
+                var input = CreateMember(res, new NameKey(inputName), inputConverter);
                 res.Input = Possibly.Is(input);
                 return res;
             }
@@ -893,11 +880,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (inputTypeValue.TypeKey is IIsDefinately<IKey> typeKey)
                     {
-                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value),false, inputConverter));
+                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value), inputConverter));
                     }
                     else
                     {
-                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), false, inputConverter));
+                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), inputConverter));
                     }
                 }
                 return res;
@@ -906,7 +893,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
             {
-                var res = new Member(this, true, "hopeful - " + key.ToString()!, converter);
+                var res = new Member(this, "hopeful - " + key.ToString()!, converter);
                 res = HasHopefulMember(scope, key, res);
                 return res;
             }
@@ -1047,7 +1034,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
-                    inferredMethodType.Input = Possibly.Is(CreateMember(inferredMethodType, methodInputKey,false, new WeakMemberDefinitionConverter(false, methodInputKey))); ;
+                    inferredMethodType.Input = Possibly.Is(CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey))); ;
                     var returns = CreateTransientMember(inferredMethodType); ;
                     inferredMethodType.Returns = Possibly.Is(returns);
                     return returns;
@@ -1066,7 +1053,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
-                    var input = CreateMember(inferredMethodType, methodInputKey,false, new WeakMemberDefinitionConverter(false, methodInputKey));
+                    var input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey));
                     inferredMethodType.Input = Possibly.Is(input);
                     inferredMethodType.Returns = Possibly.Is(CreateTransientMember(inferredMethodType));
 
@@ -1383,7 +1370,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 }
                                 else
                                 {
-                                    var newValue = new Member(this, memberPair.Value.IsExposed, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+                                    var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
                                     HasMember(deferredToInferred, memberPair.Key, newValue);
                                     newValue.LooksUp = memberPair.Value.LooksUp;
                                 }
@@ -1759,7 +1746,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var member in innerFromScope.Members)
                                 {
-                                    var newValue = Copy(member.Value, new Member(this, member.Value.IsExposed, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
+                                    var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
                                     HasMember(innerScopeTo, member.Key, newValue);
                                 }
                             }
@@ -1807,7 +1794,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var possible in innerFromScope.PossibleMembers)
                                 {
-                                    var newValue = Copy(possible.Value, new Member(this, possible.Value.IsExposed, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
+                                    var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
                                     HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
                                 }
                             }
@@ -1850,7 +1837,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             foreach (var possible in innerFromHopeful.HopefulMembers)
                             {
-                                var newValue = Copy(possible.Value, new Member(this, possible.Value.IsExposed, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
+                                var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
                                 HasHopefulMember(innerToHopeful, possible.Key, newValue);
                             }
 
@@ -1869,7 +1856,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 static bool IsHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, out IHaveMembers? haveMembers)
                 {
                     var res = false;
-
                     (haveMembers, res) = type.SwitchReturns<(IHaveMembers?, bool)>(
                         v1 => (default, false),
                         v2 => (v2, true),
@@ -1951,19 +1937,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
 
                         {
-                            if (flowTo.Is2(out var deferredToType))
+                            if (flowTo.Is2(out var deferredToHaveType))
                             {
                                 foreach (var memberPair in GetMembers(Prototypist.Toolbox.OrType.Make<IHaveMembers, OrType>(fromType!)))
                                 {
-                                    if (memberPair.Value.IsExposed && deferredToType.Members.TryGetValue(memberPair.Key, out var deferedToMember) && deferedToMember.IsExposed)
+                                    if (deferredToHaveType.Members.TryGetValue(memberPair.Key, out var deferedToMember))
                                     {
                                         res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
                                     }
                                     else
                                     {
-                                        throw new Exception("the implicit type has members the real type does not, or one is exposed and the other is not");
+                                        throw new Exception("the implicit type has members the real type does not");
                                         //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                                        //HasMember(deferredToType, memberPair.Key, newValue);
+                                        //HasMember(deferredToHaveType, memberPair.Key, newValue);
                                         //lookUps[newValue] = lookUps[memberPair.Value];
                                     }
                                 }
@@ -1975,13 +1961,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 foreach (var memberPair in GetMembers(Prototypist.Toolbox.OrType.Make<IHaveMembers, OrType>(fromType!)))
                                 {
-                                    if (memberPair.Value.IsExposed && deferredToObject.Members.TryGetValue(memberPair.Key, out var deferedToMember) && deferedToMember.IsExposed)
+                                    if (deferredToObject.Members.TryGetValue(memberPair.Key, out var deferedToMember))
                                     {
                                         res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
                                     }
                                     else
                                     {
-                                        throw new Exception("the implicit type has members the real type does not, or one is exposed and the other is not");
+                                        throw new Exception("the implicit type has members the real type does not");
                                         //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
                                         //HasMember(deferredToHaveType, memberPair.Key, newValue);
                                         //lookUps[newValue] = lookUps[memberPair.Value];
@@ -1996,19 +1982,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                                 foreach (var memberPair in GetMembers(Prototypist.Toolbox.OrType.Make<IHaveMembers, OrType>(fromType!)))
                                 {
-                                    if (memberPair.Value.IsExposed && deferredToInferred.Members.TryGetValue(memberPair.Key, out var deferedToMember))
+                                    if (deferredToInferred.Members.TryGetValue(memberPair.Key, out var deferedToMember))
                                     {
-                                        if (deferedToMember.IsExposed)
-                                        {
-                                            res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
-                                        }
-                                        else {
-                                            throw new Exception("one is exposed and the other is not!");
-                                        }
+                                        res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
                                     }
                                     else
                                     {
-                                        var newValue = new Member(this, memberPair.Value.IsExposed, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+                                        var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
                                         HasMember(deferredToInferred, memberPair.Key, newValue);
                                         newValue.LooksUp = memberPair.Value.LooksUp;
                                         res = true;
@@ -2112,7 +2092,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 // if they are the same type
                                 if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value)))
                                 {
-                                    var member = new Member(this, leftMember.Value.IsExposed, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}", leftMember.Value.Converter)
+                                    var member = new Member(this, $"generated or member out of {((TypeProblemNode)leftMember.Key).debugName} and {((TypeProblemNode)rightMember).debugName}", leftMember.Value.Converter)
                                     {
                                         LooksUp = Possibly.Is(GetType(rightMember))
                                     };
@@ -2185,7 +2165,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
-                res.Input = Possibly.Is(CreateMember(res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")),false, new WeakMemberDefinitionConverter(false, methodInputKey)));
+                res.Input = Possibly.Is(CreateMember(res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(false, methodInputKey)));
                 res.Returns = Possibly.Is(CreateTransientMember(res, new NameKey("T2")));
                 IsChildOf(Primitive, res);
             }
