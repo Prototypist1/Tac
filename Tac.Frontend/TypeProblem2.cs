@@ -383,7 +383,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public List<TypeProblem2.Scope> EntryPoints { get; }
             public List<TypeProblem2.Value> Values { get; }
-            // what is a transient member again?
             public List<TypeProblem2.TransientMember> TransientMembers { get; }
             public Dictionary<IKey, TypeProblem2.Method> Methods { get; }
             public List<TypeProblem2.TypeReference> Refs { get; }
@@ -610,32 +609,23 @@ namespace Tac.Frontend.New.CrzayNamespace
             // methods don't really have members in the way other things do
             // they have members while they are executing
             // but you can't really access their members
-            public class Method : TypeProblemNode<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>, IHaveInputAndOutput
+            public class Method : TypeProblemNode<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>, IHaveMembers, IScope, IHaveInputAndOutput
             {
-                public Method(
-                    TypeProblem2 problem, 
-                    string debugName, 
-                    IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter,
-                    // this smells 
-                    IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> scopeConvert) : base(problem, debugName, converter)
+                public Method(TypeProblem2 problem, string debugName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter) : base(problem, debugName, converter)
                 {
-                    // this is really converted by it's parents converter
-                    Scope = new Scope(problem,debugName+"-scope", scopeConvert);
                 }
-                public Scope Scope { get; set; } 
-
                 public IIsPossibly<IScope> Parent { get; set; } = Possibly.IsNot<IScope>();
-                //public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
-                //public List<Scope> EntryPoints { get; } = new List<Scope>();
-                //public List<Value> Values { get; } = new List<Value>();
-                //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
-                //public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
-                //public List<TypeReference> Refs { get; } = new List<TypeReference>();
-                //public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
-                //public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
-                //public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
-                //public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                //public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Value> Values { get; } = new List<Value>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public List<TypeReference> Refs { get; } = new List<TypeReference>();
+                public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
+                public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
+                public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
@@ -859,11 +849,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Method CreateMethod(IScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
-                IsChildOf(parent, res.Scope);
+                IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
-                var returns = CreateTransientMember(res.Scope);
+                var returns = CreateTransientMember(res);
                 res.Returns = Possibly.Is(returns);
-                var input = CreateMember(res.Scope, new NameKey(inputName), inputConverter);
+                var input = CreateMember(res, new NameKey(inputName), inputConverter);
                 res.Input = Possibly.Is(input);
                 return res;
             }
@@ -881,20 +871,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputTypeValue.debugName},outputType:{outputTypeValue.debugName}}}", converter);
-                IsChildOf(parent, res.Scope);
+                IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                 {
-                    var returns = outputTypeValue.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res.Scope, typeKey.Value) : CreateTransientMember(res.Scope);
+                    var returns = outputTypeValue.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value) : CreateTransientMember(res);
                     res.Returns = Possibly.Is(returns);
                 }
                 {
                     if (inputTypeValue.TypeKey is IIsDefinately<IKey> typeKey)
                     {
-                        res.Input = Possibly.Is(CreateMember(res.Scope, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value), inputConverter));
+                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value), inputConverter));
                     }
                     else
                     {
-                        res.Input = Possibly.Is(CreateMember(res.Scope, new NameKey(inputName), inputConverter));
+                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), inputConverter));
                     }
                 }
                 return res;
@@ -1044,18 +1034,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
-                    var input = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
-                    // I am not sure this needs a context
-                    // it will not look anything up
-                    input.Context = Possibly.Is(inferredMethodType);
-                    inferredMethodType.Input = Possibly.Is(input);
-
-                    var returns = new TransientMember(this, "implicit returns");
-                    // I am not sure this needs a context
-                    // it will not look anything up
-                    returns.Context = Possibly.Is(inferredMethodType);
+                    inferredMethodType.Input = Possibly.Is(CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey))); ;
+                    var returns = CreateTransientMember(inferredMethodType); ;
                     inferredMethodType.Returns = Possibly.Is(returns);
-
                     return returns;
                 }
             }
@@ -1072,17 +1053,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                     var methodInputKey = new NameKey("implicit input -" + Guid.NewGuid());
-                    var input = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
-                    // I am not sure this needs a context
-                    // it will not look anything up
-                    input.Context = Possibly.Is(inferredMethodType);
+                    var input = CreateMember(inferredMethodType, methodInputKey, new WeakMemberDefinitionConverter(false, methodInputKey));
                     inferredMethodType.Input = Possibly.Is(input);
-
-                    var returns = new TransientMember(this, "implicit returns");
-                    // I am not sure this needs a context
-                    // it will not look anything up
-                    returns.Context = Possibly.Is(inferredMethodType);
-                    inferredMethodType.Returns = Possibly.Is(returns);
+                    inferredMethodType.Returns = Possibly.Is(CreateTransientMember(inferredMethodType));
 
                     return input;
                 }
@@ -1535,7 +1508,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
-                        return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.TypeNotFound($"could not find type for {key} in {from}"));
+                        return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.TypeNotFound($"could not find type for {key.ToString()} in {from.ToString()}"));
                     }
                 }
 
@@ -1715,7 +1688,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (pair.Key.SafeIs(out Method methodFrom) && pair.Value.SafeIs(out Method methodTo))
                         {
-                            methodTo.Scope = CopiedToOrSelf(methodFrom.Scope);
                             methodTo.Input = Possibly.Is(CopiedToOrSelf(methodFrom.Input.GetOrThrow()));
                             methodTo.Returns = Possibly.Is(CopiedToOrSelf(methodFrom.Returns.GetOrThrow()));
                         }
@@ -2182,7 +2154,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var res = new MethodType(
                     this,
-                    $"generic-{key}-{placeholders.Aggregate("", (x, y) => x + "-" + y.key.ToString())}",
+                    $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.key.ToString())}",
                     new MethodTypeConverter());
 
                 HasMethodType(Primitive, key, res);

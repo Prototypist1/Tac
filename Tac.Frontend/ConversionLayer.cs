@@ -276,7 +276,7 @@ namespace Tac.Frontend
                 Help.GetType(typeSolution, typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
                 typeSolution.GetMember(typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
                 body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
-                new Box<WeakScope>(Help.GetScope(typeSolution, from.Scope)),
+                new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
 
@@ -305,7 +305,7 @@ namespace Tac.Frontend
                 typeSolution.GetMember(typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( inner.GetValue()))),
                 Help.GetType(typeSolution, typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( inner.GetValue()))),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
-                new Box<WeakScope>(Help.GetScope(typeSolution, from.Scope)),
+                new Box<WeakScope>(Help.GetScope(typeSolution, from)),
                 Array.Empty<IFrontendCodeElement>()));
         }
 
