@@ -2068,6 +2068,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 IReadOnlyDictionary<IKey, Member> GetMembers(IOrType<IHaveMembers, OrType> type)
                 {
+                    // TODO you are here
+                    // not everyone exposes members
+                    // a scope does not
+                    // a type does 
+                    // a method does not
+                    // an inferred type does - but not input and output 
+                    // input and output should not go in members?
+                    // I hate the type problem 
+
+
                     if (type.Is1(out var explictType))
                     {
                         return explictType.Members;
@@ -2089,6 +2099,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (rightMembers.TryGetValue(leftMember.Key, out var rightMember))
                             {
+                                // else where you use an orType for the type of members defined on both side of an OrType
                                 // if they are the same type
                                 if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value)))
                                 {
