@@ -45,7 +45,7 @@ namespace Tac.Frontend
                     var innerType = ConvertType(problem, type, OrType.Make<IVerifiableType, IError>( memberPair.Value.Value.Type));
                     innerType.Switch(x =>
                     {
-                        problem.CreateMember(type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        problem.CreateMember(type, memberPair.Key, OrType.Make<IKey, IError>(x), true, new WeakMemberDefinitionConverter(true, memberPair.Key));
                     }, y =>
                     {
                         problem.CreateMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
