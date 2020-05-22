@@ -236,7 +236,7 @@ namespace Tac.Parser
                 return ParseLine(parenthesisToken.Tokens);
             }
 
-            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
+            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token}"));
         }
 
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> ParseLine(IEnumerable<IToken> tokens)
