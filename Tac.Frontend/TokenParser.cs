@@ -71,7 +71,7 @@ namespace Tac.Frontend
 
         private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> ConvertType(
             Tpn.ISetUpTypeProblem problem,
-            Tpn.IScope scope,
+            Tpn.IStaticScope scope,
             IOrType<IVerifiableType, IError> typeOrError)
         {
 
@@ -119,7 +119,6 @@ namespace Tac.Frontend
                         var innerType = ConvertType(problem, tpnType, OrType.Make<IVerifiableType, IError>(memberPair.Type));
                         innerType.Switch(x =>
                         {
-
                             problem.CreateMember(tpnType, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
                         }, y =>
                         {
