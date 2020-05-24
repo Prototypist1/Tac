@@ -130,7 +130,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
-                //public List<Value> Values { get; } = new List<Value>();
+                public List<Value> Values { get; } = new List<Value>();
                 //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
@@ -292,7 +292,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
-                //public List<Value> Values { get; } = new List<Value>();
+                public List<Value> Values { get; } = new List<Value>();
                 //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
@@ -349,7 +349,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 kid.Parent = Possibly.Is(parent);
             }
-            public static void HasValue(IScope parent, Value value)
+            public static void HasValue(IStaticScope parent, Value value)
             {
                 parent.Values.Add(value);
             }
@@ -359,7 +359,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public void HasEntryPoint(IScope parent, Scope entry)
+            public void HasEntryPoint(IStaticScope parent, Scope entry)
             {
                 parent.EntryPoints.Add(entry);
             }
@@ -430,7 +430,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 assignments.Add((assignedFrom, assignedTo));
             }
 
-            public Value CreateValue(IScope scope, IKey typeKey, IConvertTo<Value, PlaceholderValue> converter)
+            public Value CreateValue(IStaticScope scope, IKey typeKey, IConvertTo<Value, PlaceholderValue> converter)
             {
                 var res = new Value(this, typeKey.ToString()!, converter);
                 HasValue(scope, res);
@@ -839,8 +839,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // we don't use has member input/output doesn't go in the member list
                     // it is not a public member
                     var methodInputKey = new NameKey("implicit input - " + Guid.NewGuid());
-                    var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
-                    inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
+                    var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey))
+                    {
+                        LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")))
+                    };
                     inferredMethodType.Input = Possibly.Is(inputMember);
 
                     var returnMember = new TransientMember(this, "implicit return -" + Guid.NewGuid());

@@ -145,7 +145,7 @@ namespace Tac.SemanticModel.Operations
                 this.right = right ?? throw new ArgumentNullException(nameof(right));;
             }
 
-            public ISetUpResult<IBox<WeakAssignOperation>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakAssignOperation>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
 
                 var nextLeft = left.TransformInner(x=>x.Run(scope, context));

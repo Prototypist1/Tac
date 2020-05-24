@@ -162,7 +162,7 @@ namespace Tac.SemanticModel
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 var type = context.TypeProblem.CreateTypeReference(scope,key, new WeakTypeReferenceConverter());
                 return new SetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(

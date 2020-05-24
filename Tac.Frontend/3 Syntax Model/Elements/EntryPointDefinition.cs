@@ -83,8 +83,10 @@ namespace Tac.SemanticModel
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public ISetUpResult<IBox<WeakEntryPointDefinition>, Tpn.IScope> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakEntryPointDefinition>, Tpn.IScope> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+
+
                 var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
                 var innerScope = context.TypeProblem.CreateScope(scope, new WeakEntryPointConverter(box));
                 context.TypeProblem.HasEntryPoint(scope, innerScope);

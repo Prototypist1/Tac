@@ -118,7 +118,7 @@ namespace Tac.SemanticModel.Operations
                 this.dub = dub;
             }
 
-            public ISetUpResult<IBox<WeakConstantBool>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakConstantBool>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 // PlaceholderValueConverter is a little weird
                 // I kind of think it should make the WeakConstantBool

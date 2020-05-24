@@ -21,7 +21,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Type EmptyType { get; }
             void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
             TypeProblem2.Value CreateValue(
-                IScope scope, 
+                IStaticScope scope, 
                 IKey typeKey, 
                 IConvertTo<TypeProblem2.Value, PlaceholderValue> converter);
             TypeProblem2.Member CreatePrivateMember<T>(
@@ -86,7 +86,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             void IsBool(IScope parent, ILookUpType target);
             void IsBlock(IScope parent, ILookUpType target);
 
-            void HasEntryPoint(IScope parent, TypeProblem2.Scope entry);
+            void HasEntryPoint(IStaticScope parent, TypeProblem2.Scope entry);
             TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
         }
     }

@@ -120,7 +120,7 @@ namespace Tac.SemanticModel.Operations
                 this.str = str;
             }
 
-            public ISetUpResult<IBox<WeakConstantString>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakConstantString>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 var value = context.TypeProblem.CreateValue(scope, new NameKey("string"), new PlaceholderValueConverter());
                 return new SetUpResult<IBox<WeakConstantString>, Tpn.IValue>(new ConstantStringResolveReferance(str),OrType.Make<Tpn.IValue,IError>(value));
