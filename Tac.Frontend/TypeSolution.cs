@@ -17,7 +17,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         // 🤫 the power was in you all along
         internal class TypeSolution : ITypeSolution
         {
-            private readonly IReadOnlyDictionary<IHavePublicMembers, IReadOnlyList<TypeProblem2.Member>> members;
+            private readonly IReadOnlyDictionary<IHavePublicMembers, IReadOnlyList<TypeProblem2.Member>> publicMembers;
+            private readonly IReadOnlyDictionary<IHavePrivateMembers, IReadOnlyList<TypeProblem2.Member>> privateMembers;
             private readonly IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
             private readonly IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn;
@@ -26,14 +27,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map,
-                IReadOnlyDictionary<IHavePublicMembers, IReadOnlyList<TypeProblem2.Member>> members,
+                IReadOnlyDictionary<IHavePublicMembers, IReadOnlyList<TypeProblem2.Member>> publicMembers,
+                IReadOnlyDictionary<IHavePrivateMembers, IReadOnlyList<TypeProblem2.Member>> privateMembers,
                 IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
                 IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn,
                 IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.TransientMember> methodOut,
                 IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
-                this.members = members ?? throw new ArgumentNullException(nameof(members));
+                this.publicMembers = publicMembers ?? throw new ArgumentNullException(nameof(publicMembers));
+                this.privateMembers = privateMembers ?? throw new ArgumentNullException(nameof(privateMembers));
                 this.orTypeElememts = orTypeElememts ?? throw new ArgumentNullException(nameof(orTypeElememts));
                 this.methodIn = methodIn ?? throw new ArgumentNullException(nameof(methodIn));
                 this.methodOut = methodOut ?? throw new ArgumentNullException(nameof(methodOut));
@@ -164,18 +167,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheInferredType[inferredType];
             }
 
-            public IReadOnlyList<TypeProblem2.Member> GetMembers(IHavePublicMembers from)
-            {
-                if (!members.ContainsKey(from))
-                {
-                    return new List<TypeProblem2.Member>();
-                }
-                return members[from];
-            }
-
             public IReadOnlyList<TypeProblem2.Member> GetMembers(IOrType<IHavePrivateMembers, IHavePublicMembers> from)
             {
-                throw new NotImplementedException();
+                return from.SwitchReturns(x =>
+                {
+                    if (!privateMembers.ContainsKey(x))
+                    {
+                        return new List<TypeProblem2.Member>();
+                    }
+                    return privateMembers[x];
+                },
+                x =>
+                {
+                    if (!publicMembers.ContainsKey(x))
+                    {
+                        return new List<TypeProblem2.Member>();
+                    }
+                    return publicMembers[x];
+                });
+
             }
 
             public IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> GetType(ILookUpType from)

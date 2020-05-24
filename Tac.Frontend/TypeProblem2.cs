@@ -148,7 +148,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // methods don't really have members in the way other things do
             // they have members while they are executing
             // but you can't really access their members
-            public class MethodType : TypeProblemNode<MethodType, Tac.SyntaxModel.Elements.AtomicTypes.MethodType>, IHaveInputAndOutput, IScope
+            public class MethodType : TypeProblemNode<MethodType, Tac.SyntaxModel.Elements.AtomicTypes.MethodType>, IHaveInputAndOutput, IScope, IHavePossibleMembers
             {
                 public MethodType(TypeProblem2 problem, string debugName, IConvertTo<MethodType, Tac.SyntaxModel.Elements.AtomicTypes.MethodType> converter) : base(problem, debugName, converter)
                 {
@@ -261,7 +261,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 //}
             }
-            public class Scope : TypeProblemNode<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>, IScope
+            public class Scope : TypeProblemNode<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>, IScope, IHavePossibleMembers
             {
                 public Scope(TypeProblem2 problem, string debugName, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter) : base(problem, debugName, converter)
                 {
@@ -284,7 +284,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    return new Dictionary<IKey, Member>();
                 //}
             }
-            public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>>, IExplicitType
+            public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>>, IExplicitType, IHavePossibleMembers
             {
                 public Object(TypeProblem2 problem, string debugName, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter) : base(problem, debugName, converter)
                 {
@@ -300,12 +300,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                //public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
             }
             // methods don't really have members in the way other things do
             // they have members while they are executing
             // but you can't really access their members
-            public class Method : TypeProblemNode<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>, IScope, IHaveInputAndOutput
+            public class Method : TypeProblemNode<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>, IScope, IHaveInputAndOutput, IHavePossibleMembers
             {
                 public Method(TypeProblem2 problem, string debugName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter) : base(problem, debugName, converter)
                 {
@@ -401,7 +401,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 parent.TransientMembers.Add(member);
             }
-            public static Member HasMembersPossiblyOnParent(IScope parent, IKey key, Member member)
+            public static Member HasMembersPossiblyOnParent(IHavePossibleMembers parent, IKey key, Member member)
             {
 
                 parent.PossibleMembers.TryAdd(key, member);
@@ -539,15 +539,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
+            public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
             {
-                if (scope.PossibleMembers.TryGetValue(key, out var res1))
+                // this is weird, but since C# does not have and types...
+                // scope and havePossibleMembers are expected to be the same object
+                if (!ReferenceEquals(scope, havePossibleMembers)) {
+                    throw new Exception($"{scope} and {havePossibleMembers} should be the same object");
+                }
+
+                if (havePossibleMembers.PossibleMembers.TryGetValue(key, out var res1))
                 {
                     return res1;
                 }
+
                 var res = new Member(this, "possibly on parent -" + key.ToString(), converter);
-                res = HasMembersPossiblyOnParent(scope, key, res);
-                res.Context = Possibly.Is(scope);
+                res = HasMembersPossiblyOnParent(havePossibleMembers, key, res);
+                res.Context = Possibly.Is<IStaticScope>(scope);
                 return res;
             }
 
@@ -624,9 +631,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
                 HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
-                // TODO
-                // dang it!
-                // these should not call these methods! they don't go in the member list!
+                // here it is ok for these to be members because we are using a method
                 var returns = CreateTransientMember(res);
                 res.Returns = Possibly.Is(returns);
                 var input = CreatePrivateMember(res, new NameKey(inputName), inputConverter);
@@ -655,17 +660,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 {
                     if (inputTypeValue.TypeKey is IIsDefinately<IKey> typeKey)
-                    {                
-                        // TODO
-                        // dang it!
-                        // these should not call these methods! they don't go in the member list!
+                    {
+
+                        // here it is ok for these to be members because we are using a method
                         res.Input = Possibly.Is(CreatePrivateMember(res, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value), inputConverter));
                     }
                     else
-                    {                
-                        // TODO
-                        // dang it!
-                        // these should not call these methods! they don't go in the member list!
+                    {
+
+                        // here it is ok for these to be members because we are using a method
                         res.Input = Possibly.Is(CreatePrivateMember(res, new NameKey(inputName), inputConverter));
                     }
                 }
@@ -710,7 +713,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 orType.Right = Possibly.Is(b);
             }
 
-            private static void HasOrType(IScope scope, IKey kay, OrType orType1)
+            private static void HasOrType(IStaticScope scope, IKey kay, OrType orType1)
             {
                 scope.OrTypes[kay] = orType1;
             }
@@ -838,15 +841,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
                     // we don't use has member input/output doesn't go in the member list
                     // it is not a public member
+                    // and infered to do not have private members
                     var methodInputKey = new NameKey("implicit input - " + Guid.NewGuid());
-                    var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey))
-                    {
-                        LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")))
-                    };
+                    var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
+                    inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                     inferredMethodType.Input = Possibly.Is(inputMember);
 
                     var returnMember = new TransientMember(this, "implicit return -" + Guid.NewGuid());
-                    inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
+                    returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                     inferredMethodType.Returns = Possibly.Is(returnMember);
 
                     return returnMember;
@@ -867,13 +869,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
                     // we don't use has member input/output doesn't go in the member list
                     // it is not a public member
+                    // and infered to do not have private members
                     var methodInputKey = new NameKey("implicit input - " + Guid.NewGuid());
                     var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
                     inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                     inferredMethodType.Input = Possibly.Is(inputMember);
 
                     var returnMember = new TransientMember(this, "implicit return -" + Guid.NewGuid());
-                    inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
+                    returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                     inferredMethodType.Returns = Possibly.Is(returnMember);
 
                     return inputMember;
@@ -1097,6 +1100,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new TypeSolution(
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
                     typeProblemNodes.OfType<IHavePublicMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.PublicMembers.Select(y => y.Value).ToArray()),
+                    typeProblemNodes.OfType<IHavePrivateMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.PrivateMembers.Select(y => y.Value).ToArray()),
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
                     typeProblemNodes.Select(x =>
                     {
@@ -1723,24 +1727,63 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     map.Add(innerFrom, innerTo);
 
-                    if (innerFrom.SafeIs<ITypeProblemNode, IScope>(out var innerFromScope) && innerTo.SafeIs<ITypeProblemNode, IScope>(out var innerScopeTo))
+
+                    if (innerFrom.SafeIs<ITypeProblemNode, IStaticScope>(out var innerFromStaticScope) && innerTo.SafeIs<ITypeProblemNode, IStaticScope>(out var innerStaticScopeTo))
                     {
 
                         {
-                            foreach (var item in innerFromScope.Values)
+                            foreach (var item in innerFromStaticScope.Values)
                             {
                                 var newValue = Copy(item, new Value(this, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
-                                HasValue(innerScopeTo, newValue);
+                                HasValue(innerStaticScopeTo, newValue);
                             }
                         }
 
                         {
-                            foreach (var item in innerFromScope.Refs)
+                            foreach (var item in innerFromStaticScope.Refs)
                             {
                                 var newValue = Copy(item, new TypeReference(this, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
-                                HasReference(innerScopeTo, newValue);
+                                HasReference(innerStaticScopeTo, newValue);
                             }
                         }
+
+                        {
+                            foreach (var @object in innerFromStaticScope.Objects)
+                            {
+                                var newValue = Copy(@object.Value, new Object(this, $"copied from {((TypeProblemNode)@object.Value).debugName}", @object.Value.Converter));
+                                HasObject(innerStaticScopeTo, @object.Key, newValue);
+                            }
+
+                        }
+
+                        {
+                            foreach (var type in innerFromStaticScope.Types)
+                            {
+                                var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder));
+                                HasType(innerStaticScopeTo, type.Key, newValue);
+                            }
+                        }
+
+                        {
+                            foreach (var method in innerFromStaticScope.Methods)
+                            {
+                                var newValue = Copy(method.Value, new Method(this, $"copied from {((TypeProblemNode)method.Value).debugName}", method.Value.Converter));
+                                HasMethod(innerStaticScopeTo, method.Key, newValue);
+                            }
+                        }
+
+                        {
+                            foreach (var type in innerFromStaticScope.OrTypes)
+                            {
+                                var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
+                                HasOrType(innerStaticScopeTo, type.Key, newValue);
+                            }
+                        }
+                    }
+
+
+                    if (innerFrom.SafeIs<ITypeProblemNode, IScope>(out var innerFromScope) && innerTo.SafeIs<ITypeProblemNode, IScope>(out var innerScopeTo))
+                    {
 
                         {
                             foreach (var member in innerFromScope.PrivateMembers)
@@ -1755,38 +1798,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 var newValue = Copy(member, new TransientMember(this, $"copied from {((TypeProblemNode)member).debugName}"));
                                 HasTransientMember(innerScopeTo, newValue);
-                            }
-                        }
-
-                        {
-                            foreach (var @object in innerFromScope.Objects)
-                            {
-                                var newValue = Copy(@object.Value, new Object(this, $"copied from {((TypeProblemNode)@object.Value).debugName}", @object.Value.Converter));
-                                HasObject(innerScopeTo, @object.Key, newValue);
-                            }
-
-                        }
-
-                        {
-                            foreach (var type in innerFromScope.Types)
-                            {
-                                var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder));
-                                HasType(innerScopeTo, type.Key, newValue);
-                            }
-                        }
-                        {
-                            foreach (var method in innerFromScope.Methods)
-                            {
-                                var newValue = Copy(method.Value, new Method(this, $"copied from {((TypeProblemNode)method.Value).debugName}", method.Value.Converter));
-                                HasMethod(innerScopeTo, method.Key, newValue);
-                            }
-                        }
-
-                        {
-                            foreach (var type in innerFromScope.OrTypes)
-                            {
-                                var newValue = Copy(type.Value, new OrType(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
-                                HasOrType(innerScopeTo, type.Key, newValue);
                             }
                         }
 
@@ -2208,11 +2219,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
-                // TODO here too
-                // inputs and output are only sort of member
-                // well maybe they are private members 
-                // totally are private members 
-                // why am I so dumb
+                // here it is ok for these to be members because we are using a method type
                 res.Input = Possibly.Is(CreatePrivateMember(res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(false, methodInputKey)));
                 res.Returns = Possibly.Is(CreateTransientMember(res, new NameKey("T2")));
                 IsChildOf(Primitive, res);

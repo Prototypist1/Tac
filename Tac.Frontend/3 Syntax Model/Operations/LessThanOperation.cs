@@ -83,15 +83,21 @@ namespace Tac.SemanticModel.CodeStuff
     {
         public LessThanOperationMaker() : base(SymbolsRegistry.StaticLessThanSymbol, (l,r)=> new Box<WeakLessThanOperation>(new WeakLessThanOperation(l,r)), (s, c, l, r) =>
          {
+
+             if (!(s is Tpn.IScope runtimeScope))
+             {
+                 throw new NotImplementedException("this should be an IError");
+             }
+
              l
             .TransformInner(x => x.SetUpSideNode)
             .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("left should be a look up type, but I don't know where or how the error should happen"))
-            .IfNotError(x => c.TypeProblem.IsNumber(s, x));
+            .IfNotError(x => c.TypeProblem.IsNumber(runtimeScope, x));
 
              r
              .TransformInner(x => x.SetUpSideNode)
              .TransformAndFlatten(x => x.SafeIs(out Tpn.ILookUpType lookup) ? OrType.Make<Tpn.ILookUpType, IError>(lookup) : throw new NotImplementedException("right should be a look up type, but I don't know where or how the error should happen"))
-             .IfNotError(x => c.TypeProblem.IsNumber(s, x));
+             .IfNotError(x => c.TypeProblem.IsNumber(runtimeScope, x));
 
              return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s, new NameKey("bool"), new PlaceholderValueConverter()));
          })

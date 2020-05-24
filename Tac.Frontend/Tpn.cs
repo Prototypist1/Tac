@@ -65,6 +65,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Dictionary<IKey, TypeProblem2.Member> PublicMembers { get; }
         }
 
+        internal interface IHavePossibleMembers : ITypeProblemNode
+        {
+            public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; }
+        }
+
         internal interface IHavePrivateMembers : ITypeProblemNode
         {
             public Dictionary<IKey, TypeProblem2.Member> PrivateMembers { get; }
@@ -89,7 +94,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         
         }
 
-        internal interface IStaticScope {
+        internal interface IStaticScope : ITypeProblemNode{
             IIsPossibly<IStaticScope> Parent { get; set; }
             public List<TypeProblem2.TypeReference> Refs { get; }
             public Dictionary<IKey, TypeProblem2.OrType> OrTypes { get; }
@@ -101,11 +106,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             public List<TypeProblem2.Value> Values { get; }
         }
 
-        internal interface IScope: IStaticScope,IHavePrivateMembers
+        internal interface IScope: IStaticScope,IHavePrivateMembers, IHavePossibleMembers
         {
 
             public List<TypeProblem2.TransientMember> TransientMembers { get; }
-            public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; }
         }
         //internal interface IMethod : IHaveMembers, IScope { }
         internal interface IHaveInputAndOutput : ITypeProblemNode { }

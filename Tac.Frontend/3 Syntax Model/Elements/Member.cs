@@ -66,13 +66,13 @@ namespace Tac.SemanticModel
                 // but before I make that work I need to review the whole workflow
 
 
-                if (!(scope is Tpn.IScope runtimeScope))
+                if (!(scope is Tpn.IHavePossibleMembers possibleScope))
                 {
                     throw new NotImplementedException("this should be an IError");
                 }
 
                 var nameKey = new NameKey(memberName);
-                var member = context.TypeProblem.CreateMemberPossiblyOnParent(runtimeScope, nameKey,new WeakMemberDefinitionConverter(false,nameKey));
+                var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, possibleScope, nameKey,new WeakMemberDefinitionConverter(false,nameKey));
 
                 return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
             }
