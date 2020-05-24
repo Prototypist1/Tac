@@ -57,6 +57,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IKey key,
                 IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter)
                 where T : IStaticScope, IHavePublicMembers;
+            TypeProblem2.Member CreateMember(
+                IStaticScope scope, 
+                IKey memberName, 
+                IOrType<IKey, IError> orType, 
+                WeakMemberDefinitionConverter weakMemberDefinitionConverter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(IScope scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.TypeReference CreateTypeReference(IStaticScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IOrType<IFrontendType, IError>> converter);
             TypeProblem2.Scope CreateScope(IStaticScope parent, IConvertTo<TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter);

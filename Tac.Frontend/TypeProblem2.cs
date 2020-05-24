@@ -439,6 +439,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
+            public Member CreateMember(
+                IStaticScope scope, 
+                IKey key, 
+                IOrType<IKey, IError> typeKey, 
+                WeakMemberDefinitionConverter converter)
+            {
+                var res = new Member(this, key.ToString()!, converter);
+                if (scope is IHavePublicMembers publicMembers)
+                {
+                    HasPublicMember(publicMembers, key, res);
+                }
+                else
+                if (scope is IHavePrivateMembers privateMembers)
+                {
+                    HasPrivateMember(privateMembers, key, res);
+                }
+                else {
+                    throw new Exception("this is probably really an IError - you tried to add a member somewhere one cannot go");
+                }
+                res.Context = Possibly.Is(scope);
+                res.TypeKey = typeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
+                return res;
+            }
+
             public Member CreatePublicMember<T>(
                 T scope,
                 IKey key,
@@ -2148,6 +2172,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // you either are a type, or you have a type
                 // 
             }
+
 
 
             public TypeProblem2(IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> moduleConverter)

@@ -60,6 +60,12 @@ namespace Tac.SemanticModel
 
             public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+                // TODO can you make a something like Type {x;y}
+                // i think so
+                // so this may not always need a runtimeScope
+                // but before I make that work I need to review the whole workflow
+
+
                 if (!(scope is Tpn.IScope runtimeScope))
                 {
                     throw new NotImplementedException("this should be an IError");

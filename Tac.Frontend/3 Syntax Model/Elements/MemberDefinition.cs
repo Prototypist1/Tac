@@ -158,6 +158,8 @@ namespace Tac.SemanticModel
             {
 
                 var type = this.type.Run(scope, context);
+
+
                 var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x=>x.Key()), new WeakMemberDefinitionConverter(isReadonly,memberName));
 
 

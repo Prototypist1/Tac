@@ -227,14 +227,9 @@ namespace Tac.SemanticModel.CodeStuff
 
             public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
-                if (!(scope is Tpn.IScope runtimeScope))
-                {
-                    throw new NotImplementedException("this should be an IError");
-                }
-
                 var nextLeft = left.TransformInner(x=>x.Run(scope, context));
                 var nextRight = right.TransformInner(x => x.Run(scope, context));
-                var value = keyMaker(runtimeScope, context,nextLeft, nextRight);
+                var value = keyMaker(scope, context,nextLeft, nextRight);
 
                 return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(new BinaryResolveReferance(
                     nextLeft.TransformInner(x=>x.Resolve),
