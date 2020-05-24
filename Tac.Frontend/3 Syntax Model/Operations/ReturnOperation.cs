@@ -93,7 +93,7 @@ namespace Tac.SemanticModel.Operations
     }
 
     internal class TrailingOperation {
-        public delegate OrType<Tpn.IValue,IError> GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType<ISetUpResult<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> parm);
+        public delegate OrType<Tpn.IValue,IError> GetReturnedValue(Tpn.IStaticScope scope, ISetUpContext context, IOrType<ISetUpResult<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> parm);
 
         public delegate IBox<T> Make<out T>(IOrType< IBox<IFrontendCodeElement>,IError> codeElement);
 
@@ -137,7 +137,7 @@ namespace Tac.SemanticModel.Operations
                 this.getReturnedValue = getReturnedValue ?? throw new ArgumentNullException(nameof(getReturnedValue));
             }
 
-            public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 var nextLeft = left.TransformInner(x=>x.Run(scope, context));
                 return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(
@@ -170,10 +170,15 @@ namespace Tac.SemanticModel.Operations
         public ReturnOperationMaker() : base(SymbolsRegistry.StaticReturnSymbol, x=>new Box<WeakReturnOperation>(new WeakReturnOperation(x)),(s,c,x)=> {
 
 
+            if (!(s is Tpn.IScope runtimeScope))
+            {
+                throw new NotImplementedException("this should be an IError");
+            }
+
             // this smells
             // I am using this delegate for more than it was ment to do
 
-            var  mem = c.TypeProblem.GetReturns(s);
+            var  mem = c.TypeProblem.GetReturns(runtimeScope);
 
             if (x.Is2(out var error)) {
                 return OrType.Make<Tpn.IValue, IError>(error);
@@ -198,7 +203,7 @@ namespace Tac.SemanticModel.Operations
             // I will need to change this when I do a pass to communitcate error better
             finalVal.AssignTo(mem);
 
-            return OrType.Make<Tpn.IValue, IError>( c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter()));
+            return OrType.Make<Tpn.IValue, IError>( c.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"), new PlaceholderValueConverter()));
         })
         {
         }

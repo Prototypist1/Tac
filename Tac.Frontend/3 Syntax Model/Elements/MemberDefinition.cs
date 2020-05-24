@@ -154,7 +154,7 @@ namespace Tac.SemanticModel
                 type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
             }
 
-            public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
 
                 var type = this.type.Run(scope, context);

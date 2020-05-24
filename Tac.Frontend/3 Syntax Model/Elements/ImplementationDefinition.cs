@@ -196,8 +196,10 @@ namespace Tac.SemanticModel
                 this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
             }
 
-            public ISetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+
+
 
                 // TODO this is so painful, I think I need to look in to implementations having special treatment...
                 // maybe they need to be a generic on the tpn

@@ -147,18 +147,23 @@ namespace Tac.SemanticModel
                 this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
             }
 
-            public ISetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+                if (!(scope is Tpn.IScope runtimeScope))
+                {
+                    throw new NotImplementedException("this should be an IError");
+                }
+
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);
 
                 var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>>();
                 var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
-                var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
+                var method = context.TypeProblem.CreateMethod(runtimeScope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(method, context).Resolve)).ToArray());
 
-                var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new IOrType<IKey,IError>[] {
+                var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey,IError>[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                 }), new PlaceholderValueConverter());

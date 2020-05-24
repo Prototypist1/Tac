@@ -115,15 +115,20 @@ namespace Tac.SemanticModel
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public ISetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+                if (!(scope is Tpn.IScope runtimeScope))
+                {
+                    throw new NotImplementedException("this should be an IError");
+                }
+
                 var key = new ImplicitKey(Guid.NewGuid());
 
                 var box = new Box<IReadOnlyList< IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>>();
                 var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box));
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
-                var value = context.TypeProblem.CreateValue(scope, key, new PlaceholderValueConverter());
+                var value = context.TypeProblem.CreateValue(runtimeScope, key, new PlaceholderValueConverter());
                 // ugh! an object is a type
                 //
 

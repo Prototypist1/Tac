@@ -58,10 +58,15 @@ namespace Tac.SemanticModel
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
             }
 
-            public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+                if (!(scope is Tpn.IScope runtimeScope))
+                {
+                    throw new NotImplementedException("this should be an IError");
+                }
+
                 var nameKey = new NameKey(memberName);
-                var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, nameKey,new WeakMemberDefinitionConverter(false,nameKey));
+                var member = context.TypeProblem.CreateMemberPossiblyOnParent(runtimeScope, nameKey,new WeakMemberDefinitionConverter(false,nameKey));
 
                 return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
             }

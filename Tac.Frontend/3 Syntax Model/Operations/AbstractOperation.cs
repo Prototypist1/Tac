@@ -65,10 +65,10 @@ namespace Tac.SemanticModel.CodeStuff
 
     internal class BinaryOperation
     {
-        public delegate OrType<Tpn.IValue, IError> GetReturnedValue(Tpn.IScope scope, ISetUpContext context, IOrType< ISetUpResult<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> left, IOrType<ISetUpResult<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> right);
+        public delegate OrType<Tpn.IValue, IError> GetReturnedValue(Tpn.IStaticScope scope, ISetUpContext context, IOrType< ISetUpResult<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> left, IOrType<ISetUpResult<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> right);
         public delegate IBox<T> Make<out T>(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right);
 
-        public delegate Tpn.TypeProblem2.TypeReference ToTypeProblemThings(Tpn.IScope scope, ISetUpContext context, ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> left, ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> right);
+        public delegate Tpn.TypeProblem2.TypeReference ToTypeProblemThings(Tpn.IStaticScope scope, ISetUpContext context, ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> left, ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> right);
         public delegate T MakeBinaryType<out T>(IOrType<IBox<IFrontendType>,IError> left, IOrType<IBox<IFrontendType>,IError> right);
 
 
@@ -225,11 +225,16 @@ namespace Tac.SemanticModel.CodeStuff
                 this.keyMaker = key ?? throw new ArgumentNullException(nameof(key));
             }
 
-            public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+                if (!(scope is Tpn.IScope runtimeScope))
+                {
+                    throw new NotImplementedException("this should be an IError");
+                }
+
                 var nextLeft = left.TransformInner(x=>x.Run(scope, context));
                 var nextRight = right.TransformInner(x => x.Run(scope, context));
-                var value = keyMaker(scope, context,nextLeft, nextRight);
+                var value = keyMaker(runtimeScope, context,nextLeft, nextRight);
 
                 return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(new BinaryResolveReferance(
                     nextLeft.TransformInner(x=>x.Resolve),
@@ -345,8 +350,9 @@ namespace Tac.SemanticModel.CodeStuff
             }
 
 
-            public ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+
                 // TODO
                 // this is something I don't much like
                 // right runs first because of assign

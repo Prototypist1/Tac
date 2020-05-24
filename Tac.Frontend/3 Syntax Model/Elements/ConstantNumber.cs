@@ -96,10 +96,13 @@ namespace Tac.SemanticModel.Operations
                 this.dub = dub;
             }
 
-            public ISetUpResult<IBox<WeakConstantNumber>, Tpn.IValue> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakConstantNumber>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+                if (!(scope is Tpn.IScope runtimeScope)) {
+                    throw new NotImplementedException("this should be an IError");
+                }
 
-                var value = context.TypeProblem.CreateValue(scope,new NameKey("number"), new PlaceholderValueConverter());
+                var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("number"), new PlaceholderValueConverter());
                 return new SetUpResult<IBox<WeakConstantNumber>, Tpn.IValue>(new ConstantNumberResolveReferance(dub), OrType.Make<Tpn.IValue, IError>(value));
             }
         }

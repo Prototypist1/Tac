@@ -22,7 +22,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
             private readonly IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn;
             private readonly IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.TransientMember> methodOut;
-            private readonly IReadOnlyDictionary<IScope, TypeProblem2.Scope> moduleEntryPoint;
+            private readonly IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint;
 
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map,
@@ -30,7 +30,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
                 IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn,
                 IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.TransientMember> methodOut,
-                IReadOnlyDictionary<IScope, TypeProblem2.Scope> moduleEntryPoint)
+                IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.members = members ?? throw new ArgumentNullException(nameof(members));
@@ -209,7 +209,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return methodIn[from];
             }
 
-            public IIsPossibly<TypeProblem2.Scope> GetEntryPoint(IScope from)
+            public IIsPossibly<TypeProblem2.Scope> GetEntryPoint(IStaticScope from)
             {
                 if (moduleEntryPoint.TryGetValue(from, out var res))
                 {

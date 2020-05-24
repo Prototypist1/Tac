@@ -150,8 +150,13 @@ namespace Tac.SemanticModel
                 this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             }
 
-            public ISetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+                //if (!(scope is Tpn.IScope runtimeScope))
+                //{
+                //    throw new NotImplementedException("this should be an IError");
+                //}
+
                 var box = new Box<IReadOnlyList<IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>>>();
                 var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey));
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());

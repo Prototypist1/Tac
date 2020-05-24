@@ -33,7 +33,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             TypeProblem2.TransientMember GetResultMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from);
             TypeProblem2.Member GetInputMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from);
-            IIsPossibly<TypeProblem2.Scope> GetEntryPoint(IScope from);
+            IIsPossibly<TypeProblem2.Scope> GetEntryPoint(IStaticScope from);
         }
     }
 }

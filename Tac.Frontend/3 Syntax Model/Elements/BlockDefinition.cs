@@ -92,7 +92,7 @@ namespace Tac.SemanticModel
                 Elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
 
-            public ISetUpResult<IBox<WeakBlockDefinition>, Tpn.IScope> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakBlockDefinition>, Tpn.IScope> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>[]>();
                 var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));

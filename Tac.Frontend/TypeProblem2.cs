@@ -129,15 +129,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
 
 
-                //public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
                 //public List<Value> Values { get; } = new List<Value>();
                 //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
-                //public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
                 public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
-                //public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 //public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
                 public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
                 public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
@@ -290,17 +290,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
-                //public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IScope>();
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
-                //public List<Scope> EntryPoints { get; } = new List<Scope>();
+                public List<Scope> EntryPoints { get; } = new List<Scope>();
                 //public List<Value> Values { get; } = new List<Value>();
                 //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
-                //public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
+                public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
                 public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
-                //public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
+                public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 //public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
             }
             // methods don't really have members in the way other things do
@@ -375,7 +374,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             // why do objects have keys?
             // that is wierd
-            public static void HasObject(IScope parent, IKey key, Object @object)
+            public static void HasObject(IStaticScope parent, IKey key, Object @object)
             {
                 parent.Objects.Add(key, @object);
             }
@@ -392,7 +391,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 parent.PublicMembers.Add(key, member);
             }
-            public static void HasMethod(IScope parent, IKey key, Method method)
+            public static void HasMethod(IStaticScope parent, IKey key, Method method)
             {
                 parent.Methods.Add(key, method);
             }
@@ -440,7 +439,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMember<T>(
+            public Member CreatePublicMember<T>(
                 T scope,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
@@ -454,7 +453,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMember<T>(
+            public Member CreatePublicMember<T>(
                 T scope,
                 IKey key,
                 IConvertTo<Member, WeakMemberDefinition> converter)
@@ -466,7 +465,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMember(
+            public Member CreatePublicMember(
                 IHavePublicMembers scope,
                 IKey key,
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
@@ -563,7 +562,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Type CreateGenericType(IScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
+            public Type CreateGenericType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 var res = new Type(
                     this,
@@ -588,7 +587,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             // why do objects have keys?
             // that is wierd
-            public Object CreateObjectOrModule(IScope parent, IKey key, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter)
+            public Object CreateObjectOrModule(IStaticScope parent, IKey key, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter)
             {
                 var res = new Object(this, key.ToString()!, converter);
                 IsChildOf(parent, res);
@@ -596,7 +595,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Method CreateMethod(IScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
@@ -612,7 +611,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Method CreateMethod(IScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IStaticScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
             {
                 if (!inputType.Is1(out var inputTypeValue))
                 {
@@ -632,12 +631,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 {
                     if (inputTypeValue.TypeKey is IIsDefinately<IKey> typeKey)
-                    {
-                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value), inputConverter));
+                    {                
+                        // TODO
+                        // dang it!
+                        // these should not call these methods! they don't go in the member list!
+                        res.Input = Possibly.Is(CreatePrivateMember(res, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value), inputConverter));
                     }
                     else
-                    {
-                        res.Input = Possibly.Is(CreateMember(res, new NameKey(inputName), inputConverter));
+                    {                
+                        // TODO
+                        // dang it!
+                        // these should not call these methods! they don't go in the member list!
+                        res.Input = Possibly.Is(CreatePrivateMember(res, new NameKey(inputName), inputConverter));
                     }
                 }
                 return res;
@@ -689,30 +694,35 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public void IsNumber(IScope parent, ILookUpType target)
             {
+                // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("number"));
                 AssertIs(target, thing);
             }
 
             public void IsBlock(IScope parent, ILookUpType target)
             {
+                // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("block"));
                 AssertIs(target, thing);
             }
 
             public void IsBool(IScope parent, ILookUpType target)
             {
+                // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("bool"));
                 AssertIs(target, thing);
             }
 
             public void IsEmpty(IScope parent, ILookUpType target)
             {
+                // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("empty"));
                 AssertIs(target, thing);
             }
 
             public void IsString(IScope parent, ILookUpType target)
             {
+                // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("string"));
                 AssertIs(target, thing);
             }
@@ -1100,7 +1110,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }).Where(x => x is IIsDefinately<IOrType<Method, MethodType, InferredType>>)
                     .Select(x => x.CastTo<IIsDefinately<IOrType<Method, MethodType, InferredType>>>().Value)
                     .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow())),
-                    typeProblemNodes.OfType<IScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()));
+                    typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()));
 
             }
 
@@ -2171,7 +2181,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
-                res.Input = Possibly.Is(CreateMember(res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(false, methodInputKey)));
+                // TODO here too
+                // inputs and output are only sort of member
+                // well maybe they are private members 
+                // totally are private members 
+                // why am I so dumb
+                res.Input = Possibly.Is(CreatePrivateMember(res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(false, methodInputKey)));
                 res.Returns = Possibly.Is(CreateTransientMember(res, new NameKey("T2")));
                 IsChildOf(Primitive, res);
             }

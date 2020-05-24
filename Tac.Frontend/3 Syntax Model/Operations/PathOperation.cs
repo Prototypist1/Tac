@@ -128,7 +128,7 @@ namespace Tac.SemanticModel.Operations
                 this.name = name ?? throw new ArgumentNullException(nameof(name));
             }
 
-            public ISetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 var nextLeft = left.TransformInner(x => x.Run(scope, context));
 

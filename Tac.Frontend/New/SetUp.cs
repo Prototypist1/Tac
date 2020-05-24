@@ -55,7 +55,7 @@ namespace Tac.Infastructure
     internal interface ISetUp<out TCodeElement, out TSetUpSideNode>
         where TSetUpSideNode: Tpn.ITypeProblemNode
     {
-        ISetUpResult<TCodeElement, TSetUpSideNode> Run(Tpn.IScope scope, ISetUpContext context);
+        ISetUpResult<TCodeElement, TSetUpSideNode> Run(Tpn.IStaticScope scope, ISetUpContext context);
     }
 
     internal interface IResolve<out TCodeElement> 

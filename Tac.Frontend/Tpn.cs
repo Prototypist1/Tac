@@ -95,18 +95,15 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Dictionary<IKey, TypeProblem2.OrType> OrTypes { get; }
             public Dictionary<IKey, TypeProblem2.Type> Types { get; }
             public Dictionary<IKey, TypeProblem2.MethodType> MethodTypes { get; }
+            public Dictionary<IKey, TypeProblem2.Method> Methods { get; }
+            public Dictionary<IKey, TypeProblem2.Object> Objects { get; }
+            public List<TypeProblem2.Scope> EntryPoints { get; }
         }
 
         internal interface IScope: IStaticScope,IHavePrivateMembers
         {
-
-
-            public List<TypeProblem2.Scope> EntryPoints { get; }
             public List<TypeProblem2.Value> Values { get; }
             public List<TypeProblem2.TransientMember> TransientMembers { get; }
-            public Dictionary<IKey, TypeProblem2.Method> Methods { get; }
-
-            public Dictionary<IKey, TypeProblem2.Object> Objects { get; }
             public Dictionary<IKey, TypeProblem2.Member> PossibleMembers { get; }
         }
         //internal interface IMethod : IHaveMembers, IScope { }

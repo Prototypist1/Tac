@@ -119,7 +119,7 @@ namespace Tac.SemanticModel
                 this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
             }
 
-            public ISetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> Run(Tpn.IScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 // oh geez here is a mountain.
                 // I generic types are erased 
