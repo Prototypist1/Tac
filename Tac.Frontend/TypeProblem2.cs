@@ -111,7 +111,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            public class Type : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType
+            public class Type : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType, IHavePossibleMembers
             {
                 public Type(
                     TypeProblem2 problem,
@@ -138,7 +138,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                //public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
+                public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
                 public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
                 public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
 
@@ -179,7 +179,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public InferredType(TypeProblem2 problem, string debugName) : base(problem, debugName)
                 {
                 }
-                //public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IScope>();
+                //public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
                 //public List<Scope> EntryPoints { get; } = new List<Scope>();
                 //public List<Value> Values { get; } = new List<Value>();
@@ -368,7 +368,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 parent.Types.Add(key, type);
             }
-            public void HasMethodType(IScope parent, IKey key, MethodType type)
+            public void HasMethodType(IStaticScope parent, IKey key, MethodType type)
             {
                 parent.MethodTypes.Add(key, type);
             }
@@ -754,7 +754,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 AssertIs(target, thing);
             }
 
-            private TransientMember CreateTransientMember(IScope parent)
+            private TransientMember CreateTransientMember(IStaticScope parent)
             {
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
@@ -778,7 +778,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // it is just something of type method
             // it is really just a type
             //
-            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
+            public Method IsMethod(IStaticScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
             {
                 var thing = CreateTransientMember(parent);
                 var method = CreateMethod(parent, "input", converter, inputConverter);
@@ -938,13 +938,31 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // members that might be on parents 
                 var orTypeMembers = new Dictionary<OrType, Dictionary<IKey, Member>>();
 
-                foreach (var (node, possibleMembers) in typeProblemNodes.OfType<IScope>().Select(x => (x, x.PossibleMembers)))
+                foreach (var node in typeProblemNodes)
                 {
-                    foreach (var pair in possibleMembers)
-                    {
-                        TryGetMember(node, pair.Key).IfElse(member => TryMerge(pair.Value, member!), () => HasPrivateMember(node, pair.Key, pair.Value));
+                    if (node is IHavePossibleMembers possibleMembers && node is IStaticScope staticScope) {
+                        foreach (var pair in possibleMembers.PossibleMembers)
+                        {
+                            TryGetMember(staticScope, pair.Key).IfElse(member => TryMerge(pair.Value, member!), () => {
+
+                                if (node is IHavePublicMembers havePublicMembers) {
+
+                                    HasPublicMember(havePublicMembers, pair.Key, pair.Value);
+                                } else if (node is IHavePrivateMembers havePrivateMembers) {
+                                    HasPrivateMember(havePrivateMembers, pair.Key, pair.Value);
+                                }
+                            });
+                        }
                     }
                 }
+
+                //foreach (var (node, possibleMembers) in typeProblemNodes.OfType<IHavePossibleMembers>().Select(x => (x, x.PossibleMembers)))
+                //{
+                //    foreach (var pair in possibleMembers)
+                //    {
+                //        TryGetMember(node, pair.Key).IfElse(member => TryMerge(pair.Value, member!), () => HasPrivateMember(node, pair.Key, pair.Value));
+                //    }
+                //}
 
                 // hopeful members and methods are a little rough around the edges
                 // they are very similar yet implemented differently 
@@ -1255,13 +1273,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                // OrType needs to be it't own block and we need to flow in to both sides
+                // OrType needs to be its own block and we need to flow in to both sides
                 {
                     if (deferredToType.Is4(out var orType)) {
                         foreach (var memberPair in deferringInferred.PublicMembers)
                         {
                             MergeIntoOrType(orType, memberPair);
-
                         }
                     }
                 }
@@ -1486,7 +1503,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
                     {
-                        if (haveTypes is IScope scope && scope.Objects.TryGetValue(key, out var res))
+                        if (haveTypes is IStaticScope scope && scope.Objects.TryGetValue(key, out var res))
                         {
                             result = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(res);
                             return true;
@@ -1593,7 +1610,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                         orType.Right.If<TypeReference, int>(x => HandleHopefulMember(key, hopeful, GetType(x)));
 
                     },
-                    inferredType => { },
+                    inferredType => {
+                        if (inferredType.PublicMembers.TryGetValue(key, out var member))
+                        {
+                            TryMerge(hopeful, member);
+                        }
+                        else {
+                            HasPublicMember(inferredType, key, hopeful);
+                        }
+                    },
                     error =>
                     {
 
@@ -1630,7 +1655,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var pair in map)
                 {
-                    if (pair.Key.SafeIs(out IScope fromScope) && fromScope.Parent.SafeIs(out IIsDefinately<IScope> defScope))
+                    if (pair.Key.SafeIs(out IStaticScope fromScope) && fromScope.Parent.SafeIs(out IIsDefinately<IStaticScope> defScope))
                     {
                         to.Switch(method =>
                         {
@@ -1676,7 +1701,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         lookUpTo.TypeKey = lookUpFrom.TypeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
 
-                        if (lookUpFrom.Context.SafeIs(out IIsDefinately<IScope> definateContext))
+                        if (lookUpFrom.Context.SafeIs(out IIsDefinately<IStaticScope> definateContext))
                         {
                             lookUpTo.Context = Possibly.Is(CopiedToOrSelf(definateContext.Value));
                         }
@@ -1870,6 +1895,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
 
+                    // return is handled higher up
+                    //if (innerFrom.SafeIs<ITypeProblemNode, IHaveInputAndOutput>(out var innerFromIO) && innerTo.SafeIs<ITypeProblemNode, IHaveInputAndOutput>(out var innerToIO))
+                    //{
+                    //    // yucky cast!
+                    //    // map is really T -> T
+                    //    // we know this
+                    //    // but maybe should be wrapped up so we don't have to know this here
+                    //    innerToIO.Input = Possibly.Is((Member)map[innerFromIO.Input.GetOrThrow()]);
+                    //    innerToIO.Returns = Possibly.Is((TransientMember)map[innerFromIO.Returns.GetOrThrow()]);
+                    //}
+
                     return innerTo;
                 }
             }
@@ -1908,6 +1944,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             bool Flow(IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowFrom, IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowTo)
             {
                 var res = false;
+
+                // TODO if flow from is a primitive type
+                // than flow to has to be the same primitive type
+                // can I straght up defer?
 
                 if (flowFrom.Is1(out var fromMethod) && flowTo.Is1(out var toMethod))
                 {
@@ -1990,8 +2030,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 if (flowFrom.Is4(out var deferringOrType)) {
-
-                    throw new NotImplementedException();
 
                     // TODO
                     // so x =: int or string y
@@ -2138,7 +2176,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             //}
 
-            IIsPossibly<Member> TryGetMember(IStaticScope context, IKey key)
+            static IIsPossibly<Member> TryGetMember(IStaticScope context, IKey key)
             {
                 while (true)
                 {

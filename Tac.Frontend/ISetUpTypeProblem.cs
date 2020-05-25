@@ -87,7 +87,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             void IsBlock(IStaticScope parent, ILookUpType target);
 
             void HasEntryPoint(IStaticScope parent, TypeProblem2.Scope entry);
-            TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
+            TypeProblem2.Method IsMethod(IStaticScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
         }
     }
 }

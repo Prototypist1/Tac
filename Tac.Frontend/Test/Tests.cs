@@ -79,6 +79,19 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void AddMethod()
         {
+            // code is something like this
+            // type hello {x;y;}
+            //
+            // hello z;
+            //
+            // z -> method {
+            //      input.x =: x;
+            //      input.y =: y;
+            //      input return;
+            // }
+
+
+
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
 
             var hello = x.CreateType(x.ModuleRoot, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("hello")), new WeakTypeDefinitionConverter());

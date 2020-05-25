@@ -112,7 +112,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         }
         //internal interface IMethod : IHaveMembers, IScope { }
-        internal interface IHaveInputAndOutput : ITypeProblemNode { }
+
+        internal interface IHaveInputAndOutput : ITypeProblemNode {
+            // these have seeters be
+            IIsPossibly<TypeProblem2.Member> Input { get; set; }
+            IIsPossibly<TypeProblem2.TransientMember> Returns { get; set; }
+        }
+
         //internal interface IHavePlaceholders: ITypeProblemNode { }
 
         // TODO is transient member really not a member?
