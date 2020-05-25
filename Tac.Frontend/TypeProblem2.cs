@@ -111,6 +111,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
+            // I don't really think possible members belong here
+            // they come from the member matcher
+            // the member matcher matches x and y type{x;y;}
+            // but really THAT should be smarter
+            // if you are in a type (or an object)
+            // on the left side of the equals
+            // you are making members
+            // right now this will fail
+            // if the parent has a member of this name
+
+            // this gets a lot of weird stuff from static scope
+            // I think static scope gets it from object
+            // object gets it because it has initization
+            // so values and stuff are ok
+            // I should think about how that works tho
+            // does not seem right
             public class Type : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType, IHavePossibleMembers
             {
                 public Type(

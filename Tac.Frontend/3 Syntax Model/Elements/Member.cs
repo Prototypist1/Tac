@@ -60,11 +60,21 @@ namespace Tac.SemanticModel
 
             public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
-                // TODO can you make a something like Type {x;y}
-                // i think so
-                // so this may not always need a runtimeScope
-                // but before I make that work I need to review the whole workflow
+                // this is a bit werid
+                // it creates member possibly on parent for code like
+                // type {x;y;}
+                // or
+                // object {1 =: x; 2 =: y;}
+                // the second is really bad tho, if you had:
+                // 1 =: x;
+                // object {1 =: x; 2 =: y;}
+                // the possible member for x in the object would not result in a real member 
 
+                // here is a painful situaltion
+                // 1 =: x;
+                // object {x =: x; 2 =: y;}
+                // in object the LHS x is resolves up 
+                // the RHS x resolves to create a new member
 
                 if (!(scope is Tpn.IHavePossibleMembers possibleScope))
                 {
