@@ -72,19 +72,19 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
             TypeProblem2.Method CreateMethod(IStaticScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
             TypeProblem2.TransientMember GetReturns(IValue s);
-            TypeProblem2.TransientMember GetReturns(IScope s);
+            TypeProblem2.TransientMember GetReturns(IStaticScope s);
             TypeProblem2.Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.OrType CreateOrType(IScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
+            TypeProblem2.OrType CreateOrType(IStaticScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
             IIsPossibly<IKey> GetKey(TypeProblem2.TypeReference type);
             TypeProblem2.Member GetInput(IValue method);
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
             TypeProblem2.MethodType GetMethod(IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> input, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> output);
-            void IsNumber(IScope parent, ILookUpType target);
-            void IsString(IScope parent, ILookUpType target);
-            void IsEmpty(IScope parent, ILookUpType target);
-            void IsBool(IScope parent, ILookUpType target);
-            void IsBlock(IScope parent, ILookUpType target);
+            void IsNumber(IStaticScope parent, ILookUpType target);
+            void IsString(IStaticScope parent, ILookUpType target);
+            void IsEmpty(IStaticScope parent, ILookUpType target);
+            void IsBool(IStaticScope parent, ILookUpType target);
+            void IsBlock(IStaticScope parent, ILookUpType target);
 
             void HasEntryPoint(IStaticScope parent, TypeProblem2.Scope entry);
             TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);

@@ -131,7 +131,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
-                //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
                 public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
@@ -293,7 +293,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
-                //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
+                public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
                 public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
@@ -397,7 +397,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public static void HasTransientMember(IScope parent, TransientMember member)
+            public static void HasTransientMember(IStaticScope parent, TransientMember member)
             {
                 parent.TransientMembers.Add(member);
             }
@@ -684,7 +684,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public OrType CreateOrType(IScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
+            public OrType CreateOrType(IStaticScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
             {
                 if (!setUpSideNode1.Is1(out var node1))
                 {
@@ -719,35 +719,35 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public void IsNumber(IScope parent, ILookUpType target)
+            public void IsNumber(IStaticScope parent, ILookUpType target)
             {
                 // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("number"));
                 AssertIs(target, thing);
             }
 
-            public void IsBlock(IScope parent, ILookUpType target)
+            public void IsBlock(IStaticScope parent, ILookUpType target)
             {
                 // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("block"));
                 AssertIs(target, thing);
             }
 
-            public void IsBool(IScope parent, ILookUpType target)
+            public void IsBool(IStaticScope parent, ILookUpType target)
             {
                 // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("bool"));
                 AssertIs(target, thing);
             }
 
-            public void IsEmpty(IScope parent, ILookUpType target)
+            public void IsEmpty(IStaticScope parent, ILookUpType target)
             {
                 // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("empty"));
                 AssertIs(target, thing);
             }
 
-            public void IsString(IScope parent, ILookUpType target)
+            public void IsString(IStaticScope parent, ILookUpType target)
             {
                 // super weird that this has to be a transient member
                 var thing = CreateTransientMember(parent, new NameKey("string"));
@@ -763,7 +763,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            private TransientMember CreateTransientMember(IScope parent, IKey typeKey)
+            private TransientMember CreateTransientMember(IStaticScope parent, IKey typeKey)
             {
                 var res = new TransientMember(this, "");
                 HasTransientMember(parent, res);
@@ -789,13 +789,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             #endregion
 
 
-            public TransientMember GetReturns(IScope s)
+            public TransientMember GetReturns(IStaticScope s)
             {
                 if (s is Method method)
                 {
                     return GetReturns(method);
                 }
-                else if (s.Parent is IIsDefinately<IScope> definatelyScope)
+                else if (s.Parent is IIsDefinately<IStaticScope> definatelyScope)
                 {
                     return GetReturns(definatelyScope.Value);
                 }
@@ -1779,8 +1779,27 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 HasOrType(innerStaticScopeTo, type.Key, newValue);
                             }
                         }
+
+                        {
+                            foreach (var member in innerFromStaticScope.TransientMembers)
+                            {
+                                var newValue = Copy(member, new TransientMember(this, $"copied from {((TypeProblemNode)member).debugName}"));
+                                HasTransientMember(innerStaticScopeTo, newValue);
+                            }
+                        }
                     }
 
+
+                    if (innerFrom.SafeIs<ITypeProblemNode, IHavePublicMembers>(out var innerFromPublicMembers) && innerTo.SafeIs<ITypeProblemNode, IHavePublicMembers>(out var innerToPublicMembers)) {
+
+                        {
+                            foreach (var member in innerFromPublicMembers.PublicMembers)
+                            {
+                                var newValue = Copy(member.Value, new Member(this, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
+                                HasPublicMember(innerToPublicMembers, member.Key, newValue);
+                            }
+                        }
+                    }
 
                     if (innerFrom.SafeIs<ITypeProblemNode, IScope>(out var innerFromScope) && innerTo.SafeIs<ITypeProblemNode, IScope>(out var innerScopeTo))
                     {
@@ -1794,14 +1813,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
 
                         {
-                            foreach (var member in innerFromScope.TransientMembers)
-                            {
-                                var newValue = Copy(member, new TransientMember(this, $"copied from {((TypeProblemNode)member).debugName}"));
-                                HasTransientMember(innerScopeTo, newValue);
-                            }
-                        }
-
-                        {
                             foreach (var possible in innerFromScope.PossibleMembers)
                             {
                                 var newValue = Copy(possible.Value, new Member(this, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
@@ -1809,8 +1820,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
                     }
-
-
 
                     if (innerFrom.SafeIs<ITypeProblemNode, Type>(out var innerFromType) && innerTo.SafeIs<ITypeProblemNode, Type>(out var innerTypeTo))
                     {

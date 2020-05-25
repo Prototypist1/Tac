@@ -88,13 +88,8 @@ namespace Tac.Frontend.SyntaxModel.Operations
             (l, r) => OrType.Make<IBox <FrontEndOrType>,IError>(new Box<FrontEndOrType>(new WeakTypeOrOperation(l, r).AcutalType())),
             (s,c,l,r)=> {
 
-                if (!(s is Tpn.IScope runtimeScope))
-                {
-                    throw new NotImplementedException("this should be an IError");
-                }
-
                 var key = new ImplicitKey(Guid.NewGuid());
-                c.TypeProblem.CreateOrType(runtimeScope, key,l.SetUpSideNode.TransformInner(x=>x.SafeCastTo<Tpn.ITypeProblemNode,Tpn.TypeProblem2.TypeReference>()), r.SetUpSideNode.TransformInner(x => x.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), new WeakTypeOrOperationConverter());
+                c.TypeProblem.CreateOrType(s, key,l.SetUpSideNode.TransformInner(x=>x.SafeCastTo<Tpn.ITypeProblemNode,Tpn.TypeProblem2.TypeReference>()), r.SetUpSideNode.TransformInner(x => x.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), new WeakTypeOrOperationConverter());
                 var reference = c.TypeProblem.CreateTypeReference(s, key, new WeakTypeReferenceConverter());
                 return reference;
             })
