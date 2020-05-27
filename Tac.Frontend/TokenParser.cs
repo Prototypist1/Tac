@@ -34,7 +34,7 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox< IFrontendCodeElement>>, IError>>>(Array.Empty<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox< IFrontendCodeElement>>, IError>>>(Array.Empty<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             foreach (var dependency in dependencies)
             {
@@ -45,7 +45,7 @@ namespace Tac.Frontend
                     var innerType = ConvertType(problem, type, OrType.Make<IVerifiableType, IError>( memberPair.Value.Value.Type));
                     innerType.Switch(x =>
                     {
-                        problem.CreatePublicMember(type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        problem.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
                     }, y =>
                     {
                         problem.CreatePublicMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
@@ -119,7 +119,7 @@ namespace Tac.Frontend
                         var innerType = ConvertType(problem, tpnType, OrType.Make<IVerifiableType, IError>(memberPair.Type));
                         innerType.Switch(x =>
                         {
-                            problem.CreatePublicMember(tpnType, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
+                            problem.CreatePublicMember(tpnType, tpnType, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
                         }, y =>
                         {
                             problem.CreatePublicMember(tpnType, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));

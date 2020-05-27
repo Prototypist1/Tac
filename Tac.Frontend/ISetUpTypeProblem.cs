@@ -12,6 +12,7 @@ namespace Tac.Frontend.New.CrzayNamespace
     {
         // is this interface doing me any good?
         // no, it just cause me pain
+        // pain!
         internal interface ISetUpTypeProblem
         {
             // a =: x
@@ -24,39 +25,39 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IStaticScope scope, 
                 IKey typeKey, 
                 IConvertTo<TypeProblem2.Value, PlaceholderValue> converter);
-            TypeProblem2.Member CreatePrivateMember<T>(
-                T scope, 
-                IKey key, 
-                IOrType<IKey, IError> typeKey, 
-                IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter)
-                 where T : IStaticScope, IHavePrivateMembers;
+            TypeProblem2.Member CreatePrivateMember(
+                IStaticScope scope,
+                IHavePrivateMembers havePublicMembers,
+                IKey key,
+                IOrType<IKey, IError> typeKey,
+                IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreatePrivateMember(
                 IHavePrivateMembers scope,
                 IKey key,
                 IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> type, 
                 IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.Member CreatePrivateMember<T>(
-                T scope,
-                IKey key, 
-                IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter) 
-                where T : IStaticScope, IHavePrivateMembers;
+            TypeProblem2.Member CreatePrivateMember(
+                 IStaticScope scope,
+                IHavePrivateMembers havePublicMembers,
+                IKey key,
+                IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
 
-            TypeProblem2.Member CreatePublicMember<T>(
-                T scope,
+            TypeProblem2.Member CreatePublicMember(
+                IStaticScope scope,
+                IHavePublicMembers havePublicMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter)
-                 where T : IStaticScope, IHavePublicMembers;
+                IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreatePublicMember(
                 IHavePublicMembers scope,
                 IKey key,
                 IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> type,
                 IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
-            TypeProblem2.Member CreatePublicMember<T>(
-                T scope,
+            TypeProblem2.Member CreatePublicMember(
+                IStaticScope scope,
+                IHavePublicMembers havePublicMembers,
                 IKey key,
-                IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter)
-                where T : IStaticScope, IHavePublicMembers;
+                IConvertTo<TypeProblem2.Member, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMember(
                 IStaticScope scope, 
                 IKey memberName, 
@@ -68,7 +69,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Type CreateType(IStaticScope parent, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateGenericType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
-            TypeProblem2.Object CreateObjectOrModule(IStaticScope parent, IKey key, IConvertTo<TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter);
+            TypeProblem2.Object CreateObjectOrModule(IStaticScope parent, IKey key, IConvertTo<TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter, IConvertTo<TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter);
             TypeProblem2.Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
             TypeProblem2.Method CreateMethod(IStaticScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
             TypeProblem2.TransientMember GetReturns(IValue s);

@@ -153,7 +153,7 @@ namespace Tac.SemanticModel
             public ISetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 var box = new Box<IReadOnlyList<IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>>>();
-                var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey));
+                var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey), new WeakScopeConverter());
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
                 return new SetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), OrType.Make<Tpn.TypeProblem2.Object, IError>(myScope));

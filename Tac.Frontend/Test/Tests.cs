@@ -56,17 +56,17 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void Simplest()
         {
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
             x.Solve();
         }
 
         [Fact]
         public void AddType()
         {
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
             var hello = x.CreateType(x.ModuleRoot, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("Hello")), new WeakTypeDefinitionConverter());
-            x.CreatePublicMember(hello, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
-            x.CreatePublicMember(hello, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
+            x.CreatePublicMember(hello, hello, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+            x.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
             var solution = x.Solve();
 
             var resultHello = solution.GetExplicitType(hello).GetValue().Is1OrThrow();
@@ -92,11 +92,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var hello = x.CreateType(x.ModuleRoot, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("hello")), new WeakTypeDefinitionConverter());
-            x.CreatePublicMember(hello, new NameKey("x"), new WeakMemberDefinitionConverter(false,new NameKey("x")));
-            x.CreatePublicMember(hello, new NameKey("y"), new WeakMemberDefinitionConverter(false,new NameKey("y")));
+            x.CreatePublicMember(hello, hello, new NameKey("x"), new WeakMemberDefinitionConverter(false,new NameKey("x")));
+            x.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(false,new NameKey("y")));
 
             var input = x.CreateValue(x.ModuleRoot, new NameKey("hello"), new PlaceholderValueConverter());
             var method = x.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()),false), new WeakMemberDefinitionConverter(false, new NameKey("input")));
@@ -104,8 +104,8 @@ namespace Tac.Frontend.TypeProblem.Test
             var input_x = x.CreateHopefulMember(method.Input(), new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
             var input_y = x.CreateHopefulMember(method.Input(), new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
 
-            var method_x = x.CreatePrivateMember(method, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
-            var method_y = x.CreatePrivateMember(method, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
+            var method_x = x.CreatePrivateMember(method, method, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+            var method_y = x.CreatePrivateMember(method, method, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
 
             input_x.AssignTo(method_x);
             input_y.AssignTo(method_y);
@@ -142,15 +142,15 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentXDownStream()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
-            var m1 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
+            var m1 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
             x.CreateHopefulMember(m1, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
-            var m2 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(false, new NameKey("m2")));
+            var m2 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(false, new NameKey("m2")));
             x.CreateHopefulMember(m2, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
-            var m3 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m3"), new WeakMemberDefinitionConverter(false, new NameKey("m3")));
-            var m4 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m4"), new WeakMemberDefinitionConverter(false, new NameKey("m4")));
-            var m5 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m5"), new WeakMemberDefinitionConverter(false, new NameKey("m5")));
+            var m3 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m3"), new WeakMemberDefinitionConverter(false, new NameKey("m3")));
+            var m4 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m4"), new WeakMemberDefinitionConverter(false, new NameKey("m4")));
+            var m5 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m5"), new WeakMemberDefinitionConverter(false, new NameKey("m5")));
 
             m1.AssignTo(m3);
             m2.AssignTo(m3);
@@ -187,14 +187,14 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentXUpStream()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
-            var m1 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
-            var m2 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(false, new NameKey("m2")));
-            var m3 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m3"), new WeakMemberDefinitionConverter(false, new NameKey("m3")));
-            var m4 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m4"), new WeakMemberDefinitionConverter(false, new NameKey("m4")));
+            var m1 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
+            var m2 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(false, new NameKey("m2")));
+            var m3 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m3"), new WeakMemberDefinitionConverter(false, new NameKey("m3")));
+            var m4 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m4"), new WeakMemberDefinitionConverter(false, new NameKey("m4")));
             x.CreateHopefulMember(m4, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
-            var m5 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m5"), new WeakMemberDefinitionConverter(false, new NameKey("m5")));
+            var m5 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m5"), new WeakMemberDefinitionConverter(false, new NameKey("m5")));
             x.CreateHopefulMember(m5, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
 
             m1.AssignTo(m3);
@@ -236,11 +236,11 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentMutual()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
-            var m1 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
+            var m1 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
             x.CreateHopefulMember(m1, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
-            var m2 = x.CreatePublicMember(x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(false, new NameKey("m2")));
+            var m2 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(false, new NameKey("m2")));
             x.CreateHopefulMember(m2, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
 
             m1.AssignTo(m2);
@@ -265,7 +265,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void Generic()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var pairType = x.CreateGenericType(
                 x.ModuleRoot,
@@ -277,14 +277,14 @@ namespace Tac.Frontend.TypeProblem.Test
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
 
-            x.CreatePublicMember(pairType, new NameKey("x"),
+            x.CreatePublicMember(pairType, pairType, new NameKey("x"),
                 OrType.Make<IKey, IError>(new NameKey("T")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var chickenType = x.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
 
-            x.CreatePublicMember(chickenType, new NameKey("eggs"), new WeakMemberDefinitionConverter(false, new NameKey("eggs")));
+            x.CreatePublicMember(chickenType, chickenType, new NameKey("eggs"), new WeakMemberDefinitionConverter(false, new NameKey("eggs")));
 
-            var chickenPair = x.CreatePublicMember(x.ModuleRoot, new NameKey("x"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+            var chickenPair = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var solution = x.Solve();
 
@@ -304,7 +304,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void GenericContainsSelf()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var type = x.CreateGenericType(
                 x.ModuleRoot,
@@ -315,14 +315,14 @@ namespace Tac.Frontend.TypeProblem.Test
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
             );
 
-            x.CreatePublicMember(type, new NameKey("next"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
+            x.CreatePublicMember(type, type, new NameKey("next"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("node-t"))
             })), new WeakMemberDefinitionConverter(false, new NameKey("next")));
 
             x.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
 
 
-            var thing = x.CreatePublicMember(x.ModuleRoot, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
+            var thing = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("chicken"))
             })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
@@ -345,7 +345,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void GenericCircular()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var left = x.CreateGenericType(
                 x.ModuleRoot,
@@ -356,7 +356,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
 
-            x.CreatePublicMember(left, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("right"), new IOrType<IKey, IError>[] {
+            x.CreatePublicMember(left, left, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("right"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("left-t"))
             })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
@@ -368,15 +368,15 @@ namespace Tac.Frontend.TypeProblem.Test
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
 
-            x.CreatePublicMember(right, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("left"), new IOrType<IKey, IError>[] {
+            x.CreatePublicMember(right, right, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("left"), new IOrType<IKey, IError>[] {
                 OrType.Make<IKey, IError>(new NameKey("right-t"))
             })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
             x.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
 
-            var leftMember = x.CreatePublicMember(x.ModuleRoot, new NameKey("left-member"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("left"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("left-member")));
+            var leftMember = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("left-member"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("left"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("left-member")));
 
-            var rightMember = x.CreatePublicMember(x.ModuleRoot, new NameKey("right-member"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("right"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("right-member")));
+            var rightMember = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("right-member"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("right"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("right-member")));
 
             var solution = x.Solve();
 
@@ -404,7 +404,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void NestedGeneric()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")));
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var pairType = x.CreateGenericType(
                 x.ModuleRoot,
@@ -415,14 +415,14 @@ namespace Tac.Frontend.TypeProblem.Test
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
 
-            x.CreatePublicMember(pairType, new NameKey("x"),
+            x.CreatePublicMember(pairType, pairType, new NameKey("x"),
                 OrType.Make<IKey, IError>(new NameKey("T")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var chickenType = x.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
 
-            x.CreatePublicMember(chickenType, new NameKey("eggs"), new WeakMemberDefinitionConverter(false, new NameKey("eggs")));
+            x.CreatePublicMember(chickenType, chickenType, new NameKey("eggs"), new WeakMemberDefinitionConverter(false, new NameKey("eggs")));
 
-            var xMember = x.CreatePublicMember(x.ModuleRoot, new NameKey("x"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })) })), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+            var xMember = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })) })), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var solution = x.Solve();
 

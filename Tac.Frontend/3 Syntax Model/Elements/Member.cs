@@ -31,6 +31,9 @@ namespace Tac.Parser
 
 namespace Tac.SemanticModel
 {
+
+
+
     internal class MemberMaker : IMaker<ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>>
     {
         public MemberMaker()

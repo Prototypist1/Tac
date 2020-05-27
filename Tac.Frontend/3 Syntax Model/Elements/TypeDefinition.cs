@@ -97,16 +97,16 @@ namespace Tac.SemanticModel
                 .Has(new KeyWordMaker("type"), out var _)
                 .OptionalHas(new NameMaker(), out var typeName)
                 .Has(new BodyMaker()).ConvertIfMatched(body=> new TypeDefinitionPopulateScope(
-                       tokenMatching.Context.ParseBlock(body),
+                       tokenMatching.Context.ParseType(body),
                        typeName != default ? OrType.Make<NameKey, ImplicitKey>(new NameKey(typeName.Item)) : OrType.Make<NameKey, ImplicitKey>(new ImplicitKey(Guid.NewGuid()))));
         }
         
         private class TypeDefinitionPopulateScope : ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>
         {
-            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly IOrType< NameKey, ImplicitKey> key;
 
-            public TypeDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements, IOrType<NameKey, ImplicitKey> typeName)
+            public TypeDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>,IError>> elements, IOrType<NameKey, ImplicitKey> typeName)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));

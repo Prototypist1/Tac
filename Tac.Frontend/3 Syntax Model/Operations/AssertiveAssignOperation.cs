@@ -105,6 +105,9 @@ namespace Tac.SemanticModel.Operations
         }
     }
 
+    //I think in theory you could assing to things that return references
+    // like Method<int,ref int> t
+    // 3 =: ( 5 > t )
     internal class AssertAssignOperationMaker : IMaker<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>
     {
 
@@ -200,6 +203,111 @@ namespace Tac.SemanticModel.Operations
                 var res = new Box<WeakAssignOperation>(new WeakAssignOperation(
                     left.TransformInner(x=>x.Run(context)),
                     right.TransformInner(x => x.Run( context))));
+                return res;
+            }
+        }
+    }
+
+
+    internal class AssertAssignInObjectOperationMaker : IMaker<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>
+    {
+
+        public AssertAssignInObjectOperationMaker()
+        {
+        }
+
+        public ITokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        {
+            var matching = tokenMatching
+                .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+            if (matching is IMatchedTokenMatching matched)
+            {
+                var left = matching.Context.ParseLine(match.perface);
+                var right = matching.Context.ParseObjectMember(match.rhs);
+
+                return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeMatch(
+                    matched.Tokens,
+                    matched.Context,
+                    new WeakAssignOperationPopulateScope(left, right));
+            }
+
+            return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeNotMatch(
+                    matching.Context);
+        }
+
+
+        private class WeakAssignOperationPopulateScope : ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>
+        {
+            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
+            private readonly IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> right;
+
+            public WeakAssignOperationPopulateScope(
+                IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left,
+                IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> right)
+            {
+                this.left = left ?? throw new ArgumentNullException(nameof(left));
+                this.right = right ?? throw new ArgumentNullException(nameof(right)); ;
+            }
+
+            public ISetUpResult<IBox<WeakAssignOperation>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+            {
+                if (!(scope is Tpn.TypeProblem2.Object @object)) {
+                    throw new NotImplementedException("This should probably be an ierror");
+                }
+
+                var nextLeft = left.TransformInner(x =>  x.Run(@object.InitizationScope, context));
+                var nextRight = right.TransformInner(x => x.Run(scope, context));
+
+                if (nextLeft.Is1(out var nextLeft1) && nextLeft1.SetUpSideNode.Is1(out var node1) && nextRight.Is1(out var nextRight1) && nextRight1.SetUpSideNode.Is1(out var node2))
+                {
+                    if (!(node1 is Tpn.ICanAssignFromMe canAssignFromMe))
+                    {
+                        // todo I need real error handling
+                        // probably I need somewhere to stuff additional errors
+                        throw new NotImplementedException($"can not assign from {nextLeft1.SetUpSideNode}");
+                    }
+
+                    if (!(node2 is Tpn.ICanBeAssignedTo canBeAssignedTo))
+                    {
+                        // todo I need real error handling
+                        throw new NotImplementedException($"can not assign to {nextRight1.SetUpSideNode}");
+                    }
+
+                    canAssignFromMe.AssignTo(canBeAssignedTo);
+
+                }
+                else
+                {
+                    // left or right are errors 
+                    throw new NotImplementedException();
+                }
+
+                return new SetUpResult<IBox<WeakAssignOperation>, Tpn.IValue>(new WeakAssignOperationResolveReferance(
+                    nextLeft.TransformInner(x => x.Resolve),
+                    nextRight.TransformInner(x => x.Resolve)),
+                    nextLeft.TransformAndFlatten(x => x.SetUpSideNode).OrCastToOr<Tpn.ITypeProblemNode, Tpn.IValue>(Error.Other("")));
+            }
+        }
+
+        private class WeakAssignOperationResolveReferance : IResolve<IBox<WeakAssignOperation>>
+        {
+            public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
+            public readonly IOrType<IResolve<IBox<WeakMemberReference>>, IError> right;
+
+            public WeakAssignOperationResolveReferance(
+                IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance1,
+                IOrType<IResolve<IBox<WeakMemberReference>>, IError> resolveReferance2)
+            {
+                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+            }
+
+
+            public IBox<WeakAssignOperation> Run(Tpn.ITypeSolution context)
+            {
+                var res = new Box<WeakAssignOperation>(new WeakAssignOperation(
+                    left.TransformInner(x => x.Run(context)),
+                    right.TransformInner(x => x.Run(context))));
                 return res;
             }
         }

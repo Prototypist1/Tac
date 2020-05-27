@@ -239,6 +239,27 @@ namespace Tac.Parser
             return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
         }
 
+        public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseObjectMember(IToken token)
+        {
+            if (token is ElementToken elementToken)
+            {
+
+                foreach (var tryMatch in  new[] {new ObjectOrTypeMemberDefinitionMaker() })
+                {
+                    if (TokenMatching<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens, this)
+                        .Has(tryMatch, out var res)
+                        .Has(new DoneMaker())
+                        is IMatchedTokenMatching)
+                    {
+                        return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(res!);
+                    }
+                }
+            }
+
+
+            return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
+        }
+
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> ParseLine(IEnumerable<IToken> tokens)
         {
             foreach (var operationMatcher in operationMatchers)
@@ -259,7 +280,49 @@ namespace Tac.Parser
             return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
         }
 
+        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseObjectLine(IEnumerable<IToken> tokens)
+        {
+            
+            foreach (var operationMatcher in new[] { new AssertAssignInObjectOperationMaker() })
+            {
+                if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this)
+                        .Has(operationMatcher, out var res)
+                         is IMatchedTokenMatching)
+                {
+                    return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(res!);
+                }
+            }
 
+            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
+        }
+
+        public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseLineInDefinitionType(IEnumerable<IToken> tokens)
+        {
+
+
+            if (tokens.Count() == 1)
+            {
+                var token = tokens.First();
+                if (token is ElementToken elementToken)
+                {
+
+                    foreach (var tryMatch in new[] { new ObjectOrTypeMemberDefinitionMaker() })
+                    {
+                        if (TokenMatching<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens, this)
+                            .Has(tryMatch, out var res)
+                            .Has(new DoneMaker())
+                            is IMatchedTokenMatching)
+                        {
+                            return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(res!);
+                        }
+                    }
+                }
+                return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
+            }
+            else {
+                throw new Exception("type should not have more than one thing it it");
+            }
+        }
 
         public ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> ParseTypeLine(IEnumerable<IToken> tokens)
         {
@@ -297,7 +360,33 @@ namespace Tac.Parser
                 throw new Exception("unexpected token type");
             }).ToArray();
         }
-        
+
+
+        public IReadOnlyList<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>> ParseType(CurleyBracketToken block)
+        {
+            return block.Tokens.Select(x =>
+            {
+                if (x is LineToken lineToken)
+                {
+                    return ParseLineInDefinitionType(lineToken.Tokens);
+                }
+                throw new Exception("unexpected token type");
+            }).ToArray();
+        }
+
+
+        public IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> ParseObject(CurleyBracketToken block)
+        {
+            return block.Tokens.Select(x =>
+            {
+                if (x is LineToken lineToken)
+                {
+                    return ParseObjectLine(lineToken.Tokens);
+                }
+                throw new Exception("unexpected token type");
+            }).ToArray();
+        }
+
         #endregion
 
     }
@@ -1096,6 +1185,7 @@ namespace Tac.Parser
         }
 
 
+        // should return IPossibly<T>
         public static ITokenMatching OptionalHas<T>(this ITokenMatching self, IMaker<T> pattern, [MaybeNullWhen(false)] out T? t)
             where T : class
         {

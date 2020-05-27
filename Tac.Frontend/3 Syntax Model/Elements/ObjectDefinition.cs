@@ -103,7 +103,7 @@ namespace Tac.SemanticModel
             return tokenMatching
                 .Has(new KeyWordMaker("object"), out var _)
                 .Has(new BodyMaker())
-                .ConvertIfMatched(block => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseBlock(block)));
+                .ConvertIfMatched(block => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseObject(block)));
         }
 
         private class ObjectDefinitionPopulateScope : ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>
@@ -120,7 +120,7 @@ namespace Tac.SemanticModel
                 var key = new ImplicitKey(Guid.NewGuid());
 
                 var box = new Box<IReadOnlyList< IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>>();
-                var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box));
+                var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box), new WeakScopeConverter());
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, key, new PlaceholderValueConverter());
