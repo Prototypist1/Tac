@@ -14,6 +14,7 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
+using Tac.SemanticModel.Operations;
 
 namespace Tac.Parser
 {
@@ -134,16 +135,16 @@ namespace Tac.SemanticModel
                 .Has(new NameMaker())
                 .Has(new BodyMaker());
 
-            return matching.ConvertIfMatched((name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseBlock(third), new NameKey(name.Item)));
+            return matching.ConvertIfMatched((name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseObject(third), new NameKey(name.Item)));
         }
 
         private class ModuleDefinitionPopulateScope : ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>
         {
-            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly NameKey nameKey;
 
             public ModuleDefinitionPopulateScope(
-                IReadOnlyList<IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements,
+                IReadOnlyList<IOrType< ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>,IError>> elements,
                 NameKey nameKey)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));

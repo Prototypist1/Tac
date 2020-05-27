@@ -280,7 +280,7 @@ namespace Tac.Parser
             return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
         }
 
-        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseObjectLine(IEnumerable<IToken> tokens)
+        public IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError> ParseObjectLine(IEnumerable<IToken> tokens)
         {
             
             foreach (var operationMatcher in new[] { new AssertAssignInObjectOperationMaker() })
@@ -289,11 +289,11 @@ namespace Tac.Parser
                         .Has(operationMatcher, out var res)
                          is IMatchedTokenMatching)
                 {
-                    return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(res!);
+                    return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError>(res!);
                 }
             }
 
-            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
+            return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
         }
 
         public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseLineInDefinitionType(IEnumerable<IToken> tokens)
@@ -375,7 +375,7 @@ namespace Tac.Parser
         }
 
 
-        public IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> ParseObject(CurleyBracketToken block)
+        public IReadOnlyList<IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError>> ParseObject(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {
