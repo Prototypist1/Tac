@@ -283,35 +283,38 @@ namespace Tac.Parser
         // only types and assignments 
         // I would not mind being more explict 
         // I don't need to hide everything behind such intense interfaces
-        public IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError> ParseObjectLine(IEnumerable<IToken> tokens)
+        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseObjectLine(IEnumerable<IToken> tokens)
         {
-            if (tokens.Count() == 1)
-            {
-                if (tokens.First() is ElementToken elementToken)
-                {
-                    foreach (var operationMatcher in new[] { new TypeDefinitionMaker(),  })
-                    {
-                        if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens.ToArray(), this)
-                                .Has(operationMatcher, out var res)
-                                 is IMatchedTokenMatching)
-                        {
-                            return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(res!);
-                        }
-                    }
-                }
-            }
-            else 
-            {
-                foreach (var operationMatcher in new[] { new AssertAssignInObjectOperationMaker(), new GenericTypeDefinitionMaker() })
+            // TODO
+            // ugh type definition still needs to match!
+            
+            //if (tokens.Count() == 1)
+            //{
+            //    if (tokens.First() is ElementToken elementToken)
+            //    {
+            //        foreach (var operationMatcher in new[] { new TypeDefinitionMaker(),  })
+            //        {
+            //            if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens.ToArray(), this)
+            //                    .Has(operationMatcher, out var res)
+            //                     is IMatchedTokenMatching)
+            //            {
+            //                return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(res!);
+            //            }
+            //        }
+            //    }
+            //}
+            //else 
+            //{
+                foreach (var operationMatcher in new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] { new AssertAssignInObjectOperationMaker(), new GenericTypeDefinitionMaker() })
                 {
                     if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this)
                             .Has(operationMatcher, out var res)
                              is IMatchedTokenMatching)
                     {
-                        return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(res!);
+                        return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(res!);
                     }
                 }
-            }
+            //}
 
             return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
         }
