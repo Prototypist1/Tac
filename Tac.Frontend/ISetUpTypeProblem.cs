@@ -22,7 +22,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Type EmptyType { get; }
             void IsAssignedTo(ICanAssignFromMe assignedFrom, ICanBeAssignedTo assignedTo);
             TypeProblem2.Value CreateValue(
-                IStaticScope scope, 
+                IScope scope, 
                 IKey typeKey, 
                 IConvertTo<TypeProblem2.Value, PlaceholderValue> converter);
             TypeProblem2.Member CreatePrivateMember(
@@ -81,14 +81,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             TypeProblem2.Member GetInput(TypeProblem2.Method method);
 
             TypeProblem2.MethodType GetMethod(IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> input, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> output);
-            void IsNumber(IStaticScope parent, ILookUpType target);
-            void IsString(IStaticScope parent, ILookUpType target);
-            void IsEmpty(IStaticScope parent, ILookUpType target);
-            void IsBool(IStaticScope parent, ILookUpType target);
-            void IsBlock(IStaticScope parent, ILookUpType target);
+            void IsNumber(IScope parent, ILookUpType target);
+            void IsString(IScope parent, ILookUpType target);
+            void IsEmpty(IScope parent, ILookUpType target);
+            void IsBool(IScope parent, ILookUpType target);
+            void IsBlock(IScope parent, ILookUpType target);
+            TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
 
             void HasEntryPoint(IStaticScope parent, TypeProblem2.Scope entry);
-            TypeProblem2.Method IsMethod(IStaticScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<TypeProblem2.Member, WeakMemberDefinition> inputConverter);
         }
     }
 }

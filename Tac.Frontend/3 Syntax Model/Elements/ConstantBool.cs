@@ -120,12 +120,17 @@ namespace Tac.SemanticModel.Operations
 
             public ISetUpResult<IBox<WeakConstantBool>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
+                if (!(scope is Tpn.IScope runtimeScope))
+                {
+                    throw new NotImplementedException("this should be an IError");
+                }
+
                 // PlaceholderValueConverter is a little weird
                 // I kind of think it should make the WeakConstantBool
                 // yeah it totally should
                 // TODO 
                 // this applies to my other constants 
-                var value = context.TypeProblem.CreateValue(scope, new NameKey("bool"), new PlaceholderValueConverter());
+                var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"), new PlaceholderValueConverter());
                 return new SetUpResult<IBox<WeakConstantBool>, Tpn.IValue>(new ConstantBoolResolveReferance(dub),OrType.Make<Tpn.IValue,IError>(value));
             }
         }

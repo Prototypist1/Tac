@@ -103,13 +103,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Dictionary<IKey, TypeProblem2.Method> Methods { get; }
             public Dictionary<IKey, TypeProblem2.Object> Objects { get; }
             public List<TypeProblem2.Scope> EntryPoints { get; }
-            public List<TypeProblem2.Value> Values { get; }
-            public List<TypeProblem2.TransientMember> TransientMembers { get; }
         }
 
         internal interface IScope: IStaticScope,IHavePrivateMembers, IHavePossibleMembers
         {
-
+            public List<TypeProblem2.Value> Values { get; }
+            public List<TypeProblem2.TransientMember> TransientMembers { get; }
         }
         //internal interface IMethod : IHaveMembers, IScope { }
 

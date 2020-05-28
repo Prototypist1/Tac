@@ -86,7 +86,12 @@ namespace Tac.Frontend.SyntaxModel.Elements
 
             public ISetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
-                var value = context.TypeProblem.CreateValue(scope,new NameKey("empty"),new PlaceholderValueConverter());
+                if (!(scope is Tpn.IScope runtimeScope))
+                {
+                    throw new NotImplementedException("this should be an IError");
+                }
+
+                var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"),new PlaceholderValueConverter());
                 return new SetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue>(new EmptyInstanceResolveReferance(),OrType.Make<Tpn.IValue,IError>(value));
             }
         }

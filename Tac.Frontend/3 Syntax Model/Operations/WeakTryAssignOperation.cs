@@ -11,6 +11,7 @@ using Tac.SemanticModel.CodeStuff;
 using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
 using Tac.SemanticModel;
+using System;
 
 namespace Tac.SemanticModel.Operations
 {
@@ -66,7 +67,14 @@ namespace Tac.SemanticModel.Operations
                     BinaryOperationMaker<WeakTryAssignOperation, ITryAssignOperation>.PopulateScope(left, right, (l, r) =>
                        new Box<WeakTryAssignOperation>(
                             new WeakTryAssignOperation(l, r)),
-                    (s,c,l,r)=> OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(s,new NameKey("bool"),new PlaceholderValueConverter()))));
+                    (s, c, l, r) => {
+                        if (!(s is Tpn.IScope runtimeScope))
+                        {
+                            throw new NotImplementedException("this should be an IError");
+                        }
+                        return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"), new PlaceholderValueConverter()));
+                        })
+                );
             }
 
             return TokenMatching<ISetUp<IBox<WeakTryAssignOperation>, Tpn.IValue>>.MakeNotMatch(

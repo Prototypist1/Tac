@@ -169,6 +169,10 @@ namespace Tac.SemanticModel.Operations
     {
         public ReturnOperationMaker() : base(SymbolsRegistry.StaticReturnSymbol, x=>new Box<WeakReturnOperation>(new WeakReturnOperation(x)),(s,c,x)=> {
 
+            if (!(s is Tpn.IScope runtimeScope))
+            {
+                throw new NotImplementedException("this should be an IError");
+            }
 
             // this smells
             // I am using this delegate for more than it was ment to do
@@ -198,7 +202,7 @@ namespace Tac.SemanticModel.Operations
             // I will need to change this when I do a pass to communitcate error better
             finalVal.AssignTo(mem);
 
-            return OrType.Make<Tpn.IValue, IError>( c.TypeProblem.CreateValue(s, new NameKey("empty"), new PlaceholderValueConverter()));
+            return OrType.Make<Tpn.IValue, IError>( c.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"), new PlaceholderValueConverter()));
         })
         {
         }
