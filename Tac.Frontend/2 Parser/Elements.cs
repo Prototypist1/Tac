@@ -287,7 +287,18 @@ namespace Tac.Parser
         {
             // TODO
             // ugh type definition still needs to match!
-            
+            // I am not sure type would have ever matched
+            // I can't find anyway a type would be matched
+            // I am shocked this got by my tests
+            // I think I need more tests
+            // that other case too with the members that might be on parent
+            // this one:
+            // x = 1
+            // object {x =: x; }
+            // fuck
+
+            // I think I need IStaticFrontendCodeElement
+
             //if (tokens.Count() == 1)
             //{
             //    if (tokens.First() is ElementToken elementToken)
@@ -305,7 +316,7 @@ namespace Tac.Parser
             //}
             //else 
             //{
-                foreach (var operationMatcher in new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] { new AssertAssignInObjectOperationMaker(), new GenericTypeDefinitionMaker() })
+            foreach (var operationMatcher in new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] { new AssertAssignInObjectOperationMaker(), new GenericTypeDefinitionMaker() })
                 {
                     if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this)
                             .Has(operationMatcher, out var res)
@@ -316,7 +327,31 @@ namespace Tac.Parser
                 }
             //}
 
-            return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
+
+
+            if (tokens.Count() == 1)
+            {
+                return ParseObjectElement(tokens.Single());
+            }
+
+            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
+        }
+
+        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseObjectElement(IToken token)
+        {
+            if (token is ElementToken elementToken)
+            {
+                if (TokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens, this)
+                    .Has(new GenericTypeDefinitionMaker(), out var res)
+                    .Has(new DoneMaker())
+                    is IMatchedTokenMatching)
+                {
+                    return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(res!);
+                }
+            }
+
+
+            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
         }
 
         public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseLineInDefinitionType(IEnumerable<IToken> tokens)
@@ -397,7 +432,7 @@ namespace Tac.Parser
             }).ToArray();
         }
 
-        public IReadOnlyList<IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>> ParseObject(CurleyBracketToken block)
+        public IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,  IError>> ParseObject(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {

@@ -55,7 +55,7 @@ namespace Tac.Frontend
     }
 
 
-    internal interface IFrontendType: IValidate
+    internal interface IFrontendType: IFrontendCodeElement
     {
         // we need to pass around a list of assumed true
         // TheyAreUs is often called inside TheyAreUs
