@@ -108,9 +108,9 @@ namespace Tac.SemanticModel
 
         private class ObjectDefinitionPopulateScope : ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>
         {
-            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+            private readonly IReadOnlyList<IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>> elements;
 
-            public ObjectDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox< IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements)
+            public ObjectDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>> elements)
             {
                 this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             }
@@ -119,9 +119,35 @@ namespace Tac.SemanticModel
             {
                 var key = new ImplicitKey(Guid.NewGuid());
 
-                var box = new Box<IReadOnlyList< IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>>();
+                var list = new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>();
+
+                var box = new Box<IReadOnlyList< IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>>(list);
                 var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box), new WeakScopeConverter());
-                box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
+
+                // {6B83A7F1-0E28-4D07-91C8-57E6878E97D9}
+                // module has similar code
+                foreach (var element in elements)
+                {
+                    element.Switch(
+                        y =>
+                        {
+                            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(myScope, context).Resolve));
+                        },
+                        y =>
+                        {
+                            // it is a bit weird that types are not used at all
+                            y.Run(myScope, context);
+                        },
+                        y =>
+                        {
+                            // this is also a bit wierd, these errors are anything that was not parsed
+                            // they are not really related to the assignments they are bing placed next to
+                            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y));
+                        });
+                }
+
+                //box.Fill(elements.Select(x => 
+                //x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
 
                 var value = context.TypeProblem.CreateValue(scope, key, new PlaceholderValueConverter());
                 // ugh! an object is a type

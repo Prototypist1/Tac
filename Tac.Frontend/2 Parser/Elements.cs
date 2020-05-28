@@ -280,20 +280,40 @@ namespace Tac.Parser
             return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
         }
 
-        public IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError> ParseObjectLine(IEnumerable<IToken> tokens)
+        // only types and assignments 
+        // I would not mind being more explict 
+        // I don't need to hide everything behind such intense interfaces
+        public IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError> ParseObjectLine(IEnumerable<IToken> tokens)
         {
-            
-            foreach (var operationMatcher in new[] { new AssertAssignInObjectOperationMaker() })
+            if (tokens.Count() == 1)
             {
-                if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this)
-                        .Has(operationMatcher, out var res)
-                         is IMatchedTokenMatching)
+                if (tokens.First() is ElementToken elementToken)
                 {
-                    return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError>(res!);
+                    foreach (var operationMatcher in new[] { new TypeDefinitionMaker(),  })
+                    {
+                        if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens.ToArray(), this)
+                                .Has(operationMatcher, out var res)
+                                 is IMatchedTokenMatching)
+                        {
+                            return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(res!);
+                        }
+                    }
+                }
+            }
+            else 
+            {
+                foreach (var operationMatcher in new[] { new AssertAssignInObjectOperationMaker(), new GenericTypeDefinitionMaker() })
+                {
+                    if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this)
+                            .Has(operationMatcher, out var res)
+                             is IMatchedTokenMatching)
+                    {
+                        return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(res!);
+                    }
                 }
             }
 
-            return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
+            return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
         }
 
         public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseLineInDefinitionType(IEnumerable<IToken> tokens)
@@ -374,8 +394,7 @@ namespace Tac.Parser
             }).ToArray();
         }
 
-
-        public IReadOnlyList<IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, IError>> ParseObject(CurleyBracketToken block)
+        public IReadOnlyList<IOrType<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>> ParseObject(CurleyBracketToken block)
         {
             return block.Tokens.Select(x =>
             {
