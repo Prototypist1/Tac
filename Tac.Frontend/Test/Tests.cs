@@ -98,7 +98,7 @@ namespace Tac.Frontend.TypeProblem.Test
             x.CreatePublicMember(hello, hello, new NameKey("x"), new WeakMemberDefinitionConverter(false,new NameKey("x")));
             x.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(false,new NameKey("y")));
 
-            var input = x.CreateValue(x.ModuleRoot, new NameKey("hello"), new PlaceholderValueConverter());
+            var input = x.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"), new PlaceholderValueConverter());
             var method = x.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()),false), new WeakMemberDefinitionConverter(false, new NameKey("input")));
 
             var input_x = x.CreateHopefulMember(method.Input(), new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));

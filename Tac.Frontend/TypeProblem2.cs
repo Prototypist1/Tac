@@ -312,7 +312,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         Parent = Possibly.Is(this)
                     };
                 }
-                public readonly Scope InitizationScope; 
+                public readonly Scope InitizationScope;
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
@@ -326,7 +326,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
-                
+
             }
             // methods don't really have members in the way other things do
             // they have members while they are executing
@@ -466,9 +466,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             public Member CreateMember(
-                IStaticScope scope, 
-                IKey key, 
-                IOrType<IKey, IError> typeKey, 
+                IStaticScope scope,
+                IKey key,
+                IOrType<IKey, IError> typeKey,
                 WeakMemberDefinitionConverter converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
@@ -481,7 +481,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     HasPrivateMember(privateMembers, key, res);
                 }
-                else {
+                else
+                {
                     throw new Exception("this is probably really an IError - you tried to add a member somewhere one cannot go");
                 }
                 res.Context = Possibly.Is(scope);
@@ -530,8 +531,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Member CreatePrivateMember(
                 IStaticScope scope,
                 IHavePrivateMembers havePrivateMembers,
-                IKey key, 
-                IOrType<IKey, IError> typeKey, 
+                IKey key,
+                IOrType<IKey, IError> typeKey,
                 IConvertTo<Member, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
@@ -544,7 +545,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Member CreatePrivateMember(
                 IStaticScope scope,
                 IHavePrivateMembers havePrivateMembers,
-                IKey key, 
+                IKey key,
                 IConvertTo<Member, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
@@ -554,9 +555,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             public Member CreatePrivateMember(
-                IHavePrivateMembers scope, 
-                IKey key, 
-                IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, 
+                IHavePrivateMembers scope,
+                IKey key,
+                IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
                 IConvertTo<Member, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
@@ -569,7 +570,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // this is weird, but since C# does not have and types...
                 // scope and havePossibleMembers are expected to be the same object
-                if (!ReferenceEquals(scope, havePossibleMembers)) {
+                if (!ReferenceEquals(scope, havePossibleMembers))
+                {
                     throw new Exception($"{scope} and {havePossibleMembers} should be the same object");
                 }
 
@@ -966,10 +968,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var node in typeProblemNodes)
                 {
-                    if (node is IHavePossibleMembers possibleMembers && node is IStaticScope staticScope) {
+                    if (node is IHavePossibleMembers possibleMembers && node is IStaticScope staticScope)
+                    {
                         foreach (var pair in possibleMembers.PossibleMembers)
                         {
-                            TryGetMember(staticScope, pair.Key).IfElse(member => TryMerge(pair.Value, member!), () => {
+                            TryGetMember(staticScope, pair.Key).IfElse(member => TryMerge(pair.Value, member!), () =>
+                            {
 
                                 if (node is IHavePublicMembers havePublicMembers)
                                 {
@@ -980,7 +984,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 {
                                     HasPrivateMember(havePrivateMembers, pair.Key, pair.Value);
                                 }
-                                else {
+                                else
+                                {
                                     throw new Exception("uhhhh");
                                 }
                             });
@@ -1307,7 +1312,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // OrType needs to be its own block and we need to flow in to both sides
                 {
-                    if (deferredToType.Is4(out var orType)) {
+                    if (deferredToType.Is4(out var orType))
+                    {
                         foreach (var memberPair in deferringInferred.PublicMembers)
                         {
                             MergeIntoOrType(orType, memberPair);
@@ -1361,7 +1367,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            void MergeIntoOrType(OrType orType, KeyValuePair<IKey, Member> memberPair) {
+            void MergeIntoOrType(OrType orType, KeyValuePair<IKey, Member> memberPair)
+            {
 
                 if (orType.Left is IIsDefinately<TypeReference> leftRef)
                 {
@@ -1381,7 +1388,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
 
-                    if (bigOr.Is<OrType>(out var leftOr)) {
+                    if (bigOr.Is<OrType>(out var leftOr))
+                    {
 
                         MergeIntoOrType(leftOr, memberPair);
                     }
@@ -1411,7 +1419,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
             }
-            
+
 
             IOrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrOverlayOrThrow(ILookUpType node, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> realizedGeneric)
             {
@@ -1638,16 +1646,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // no but they can have members that are implicit 
                         // plus maybe they could be in the future this some sort of implicit key word
                         // number || implict 
-                        orType.Left.If<TypeReference, int>(x => HandleHopefulMember(key, hopeful,GetType(x)));
+                        orType.Left.If<TypeReference, int>(x => HandleHopefulMember(key, hopeful, GetType(x)));
                         orType.Right.If<TypeReference, int>(x => HandleHopefulMember(key, hopeful, GetType(x)));
 
                     },
-                    inferredType => {
+                    inferredType =>
+                    {
                         if (inferredType.PublicMembers.TryGetValue(key, out var member))
                         {
                             TryMerge(hopeful, member);
                         }
-                        else {
+                        else
+                        {
                             HasPublicMember(inferredType, key, hopeful);
                         }
                     },
@@ -1832,7 +1842,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
 
-                    if (innerFrom.SafeIs<ITypeProblemNode, IHavePublicMembers>(out var innerFromPublicMembers) && innerTo.SafeIs<ITypeProblemNode, IHavePublicMembers>(out var innerToPublicMembers)) {
+                    if (innerFrom.SafeIs<ITypeProblemNode, IHavePublicMembers>(out var innerFromPublicMembers) && innerTo.SafeIs<ITypeProblemNode, IHavePublicMembers>(out var innerToPublicMembers))
+                    {
 
 
                         {
@@ -1979,10 +1990,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var res = false;
 
-                // TODO if flow from is a primitive type
-                // than flow to has to be the same primitive type
-                // can I straght up defer?
-
                 if (flowFrom.Is1(out var fromMethod) && flowTo.Is1(out var toMethod))
                 {
                     var inFlowFrom = GetType(fromMethod.Input.GetOrThrow());
@@ -2000,70 +2007,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (IsHasPublicMembers(flowFrom, out var fromType))
                 {
-
-                    {
-                        if (flowTo.Is2(out var deferredToHaveType))
-                        {
-                            foreach (var memberPair in fromType!.PublicMembers)
-                            {
-                                if (deferredToHaveType.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
-                                {
-                                    res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
-                                }
-                                else
-                                {
-                                    throw new Exception("the implicit type has members the real type does not");
-                                    //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                                    //HasMember(deferredToHaveType, memberPair.Key, newValue);
-                                    //lookUps[newValue] = lookUps[memberPair.Value];
-                                }
-                            }
-                        }
-                    }
-
-                    {
-                        if (flowTo.Is3(out var deferredToObject))
-                        {
-                            foreach (var memberPair in fromType!.PublicMembers)
-                            {
-                                if (deferredToObject.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
-                                {
-                                    res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
-                                }
-                                else
-                                {
-                                    throw new Exception("the implicit type has members the real type does not");
-                                    //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                                    //HasMember(deferredToHaveType, memberPair.Key, newValue);
-                                    //lookUps[newValue] = lookUps[memberPair.Value];
-                                }
-                            }
-                        }
-                    }
-
-                    {
-                        if (flowTo.Is5(out var deferredToInferred))
-                        {
-
-                            foreach (var memberPair in fromType!.PublicMembers)
-                            {
-                                if (deferredToInferred.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
-                                {
-                                    res |= Flow(GetType(memberPair.Value), GetType(deferedToMember));
-                                }
-                                else
-                                {
-                                    var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                                    HasPublicMember(deferredToInferred, memberPair.Key, newValue);
-                                    newValue.LooksUp = memberPair.Value.LooksUp;
-                                    res = true;
-                                }
-                            }
-                        }
-                    }
+                    res |= FlowMembers(flowTo, fromType!.PublicMembers);
                 }
 
-                if (flowFrom.Is4(out var deferringOrType)) {
+                if (flowFrom.Is4(out var deferringOrType))
+                {
+                    res |= Flow(flowTo, Prototypist.Toolbox.OrType.Make< MethodType, Type, Object, OrType, InferredType, IError > (Merge(GetType(deferringOrType.Left.GetOrThrow()), GetType(deferringOrType.Left.GetOrThrow()))));
+
+                    // flow input and flow output 
+
 
                     // TODO
                     // so x =: int or string y
@@ -2085,57 +2037,256 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (flowFrom.Is5(out var deferringInferred))
                 {
+                    res |= FlowIO(flowTo, deferringInferred.Returns, deferringInferred.Input);
+                }
 
+                return res;
+
+            }
+
+
+            // OK I think OrTypes should just make a infered type to represent them 
+
+            // it seems very expensive to me to be making all these infered types
+
+            // once apon a time I did something like this and I needed to cache the concrete representations of OrTypes
+            // I think this might cause trouble:
+            // Type X {
+            //      Y | X member;
+            //}
+            //
+            // Type Y {
+            //    Y member;
+            // }
+            // this is really going to try to walk it
+            // and that is bad!
+
+            // actually that just might cause trouble more generally
+            // x;
+            // Y y;
+            // x =: y;
+            // Type Y {
+            //    Y member;
+            // }
+
+            // I am not sure that is fixable
+            // RIP type problem
+
+            private InferredType Merge(IOrType<MethodType, Type, Object, OrType, InferredType, IError> leftType, IOrType<MethodType, Type, Object, OrType, InferredType, IError> rightType)
+            {
+                var res = new InferredType(this, "yuck");
+
+                var leftMembers = GetMembers(leftType);
+                var rightMembers = GetMembers(rightType);
+
+                foreach (var leftMember in leftMembers)
+                {
+                    if (rightMembers.TryGetValue(leftMember.Key, out var rightMember))
                     {
-                        if (flowTo.Is1(out var deferredToMethod))
+                        var newValue = new Member(this, $"zzz", new WeakMemberDefinitionConverter(false, leftMember.Key));
+                        HasPublicMember(res, leftMember.Key, newValue);
+                        newValue.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Merge(leftMember.Value,rightMember)));
+                    }
+                }
+
+                // handle inputs and outputs 
+                if (leftType.Is<IHaveInputAndOutput>(out var leftIO) &&
+                    rightType.Is<IHaveInputAndOutput>(out var rightIO) &&
+                    leftIO.Input is IIsDefinately<Member> leftI &&
+                    rightIO.Input is IIsDefinately<Member> rightI &&
+                    leftIO.Returns is IIsDefinately<TransientMember> leftO &&
+                    rightIO.Returns is IIsDefinately<TransientMember> rightO) {
+
+                    var mergedI = Merge(GetType(leftI.Value), GetType(rightI.Value));
+                    var mergedO = Merge(GetType(leftO.Value), GetType(rightO.Value));
+
+                    // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
+                    var methodInputKey = new NameKey("merged implicit input - " + Guid.NewGuid());
+                    var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
+                    inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(mergedI));
+                    res.Input = Possibly.Is(inputMember);
+
+                    var returnMember = new TransientMember(this, "merged implicit return -" + Guid.NewGuid());
+                    returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(mergedO));
+                    res.Returns = Possibly.Is(returnMember);
+
+                }
+
+                return res;
+            }
+
+            private Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GetMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+            {
+                return type.SwitchReturns(
+                    x=> new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>(),
+                    x=> x.PublicMembers.ToDictionary(y=>y.Key,y=>GetType(y.Value)),
+                    x => x.PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
+                    x => Merge(
+                        GetType(x.Left.GetOrThrow()),
+                        GetType(x.Right.GetOrThrow())).PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
+                    x => x.PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
+                    x=> { throw new NotImplementedException("I'll deal with this later, when I have a more concrete idea of what it means. aka, when it bites me in the ass"); }
+                );
+            }
+
+            //private bool FlowFromOr(IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowTo, IOrType<MethodType, Type, Object, OrType, InferredType, IError> leftType, IOrType<MethodType, Type, Object, OrType, InferredType, IError> rightType)
+            //{
+            //    var res = false;
+
+            //    if (leftType.Is<IHavePublicMembers>(out var leftHasPublicMembers))
+            //    {
+            //        if (rightType.Is<IHavePublicMembers>(out var rightHasPublicMembers))
+            //        {
+            //            foreach (var leftMember in leftHasPublicMembers.PublicMembers)
+            //            {
+            //                if (rightHasPublicMembers.PublicMembers.TryGetValue(leftMember.Key, out var rightMember))
+            //                {
+
+            //                    // first the member has to exist
+            //                    // so we flow an empty infered type
+            //                    res |= FlowMember(flowTo, leftMember.Key, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "or type from")));
+            //                    // and then we have to flow all the shared members to it
+
+            //                }
+
+            //            }
+            //        }
+            //    }
+
+            //    // TODO flow IO!
+
+            //    return res;
+            //}
+
+            private bool FlowIO(IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowTo, IIsPossibly<TransientMember> deferringReturns, IIsPossibly<Member> deferringInput)
+            {
+                var res = false;
+                {
+                    if (flowTo.Is1(out var deferredToMethod))
+                    {
+                        if (deferringReturns is IIsDefinately<TransientMember> deferringInferredReturns && deferredToMethod.Returns is IIsDefinately<TransientMember> deferredToMethodReturns)
                         {
-                            if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringInferredReturns && deferredToMethod.Returns is IIsDefinately<TransientMember> deferredToMethodReturns)
-                            {
-                                res |= Flow(GetType(deferringInferredReturns.Value), GetType(deferredToMethodReturns.Value));
-                            }
+                            res |= Flow(GetType(deferringInferredReturns.Value), GetType(deferredToMethodReturns.Value));
+                        }
 
 
-                            if (deferringInferred.Input is IIsDefinately<Member> deferringInferredInput && deferredToMethod.Input is IIsDefinately<Member> deferredToMethodInput)
-                            {
-                                res |= Flow(GetType(deferringInferredInput.Value), GetType(deferredToMethodInput.Value));
-                            }
+                        if (deferringInput is IIsDefinately<Member> deferringInferredInput && deferredToMethod.Input is IIsDefinately<Member> deferredToMethodInput)
+                        {
+                            res |= Flow(GetType(deferringInferredInput.Value), GetType(deferredToMethodInput.Value));
                         }
                     }
+                }
 
+                {
+                    if (flowTo.Is5(out var deferredToInferred))
                     {
-                        if (flowTo.Is5(out var deferredToInferred))
+                        if (deferringReturns is IIsDefinately<TransientMember> deferringInferredReturns)
                         {
-                            if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringInferredReturns)
+                            if (deferredToInferred.Returns is IIsDefinately<TransientMember> deferredToInferredReturns)
                             {
-                                if (deferredToInferred.Returns is IIsDefinately<TransientMember> deferredToInferredReturns)
-                                {
-                                    res |= Flow(GetType(deferringInferredReturns.Value), GetType(deferredToInferredReturns.Value));
-                                }
-                                else
-                                {
-                                    deferredToInferred.Returns = deferringInferred.Returns;
-                                    res = true;
-                                }
+                                res |= Flow(GetType(deferringInferredReturns.Value), GetType(deferredToInferredReturns.Value));
                             }
-
-                            if (deferringInferred.Input is IIsDefinately<Member> deferringInferredInput)
+                            else
                             {
-                                if (deferredToInferred.Input is IIsDefinately<Member> deferredToInferredInput)
-                                {
-                                    res |= Flow(GetType(deferringInferredInput.Value), GetType(deferredToInferredInput.Value));
-                                }
-                                else
-                                {
-                                    deferredToInferred.Input = deferringInferred.Input;
-                                    res = true;
-                                }
+                                deferredToInferred.Returns = deferringReturns;
+                                res = true;
+                            }
+                        }
+
+                        if (deferringInput is IIsDefinately<Member> deferringInferredInput)
+                        {
+                            if (deferredToInferred.Input is IIsDefinately<Member> deferredToInferredInput)
+                            {
+                                res |= Flow(GetType(deferringInferredInput.Value), GetType(deferredToInferredInput.Value));
+                            }
+                            else
+                            {
+                                deferredToInferred.Input = deferringInput;
+                                res = true;
                             }
                         }
                     }
                 }
 
                 return res;
+            }
 
+            private bool FlowMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowTo, Dictionary<IKey, TypeProblem2.Member> fromMembers)
+            {
+                var res = false;
+                foreach (var memberPair in fromMembers)
+                {
+                    res |= FlowMember(flowTo, memberPair.Key, GetType(memberPair.Value));
+                }
+                return res;
+            }
+
+            private bool FlowMember(IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowTo, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+            {
+                var res = false;
+                {
+                    if (flowTo.Is2(out var deferredToHaveType))
+                    {
+
+                        if (deferredToHaveType.PublicMembers.TryGetValue(key, out var deferedToMember))
+                        {
+                            res |= Flow(type, GetType(deferedToMember));
+                        }
+                        else
+                        {
+                            throw new Exception("the implicit type has members the real type does not");
+                            //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+                            //HasMember(deferredToHaveType, memberPair.Key, newValue);
+                            //lookUps[newValue] = lookUps[memberPair.Value];
+                        }
+
+                    }
+                }
+
+                {
+                    if (flowTo.Is3(out var deferredToObject))
+                    {
+
+                        if (deferredToObject.PublicMembers.TryGetValue(key, out var deferedToMember))
+                        {
+                            res |= Flow(type, GetType(deferedToMember));
+                        }
+                        else
+                        {
+                            throw new Exception("the implicit type has members the real type does not");
+                            //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+                            //HasMember(deferredToHaveType, memberPair.Key, newValue);
+                            //lookUps[newValue] = lookUps[memberPair.Value];
+                        }
+
+                    }
+                }
+
+                {
+                    if (flowTo.Is5(out var deferredToInferred))
+                    {
+
+                        if (deferredToInferred.PublicMembers.TryGetValue(key, out var deferedToMember))
+                        {
+                            res |= Flow(type, GetType(deferedToMember));
+                        }
+                        else
+                        {
+                            // TODO
+                            // new WeakMemberDefinitionConverter(
+                            // is trash!
+                            // I need to think about how the converters are passed in
+                            // I might be able to pass the to here
+                            var newValue = new Member(this, $"flowed member", new WeakMemberDefinitionConverter(false, key));
+                            HasPublicMember(deferredToInferred, key, newValue);
+                            newValue.LooksUp = Possibly.Is(type);
+                            res = true;
+                        }
+
+                    }
+                }
+
+                return res;
             }
 
 

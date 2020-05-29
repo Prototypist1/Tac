@@ -198,8 +198,10 @@ namespace Tac.SemanticModel
 
             public ISetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
-
-
+                if (!(scope is Tpn.IScope runtimeScope))
+                {
+                    throw new NotImplementedException("this should be an IError");
+                }
 
                 // TODO this is so painful, I think I need to look in to implementations having special treatment...
                 // maybe they need to be a generic on the tpn
@@ -231,7 +233,7 @@ namespace Tac.SemanticModel
 
                 innerValue.AssignTo(outer.Returns());
 
-                var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new[] {
+                var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new[] {
                     realizeContext.SetUpSideNode.TransformInner(x=>x.Key()),
                     OrType.Make<IKey,IError>(new GenericNameKey(new NameKey("method"), new[] {
                          realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),

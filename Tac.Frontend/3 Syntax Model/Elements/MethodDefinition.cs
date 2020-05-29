@@ -150,6 +150,11 @@ namespace Tac.SemanticModel
             public ISetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
 
+                if (!(scope is Tpn.IScope runtimeScope))
+                {
+                    throw new NotImplementedException("this should be an IError");
+                }
+
                 var realizedInput = parameterDefinition.Run(scope, context);
                 var realizedOutput = output.Run(scope, context);
 
@@ -159,7 +164,7 @@ namespace Tac.SemanticModel
 
                 box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(method, context).Resolve)).ToArray());
 
-                var value = context.TypeProblem.CreateValue(scope, new GenericNameKey(new NameKey("method"), new IOrType<IKey,IError>[] {
+                var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey,IError>[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                 }), new PlaceholderValueConverter());
