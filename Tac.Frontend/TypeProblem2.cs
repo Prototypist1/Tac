@@ -1,5 +1,6 @@
 ﻿using Prototypist.Toolbox;
 using Prototypist.Toolbox.Bool;
+using Prototypist.Toolbox.Dictionary;
 using Prototypist.Toolbox.IEnumerable;
 using Prototypist.Toolbox.Object;
 using System;
@@ -370,6 +371,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return inFlows.Sum(x=>x.GetHashCode());
                 }
+            }
+
+            private class FlowNode {
+                public FlowNode(bool accepts)
+                {
+                    this.Accepts = accepts;
+                }
+
+                public bool Accepts { get; }
+                public Dictionary<IKey, FlowNode> Members { get; } = new Dictionary<IKey, FlowNode>();
+                public FlowNode? Input { get; set; }
+                public FlowNode? Output { get; set; }
             }
 
             // basic stuff
@@ -1145,6 +1158,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var node in typeProblemNodes)
                 {
+                    // nothing should look up to null at this point
                     GetType(node).Switch(
                         x=> flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
                         x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
@@ -1171,8 +1185,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var toInflow in toInflows) {
                     var inferred = new InferredType(this,$"flow target for: {toInflow.debugName} ");
+                    var toInflowOr = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(toInflow);
+                    Flow(
+                        Prototypist.Toolbox.OrType.Make < MethodType, Type, Object, OrType, InferredType, IError >(inferred),
+                        toInflowOr,
+                        inflowMap);
 
-                    Flow(toType, fromType);
+                    inflowMap[new Inflow(toInflowOr)] = inferred;
                 }
 
                 // flow up stream
@@ -1185,9 +1204,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var (from, to) in assignments)
                     {
-                        // nothing should look up to null at this point
-                        var toType = to.LooksUp.GetOrThrow();
-                        var fromType = from.LooksUp.GetOrThrow();
+                        var toType = flowLookUps[to];
+                        var fromType = flowLookUps[from];
 
                         go |= Flow(toType, fromType);
 
@@ -2041,9 +2059,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
+            bool Flow(IOrType<MethodType, Type, Object, OrType, Inflow, IError> flowFrom, IOrType<MethodType, Type, Object, OrType, Inflow, IError> flowTo, Dictionary<Inflow, InferredType> map) {
+                if (flowTo.Is5(out var inflowTo)) {
+                   
+                    var value = flowFrom.SwitchReturns(
+                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x),
+                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x),
+                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x),
+                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x),
+                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(map[x]),
+                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x));
+
+                    if (!inflowTo.inFlows.Contains(value)) {
+                        return false;
+                    }
+
+                    var target = map[inflowTo];
+                }
+            }
+
             // returns true if the target was modified 
-            bool Flow(IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowFrom, IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowTo)
+            bool Flow(IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowFrom, IOrType<MethodType, Type, Object, OrType, InferredType, IError> flowTo, Dictionary<Inflow, InferredType> map)
             {
+                // update the map
+
                 var res = false;
 
                 if (flowFrom.Is1(out var fromMethod) && flowTo.Is1(out var toMethod))
