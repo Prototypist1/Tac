@@ -417,7 +417,7 @@ it is the new way to do main
 
 ===================================== TABLE
 
-[]                                              quick thing type infered (object, type, generics-parameters object)
+[]                                              quick thing type inferred (object, type, generics-parameters object)
 object {}                                       object
 method [i,o] input {}                           method
 inline {}                                       inline -- what is an inline? method without a new scope?
@@ -436,9 +436,9 @@ meta {}                                     ?   Meta -- what is a meta??
 < <- <=                                     ?   left call
 <?                                          ?   less than
 >?                                          ?   greater than
-<=?                                         ?   less than or eqaul
->=?                                         ?   greater than or eqaul
-=?                                              eqaul
+<=?                                         ?   less than or equal
+>=?                                         ?   greater than or equal
+=?                                              equal
 if                                              if
 if-empty ??                                     empty check
 else                                            else
@@ -446,14 +446,14 @@ else                                            else
 while                                       ?   while
 is                                              is type
 +                                           ?   concat
-x                                               declear
-var x                                           declear  
-int x                                           declear
-static x                                        static declear
-static var x                                    static declear
-static int x                                    static declear      
-.  \                                            feild
-of  /                                       ?   reverse feild
+x                                               declare
+var x                                           declare  
+int x                                           declare
+static x                                        static declare
+static var x                                    static declare
+static int x                                    static declare      
+.  \                                            field
+of  /                                       ?   reverse field
 return                                          return
 and                                             and
 or                                              or

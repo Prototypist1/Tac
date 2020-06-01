@@ -1,5 +1,6 @@
 ﻿using Prototypist.Toolbox;
 using Prototypist.Toolbox.Bool;
+using Prototypist.Toolbox.IEnumerable;
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
@@ -351,6 +352,24 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
+            }
+
+            private class Inflow {
+                public readonly List<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> inFlows = new List<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+
+                public Inflow(IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> toAdd) {
+                    inFlows.Add(toAdd);
+                }
+
+                public override bool Equals(object? obj)
+                {
+                    return obj != null && obj is Inflow inflow && inFlows.SetEqual(inflow.inFlows);
+                }
+
+                public override int GetHashCode()
+                {
+                    return inFlows.Sum(x=>x.GetHashCode());
+                }
             }
 
             // basic stuff
@@ -1121,6 +1140,41 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
+                var toInflows = new List<InferredType>();
+                var flowLookUps = new Dictionary<ITypeProblemNode, IOrType<MethodType, Type, Object, OrType, Inflow, IError>>();
+
+                foreach (var node in typeProblemNodes)
+                {
+                    GetType(node).Switch(
+                        x=> flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
+                        x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
+                        x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
+                        x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
+                        x => toInflows.Add(x),
+                        x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x));
+                }
+
+                //var flowLookUps = typeProblemNodes.ToDictionary(x => x, x => GetType(x).SwitchReturns(
+                //    y=> Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(y),
+                //    y => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(y),
+                //    y => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(y),
+                //    y => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(y),
+                //    y => {
+                //        toInflows.Add(y);
+                //        var inflow = new Inflow(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(y));
+                //        return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(inflow);
+                //    },
+                //    y => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(y)
+                //    ));
+
+                var inflowMap = new Dictionary<Inflow, InferredType>();
+
+                foreach (var toInflow in toInflows) {
+                    var inferred = new InferredType(this,$"flow target for: {toInflow.debugName} ");
+
+                    Flow(toType, fromType);
+                }
+
                 // flow up stream
                 // very sloppy and slow
                 // if I ever am worried about speed I am sure this will be a canidate
@@ -1149,6 +1203,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     //}
 
                 } while (go);
+
 
                 // we dont flow downstream
 
@@ -1390,7 +1445,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (bigOr.Is<OrType>(out var leftOr))
                     {
-
                         MergeIntoOrType(leftOr, memberPair);
                     }
                 }
@@ -1787,6 +1841,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return item;
                 }
 
+                // TOOD copy should me a instance method
+                
                 // hasGenerics -- the root of the root will have had its generics replaced
                 // for the rest of the tree the generics will need to be copied
                 T Copy<T>(T innerFrom, T innerTo)
@@ -2012,7 +2068,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (flowFrom.Is4(out var deferringOrType))
                 {
-                    res |= Flow(flowTo, Prototypist.Toolbox.OrType.Make< MethodType, Type, Object, OrType, InferredType, IError > (Merge(GetType(deferringOrType.Left.GetOrThrow()), GetType(deferringOrType.Left.GetOrThrow()))));
+                    res |= Flow(
+                        flowTo, 
+                        Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(
+                            Merge(
+                                GetType(deferringOrType.Left.GetOrThrow()), 
+                                GetType(deferringOrType.Left.GetOrThrow()))));
 
                     // flow input and flow output 
 
@@ -2072,6 +2133,27 @@ namespace Tac.Frontend.New.CrzayNamespace
             // I am not sure that is fixable
             // RIP type problem
 
+            // so infered types.
+            // they are uniquely indentified by what flows in to them
+            // but that is so complex to maintain!
+
+            // ok so here is the plan
+            // I am going to have a dictionary maps: list of nodes flowing in  ->  thing they are flowing in to
+            // I think the RHS is always an InferredType you can't really flow to anything else
+            // we don't bother making a new infered type if one already exists with our inflows
+            // if are inflow is new (it must be signular if it is new) we make one
+            // if we are adding a new inflow we copy the existing inferred type that has the existing inflows and then add to it
+            
+            // for this to work we don't want any inferred types directly referenced 
+            // for each existing inferred type we make a new inferred type and set the old type as an inflow to the new type
+
+            // but that kind of mean different representations in different parts of the pipeline
+            // I would love to do that but it would be a real project
+
+            // I think I need some new fields for this phase
+            // the big type or is different here
+            // it needs to include in-flow-set, a new class I need to make
+
             private InferredType Merge(IOrType<MethodType, Type, Object, OrType, InferredType, IError> leftType, IOrType<MethodType, Type, Object, OrType, InferredType, IError> rightType)
             {
                 var res = new InferredType(this, "yuck");
@@ -2083,9 +2165,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (rightMembers.TryGetValue(leftMember.Key, out var rightMember))
                     {
+                        // this is sinful!
                         var newValue = new Member(this, $"zzz", new WeakMemberDefinitionConverter(false, leftMember.Key));
                         HasPublicMember(res, leftMember.Key, newValue);
-                        newValue.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Merge(leftMember.Value,rightMember)));
+                        newValue.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Merge(leftMember.Value, rightMember)));
                     }
                 }
 
@@ -2095,13 +2178,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     leftIO.Input is IIsDefinately<Member> leftI &&
                     rightIO.Input is IIsDefinately<Member> rightI &&
                     leftIO.Returns is IIsDefinately<TransientMember> leftO &&
-                    rightIO.Returns is IIsDefinately<TransientMember> rightO) {
+                    rightIO.Returns is IIsDefinately<TransientMember> rightO)
+                {
 
                     var mergedI = Merge(GetType(leftI.Value), GetType(rightI.Value));
                     var mergedO = Merge(GetType(leftO.Value), GetType(rightO.Value));
 
                     // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
                     var methodInputKey = new NameKey("merged implicit input - " + Guid.NewGuid());
+                    // this is sinful!
                     var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
                     inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(mergedI));
                     res.Input = Possibly.Is(inputMember);
@@ -2118,14 +2203,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             private Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GetMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
             {
                 return type.SwitchReturns(
-                    x=> new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>(),
-                    x=> x.PublicMembers.ToDictionary(y=>y.Key,y=>GetType(y.Value)),
+                    x => new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>(),
+                    x => x.PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
                     x => x.PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
                     x => Merge(
                         GetType(x.Left.GetOrThrow()),
                         GetType(x.Right.GetOrThrow())).PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
                     x => x.PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
-                    x=> { throw new NotImplementedException("I'll deal with this later, when I have a more concrete idea of what it means. aka, when it bites me in the ass"); }
+                    x => { throw new NotImplementedException("I'll deal with this later, when I have a more concrete idea of what it means. aka, when it bites me in the ass"); }
                 );
             }
 
@@ -2277,6 +2362,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             // is trash!
                             // I need to think about how the converters are passed in
                             // I might be able to pass the to here
+                            // I can revert this so it passes in
                             var newValue = new Member(this, $"flowed member", new WeakMemberDefinitionConverter(false, key));
                             HasPublicMember(deferredToInferred, key, newValue);
                             newValue.LooksUp = Possibly.Is(type);

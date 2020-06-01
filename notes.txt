@@ -1,0 +1,25 @@
+----------------------
+
+How you do a not in tac:
+
+not true then "false" -> ( system . print )
+
+I really need you to not have to put "()" around "." tho. order of operations is probably the best way to make this nice? I mean you could write:
+
+not true then  system . print <- "false" 
+
+I think I am abondoning the all binary operations module. just match whatever.
+
+----------------------
+
+I don't like "this" it confuses the shit out of scott and chris. I think I am more interested in:
+
+enslosing-scope
+
+and
+
+current-scope
+
+maybe with shorter aliases
+
+----------------------

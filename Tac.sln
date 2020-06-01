@@ -20,7 +20,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Runner", "Tac.Runner\Ta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.SnippetTests", "Tac.SnippetTests\Tac.SnippetTests.csproj", "{CC77E10A-0AFA-47E6-BFCC-84AED8A8E724}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tac.Type", "Tac.Type\Tac.Type.csproj", "{15B98C86-3FDF-406A-A589-2F365BE6CC4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Type", "Tac.Type\Tac.Type.csproj", "{15B98C86-3FDF-406A-A589-2F365BE6CC4A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9141EFAF-6AFE-4CC4-A149-F820A6F14358}"
+	ProjectSection(SolutionItems) = preProject
+		notes.txt = notes.txt
+		Tac-Thinking.txt = Tac-Thinking.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
