@@ -1353,7 +1353,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         var toType = orsToFlowNodes[to];
                         var fromType = orsToFlowNodes[from];
 
-                        go |= Flow(toType, fromType, inflows);
+                        go |= Flow(toType, fromType, outerInflows,inflows);
 
                     }
 
@@ -2334,12 +2334,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                             // we add the inflow version
                             var flowResult = Flow(ToFlowNode(fromItem, map2), ToFlowNode(toItem, map2),map, map2);
 
-                            if (flowResult.Item1)
+                            if (flowResult.Item1 )
                             {
-                                nextList.Add(
-                                    Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(
-                                        map2.Single(x => ReferenceEquals(flowResult.Item2, x.Item2)).Item1));
-                                res = true;
+                                var inflowOr = Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(
+                                        map2.Single(x => ReferenceEquals(flowResult.Item2, x.Item2)).Item1);
+
+                                if (!nextList.Contains(inflowOr)) {
+                                    nextList.Add(inflowOr);
+                                    res = true;
+                                }
                             }
                         }
 
