@@ -1225,7 +1225,40 @@ namespace Tac.Frontend.New.CrzayNamespace
                     orsToFlowNodes[hasInputAndOutput].Output = GetFlowNodeOrInflow(hasInputAndOutput.Returns.GetOrThrow(), orsToFlowNodes, inflows);
                 }
 
-                // infered nodes flow in to them selves
+                // TODO ortypes!
+                //foreach (var hasInputAndOutput in ors.Select(x => (x.Is(out IHaveInputAndOutput io), io)).Where(x => x.Item1).Select(x => x.io))
+                //{
+                //    Merge(
+                //                GetType(deferringOrType.Left.GetOrThrow()),
+                //                GetType(deferringOrType.Left.GetOrThrow()));
+                //}
+
+                // A | B ab;
+                // ab =: C c;
+                // C flows in to A and B
+
+                // C c;
+                // c =: A | B ab;
+                // nothing flows in to c? 
+
+                // TODO
+                // I am not really flowing primitive types
+                // intness to needs to flow
+
+                // 5 =: c
+                // c =: number | string b
+                // this should work
+                // but right now it doesn't
+                // c needs to become "number | string" as well 
+                // well, not egactly "number | string" more like it has a list of things it could possibly be and they include "number | string", "number" and "string"
+                // if we have this:
+                // 5 =: c
+                // c =: number | string b
+                // c =: number d
+                // it better become a number 
+                // so we have a could-be list
+                // and flows intersect the list
+                
 
                 bool go;
                 do
@@ -2175,8 +2208,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            FlowNode ToFlowNode(IOrType<FlowNode, Inflow> orType, List<(Inflow, FlowNode)> map) { 
-                    
+            FlowNode ToFlowNode(IOrType<FlowNode, Inflow> orType, List<(Inflow, FlowNode)> map) {
+                return orType.SwitchReturns(
+                    x => x,
+                    x => map.Single(y => ReferenceEquals(y.Item1, x)).Item2);
             }
 
             bool Flow(FlowNode flowFrom, FlowNode flowTo, List<(Inflow, FlowNode)> map)

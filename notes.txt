@@ -23,3 +23,7 @@ current-scope
 maybe with shorter aliases
 
 ----------------------
+
+you should be able to explicitly declare something to be a inferred type
+
+int | inferred x;
