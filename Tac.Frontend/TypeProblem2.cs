@@ -355,10 +355,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
             }
 
-            private class Inflow {
-                public readonly List<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> inFlows = new List<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+            private class Inflow
+            {
+                public readonly List<FlowNode> inFlows = new List<FlowNode>();
 
-                public Inflow(IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> toAdd) {
+                public Inflow(FlowNode toAdd)
+                {
                     inFlows.Add(toAdd);
                 }
 
@@ -369,20 +371,46 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public override int GetHashCode()
                 {
-                    return inFlows.Sum(x=>x.GetHashCode());
+                    return inFlows.Sum(x => x.GetHashCode());
+                }
+
+                internal Inflow AddAsNew(FlowNode flowFrom)
+                {
+                    var res = new Inflow(flowFrom);
+                    foreach (var inFlow in inFlows)
+                    {
+                        res.inFlows.Add(inFlow);
+                    }
+                    return res;
                 }
             }
 
-            private class FlowNode {
+            private class FlowNode
+            {
                 public FlowNode(bool accepts)
                 {
                     this.Accepts = accepts;
                 }
 
                 public bool Accepts { get; }
-                public Dictionary<IKey, FlowNode> Members { get; } = new Dictionary<IKey, FlowNode>();
-                public FlowNode? Input { get; set; }
-                public FlowNode? Output { get; set; }
+                public Dictionary<IKey, IOrType<FlowNode, Inflow>> Members { get; } = new Dictionary<IKey, IOrType<FlowNode, Inflow>>();
+                public IOrType<FlowNode, Inflow>? Input { get; set; }
+                public IOrType<FlowNode, Inflow>? Output { get; set; }
+
+                internal FlowNode Copy()
+                {
+                    var res = new FlowNode(Accepts);
+
+                    foreach (var pair in Members)
+                    {
+                        res.Members[pair.Key] = pair.Value;
+                    }
+
+                    res.Input = Input;
+                    res.Output = Output;
+
+                    return res;
+                }
             }
 
             // basic stuff
@@ -1153,6 +1181,80 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
+                // -------------------------------------
+                // we change representation
+                var ors = typeProblemNodes.Select(node => GetType(node)).ToArray();
+
+                var inflows = new List<(Inflow, FlowNode)>();
+
+                var orsToFlowNodes = ors.ToDictionary(x =>
+                {
+                    if (x.Is(out ITypeProblemNode node))
+                    {
+                        return node;
+                    }
+                    throw new Exception("that ain't right");
+                }, x =>
+                {
+                    if (x.Is5(out var _))
+                    {
+                        // inferred types are their own inflow
+                        var res = new FlowNode(true);
+                        inflows.Add((new Inflow(res), res));
+                        return res;
+                    }
+                    else
+                    {
+                        return new FlowNode(false);
+                    }
+                });
+
+                // we create members on our new representation
+                foreach (var hasPublicMembers in ors.Select(x => (x.Is(out IHavePublicMembers members), members)).Where(x => x.Item1).Select(x => x.members))
+                {
+                    foreach (var member in hasPublicMembers.PublicMembers)
+                    {
+                        orsToFlowNodes[hasPublicMembers].Members[member.Key] = GetFlowNodeOrInflow(member.Value, orsToFlowNodes, inflows); //Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(orsToFlowNodes[member.Value]);
+                    }
+                }
+
+                // we create input and output on our new implmentation
+                foreach (var hasInputAndOutput in ors.Select(x => (x.Is(out IHaveInputAndOutput io), io)).Where(x => x.Item1).Select(x => x.io))
+                {
+                    orsToFlowNodes[hasInputAndOutput].Input = GetFlowNodeOrInflow(hasInputAndOutput.Input.GetOrThrow(), orsToFlowNodes, inflows);
+                    orsToFlowNodes[hasInputAndOutput].Output = GetFlowNodeOrInflow(hasInputAndOutput.Returns.GetOrThrow(), orsToFlowNodes, inflows);
+                }
+
+                // infered nodes flow in to them selves
+
+                bool go;
+                do
+                {
+                    go = false;
+
+                    foreach (var (from, to) in assignments)
+                    {
+                        var toType = orsToFlowNodes[to];
+                        var fromType = orsToFlowNodes[from];
+
+                        go |= Flow(toType, fromType, inflows);
+
+                    }
+
+                    //foreach (var (from, to) in assertions)
+                    //{
+                    //    // nothing should look up to null at this point
+                    //    var fromType = from.LooksUp.GetOrThrow();
+
+                    //    go |= Flow(to, fromType);
+
+                    //}
+
+                } while (go);
+
+
+
+                // -------------------------------------- old stuff
                 var toInflows = new List<InferredType>();
                 var flowLookUps = new Dictionary<ITypeProblemNode, IOrType<MethodType, Type, Object, OrType, Inflow, IError>>();
 
@@ -1160,7 +1262,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     // nothing should look up to null at this point
                     GetType(node).Switch(
-                        x=> flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
+                        x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
                         x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
                         x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
                         x => flowLookUps[node] = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, Inflow, IError>(x),
@@ -1183,11 +1285,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var inflowMap = new Dictionary<Inflow, InferredType>();
 
-                foreach (var toInflow in toInflows) {
-                    var inferred = new InferredType(this,$"flow target for: {toInflow.debugName} ");
+                foreach (var toInflow in toInflows)
+                {
+                    var inferred = new InferredType(this, $"flow target for: {toInflow.debugName} ");
                     var toInflowOr = Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(toInflow);
                     Flow(
-                        Prototypist.Toolbox.OrType.Make < MethodType, Type, Object, OrType, InferredType, IError >(inferred),
+                        Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferred),
                         toInflowOr,
                         inflowMap);
 
@@ -1270,6 +1373,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow())),
                     typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()));
 
+            }
+
+            private IOrType<FlowNode, Inflow> GetFlowNodeOrInflow(ITypeProblemNode value, Dictionary<ITypeProblemNode, FlowNode> orsToFlowNodes, List<(Inflow, FlowNode)> inflows)
+            {
+                var type = GetType(value);
+
+                if (type.Is5(out var inferred))
+                {
+
+                    return Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(inflows.Single(x => ReferenceEquals(x.Item2, orsToFlowNodes[inferred])).Item1);
+
+                }
+                return Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(orsToFlowNodes[value]);
             }
 
 
@@ -1860,7 +1976,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // TOOD copy should me a instance method
-                
+
                 // hasGenerics -- the root of the root will have had its generics replaced
                 // for the rest of the tree the generics will need to be copied
                 T Copy<T>(T innerFrom, T innerTo)
@@ -2059,9 +2175,84 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            bool Flow(IOrType<MethodType, Type, Object, OrType, Inflow, IError> flowFrom, IOrType<MethodType, Type, Object, OrType, Inflow, IError> flowTo, Dictionary<Inflow, InferredType> map) {
-                if (flowTo.Is5(out var inflowTo)) {
-                   
+            FlowNode ToFlowNode(IOrType<FlowNode, Inflow> orType, List<(Inflow, FlowNode)> map) { 
+                    
+            }
+
+            bool Flow(FlowNode flowFrom, FlowNode flowTo, List<(Inflow, FlowNode)> map)
+            {
+
+                var res = false;
+
+                if (flowTo.Accepts) {
+                    var inflow = map.Single(x => ReferenceEquals(x, flowTo)).Item1;
+
+                    if (!inflow.inFlows.Contains(flowFrom)) {
+                        var newFlowTo = flowTo.Copy();
+                        var newInfow = inflow.AddAsNew(flowFrom);
+                        map.Add((newInfow, newFlowTo));
+                        return Flow(flowFrom, newFlowTo,map);
+                    }
+                }
+
+                foreach (var member in flowFrom.Members)
+                {
+                    if (flowTo.Members.TryGetValue(member.Key, out var existingMember))
+                    {
+                        res |= Flow(ToFlowNode(member.Value, map), ToFlowNode(existingMember, map), map);
+                    }
+                    else if (flowTo.Accepts)
+                    {
+                        flowTo.Members[member.Key] = member.Value;
+                        res = true;
+                    }
+                    else { 
+                        // it does not accept new members
+                    }
+                }
+
+                if (flowFrom.Input != null) {
+                    if (flowTo.Input != null)
+                    {
+                        res |= Flow(ToFlowNode(flowFrom.Input, map), ToFlowNode(flowTo.Input, map), map);
+                    }
+                    else if (flowTo.Accepts)
+                    {
+                        flowTo.Input = flowFrom.Input;
+                        res = true;
+                    }
+                    else
+                    {
+                        // it does not accept new inputs
+                    }
+                }
+
+                if (flowFrom.Output != null)
+                {
+                    if (flowTo.Output != null)
+                    {
+                        res |= Flow(ToFlowNode(flowFrom.Output, map), ToFlowNode(flowTo.Output, map), map);
+                    }
+                    else if (flowTo.Accepts)
+                    {
+                        flowTo.Output = flowFrom.Output;
+                        res = true;
+                    }
+                    else
+                    {
+                        // it does not accept new inputs
+                    }
+                }
+
+                return res;
+
+            }
+
+            bool Flow(IOrType<MethodType, Type, Object, OrType, Inflow, IError> flowFrom, IOrType<MethodType, Type, Object, OrType, Inflow, IError> flowTo, Dictionary<Inflow, InferredType> map)
+            {
+                if (flowTo.Is5(out var inflowTo))
+                {
+
                     var value = flowFrom.SwitchReturns(
                     x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x),
                     x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x),
@@ -2070,7 +2261,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(map[x]),
                     x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x));
 
-                    if (!inflowTo.inFlows.Contains(value)) {
+                    if (!inflowTo.inFlows.Contains(value))
+                    {
                         return false;
                     }
 
@@ -2108,10 +2300,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (flowFrom.Is4(out var deferringOrType))
                 {
                     res |= Flow(
-                        flowTo, 
+                        flowTo,
                         Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(
                             Merge(
-                                GetType(deferringOrType.Left.GetOrThrow()), 
+                                GetType(deferringOrType.Left.GetOrThrow()),
                                 GetType(deferringOrType.Left.GetOrThrow()))));
 
                     // flow input and flow output 
@@ -2182,7 +2374,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // we don't bother making a new infered type if one already exists with our inflows
             // if are inflow is new (it must be signular if it is new) we make one
             // if we are adding a new inflow we copy the existing inferred type that has the existing inflows and then add to it
-            
+
             // for this to work we don't want any inferred types directly referenced 
             // for each existing inferred type we make a new inferred type and set the old type as an inflow to the new type
 
