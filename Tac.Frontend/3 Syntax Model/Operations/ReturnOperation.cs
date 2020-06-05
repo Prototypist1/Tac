@@ -72,7 +72,7 @@ namespace Tac.SemanticModel.Operations
                 yield return error;
             }
 
-            var intermittentResult = Result.Possibly1().AsEnummerable()
+            var intermittentResult = Result.Possibly1().AsEnumerable()
                 .Select(x => x.GetValue()).ToArray();
 
             foreach (var thing in intermittentResult)

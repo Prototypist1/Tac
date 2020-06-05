@@ -137,17 +137,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     string debugName,
                     IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
                     IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter,
-                    bool isPlaceHolder
+                    bool isPlaceHolder,
+                    IIsPossibly<Guid> primitiveId
                     ) : base(problem, debugName, converter)
                 {
                     Key = key;
                     IsPlaceHolder = isPlaceHolder;
+                    PrimitiveId = primitiveId;
                 }
 
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
 
-
+                public IIsPossibly<Guid> PrimitiveId { get; }
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
                 //public List<Value> Values { get; } = new List<Value>();
                 //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
@@ -448,12 +450,15 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
 
 
-                public FlowNode(bool accepts)
+                public FlowNode(bool accepts,IIsPossibly<Guid> primitive)
                 {
                     this.Inferred = accepts;
+                    Primitive = primitive;
                 }
 
                 public bool Inferred { get; }
+                public IIsPossibly<Guid> Primitive { get; }
+
                 //public List<FlowNode> PossibleTypes { get; } = new List<FlowNode>();
                 public Dictionary<IKey, IOrType<OuterFlowNode, OuterInflow>> Members { get; } = new Dictionary<IKey, IOrType<OuterFlowNode, OuterInflow>>();
                 public IOrType<OuterFlowNode, OuterInflow>? Input { get; set; }
@@ -461,7 +466,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 internal FlowNode Copy()
                 {
-                    var res = new FlowNode(Inferred);
+                    var res = new FlowNode(Inferred, Primitive);
 
                     foreach (var pair in Members)
                     {
@@ -731,7 +736,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
-                var res = new Type(this, key.ToString()!, Possibly.Is(key), converter, false);
+                return CreateType(parent, key,  converter, Possibly.IsNot<Guid>());
+            }
+
+            public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter, IIsPossibly<Guid> primitive)
+            {
+                var res = new Type(this, key.ToString()!, Possibly.Is(key), converter, false, primitive);
                 IsChildOf(parent, res);
                 HasType(parent, key.SwitchReturns<IKey>(x => x, x => x), res);
                 return res;
@@ -740,7 +750,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Type CreateType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 var key = new ImplicitKey(Guid.NewGuid());
-                var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter, false);
+                var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter, false,null);
                 IsChildOf(parent, res);
                 // migiht need this, let's try without first
                 //HasType(parent, key, res);
@@ -755,7 +765,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     $"generic-{key}-{placeholders.Aggregate("", (x, y) => x + "-" + y)}",
                     Possibly.Is(key),
                     converter,
-                    false);
+                    false,
+                    Possibly.IsNot<Guid>());
                 IsChildOf(parent, res);
                 HasType(parent, key.SwitchReturns<IKey>(x => x, x => x), res);
                 foreach (var placeholder in placeholders)
@@ -765,7 +776,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         $"generic-parameter-{placeholder.key}",
                         Possibly.Is(placeholder.key),
                         placeholder.converter,
-                        true);
+                        true,
+                        Possibly.IsNot<Guid>());
                     HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
                 return res;
@@ -1255,28 +1267,86 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var outerInflows = new List<(OuterInflow, OuterFlowNode)>();
                 var inflows = new List<(Inflow, FlowNode)>();
 
-                var orsToFlowNodes = ors.ToDictionary(x =>
+                var orsToFlowNodes = new Dictionary<ITypeProblemNode, OuterFlowNode>();
+
+                foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    if (x.Is(out ITypeProblemNode node))
-                    {
-                        return node;
-                    }
-                    throw new Exception("that ain't right");
-                }, x =>
+                    orsToFlowNodes[methodType] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false, Possibly.IsNot<Guid>())));
+                }
+                foreach (var type in ors.Select(x => (x.Is2(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    if (x.Is5(out var _))
+                    orsToFlowNodes[type] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false,type.PrimitiveId)));
+                }
+                foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                {
+                    orsToFlowNodes[@object] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false, Possibly.IsNot<Guid>())));
+                }
+                foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                {
+                    // inferred types are their own inflow
+                    var res = new OuterFlowNode(true, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(true, Possibly.IsNot<Guid>())));
+                    outerInflows.Add((new OuterInflow(res), res));
+                    orsToFlowNodes[inferred] = res;
+                }
+                foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                {
+                    throw new NotImplementedException();
+                }
+
+                var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
+                var excapeValve = 0;
+
+                // or types might depend on other or types
+                // O(n^2)
+                while (todo.Any()) {
+                    excapeValve++;
+                    var nextTodo = new List<OrType>();
+                    foreach (var or in todo)
                     {
-                        // inferred types are their own inflow
-                        var res = new OuterFlowNode(true, Prototypist.Toolbox.OrType.Make < FlowNode, Inflow > (new FlowNode(true)));
-                        outerInflows.Add((new OuterInflow(res), res));
-                        return res;
+                        if (TryToOuterFlowNode(orsToFlowNodes,or, out var res))
+                        {
+                            orsToFlowNodes[or] = res;
+                        }
+                        else {
+                            nextTodo.Add(or);
+                        }
                     }
-                    // TODO! or types are not inferred and start with a list of few possible types
-                    else
-                    {
-                        return new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false)));
+                    todo = nextTodo.ToArray();
+                    if (excapeValve > 100000) {
+                        throw new Exception("we are probably stuck");
                     }
-                });
+                }
+
+
+                //var orsToFlowNodes = ors.ToDictionary(x =>
+                //{
+                //    if (x.Is(out ITypeProblemNode node))
+                //    {
+                //        return node;
+                //    }
+                //    if (x.Is6(out var _)) {
+                //        throw new NotImplementedException();
+                //    }
+                //    throw new Exception("that ain't right");
+                //}, x =>
+                //{
+                //    if (x.Is5(out var _))
+                //    {
+                //        // inferred types are their own inflow
+                //        var res = new OuterFlowNode(true, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(true)));
+                //        outerInflows.Add((new OuterInflow(res), res));
+                //        return res;
+                //    }
+                //    else if (x.Is4(out var _)) {
+                //        // TODO! ortypes are not inferred and start with a list of few possible types
+                //        string error = true;
+                //        return new OuterFlowNode(false, );
+                //    }
+                //    else
+                //    {
+                //        return new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false)));
+                //    }
+                //});
 
                 // we create members on our new representation
                 foreach (var hasPublicMembers in ors.Select(x => (x.Is(out IHavePublicMembers members), members)).Where(x => x.Item1).Select(x => x.members))
@@ -1294,7 +1364,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     orsToFlowNodes[hasInputAndOutput].Possible.Single().Is1OrThrow().Output = GetFlowNodeOrInflow(hasInputAndOutput.Returns.GetOrThrow(), orsToFlowNodes, outerInflows);
                 }
 
-                // TODO ortypes!
+                // trash old or type attemp
                 //foreach (var hasInputAndOutput in ors.Select(x => (x.Is(out IHaveInputAndOutput io), io)).Where(x => x.Item1).Select(x => x.io))
                 //{
                 //    Merge(
@@ -1343,6 +1413,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // A&B | C&B
 
 
+                // TODO add a pressure valve
+
                 bool go;
                 do
                 {
@@ -1350,6 +1422,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var (from, to) in assignments)
                     {
+                        // TODO
+                        // are these even going to work?
+                        // I mean when things flow in
+                        // we are going to make copies and make changes to the copies
+                        // do these look ups retrieve the original or the copy
+
+                        // node either have a assocatied typeProblemNode or they are defined by their inputs
+
                         var toType = orsToFlowNodes[to];
                         var fromType = orsToFlowNodes[from];
 
@@ -1492,6 +1572,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                     .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow())),
                     typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()));
 
+            }
+
+            private bool TryToOuterFlowNode(Dictionary<ITypeProblemNode, OuterFlowNode> orsToFlowNodes, OrType or, out OuterFlowNode res)
+            {
+                if (orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var left) && orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var right)) {
+
+                    res = new OuterFlowNode(false, left.Possible.Union(right.Possible).ToList());
+                    return true;
+                }
+                res = default;
+                return false;
             }
 
             private IOrType<OuterFlowNode, OuterInflow> GetFlowNodeOrInflow(ITypeProblemNode value, Dictionary<ITypeProblemNode, OuterFlowNode> orsToFlowNodes, List<(OuterInflow, OuterFlowNode)> inflows)
@@ -1806,7 +1897,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             map[oldType] = newType;
                         }
 
-                        var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this, $"generated-generic-{type.debugName}", type.Key, type.Converter, type.IsPlaceHolder)), map);
+                        var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this, $"generated-generic-{type.debugName}", type.Key, type.Converter, type.IsPlaceHolder, Possibly.IsNot<Guid>())), map);
 
                         return @explicit.SwitchReturns(v1 =>
                         {
@@ -2127,7 +2218,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var type in innerFromStaticScope.Types)
                             {
-                                var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder));
+                                var newValue = Copy(type.Value, new Type(this, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder,type.Value.PrimitiveId));
                                 HasType(innerStaticScopeTo, type.Key, newValue);
                             }
                         }
@@ -2314,12 +2405,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (flowTo.Inferred)
                 {
-                    var inflow = map.Single(x => ReferenceEquals(x.Item2, flowTo)).Item1;
+                    // flowTo is Inferred so it has to have an inflow 
+                    var inflows = map.Single(x => ReferenceEquals(x.Item2, flowTo)).Item1;
 
-                    if (!inflow.inFlows.Contains(flowFrom))
+                    if (!inflows.inFlows.Contains(flowFrom))
                     {
                         var newFlowTo = flowTo.Copy();
-                        var newInfow = inflow.AddAsNew(flowFrom);
+                        var newInfow = inflows.AddAsNew(flowFrom);
                         map.Add((newInfow, newFlowTo));
                         return Flow(flowFrom, newFlowTo, map, map2);
                     }
@@ -2358,8 +2450,35 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            (bool, FlowNode) Flow(FlowNode flowFrom, FlowNode flowTo, List<(OuterInflow, OuterFlowNode)> map, List<(Inflow, FlowNode)> map2)
+            private class Incompatible {
+            }
+
+            // TODO who know what type this returns
+            (bool,  IOrType<Incompatible, (Inflow,FlowNode)>) Flow(FlowNode flowFrom, FlowNode flowTo, List<(OuterInflow, OuterFlowNode)> map, List<(Inflow, FlowNode)> map2)
             {
+                // TODO check if this is a known Incompatible
+
+                // they they are different primitive types no flowing!
+                {
+                    if (flowTo.Primitive.Is(out var v1)
+                        && flowFrom.Primitive.Is(out var v2)
+                        && v1 != v2)
+                    {
+                        return (true, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(new Incompatible()));
+                    }
+                }
+
+                // if the target is a primitive and the source is not no flowing
+                {
+                    if (flowTo.Primitive.Is(out var v1)
+                        && !flowFrom.Primitive.Is(out var _))
+                    {
+                        return (true, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(new Incompatible()));
+                    }
+                }
+
+                // TODO you can flow things with IO and things with members together
+                // imcompatible should collect their all the things that could not be combined for error reporting
 
                 var res = false;
 
@@ -2376,6 +2495,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
+
+                // TODO I need to update the members when approprate
+                // a flow could create a new look up to a new member
+                // and that should make it back to the member list
                 foreach (var member in flowFrom.Members)
                 {
                     if (flowTo.Members.TryGetValue(member.Key, out var existingMember))
@@ -2389,10 +2512,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
+                        // TODO this is going to be an exception
+                        // since it should be handled by an imvompatible earlier 
                         // it does not accept new members
                     }
                 }
 
+                // TODO
+                // the input should be set to the result of this flow
                 if (flowFrom.Input != null)
                 {
                     if (flowTo.Input != null)
@@ -2406,10 +2533,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
+                        // TODO this is going to be an exception
+                        // since it should be handled by an imvompatible earlier 
                         // it does not accept new inputs
                     }
                 }
 
+                // TODO
+                // the output should be set to the result of this flow
                 if (flowFrom.Output != null)
                 {
                     if (flowTo.Output != null)
@@ -2423,11 +2554,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
+                        // TODO this is going to be an exception
+                        // since it should be handled by an imvompatible earlier 
                         // it does not accept new inputs
                     }
                 }
 
-                return (res, flowTo);
+                return (res, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(( /* ugh! we might not have inflows! */,flowTo)));
 
             }
 
@@ -2931,11 +3064,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 Dependency = CreateScope(Primitive, rootConverter);
                 ModuleRoot = CreateObjectOrModule(CreateScope(Dependency, rootConverter), new ImplicitKey(Guid.NewGuid()), moduleConverter, innerConverter);
 
-                CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("block")), new PrimitiveTypeConverter(new BlockType()));
-                NumberType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("number")), new PrimitiveTypeConverter(new NumberType()));
-                StringType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("string")), new PrimitiveTypeConverter(new StringType()));
-                BooleanType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("bool")), new PrimitiveTypeConverter(new BooleanType()));
-                EmptyType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("empty")), new PrimitiveTypeConverter(new EmptyType()));
+                CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("block")), new PrimitiveTypeConverter(new BlockType()), Possibly.Is(Guid.NewGuid()));
+                NumberType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("number")), new PrimitiveTypeConverter(new NumberType()), Possibly.Is(Guid.NewGuid()));
+                StringType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("string")), new PrimitiveTypeConverter(new StringType()), Possibly.Is(Guid.NewGuid()));
+                BooleanType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("bool")), new PrimitiveTypeConverter(new BooleanType()), Possibly.Is(Guid.NewGuid()));
+                EmptyType = CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("empty")), new PrimitiveTypeConverter(new EmptyType()), Possibly.Is(Guid.NewGuid()));
 
                 // shocked this works...
                 IGenericTypeParameterPlacholder[] genericParameters = new IGenericTypeParameterPlacholder[] { new GenericTypeParameterPlacholder(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T1"))), new GenericTypeParameterPlacholder(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T2"))) };
@@ -2950,7 +3083,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 HasMethodType(Primitive, key, res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, true);
+                    var placeholderType = new Type(this, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, true, Possibly.IsNot<Guid>());
                     HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
 
