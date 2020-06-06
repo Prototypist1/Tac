@@ -28,7 +28,7 @@ namespace Tac.SemanticModel.Operations
                 return OrType.Make<IFrontendType, IError>(v2);
             }
 
-            var intermittentLeft = self.Possibly1().AsEnummerable().Select(x => x.GetValue()).ToArray();
+            var intermittentLeft = self.Possibly1().AsEnumerable().Select(x => x.GetValue()).ToArray();
 
             foreach (var thing in intermittentLeft)
             {
