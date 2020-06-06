@@ -22,7 +22,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
             private readonly IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn;
-            private readonly IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.TransientMember> methodOut;
+            private readonly IReadOnlyDictionary<IOrType<OuterFlowNode2<TypeProblem2.Method>, OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.InferredType>>, TypeProblem2.TransientMember> methodOut;
             private readonly IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint;
 
             public TypeSolution(
@@ -31,7 +31,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IReadOnlyDictionary<IHavePrivateMembers, IReadOnlyList<TypeProblem2.Member>> privateMembers,
                 IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
                 IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn,
-                IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.TransientMember> methodOut,
+                IReadOnlyDictionary<IOrType<OuterFlowNode2<TypeProblem2.Method>, OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.InferredType>>, TypeProblem2.TransientMember> methodOut,
                 IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
@@ -45,7 +45,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             private readonly Dictionary<TypeProblem2.Type, IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>> cacheType = new Dictionary<TypeProblem2.Type, IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>>();
-            public IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> GetExplicitType(TypeProblem2.Type explicitType)
+            public IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> GetExplicitType(OuterFlowNode2<TypeProblem2.Type> explicitType)
             {
                 if (!cacheType.ContainsKey(explicitType))
                 {
@@ -57,7 +57,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private readonly Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>>();
-            public IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member)
+            public IBox<WeakMemberDefinition> GetMember(FlowNodeMember member)
             {
                 if (!cacheMember.ContainsKey(member))
                 {
@@ -69,7 +69,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private readonly Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>>>();
-            public IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>> GetMethod(TypeProblem2.Method method)
+            public IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>> GetMethod(OuterFlowNode2<TypeProblem2.Method> method)
             {
                 if (!cacheMethod.ContainsKey(method))
                 {
@@ -81,7 +81,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>>>();
-            public IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> GetObject(TypeProblem2.Object @object)
+            public IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> GetObject(OuterFlowNode2<TypeProblem2.Object> @object)
             {
                 if (!cacheObject.ContainsKey(@object))
                 {
@@ -93,7 +93,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private readonly Dictionary<TypeProblem2.OrType, IBox<WeakTypeOrOperation>> cacheOrType = new Dictionary<TypeProblem2.OrType, IBox<WeakTypeOrOperation>>();
-            public IBox<WeakTypeOrOperation> GetOrType(TypeProblem2.OrType orType)
+            public IBox<WeakTypeOrOperation> GetOrType(OuterFlowNode2<TypeProblem2.OrType> orType)
             {
                 if (!cacheOrType.ContainsKey(orType))
                 {
@@ -143,7 +143,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private readonly Dictionary<TypeProblem2.MethodType, IBox<MethodType>> cacheMethodType = new Dictionary<TypeProblem2.MethodType, IBox<MethodType>>();
 
-            public IBox<MethodType> GetMethodType(TypeProblem2.MethodType methodType)
+            public IBox<MethodType> GetMethodType(OuterFlowNode2<TypeProblem2.MethodType> methodType)
             {
                 if (!cacheMethodType.ContainsKey(methodType))
                 {
@@ -156,7 +156,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private readonly Dictionary<TypeProblem2.InferredType, IBox<IFrontendType>> cacheInferredType = new Dictionary<TypeProblem2.InferredType, IBox<IFrontendType>>();
 
-            public IBox<IFrontendType> GetInferredType(TypeProblem2.InferredType inferredType, IConvertTo<TypeProblem2.InferredType, IFrontendType> converter)
+            public IBox<IFrontendType> GetInferredType(OuterFlowNode2<TypeProblem2.InferredType> inferredType, IConvertTo<TypeProblem2.InferredType, IFrontendType> converter)
             {
                 if (!cacheInferredType.ContainsKey(inferredType))
                 {
@@ -167,28 +167,74 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheInferredType[inferredType];
             }
 
-            public IReadOnlyList<TypeProblem2.Member> GetMembers(IOrType<IHavePrivateMembers, IHavePublicMembers> from)
+            public readonly struct FlowNodeMember {
+                public FlowNodeMember(IKey key, OuterFlowNode2 flowNode)
+                {
+                    Key = key ?? throw new ArgumentNullException(nameof(key));
+                    FlowNode = flowNode ?? throw new ArgumentNullException(nameof(flowNode));
+                }
+
+                public IKey Key { get; }
+                public OuterFlowNode2 FlowNode { get; }
+            }
+
+            public IReadOnlyList<FlowNodeMember> GetPrivateMembers(IHavePrivateMembers privateMembers)
             {
-                return from.SwitchReturns(x =>
+                if (!privateMembers.ContainsKey(x))
                 {
-                    if (!privateMembers.ContainsKey(x))
-                    {
-                        return new List<TypeProblem2.Member>();
-                    }
-                    return privateMembers[x];
-                },
-                x =>
+                    return new List<TypeProblem2.Member>();
+                }
+                return privateMembers[x];
+            }
+
+            public IReadOnlyList<FlowNodeMember> GetPublicMembers(OuterFlowNode2<IHavePublicMembers> from)
+            {
+
+                if (!publicMembers.ContainsKey(x))
                 {
-                    if (!publicMembers.ContainsKey(x))
-                    {
-                        return new List<TypeProblem2.Member>();
-                    }
-                    return publicMembers[x];
-                });
+                    return new List<TypeProblem2.Member>();
+                }
+                return publicMembers[x];
 
             }
 
-            public IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> GetType(ILookUpType from)
+            public OuterFlowNode2<TypeProblem2.MethodType> GetFlowNode(TypeProblem2.MethodType type)
+            {
+
+            }
+            public OuterFlowNode2<TypeProblem2.Type> GetFlowNode(TypeProblem2.Type type)
+            {
+
+            }
+
+            public OuterFlowNode2<TypeProblem2.Object> GetFlowNode(TypeProblem2.Object type)
+            {
+
+            }
+
+            public OuterFlowNode2<TypeProblem2.OrType> GetFlowNode(TypeProblem2.OrType type)
+            {
+
+            }
+
+            public OuterFlowNode2<TypeProblem2.InferredType> GetFlowNode(TypeProblem2.InferredType type)
+            {
+
+            }
+
+            public IOrType<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError> GetFlowNode(ILookUpType from)
+            {
+                return map[from].SwitchReturns(
+                    x=> OrType.Make<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError> (GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError>(GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError>(GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError>(GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError>(GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError>(x)
+                    );
+            }
+
+            public IOrType<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError> GetType(ILookUpType from)
             {
                 return map[from];
             }
@@ -198,16 +244,62 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return orTypeElememts[from];
             }
 
-            public bool TryGetResultMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out TypeProblem2.TransientMember? transientMember)
+            public bool TryGetResultMember(OuterFlowNode2<TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out OuterFlowNode2? transientMember)
             {
-                return methodOut.TryGetValue(from, out transientMember);
+                if (!from.Possible.Any()) {
+                    transientMember = default;
+                    return false;
+                }
+
+                if (!from.Possible.Any(x =>x.Output != null))
+                {
+                    transientMember = default;
+                    return false;
+                }
+
+                if (from.Possible.Count == 1)
+                {
+                    transientMember = ToFlowNode(from.Possible.Single().Output!);
+                    return true;
+                }
+
+                transientMember = ToOrFlowNode(from.Possible.Select(x=> ToFlowNode(x.Output!)));
+                return true;
             }
 
-            public bool TryGetInputMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out TypeProblem2.Member? member)
+            public bool TryGetInputMember(OuterFlowNode2<TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out OuterFlowNode2? member)
             {
-                return methodIn.TryGetValue(from, out member);
+                if (!from.Possible.Any())
+                {
+                    member = default;
+                    return false;
+                }
+
+                if (!from.Possible.Any(x => x.Input != null))
+                {
+                    member = default;
+                    return false;
+                }
+
+                if (from.Possible.Count == 1)
+                {
+                    member = ToFlowNode(from.Possible.Single().Input!);
+                    return true;
+                }
+
+                member = ToOrFlowNode(from.Possible.Select(x => ToFlowNode(x.Input!)));
+                return true;
             }
 
+            private OuterFlowNode2 ToOrFlowNode(IEnumerable<OuterFlowNode2> enumerable)
+            {
+
+            }
+
+            private OuterFlowNode2 ToFlowNode(IOrType<Inflow2, OuterFlowNode2> orType)
+            {
+
+            }
 
             public TypeProblem2.TransientMember GetResultMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from)
             {

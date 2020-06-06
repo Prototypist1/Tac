@@ -115,10 +115,12 @@ namespace Tac.Frontend
         public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.InferredType from)
         {
 
-
             var scope = Help.GetScope(typeSolution, OrType.Make < Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers > (from));
-            typeSolution.TryGetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from), out var input);
-            typeSolution.TryGetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from), out var output);
+
+            var flowNode = typeSolution.GetFlowNode(from);
+
+            typeSolution.TryGetInputMember(flowNode, out var input);
+            typeSolution.TryGetResultMember(flowNode, out var output);
 
             if ((input != default || output != default) && scope.membersList.Count > 1) {
                 // this might be wrong

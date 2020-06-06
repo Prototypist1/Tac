@@ -17,6 +17,134 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     internal partial class Tpn
     {
+
+        // I wish the members of these to be visible to things in Tpn 
+        // like TypeProblem2 and TypeSolution
+        // but not to the outside world
+        // I could not figure out how to do that
+        // so the members are just public
+
+        private class Incompatable2
+        {
+        }
+
+        public class Inflow2
+        {
+            public readonly List<OuterFlowNode2> inFlows = new List<OuterFlowNode2>();
+
+            public Inflow2(OuterFlowNode2 toAdd)
+            {
+                inFlows.Add(toAdd);
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is Inflow2 inflow && inFlows.SetEqual(inflow.inFlows);
+            }
+
+            public override int GetHashCode()
+            {
+                return inFlows.Sum(x => x.GetHashCode());
+            }
+
+            internal Inflow2 AddAsNew(OuterFlowNode2 flowFrom)
+            {
+                var res = new Inflow2(flowFrom);
+                foreach (var inFlow in inFlows)
+                {
+                    res.inFlows.Add(inFlow);
+                }
+                return res;
+            }
+        }
+
+        public class OuterFlowNode2<T> : OuterFlowNode2
+        {
+            public OuterFlowNode2(bool inferred, List<FlowNode2> possible, T source) : base(inferred, possible)
+            {
+                Source = source;
+            }
+
+            public OuterFlowNode2(bool inferred, FlowNode2 node, T source) : base(inferred, node)
+            {
+                Source = source;
+            }
+
+            public T Source { get; }
+
+
+            internal override OuterFlowNode2 Copy()
+            {
+                return new OuterFlowNode2<T>(Inferred, Possible.ToList(), Source);
+            }
+        }
+
+        public abstract class OuterFlowNode2
+        {
+            public OuterFlowNode2(bool inferred, List<FlowNode2> possible)
+            {
+                Possible = possible ?? throw new ArgumentNullException(nameof(possible));
+                this.Inferred = inferred;
+            }
+            public OuterFlowNode2(bool inferred, FlowNode2 node)
+            {
+                if (node is null)
+                {
+                    throw new ArgumentNullException(nameof(node));
+                }
+
+                Possible = new List<FlowNode2> {
+                        node
+                    };
+                this.Inferred = inferred;
+            }
+
+            internal List<FlowNode2> Possible { get; }
+            public bool Inferred { get; }
+
+            internal abstract OuterFlowNode2 Copy();
+
+        }
+
+        public class FlowNode2
+        {
+            public FlowNode2(bool accepts, IIsPossibly<Guid> primitive)
+            {
+                this.Inferred = accepts;
+                Primitive = primitive;
+            }
+
+            public bool Inferred { get; }
+            public IIsPossibly<Guid> Primitive { get; }
+
+            //public List<FlowNode> PossibleTypes { get; } = new List<FlowNode>();
+            public Dictionary<IKey, IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>> Members { get; } = new Dictionary<IKey, IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>>();
+
+            // really should be IIsPossibly
+            public IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>? Input { get; set; }
+            public IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>? Output { get; set; }
+
+            internal FlowNode2 Copy()
+            {
+                var res = new FlowNode2(Inferred, Primitive);
+
+                foreach (var pair in Members)
+                {
+                    res.Members[pair.Key] = pair.Value;
+                }
+
+                //foreach (var possible in PossibleTypes)
+                //{
+                //    res.PossibleTypes.Add(possible);
+                //}
+
+                res.Input = Input;
+                res.Output = Output;
+
+                return res;
+            }
+        }
+
         internal class TypeProblem2 : ISetUpTypeProblem
         {
             public abstract class TypeProblemNode : ITypeProblemNode
@@ -357,108 +485,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
             }
 
-            private class Incompatable2
-            {
-            }
 
-            // I think this contains outer flow nodes
-            private class Inflow2
-            {
-                public readonly List<OuterFlowNode2> inFlows = new List<OuterFlowNode2>();
-
-                public Inflow2(OuterFlowNode2 toAdd)
-                {
-                    inFlows.Add(toAdd);
-                }
-
-                public override bool Equals(object? obj)
-                {
-                    return obj != null && obj is Inflow2 inflow && inFlows.SetEqual(inflow.inFlows);
-                }
-
-                public override int GetHashCode()
-                {
-                    return inFlows.Sum(x => x.GetHashCode());
-                }
-
-                internal Inflow2 AddAsNew(OuterFlowNode2 flowFrom)
-                {
-                    var res = new Inflow2(flowFrom);
-                    foreach (var inFlow in inFlows)
-                    {
-                        res.inFlows.Add(inFlow);
-                    }
-                    return res;
-                }
-            }
-
-            private class OuterFlowNode2
-            {
-                public OuterFlowNode2(bool inferred, List<FlowNode2> possible)
-                {
-                    Possible = possible ?? throw new ArgumentNullException(nameof(possible));
-                    this.Inferred = inferred;
-                }
-                public OuterFlowNode2(bool inferred, FlowNode2 node)
-                {
-                    if (node is null)
-                    {
-                        throw new ArgumentNullException(nameof(node));
-                    }
-
-                    Possible = new List<FlowNode2> {
-                        node
-                    };
-                    this.Inferred = inferred;
-                }
-
-                public List<FlowNode2> Possible { get; }
-                public bool Inferred { get; }
-
-                internal OuterFlowNode2 Copy()
-                {
-                    return new OuterFlowNode2(Inferred, Possible.ToList());
-                }
-            }
-
-            private class FlowNode2
-            {
-                public FlowNode2(bool accepts, IIsPossibly<Guid> primitive)
-                {
-                    this.Inferred = accepts;
-                    Primitive = primitive;
-                }
-
-                public bool Inferred { get; }
-                public IIsPossibly<Guid> Primitive { get; }
-
-                //public List<FlowNode> PossibleTypes { get; } = new List<FlowNode>();
-                public Dictionary<IKey, IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>> Members { get; } = new Dictionary<IKey, IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>>();
-
-                // really should be IIsPossibly
-                public IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>? Input { get; set; }
-                public IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>? Output { get; set; }
-
-                internal FlowNode2 Copy()
-                {
-                    var res = new FlowNode2(Inferred, Primitive);
-
-                    foreach (var pair in Members)
-                    {
-                        res.Members[pair.Key] = pair.Value;
-                    }
-
-                    //foreach (var possible in PossibleTypes)
-                    //{
-                    //    res.PossibleTypes.Add(possible);
-                    //}
-
-                    res.Input = Input;
-                    res.Output = Output;
-
-                    return res;
-                }
-            }
 
             // basic stuff
             private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
@@ -1196,19 +1223,19 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes[methodType] = new OuterFlowNode2(false, new FlowNode2(false, Possibly.IsNot<Guid>()));
+                    orsToFlowNodes[methodType] = new OuterFlowNode2<MethodType>(false, new FlowNode2(false, Possibly.IsNot<Guid>()),methodType);
                 }
                 foreach (var type in ors.Select(x => (x.Is2(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes[type] = new OuterFlowNode2(false, new FlowNode2(false, type.PrimitiveId));
+                    orsToFlowNodes[type] = new OuterFlowNode2<Type>(false, new FlowNode2(false, type.PrimitiveId), type);
                 }
                 foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes[@object] = new OuterFlowNode2(false, new FlowNode2(false, Possibly.IsNot<Guid>()));
+                    orsToFlowNodes[@object] = new OuterFlowNode2<Object>(false, new FlowNode2(false, Possibly.IsNot<Guid>()), @object);
                 }
                 foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes[inferred] = new OuterFlowNode2(true, new FlowNode2(true, Possibly.IsNot<Guid>())); ;
+                    orsToFlowNodes[inferred] = new OuterFlowNode2<InferredType>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), inferred); ;
                 }
                 foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
@@ -1677,7 +1704,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var left) && orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var right))
                 {
 
-                    res = new OuterFlowNode2(false, left.Possible.Union(right.Possible).ToList());
+                    res = new OuterFlowNode2<OrType>(false, left.Possible.Union(right.Possible).ToList(), or);
                     return true;
                 }
                 res = default;
