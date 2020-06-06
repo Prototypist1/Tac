@@ -357,131 +357,131 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
             }
 
-            private class Inflow
-            {
-                public readonly List<FlowNode> inFlows = new List<FlowNode>();
+            //private class Inflow
+            //{
+            //    public readonly List<FlowNode> inFlows = new List<FlowNode>();
 
-                public Inflow(FlowNode toAdd)
-                {
-                    inFlows.Add(toAdd);
-                }
+            //    public Inflow(FlowNode toAdd)
+            //    {
+            //        inFlows.Add(toAdd);
+            //    }
 
-                public override bool Equals(object? obj)
-                {
-                    return obj != null && obj is Inflow inflow && inFlows.SetEqual(inflow.inFlows);
-                }
+            //    public override bool Equals(object? obj)
+            //    {
+            //        return obj != null && obj is Inflow inflow && inFlows.SetEqual(inflow.inFlows);
+            //    }
 
-                public override int GetHashCode()
-                {
-                    return inFlows.Sum(x => x.GetHashCode());
-                }
+            //    public override int GetHashCode()
+            //    {
+            //        return inFlows.Sum(x => x.GetHashCode());
+            //    }
 
-                internal Inflow AddAsNew(FlowNode flowFrom)
-                {
-                    var res = new Inflow(flowFrom);
-                    foreach (var inFlow in inFlows)
-                    {
-                        res.inFlows.Add(inFlow);
-                    }
-                    return res;
-                }
-            }
+            //    internal Inflow AddAsNew(FlowNode flowFrom)
+            //    {
+            //        var res = new Inflow(flowFrom);
+            //        foreach (var inFlow in inFlows)
+            //        {
+            //            res.inFlows.Add(inFlow);
+            //        }
+            //        return res;
+            //    }
+            //}
 
-            private class OuterInflow
-            {
-                public readonly List<OuterFlowNode> inFlows = new List<OuterFlowNode>();
+            //private class OuterInflow
+            //{
+            //    public readonly List<OuterFlowNode> inFlows = new List<OuterFlowNode>();
 
-                public OuterInflow(OuterFlowNode toAdd)
-                {
-                    inFlows.Add(toAdd);
-                }
+            //    public OuterInflow(OuterFlowNode toAdd)
+            //    {
+            //        inFlows.Add(toAdd);
+            //    }
 
-                public override bool Equals(object? obj)
-                {
-                    return obj != null && obj is OuterInflow inflow && inFlows.SetEqual(inflow.inFlows);
-                }
+            //    public override bool Equals(object? obj)
+            //    {
+            //        return obj != null && obj is OuterInflow inflow && inFlows.SetEqual(inflow.inFlows);
+            //    }
 
-                public override int GetHashCode()
-                {
-                    return inFlows.Sum(x => x.GetHashCode());
-                }
+            //    public override int GetHashCode()
+            //    {
+            //        return inFlows.Sum(x => x.GetHashCode());
+            //    }
 
-                internal OuterInflow AddAsNew(OuterFlowNode flowFrom)
-                {
-                    var res = new OuterInflow(flowFrom);
-                    foreach (var inFlow in inFlows)
-                    {
-                        res.inFlows.Add(inFlow);
-                    }
-                    return res;
-                }
-            }
+            //    internal OuterInflow AddAsNew(OuterFlowNode flowFrom)
+            //    {
+            //        var res = new OuterInflow(flowFrom);
+            //        foreach (var inFlow in inFlows)
+            //        {
+            //            res.inFlows.Add(inFlow);
+            //        }
+            //        return res;
+            //    }
+            //}
 
-            private class OuterFlowNode
-            {
-                public OuterFlowNode(bool inferred, List<IOrType<FlowNode, Inflow>> possible)
-                {
-                    Possible = possible ?? throw new ArgumentNullException(nameof(possible));
-                    this.Inferred = inferred;
-                }
-                public OuterFlowNode(bool inferred, IOrType<FlowNode, Inflow> node)
-                {
-                    if (node is null)
-                    {
-                        throw new ArgumentNullException(nameof(node));
-                    }
+            //private class OuterFlowNode
+            //{
+            //    public OuterFlowNode(bool inferred, List<IOrType<FlowNode, Inflow>> possible)
+            //    {
+            //        Possible = possible ?? throw new ArgumentNullException(nameof(possible));
+            //        this.Inferred = inferred;
+            //    }
+            //    public OuterFlowNode(bool inferred, IOrType<FlowNode, Inflow> node)
+            //    {
+            //        if (node is null)
+            //        {
+            //            throw new ArgumentNullException(nameof(node));
+            //        }
 
-                    Possible = new List<IOrType<FlowNode, Inflow>> {
-                        node
-                    };
-                    this.Inferred = inferred;
-                }
+            //        Possible = new List<IOrType<FlowNode, Inflow>> {
+            //            node
+            //        };
+            //        this.Inferred = inferred;
+            //    }
 
-                public List<IOrType<FlowNode, Inflow>> Possible { get; }
-                public bool Inferred { get; }
+            //    public List<IOrType<FlowNode, Inflow>> Possible { get; }
+            //    public bool Inferred { get; }
 
-                internal OuterFlowNode Copy()
-                {
-                    return new OuterFlowNode(Inferred, Possible.ToList());
-                }
-            }
+            //    internal OuterFlowNode Copy()
+            //    {
+            //        return new OuterFlowNode(Inferred, Possible.ToList());
+            //    }
+            //}
 
-            private class FlowNode
-            {
-                public FlowNode(bool accepts, IIsPossibly<Guid> primitive)
-                {
-                    this.Inferred = accepts;
-                    Primitive = primitive;
-                }
+            //private class FlowNode
+            //{
+            //    public FlowNode(bool accepts, IIsPossibly<Guid> primitive)
+            //    {
+            //        this.Inferred = accepts;
+            //        Primitive = primitive;
+            //    }
 
-                public bool Inferred { get; }
-                public IIsPossibly<Guid> Primitive { get; }
+            //    public bool Inferred { get; }
+            //    public IIsPossibly<Guid> Primitive { get; }
 
-                //public List<FlowNode> PossibleTypes { get; } = new List<FlowNode>();
-                public Dictionary<IKey, IOrType<OuterFlowNode, OuterInflow>> Members { get; } = new Dictionary<IKey, IOrType<OuterFlowNode, OuterInflow>>();
-                public IOrType<OuterFlowNode, OuterInflow>? Input { get; set; }
-                public IOrType<OuterFlowNode, OuterInflow>? Output { get; set; }
+            //    //public List<FlowNode> PossibleTypes { get; } = new List<FlowNode>();
+            //    public Dictionary<IKey, IOrType<OuterFlowNode, OuterInflow>> Members { get; } = new Dictionary<IKey, IOrType<OuterFlowNode, OuterInflow>>();
+            //    public IOrType<OuterFlowNode, OuterInflow>? Input { get; set; }
+            //    public IOrType<OuterFlowNode, OuterInflow>? Output { get; set; }
 
-                internal FlowNode Copy()
-                {
-                    var res = new FlowNode(Inferred, Primitive);
+            //    internal FlowNode Copy()
+            //    {
+            //        var res = new FlowNode(Inferred, Primitive);
 
-                    foreach (var pair in Members)
-                    {
-                        res.Members[pair.Key] = pair.Value;
-                    }
+            //        foreach (var pair in Members)
+            //        {
+            //            res.Members[pair.Key] = pair.Value;
+            //        }
 
-                    //foreach (var possible in PossibleTypes)
-                    //{
-                    //    res.PossibleTypes.Add(possible);
-                    //}
+            //        //foreach (var possible in PossibleTypes)
+            //        //{
+            //        //    res.PossibleTypes.Add(possible);
+            //        //}
 
-                    res.Input = Input;
-                    res.Output = Output;
+            //        res.Input = Input;
+            //        res.Output = Output;
 
-                    return res;
-                }
-            }
+            //        return res;
+            //    }
+            //}
 
             private class Incompatable2
             {
@@ -1505,197 +1505,197 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 // -------------------------------------
                 // we change representation
-                {
-                    var ors = typeProblemNodes.Select(node => GetType(node)).ToArray();
+                //{
+                //    var ors = typeProblemNodes.Select(node => GetType(node)).ToArray();
 
-                    var outerInflows = new List<(OuterInflow, OuterFlowNode)>();
-                    var inflows = new List<(Inflow, FlowNode)>();
+                //    var outerInflows = new List<(OuterInflow, OuterFlowNode)>();
+                //    var inflows = new List<(Inflow, FlowNode)>();
 
-                    var orsToFlowNodes = new Dictionary<ITypeProblemNode, OuterFlowNode>();
+                //    var orsToFlowNodes = new Dictionary<ITypeProblemNode, OuterFlowNode>();
 
-                    foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
-                    {
-                        orsToFlowNodes[methodType] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false, Possibly.IsNot<Guid>())));
-                    }
-                    foreach (var type in ors.Select(x => (x.Is2(out var v), v)).Where(x => x.Item1).Select(x => x.v))
-                    {
-                        orsToFlowNodes[type] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false, type.PrimitiveId)));
-                    }
-                    foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
-                    {
-                        orsToFlowNodes[@object] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false, Possibly.IsNot<Guid>())));
-                    }
-                    foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
-                    {
-                        // inferred types are their own inflow
-                        var res = new OuterFlowNode(true, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(true, Possibly.IsNot<Guid>())));
-                        outerInflows.Add((new OuterInflow(res), res));
-                        orsToFlowNodes[inferred] = res;
-                    }
-                    foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
-                    {
-                        throw new NotImplementedException();
-                    }
+                //    foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                //    {
+                //        orsToFlowNodes[methodType] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false, Possibly.IsNot<Guid>())));
+                //    }
+                //    foreach (var type in ors.Select(x => (x.Is2(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                //    {
+                //        orsToFlowNodes[type] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false, type.PrimitiveId)));
+                //    }
+                //    foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                //    {
+                //        orsToFlowNodes[@object] = new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false, Possibly.IsNot<Guid>())));
+                //    }
+                //    foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                //    {
+                //        // inferred types are their own inflow
+                //        var res = new OuterFlowNode(true, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(true, Possibly.IsNot<Guid>())));
+                //        outerInflows.Add((new OuterInflow(res), res));
+                //        orsToFlowNodes[inferred] = res;
+                //    }
+                //    foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                //    {
+                //        throw new NotImplementedException();
+                //    }
 
-                    var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
-                    var excapeValve = 0;
+                //    var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
+                //    var excapeValve = 0;
 
-                    // or types might depend on other or types
-                    // O(n^2)
-                    while (todo.Any())
-                    {
-                        excapeValve++;
-                        var nextTodo = new List<OrType>();
-                        foreach (var or in todo)
-                        {
-                            if (TryToOuterFlowNode(orsToFlowNodes, or, out var res))
-                            {
-                                orsToFlowNodes[or] = res;
-                            }
-                            else
-                            {
-                                nextTodo.Add(or);
-                            }
-                        }
-                        todo = nextTodo.ToArray();
-                        if (excapeValve > 100000)
-                        {
-                            throw new Exception("we are probably stuck");
-                        }
-                    }
-
-
-                    //var orsToFlowNodes = ors.ToDictionary(x =>
-                    //{
-                    //    if (x.Is(out ITypeProblemNode node))
-                    //    {
-                    //        return node;
-                    //    }
-                    //    if (x.Is6(out var _)) {
-                    //        throw new NotImplementedException();
-                    //    }
-                    //    throw new Exception("that ain't right");
-                    //}, x =>
-                    //{
-                    //    if (x.Is5(out var _))
-                    //    {
-                    //        // inferred types are their own inflow
-                    //        var res = new OuterFlowNode(true, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(true)));
-                    //        outerInflows.Add((new OuterInflow(res), res));
-                    //        return res;
-                    //    }
-                    //    else if (x.Is4(out var _)) {
-                    //        // TODO! ortypes are not inferred and start with a list of few possible types
-                    //        string error = true;
-                    //        return new OuterFlowNode(false, );
-                    //    }
-                    //    else
-                    //    {
-                    //        return new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false)));
-                    //    }
-                    //});
-
-                    // we create members on our new representation
-                    foreach (var hasPublicMembers in ors.Select(x => (x.Is(out IHavePublicMembers members), members)).Where(x => x.Item1).Select(x => x.members))
-                    {
-                        foreach (var member in hasPublicMembers.PublicMembers)
-                        {
-                            orsToFlowNodes[hasPublicMembers].Possible.Single().Is1OrThrow().Members[member.Key] = GetFlowNodeOrInflow(member.Value, orsToFlowNodes, outerInflows); //Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(orsToFlowNodes[member.Value]);
-                        }
-                    }
-
-                    // we create input and output on our new implmentation
-                    foreach (var hasInputAndOutput in ors.Select(x => (x.Is(out IHaveInputAndOutput io), io)).Where(x => x.Item1).Select(x => x.io))
-                    {
-                        orsToFlowNodes[hasInputAndOutput].Possible.Single().Is1OrThrow().Input = GetFlowNodeOrInflow(hasInputAndOutput.Input.GetOrThrow(), orsToFlowNodes, outerInflows);
-                        orsToFlowNodes[hasInputAndOutput].Possible.Single().Is1OrThrow().Output = GetFlowNodeOrInflow(hasInputAndOutput.Returns.GetOrThrow(), orsToFlowNodes, outerInflows);
-                    }
-
-                    // trash old or type attemp
-                    //foreach (var hasInputAndOutput in ors.Select(x => (x.Is(out IHaveInputAndOutput io), io)).Where(x => x.Item1).Select(x => x.io))
-                    //{
-                    //    Merge(
-                    //                GetType(deferringOrType.Left.GetOrThrow()),
-                    //                GetType(deferringOrType.Left.GetOrThrow()));
-                    //}
-
-                    // A | B ab;
-                    // ab =: C c;
-                    // C flows in to A and B
-
-                    // C c;
-                    // c =: A | B ab;
-                    // nothing flows in to c? 
-
-                    // TODO
-                    // I am not really flowing primitive types
-                    // intness to needs to flow
-
-                    // 5 =: c
-                    // c =: number | string b
-                    // this should work
-                    // but right now it doesn't
-                    // c needs to become "number | string" as well 
-                    // well, not egactly "number | string" more like it has a list of things it could possibly be and they include "number | string", "number" and "string"
-                    // if we have this:
-                    // 5 =: c
-                    // c =: number | string b
-                    // c =: number d
-                    // it better become a number 
-                    // so we have a could-be list
-                    // and flows intersect the list
-
-                    // object { name := "test" } =: c
-                    // c =: A | C a
-                    // c =: B | D b
-                    // so c is...
-                    // A&B | A&D | C&B | C&D
-                    // seems simple enough
+                //    // or types might depend on other or types
+                //    // O(n^2)
+                //    while (todo.Any())
+                //    {
+                //        excapeValve++;
+                //        var nextTodo = new List<OrType>();
+                //        foreach (var or in todo)
+                //        {
+                //            if (TryToOuterFlowNode(orsToFlowNodes, or, out var res))
+                //            {
+                //                orsToFlowNodes[or] = res;
+                //            }
+                //            else
+                //            {
+                //                nextTodo.Add(or);
+                //            }
+                //        }
+                //        todo = nextTodo.ToArray();
+                //        if (excapeValve > 100000)
+                //        {
+                //            throw new Exception("we are probably stuck");
+                //        }
+                //    }
 
 
-                    // object { name := "test" } =: c
-                    // c =: A | C a
-                    // c =: B b
-                    // so c is...
-                    // A&B | C&B
+                //    //var orsToFlowNodes = ors.ToDictionary(x =>
+                //    //{
+                //    //    if (x.Is(out ITypeProblemNode node))
+                //    //    {
+                //    //        return node;
+                //    //    }
+                //    //    if (x.Is6(out var _)) {
+                //    //        throw new NotImplementedException();
+                //    //    }
+                //    //    throw new Exception("that ain't right");
+                //    //}, x =>
+                //    //{
+                //    //    if (x.Is5(out var _))
+                //    //    {
+                //    //        // inferred types are their own inflow
+                //    //        var res = new OuterFlowNode(true, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(true)));
+                //    //        outerInflows.Add((new OuterInflow(res), res));
+                //    //        return res;
+                //    //    }
+                //    //    else if (x.Is4(out var _)) {
+                //    //        // TODO! ortypes are not inferred and start with a list of few possible types
+                //    //        string error = true;
+                //    //        return new OuterFlowNode(false, );
+                //    //    }
+                //    //    else
+                //    //    {
+                //    //        return new OuterFlowNode(false, Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(new FlowNode(false)));
+                //    //    }
+                //    //});
+
+                //    // we create members on our new representation
+                //    foreach (var hasPublicMembers in ors.Select(x => (x.Is(out IHavePublicMembers members), members)).Where(x => x.Item1).Select(x => x.members))
+                //    {
+                //        foreach (var member in hasPublicMembers.PublicMembers)
+                //        {
+                //            orsToFlowNodes[hasPublicMembers].Possible.Single().Is1OrThrow().Members[member.Key] = GetFlowNodeOrInflow(member.Value, orsToFlowNodes, outerInflows); //Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(orsToFlowNodes[member.Value]);
+                //        }
+                //    }
+
+                //    // we create input and output on our new implmentation
+                //    foreach (var hasInputAndOutput in ors.Select(x => (x.Is(out IHaveInputAndOutput io), io)).Where(x => x.Item1).Select(x => x.io))
+                //    {
+                //        orsToFlowNodes[hasInputAndOutput].Possible.Single().Is1OrThrow().Input = GetFlowNodeOrInflow(hasInputAndOutput.Input.GetOrThrow(), orsToFlowNodes, outerInflows);
+                //        orsToFlowNodes[hasInputAndOutput].Possible.Single().Is1OrThrow().Output = GetFlowNodeOrInflow(hasInputAndOutput.Returns.GetOrThrow(), orsToFlowNodes, outerInflows);
+                //    }
+
+                //    // trash old or type attemp
+                //    //foreach (var hasInputAndOutput in ors.Select(x => (x.Is(out IHaveInputAndOutput io), io)).Where(x => x.Item1).Select(x => x.io))
+                //    //{
+                //    //    Merge(
+                //    //                GetType(deferringOrType.Left.GetOrThrow()),
+                //    //                GetType(deferringOrType.Left.GetOrThrow()));
+                //    //}
+
+                //    // A | B ab;
+                //    // ab =: C c;
+                //    // C flows in to A and B
+
+                //    // C c;
+                //    // c =: A | B ab;
+                //    // nothing flows in to c? 
+
+                //    // TODO
+                //    // I am not really flowing primitive types
+                //    // intness to needs to flow
+
+                //    // 5 =: c
+                //    // c =: number | string b
+                //    // this should work
+                //    // but right now it doesn't
+                //    // c needs to become "number | string" as well 
+                //    // well, not egactly "number | string" more like it has a list of things it could possibly be and they include "number | string", "number" and "string"
+                //    // if we have this:
+                //    // 5 =: c
+                //    // c =: number | string b
+                //    // c =: number d
+                //    // it better become a number 
+                //    // so we have a could-be list
+                //    // and flows intersect the list
+
+                //    // object { name := "test" } =: c
+                //    // c =: A | C a
+                //    // c =: B | D b
+                //    // so c is...
+                //    // A&B | A&D | C&B | C&D
+                //    // seems simple enough
 
 
-                    // TODO add a pressure valve
+                //    // object { name := "test" } =: c
+                //    // c =: A | C a
+                //    // c =: B b
+                //    // so c is...
+                //    // A&B | C&B
 
-                    bool go;
-                    do
-                    {
-                        go = false;
 
-                        foreach (var (from, to) in assignments)
-                        {
-                            // TODO
-                            // are these even going to work?
-                            // I mean when things flow in
-                            // we are going to make copies and make changes to the copies
-                            // do these look ups retrieve the original or the copy
+                //    // TODO add a pressure valve
 
-                            // node either have a assocatied typeProblemNode or they are defined by their inputs
+                //    bool go;
+                //    do
+                //    {
+                //        go = false;
 
-                            var toType = orsToFlowNodes[to];
-                            var fromType = orsToFlowNodes[from];
+                //        foreach (var (from, to) in assignments)
+                //        {
+                //            // TODO
+                //            // are these even going to work?
+                //            // I mean when things flow in
+                //            // we are going to make copies and make changes to the copies
+                //            // do these look ups retrieve the original or the copy
 
-                            go |= Flow(toType, fromType, outerInflows, inflows);
+                //            // node either have a assocatied typeProblemNode or they are defined by their inputs
 
-                        }
+                //            var toType = orsToFlowNodes[to];
+                //            var fromType = orsToFlowNodes[from];
 
-                        //foreach (var (from, to) in assertions)
-                        //{
-                        //    // nothing should look up to null at this point
-                        //    var fromType = from.LooksUp.GetOrThrow();
+                //            go |= Flow(toType, fromType, outerInflows, inflows);
 
-                        //    go |= Flow(to, fromType);
+                //        }
 
-                        //}
+                //        //foreach (var (from, to) in assertions)
+                //        //{
+                //        //    // nothing should look up to null at this point
+                //        //    var fromType = from.LooksUp.GetOrThrow();
 
-                    } while (go);
+                //        //    go |= Flow(to, fromType);
 
-                }
+                //        //}
+
+                //    } while (go);
+
+                //}
 
                 //// -------------------------------------- old stuff
                 //var toInflows = new List<InferredType>();
@@ -2101,33 +2101,40 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private bool TryToOuterFlowNode(Dictionary<ITypeProblemNode, OuterFlowNode2> orsToFlowNodes, OrType or, out OuterFlowNode2 res)
             {
-
-            }
-
-            private bool TryToOuterFlowNode(Dictionary<ITypeProblemNode, OuterFlowNode> orsToFlowNodes, OrType or, out OuterFlowNode res)
-            {
                 if (orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var left) && orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var right))
                 {
 
-                    res = new OuterFlowNode(false, left.Possible.Union(right.Possible).ToList());
+                    res = new OuterFlowNode2(false, left.Possible.Union(right.Possible).ToList());
                     return true;
                 }
                 res = default;
                 return false;
             }
 
-            private IOrType<OuterFlowNode, OuterInflow> GetFlowNodeOrInflow(ITypeProblemNode value, Dictionary<ITypeProblemNode, OuterFlowNode> orsToFlowNodes, List<(OuterInflow, OuterFlowNode)> inflows)
-            {
-                var type = GetType(value);
+            //private bool TryToOuterFlowNode(Dictionary<ITypeProblemNode, OuterFlowNode> orsToFlowNodes, OrType or, out OuterFlowNode res)
+            //{
+            //    if (orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var left) && orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var right))
+            //    {
 
-                if (type.Is5(out var inferred))
-                {
+            //        res = new OuterFlowNode(false, left.Possible.Union(right.Possible).ToList());
+            //        return true;
+            //    }
+            //    res = default;
+            //    return false;
+            //}
 
-                    return Prototypist.Toolbox.OrType.Make<OuterFlowNode, OuterInflow>(inflows.Single(x => ReferenceEquals(x.Item2, orsToFlowNodes[inferred])).Item1);
+            //private IOrType<OuterFlowNode, OuterInflow> GetFlowNodeOrInflow(ITypeProblemNode value, Dictionary<ITypeProblemNode, OuterFlowNode> orsToFlowNodes, List<(OuterInflow, OuterFlowNode)> inflows)
+            //{
+            //    var type = GetType(value);
 
-                }
-                return Prototypist.Toolbox.OrType.Make<OuterFlowNode, OuterInflow>(orsToFlowNodes[value]);
-            }
+            //    if (type.Is5(out var inferred))
+            //    {
+
+            //        return Prototypist.Toolbox.OrType.Make<OuterFlowNode, OuterInflow>(inflows.Single(x => ReferenceEquals(x.Item2, orsToFlowNodes[inferred])).Item1);
+
+            //    }
+            //    return Prototypist.Toolbox.OrType.Make<OuterFlowNode, OuterInflow>(orsToFlowNodes[value]);
+            //}
 
 
             #region Helpers
@@ -2575,8 +2582,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // no but they can have members that are implicit 
                         // plus maybe they could be in the future this some sort of implicit key word
                         // number || implict 
-                        orType.Left.If<TypeReference, int>(x => HandleHopefulMember(key, hopeful, GetType(x)));
-                        orType.Right.If<TypeReference, int>(x => HandleHopefulMember(key, hopeful, GetType(x)));
+                        orType.Left.If<TypeReference>(x => HandleHopefulMember(key, hopeful, GetType(x)));
+                        orType.Right.If<TypeReference>(x => HandleHopefulMember(key, hopeful, GetType(x)));
 
                     },
                     inferredType =>
@@ -2916,187 +2923,187 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            FlowNode ToFlowNode(IOrType<FlowNode, Inflow> orType, List<(Inflow, FlowNode)> map)
-            {
-                return orType.SwitchReturns(
-                    x => x,
-                    x => map.Single(y => ReferenceEquals(y.Item1, x)).Item2);
-            }
-            OuterFlowNode ToFlowNode(IOrType<OuterFlowNode, OuterInflow> orType, List<(OuterInflow, OuterFlowNode)> map)
-            {
-                return orType.SwitchReturns(
-                    x => x,
-                    x => map.Single(y => ReferenceEquals(y.Item1, x)).Item2);
-            }
+            //FlowNode ToFlowNode(IOrType<FlowNode, Inflow> orType, List<(Inflow, FlowNode)> map)
+            //{
+            //    return orType.SwitchReturns(
+            //        x => x,
+            //        x => map.Single(y => ReferenceEquals(y.Item1, x)).Item2);
+            //}
+            //OuterFlowNode ToFlowNode(IOrType<OuterFlowNode, OuterInflow> orType, List<(OuterInflow, OuterFlowNode)> map)
+            //{
+            //    return orType.SwitchReturns(
+            //        x => x,
+            //        x => map.Single(y => ReferenceEquals(y.Item1, x)).Item2);
+            //}
 
-            bool Flow(OuterFlowNode flowFrom, OuterFlowNode flowTo, List<(OuterInflow, OuterFlowNode)> map, List<(Inflow, FlowNode)> map2)
-            {
+            //bool Flow(OuterFlowNode flowFrom, OuterFlowNode flowTo, List<(OuterInflow, OuterFlowNode)> map, List<(Inflow, FlowNode)> map2)
+            //{
 
-                var res = false;
+            //    var res = false;
 
-                if (flowTo.Inferred)
-                {
-                    // flowTo is Inferred so it has to have an inflow 
-                    var inflows = map.Single(x => ReferenceEquals(x.Item2, flowTo)).Item1;
+            //    if (flowTo.Inferred)
+            //    {
+            //        // flowTo is Inferred so it has to have an inflow 
+            //        var inflows = map.Single(x => ReferenceEquals(x.Item2, flowTo)).Item1;
 
-                    if (!inflows.inFlows.Contains(flowFrom))
-                    {
-                        var newFlowTo = flowTo.Copy();
-                        var newInfow = inflows.AddAsNew(flowFrom);
-                        map.Add((newInfow, newFlowTo));
-                        return Flow(flowFrom, newFlowTo, map, map2);
-                    }
+            //        if (!inflows.inFlows.Contains(flowFrom))
+            //        {
+            //            var newFlowTo = flowTo.Copy();
+            //            var newInfow = inflows.AddAsNew(flowFrom);
+            //            map.Add((newInfow, newFlowTo));
+            //            return Flow(flowFrom, newFlowTo, map, map2);
+            //        }
 
-                    var nextList = new List<IOrType<FlowNode, Inflow>>();
+            //        var nextList = new List<IOrType<FlowNode, Inflow>>();
 
-                    foreach (var toItem in flowTo.Possible)
-                    {
-                        var beforeCount = nextList.Count;
-                        foreach (var fromItem in flowFrom.Possible)
-                        {
-                            // we add the inflow version
-                            var flowResult = Flow(ToFlowNode(fromItem, map2), ToFlowNode(toItem, map2), map, map2);
+            //        foreach (var toItem in flowTo.Possible)
+            //        {
+            //            var beforeCount = nextList.Count;
+            //            foreach (var fromItem in flowFrom.Possible)
+            //            {
+            //                // we add the inflow version
+            //                var flowResult = Flow(ToFlowNode(fromItem, map2), ToFlowNode(toItem, map2), map, map2);
 
-                            if (flowResult.Item1)
-                            {
-                                var inflowOr = Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(
-                                        map2.Single(x => ReferenceEquals(flowResult.Item2, x.Item2)).Item1);
+            //                if (flowResult.Item1)
+            //                {
+            //                    var inflowOr = Prototypist.Toolbox.OrType.Make<FlowNode, Inflow>(
+            //                            map2.Single(x => ReferenceEquals(flowResult.Item2, x.Item2)).Item1);
 
-                                if (!nextList.Contains(inflowOr))
-                                {
-                                    nextList.Add(inflowOr);
-                                    res = true;
-                                }
-                            }
-                        }
+            //                    if (!nextList.Contains(inflowOr))
+            //                    {
+            //                        nextList.Add(inflowOr);
+            //                        res = true;
+            //                    }
+            //                }
+            //            }
 
-                        if (beforeCount == nextList.Count)
-                        {
-                            nextList.Add(toItem);
-                        }
-                    }
+            //            if (beforeCount == nextList.Count)
+            //            {
+            //                nextList.Add(toItem);
+            //            }
+            //        }
 
-                    flowTo.Possible.Clear();
-                    flowTo.Possible.AddRange(nextList);
-                }
+            //        flowTo.Possible.Clear();
+            //        flowTo.Possible.AddRange(nextList);
+            //    }
 
-                return res;
-            }
+            //    return res;
+            //}
 
-            private class Incompatible
-            {
-            }
+            //private class Incompatible
+            //{
+            //}
 
-            // TODO who know what type this returns
-            (bool, IOrType<Incompatible, (Inflow, FlowNode)>) Flow(FlowNode flowFrom, FlowNode flowTo, List<(OuterInflow, OuterFlowNode)> map, List<(Inflow, FlowNode)> map2)
-            {
-                // TODO check if this is a known Incompatible
+            //// TODO who know what type this returns
+            //(bool, IOrType<Incompatible, (Inflow, FlowNode)>) Flow(FlowNode flowFrom, FlowNode flowTo, List<(OuterInflow, OuterFlowNode)> map, List<(Inflow, FlowNode)> map2)
+            //{
+            //    // TODO check if this is a known Incompatible
 
-                // they they are different primitive types no flowing!
-                {
-                    if (flowTo.Primitive.Is(out var v1)
-                        && flowFrom.Primitive.Is(out var v2)
-                        && v1 != v2)
-                    {
-                        return (true, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(new Incompatible()));
-                    }
-                }
+            //    // they they are different primitive types no flowing!
+            //    {
+            //        if (flowTo.Primitive.Is(out var v1)
+            //            && flowFrom.Primitive.Is(out var v2)
+            //            && v1 != v2)
+            //        {
+            //            return (true, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(new Incompatible()));
+            //        }
+            //    }
 
-                // if the target is a primitive and the source is not no flowing
-                {
-                    if (flowTo.Primitive.Is(out var v1)
-                        && !flowFrom.Primitive.Is(out var _))
-                    {
-                        return (true, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(new Incompatible()));
-                    }
-                }
+            //    // if the target is a primitive and the source is not no flowing
+            //    {
+            //        if (flowTo.Primitive.Is(out var v1)
+            //            && !flowFrom.Primitive.Is(out var _))
+            //        {
+            //            return (true, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(new Incompatible()));
+            //        }
+            //    }
 
-                // TODO you can flow things with IO and things with members together
-                // imcompatible should collect their all the things that could not be combined for error reporting
+            //    // TODO you can flow things with IO and things with members together
+            //    // imcompatible should collect their all the things that could not be combined for error reporting
 
-                var res = false;
+            //    var res = false;
 
-                if (flowTo.Inferred)
-                {
-                    var inflow = map2.Single(x => ReferenceEquals(x.Item2, flowTo)).Item1;
+            //    if (flowTo.Inferred)
+            //    {
+            //        var inflow = map2.Single(x => ReferenceEquals(x.Item2, flowTo)).Item1;
 
-                    if (!inflow.inFlows.Contains(flowFrom))
-                    {
-                        var newFlowTo = flowTo.Copy();
-                        var newInfow = inflow.AddAsNew(flowFrom);
-                        map2.Add((newInfow, newFlowTo));
-                        return Flow(flowFrom, newFlowTo, map, map2);
-                    }
-                }
+            //        if (!inflow.inFlows.Contains(flowFrom))
+            //        {
+            //            var newFlowTo = flowTo.Copy();
+            //            var newInfow = inflow.AddAsNew(flowFrom);
+            //            map2.Add((newInfow, newFlowTo));
+            //            return Flow(flowFrom, newFlowTo, map, map2);
+            //        }
+            //    }
 
 
-                // TODO I need to update the members when approprate
-                // a flow could create a new look up to a new member
-                // and that should make it back to the member list
-                foreach (var member in flowFrom.Members)
-                {
-                    if (flowTo.Members.TryGetValue(member.Key, out var existingMember))
-                    {
-                        res |= Flow(ToFlowNode(member.Value, map), ToFlowNode(existingMember, map), map, map2);
-                    }
-                    else if (flowTo.Inferred)
-                    {
-                        flowTo.Members[member.Key] = member.Value;
-                        res = true;
-                    }
-                    else
-                    {
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imvompatible earlier 
-                        // it does not accept new members
-                    }
-                }
+            //    // TODO I need to update the members when approprate
+            //    // a flow could create a new look up to a new member
+            //    // and that should make it back to the member list
+            //    foreach (var member in flowFrom.Members)
+            //    {
+            //        if (flowTo.Members.TryGetValue(member.Key, out var existingMember))
+            //        {
+            //            res |= Flow(ToFlowNode(member.Value, map), ToFlowNode(existingMember, map), map, map2);
+            //        }
+            //        else if (flowTo.Inferred)
+            //        {
+            //            flowTo.Members[member.Key] = member.Value;
+            //            res = true;
+            //        }
+            //        else
+            //        {
+            //            // TODO this is going to be an exception
+            //            // since it should be handled by an imvompatible earlier 
+            //            // it does not accept new members
+            //        }
+            //    }
 
-                // TODO
-                // the input should be set to the result of this flow
-                if (flowFrom.Input != null)
-                {
-                    if (flowTo.Input != null)
-                    {
-                        res |= Flow(ToFlowNode(flowFrom.Input, map), ToFlowNode(flowTo.Input, map), map, map2);
-                    }
-                    else if (flowTo.Inferred)
-                    {
-                        flowTo.Input = flowFrom.Input;
-                        res = true;
-                    }
-                    else
-                    {
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imvompatible earlier 
-                        // it does not accept new inputs
-                    }
-                }
+            //    // TODO
+            //    // the input should be set to the result of this flow
+            //    if (flowFrom.Input != null)
+            //    {
+            //        if (flowTo.Input != null)
+            //        {
+            //            res |= Flow(ToFlowNode(flowFrom.Input, map), ToFlowNode(flowTo.Input, map), map, map2);
+            //        }
+            //        else if (flowTo.Inferred)
+            //        {
+            //            flowTo.Input = flowFrom.Input;
+            //            res = true;
+            //        }
+            //        else
+            //        {
+            //            // TODO this is going to be an exception
+            //            // since it should be handled by an imvompatible earlier 
+            //            // it does not accept new inputs
+            //        }
+            //    }
 
-                // TODO
-                // the output should be set to the result of this flow
-                if (flowFrom.Output != null)
-                {
-                    if (flowTo.Output != null)
-                    {
-                        res |= Flow(ToFlowNode(flowFrom.Output, map), ToFlowNode(flowTo.Output, map), map, map2);
-                    }
-                    else if (flowTo.Inferred)
-                    {
-                        flowTo.Output = flowFrom.Output;
-                        res = true;
-                    }
-                    else
-                    {
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imvompatible earlier 
-                        // it does not accept new inputs
-                    }
-                }
+            //    // TODO
+            //    // the output should be set to the result of this flow
+            //    if (flowFrom.Output != null)
+            //    {
+            //        if (flowTo.Output != null)
+            //        {
+            //            res |= Flow(ToFlowNode(flowFrom.Output, map), ToFlowNode(flowTo.Output, map), map, map2);
+            //        }
+            //        else if (flowTo.Inferred)
+            //        {
+            //            flowTo.Output = flowFrom.Output;
+            //            res = true;
+            //        }
+            //        else
+            //        {
+            //            // TODO this is going to be an exception
+            //            // since it should be handled by an imvompatible earlier 
+            //            // it does not accept new inputs
+            //        }
+            //    }
 
-                return (res, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(( /* ugh! we might not have inflows! */, flowTo)));
+            //    return (res, Prototypist.Toolbox.OrType.Make<Incompatible, (Inflow, FlowNode)>(( /* ugh! we might not have inflows! */, flowTo)));
 
-            }
+            //}
 
             //bool Flow(IOrType<MethodType, Type, Object, OrType, Inflow, IError> flowFrom, IOrType<MethodType, Type, Object, OrType, Inflow, IError> flowTo, Dictionary<Inflow, InferredType> map)
             //{
