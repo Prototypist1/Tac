@@ -192,7 +192,7 @@ namespace Tac.SemanticModel
                 this.myScope = myScope;
             }
 
-            public IBox<WeakModuleDefinition> Run(Tpn.ITypeSolution context)
+            public IBox<WeakModuleDefinition> Run(Tpn.TypeSolution context)
             {
                 var moduleOr = context.GetObject(myScope);
                 if (moduleOr.GetValue().Is2(out var v2)) {

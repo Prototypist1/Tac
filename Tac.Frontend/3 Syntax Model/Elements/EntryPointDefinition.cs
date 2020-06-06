@@ -110,7 +110,7 @@ namespace Tac.SemanticModel
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             }
 
-            public IBox<WeakEntryPointDefinition> Run(Tpn.ITypeSolution context)
+            public IBox<WeakEntryPointDefinition> Run(Tpn.TypeSolution context)
             {
                 var res = context.GetScope(scope);
                 if (res.GetValue().Is3(out var v3))

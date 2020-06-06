@@ -101,7 +101,7 @@ namespace Tac.SemanticModel
                 this.member = member ?? throw new ArgumentNullException(nameof(member));
             }
 
-            public IBox<WeakMemberReference> Run(Tpn.ITypeSolution context)
+            public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
             {
                 return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
             }

@@ -110,7 +110,7 @@ namespace Tac.SemanticModel
                 this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
             }
 
-            public IBox<WeakBlockDefinition> Run(Tpn.ITypeSolution context)
+            public IBox<WeakBlockDefinition> Run(Tpn.TypeSolution context)
             {
                 return new Box<WeakBlockDefinition>(context.GetScope(myScope).GetValue().Is1OrThrow());
             }

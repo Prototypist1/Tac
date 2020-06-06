@@ -179,7 +179,7 @@ namespace Tac.SemanticModel
                 this.type = type ?? throw new ArgumentNullException(nameof(type));
             }
 
-            public IOrType<IBox<IFrontendType>, IError> Run(Tpn.ITypeSolution context)
+            public IOrType<IBox<IFrontendType>, IError> Run(Tpn.TypeSolution context)
             {
                 return context.GetTypeReference(type).GetValue().TransformInner(x=>new Box<IFrontendType>(x));
             }

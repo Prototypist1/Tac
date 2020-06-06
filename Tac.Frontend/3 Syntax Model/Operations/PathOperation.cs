@@ -171,7 +171,7 @@ namespace Tac.SemanticModel.Operations
                 this.member = member ?? throw new ArgumentNullException(nameof(member));
             }
 
-            public IBox<WeakPathOperation> Run(Tpn.ITypeSolution context)
+            public IBox<WeakPathOperation> Run(Tpn.TypeSolution context)
             {
                 var res = new Box<WeakPathOperation>(new WeakPathOperation(
                     left.TransformInner(x => x.Run(context)),

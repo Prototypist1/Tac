@@ -142,7 +142,7 @@ namespace Tac.SemanticModel.Operations
                 this.str = str;
             }
 
-            public IBox<WeakConstantString> Run(Tpn.ITypeSolution context)
+            public IBox<WeakConstantString> Run(Tpn.TypeSolution context)
             {
                 return new Box<WeakConstantString>(new WeakConstantString(Possibly.Is(str)));
             }

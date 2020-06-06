@@ -182,7 +182,7 @@ namespace Tac.SemanticModel
                 this.method = method ?? throw new ArgumentNullException(nameof(method));
             }
 
-            public IBox<WeakMethodDefinition> Run(Tpn.ITypeSolution context)
+            public IBox<WeakMethodDefinition> Run(Tpn.TypeSolution context)
             {
                 var res = context.GetMethod(method);
                 if (res.GetValue().Is1(out var v1))

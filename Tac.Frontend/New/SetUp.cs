@@ -60,7 +60,7 @@ namespace Tac.Infastructure
 
     internal interface IResolve<out TCodeElement> 
     {
-        TCodeElement Run(Tpn.ITypeSolution context);
+        TCodeElement Run(Tpn.TypeSolution context);
     }
     
 }

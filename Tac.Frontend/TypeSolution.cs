@@ -15,7 +15,7 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal partial class Tpn
     {
         // 🤫 the power was in you all along
-        internal class TypeSolution : ITypeSolution
+        internal class TypeSolution 
         {
             private readonly IReadOnlyDictionary<IHavePublicMembers, IReadOnlyList<TypeProblem2.Member>> publicMembers;
             private readonly IReadOnlyDictionary<IHavePrivateMembers, IReadOnlyList<TypeProblem2.Member>> privateMembers;

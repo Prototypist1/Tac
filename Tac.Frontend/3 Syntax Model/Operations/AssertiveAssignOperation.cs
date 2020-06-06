@@ -198,7 +198,7 @@ namespace Tac.SemanticModel.Operations
             }
 
 
-            public IBox<WeakAssignOperation> Run(Tpn.ITypeSolution context)
+            public IBox<WeakAssignOperation> Run(Tpn.TypeSolution context)
             {
                 var res = new Box<WeakAssignOperation>(new WeakAssignOperation(
                     left.TransformInner(x=>x.Run(context)),
@@ -303,7 +303,7 @@ namespace Tac.SemanticModel.Operations
             }
 
 
-            public IBox<WeakAssignOperation> Run(Tpn.ITypeSolution context)
+            public IBox<WeakAssignOperation> Run(Tpn.TypeSolution context)
             {
                 var res = new Box<WeakAssignOperation>(new WeakAssignOperation(
                     left.TransformInner(x => x.Run(context)),

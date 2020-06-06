@@ -146,7 +146,7 @@ namespace Tac.SemanticModel
             }
 
 
-            public IBox<WeakGenericTypeDefinition> Run(Tpn.ITypeSolution context)
+            public IBox<WeakGenericTypeDefinition> Run(Tpn.TypeSolution context)
             {
                 // uhhh it is werid that I have to do this
                 nextLines.Select(x => x.TransformInner(y => y.Run(context))).ToArray();

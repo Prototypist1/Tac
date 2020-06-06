@@ -1037,7 +1037,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // pretty sure it is not safe to solve more than once 
-            public ITypeSolution Solve()
+            public TypeSolution Solve()
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();

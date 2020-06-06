@@ -171,7 +171,7 @@ namespace Tac.SemanticModel
 
             // do these really need to be IBox? they seeme to generally be filled...
             // mayble IPossibly...
-            public IBox<WeakObjectDefinition> Run(Tpn.ITypeSolution context)
+            public IBox<WeakObjectDefinition> Run(Tpn.TypeSolution context)
             {
                 var objectOr = context.GetObject(myScope);
                 if (objectOr.GetValue().Is1(out var v1))

@@ -256,7 +256,7 @@ namespace Tac.SemanticModel.CodeStuff
             }
 
 
-            public IBox<TFrontendCodeElement> Run(Tpn.ITypeSolution context)
+            public IBox<TFrontendCodeElement> Run(Tpn.TypeSolution context)
             {
                 var res = make(
                     left.TransformInner(x=>x.Run(context)),
@@ -393,7 +393,7 @@ namespace Tac.SemanticModel.CodeStuff
 
             // I think IResolve<TCodeElement> should return TCodeElement instead of IBox<TCodeElement>
             // that will be expensive but I think it gives me more control
-            public IOrType<IBox<IFrontendType>, IError> Run(Tpn.ITypeSolution context)
+            public IOrType<IBox<IFrontendType>, IError> Run(Tpn.TypeSolution context)
             {
                 var res = make(
                     left.Run(context),

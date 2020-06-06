@@ -255,7 +255,7 @@ namespace Tac.SemanticModel
                 this.outer = outer;
             }
 
-            public IBox<WeakImplementationDefinition> Run(Tpn.ITypeSolution context)
+            public IBox<WeakImplementationDefinition> Run(Tpn.TypeSolution context)
             {
                 var res = context.GetMethod(outer);
                 if (res.GetValue().Is2(out var v2))

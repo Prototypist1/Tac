@@ -102,7 +102,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
             {
             }
 
-            public IBox<WeakEmptyInstance> Run(Tpn.ITypeSolution context)
+            public IBox<WeakEmptyInstance> Run(Tpn.TypeSolution context)
             {
                 return new Box<WeakEmptyInstance>(new WeakEmptyInstance());
             }

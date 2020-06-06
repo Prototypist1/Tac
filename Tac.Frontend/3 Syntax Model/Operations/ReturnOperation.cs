@@ -157,7 +157,7 @@ namespace Tac.SemanticModel.Operations
                 this.make = make ?? throw new ArgumentNullException(nameof(make));
             }
 
-            public IBox<TFrontendCodeElement> Run(Tpn.ITypeSolution context)
+            public IBox<TFrontendCodeElement> Run(Tpn.TypeSolution context)
             {
                 return make(left.TransformInner(x => x.Run(context)));
             }
