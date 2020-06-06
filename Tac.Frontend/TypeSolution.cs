@@ -25,6 +25,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<IOrType<OuterFlowNode2<TypeProblem2.Method>, OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.InferredType>>, TypeProblem2.TransientMember> methodOut;
             private readonly IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint;
 
+            private readonly IReadOnlyDictionary<TypeProblem2.MethodType, OuterFlowNode2<TypeProblem2.MethodType>> methodFlowNodes;
+            private readonly IReadOnlyDictionary<TypeProblem2.Type, OuterFlowNode2<TypeProblem2.Type>> typeFlowNodes;
+            private readonly IReadOnlyDictionary<TypeProblem2.Object, OuterFlowNode2<TypeProblem2.Object>> objectFlowNodes;
+            private readonly IReadOnlyDictionary<TypeProblem2.OrType, OuterFlowNode2<TypeProblem2.OrType>> orFlowNodes;
+            private readonly IReadOnlyDictionary<TypeProblem2.InferredType, OuterFlowNode2<TypeProblem2.InferredType>> inferredFlowNodes;
+
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map,
                 IReadOnlyDictionary<IHavePublicMembers, IReadOnlyList<TypeProblem2.Member>> publicMembers,
@@ -187,7 +193,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return privateMembers[x];
             }
 
-            public IReadOnlyList<FlowNodeMember> GetPublicMembers(OuterFlowNode2<IHavePublicMembers> from)
+            public IReadOnlyList<FlowNodeMember> GetPublicMembers(IOuterFlowNode2<IHavePublicMembers> from)
             {
 
                 if (!publicMembers.ContainsKey(x))
@@ -200,26 +206,26 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public OuterFlowNode2<TypeProblem2.MethodType> GetFlowNode(TypeProblem2.MethodType type)
             {
-
+                return methodFlowNodes[type];
             }
             public OuterFlowNode2<TypeProblem2.Type> GetFlowNode(TypeProblem2.Type type)
             {
-
+                return typeFlowNodes[type];
             }
 
             public OuterFlowNode2<TypeProblem2.Object> GetFlowNode(TypeProblem2.Object type)
             {
-
+                return objectFlowNodes[type];
             }
 
             public OuterFlowNode2<TypeProblem2.OrType> GetFlowNode(TypeProblem2.OrType type)
             {
-
+                return orFlowNodes[type];
             }
 
             public OuterFlowNode2<TypeProblem2.InferredType> GetFlowNode(TypeProblem2.InferredType type)
             {
-
+                return inferredFlowNodes[type];
             }
 
             public IOrType<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError> GetFlowNode(ILookUpType from)
@@ -234,17 +240,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                     );
             }
 
-            public IOrType<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError> GetType(ILookUpType from)
-            {
-                return map[from];
-            }
+            //public IOrType<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError> GetType(ILookUpType from)
+            //{
+            //    return map[from];
+            //}
 
             public (TypeProblem2.TypeReference, TypeProblem2.TypeReference) GetOrTypeElements(TypeProblem2.OrType from)
             {
                 return orTypeElememts[from];
             }
 
-            public bool TryGetResultMember(OuterFlowNode2<TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out OuterFlowNode2? transientMember)
+            public bool TryGetResultMember(OuterFlowNode2 from, [MaybeNullWhen(false)] out OuterFlowNode2? transientMember)
             {
                 if (!from.Possible.Any()) {
                     transientMember = default;
@@ -267,7 +273,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return true;
             }
 
-            public bool TryGetInputMember(OuterFlowNode2<TypeProblem2.InferredType> from, [MaybeNullWhen(false)] out OuterFlowNode2? member)
+            public bool TryGetInputMember(OuterFlowNode2 from, [MaybeNullWhen(false)] out OuterFlowNode2? member)
             {
                 if (!from.Possible.Any())
                 {
@@ -301,14 +307,30 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
-            public TypeProblem2.TransientMember GetResultMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from)
+            // this might not need to be IError right now I don't know of anythign driving it
+            public IOrType<IBox<IFrontendType>,IError> GetType(OuterFlowNode2 node)
             {
-                return methodOut[from];
+
             }
 
-            public TypeProblem2.Member GetInputMember(IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType> from)
+
+            public FlowNodeMember GetResultMember(OuterFlowNode2<TypeProblem2.MethodType> from)
             {
-                return methodIn[from];
+                if (TryGetResultMember(from, out var res)) {
+                    return new FlowNodeMember(new ImplicitKey(Guid.NewGuid()),res!);
+                }
+                throw new Exception("that should not happen for a method");
+            }
+
+            public FlowNodeMember GetInputMember(OuterFlowNode2<TypeProblem2.MethodType> from)
+            {
+                if (TryGetInputMember(from, out var res))
+                {
+                    // I actually think this will not need a key
+                    // yeah, the converter has the key
+                    return new FlowNodeMember(, res!);
+                }
+                throw new Exception("that should not happen for a method");
             }
 
             public IIsPossibly<TypeProblem2.Scope> GetEntryPoint(IStaticScope from)
@@ -343,7 +365,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
             }
-
         }
     }
 }

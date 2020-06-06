@@ -33,10 +33,9 @@ namespace Tac.Frontend
 
     internal static class Help
     {
-        public static WeakScope GetScope(Tpn.TypeSolution typeSolution, IOrType<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers> haveMembers)
+        public static WeakScope GetScope(Tpn.TypeSolution typeSolution, IOrType<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>> haveMembers)
         {
-
-            var members = typeSolution.GetMembers(haveMembers);
+            var members = haveMembers.SwitchReturns(x => typeSolution.GetPrivateMembers(x), x => typeSolution.GetPublicMembers(x));
             var membersList = new List<IBox<WeakMemberDefinition>>();
             foreach (var member in members)
             {
@@ -99,7 +98,7 @@ namespace Tac.Frontend
 
         public static IOrType< IBox<IFrontendType>,IError> GetType(Tpn.TypeSolution typeSolution, Tpn.ILookUpType lookUpType)
         {
-            return typeSolution.GetType(lookUpType).SwitchReturns(
+            return typeSolution.GetFlowNode(lookUpType).SwitchReturns(
                 v1 => OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(typeSolution.GetMethodType(v1).GetValue())),
                 v2 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingTypeBox(typeSolution.GetExplicitType(v2))),
                 v3 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingObjectBox(typeSolution.GetObject(v3))),
@@ -115,7 +114,7 @@ namespace Tac.Frontend
         public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.InferredType from)
         {
 
-            var scope = Help.GetScope(typeSolution, OrType.Make < Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers > (from));
+            var scope = Help.GetScope(typeSolution, OrType.Make < Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>> (typeSolution.GetFlowNode(from)));
 
             var flowNode = typeSolution.GetFlowNode(from);
 
@@ -136,8 +135,8 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        Help.GetType(typeSolution, input).TransformInner(x=> x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
-                        Help.GetType(typeSolution, output).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()));
+                        typeSolution.GetType(input).TransformInner(x=> x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
+                        typeSolution.GetType(output).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()));
             }
 
 
@@ -147,7 +146,7 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        Help.GetType(typeSolution, input).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType,IConvertableFrontendType<IVerifiableType>>()),
+                        typeSolution.GetType(input).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType,IConvertableFrontendType<IVerifiableType>>()),
                         OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType()));
             }
 
@@ -158,7 +157,7 @@ namespace Tac.Frontend
                 return
                     new MethodType(
                         OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>( new EmptyType()),
-                        Help.GetType(typeSolution, output).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
+                        typeSolution.GetType(output).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
             }
 
             // if it has members it must be a scope
@@ -181,6 +180,9 @@ namespace Tac.Frontend
 
         public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
+            Tpn.IOuterFlowNode2<Tpn.TypeProblem2.Type> zz;
+            Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers> z;
+
             var placeHolders = typeSolution.HasPlacholders(from);
 
             return placeHolders.IfElseReturn(x =>
@@ -188,12 +190,12 @@ namespace Tac.Frontend
                 return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(
                     new WeakGenericTypeDefinition(
                         from.Key,
-                        new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from))),
+                        new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(typeSolution.GetFlowNode(from)))),
                         x.Select(x=> Possibly.Is<IGenericTypeParameterPlacholder>(new GenericTypeParameterPlacholder(x))).ToArray()));//, key
             },
             () =>
             {
-                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(new WeakTypeDefinition(new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from)))));//, key ?
+                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(new WeakTypeDefinition(new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(typeSolution.GetFlowNode(from))))));//, key ?
             });
 
         }
@@ -254,9 +256,9 @@ namespace Tac.Frontend
             //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
             return
                 new MethodType(
-                    Help.GetType(typeSolution, typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from)))
+                    typeSolution.GetType(typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from)).FlowNode)
                     .TransformInner(x=>x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
-                    Help.GetType(typeSolution, typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from)))
+                    typeSolution.GetType(typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>(from)).FlowNode)
                     .TransformInner(x => x.GetValue().CastTo< IConvertableFrontendType<IVerifiableType>>()));
         }
     }
@@ -275,10 +277,10 @@ namespace Tac.Frontend
         public IOrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition>( new WeakMethodDefinition(
-                Help.GetType(typeSolution, typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
+                typeSolution.GetType(typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from)).FlowNode),
                 typeSolution.GetMember(typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
                 body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
-                new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from))),
+                new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(from))),
                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
 
@@ -305,9 +307,9 @@ namespace Tac.Frontend
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition>(new WeakImplementationDefinition(
                 typeSolution.GetMember(typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( from))),
                 typeSolution.GetMember(typeSolution.GetInputMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( inner.GetValue()))),
-                Help.GetType(typeSolution, typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( inner.GetValue()))),
+                typeSolution.GetType(typeSolution.GetResultMember(OrType.Make<Tpn.TypeProblem2.Method, Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.InferredType>( inner.GetValue())).FlowNode),
                 body.GetValue().Select(x => x.Run(typeSolution)).ToArray(),
-                new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from))),
+                new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(from))),
                 Array.Empty<IFrontendCodeElement>()));
         }
 
@@ -372,7 +374,7 @@ namespace Tac.Frontend
             return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakBlockDefinition(
                     body.GetValue().Select(or => or.TransformInner(x=>x.Run(typeSolution))).ToArray(),
-                    new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from))),
+                    new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(from))),
                     Array.Empty<IIsPossibly<IFrontendCodeElement>>()));
         }
     }
@@ -392,7 +394,7 @@ namespace Tac.Frontend
             return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakEntryPointDefinition(
                     body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
-                    new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from))),
+                    new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(from))),
                     Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
     }
@@ -405,7 +407,7 @@ namespace Tac.Frontend
 
         public IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
         {
-            return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from)));
+            return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(from)));
         }
     }
 
@@ -421,7 +423,7 @@ namespace Tac.Frontend
         public IOrType<WeakObjectDefinition, WeakModuleDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
             return OrType.Make<WeakObjectDefinition, WeakModuleDefinition>(new WeakObjectDefinition(
-                new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from))),
+                new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(typeSolution.GetFlowNode(from)))),
                 box.GetValue().Select(x => x.SwitchReturns<IOrType<IBox<WeakAssignOperation>, IError>>(
                     y=> { 
                         var res = y.Run(typeSolution).GetValue();
@@ -464,7 +466,7 @@ namespace Tac.Frontend
 
 
             return OrType.Make<WeakObjectDefinition, WeakModuleDefinition>(new WeakModuleDefinition(
-                new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IHavePublicMembers>(from))),
+                new Box<WeakScope>(Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IOuterFlowNode2<Tpn.IHavePublicMembers>>(typeSolution.GetFlowNode(from)))),
                 box.GetValue().Select(x => x.TransformInner(y=> y.Run(typeSolution))).ToArray(), 
                 key,
                 new Box<WeakEntryPointDefinition>(weakEntryPoint)));

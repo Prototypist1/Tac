@@ -24,9 +24,11 @@ namespace Tac.Frontend.New.CrzayNamespace
         // I could not figure out how to do that
         // so the members are just public
 
-        private class Incompatable2
-        {
-        }
+        // the only way I can think of is redickulous
+        // solution and tpn would have to be inside a chain of nested classes 
+        // containing all the classes I want them to access
+        
+        // or they could be in there own project but I tired that and it sucked
 
         public class Inflow2
         {
@@ -58,7 +60,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        public class OuterFlowNode2<T> : OuterFlowNode2
+        // just here for the out
+        // I wish classes could have it 
+        public interface IOuterFlowNode2<out T> { 
+        
+        }
+
+        public class OuterFlowNode2<T> : OuterFlowNode2, IOuterFlowNode2<T>
         {
             public OuterFlowNode2(bool inferred, List<FlowNode2> possible, T source) : base(inferred, possible)
             {
