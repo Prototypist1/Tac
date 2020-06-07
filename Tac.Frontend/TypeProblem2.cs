@@ -214,9 +214,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return HopefulMembers;
                 }
             }
-            public class Member : TypeProblemNode<Member, WeakMemberDefinition>, IMember
+            public class Member : TypeProblemNode<OuterFlowNode2, WeakMemberDefinition>, IMember
             {
-                public Member(TypeProblem2 problem, string debugName, IConvertTo<Member, WeakMemberDefinition> converter) : base(problem, debugName, converter)
+                public Member(TypeProblem2 problem, string debugName, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter) : base(problem, debugName, converter)
                 {
                 }
 
@@ -637,7 +637,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePublicMembers havePublicMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<Member, WeakMemberDefinition> converter)
+                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(havePublicMembers, key, res);
@@ -650,7 +650,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IStaticScope scope,
                 IHavePublicMembers havePublicMembers,
                 IKey key,
-                IConvertTo<Member, WeakMemberDefinition> converter)
+                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(havePublicMembers, key, res);
@@ -662,7 +662,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePublicMembers scope,
                 IKey key,
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
-                IConvertTo<Member, WeakMemberDefinition> converter)
+                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(scope, key, res);
@@ -675,7 +675,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePrivateMembers havePrivateMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<Member, WeakMemberDefinition> converter)
+                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(havePrivateMembers, key, res);
@@ -688,7 +688,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IStaticScope scope,
                 IHavePrivateMembers havePrivateMembers,
                 IKey key,
-                IConvertTo<Member, WeakMemberDefinition> converter)
+                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(havePrivateMembers, key, res);
@@ -700,7 +700,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePrivateMembers scope,
                 IKey key,
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
-                IConvertTo<Member, WeakMemberDefinition> converter)
+                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(scope, key, res);
@@ -708,7 +708,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
+            public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 // this is weird, but since C# does not have and types...
                 // scope and havePossibleMembers are expected to be the same object
@@ -803,7 +803,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> inputConverter)
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
@@ -817,7 +817,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Method CreateMethod(IStaticScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IStaticScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> inputConverter)
             {
                 if (!inputType.Is1(out var inputTypeValue))
                 {
@@ -853,7 +853,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<Member, WeakMemberDefinition> converter)
+            public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, "hopeful - " + key.ToString()!, converter);
                 res = HasHopefulMember(scope, key, res);
@@ -955,7 +955,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // it is just something of type method
             // it is really just a type
             //
-            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Member, WeakMemberDefinition> inputConverter)
+            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> inputConverter)
             {
                 var thing = CreateTransientMember(parent);
                 var method = CreateMethod(parent, "input", converter, inputConverter);

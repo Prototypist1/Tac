@@ -31,7 +31,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, OuterFlowNode2<TypeProblem2.OrType>> orFlowNodes;
             private readonly IReadOnlyDictionary<TypeProblem2.InferredType, OuterFlowNode2<TypeProblem2.InferredType>> inferredFlowNodes;
 
-
             private readonly IReadOnlyDictionary<Inflow2, OuterFlowNode2> inflowLookup;
 
             public TypeSolution(
@@ -65,30 +64,26 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheType[explicitType];
             }
 
-            private readonly Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>>();
+            //private readonly Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>>();
             
             // just takes the type of the member
             public IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member)
             {
-                if (!cacheMember.ContainsKey(member))
-                {
-                    var box = new Box<WeakMemberDefinition>();
-                    cacheMember[member] = box;
-                    box.Fill(member.Converter.Convert(this, member));
-                }
-                return cacheMember[member];
+                return GetMember(GetFlowNode2(member), member.Converter);
             }
 
-            // this is probably going to require  converter
-            public IBox<WeakMemberDefinition> GetMember(FlowNodeMember member)
+
+            private readonly Dictionary<Tpn.OuterFlowNode2, IBox<WeakMemberDefinition>> cacheMember2 = new Dictionary<Tpn.OuterFlowNode2, IBox<WeakMemberDefinition>>();
+
+            public IBox<WeakMemberDefinition> GetMember(Tpn.OuterFlowNode2 member, Tpn.IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> convert)
             {
-                if (!cacheMember.ContainsKey(member))
+                if (!cacheMember2.ContainsKey(member))
                 {
                     var box = new Box<WeakMemberDefinition>();
-                    cacheMember[member] = box;
-                    box.Fill(member.Converter.Convert(this, member));
+                    cacheMember2[member] = box;
+                    box.Fill(convert.Convert(this, member));
                 }
-                return cacheMember[member];
+                return cacheMember2[member];
             }
 
             private readonly Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>>>();
@@ -209,11 +204,21 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IReadOnlyList<FlowNodeMember> GetPublicMembers(OuterFlowNode2 from)
             {
-                // this is a poopy cast.
-                var realFrom = ((OuterFlowNode2<IHavePublicMembers>)from);
+                if (!from.Possible.Any()) {
+                    return new FlowNodeMember[] { };
+                }
 
+                if (from.Possible.Count == 1)
+                {
+                    var onlyPossible = from.Possible.Single();
 
+                    return onlyPossible.Members.Select(x => new FlowNodeMember(x.Key, ToFlowNode(x.Value))).ToArray();
+                }
 
+                return from.Possible.SelectMany(x => x.Members).GroupBy(x => x.Key).Where(x => x.Count() == from.Possible.Count).Select(x=> {
+                    //{A2333086-1634-4C8D-9FB1-453BE0BC2F03}
+                    return new FlowNodeMember(x.Key,new OuterFlowNode2<Uhh>(false, x.SelectMany(y=>ToFlowNode(y.Value).Possible).ToList(), new Uhh()));
+                }).ToList();
             }
 
             public OuterFlowNode2<TypeProblem2.MethodType> GetFlowNode(TypeProblem2.MethodType type)

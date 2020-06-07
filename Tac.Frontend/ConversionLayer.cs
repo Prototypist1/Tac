@@ -43,7 +43,12 @@ namespace Tac.Frontend
             return new WeakScope(
                 haveMembers.SwitchReturns(
                     x => typeSolution.GetPrivateMembers(x).Select(x => typeSolution.GetMember(x)).ToList(), 
-                    x => typeSolution.GetPublicMembers(x).Select(x => typeSolution.GetMember(x)).ToList()));
+                    // TODO
+                    // the false for readonly is bad!
+                    // readonly does not wor
+                    // so it does not matter now
+                    // 💩💩💩💩
+                    x => typeSolution.GetPublicMembers(x).Select(x => typeSolution.GetMember(x.FlowNode, new WeakMemberDefinitionConverter(false,x.Key))).ToList()));
         }
 
         private class UnWrappingTypeBox : IBox<IFrontendType>
@@ -318,7 +323,24 @@ namespace Tac.Frontend
 
     }
 
-    internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Member, WeakMemberDefinition>
+    //internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Member, WeakMemberDefinition>
+    //{
+    //    private readonly bool isReadonly;
+    //    private readonly IKey nameKey;
+
+    //    public WeakMemberDefinitionConverter(bool isReadonly, IKey nameKey)
+    //    {
+    //        this.isReadonly = isReadonly;
+    //        this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+    //    }
+
+    //    public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Member from)
+    //    {
+    //        return new WeakMemberDefinition(isReadonly, nameKey, Help.GetType(typeSolution, from));
+    //    }
+    //}
+
+    internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition>
     {
         private readonly bool isReadonly;
         private readonly IKey nameKey;
@@ -329,9 +351,9 @@ namespace Tac.Frontend
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Member from)
+        public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, Tpn.OuterFlowNode2 from)
         {
-            return new WeakMemberDefinition(isReadonly, nameKey, Help.GetType(typeSolution, from));
+            return new WeakMemberDefinition(isReadonly, nameKey, typeSolution.GetType(from));
         }
     }
 
