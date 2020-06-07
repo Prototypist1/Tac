@@ -62,15 +62,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         // just here for the out
         // I wish classes could have it 
-        public interface IOuterFlowNode2<out T> { 
+        //public interface IOuterFlowNode2<out T> { 
         
-        }
+        //}
 
-        public class OuterFlowNode2<T> : OuterFlowNode2, IOuterFlowNode2<T>
+        public class OuterFlowNode2<T> : OuterFlowNode2//, IOuterFlowNode2<T>
         {
             public OuterFlowNode2(bool inferred, List<FlowNode2> possible, T source) : base(inferred, possible)
             {
-                Source = source;
+                Source = source?? throw new ArgumentNullException(nameof(source));
             }
 
             public OuterFlowNode2(bool inferred, FlowNode2 node, T source) : base(inferred, node)
