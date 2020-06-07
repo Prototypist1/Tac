@@ -216,7 +216,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             public class Member : TypeProblemNode<OuterFlowNode2, WeakMemberDefinition>, IMember
             {
-                public Member(TypeProblem2 problem, string debugName, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter) : base(problem, debugName, converter)
+                public Member(TypeProblem2 problem, string debugName, IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter) : base(problem, debugName, converter)
                 {
                 }
 
@@ -637,7 +637,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePublicMembers havePublicMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
+                IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(havePublicMembers, key, res);
@@ -650,7 +650,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IStaticScope scope,
                 IHavePublicMembers havePublicMembers,
                 IKey key,
-                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
+                IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(havePublicMembers, key, res);
@@ -662,7 +662,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePublicMembers scope,
                 IKey key,
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
-                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
+                IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(scope, key, res);
@@ -675,11 +675,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePrivateMembers havePrivateMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
+                IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(havePrivateMembers, key, res);
-                res.Context = Possibly.Is<IStaticScope>(scope);
+                res.Context = Possibly.Is(scope);
                 res.TypeKey = typeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
                 return res;
             }
@@ -688,11 +688,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IStaticScope scope,
                 IHavePrivateMembers havePrivateMembers,
                 IKey key,
-                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
+                IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(havePrivateMembers, key, res);
-                res.Context = Possibly.Is<IStaticScope>(scope);
+                res.Context = Possibly.Is(scope);
                 return res;
             }
 
@@ -700,7 +700,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePrivateMembers scope,
                 IKey key,
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
-                IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
+                IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(scope, key, res);
@@ -708,7 +708,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
+            public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key, IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 // this is weird, but since C# does not have and types...
                 // scope and havePossibleMembers are expected to be the same object
@@ -724,7 +724,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var res = new Member(this, "possibly on parent -" + key.ToString(), converter);
                 res = HasMembersPossiblyOnParent(havePossibleMembers, key, res);
-                res.Context = Possibly.Is<IStaticScope>(scope);
+                res.Context = Possibly.Is(scope);
                 return res;
             }
 
@@ -803,7 +803,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<OuterFlowNode2, WeakMemberDefinition> inputConverter)
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
@@ -817,7 +817,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Method CreateMethod(IStaticScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<OuterFlowNode2, WeakMemberDefinition> inputConverter)
             {
                 if (!inputType.Is1(out var inputTypeValue))
                 {
@@ -853,7 +853,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> converter)
+            public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<OuterFlowNode2, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, "hopeful - " + key.ToString()!, converter);
                 res = HasHopefulMember(scope, key, res);
@@ -861,7 +861,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public OrType CreateOrType(IStaticScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
+            public OrType CreateOrType(IStaticScope s, IKey key, IOrType<TypeReference, IError> setUpSideNode1, IOrType<TypeReference, IError> setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
             {
                 if (!setUpSideNode1.Is1(out var node1))
                 {
@@ -955,7 +955,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // it is just something of type method
             // it is really just a type
             //
-            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> inputConverter)
+            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<OuterFlowNode2, WeakMemberDefinition> inputConverter)
             {
                 var thing = CreateTransientMember(parent);
                 var method = CreateMethod(parent, "input", converter, inputConverter);
@@ -1076,14 +1076,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>) && x.TypeKey.Is3(out var _)))
+                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>) && x.TypeKey.Is3(out var _)))
                 {
                     var type = new InferredType(this, $"for {((TypeProblemNode)node).debugName}");
                     node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type));
                 }
 
                 // what happens here if x.TypeKey.Is2??
-                if (toLookUp.Any(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>) && x.TypeKey.Is2(out var _)))
+                if (toLookUp.Any(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>) && x.TypeKey.Is2(out var _)))
                 {
                     throw new NotImplementedException();
                 }
@@ -1100,7 +1100,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), type.GenericOverlays.Values.ToArray());
                 }
 
-                toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>)).ToArray();
+                toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>)).ToArray();
 
                 // overlay generics
                 while (toLookUp.Any())
@@ -1109,7 +1109,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         LookUpOrOverlayOrThrow(node, realizedGeneric);
                     }
-                    toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>)).ToArray();
+                    toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>)).ToArray();
                 }
 
                 // members that might be on parents 
@@ -1335,9 +1335,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 } while (go);
 
-                
-
-
                 // A | B ab;
                 // ab =: C c;
                 // C flows in to A and B
@@ -1378,52 +1375,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // so c is...
                 // A&B | C&B
 
-                // TODO i need to convert back
-
                 return new TypeSolution(
-                    typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
-                    typeProblemNodes.OfType<IHavePublicMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.PublicMembers.Select(y => y.Value).ToArray()),
-                    typeProblemNodes.OfType<IHavePrivateMembers>().ToDictionary(x => x, x => (IReadOnlyList<Member>)x.PrivateMembers.Select(y => y.Value).ToArray()),
+                    typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
-                    typeProblemNodes.Select(x =>
-                    {
-                        if (x.SafeIs(out Method m))
-                        {
-                            return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(m));
-                        }
-
-                        if (x.SafeIs(out MethodType mt))
-                        {
-                            return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(mt));
-                        }
-
-                        if (x.SafeIs(out InferredType it) && it.Input is IIsDefinately<Member>)
-                        {
-                            return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(it));
-                        }
-                        return Possibly.IsNot<IOrType<Method, MethodType, InferredType>>();
-                    }).Where(x => x is IIsDefinately<IOrType<Method, MethodType, InferredType>>)
-                    .Select(x => x.CastTo<IIsDefinately<IOrType<Method, MethodType, InferredType>>>().Value)
-                    .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Input.GetOrThrow(), v1 => v1.Input.GetOrThrow(), v1 => v1.Input.GetOrThrow())),
-                    typeProblemNodes.Select(x =>
-                    {
-                        if (x.SafeIs(out Method m))
-                        {
-                            return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(m));
-                        }
-                        if (x.SafeIs(out MethodType mt))
-                        {
-                            return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(mt));
-                        }
-                        if (x.SafeIs(out InferredType it) && it.Returns is IIsDefinately<TransientMember>)
-                        {
-                            return Possibly.Is(Prototypist.Toolbox.OrType.Make<Method, MethodType, InferredType>(it));
-                        }
-                        return Possibly.IsNot<IOrType<Method, MethodType, InferredType>>();
-                    }).Where(x => x is IIsDefinately<IOrType<Method, MethodType, InferredType>>)
-                    .Select(x => x.CastTo<IIsDefinately<IOrType<Method, MethodType, InferredType>>>().Value)
-                    .ToDictionary(x => x, x => x.SwitchReturns(v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow(), v1 => v1.Returns.GetOrThrow())),
-                    typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()));
+                    typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()),
+                    orsToFlowNodes.Where(x=> x.Key is MethodType).Select(x=>((MethodType)x.Key, (OuterFlowNode2 <MethodType>)x.Value)).ToDictionary(x=>x.Item1, x=>x.Item2),
+                    orsToFlowNodes.Where(x => x.Key is Type).Select(x => ((Type)x.Key, (OuterFlowNode2<Type>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
+                    orsToFlowNodes.Where(x => x.Key is Object).Select(x => ((Object)x.Key, (OuterFlowNode2<Object>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
+                    orsToFlowNodes.Where(x => x.Key is OrType).Select(x => ((OrType)x.Key, (OuterFlowNode2<OrType>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
+                    orsToFlowNodes.Where(x => x.Key is InferredType).Select(x => ((InferredType)x.Key, (OuterFlowNode2<InferredType>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
+                    outerInflows);
 
             }
 
@@ -1736,7 +1697,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var lookUper in typeProblemNodes.OfType<ILookUpType>())
                 {
-                    if (lookUper.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> lookUperLooksUp && lookUperLooksUp.Value.Equals(defererType))
+                    if (lookUper.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> lookUperLooksUp && lookUperLooksUp.Value.Equals(defererType))
                     {
                         toReplace.Add(lookUper);
                     }
@@ -1940,7 +1901,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             IOrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrOverlayOrThrow(ILookUpType node, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> realizedGeneric)
             {
 
-                if (node.LooksUp is IIsDefinately<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> nodeLooksUp)
+                if (node.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> nodeLooksUp)
                 {
                     return nodeLooksUp.Value;
                 }
@@ -2162,8 +2123,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // no but they can have members that are implicit 
                         // plus maybe they could be in the future this some sort of implicit key word
                         // number || implict 
-                        orType.Left.If<TypeReference>(x => HandleHopefulMember(key, hopeful, GetType(x)));
-                        orType.Right.If<TypeReference>(x => HandleHopefulMember(key, hopeful, GetType(x)));
+                        orType.Left.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
+                        orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
 
                     },
                     inferredType =>

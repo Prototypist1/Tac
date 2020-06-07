@@ -17,12 +17,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         // 🤫 the power was in you all along
         internal class TypeSolution 
         {
-            private readonly IReadOnlyDictionary<IHavePublicMembers, IReadOnlyList<TypeProblem2.Member>> publicMembers;
-            private readonly IReadOnlyDictionary<IHavePrivateMembers, IReadOnlyList<TypeProblem2.Member>> privateMembers;
             private readonly IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
-            private readonly IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn;
-            private readonly IReadOnlyDictionary<IOrType<OuterFlowNode2<TypeProblem2.Method>, OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.InferredType>>, TypeProblem2.TransientMember> methodOut;
             private readonly IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint;
 
             private readonly IReadOnlyDictionary<TypeProblem2.MethodType, OuterFlowNode2<TypeProblem2.MethodType>> methodFlowNodes;
@@ -33,23 +29,40 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private readonly IReadOnlyDictionary<Inflow2, OuterFlowNode2> inflowLookup;
 
+
             public TypeSolution(
-                IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map,
-                IReadOnlyDictionary<IHavePublicMembers, IReadOnlyList<TypeProblem2.Member>> publicMembers,
-                IReadOnlyDictionary<IHavePrivateMembers, IReadOnlyList<TypeProblem2.Member>> privateMembers,
-                IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
-                IReadOnlyDictionary<IOrType<TypeProblem2.Method, TypeProblem2.MethodType, TypeProblem2.InferredType>, TypeProblem2.Member> methodIn,
-                IReadOnlyDictionary<IOrType<OuterFlowNode2<TypeProblem2.Method>, OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.InferredType>>, TypeProblem2.TransientMember> methodOut,
-                IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint)
+                IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map, 
+                IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts, 
+                IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint, 
+                IReadOnlyDictionary<TypeProblem2.MethodType, OuterFlowNode2<TypeProblem2.MethodType>> methodFlowNodes, 
+                IReadOnlyDictionary<TypeProblem2.Type, OuterFlowNode2<TypeProblem2.Type>> typeFlowNodes, 
+                IReadOnlyDictionary<TypeProblem2.Object, OuterFlowNode2<TypeProblem2.Object>> objectFlowNodes, 
+                IReadOnlyDictionary<TypeProblem2.OrType, OuterFlowNode2<TypeProblem2.OrType>> orFlowNodes, 
+                IReadOnlyDictionary<TypeProblem2.InferredType, OuterFlowNode2<TypeProblem2.InferredType>> inferredFlowNodes, 
+                IReadOnlyDictionary<Inflow2, OuterFlowNode2> inflowLookup)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
-                this.publicMembers = publicMembers ?? throw new ArgumentNullException(nameof(publicMembers));
-                this.privateMembers = privateMembers ?? throw new ArgumentNullException(nameof(privateMembers));
                 this.orTypeElememts = orTypeElememts ?? throw new ArgumentNullException(nameof(orTypeElememts));
-                this.methodIn = methodIn ?? throw new ArgumentNullException(nameof(methodIn));
-                this.methodOut = methodOut ?? throw new ArgumentNullException(nameof(methodOut));
                 this.moduleEntryPoint = moduleEntryPoint ?? throw new ArgumentNullException(nameof(moduleEntryPoint));
+                this.methodFlowNodes = methodFlowNodes ?? throw new ArgumentNullException(nameof(methodFlowNodes));
+                this.typeFlowNodes = typeFlowNodes ?? throw new ArgumentNullException(nameof(typeFlowNodes));
+                this.objectFlowNodes = objectFlowNodes ?? throw new ArgumentNullException(nameof(objectFlowNodes));
+                this.orFlowNodes = orFlowNodes ?? throw new ArgumentNullException(nameof(orFlowNodes));
+                this.inferredFlowNodes = inferredFlowNodes ?? throw new ArgumentNullException(nameof(inferredFlowNodes));
+                this.inflowLookup = inflowLookup ?? throw new ArgumentNullException(nameof(inflowLookup));
             }
+
+            //public TypeSolution(
+            //    IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map,
+            //    IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts,
+            //   IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint)
+            //{
+            //    this.map = map ?? throw new ArgumentNullException(nameof(map));
+            //    this.orTypeElememts = orTypeElememts ?? throw new ArgumentNullException(nameof(orTypeElememts));
+            //    this.methodIn = methodIn ?? throw new ArgumentNullException(nameof(methodIn));
+            //    this.methodOut = methodOut ?? throw new ArgumentNullException(nameof(methodOut));
+            //    this.moduleEntryPoint = moduleEntryPoint ?? throw new ArgumentNullException(nameof(moduleEntryPoint));
+            //}
 
 
             private readonly Dictionary<TypeProblem2.Type, IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>> cacheType = new Dictionary<TypeProblem2.Type, IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>>();
@@ -173,6 +186,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private readonly Dictionary<Tpn.OuterFlowNode2, IBox<IFrontendType>> cacheInferredType = new Dictionary<Tpn.OuterFlowNode2, IBox<IFrontendType>>();
+
 
             public IBox<IFrontendType> GetInferredType(Tpn.OuterFlowNode2 inferredType, Tpn.IConvertTo<Tpn.OuterFlowNode2, IFrontendType> converter)
             {
