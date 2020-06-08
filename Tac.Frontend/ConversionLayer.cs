@@ -26,6 +26,59 @@ namespace Tac.Frontend
         }
     }
 
+
+    internal class UnWrappingTypeBox : IBox<IFrontendType>
+    {
+        private readonly IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box;
+
+        public UnWrappingTypeBox(IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box)
+        {
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+        }
+
+        public IFrontendType GetValue() => box.GetValue().SwitchReturns<IFrontendType>(x => x.FrontendType(), x => x.FrontendType(), x => x);
+    }
+
+    internal class UnWrappingOrBox : IBox<IFrontendType>
+    {
+        private readonly IBox<WeakTypeOrOperation> box;
+
+        public UnWrappingOrBox(IBox<WeakTypeOrOperation> box)
+        {
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+        }
+
+        public IFrontendType GetValue() => box.GetValue().FrontendType();
+    }
+
+
+    internal class UnWrappingObjectBox : IBox<IFrontendType>
+    {
+        private readonly IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> box;
+
+        public UnWrappingObjectBox(IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> box)
+        {
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+        }
+
+        public IFrontendType GetValue()
+        {
+            var inner = box.GetValue();
+            if (inner.Is1(out var inner1))
+            {
+                return inner1.AssuredReturns();
+            }
+            else if (inner.Is2(out var inner2))
+            {
+                return inner2.AssuredReturns();
+            }
+            else
+            {
+                throw new Exception("blarg");
+            }
+        }
+    }
+
     // {D27D98BA-96CF-402C-824C-744DACC63FEE}
     // I have a lot of GetValue on this page
     // I am sure they are ok when they are passed in the consturctor
@@ -48,60 +101,9 @@ namespace Tac.Frontend
                     // readonly does not wor
                     // so it does not matter now
                     // 💩💩💩💩
-                    x => typeSolution.GetPublicMembers(x).Select(x => typeSolution.GetMember(x.FlowNode, new WeakMemberDefinitionConverter(false,x.Key))).ToList()));
+                    x => typeSolution.GetPublicMembers(x).Select(x => typeSolution.GetMember(x, new WeakMemberDefinitionConverter(false,x.Key))).ToList()));
         }
 
-        private class UnWrappingTypeBox : IBox<IFrontendType>
-        {
-            private readonly IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box;
-
-            public UnWrappingTypeBox(IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box)
-            {
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
-            }
-
-            public IFrontendType GetValue()=> box.GetValue().SwitchReturns<IFrontendType>(x => x.FrontendType(), x => x.FrontendType(), x => x);
-        }
-
-        private class UnWrappingOrBox : IBox<IFrontendType>
-        {
-            private readonly IBox<WeakTypeOrOperation> box;
-
-            public UnWrappingOrBox(IBox<WeakTypeOrOperation> box)
-            {
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
-            }
-
-            public IFrontendType GetValue() => box.GetValue().FrontendType();
-        }
-
-
-        private class UnWrappingObjectBox : IBox<IFrontendType>
-        {
-            private readonly IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> box;
-
-            public UnWrappingObjectBox(IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> box)
-            {
-                this.box = box ?? throw new ArgumentNullException(nameof(box));
-            }
-
-            public IFrontendType GetValue()
-            {
-                var inner = box.GetValue();
-                if (inner.Is1(out var inner1))
-                {
-                    return inner1.AssuredReturns();
-                }
-                else if (inner.Is2(out var inner2))
-                {
-                    return inner2.AssuredReturns();
-                }
-                else
-                {
-                    throw new Exception("blarg");
-                }
-            }
-        }
 
         public static IOrType< IBox<IFrontendType>,IError> GetType(Tpn.TypeSolution typeSolution, Tpn.ILookUpType lookUpType)
         {

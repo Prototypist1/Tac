@@ -77,24 +77,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheType[explicitType];
             }
 
-            //private readonly Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>>();
+            private readonly Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>> cacheMember = new Dictionary<TypeProblem2.Member, IBox<WeakMemberDefinition>>();
             
             // just takes the type of the member
             public IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member)
             {
-                return GetMember(GetFlowNode2(member), member.Converter);
+                if (!cacheMember.ContainsKey(member))
+                {
+                    var box = new Box<WeakMemberDefinition>();
+                    cacheMember[member] = box;
+                    box.Fill(member.Converter.Convert(this, GetFlowNode2(member)));
+                }
+                return cacheMember[member];
             }
 
 
-            private readonly Dictionary<Tpn.OuterFlowNode2, IBox<WeakMemberDefinition>> cacheMember2 = new Dictionary<Tpn.OuterFlowNode2, IBox<WeakMemberDefinition>>();
+            private readonly Dictionary<FlowNodeMember, IBox<WeakMemberDefinition>> cacheMember2 = new Dictionary<FlowNodeMember, IBox<WeakMemberDefinition>>();
 
-            public IBox<WeakMemberDefinition> GetMember(Tpn.OuterFlowNode2 member, Tpn.IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> convert)
+            public IBox<WeakMemberDefinition> GetMember(FlowNodeMember member, Tpn.IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> convert)
             {
                 if (!cacheMember2.ContainsKey(member))
                 {
                     var box = new Box<WeakMemberDefinition>();
                     cacheMember2[member] = box;
-                    box.Fill(convert.Convert(this, member));
+                    box.Fill(convert.Convert(this, member.FlowNode));
                 }
                 return cacheMember2[member];
             }
@@ -201,14 +207,18 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public readonly struct FlowNodeMember
             {
-                public FlowNodeMember(IKey key, OuterFlowNode2 flowNode)
+                public FlowNodeMember(IKey key, OuterFlowNode2 flowNode, OuterFlowNode2 of)
                 {
                     Key = key ?? throw new ArgumentNullException(nameof(key));
                     FlowNode = flowNode ?? throw new ArgumentNullException(nameof(flowNode));
+                    Of = of ?? throw new ArgumentNullException(nameof(of));
                 }
 
                 public IKey Key { get; }
                 public OuterFlowNode2 FlowNode { get; }
+                // this is used for equality
+                // a member is by what it is on + it's key
+                public OuterFlowNode2 Of { get; }
             }
 
             public IReadOnlyList<TypeProblem2.Member> GetPrivateMembers(IHavePrivateMembers privateMembers)
@@ -226,12 +236,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var onlyPossible = from.Possible.Single();
 
-                    return onlyPossible.Members.Select(x => new FlowNodeMember(x.Key, ToFlowNode(x.Value))).ToArray();
+                    return onlyPossible.Members.Select(x => new FlowNodeMember(x.Key, ToFlowNode(x.Value), from)).ToArray();
                 }
 
                 return from.Possible.SelectMany(x => x.Members).GroupBy(x => x.Key).Where(x => x.Count() == from.Possible.Count).Select(x=> {
                     //{A2333086-1634-4C8D-9FB1-453BE0BC2F03}
-                    return new FlowNodeMember(x.Key,new OuterFlowNode2<Uhh>(false, x.SelectMany(y=>ToFlowNode(y.Value).Possible).ToList(), new Uhh()));
+                    return new FlowNodeMember(x.Key,new OuterFlowNode2<Uhh>(false, x.SelectMany(y=>ToFlowNode(y.Value).Possible).ToList(), new Uhh()), from);
                 }).ToList();
             }
 
@@ -365,9 +375,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                             GetMethodType(typeFlowMethodType.Source).GetValue()));
                 }
                 if (node is OuterFlowNode2<TypeProblem2.Type> typeFlowNode) {
-                    return OrType.Make<IBox<IFrontendType>, IError> (
-                        new Box<IFrontendType>(
-                            GetExplicitType(typeFlowNode.Source).GetValue().SwitchReturns<IFrontendType>(x=>x.FrontendType(),x=>x.FrontendType(), x=>x)));
+                    return OrType.Make<IBox<IFrontendType>, IError>(
+                            new UnWrappingTypeBox(GetExplicitType(typeFlowNode.Source)));
                 }
                 //if (node is OuterFlowNode2<TypeProblem2.Method> flowTypeMethod) {
 
@@ -377,8 +386,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //}
                 if (node is OuterFlowNode2<TypeProblem2.Object> typeFlowObject) {
                     return OrType.Make<IBox<IFrontendType>, IError>(
-                        new Box<IFrontendType>(
-                            GetObject(typeFlowObject.Source).GetValue().SwitchReturns<IFrontendType>(x => x.AssuredReturns(), x => x.AssuredReturns())));
+                        new UnWrappingObjectBox(
+                            GetObject(typeFlowObject.Source)));
                 }
                 if (node is OuterFlowNode2<TypeProblem2.OrType> typeFlowOr) {
                     return OrType.Make<IBox<IFrontendType>, IError>(

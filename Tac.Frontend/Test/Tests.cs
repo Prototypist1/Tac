@@ -142,6 +142,11 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentXDownStream()
         {
 
+            // type {x} m1 =: m3
+            // type {y} m2 =: m3
+            // m3 =: m4
+            // m3 =: m5
+
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var m1 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
@@ -304,6 +309,10 @@ namespace Tac.Frontend.TypeProblem.Test
         public void GenericContainsSelf()
         {
 
+            // type[node-t] node {node[node-t] next}
+            // type chicken {}
+            // node[chicken] thing;
+
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var type = x.CreateGenericType(
@@ -344,6 +353,11 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericCircular()
         {
+            // type[left-t] left {  right[left-t] thing }
+            // type[right-t] right {  left[right-t] thing }
+            // type chicken {}
+            // left[chicken] left-member;
+            // right[chicken] right-member
 
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
