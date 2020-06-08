@@ -1688,7 +1688,20 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private bool TryToOuterFlowNode(Dictionary<ITypeProblemNode, OuterFlowNode2> orsToFlowNodes, OrType or, out OuterFlowNode2 res)
             {
-                if (orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var left) && orsToFlowNodes.TryGetValue(or.Left.GetOrThrow(), out var right))
+                if (orsToFlowNodes.TryGetValue(GetType(or.Left.GetOrThrow()).SwitchReturns<ITypeProblemNode>(
+                                    x => x,
+                                    x => x,
+                                    x => x,
+                                    x => x,
+                                    x => x,
+                                    x => throw new NotImplementedException()), out var left) && 
+                    orsToFlowNodes.TryGetValue(GetType(or.Right.GetOrThrow()).SwitchReturns<ITypeProblemNode>(
+                                    x => x,
+                                    x => x,
+                                    x => x,
+                                    x => x,
+                                    x => x,
+                                    x => throw new NotImplementedException()), out var right))
                 {
 
                     res = new OuterFlowNode2<OrType>(false, left.Possible.Union(right.Possible).ToList(), or);

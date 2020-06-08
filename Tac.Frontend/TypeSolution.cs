@@ -371,19 +371,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (node is OuterFlowNode2<TypeProblem2.MethodType> typeFlowMethodType)
                 {
                     return OrType.Make<IBox<IFrontendType>, IError>(
-                        new Box<IFrontendType>(
-                            GetMethodType(typeFlowMethodType.Source).GetValue()));
+                            GetMethodType(typeFlowMethodType.Source));
                 }
                 if (node is OuterFlowNode2<TypeProblem2.Type> typeFlowNode) {
                     return OrType.Make<IBox<IFrontendType>, IError>(
                             new UnWrappingTypeBox(GetExplicitType(typeFlowNode.Source)));
                 }
-                //if (node is OuterFlowNode2<TypeProblem2.Method> flowTypeMethod) {
-
-                //    return OrType.Make<IBox<IFrontendType>, IError>(
-                //        new Box<IFrontendType>(
-                //            GetMethod(flowTypeMethod.Source).GetValue().SwitchReturns<IFrontendType>(x => x.FrontendType(), x => x.FrontendType())));
-                //}
                 if (node is OuterFlowNode2<TypeProblem2.Object> typeFlowObject) {
                     return OrType.Make<IBox<IFrontendType>, IError>(
                         new UnWrappingObjectBox(
@@ -391,18 +384,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 if (node is OuterFlowNode2<TypeProblem2.OrType> typeFlowOr) {
                     return OrType.Make<IBox<IFrontendType>, IError>(
-                        new Box<IFrontendType>(GetOrType(typeFlowOr.Source).GetValue().FrontendType()));
+                        new UnWrappingOrBox(GetOrType(typeFlowOr.Source)));
                 }
                 if (node is OuterFlowNode2<TypeProblem2.InferredType> typeFlowInferred)
                 {
-                    return OrType.Make<IBox<IFrontendType>, IError>(
-                        new Box<IFrontendType>(GetInferredType(typeFlowInferred, new InferredTypeConverter()).GetValue()));
+                    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowInferred, new InferredTypeConverter()));
                 }
 
                 if (node is OuterFlowNode2<Uhh> typeFlowUhh)
                 {
-                    return OrType.Make<IBox<IFrontendType>, IError>(
-                        new Box<IFrontendType>(GetInferredType(typeFlowUhh, new InferredTypeConverter()).GetValue()));
+                    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowUhh, new InferredTypeConverter()));
                 }
                 throw new NotImplementedException("I thought i had to be one of those");
             }
