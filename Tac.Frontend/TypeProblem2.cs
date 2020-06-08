@@ -112,6 +112,18 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal abstract OuterFlowNode2 Copy();
 
+            internal bool Empty()
+            {
+                if (Possible.Count != 1) {
+                    return false;
+                }
+
+                var onlyOption = Possible.First();
+
+                return onlyOption.Members.Count == 0
+                    && onlyOption.Input == null
+                    && onlyOption.Output == null;
+            }
         }
 
         public class FlowNode2
@@ -1405,14 +1417,27 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private FlowResult Flow(OuterFlowNode2 toType, OuterFlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows)
             {
+                if (fromType.Empty()) {
+                    return new FlowResult(false, true);
+                }
+
                 if (toType.Inferred)
                 {
+
+                    // if the toType is empty just overwirte it
+                    if (toType.Empty())
+                    {
+                        toType.Possible.Clear();
+                        toType.Possible.AddRange(fromType.Possible.ToList());
+                        return new FlowResult(true, true);
+                    }
+
                     // we can generate a new list of possibles for it
 
                     var nextList = new List<FlowNode2>();
 
                     var changes = false;
-                    
+
                     foreach (var fromOption in fromType.Possible)
                     {
                         var added = false;
