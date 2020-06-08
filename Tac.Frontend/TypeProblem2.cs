@@ -124,6 +124,41 @@ namespace Tac.Frontend.New.CrzayNamespace
                     && onlyOption.Input == null
                     && onlyOption.Output == null;
             }
+
+            internal FlowNode2 GetIntersection(IReadOnlyDictionary<Inflow2, OuterFlowNode2> lookup)
+            {
+                if (Possible.Count == 1) {
+                    return Possible.First();
+                }
+
+                if (Possible.Select(x => x.Primitive).OfType<IIsDefinately<Guid>>().Select(x => x.Value).Distinct().Count() == 1) {
+                    throw new Exception("uhh do you have more than one possible? with the same primitive??");
+                }
+
+
+                var res = new FlowNode2(false, Possibly.IsNot<Guid>());
+
+                foreach (var memberSet in Possible.SelectMany(x => x.Members).GroupBy(x => x.Key).Where(x => x.Count() == Possible.Count)) {
+                    res.Members.Add(memberSet.Key, Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(
+                        new OuterFlowNode2<Tpn.Uhh>(false, memberSet.SelectMany(x=>x.Value.SwitchReturns(y=> lookup[y], y=>y).Possible).Distinct().ToList() , new Tpn.Uhh())
+                        )) ;
+                }
+
+                if ( Possible.All(x => x.Input != null))
+                {
+                    res.Input = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(
+                        new OuterFlowNode2<Tpn.Uhh>(false, Possible.SelectMany(x => x.Input!.SwitchReturns(y => lookup[y], y => y).Possible).Distinct().ToList(), new Tpn.Uhh()));
+                }
+
+                if (Possible.All(x => x.Output != null))
+                {
+                    res.Output = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(
+                        new OuterFlowNode2<Tpn.Uhh>(false, Possible.SelectMany(x => x.Output!.SwitchReturns(y => lookup[y], y => y).Possible).Distinct().ToList(), new Tpn.Uhh()));
+                }
+
+                return res;
+
+            }
         }
 
         public class FlowNode2
@@ -1438,10 +1473,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     var changes = false;
 
-                    foreach (var fromOption in fromType.Possible)
+
+                    foreach (var toOption in toType.Possible)
                     {
                         var added = false;
-                        foreach (var toOption in toType.Possible)
+                        foreach (var fromOption in fromType.Possible)
                         {
                             var copy = toOption.Copy();
                             var res = Flow(copy, fromOption, outerInflows);
@@ -1457,7 +1493,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 // ...uhh is this ok?
                             }
                         }
-                        if (!added) {
+                        if (!added)
+                        {
                             changes = true;
                         }
                     }
@@ -1467,16 +1504,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     return new FlowResult(changes, toType.Possible.Any());
                 }
-                else if (fromType.Possible.Count == 1)
+                else
                 {
-
                     var nextList = new List<FlowNode2>();
 
                     var changes = false;
 
-                    var fromOption = fromType.Possible.Single();
+                    var fromOption = fromType.Possible.Count == 1 ? fromType.Possible.Single() : fromType.GetIntersection(outerInflows);
 
-                    var added = false;
                     foreach (var toOption in toType.Possible)
                     {
                         var copy = toOption.Copy();
@@ -1486,28 +1521,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             nextList.Add(copy);
                             changes |= res.Changes;
-                            added = true;
                         }
                         else
                         {
-                            // ...uhh is this ok?
+                            // we are not Inferred
+                            // so we are going to hold to our guns
+                            // anything here will stay
+                            nextList.Add(copy);
                         }
-                    }
-                    if (!added)
-                    {
-                        changes = true;
                     }
 
                     toType.Possible.Clear();
                     toType.Possible.AddRange(nextList);
 
                     return new FlowResult(changes, toType.Possible.Any());
-                }
-                else
-                {
-                    // this is like an or type flowing in to an or type
-                    // what happens?
-                    throw new NotImplementedException("ahh shit! everybody get your towels ready");
                 }
             }
 

@@ -14,6 +14,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     internal partial class Tpn
     {
+
+        // this is a stupid solution
+        // for {A2333086-1634-4C8D-9FB1-453BE0BC2F03}
+        // it is wierd to make OuterFlowNode2 at this point in the process
+        // are they inferred??? who know it has no meaning here
+        // it is even wierder create a source at this point in the process 
+        // so I just don't
+        // I create an Uhh
+        // this idicates that they don't really have a source
+        private class Uhh { }
+
         // 🤫 the power was in you all along
         internal class TypeSolution 
         {
@@ -350,15 +361,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return true;
             }
 
-            // this is a stupid solution
-            // for {A2333086-1634-4C8D-9FB1-453BE0BC2F03}
-            // it is wierd to make OuterFlowNode2 at this point in the process
-            // are they inferred??? who know it has no meaning here
-            // it is even wierder create a source at this point in the process 
-            // so I just don't
-            // I create an Uhh
-            // this idicates that they don't really have a source
-            private class Uhh { }
+
 
             private OuterFlowNode2 ToFlowNode(IOrType<Inflow2, OuterFlowNode2> orType) =>orType.SwitchReturns(x => inflowLookup[x], x => x);
             

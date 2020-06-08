@@ -54,7 +54,6 @@ namespace Tac.Frontend.New.CrzayNamespace
         // to the type system they almost just look like an empty user defined type
         // 
 
-
         internal interface ITypeProblemNode
         {
             ISetUpTypeProblem Problem { get; }
