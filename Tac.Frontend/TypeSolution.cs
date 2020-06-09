@@ -105,13 +105,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private readonly Dictionary<FlowNodeMember, IBox<WeakMemberDefinition>> cacheMember2 = new Dictionary<FlowNodeMember, IBox<WeakMemberDefinition>>();
 
-            public IBox<WeakMemberDefinition> GetMember(FlowNodeMember member, Tpn.IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition> convert)
+            public IBox<WeakMemberDefinition> GetMember(FlowNodeMember member, Tpn.IConvertTo<IOrType<Tpn.OuterFlowNode2,IError>, WeakMemberDefinition> convert)
             {
                 if (!cacheMember2.ContainsKey(member))
                 {
                     var box = new Box<WeakMemberDefinition>();
                     cacheMember2[member] = box;
-                    box.Fill(convert.Convert(this, member.FlowNode));
+                    box.Fill(convert.Convert(this, OrType.Make<Tpn.OuterFlowNode2, IError>(member.FlowNode)));
                 }
                 return cacheMember2[member];
             }
@@ -292,16 +292,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     );
             }
 
-            public OuterFlowNode2 GetFlowNode2(ILookUpType from)
+            public IOrType<OuterFlowNode2,IError> GetFlowNode2(ILookUpType from)
             {
-                return map[from].SwitchReturns<OuterFlowNode2>(
-                    x => GetFlowNode(x),
-                    x => GetFlowNode(x),
-                    x => GetFlowNode(x),
-                    x => GetFlowNode(x),
-                    x => GetFlowNode(x),
-                    x => throw new NotImplementedException()
-                    );
+                return map[from].SwitchReturns(
+                    x => OrType.Make< OuterFlowNode2, IError > (GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2, IError>(GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2, IError>(GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2, IError>(GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2, IError>(GetFlowNode(x)),
+                    x => OrType.Make<OuterFlowNode2, IError>(x));
             }
 
             //public IOrType<OuterFlowNode2<TypeProblem2.MethodType>, OuterFlowNode2<TypeProblem2.Type>, OuterFlowNode2<TypeProblem2.Object>, OuterFlowNode2<TypeProblem2.OrType>, OuterFlowNode2<TypeProblem2.InferredType>, IError> GetType(ILookUpType from)
@@ -367,38 +366,44 @@ namespace Tac.Frontend.New.CrzayNamespace
             
 
             // this might not need to be IError right now I don't know of anythign driving it
-            public IOrType<IBox<IFrontendType>,IError> GetType(OuterFlowNode2 node)
+            public IOrType<IBox<IFrontendType>,IError> GetType(IOrType<OuterFlowNode2,IError> or)
             {
-                // the list of types here comes from the big Or in typeSolution 
-                // + Uhh see {A2333086-1634-4C8D-9FB1-453BE0BC2F03}
-                if (node is OuterFlowNode2<TypeProblem2.MethodType> typeFlowMethodType)
+                return or.SwitchReturns(node =>
                 {
-                    return OrType.Make<IBox<IFrontendType>, IError>(
-                            GetMethodType(typeFlowMethodType.Source));
-                }
-                if (node is OuterFlowNode2<TypeProblem2.Type> typeFlowNode) {
-                    return OrType.Make<IBox<IFrontendType>, IError>(
-                            new UnWrappingTypeBox(GetExplicitType(typeFlowNode.Source)));
-                }
-                if (node is OuterFlowNode2<TypeProblem2.Object> typeFlowObject) {
-                    return OrType.Make<IBox<IFrontendType>, IError>(
-                        new UnWrappingObjectBox(
-                            GetObject(typeFlowObject.Source)));
-                }
-                if (node is OuterFlowNode2<TypeProblem2.OrType> typeFlowOr) {
-                    return OrType.Make<IBox<IFrontendType>, IError>(
-                        new UnWrappingOrBox(GetOrType(typeFlowOr.Source)));
-                }
-                if (node is OuterFlowNode2<TypeProblem2.InferredType> typeFlowInferred)
-                {
-                    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowInferred, new InferredTypeConverter()));
-                }
+                    // the list of types here comes from the big Or in typeSolution 
+                    // + Uhh see {A2333086-1634-4C8D-9FB1-453BE0BC2F03}
+                    if (node is OuterFlowNode2<TypeProblem2.MethodType> typeFlowMethodType)
+                    {
+                        return OrType.Make<IBox<IFrontendType>, IError>(
+                                GetMethodType(typeFlowMethodType.Source));
+                    }
+                    if (node is OuterFlowNode2<TypeProblem2.Type> typeFlowNode)
+                    {
+                        return OrType.Make<IBox<IFrontendType>, IError>(
+                                new UnWrappingTypeBox(GetExplicitType(typeFlowNode.Source)));
+                    }
+                    if (node is OuterFlowNode2<TypeProblem2.Object> typeFlowObject)
+                    {
+                        return OrType.Make<IBox<IFrontendType>, IError>(
+                            new UnWrappingObjectBox(
+                                GetObject(typeFlowObject.Source)));
+                    }
+                    if (node is OuterFlowNode2<TypeProblem2.OrType> typeFlowOr)
+                    {
+                        return OrType.Make<IBox<IFrontendType>, IError>(
+                            new UnWrappingOrBox(GetOrType(typeFlowOr.Source)));
+                    }
+                    if (node is OuterFlowNode2<TypeProblem2.InferredType> typeFlowInferred)
+                    {
+                        return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowInferred, new InferredTypeConverter()));
+                    }
 
-                if (node is OuterFlowNode2<Uhh> typeFlowUhh)
-                {
-                    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowUhh, new InferredTypeConverter()));
-                }
-                throw new NotImplementedException("I thought i had to be one of those");
+                    if (node is OuterFlowNode2<Uhh> typeFlowUhh)
+                    {
+                        return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowUhh, new InferredTypeConverter()));
+                    }
+                    throw new NotImplementedException("I thought i had to be one of those");
+                }, x => OrType.Make<IBox<IFrontendType>, IError>(x));
             }
 
 

@@ -145,8 +145,8 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        typeSolution.GetType(input).TransformInner(x=> x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
-                        typeSolution.GetType(output).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()));
+                        typeSolution.GetType(OrType.Make<Tpn.OuterFlowNode2,IError>(input)).TransformInner(x=> x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
+                        typeSolution.GetType(OrType.Make<Tpn.OuterFlowNode2, IError>(output)).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()));
             }
 
 
@@ -156,7 +156,7 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        typeSolution.GetType(input).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType,IConvertableFrontendType<IVerifiableType>>()),
+                        typeSolution.GetType(OrType.Make<Tpn.OuterFlowNode2, IError>(input)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType,IConvertableFrontendType<IVerifiableType>>()),
                         OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType()));
             }
 
@@ -167,7 +167,7 @@ namespace Tac.Frontend
                 return
                     new MethodType(
                         OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>( new EmptyType()),
-                        typeSolution.GetType(output).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
+                        typeSolution.GetType(OrType.Make<Tpn.OuterFlowNode2, IError>(output)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
             }
 
             // if it has members it must be a scope
@@ -342,7 +342,7 @@ namespace Tac.Frontend
     //    }
     //}
 
-    internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<Tpn.OuterFlowNode2, WeakMemberDefinition>
+    internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition>
     {
         private readonly bool isReadonly;
         private readonly IKey nameKey;
@@ -353,7 +353,7 @@ namespace Tac.Frontend
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, Tpn.OuterFlowNode2 from)
+        public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, IOrType< Tpn.OuterFlowNode2,IError> from)
         {
             return new WeakMemberDefinition(isReadonly, nameKey, typeSolution.GetType(from));
         }
