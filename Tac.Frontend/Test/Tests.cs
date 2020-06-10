@@ -349,6 +349,56 @@ namespace Tac.Frontend.TypeProblem.Test
             Equal(thingResultType, nextResult);
         }
 
+        [Fact]
+        public void GenericContainsSelfWithInferred()
+        {
+
+            // type[node-t] node {node[node-t] next}
+            // type chicken {}
+            // node[chicken] thing;
+
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+
+            var type = x.CreateGenericType(
+                x.ModuleRoot,
+                OrType.Make<NameKey, ImplicitKey>(new NameKey("node")),
+                new[]{
+                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("node-t")), new WeakTypeDefinitionConverter())
+                },
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+            );
+
+            x.CreatePublicMember(type, type, new NameKey("next"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
+                OrType.Make<IKey, IError>(new NameKey("node-t"))
+            })), new WeakMemberDefinitionConverter(false, new NameKey("next")));
+
+            x.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
+
+            var thing = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
+                OrType.Make<IKey, IError>(new NameKey("chicken"))
+            })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
+
+            var xMember  = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("m4")));
+
+            x.IsAssignedTo(xMember, thing);
+
+            var solution = x.Solve();
+
+            var thingResult = solution.GetMember(thing).GetValue();
+            var thingResultType = MemberToType(thingResult);
+
+            var nextResult = HasMember(thingResultType, new NameKey("next"));
+            HasMember(nextResult, new NameKey("next"));
+
+            Equal(thingResultType, nextResult);
+
+            var xMemberResult = MemberToType(solution.GetMember(xMember).GetValue());
+            for (int i = 0; i < 100; i++)
+            {
+                xMemberResult = HasMember(xMemberResult, new NameKey("next"));
+            }
+        }
+
 
         [Fact]
         public void GenericCircular()
@@ -391,6 +441,9 @@ namespace Tac.Frontend.TypeProblem.Test
             var leftMember = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("left-member"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("left"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("left-member")));
 
             var rightMember = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("right-member"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("right"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("right-member")));
+
+            x.IsAssignedTo(leftMember, rightMember);
+            x.IsAssignedTo(rightMember, leftMember);
 
             var solution = x.Solve();
 

@@ -210,7 +210,7 @@ namespace Tac.Frontend.Test
             Assert.False(type2.TheyAreUs(type1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
-        // A { A x } is B { B x }
+        //Type A { A x } is Type B { B x }
         [Fact]
         public void InterestingCase1()
         {
@@ -228,7 +228,7 @@ namespace Tac.Frontend.Test
             Assert.True(type2.TheyAreUs(type1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
-        // A { A x } is not B { B x int y }
+        //Type A { A x } is not Type B { B x int y }
         [Fact]
         public void InterestingCase2()
         {
@@ -250,7 +250,7 @@ namespace Tac.Frontend.Test
         }
 
 
-        // A { B x } is B { A x }
+        //Type A { B x } is Type B { A x }
         [Fact]
         public void InterestingCase3()
         {
@@ -269,7 +269,7 @@ namespace Tac.Frontend.Test
             Assert.True(type2.TheyAreUs(type1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
-        // A { B x } is B { C x } is C { A x }
+        // Type A { B x } is Type B { C x } is Type C { A x }
         [Fact]
         public void InterestingCase4()
         {
@@ -300,7 +300,7 @@ namespace Tac.Frontend.Test
         }
 
         // this is not true
-        // T2 { A2 a, B2 b } is T1 { A1 a, B1 b } where A2 is A1 and B2 is B1
+        // Type T2 { A2 a, B2 b } is Type T1 { A1 a, B1 b } where A2 is A1 and B2 is B1
         [Fact]
         public void TypeDontHaveVariance()
         {
