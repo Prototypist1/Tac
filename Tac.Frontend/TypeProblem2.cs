@@ -1436,13 +1436,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))];
 
-                        go |= Flow(fromType, toType, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>()).Changes;
-                        // TODO what happen when an incompatable hits the top level?
-                        // I think we just 🤷‍, it is an illigal assignment  
-                        // the type checker will find it later
-                        // certainly there is nothing to flow
-                        // so nothing todo here
-
+                        if (Compatible(fromType, toType, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>()))
+                        {
+                            go |= Flow(fromType, toType, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>());
+                        }
                     }
 
                     excapeValve++;
@@ -1506,13 +1503,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             #region Helpers
 
-            private FlowResult Flow(OuterFlowNode2 toType, OuterFlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyInflowing, List<(FlowNode2, FlowNode2)> alreadyInflowing)
+            // returns true if there are changes
+            private bool Flow(OuterFlowNode2 toType, OuterFlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyInflowing, List<(FlowNode2, FlowNode2)> alreadyInflowing)
             {
-                // TODO does this really work with all that copying?
                 var myPair = (toType, fromType);
                 if (outerAlreadyInflowing.Any(x => x.Equals(myPair)))
                 {
-                    return new FlowResult(false, true);
+                    return false;
                 }
                 outerAlreadyInflowing.Add(myPair);
 
@@ -1535,7 +1532,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         foreach (var fromOption in fromType.Possible)
                         {
 
-                            if (Compatible(toOption, fromOption))
+                            if (Compatible(toOption, fromOption, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>()))
                             {
                                 toCombine.Add((toOption, fromOption));
                             }
@@ -1544,10 +1541,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                         foreach (var (toItem, fromItem) in toCombine)
                         {
 
-                            var res = Flow(toItem, fromItem, outerInflows, outerAlreadyInflowing.ToList(),alreadyInflowing.ToList());
+                            changes |= Flow(toItem, fromItem, outerInflows, outerAlreadyInflowing.ToList(),alreadyInflowing.ToList());
 
                             nextList.Add(toItem);
-                            changes |= res.Changes;
                             added = true;
                             
                         }
@@ -1560,14 +1556,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                     toType.Possible.Clear();
                     toType.Possible.AddRange(nextList);
 
-                    return new FlowResult(changes, toType.Possible.Any());
+                    return changes;
                 }
                 else
                 {
                     var nextList = new List<FlowNode2>();
 
                     var changes = false;
-                    var compatable = false;
                     var fromOption = fromType.Possible.Count == 1 ? fromType.Possible.Single() : fromType.GetIntersection(outerInflows);
 
                     // this is like
@@ -1579,12 +1574,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var toOption in toType.Possible)
                     {
-                        if (Compatible(toOption, fromOption))
+                        if (Compatible(toOption, fromOption, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>()))
                         {
-                            var res = Flow(toOption, fromOption, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                            changes |= Flow(toOption, fromOption, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                             nextList.Add(toOption);
-                            changes |= res.Changes;
-                            compatable = true;
                         }
                         else {
                             // we are not Inferred
@@ -1597,13 +1590,55 @@ namespace Tac.Frontend.New.CrzayNamespace
                     toType.Possible.Clear();
                     toType.Possible.AddRange(nextList);
 
-                    return new FlowResult(changes, compatable);
+                    return changes;
                 }
             }
 
-            private bool Compatible(FlowNode2 toOption, FlowNode2 fromOption)
+            private bool Compatible(OuterFlowNode2 toType, OuterFlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyChecking, List<(FlowNode2, FlowNode2)> alreadyChecking)
             {
-                throw new NotImplementedException();
+                // TODO does this really work with all that copying?
+                var myPair = (toType, fromType);
+                if (outerAlreadyChecking.Any(x => x.Equals(myPair)))
+                {
+                    return  true;
+                }
+                outerAlreadyChecking.Add(myPair);
+
+                if (toType.Inferred)
+                {
+                    foreach (var toOption in toType.Possible)
+                    {
+                        foreach (var fromOption in fromType.Possible)
+                        {
+                            if (Compatible(toOption, fromOption, outerInflows, outerAlreadyChecking, alreadyChecking))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
+                else
+                {
+
+                    var fromOption = fromType.Possible.Count == 1 ? fromType.Possible.Single() : fromType.GetIntersection(outerInflows);
+
+                    // this is like
+                    // type {x} | number a
+                    // a =: type {number x} b
+
+                    // I think  we want to infer that a.x is number
+                    // otherwise how could the assignment happen?
+
+                    foreach (var toOption in toType.Possible)
+                    {
+                        if (Compatible(toOption, fromOption, outerInflows, outerAlreadyChecking, alreadyChecking))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
             }
 
             // return true if they were compatable
@@ -1611,24 +1646,23 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             //}
 
-            private class FlowResult { 
-                public bool Changes { get; }
-                public bool Compatable { get; }
+            //private class FlowResult { 
+            //    public bool Changes { get; }
+            //    public bool Compatable { get; }
 
-                public FlowResult(bool changes, bool compatable) {
-                    this.Changes = changes;
-                    this.Compatable = compatable;
-                }
-            }
+            //    public FlowResult(bool changes, bool compatable) {
+            //        this.Changes = changes;
+            //        this.Compatable = compatable;
+            //    }
+            //}
 
-
-            private FlowResult Flow(FlowNode2 toType, FlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyInflowing, List<(FlowNode2, FlowNode2)> alreadyInflowing)
+            //returns changes
+            private bool Flow(FlowNode2 toType, FlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyInflowing, List<(FlowNode2, FlowNode2)> alreadyInflowing)
             {
-                // TODO does this really work with all that copying?
                 var pair = (toType, fromType);
                 if (alreadyInflowing.Any(x => x.Equals(pair)))
                 {
-                    return new FlowResult(false, true);
+                    return false;
                 }
                 alreadyInflowing.Add(pair);
 
@@ -1638,7 +1672,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         && fromType.Primitive.Is(out var v2)
                         && v1 != v2)
                     {
-                        return new FlowResult(false,false);
+                        return false;
                     }
                 }
 
@@ -1647,7 +1681,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (toType.Primitive.Is(out var v1)
                         && !fromType.Primitive.Is(out var _))
                     {
-                        return new FlowResult(false, false);
+                        return false;
                     }
                 }
 
@@ -1657,7 +1691,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         && fromType.Primitive.Is(out var _))
                     {
                         toType.Primitive = fromType.Primitive;
-                        return new FlowResult(true, true);
+                        return true;
                     }
                 }
 
@@ -1665,7 +1699,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // TODO you can't flow things with IO and things with members together
                 // imcompatible should collect their all the things that could not be combined for error reporting
 
-                var compatable = true;
                 var changes = false;
 
                 foreach (var member in fromType.Members)
@@ -1674,7 +1707,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (toType.Members.TryGetValue(member.Key, out var existingMember))
                     {
-                        var res = existingMember.SwitchReturns(x =>
+                        changes |= existingMember.SwitchReturns(x =>
                         {
                             if (!x.inFlows.Contains(from))
                             {
@@ -1703,9 +1736,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return Flow(outerInflows[x],from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                             }
                         }, x => Flow(x, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList()));
-
-                        compatable &= res.Compatable;
-                        changes |= res.Changes;
                     }
                     else if (toType.Inferred)
                     {
@@ -1731,7 +1761,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (toType.Input != null)
                     {
-                        var res = toType.Input.SwitchReturns(x =>
+                        changes |= toType.Input.SwitchReturns(x =>
                         {
                             if (!x.inFlows.Contains(from))
                             {
@@ -1762,9 +1792,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return Flow(outerInflows[x], from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                             }
                         }, x => Flow(x, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList()));
-
-                        compatable &= res.Compatable;
-                        changes |= res.Changes;
                     }
                     else if (toType.Inferred)
                     {
@@ -1790,7 +1817,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (toType.Output != null)
                     {
-                        var res = toType.Output.SwitchReturns(x =>
+                        changes |= toType.Output.SwitchReturns(x =>
                         {
                             if (!x.inFlows.Contains(from))
                             {
@@ -1820,9 +1847,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 return Flow(outerInflows[x], from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                             }
                         }, x => Flow(x, from, outerInflows, outerAlreadyInflowing, alreadyInflowing));
-
-                        compatable &= res.Compatable;
-                        changes |= res.Changes;
                     }
                     else if (toType.Inferred)
                     {
@@ -1842,7 +1866,128 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                return new FlowResult(changes,compatable);
+                return changes;
+            }
+
+            private bool Compatible(FlowNode2 toType, FlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyChecking, List<(FlowNode2, FlowNode2)> alreadyChecking)
+            {
+
+                var pair = (toType, fromType);
+                if (alreadyChecking.Any(x => x.Equals(pair)))
+                {
+                    return true;
+                }
+                alreadyChecking.Add(pair);
+
+                // they they are different primitive types no flowing!
+                {
+                    if (toType.Primitive.Is(out var v1)
+                        && fromType.Primitive.Is(out var v2)
+                        && v1 != v2)
+                    {
+                        return false;
+                    }
+                }
+
+                // if the target is a primitive and the source is not no flowing
+                {
+                    if (toType.Primitive.Is(out var v1)
+                        && !fromType.Primitive.Is(out var _))
+                    {
+                        return false;
+                    }
+                }
+
+                // if the source is a primitive and the source is empty
+                {
+                    if (toType.Empty()
+                        && fromType.Primitive.Is(out var _))
+                    {
+                        return true;
+                    }
+                }
+
+
+                // TODO you can't flow things with IO and things with members together
+                // imcompatible should collect their all the things that could not be combined for error reporting
+
+                var compatable = true;
+
+                foreach (var member in fromType.Members)
+                {
+                    var from = member.Value.SwitchReturns(x => outerInflows[x], x => x);
+
+                    if (toType.Members.TryGetValue(member.Key, out var existingMember))
+                    {
+                        compatable &= existingMember.SwitchReturns(
+                            x => Compatible(outerInflows[x], from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()),
+                            x => Compatible(x, from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()));
+                    }
+                    else if (toType.Inferred)
+                    {
+                        // you are adding a new meber so it is clearly compatible
+                    }
+                    else
+                    {
+                        throw new Exception("bad code colin");
+                        // TODO this is going to be an exception
+                        // since it should be handled by an imcompatible earlier 
+                        // it does not accept new members
+                        // maybe it should just be handled by an imcompatible now? sure this is a more natural place
+                    }
+                }
+
+                if (fromType.Input != null)
+                {
+                    var from = fromType.Input.SwitchReturns(x => outerInflows[x], x => x);
+
+                    if (toType.Input != null)
+                    {
+                        compatable &= toType.Input.SwitchReturns(
+                            x => Compatible(outerInflows[x], from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()),
+                            x => Compatible(x, from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()));
+
+                    }
+                    else if (toType.Inferred)
+                    {
+                        // you are adding a new input so it is clearly compatible
+                    }
+                    else
+                    {
+                        throw new Exception("bad code colin");
+                        // TODO this is going to be an exception
+                        // since it should be handled by an imvompatible earlier 
+                        // it does not accept new inputs
+                        // maybe it should just be handled by an imcompatible now? sure this is a more natural place
+                    }
+                }
+
+                if (fromType.Output != null)
+                {
+                    var from = fromType.Output.SwitchReturns(x => outerInflows[x], x => x);
+
+                    if (toType.Output != null)
+                    {
+                        compatable &= toType.Output.SwitchReturns(
+                            x => Compatible(outerInflows[x], from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()),
+                            x => Compatible(x, from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()));
+
+                    }
+                    else if (toType.Inferred)
+                    {
+                        // you are adding a new output so it is clearly compatible
+                    }
+                    else
+                    {
+                        throw new Exception("bad code colin");
+                        // TODO this is going to be an exception
+                        // since it should be handled by an imvompatible earlier 
+                        // it does not accept new inputs
+                        // maybe it should just be handled by an imcompatible now? sure this is a more natural place
+                    }
+                }
+
+                return compatable;
             }
 
             private bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, OuterFlowNode2> orsToFlowNodes, OrType or, out OuterFlowNode2 res)
