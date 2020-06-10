@@ -86,25 +86,25 @@ namespace Tac.Frontend.New.CrzayNamespace
             public T Source { get; }
 
 
-            internal override OuterFlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs)
-            {
-                if (outerPairs.TryGetValue(this, out var exit)) {
-                    return exit;
-                }
+            //internal override OuterFlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs)
+            //{
+            //    if (outerPairs.TryGetValue(this, out var exit)) {
+            //        return exit;
+            //    }
 
-                // TODO does this need to be a deep copy?
-                // probably
-                // we don't want to realize it is incompatable deep in somewhere after it had made changes
-                var res = new OuterFlowNode2<T>(Inferred, Source);
-                outerPairs.Add(this, res);
+            //    // TODO does this need to be a deep copy?
+            //    // probably
+            //    // we don't want to realize it is incompatable deep in somewhere after it had made changes
+            //    var res = new OuterFlowNode2<T>(Inferred, Source);
+            //    outerPairs.Add(this, res);
 
-                foreach (var item in this.Possible)
-                {
-                    res.Possible.Add(item.Copy(pairs, outerPairs));
-                }
+            //    foreach (var item in this.Possible)
+            //    {
+            //        res.Possible.Add(item.Copy(pairs, outerPairs));
+            //    }
 
-                return res;
-            }
+            //    return res;
+            //}
         }
 
         public abstract class OuterFlowNode2
@@ -136,7 +136,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             internal List<FlowNode2> Possible { get; }
             public bool Inferred { get; }
 
-            internal abstract OuterFlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs);
+            //internal abstract OuterFlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs);
 
             internal bool Empty()
             {
@@ -205,35 +205,35 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>? Input { get; set; }
             public IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>? Output { get; set; }
 
-            internal FlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs)
-            {
+            //internal FlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs)
+            //{
 
-                if (pairs.TryGetValue(this, out var exit)) {
-                    return exit;
-                }
+            //    if (pairs.TryGetValue(this, out var exit)) {
+            //        return exit;
+            //    }
 
-                // TODO does this need to be a deep copy?
-                // probably
-                // we don't want to realize it is incompatable deep in somewhere after it had made changes
-                var res = new FlowNode2(Inferred, Primitive);
-                pairs.Add(this, res);
+            //    // TODO does this need to be a deep copy?
+            //    // probably
+            //    // we don't want to realize it is incompatable deep in somewhere after it had made changes
+            //    var res = new FlowNode2(Inferred, Primitive);
+            //    pairs.Add(this, res);
 
-                foreach (var pair in Members)
-                {
-                    res.Members[pair.Key] = pair.Value.SwitchReturns(
-                        x=> OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2 >(x),
-                        x=> OrType.Make </*Incompatable2,*/ Inflow2, OuterFlowNode2 > (x.Copy(pairs, outerPairs)));
-                }
+            //    foreach (var pair in Members)
+            //    {
+            //        res.Members[pair.Key] = pair.Value.SwitchReturns(
+            //            x=> OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2 >(x),
+            //            x=> OrType.Make </*Incompatable2,*/ Inflow2, OuterFlowNode2 > (x.Copy(pairs, outerPairs)));
+            //    }
 
-                res.Input = Input?.SwitchReturns(
-                        x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x),
-                        x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x.Copy(pairs, outerPairs)));
-                res.Output = Output?.SwitchReturns(
-                        x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x),
-                        x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x.Copy(pairs, outerPairs)));
+            //    res.Input = Input?.SwitchReturns(
+            //            x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x),
+            //            x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x.Copy(pairs, outerPairs)));
+            //    res.Output = Output?.SwitchReturns(
+            //            x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x),
+            //            x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x.Copy(pairs, outerPairs)));
 
-                return res;
-            }
+            //    return res;
+            //}
 
             internal bool Empty()
             {
@@ -1529,21 +1529,27 @@ namespace Tac.Frontend.New.CrzayNamespace
                     foreach (var toOption in toType.Possible)
                     {
                         var added = false;
+
+                        var toCombine = new List<(FlowNode2, FlowNode2)>();
+
                         foreach (var fromOption in fromType.Possible)
                         {
-                            var copy = toOption.Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
-                            var res = Flow(copy, fromOption, outerInflows, outerAlreadyInflowing.ToList(),alreadyInflowing.ToList());
 
-                            if (res.Compatable)
+                            if (Compatible(toOption, fromOption))
                             {
-                                nextList.Add(copy);
-                                changes |= res.Changes;
-                                added = true;
+                                toCombine.Add((toOption, fromOption));
                             }
-                            else
-                            {
-                                // ...uhh is this ok?
-                            }
+                        }
+
+                        foreach (var (toItem, fromItem) in toCombine)
+                        {
+
+                            var res = Flow(toItem, fromItem, outerInflows, outerAlreadyInflowing.ToList(),alreadyInflowing.ToList());
+
+                            nextList.Add(toItem);
+                            changes |= res.Changes;
+                            added = true;
+                            
                         }
                         if (!added)
                         {
@@ -1561,33 +1567,43 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var nextList = new List<FlowNode2>();
 
                     var changes = false;
-
+                    var compatable = false;
                     var fromOption = fromType.Possible.Count == 1 ? fromType.Possible.Single() : fromType.GetIntersection(outerInflows);
+
+                    // this is like
+                    // type {x} | number a
+                    // a =: type {number x} b
+
+                    // I think  we want to infer that a.x is number
+                    // otherwise how could the assignment happen?
 
                     foreach (var toOption in toType.Possible)
                     {
-                        var copy = toOption.Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
-                        var res = Flow(copy, fromOption, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-
-                        if (res.Compatable)
+                        if (Compatible(toOption, fromOption))
                         {
-                            nextList.Add(copy);
+                            var res = Flow(toOption, fromOption, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                            nextList.Add(toOption);
                             changes |= res.Changes;
+                            compatable = true;
                         }
-                        else
-                        {
+                        else {
                             // we are not Inferred
                             // so we are going to hold to our guns
                             // anything here will stay
-                            nextList.Add(copy);
+                            nextList.Add(toOption);
                         }
                     }
 
                     toType.Possible.Clear();
                     toType.Possible.AddRange(nextList);
 
-                    return new FlowResult(changes, toType.Possible.Any());
+                    return new FlowResult(changes, compatable);
                 }
+            }
+
+            private bool Compatible(FlowNode2 toOption, FlowNode2 fromOption)
+            {
+                throw new NotImplementedException();
             }
 
             // return true if they were compatable
@@ -1671,10 +1687,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 }
                                 else
                                 {
-                                    var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
-                                    outerInflows.Add(newInflow, newOuterFlowNode);
+                                    OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
+                                    outerInflows.Add(newInflow, copy);
+                                    Flow(copy, outerInflows[x], outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                                    return Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                                    // TODO you are here
+                                    // I am trying to remove copy!
+                                    //var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
+                                    //outerInflows.Add(newInflow, newOuterFlowNode);
 
-                                    return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                                    //return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                                 }
                             }
                             else {
@@ -1722,10 +1744,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 }
                                 else
                                 {
-                                    var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
-                                    outerInflows.Add(newInflow, newOuterFlowNode);
+                                    OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
+                                    outerInflows.Add(newInflow, copy);
+                                    Flow(copy, outerInflows[x], outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                                    return Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
 
-                                    return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                                    //// TODO you are here
+                                    //// I am trying to remove copy!
+                                    //var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
+                                    //outerInflows.Add(newInflow, newOuterFlowNode);
+
+                                    //return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                                 }
                             }
                             else
@@ -1741,8 +1770,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         var inflow = new Inflow2(from);
                         toType.Input = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(inflow);
-                        outerInflows.GetOrAdd(inflow, from.Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>()));
-
+                        OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
+                        copy = outerInflows.GetOrAdd(inflow, copy);
+                        Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                         changes = true;
                     }
                     else
@@ -1773,10 +1803,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 }
                                 else
                                 {
-                                    var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
-                                    outerInflows.Add(newInflow, newOuterFlowNode);
+                                    OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
+                                    outerInflows.Add(newInflow, copy);
+                                    Flow(copy, outerInflows[x], outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                                    return Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                                    // TODO you are here
+                                    // I am trying to remove copy!
+                                    //var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
+                                    //outerInflows.Add(newInflow, newOuterFlowNode);
 
-                                    return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
+                                    //return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                                 }
                             }
                             else
@@ -1791,9 +1827,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     else if (toType.Inferred)
                     {
                         var inflow = new Inflow2(from);
-                        toType.Input = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(inflow);
-                        outerInflows.GetOrAdd(inflow, from.Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>()));
-
+                        toType.Output = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(inflow);
+                        OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
+                        copy = outerInflows.GetOrAdd(inflow, copy);
+                        Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
                         changes = true;
                     }
                     else
