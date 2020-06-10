@@ -60,13 +60,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        // just here for the out
-        // I wish classes could have it 
-        //public interface IOuterFlowNode2<out T> { 
-        
-        //}
-
-        public class OuterFlowNode2<T> : OuterFlowNode2//, IOuterFlowNode2<T>
+        public class OuterFlowNode2<T> : OuterFlowNode2
         {
             public OuterFlowNode2(bool inferred, List<FlowNode2> possible, T source) : base(inferred, possible)
             {
@@ -85,26 +79,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public T Source { get; }
 
-
-            //internal override OuterFlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs)
-            //{
-            //    if (outerPairs.TryGetValue(this, out var exit)) {
-            //        return exit;
-            //    }
-
-            //    // TODO does this need to be a deep copy?
-            //    // probably
-            //    // we don't want to realize it is incompatable deep in somewhere after it had made changes
-            //    var res = new OuterFlowNode2<T>(Inferred, Source);
-            //    outerPairs.Add(this, res);
-
-            //    foreach (var item in this.Possible)
-            //    {
-            //        res.Possible.Add(item.Copy(pairs, outerPairs));
-            //    }
-
-            //    return res;
-            //}
         }
 
         public abstract class OuterFlowNode2
@@ -136,8 +110,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             internal List<FlowNode2> Possible { get; }
             public bool Inferred { get; }
 
-            //internal abstract OuterFlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs);
-
             internal bool Empty()
             {
                 if (Possible.Count != 1) {
@@ -165,21 +137,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = new FlowNode2(false, Possibly.IsNot<Guid>());
 
                 foreach (var memberSet in Possible.SelectMany(x => x.Members).GroupBy(x => x.Key).Where(x => x.Count() == Possible.Count)) {
-                    res.Members.Add(memberSet.Key, Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(
+                    res.Members.Add(memberSet.Key, OrType.Make<Inflow2, OuterFlowNode2>(
                         new OuterFlowNode2<Tpn.Uhh>(false, memberSet.SelectMany(x=>x.Value.SwitchReturns(y=> lookup[y], y=>y).Possible).Distinct().ToList() , new Tpn.Uhh())
                         )) ;
                 }
 
                 if ( Possible.All(x => x.Input != null))
                 {
-                    res.Input = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(
-                        new OuterFlowNode2<Tpn.Uhh>(false, Possible.SelectMany(x => x.Input!.SwitchReturns(y => lookup[y], y => y).Possible).Distinct().ToList(), new Tpn.Uhh()));
+                    res.Input = OrType.Make<Inflow2, OuterFlowNode2>(
+                        new OuterFlowNode2<Uhh>(false, Possible.SelectMany(x => x.Input!.SwitchReturns(y => lookup[y], y => y).Possible).Distinct().ToList(), new Tpn.Uhh()));
                 }
 
                 if (Possible.All(x => x.Output != null))
                 {
-                    res.Output = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(
-                        new OuterFlowNode2<Tpn.Uhh>(false, Possible.SelectMany(x => x.Output!.SwitchReturns(y => lookup[y], y => y).Possible).Distinct().ToList(), new Tpn.Uhh()));
+                    res.Output = OrType.Make<Inflow2, OuterFlowNode2>(
+                        new OuterFlowNode2<Uhh>(false, Possible.SelectMany(x => x.Output!.SwitchReturns(y => lookup[y], y => y).Possible).Distinct().ToList(), new Tpn.Uhh()));
                 }
 
                 return res;
@@ -198,42 +170,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             public bool Inferred { get; }
             public IIsPossibly<Guid> Primitive { get; set; }
 
-            //public List<FlowNode> PossibleTypes { get; } = new List<FlowNode>();
-            public Dictionary<IKey, IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>> Members { get; } = new Dictionary<IKey, IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>>();
+            public Dictionary<IKey, IOrType<Inflow2, OuterFlowNode2>> Members { get; } = new Dictionary<IKey, IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>>();
 
             // really should be IIsPossibly
-            public IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>? Input { get; set; }
-            public IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>? Output { get; set; }
-
-            //internal FlowNode2 Copy(Dictionary<FlowNode2, FlowNode2> pairs, Dictionary<OuterFlowNode2, OuterFlowNode2> outerPairs)
-            //{
-
-            //    if (pairs.TryGetValue(this, out var exit)) {
-            //        return exit;
-            //    }
-
-            //    // TODO does this need to be a deep copy?
-            //    // probably
-            //    // we don't want to realize it is incompatable deep in somewhere after it had made changes
-            //    var res = new FlowNode2(Inferred, Primitive);
-            //    pairs.Add(this, res);
-
-            //    foreach (var pair in Members)
-            //    {
-            //        res.Members[pair.Key] = pair.Value.SwitchReturns(
-            //            x=> OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2 >(x),
-            //            x=> OrType.Make </*Incompatable2,*/ Inflow2, OuterFlowNode2 > (x.Copy(pairs, outerPairs)));
-            //    }
-
-            //    res.Input = Input?.SwitchReturns(
-            //            x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x),
-            //            x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x.Copy(pairs, outerPairs)));
-            //    res.Output = Output?.SwitchReturns(
-            //            x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x),
-            //            x => OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(x.Copy(pairs, outerPairs)));
-
-            //    return res;
-            //}
+            public IOrType<Inflow2, OuterFlowNode2>? Input { get; set; }
+            public IOrType< Inflow2, OuterFlowNode2>? Output { get; set; }
 
             internal bool Empty()
             {
@@ -375,8 +316,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<Guid> PrimitiveId { get; }
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
-                //public List<Value> Values { get; } = new List<Value>();
-                //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
                 public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
@@ -426,87 +365,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public InferredType(TypeProblem2 problem, string debugName) : base(problem, debugName)
                 {
                 }
-                //public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
-                //public List<Scope> EntryPoints { get; } = new List<Scope>();
-                //public List<Value> Values { get; } = new List<Value>();
-                //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
-                //public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
-                //public List<TypeReference> Refs { get; } = new List<TypeReference>();
-                //public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
-                //public Dictionary<IKey, Type> Types { get; } = new Dictionary<IKey, Type>();
-                //public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
-                //public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
-                //public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
-
-
-                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                //{
-                //    return Members;
-                //}
             }
 
-            public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation> //, IHavePublicMembers
+            public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation> 
             {
                 public OrType(TypeProblem2 problem, string debugName, IConvertTo<OrType, WeakTypeOrOperation> converter) : base(problem, debugName, converter)
                 {
                 }
-                //public Dictionary<IKey, Member> Members { get; } = new Dictionary<IKey, Member>();
-
                 public IIsPossibly<TypeReference> Left { get; set; } = Possibly.IsNot<TypeReference>();
                 public IIsPossibly<TypeReference> Right { get; set; } = Possibly.IsNot<TypeReference>();
-
-                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                //{
-                //    throw new NotImplementedException();
-                //    //var res = new Dictionary<IKey, Member>();
-                //    //var left = Left.GetOrThrow();
-                //    //var right = Right.GetOrThrow();
-
-
-                //    //var leftMembers = left.GetPublicMembers();
-                //    //foreach (var rightPair in right.GetPublicMembers())
-                //    //{
-                //    //    if (leftMembers.TryGetValue(rightPair.Key, out var leftValue)) {
-                //    //        var member = new Member(Problem.SafeCastTo<ISetUpTypeProblem,TypeProblem2>(), $"generated or member out of {leftValue!.debugName} and {rightPair.Value.debugName}", leftValue.Converter)
-                //    //        {
-                //    //            LooksUp =
-                //    //            new OrType() { 
-                //    //                Left = Possibly.Is(TypeProblem2.GetType(leftValue)),
-                //    //                Right = Possibly.Is(TypeProblem2.GetType(rightPair.Value))
-
-                //    //            }
-
-
-
-                //    //        };
-                //    //        res[leftMember.Key] = member;
-                //    //    }
-                //    //} 
-
-                //    //rightMembers = ;
-                //    //foreach (var leftMember in GetMembers2(GetType(left)))
-                //    //{
-                //    //    if (rightMembers.TryGetValue(leftMember.Key, out var rightMember))
-                //    //    {
-                //    //        // TODO
-                //    //        // else where you use an orType for the type of members defined on both side of an OrType
-                //    //        // if they are the same type
-                //    //        if (ReferenceEquals(GetType(rightMember), GetType(leftMember.Value)))
-                //    //        {
-
-                //    //        }
-                //    //    }
-                //    //}
-
-                //    //orTypeMembers[orType] = res;
-
-                //    //return res;
-
-                //}
             }
             public class Scope : TypeProblemNode<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>, IScope, IHavePossibleMembers
             {
@@ -526,10 +397,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
-                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                //{
-                //    return new Dictionary<IKey, Member>();
-                //}
             }
             public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>>, IExplicitType, IHavePossibleMembers
             {
@@ -544,8 +411,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
                 public List<Scope> EntryPoints { get; } = new List<Scope>();
-                //public List<Value> Values { get; } = new List<Value>();
-                //public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
                 public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
@@ -1075,23 +940,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return method.Returns.GetOrThrow();
             }
 
-            //public Member CreateMember(IScope scope, IKey key, IOrType<IKey, IError> typeKey, IConvertTo<Member, WeakMemberDefinition> converter)
-            //{
-            //    var res = new Member(this, key.ToString()!, converter);
-            //    HasPrivateMember(scope, key, res);
-            //    res.Context = Possibly.Is(scope);
-            //    res.TypeKey = typeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
-            //    return res;
-            //}
-
-            //private TransientMember CreateTransientMember(IScope parent)
-            //{
-            //    var res = new TransientMember(this, "");
-            //    HasTransientMember(parent, res);
-            //    res.Context = Possibly.Is(parent);
-            //    return res;
-            //}
-
             public TransientMember GetReturns(IValue value)
             {
                 if (value.HopefulMethod is IIsDefinately<InferredType> inferredType)
@@ -1160,6 +1008,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // pretty sure it is not safe to solve more than once 
+            // ^ I don't trust him
             public TypeSolution Solve()
             {
                 // create types for everything 
@@ -1596,7 +1445,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private bool Compatible(OuterFlowNode2 toType, OuterFlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyChecking, List<(FlowNode2, FlowNode2)> alreadyChecking)
             {
-                // TODO does this really work with all that copying?
                 var myPair = (toType, fromType);
                 if (outerAlreadyChecking.Any(x => x.Equals(myPair)))
                 {
@@ -1640,21 +1488,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return false;
                 }
             }
-
-            // return true if they were compatable
-            //private bool Flow(Inflow2 toType, OuterFlowNode2 fromType, List<(Inflow2, OuterFlowNode2)> outerInflows) { 
-
-            //}
-
-            //private class FlowResult { 
-            //    public bool Changes { get; }
-            //    public bool Compatable { get; }
-
-            //    public FlowResult(bool changes, bool compatable) {
-            //        this.Changes = changes;
-            //        this.Compatable = compatable;
-            //    }
-            //}
 
             //returns changes
             private bool Flow(FlowNode2 toType, FlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyInflowing, List<(FlowNode2, FlowNode2)> alreadyInflowing)
@@ -2832,66 +2665,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             // I think I need some new fields for this phase
             // the big type or is different here
             // it needs to include in-flow-set, a new class I need to make
-
-            //private InferredType Merge(IOrType<MethodType, Type, Object, OrType, InferredType, IError> leftType, IOrType<MethodType, Type, Object, OrType, InferredType, IError> rightType)
-            //{
-            //    var res = new InferredType(this, "yuck");
-
-            //    var leftMembers = GetMembers(leftType);
-            //    var rightMembers = GetMembers(rightType);
-
-            //    foreach (var leftMember in leftMembers)
-            //    {
-            //        if (rightMembers.TryGetValue(leftMember.Key, out var rightMember))
-            //        {
-            //            // this is sinful!
-            //            var newValue = new Member(this, $"zzz", new WeakMemberDefinitionConverter(false, leftMember.Key));
-            //            HasPublicMember(res, leftMember.Key, newValue);
-            //            newValue.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Merge(leftMember.Value, rightMember)));
-            //        }
-            //    }
-
-            //    // handle inputs and outputs 
-            //    if (leftType.Is<IHaveInputAndOutput>(out var leftIO) &&
-            //        rightType.Is<IHaveInputAndOutput>(out var rightIO) &&
-            //        leftIO.Input is IIsDefinately<Member> leftI &&
-            //        rightIO.Input is IIsDefinately<Member> rightI &&
-            //        leftIO.Returns is IIsDefinately<TransientMember> leftO &&
-            //        rightIO.Returns is IIsDefinately<TransientMember> rightO)
-            //    {
-
-            //        var mergedI = Merge(GetType(leftI.Value), GetType(rightI.Value));
-            //        var mergedO = Merge(GetType(leftO.Value), GetType(rightO.Value));
-
-            //        // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
-            //        var methodInputKey = new NameKey("merged implicit input - " + Guid.NewGuid());
-            //        // this is sinful!
-            //        var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
-            //        inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(mergedI));
-            //        res.Input = Possibly.Is(inputMember);
-
-            //        var returnMember = new TransientMember(this, "merged implicit return -" + Guid.NewGuid());
-            //        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(mergedO));
-            //        res.Returns = Possibly.Is(returnMember);
-
-            //    }
-
-            //    return res;
-            //}
-
-            //private Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GetMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
-            //{
-            //    return type.SwitchReturns(
-            //        x => new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>(),
-            //        x => x.PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
-            //        x => x.PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
-            //        x => Merge(
-            //            GetType(x.Left.GetOrThrow()),
-            //            GetType(x.Right.GetOrThrow())).PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
-            //        x => x.PublicMembers.ToDictionary(y => y.Key, y => GetType(y.Value)),
-            //        x => { throw new NotImplementedException("I'll deal with this later, when I have a more concrete idea of what it means. aka, when it bites me in the ass"); }
-            //    );
-            //}
 
             static IIsPossibly<Member> TryGetMember(IStaticScope context, IKey key)
             {

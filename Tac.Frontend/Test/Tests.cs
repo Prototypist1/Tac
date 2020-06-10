@@ -356,6 +356,7 @@ namespace Tac.Frontend.TypeProblem.Test
             // type[node-t] node {node[node-t] next}
             // type chicken {}
             // node[chicken] thing;
+            // x =: thing
 
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
@@ -380,6 +381,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var xMember  = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("m4")));
 
+            // this assignment is an important part of the test
+            // we want to test that members flow as they should
             x.IsAssignedTo(xMember, thing);
 
             var solution = x.Solve();
@@ -442,6 +445,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var rightMember = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("right-member"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("right"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(false, new NameKey("right-member")));
 
+            // this assignment is an important part of the test
             x.IsAssignedTo(leftMember, rightMember);
             x.IsAssignedTo(rightMember, leftMember);
 
@@ -504,5 +508,53 @@ namespace Tac.Frontend.TypeProblem.Test
             //HasCount(1, xMemberResultXTypeXType);
             HasMember(xMemberResultXTypeX, new NameKey("eggs"));
         }
+
+
+        // A | B ab;
+        // ab =: C c;
+        // C flows in to A and B
+
+        // C c;
+        // c =: A | B ab;
+        // intersect A and B flows in to c? 
+
+        // 5 =: c
+        // c =: number | string b
+        // c should be number | string
+
+        // 5 =: c
+        // c =: number | string b
+        // c =: number d
+        // c should be number
+
+        // c =: A | C a
+        // c =: B | D b
+        // so c is...
+        // A&B | A&D | C&B | C&D
+
+        // c =: A | C a
+        // c =: B b
+        // so c is...
+        // A&B | C&B
+
+        // type {x} | number a
+        // a =: type {number x} b
+        // x should be a number
+
+
+        // Type X {
+        //     Y | X member;
+        // }
+        // Type Y {
+        //    Y member;
+        // }
+        // a =: X x
+
+        // Type Y {
+        //    Y member;
+        // }
+        // x =: Y y;
+        // I think I already tested this
+
     }
 }
