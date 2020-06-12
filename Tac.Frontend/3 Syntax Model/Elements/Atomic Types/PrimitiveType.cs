@@ -28,7 +28,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     internal class FrontEndOrType : IConvertableFrontendType<ITypeOr>
     {
-        private readonly IOrType<IFrontendType,IError> left, right;
+        internal readonly IOrType<IFrontendType,IError> left, right;
 
         public FrontEndOrType(IOrType<IFrontendType, IError> left, IOrType<IFrontendType, IError> right)
         {

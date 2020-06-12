@@ -133,7 +133,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     throw new Exception("uhh do you have more than one possible? with the same primitive??");
                 }
 
-
                 var res = new FlowNode2(false, Possibly.IsNot<Guid>());
 
                 foreach (var memberSet in Possible.SelectMany(x => x.Members).GroupBy(x => x.Key).Where(x => x.Count() == Possible.Count)) {
