@@ -22,17 +22,41 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public class ConcreteFlowNode {
 
-            public Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>> Members = new Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>>();
+            public Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> Members = new Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
         }
 
-        public class OrFlowNode { 
-            
+        public class OrFlowNode {
+            public OrFlowNode(IReadOnlyList<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> or)
+            {
+                Or = or ?? throw new ArgumentNullException(nameof(or));
+            }
+
+            public IReadOnlyList<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> Or { get; }
+
+            // these should only be used for from
+            internal IEnumerable<KeyValuePair<IKey, OrFlowNode>> VirtualMembers()
+            {
+                // this is the intersection 
+                var count = Or.Count();
+                return Or.SelectMany(x => x.SwitchReturns(
+                            y => y.Members,
+                            y => y.VirtualMembers().Select(z => new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>(z.Key, OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(z.Value))),
+                            y => new Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>(),
+                            y => y.VirtualMembers().Select(z => new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>(z.Key, OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(z.Value)))))
+                        .GroupBy(x => x.Key).Where(x => x.Count() == count)
+                        .Select(x =>
+                        {
+                            var res = new OrFlowNode(x.Select(y => y.Value).ToList());
+                            return new KeyValuePair<IKey, OrFlowNode>(x.Key, res);
+                        });
+            }
         }
 
         public class InferredFlowNode
         {
             public List<CombinedTypesAnd> Or = new List<CombinedTypesAnd>();
 
+            // these should only be used for from
             internal IEnumerable<KeyValuePair< IKey, InferredFlowNode>> VirtualMembers()
             {
 
@@ -56,8 +80,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var count = And.Count();
                 return And.SelectMany(x => x.SwitchReturns(
                             y=>y.Members,
-                            y=>y.VirtualMembers().Select(z=>new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>>(z.Key, OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>(z.Value))),
-                            y => new Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>>()))
+                            y=>y.VirtualMembers().Select(z=>new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>(z.Key, OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(z.Value))),
+                            y => new Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>(),
+                            y => y.VirtualMembers().Select(z => new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>(z.Key, OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(z.Value)))))
                         .GroupBy(x => x.Key).Where(x => x.Count() == count)
                         .Select(x =>
                         {
@@ -77,16 +102,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return HashCode.Combine(And);
             }
 
-            public IEnumerable<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>> And { get; }
+            public IEnumerable<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> And { get; }
 
-            public CombinedTypesAnd(HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>> and)
+            public CombinedTypesAnd(HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> and)
             {
                 And = and ?? throw new ArgumentNullException(nameof(and));
             }
 
-            internal CombinedTypesAnd AddAsNew(OrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode> orType)
+            internal CombinedTypesAnd AddAsNew(OrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> orType)
             {
-                var set = new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>>();
+                var set = new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
                 foreach (var item in And)
                 {
                     set.Add(item);
@@ -99,49 +124,220 @@ namespace Tac.Frontend.New.CrzayNamespace
         public bool CanFlow(ConcreteFlowNode to, ConcreteFlowNode from){
             foreach (var fromMember in from.Members)
             {
-                if (to.Members.TryGetValue(fromMember.Key, out var toMember))
+                if (!CanFlowMember(to, fromMember))
                 {
-
-                    if (!fromMember.Value.SwitchReturns(
-                        fromMemberValue => toMember.SwitchReturns(
-                            toMemberValue => CanFlow(toMemberValue, fromMemberValue),
-                            toMemberValue => CanFlow(toMemberValue, fromMemberValue),
-                            toMemberValue => CanFlow(toMemberValue, fromMemberValue)),
-                        fromMemberValue => toMember.SwitchReturns(
-                            toMemberValue => CanFlow(toMemberValue, fromMemberValue),
-                          toMemberValue => CanFlow(toMemberValue, fromMemberValue),
-                          toMemberValue => CanFlow(toMemberValue, fromMemberValue)),
-                        fromMemberValue => toMember.SwitchReturns(
-                            toMemberValue => CanFlow(toMemberValue, fromMemberValue),
-                            toMemberValue => CanFlow(toMemberValue, fromMemberValue),
-                            toMemberValue => CanFlow(toMemberValue, fromMemberValue)))) {
-                        return false;
-                    }
+                    return false;
                 }
             }
             return true;
         }
 
-        public void Flow(ConcreteFlowNode to, ConcreteFlowNode from) {
-            foreach (var fromMember in from.Members)
+
+        // A | B ab =: C | D cd;
+        // this is the same as
+        private bool CanFlow(OrFlowNode to, OrFlowNode from)
+        {
+            return to.Or.All(x => x.SwitchReturns(y => CanFlow(y, from), y => CanFlow(y, from), y => CanFlow(y, from), y => CanFlow(y, from)));
+        }
+
+        private bool Flow(OrFlowNode to, OrFlowNode from)
+        {
+            var changes = false;
+            foreach (var item in to.Or)
             {
-                if (to.Members.TryGetValue(fromMember.Key, out var toMember)) {
-                    
-                    fromMember.Value.Switch(
-                        fromMemberValue =>  toMember.Switch(
-                            toMemberValue => Flow(toMemberValue, fromMemberValue),
-                            toMemberValue => Flow(toMemberValue, fromMemberValue), 
-                            toMemberValue => Flow(toMemberValue, fromMemberValue)), 
-                        fromMemberValue => toMember.Switch(
-                            toMemberValue => Flow(toMemberValue, fromMemberValue),
-                          toMemberValue => Flow(toMemberValue, fromMemberValue),
-                          toMemberValue => Flow(toMemberValue, fromMemberValue)),
-                        fromMemberValue => toMember.Switch(
-                            toMemberValue => Flow(toMemberValue, fromMemberValue),
-                            toMemberValue => Flow(toMemberValue, fromMemberValue), 
-                            toMemberValue => Flow(toMemberValue, fromMemberValue)));
+                changes |= item.SwitchReturns(y => Flow(y, from), y => Flow(y, from), y => Flow(y, from), y => Flow(y, from));
+            }
+            return changes;
+        }
+
+        // int x =: int | string y;
+        private bool CanFlow(PrimitiveFlowNode to, OrFlowNode from)
+        {
+            return false;
+        }
+        private bool Flow(PrimitiveFlowNode toMemberValue, OrFlowNode fromMemberValue)
+        {
+            throw new Exception("actually don't flow");
+        }
+
+        private bool CanFlow(InferredFlowNode to, OrFlowNode from)
+        {
+            if (!to.Or.Any())
+            {
+                return true;
+            }
+            else
+            {
+                return to.Or.All(x => x.And.All(y => y.SwitchReturns(
+                    z => CanFlow(z, from),
+                    z => CanFlow(z, from),
+                    z => CanFlow(z, from),
+                    z => CanFlow(z, from))));
+            }
+        }
+        private bool Flow(InferredFlowNode to, OrFlowNode from)
+        {
+            if (!to.Or.Any())
+            {
+                var toAdd = new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> {
+                    OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode,OrFlowNode>(from)
+                });
+                to.Or.Add(toAdd);
+                return true;
+            }
+            else
+            {
+                var changes = false;
+                var nextList = new List<CombinedTypesAnd>();
+                foreach (var element in to.Or)
+                {
+                    if (!element.And.Contains(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(from)))
+                    {
+                        nextList.Add(element.AddAsNew(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(from)));
+                        // this is really only possibly a change what you added could be a subset
+                        changes = true;
+                    }
+                    else
+                    {
+                        nextList.Add(element);
+                    }
+                }
+
+                to.Or = nextList;
+
+                return changes;
+            }
+        }
+
+        private bool CanFlow(ConcreteFlowNode to, OrFlowNode from)
+        {
+            foreach (var member in from.VirtualMembers())
+            {
+                if (!CanFlowMember(to, new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>( member.Key, OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(member.Value)))) {
+                    return false;
                 }
             }
+            return true;
+        }
+        private bool Flow(ConcreteFlowNode to, OrFlowNode from)
+        {
+            var changes = false;
+            foreach (var member in from.VirtualMembers())
+            {
+                changes |= FlowMember(to, new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>(member.Key, OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(member.Value)));
+            }
+            return changes;
+        }
+
+        // A|B ab =: int i;
+        private bool CanFlow(OrFlowNode to, PrimitiveFlowNode from)
+        {
+            return false;
+        }
+        private bool Flow(OrFlowNode to, PrimitiveFlowNode from)
+        {
+            throw new Exception("actually don't flow");
+        }
+
+        // A | B ab =: i;
+        private bool CanFlow(OrFlowNode to, InferredFlowNode from)
+        {
+            return to.Or.All(x => x.SwitchReturns(y => CanFlow(y, from), y => CanFlow(y, from), y => CanFlow(y, from), y => CanFlow(y, from)));
+        }
+        private bool Flow(OrFlowNode to, InferredFlowNode from)
+        {
+            var changes = false;
+            foreach (var item in to.Or)
+            {
+                changes |= item.SwitchReturns(y => Flow(y, from), y => Flow(y, from), y => Flow(y, from), y => Flow(y, from));
+            }
+            return changes;
+        }
+
+        private bool CanFlow(OrFlowNode to, ConcreteFlowNode from)
+        {
+            return to.Or.All(x => x.SwitchReturns(y => CanFlow(y, from), y => CanFlow(y, from), y => CanFlow(y, from), y => CanFlow(y, from)));
+        }
+        private bool Flow(OrFlowNode to, ConcreteFlowNode from)
+        {
+            var changes = false;
+            foreach (var item in to.Or)
+            {
+                changes |= item.SwitchReturns(y => Flow(y, from), y => Flow(y, from), y => Flow(y, from), y => Flow(y, from));
+            }
+            return changes;
+        }
+
+        public bool Flow(ConcreteFlowNode to, ConcreteFlowNode from) {
+            var changes = false;
+            foreach (var fromMember in from.Members)
+            {
+                changes |= FlowMember(to,fromMember);
+            }
+            return changes;
+        }
+
+
+        public bool CanFlowMember(ConcreteFlowNode to, KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember)
+        {
+            if (to.Members.TryGetValue(fromMember.Key, out var toMember))
+            {
+
+                return !fromMember.Value.SwitchReturns(
+                    fromMemberValue => toMember.SwitchReturns(
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue)),
+                    fromMemberValue => toMember.SwitchReturns(
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue)),
+                    fromMemberValue => toMember.SwitchReturns(
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue)),
+                    fromMemberValue => toMember.SwitchReturns(
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue),
+                        toMemberValue => CanFlow(toMemberValue, fromMemberValue)));
+            }
+            else {
+                return false;
+            }
+        }
+
+        public bool FlowMember(ConcreteFlowNode to, KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember){
+            var changes = false;
+            if (to.Members.TryGetValue(fromMember.Key, out var toMember))
+            {
+
+                changes |= fromMember.Value.SwitchReturns(
+                    fromMemberValue => toMember.SwitchReturns(
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue)),
+                    fromMemberValue => toMember.SwitchReturns(
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue)),
+                    fromMemberValue => toMember.SwitchReturns(
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue)),
+                    fromMemberValue => toMember.SwitchReturns(
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue),
+                        toMemberValue => Flow(toMemberValue, fromMemberValue)));
+            }
+            return changes;
         }
 
         public bool CanFlow(PrimitiveFlowNode toMemberValue, PrimitiveFlowNode fromMemberValue) => toMemberValue.Equals(fromMemberValue);
@@ -159,8 +355,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             if (!toMemberValue.Or.Any())
             {
-                var toAdd = new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>> {
-                    OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>(fromMemberValue)
+                var toAdd = new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> {
+                    OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode,OrFlowNode>(fromMemberValue)
                 });
                 toMemberValue.Or.Add(toAdd);
                 return true;
@@ -175,14 +371,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return true;
             }
             else {
-                return to.Or.All(x => x.And.All(y=> y.SwitchReturns(z=> CanFlow(z,from), z => CanFlow(z, from), z => CanFlow(z, from))));
+                return to.Or.All(x => x.And.All(y=> y.SwitchReturns(
+                    z=> CanFlow(z,from), 
+                    z => CanFlow(z, from), 
+                    z => CanFlow(z, from), 
+                    z => CanFlow(z, from))));
             }
         }
         public bool Flow(InferredFlowNode to, ConcreteFlowNode from) {
             if (!to.Or.Any())
             {
-                var toAdd = new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>> {
-                    OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>(from)
+                var toAdd = new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> {
+                    OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode,OrFlowNode>(from)
                 });
                 to.Or.Add(toAdd);
                 return true;
@@ -193,9 +393,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var nextList = new List<CombinedTypesAnd>();
                 foreach (var element in to.Or)
                 {
-                    if (!element.And.Contains(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>(from)))
+                    if (!element.And.Contains(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(from)))
                     {
-                        nextList.Add(element.AddAsNew(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>(from)));
+                        nextList.Add(element.AddAsNew(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(from)));
                         // this is really only possibly a change what you added could be a subset
                         changes = true;
                     }
@@ -212,14 +412,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         public bool CanFlow(ConcreteFlowNode to, InferredFlowNode from) {
             foreach (var fromMember in from.VirtualMembers())
             {
-                if (to.Members.TryGetValue(fromMember.Key, out var toMember))
-                {
-                    if (!toMember.SwitchReturns(
-                        toMemberValue => CanFlow(toMemberValue, fromMember.Value),
-                        toMemberValue => CanFlow(toMemberValue, fromMember.Value),
-                        toMemberValue => CanFlow(toMemberValue, fromMember.Value))) {
-                        return false;
-                    }
+                if (!CanFlowMember(to, new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>(fromMember.Key,OrType.Make<ConcreteFlowNode,InferredFlowNode,PrimitiveFlowNode,OrFlowNode>( fromMember.Value)))) {
+                    return false;
                 }
             }
             return true;
@@ -232,6 +426,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (to.Members.TryGetValue(fromMember.Key, out var toMember))
                 {
                     changes |= toMember.SwitchReturns(
+                        toMemberValue => Flow(toMemberValue, fromMember.Value),
                         toMemberValue => Flow(toMemberValue, fromMember.Value),
                         toMemberValue => Flow(toMemberValue, fromMember.Value),
                         toMemberValue => Flow(toMemberValue, fromMember.Value));
@@ -252,12 +447,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 fromValue => x.SwitchReturns(
                                     toValue => CanFlow(toValue,fromValue),
                                     toValue => CanFlow(toValue, fromValue),
+                                    toValue => CanFlow(toValue, fromValue),
                                     toValue => CanFlow(toValue, fromValue)),
                                 fromValue => x.SwitchReturns(
                                     toValue => CanFlow(toValue, fromValue),
                                     toValue => CanFlow(toValue, fromValue),
+                                    toValue => CanFlow(toValue, fromValue),
                                     toValue => CanFlow(toValue, fromValue)),
                                 fromValue => x.SwitchReturns(
+                                    toValue => CanFlow(toValue, fromValue),
+                                    toValue => CanFlow(toValue, fromValue),
+                                    toValue => CanFlow(toValue, fromValue),
+                                    toValue => CanFlow(toValue, fromValue)),
+                                fromValue => x.SwitchReturns(
+                                    toValue => CanFlow(toValue, fromValue),
                                     toValue => CanFlow(toValue, fromValue),
                                     toValue => CanFlow(toValue, fromValue),
                                     toValue => CanFlow(toValue, fromValue))))) {
@@ -290,6 +493,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
             return false;
         }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
 
         // I wish the members of these to be visible to things in Tpn 
         // like TypeProblem2 and TypeSolution
