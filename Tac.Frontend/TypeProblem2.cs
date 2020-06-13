@@ -18,6 +18,144 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal partial class Tpn
     {
 
+        public class PrimitiveFlowNode { 
+        
+        }
+
+        public class ConcreteFlowNode {
+
+            public Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>> Members = new Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>>();
+        }
+
+        public class InferredFlowNode
+        {
+            public List<CombinedTypesAnd> Or = new List<CombinedTypesAnd>();
+
+            internal IEnumerable<KeyValuePair< IKey, InferredFlowNode>> VirtualMembers()
+            {
+
+                // this is the intersection 
+                return Or.SelectMany(x => x.VirtualMembers())
+                    .GroupBy(x => x.Key).Where(x => x.Count() == Or.Count)
+                    .Select(x =>
+                {
+                    var res = new InferredFlowNode();
+                    res.Or = x.Select(y => y.Value).ToList();
+
+                    return new KeyValuePair<IKey,  InferredFlowNode>(x.Key, res);
+                });
+
+            }
+        }
+
+        public class CombinedTypesAnd {
+
+            internal IEnumerable<KeyValuePair<IKey, CombinedTypesAnd>> VirtualMembers() {
+                return And.SelectMany(x => x.SwitchReturns(
+                            y=>y.Members,
+                            y=>y.VirtualMembers().Select(z=>new KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>>(z.Key, OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>(z.Value))),
+                            y => new Dictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>>()))
+                        .GroupBy(x => x.Key).Where(x => x.Count() == And.Count)
+                        .Select(x =>
+                        {
+                            var res = new CombinedTypesAnd();
+                            res.And = x.Select(y => y.Value).ToHashSet();
+
+                            return new KeyValuePair<IKey, CombinedTypesAnd>(x.Key, res);
+                        });
+            }
+
+            public HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>> And = new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>>();
+        }
+
+        public void Flow(ConcreteFlowNode to, ConcreteFlowNode from) {
+            foreach (var fromMember in from.Members)
+            {
+                if (to.Members.TryGetValue(fromMember.Key, out var toMember)) {
+                    
+                    fromMember.Value.Switch(
+                        fromMemberValue =>  toMember.Switch(
+                            toMemberValue => Flow(toMemberValue, fromMemberValue),
+                            toMemberValue => Flow(toMemberValue, fromMemberValue), 
+                            toMemberValue => Flow(toMemberValue, fromMemberValue)), 
+                        fromMemberValue => toMember.Switch(
+                            toMemberValue => Flow(toMemberValue, fromMemberValue),
+                          toMemberValue => Flow(toMemberValue, fromMemberValue),
+                          toMemberValue => Flow(toMemberValue, fromMemberValue)),
+                        fromMemberValue => toMember.Switch(
+                            toMemberValue => Flow(toMemberValue, fromMemberValue),
+                            toMemberValue => Flow(toMemberValue, fromMemberValue), 
+                            toMemberValue => Flow(toMemberValue, fromMemberValue)));
+                }
+            }
+        }
+
+        private void Flow(PrimitiveFlowNode toMemberValue, PrimitiveFlowNode fromMemberValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void Flow(InferredFlowNode toMemberValue, PrimitiveFlowNode fromMemberValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void Flow(ConcreteFlowNode toMemberValue, PrimitiveFlowNode fromMemberValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void Flow(PrimitiveFlowNode toMemberValue, ConcreteFlowNode fromMemberValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void Flow(PrimitiveFlowNode toMemberValue, InferredFlowNode fromMemberValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Flow(InferredFlowNode to, ConcreteFlowNode from) {
+            foreach (var element in to.Or)
+            {
+                if (!element.And.Contains(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>(from))) {
+                    element.And.Add(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode>(from));
+                }
+            }
+        }
+
+        public void Flow(ConcreteFlowNode to, InferredFlowNode from)
+        {
+            foreach (var fromMember in from.VirtualMembers())
+            {
+                if (to.Members.TryGetValue(fromMember.Key, out var toMember))
+                {
+                    toMember.Switch(
+                        toMemberValue => Flow(toMemberValue, fromMember.Value),
+                        toMemberValue => Flow(toMemberValue, fromMember.Value),
+                        toMemberValue => Flow(toMemberValue, fromMember.Value));
+                }
+            }
+        }
+
+        // ab =: A | B _ 
+        // cd =: C | D _
+        // ab =: cd
+        // ab is A&C | A&D | B&C | B&D
+        public void Flow(InferredFlowNode to, InferredFlowNode from)
+        {
+            var newList = new List<CombinedTypesAnd>();
+            foreach (var fromItem in from.Or)
+            {
+                foreach (var toItem in to.Or)
+                {
+                    var toAdd = new CombinedTypesAnd();
+                    toAdd.And = fromItem.And.Union(toItem.And).ToHashSet();
+                    newList.Add(toAdd);
+                }
+            }
+        }
+
         // I wish the members of these to be visible to things in Tpn 
         // like TypeProblem2 and TypeSolution
         // but not to the outside world
@@ -27,7 +165,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         // the only way I can think of is redickulous
         // solution and tpn would have to be inside a chain of nested classes 
         // containing all the classes I want them to access
-        
+
         // or they could be in there own project but I tired that and it sucked
 
         public class Inflow2
@@ -1388,6 +1526,19 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         foreach (var (toItem, fromItem) in toCombine)
                         {
+
+                            // TODO this might not work without copying
+                            // c =: C cc
+                            // c =: A|B
+
+                            // so C is an infered that has already had C flowed in to it
+                            // we now flow A in to that and B in to that and get 
+                            // A&B&C | A&B&C
+
+                            // I think, I am going to re-write it all again 😭😭😭 and just have some virtual types for and/or
+                            
+                            // all infered types are:
+                            // an OR of ANDs of concrete types
 
                             changes |= Flow(toItem, fromItem, outerInflows, outerAlreadyInflowing.ToList(),alreadyInflowing.ToList());
 
