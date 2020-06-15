@@ -30,55 +30,55 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePrivateMembers havePublicMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter);
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter);
             TypeProblem2.Member CreatePrivateMember(
                 IHavePrivateMembers scope,
                 IKey key,
                 IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> type, 
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter);
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter);
             TypeProblem2.Member CreatePrivateMember(
                  IStaticScope scope,
                 IHavePrivateMembers havePublicMembers,
                 IKey key,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter);
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter);
 
             TypeProblem2.Member CreatePublicMember(
                 IStaticScope scope,
                 IHavePublicMembers havePublicMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter);
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter);
             TypeProblem2.Member CreatePublicMember(
                 IHavePublicMembers scope,
                 IKey key,
                 IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError> type,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter);
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter);
             TypeProblem2.Member CreatePublicMember(
                 IStaticScope scope,
                 IHavePublicMembers havePublicMembers,
                 IKey key,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter);
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter);
             TypeProblem2.Member CreateMember(
                 IStaticScope scope, 
                 IKey memberName, 
                 IOrType<IKey, IError> orType,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> weakMemberDefinitionConverter);
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> weakMemberDefinitionConverter);
             TypeProblem2.Member CreateMemberPossiblyOnParent(
                 IStaticScope scope, 
                 IHavePossibleMembers havePossibleMembers, 
                 IKey key, 
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter);
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter);
             TypeProblem2.TypeReference CreateTypeReference(IStaticScope context, IKey typeKey, IConvertTo<TypeProblem2.TypeReference, IOrType<IFrontendType, IError>> converter);
             TypeProblem2.Scope CreateScope(IStaticScope parent, IConvertTo<TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter);
             TypeProblem2.Type CreateType(IStaticScope parent, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Type CreateGenericType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter);
             TypeProblem2.Object CreateObjectOrModule(IStaticScope parent, IKey key, IConvertTo<TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter, IConvertTo<TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter);
-            TypeProblem2.Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> inputConverter);
-            TypeProblem2.Method CreateMethod(IStaticScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> inputConverter);
+            TypeProblem2.Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter);
+            TypeProblem2.Method CreateMethod(IStaticScope parent, IOrType<TypeProblem2.TypeReference, IError> inputType, IOrType<TypeProblem2.TypeReference, IError> outputType, string inputName, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter);
             TypeProblem2.TransientMember GetReturns(IValue s);
             TypeProblem2.TransientMember GetReturns(IStaticScope s);
-            TypeProblem2.Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter);
+            TypeProblem2.Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter);
             TypeProblem2.OrType CreateOrType(IStaticScope s, IKey key, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode1, IOrType<TypeProblem2.TypeReference, IError> setUpSideNode2, IConvertTo<TypeProblem2.OrType, WeakTypeOrOperation> converter);
             IIsPossibly<IKey> GetKey(TypeProblem2.TypeReference type);
             TypeProblem2.Member GetInput(IValue method);
@@ -90,7 +90,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             void IsEmpty(IScope parent, ILookUpType target);
             void IsBool(IScope parent, ILookUpType target);
             void IsBlock(IScope parent, ILookUpType target);
-            TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> inputConverter);
+            TypeProblem2.Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter);
 
             void HasEntryPoint(IStaticScope parent, TypeProblem2.Scope entry);
         }

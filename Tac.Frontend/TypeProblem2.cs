@@ -18,171 +18,6 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal partial class Tpn
     {
 
-        // --------------------------------------------------------------------------------------------------------------------
-
-
-        // I wish the members of these to be visible to things in Tpn 
-        // like TypeProblem2 and TypeSolution
-        // but not to the outside world
-        // I could not figure out how to do that
-        // so the members are just public
-
-        // the only way I can think of is redickulous
-        // solution and tpn would have to be inside a chain of nested classes 
-        // containing all the classes I want them to access
-
-        // or they could be in there own project but I tired that and it sucked
-
-        public class Inflow2
-        {
-            public readonly List<OuterFlowNode2> inFlows = new List<OuterFlowNode2>();
-
-            public Inflow2(OuterFlowNode2 toAdd)
-            {
-                inFlows.Add(toAdd);
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj != null && obj is Inflow2 inflow && inFlows.SetEqual(inflow.inFlows);
-            }
-
-            public override int GetHashCode()
-            {
-                return inFlows.Sum(x => x.GetHashCode());
-            }
-
-            internal Inflow2 AddAsNew(OuterFlowNode2 flowFrom)
-            {
-                var res = new Inflow2(flowFrom);
-                foreach (var inFlow in inFlows)
-                {
-                    res.inFlows.Add(inFlow);
-                }
-                return res;
-            }
-        }
-
-        public class OuterFlowNode2<T> : OuterFlowNode2
-        {
-            public OuterFlowNode2(bool inferred, List<FlowNode2> possible, T source) : base(inferred, possible)
-            {
-                Source = source?? throw new ArgumentNullException(nameof(source));
-            }
-
-            public OuterFlowNode2(bool inferred, FlowNode2 node, T source) : base(inferred, node)
-            {
-                Source = source;
-            }
-
-            public OuterFlowNode2(bool inferred, T source) : base(inferred)
-            {
-                Source = source;
-            }
-
-            public T Source { get; }
-
-        }
-
-        public abstract class OuterFlowNode2
-        {
-            public OuterFlowNode2(bool inferred, List<FlowNode2> possible)
-            {
-                Possible = possible ?? throw new ArgumentNullException(nameof(possible));
-                this.Inferred = inferred;
-            }
-            public OuterFlowNode2(bool inferred, FlowNode2 node)
-            {
-                if (node is null)
-                {
-                    throw new ArgumentNullException(nameof(node));
-                }
-
-                Possible = new List<FlowNode2> {
-                        node
-                    };
-                this.Inferred = inferred;
-            }
-
-            protected OuterFlowNode2(bool inferred)
-            {
-                Possible = new List<FlowNode2> {};
-                this.Inferred = inferred;
-            }
-
-            internal List<FlowNode2> Possible { get; }
-            public bool Inferred { get; }
-
-            internal bool Empty()
-            {
-                if (Possible.Count != 1) {
-                    return false;
-                }
-
-                var onlyOption = Possible.First();
-
-                return onlyOption.Members.Count == 0
-                    && onlyOption.Input == null
-                    && onlyOption.Output == null;
-            }
-
-            internal FlowNode2 GetIntersection(IReadOnlyDictionary<Inflow2, OuterFlowNode2> lookup)
-            {
-                if (Possible.Count == 1) {
-                    return Possible.First();
-                }
-
-                if (Possible.Select(x => x.Primitive).OfType<IIsDefinately<Guid>>().Select(x => x.Value).Distinct().Count() == 1) {
-                    throw new Exception("uhh do you have more than one possible? with the same primitive??");
-                }
-
-                var res = new FlowNode2(false, Possibly.IsNot<Guid>());
-
-                foreach (var memberSet in Possible.SelectMany(x => x.Members).GroupBy(x => x.Key).Where(x => x.Count() == Possible.Count)) {
-                    res.Members.Add(memberSet.Key, OrType.Make<Inflow2, OuterFlowNode2>(
-                        new OuterFlowNode2<Tpn.Uhh>(false, memberSet.SelectMany(x=>x.Value.SwitchReturns(y=> lookup[y], y=>y).Possible).Distinct().ToList() , new Tpn.Uhh())
-                        )) ;
-                }
-
-                if ( Possible.All(x => x.Input != null))
-                {
-                    res.Input = OrType.Make<Inflow2, OuterFlowNode2>(
-                        new OuterFlowNode2<Uhh>(false, Possible.SelectMany(x => x.Input!.SwitchReturns(y => lookup[y], y => y).Possible).Distinct().ToList(), new Tpn.Uhh()));
-                }
-
-                if (Possible.All(x => x.Output != null))
-                {
-                    res.Output = OrType.Make<Inflow2, OuterFlowNode2>(
-                        new OuterFlowNode2<Uhh>(false, Possible.SelectMany(x => x.Output!.SwitchReturns(y => lookup[y], y => y).Possible).Distinct().ToList(), new Tpn.Uhh()));
-                }
-
-                return res;
-
-            }
-        }
-
-        public class FlowNode2
-        {
-            public FlowNode2(bool accepts, IIsPossibly<Guid> primitive)
-            {
-                this.Inferred = accepts;
-                Primitive = primitive;
-            }
-
-            public bool Inferred { get; }
-            public IIsPossibly<Guid> Primitive { get; set; }
-
-            public Dictionary<IKey, IOrType<Inflow2, OuterFlowNode2>> Members { get; } = new Dictionary<IKey, IOrType</*Incompatable2,*/ Inflow2, OuterFlowNode2>>();
-
-            // really should be IIsPossibly
-            public IOrType<Inflow2, OuterFlowNode2>? Input { get; set; }
-            public IOrType< Inflow2, OuterFlowNode2>? Output { get; set; }
-
-            internal bool Empty()
-            {
-                return !Primitive.Is(out var _) && !Members.Any() && Input == null && Output == null;
-            }
-        }
 
         internal class TypeProblem2 : ISetUpTypeProblem
         {
@@ -245,9 +80,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return HopefulMembers;
                 }
             }
-            public class Member : TypeProblemNode<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition>, IMember
+            public class Member : TypeProblemNode<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition>, IMember
             {
-                public Member(TypeProblem2 problem, string debugName, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter) : base(problem, debugName, converter)
+                public Member(TypeProblem2 problem, string debugName, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter) : base(problem, debugName, converter)
                 {
                 }
 
@@ -566,7 +401,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IStaticScope scope,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 if (scope is IHavePublicMembers publicMembers)
@@ -592,7 +427,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePublicMembers havePublicMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(havePublicMembers, key, res);
@@ -605,7 +440,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IStaticScope scope,
                 IHavePublicMembers havePublicMembers,
                 IKey key,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(havePublicMembers, key, res);
@@ -617,7 +452,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePublicMembers scope,
                 IKey key,
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPublicMember(scope, key, res);
@@ -630,7 +465,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePrivateMembers havePrivateMembers,
                 IKey key,
                 IOrType<IKey, IError> typeKey,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(havePrivateMembers, key, res);
@@ -643,7 +478,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IStaticScope scope,
                 IHavePrivateMembers havePrivateMembers,
                 IKey key,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(havePrivateMembers, key, res);
@@ -655,7 +490,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IHavePrivateMembers scope,
                 IKey key,
                 IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
-                IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+                IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, key.ToString()!, converter);
                 HasPrivateMember(scope, key, res);
@@ -663,7 +498,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+            public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 // this is weird, but since C# does not have and types...
                 // scope and havePossibleMembers are expected to be the same object
@@ -758,7 +593,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
             {
                 var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                 IsChildOf(parent, res);
@@ -772,7 +607,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> inputConverter)
+            public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
             {
                 if (!inputType.Is1(out var inputTypeValue))
                 {
@@ -808,7 +643,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> converter)
+            public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
             {
                 var res = new Member(this, "hopeful - " + key.ToString()!, converter);
                 res = HasHopefulMember(scope, key, res);
@@ -910,7 +745,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // it is just something of type method
             // it is really just a type
             //
-            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.OuterFlowNode2, IError>, WeakMemberDefinition> inputConverter)
+            public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
             {
                 var thing = CreateTransientMember(parent);
                 var method = CreateMethod(parent, "input", converter, inputConverter);
@@ -1147,49 +982,65 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                // ------------------------------------
-                // you are either:
-                //  an inflow based look up (to one of the other three)
-                //  a direct reference to an or type (or types are made of a pair of direct reference)
-                //  a direct reference to a type
-                //  or a direct reference to a incompatible combination (to any of the four -- this might need to be able to hold a "smart referece" to an inflow based lookup that will track the specific thing flowing in to it even as more things flow in to it. maybe a path from something that is not a lookup.)
+                // ------------ flow time!
 
-                // if you are directly reference you are not in the look up table
-                // each of these is a class
+                var ors = typeProblemNodes.Select(node => TryGetType(node)).OfType<IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>().Select(x => x.Value).Distinct().ToArray();
 
-                // all inferred types having the or type wrapper is good 
-                // mayber everyone having the or type wrappers is good
-
-                // maybe I should change repersentation earlier it might make things much simpler
-                
-                var ors = typeProblemNodes.Select(node => TryGetType(node)).OfType<IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>().Select(x=>x.Value).Distinct().ToArray();
-
-                var outerInflows = new Dictionary< Inflow2, OuterFlowNode2>();
-
-                var orsToFlowNodes = new Dictionary<IOrType<ITypeProblemNode,IError>, OuterFlowNode2>();
+                var orsToFlowNodesBuild = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
+                var orsToFlowNodesLookup = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
 
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes.Add(Prototypist.Toolbox.OrType.Make<ITypeProblemNode,IError>(methodType),new OuterFlowNode2<MethodType>(false, new FlowNode2(false, Possibly.IsNot<Guid>()),methodType));
+                    var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType);
+                    var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.MethodType>(methodType));
+
+                    orsToFlowNodesBuild.Add(key, value);
+                    orsToFlowNodesLookup.Add(key, value);
                 }
                 foreach (var type in ors.Select(x => (x.Is2(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes.Add(Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type), new OuterFlowNode2<Type>(false, new FlowNode2(false, type.PrimitiveId), type));
-                }
+                    if (type.PrimitiveId.Is(out var guid))
+                    {
+                        var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type);
+                        var flowNode = ToOr(new PrimitiveFlowNode(type, guid));
+                        orsToFlowNodesBuild.Add(key, flowNode);
+                        orsToFlowNodesLookup.Add(key, flowNode);
+                    }
+                    else
+                    {
+                        var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type);
+                        var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Type>(type));
 
+                        orsToFlowNodesBuild.Add(key, value);
+                        orsToFlowNodesLookup.Add(key, value);
+                    }
+                }
                 foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes.Add(Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(@object), new OuterFlowNode2<Object>(false, new FlowNode2(false, Possibly.IsNot<Guid>()), @object));
+                    var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(@object);
+                    var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Object>(@object));
+
+                    orsToFlowNodesBuild.Add(key, value);
+                    orsToFlowNodesLookup.Add(key, value);
                 }
                 foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes.Add(Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferred), new OuterFlowNode2<InferredType>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), inferred));
+                    var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferred);
+
+                    var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
+                    orsToFlowNodesBuild.Add(key, ToOr(concrete));
+                    var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
+                    inferredFlowNode.Or.Add(new InferredFlowNode.CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> { ToOr(concrete) }));
+                    orsToFlowNodesLookup.Add(key, ToOr(concrete));
                 }
                 foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodes.Add(Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(error), new OuterFlowNode2<IError>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), error));
-                }
+                    var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(error);
+                    var value = ToOr(new ConcreteFlowNode<IError>(error));
 
+                    orsToFlowNodesBuild.Add(key, value);
+                    orsToFlowNodesLookup.Add(key, value);
+                }
 
                 var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
                 var excapeValve = 0;
@@ -1198,12 +1049,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 while (todo.Any())
                 {
                     excapeValve++;
-                    var nextTodo = new List<OrType>();
+                    var nextTodo = new List<TypeProblem2.OrType>();
                     foreach (var or in todo)
                     {
-                        if (TryToOuterFlowNode(orsToFlowNodes, or, out var res))
+                        if (TryToOuterFlowNode(orsToFlowNodesLookup, or, out var res))
                         {
-                            orsToFlowNodes[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
+                            orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
+                            orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
                         }
                         else
                         {
@@ -1217,21 +1069,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
+
                 // we create members on our new representation
                 foreach (var hasPublicMembers in ors.Select(x => (x.Is(out IHavePublicMembers members), members)).Where(x => x.Item1).Select(x => x.members))
                 {
                     foreach (var member in hasPublicMembers.PublicMembers)
                     {
-                        orsToFlowNodes[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Possible.Single().Members.Add(
+                        orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow().Members.Add(
                             member.Key,
-                            Prototypist.Toolbox.OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(
-                                orsToFlowNodes[member.Value.LooksUp.GetOrThrow().SwitchReturns(
+                            orsToFlowNodesBuild[member.Value.LooksUp.GetOrThrow().SwitchReturns(
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]));
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
                     }
                 }
 
@@ -1240,8 +1092,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (hasInputAndOutput.Input.Is(out var input))
                     {
-                        orsToFlowNodes[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Possible.Single().Input = Prototypist.Toolbox.OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(
-                                    orsToFlowNodes[input.LooksUp.GetOrThrow().SwitchReturns(
+                        orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Is1OrThrow().Input =
+                                    Possibly.Is(orsToFlowNodesBuild[input.LooksUp.GetOrThrow().SwitchReturns(
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1251,8 +1103,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     if (hasInputAndOutput.Returns.Is(out var output))
                     {
-                        orsToFlowNodes[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Possible.Single().Output = Prototypist.Toolbox.OrType.Make</*Incompatable2,*/ Inflow2, OuterFlowNode2>(
-                                orsToFlowNodes[output.LooksUp.GetOrThrow().SwitchReturns(
+                        orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Is1OrThrow().Output = Possibly.Is(
+                                orsToFlowNodesBuild[output.LooksUp.GetOrThrow().SwitchReturns(
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1261,7 +1113,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
                     }
                 }
-
 
                 excapeValve = 0;
 
@@ -1272,14 +1123,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var (from, to) in assignments)
                     {
-                        var toType = orsToFlowNodes[to.LooksUp.GetOrThrow().SwitchReturns(
+                        var toType = orsToFlowNodesBuild[to.LooksUp.GetOrThrow().SwitchReturns(
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))];
-                        var fromType = orsToFlowNodes[from.LooksUp.GetOrThrow().SwitchReturns(
+                        var fromType = orsToFlowNodesBuild[from.LooksUp.GetOrThrow().SwitchReturns(
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1287,581 +1138,59 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))];
 
-                        if (Compatible(fromType, toType, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>()))
+                        if (fromType.GetValueAs(out IFlowNode _).CanFlow(toType))
                         {
-                            go |= Flow(fromType, toType, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>());
+                            go |= fromType.GetValueAs(out IFlowNode _).Flow(toType);
                         }
                     }
 
                     excapeValve++;
-                    if (excapeValve > 1000000) {
+                    if (excapeValve > 1000000)
+                    {
                         throw new Exception("probably stuck in a loop");
                     }
 
                 } while (go);
 
-                // A | B ab;
-                // ab =: C c;
-                // C flows in to A and B
-
-                // C c;
-                // c =: A | B ab;
-                // nothing flows in to c? 
-
-                // TODO
-                // I am not really flowing primitive types
-                // intness to needs to flow
-
-                // 5 =: c
-                // c =: number | string b
-                // this should work
-                // but right now it doesn't
-                // c needs to become "number | string" as well 
-                // well, not egactly "number | string" more like it has a list of things it could possibly be and they include "number | string", "number" and "string"
-                // if we have this:
-                // 5 =: c
-                // c =: number | string b
-                // c =: number d
-                // it better become a number 
-                // so we have a could-be list
-                // and flows intersect the list
-
-                // object { name := "test" } =: c
-                // c =: A | C a
-                // c =: B | D b
-                // so c is...
-                // A&B | A&D | C&B | C&D
-                // seems simple enough
-
-
-                // object { name := "test" } =: c
-                // c =: A | C a
-                // c =: B b
-                // so c is...
-                // A&B | C&B
-
                 return new TypeSolution(
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
                     typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()),
-                    orsToFlowNodes.Where(x=> x.Key.Is1(out var y) && y is MethodType).Select(x=>((MethodType)x.Key.Is1OrThrow(), (OuterFlowNode2 <MethodType>)x.Value)).ToDictionary(x=>x.Item1, x=>x.Item2),
-                    orsToFlowNodes.Where(x => x.Key.Is1(out var y) && y is Type).Select(x => ((Type)x.Key.Is1OrThrow(), (OuterFlowNode2<Type>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
-                    orsToFlowNodes.Where(x => x.Key.Is1(out var y) && y is Object).Select(x => ((Object)x.Key.Is1OrThrow(), (OuterFlowNode2<Object>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
-                    orsToFlowNodes.Where(x => x.Key.Is1(out var y) && y is OrType).Select(x => ((OrType)x.Key.Is1OrThrow(), (OuterFlowNode2<OrType>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
-                    orsToFlowNodes.Where(x => x.Key.Is1(out var y) && y is InferredType).Select(x => ((InferredType)x.Key.Is1OrThrow(), (OuterFlowNode2<InferredType>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
-                    outerInflows);
+                    orsToFlowNodesLookup.Where(x=> x.Key.Is1(out var y) && y is MethodType).Select(x=>((MethodType)x.Key.Is1OrThrow(), (IFlowNode <MethodType>)x.Value)).ToDictionary(x=>x.Item1, x=>x.Item2),
+                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Type).Select(x => ((Type)x.Key.Is1OrThrow(), (IFlowNode<Type>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
+                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Object).Select(x => ((Object)x.Key.Is1OrThrow(), (IFlowNode<Object>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
+                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is OrType).Select(x => ((OrType)x.Key.Is1OrThrow(), (IFlowNode<OrType>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2),
+                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is InferredType).Select(x => ((InferredType)x.Key.Is1OrThrow(), (IFlowNode<InferredType>)x.Value)).ToDictionary(x => x.Item1, x => x.Item2));
             }
 
             #region Helpers
 
-            // returns true if there are changes
-            private bool Flow(OuterFlowNode2 toType, OuterFlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyInflowing, List<(FlowNode2, FlowNode2)> alreadyInflowing)
-            {
-                var myPair = (toType, fromType);
-                if (outerAlreadyInflowing.Any(x => x.Equals(myPair)))
-                {
-                    return false;
-                }
-                outerAlreadyInflowing.Add(myPair);
 
-                if (toType.Inferred)
-                {
-
-                    // we can generate a new list of possibles for it
-
-                    var nextList = new List<FlowNode2>();
-
-                    var changes = false;
-
-
-                    foreach (var toOption in toType.Possible)
-                    {
-                        var added = false;
-
-                        var toCombine = new List<(FlowNode2, FlowNode2)>();
-
-                        foreach (var fromOption in fromType.Possible)
-                        {
-
-                            if (Compatible(toOption, fromOption, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>()))
-                            {
-                                toCombine.Add((toOption, fromOption));
-                            }
-                        }
-
-                        foreach (var (toItem, fromItem) in toCombine)
-                        {
-
-                            // TODO this might not work without copying
-                            // c =: C cc
-                            // c =: A|B
-
-                            // so C is an infered that has already had C flowed in to it
-                            // we now flow A in to that and B in to that and get 
-                            // A&B&C | A&B&C
-
-                            // I think, I am going to re-write it all again 😭😭😭 and just have some virtual types for and/or
-                            
-                            // all infered types are:
-                            // an OR of ANDs of concrete types
-
-                            changes |= Flow(toItem, fromItem, outerInflows, outerAlreadyInflowing.ToList(),alreadyInflowing.ToList());
-
-                            nextList.Add(toItem);
-                            added = true;
-                            
-                        }
-                        if (!added)
-                        {
-                            changes = true;
-                        }
-                    }
-
-                    toType.Possible.Clear();
-                    toType.Possible.AddRange(nextList);
-
-                    return changes;
-                }
-                else
-                {
-                    var nextList = new List<FlowNode2>();
-
-                    var changes = false;
-                    var fromOption = fromType.Possible.Count == 1 ? fromType.Possible.Single() : fromType.GetIntersection(outerInflows);
-
-                    // this is like
-                    // type {x} | number a
-                    // a =: type {number x} b
-
-                    // I think  we want to infer that a.x is number
-                    // otherwise how could the assignment happen?
-
-                    foreach (var toOption in toType.Possible)
-                    {
-                        if (Compatible(toOption, fromOption, outerInflows, new List<(OuterFlowNode2, OuterFlowNode2)>(), new List<(FlowNode2, FlowNode2)>()))
-                        {
-                            changes |= Flow(toOption, fromOption, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                            nextList.Add(toOption);
-                        }
-                        else {
-                            // we are not Inferred
-                            // so we are going to hold to our guns
-                            // anything here will stay
-                            nextList.Add(toOption);
-                        }
-                    }
-
-                    toType.Possible.Clear();
-                    toType.Possible.AddRange(nextList);
-
-                    return changes;
-                }
-            }
-
-            private bool Compatible(OuterFlowNode2 toType, OuterFlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyChecking, List<(FlowNode2, FlowNode2)> alreadyChecking)
-            {
-                var myPair = (toType, fromType);
-                if (outerAlreadyChecking.Any(x => x.Equals(myPair)))
-                {
-                    return  true;
-                }
-                outerAlreadyChecking.Add(myPair);
-
-                if (toType.Inferred)
-                {
-                    foreach (var toOption in toType.Possible)
-                    {
-                        foreach (var fromOption in fromType.Possible)
-                        {
-                            if (Compatible(toOption, fromOption, outerInflows, outerAlreadyChecking, alreadyChecking))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }
-                else
-                {
-
-                    var fromOption = fromType.Possible.Count == 1 ? fromType.Possible.Single() : fromType.GetIntersection(outerInflows);
-
-                    // this is like
-                    // type {x} | number a
-                    // a =: type {number x} b
-
-                    // I think  we want to infer that a.x is number
-                    // otherwise how could the assignment happen?
-
-                    foreach (var toOption in toType.Possible)
-                    {
-                        if (Compatible(toOption, fromOption, outerInflows, outerAlreadyChecking, alreadyChecking))
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            }
-
-            //returns changes
-            private bool Flow(FlowNode2 toType, FlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyInflowing, List<(FlowNode2, FlowNode2)> alreadyInflowing)
-            {
-                var pair = (toType, fromType);
-                if (alreadyInflowing.Any(x => x.Equals(pair)))
-                {
-                    return false;
-                }
-                alreadyInflowing.Add(pair);
-
-                // they they are different primitive types no flowing!
-                {
-                    if (toType.Primitive.Is(out var v1)
-                        && fromType.Primitive.Is(out var v2)
-                        && v1 != v2)
-                    {
-                        return false;
-                    }
-                }
-
-                // if the target is a primitive and the source is not no flowing
-                {
-                    if (toType.Primitive.Is(out var v1)
-                        && !fromType.Primitive.Is(out var _))
-                    {
-                        return false;
-                    }
-                }
-
-                // if the source is a primitive and the source is empty
-                {
-                    if (toType.Empty()
-                        && fromType.Primitive.Is(out var _))
-                    {
-                        toType.Primitive = fromType.Primitive;
-                        return true;
-                    }
-                }
-
-
-                // TODO you can't flow things with IO and things with members together
-                // imcompatible should collect their all the things that could not be combined for error reporting
-
-                var changes = false;
-
-                foreach (var member in fromType.Members)
-                {
-                    var from = member.Value.SwitchReturns(x => outerInflows[x], x => x);
-
-                    if (toType.Members.TryGetValue(member.Key, out var existingMember))
-                    {
-                        changes |= existingMember.SwitchReturns(x =>
-                        {
-                            if (!x.inFlows.Contains(from))
-                            {
-                                var newInflow = x.AddAsNew(from);
-                                toType.Members[member.Key] = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(newInflow);
-                                if (outerInflows.TryGetValue(newInflow, out var looksUp))
-                                {
-                                    // nice the inflow already exists
-                                    return Flow(looksUp, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                }
-                                else
-                                {
-                                    OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
-                                    outerInflows.Add(newInflow, copy);
-                                    Flow(copy, outerInflows[x], outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                    return Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                    // TODO you are here
-                                    // I am trying to remove copy!
-                                    //var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
-                                    //outerInflows.Add(newInflow, newOuterFlowNode);
-
-                                    //return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                }
-                            }
-                            else {
-                                return Flow(outerInflows[x],from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                            }
-                        }, x => Flow(x, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList()));
-                    }
-                    else if (toType.Inferred)
-                    {
-                        var inflow = new Inflow2(from);
-                        toType.Members[member.Key] = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(inflow);
-                        OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
-                        copy = outerInflows.GetOrAdd(inflow, copy);
-                        Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                        changes =true;
-                    }
-                    else
-                    {
-                        throw new Exception("bad code colin");
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imcompatible earlier 
-                        // it does not accept new members
-                    }
-                }
-
-                if (fromType.Input != null)
-                {
-                    var from = fromType.Input.SwitchReturns(x => outerInflows[x], x => x);
-
-                    if (toType.Input != null)
-                    {
-                        changes |= toType.Input.SwitchReturns(x =>
-                        {
-                            if (!x.inFlows.Contains(from))
-                            {
-                                var newInflow = x.AddAsNew(from);
-                                toType.Input = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(newInflow);
-                                if (outerInflows.TryGetValue(newInflow, out var looksUp))
-                                {
-                                    // nice the inflow already exists
-                                    return Flow(looksUp, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                }
-                                else
-                                {
-                                    OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
-                                    outerInflows.Add(newInflow, copy);
-                                    Flow(copy, outerInflows[x], outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                    return Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-
-                                    //// TODO you are here
-                                    //// I am trying to remove copy!
-                                    //var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
-                                    //outerInflows.Add(newInflow, newOuterFlowNode);
-
-                                    //return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                }
-                            }
-                            else
-                            {
-                                return Flow(outerInflows[x], from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                            }
-                        }, x => Flow(x, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList()));
-                    }
-                    else if (toType.Inferred)
-                    {
-                        var inflow = new Inflow2(from);
-                        toType.Input = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(inflow);
-                        OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
-                        copy = outerInflows.GetOrAdd(inflow, copy);
-                        Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                        changes = true;
-                    }
-                    else
-                    {
-                        throw new Exception("bad code colin");
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imvompatible earlier 
-                        // it does not accept new inputs
-                    }
-                }
-
-                if (fromType.Output != null)
-                {
-                    var from = fromType.Output.SwitchReturns(x => outerInflows[x], x => x);
-
-                    if (toType.Output != null)
-                    {
-                        changes |= toType.Output.SwitchReturns(x =>
-                        {
-                            if (!x.inFlows.Contains(from))
-                            {
-                                var newInflow = x.AddAsNew(from);
-                                toType.Output = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(newInflow);
-                                if (outerInflows.TryGetValue(newInflow, out var looksUp))
-                                {
-                                    // nice the inflow already exists
-                                    return Flow(looksUp, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                }
-                                else
-                                {
-                                    OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
-                                    outerInflows.Add(newInflow, copy);
-                                    Flow(copy, outerInflows[x], outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                    return Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                    // TODO you are here
-                                    // I am trying to remove copy!
-                                    //var newOuterFlowNode = outerInflows[x].Copy(new Dictionary<FlowNode2, FlowNode2>(), new Dictionary<OuterFlowNode2, OuterFlowNode2>());
-                                    //outerInflows.Add(newInflow, newOuterFlowNode);
-
-                                    //return Flow(newOuterFlowNode, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                                }
-                            }
-                            else
-                            {
-                                return Flow(outerInflows[x], from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                            }
-                        }, x => Flow(x, from, outerInflows, outerAlreadyInflowing, alreadyInflowing));
-                    }
-                    else if (toType.Inferred)
-                    {
-                        var inflow = new Inflow2(from);
-                        toType.Output = Prototypist.Toolbox.OrType.Make<Inflow2, OuterFlowNode2>(inflow);
-                        OuterFlowNode2 copy = new OuterFlowNode2<Uhh>(true, new FlowNode2(true, Possibly.IsNot<Guid>()), new Uhh());
-                        copy = outerInflows.GetOrAdd(inflow, copy);
-                        Flow(copy, from, outerInflows, outerAlreadyInflowing.ToList(), alreadyInflowing.ToList());
-                        changes = true;
-                    }
-                    else
-                    {
-                        throw new Exception("bad code colin");
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imvompatible earlier 
-                        // it does not accept new inputs
-                    }
-                }
-
-                return changes;
-            }
-
-            private bool Compatible(FlowNode2 toType, FlowNode2 fromType, Dictionary<Inflow2, OuterFlowNode2> outerInflows, List<(OuterFlowNode2, OuterFlowNode2)> outerAlreadyChecking, List<(FlowNode2, FlowNode2)> alreadyChecking)
-            {
-
-                var pair = (toType, fromType);
-                if (alreadyChecking.Any(x => x.Equals(pair)))
-                {
-                    return true;
-                }
-                alreadyChecking.Add(pair);
-
-                // they they are different primitive types no flowing!
-                {
-                    if (toType.Primitive.Is(out var v1)
-                        && fromType.Primitive.Is(out var v2)
-                        && v1 != v2)
-                    {
-                        return false;
-                    }
-                }
-
-                // if the target is a primitive and the source is not no flowing
-                {
-                    if (toType.Primitive.Is(out var v1)
-                        && !fromType.Primitive.Is(out var _))
-                    {
-                        return false;
-                    }
-                }
-
-                // if the source is a primitive and the source is empty
-                {
-                    if (toType.Empty()
-                        && fromType.Primitive.Is(out var _))
-                    {
-                        return true;
-                    }
-                }
-
-
-                // TODO you can't flow things with IO and things with members together
-                // imcompatible should collect their all the things that could not be combined for error reporting
-
-                var compatable = true;
-
-                foreach (var member in fromType.Members)
-                {
-                    var from = member.Value.SwitchReturns(x => outerInflows[x], x => x);
-
-                    if (toType.Members.TryGetValue(member.Key, out var existingMember))
-                    {
-                        compatable &= existingMember.SwitchReturns(
-                            x => Compatible(outerInflows[x], from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()),
-                            x => Compatible(x, from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()));
-                    }
-                    else if (toType.Inferred)
-                    {
-                        // you are adding a new meber so it is clearly compatible
-                    }
-                    else
-                    {
-                        throw new Exception("bad code colin");
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imcompatible earlier 
-                        // it does not accept new members
-                        // maybe it should just be handled by an imcompatible now? sure this is a more natural place
-                    }
-                }
-
-                if (fromType.Input != null)
-                {
-                    var from = fromType.Input.SwitchReturns(x => outerInflows[x], x => x);
-
-                    if (toType.Input != null)
-                    {
-                        compatable &= toType.Input.SwitchReturns(
-                            x => Compatible(outerInflows[x], from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()),
-                            x => Compatible(x, from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()));
-
-                    }
-                    else if (toType.Inferred)
-                    {
-                        // you are adding a new input so it is clearly compatible
-                    }
-                    else
-                    {
-                        throw new Exception("bad code colin");
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imvompatible earlier 
-                        // it does not accept new inputs
-                        // maybe it should just be handled by an imcompatible now? sure this is a more natural place
-                    }
-                }
-
-                if (fromType.Output != null)
-                {
-                    var from = fromType.Output.SwitchReturns(x => outerInflows[x], x => x);
-
-                    if (toType.Output != null)
-                    {
-                        compatable &= toType.Output.SwitchReturns(
-                            x => Compatible(outerInflows[x], from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()),
-                            x => Compatible(x, from, outerInflows, outerAlreadyChecking.ToList(), alreadyChecking.ToList()));
-
-                    }
-                    else if (toType.Inferred)
-                    {
-                        // you are adding a new output so it is clearly compatible
-                    }
-                    else
-                    {
-                        throw new Exception("bad code colin");
-                        // TODO this is going to be an exception
-                        // since it should be handled by an imvompatible earlier 
-                        // it does not accept new inputs
-                        // maybe it should just be handled by an imcompatible now? sure this is a more natural place
-                    }
-                }
-
-                return compatable;
-            }
-
-            private bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, OuterFlowNode2> orsToFlowNodes, OrType or, out OuterFlowNode2 res)
+            private static bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> res)
             {
                 if (orsToFlowNodes.TryGetValue(GetType(or.Left.GetOrThrow()).SwitchReturns(
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var left) && 
-                    orsToFlowNodes.TryGetValue(GetType(or.Right.GetOrThrow()).SwitchReturns(
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var left) &&
+                           orsToFlowNodes.TryGetValue(GetType(or.Right.GetOrThrow()).SwitchReturns(
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
                 {
 
-                    res = new OuterFlowNode2<OrType>(false, left.Possible.Union(right.Possible).ToList(), or);
+                    res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or)));
                     return true;
                 }
                 res = default;
                 return false;
             }
+
 
             // probably a method on defered type
             void TryMerge(IValue deferer, IValue deferredTo)
@@ -2079,7 +1408,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
             }
-
 
             IOrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrOverlayOrThrow(ILookUpType node, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> realizedGeneric)
             {
