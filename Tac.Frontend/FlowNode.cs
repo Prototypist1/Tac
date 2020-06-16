@@ -1,4 +1,5 @@
 ﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Dictionary;
 using Prototypist.Toolbox.IEnumerable;
 using System;
 using System.Collections.Generic;
@@ -26,16 +27,39 @@ namespace Tac.Frontend.New.CrzayNamespace
         // or they could be in there own project but I tired that and it sucked
 
 
-        public interface IFlowNode<TSource>: IFlowNode
+        public interface IFlowNode<TSource> : IFlowNode
         {
-
             IIsPossibly<TSource> Source { get; }
+        }
+
+
+        public class SkipItCache {
+
+            private readonly Dictionary<IFlowNode, List<IFlowNode>> backing = new Dictionary<IFlowNode, List<IFlowNode>>();
+            public void Clear(IFlowNode source) {
+                if (backing.ContainsKey(source)) {
+                    backing[source] = new List<IFlowNode>();
+                }
+            }
+
+            /// returns true if already added
+            public bool CheckOrAdd(IFlowNode source, IFlowNode target)
+            {
+                var list = backing.GetOrAdd(source, new List<IFlowNode>());
+
+                if (list.Contains(target)) {
+                    return true;
+                }
+                list.Add(target);
+                return false;
+            }
         }
 
         public interface IFlowNode {
 
-            bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from);
-            bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from);
+            bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue);
+            bool CanMerge(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue);
+            bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache);
             IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> VirtualOutput();
             IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> VirtualInput();
             IEnumerable<KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>> VirtualMembers();
@@ -52,10 +76,31 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IIsPossibly<Tpn.TypeProblem2.Type> Source { get; }
             public Guid Guid { get; }
 
-            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from) {
+
+            public bool CanMerge(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
+            {
+                var me = (from, ToOr(this));
+                if (assumeTrue.Contains(me))
+                {
+                    return true;
+                }
+                assumeTrue.Add(me);
+
                 return from.Is3(out var v3) && Equals(v3, this);
             }
-            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from) {
+
+
+            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue) {
+                var me = (from, ToOr(this));
+                if (assumeTrue.Contains(me))
+                {
+                    return true;
+                }
+                assumeTrue.Add(me);
+
+                return from.Is3(out var v3) && Equals(v3, this);
+            }
+            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache) {
                 return false;
             }
 
@@ -96,7 +141,66 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> VirtualInput() => Input;
             public IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> VirtualOutput() => Output;
 
-            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from) {
+
+            public bool CanMerge(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
+            {
+                var me = (from, ToOr(this));
+                if (assumeTrue.Contains(me))
+                {
+                    return true;
+                }
+                assumeTrue.Add(me);
+
+                if (from.Is3(out var _))
+                {
+                    return false;
+                }
+
+                if (Members.Any() && from.GetValueAs(out IFlowNode _).VirtualInput().Is(out var _))
+                {
+                    return false;
+                }
+
+                if (Input.Is(out var _) && from.GetValueAs(out IFlowNode _).VirtualMembers().Any())
+                {
+                    return false;
+                }
+
+                foreach (var fromMember in from.GetValueAs(out IFlowNode _).VirtualMembers())
+                {
+                    if (!CanMergeMember(fromMember, assumeTrue.ToList()))
+                    {
+                        return false;
+                    }
+                }
+
+                if (Input.Is(out var input) && from.GetValueAs(out IFlowNode _).VirtualInput().Is(out var theirInput))
+                {
+                    if (!input.GetValueAs(out IFlowNode _).CanMerge(theirInput, assumeTrue.ToList()))
+                    {
+                        return false;
+                    }
+                }
+
+                if (Output.Is(out var output) && from.GetValueAs(out IFlowNode _).VirtualOutput().Is(out var theirOutput))
+                {
+                    if (!output.GetValueAs(out IFlowNode _).CanMerge(theirOutput, assumeTrue.ToList()))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+
+            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue) {
+                var me = (from, ToOr(this));
+                if (assumeTrue.Contains(me)) {
+                    return true;
+                }
+                assumeTrue.Add(me);
+                
                 if (from.Is3(out var _))
                 {
                     return false;
@@ -113,21 +217,21 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var fromMember in from.GetValueAs(out IFlowNode _).VirtualMembers())
                 {
-                    if (!CanFlowMember(fromMember))
+                    if (!CanFlowMember(fromMember, assumeTrue.ToList()))
                     {
                         return false;
                     }
                 }
 
                 if (Input.Is(out var input) && from.GetValueAs(out IFlowNode _).VirtualInput().Is(out var theirInput)) {
-                    if (!input.GetValueAs(out IFlowNode _).CanFlow(theirInput)) {
+                    if (!input.GetValueAs(out IFlowNode _).CanFlow(theirInput, assumeTrue.ToList())) {
                         return false;
                     }
                 }
 
                 if (Output.Is(out var output) && from.GetValueAs(out IFlowNode _).VirtualOutput().Is(out var theirOutput))
                 {
-                    if (!output.GetValueAs(out IFlowNode _).CanFlow(theirOutput))
+                    if (!output.GetValueAs(out IFlowNode _).CanFlow(theirOutput, assumeTrue.ToList()))
                     {
                         return false;
                     }
@@ -135,7 +239,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return true;
             }
-            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from) {
+            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache) {
+
+                if (skipItCache.CheckOrAdd(from.GetValueAs(out IFlowNode _), this)) {
+                    return false;
+                }
 
                 if (from.Is3(out var _))
                 {
@@ -145,27 +253,27 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var changes = false;
                 foreach (var fromMember in from.GetValueAs(out IFlowNode _).VirtualMembers())
                 {
-                    changes |= FlowMember(fromMember);
+                    changes |= FlowMember(fromMember, skipItCache);
                 }
 
                 if (Input.Is(out var input) && from.GetValueAs(out IFlowNode _).VirtualInput().Is(out var theirInput))
                 {
-                    changes |= input.GetValueAs(out IFlowNode _).Flow(theirInput);
+                    changes |= input.GetValueAs(out IFlowNode _).Flow(theirInput, skipItCache);
                 }
 
                 if (Output.Is(out var output) && from.GetValueAs(out IFlowNode _).VirtualOutput().Is(out var theirOutput))
                 {
-                    changes |= output.GetValueAs(out IFlowNode _).Flow(theirOutput);
+                    changes |= output.GetValueAs(out IFlowNode _).Flow(theirOutput, skipItCache);
                 }
 
                 return changes;
             }
 
-            private bool CanFlowMember( KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember)
+            private bool CanFlowMember( KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
                 if (this.Members.TryGetValue(fromMember.Key, out var toMember))
                 {
-                    return toMember.GetValueAs(out IFlowNode _).CanFlow(fromMember.Value);
+                    return toMember.GetValueAs(out IFlowNode _).CanFlow(fromMember.Value, assumeTrue.ToList());
                 }
                 else
                 {
@@ -173,12 +281,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            private bool FlowMember(KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember)
+            private bool CanMergeMember(KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
+            {
+                if (this.Members.TryGetValue(fromMember.Key, out var toMember))
+                {
+                    return toMember.GetValueAs(out IFlowNode _).CanMerge(fromMember.Value, assumeTrue.ToList());
+                }
+                return true;
+            }
+
+            private bool FlowMember(KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember, SkipItCache skipItCache)
             {
                 var changes = false;
                 if (this.Members.TryGetValue(fromMember.Key, out var toMember))
                 {
-                    changes |= toMember.GetValueAs(out IFlowNode _).Flow(fromMember.Value);
+                    changes |= toMember.GetValueAs(out IFlowNode _).Flow(fromMember.Value, skipItCache);
                 }
                 return changes;
             }
@@ -186,16 +303,45 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public class OrFlowNode : IFlowNode<TypeProblem2.OrType>
         {
-            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from)
+            public bool CanMerge(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
+                var me = (from, ToOr(this));
+                if (assumeTrue.Contains(me))
+                {
+                    return true;
+                }
+                assumeTrue.Add(me);
+
+                if (from.Is3(out var _))
+                {
+                    return false;
+                }
+
+                return Or.All(x => x.GetValueAs(out IFlowNode _).CanMerge(from, assumeTrue.ToList()));
+            }
+
+            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
+            {
+                var me = (from, ToOr(this));
+                if (assumeTrue.Contains(me))
+                {
+                    return true;
+                }
+                assumeTrue.Add(me);
+
                 if (from.Is3(out var _)) {
                     return false;
                 }
 
-                return Or.All(x => x.GetValueAs(out IFlowNode _).CanFlow(from));
+                return Or.All(x => x.GetValueAs(out IFlowNode _).CanFlow(from, assumeTrue.ToList()));
             }
-            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from)
+            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache)
             {
+                if (skipItCache.CheckOrAdd(from.GetValueAs(out IFlowNode _), this))
+                {
+                    return false;
+                }
+
                 if (from.Is3(out var _))
                 {
                     throw new Exception("actually don't flow");
@@ -204,7 +350,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var changes = false;
                 foreach (var item in this.Or)
                 {
-                    changes |= item.GetValueAs(out IFlowNode _).Flow(from);
+                    changes |= item.GetValueAs(out IFlowNode _).Flow(from, skipItCache);
                 }
                 return changes;
             }
@@ -276,13 +422,35 @@ namespace Tac.Frontend.New.CrzayNamespace
                 get;
             }
 
-            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from)
+            public bool CanMerge(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
-                return from.SwitchReturns(x => CanFlow(x), x => CanFlow(x), x => CanFlow(x), x => CanFlow(x));
+                var me = (from, ToOr(this));
+                if (assumeTrue.Contains(me))
+                {
+                    return true;
+                }
+                assumeTrue.Add(me);
+
+                return from.SwitchReturns(
+                    x => CanMerge(x, assumeTrue.ToList()),
+                    x => CanMerge(x, assumeTrue.ToList()),
+                    x => CanMerge(x, assumeTrue.ToList()),
+                    x => CanMerge(x, assumeTrue.ToList()));
             }
-            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from)
+
+            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
-                return from.SwitchReturns(x => Flow(x), x => Flow(x), x => Flow(x), x => Flow(x));
+                return CanMerge(from, new List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+            }
+            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache)
+            {
+
+                if (skipItCache.CheckOrAdd(from.GetValueAs(out IFlowNode _), this))
+                {
+                    return false;
+                }
+
+                return from.SwitchReturns(x => Flow(x, skipItCache), x => Flow(x, skipItCache), x => Flow(x, skipItCache), x => Flow(x, skipItCache));
             }
 
             // these should only be used for from
@@ -329,7 +497,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Possibly.Is(ToOr(res));
             }
 
-            private bool CanFlow( OrFlowNode from)
+            private bool CanMerge( OrFlowNode from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
                 if (!this.Or.Any())
                 {
@@ -337,21 +505,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 else
                 {
-                    return this.Or.All(x => x.And.All(y => y.SwitchReturns(
-                        z => z.CanFlow(ToOr(from)),
-                        z => z.CanFlow(ToOr(from)),
-                        z => z.CanFlow(ToOr(from)),
-                        z => z.CanFlow(ToOr(from)))));
+                    return this.Or.All(x => x.And.All(y => y.GetValueAs(out IFlowNode _).CanMerge(ToOr(from), new List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>())));
                 }
             }
-            private bool Flow( OrFlowNode from)
+            private bool Flow( OrFlowNode from, SkipItCache skipItCache)
             {
                 if (!this.Or.Any())
                 {
                     var toAdd = new InferredFlowNode.CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> {
-                    OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode,OrFlowNode>(from)
-                });
+                        OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode,OrFlowNode>(from)
+                    });
                     this.Or.Add(toAdd);
+                    skipItCache.Clear(this);
                     return true;
                 }
                 else
@@ -364,6 +529,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             nextList.Add(element.AddAsNew(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(from)));
                             // this is really only possibly a change what you added could be a subset
+                            skipItCache.Clear(this);
                             changes = true;
                         }
                         else
@@ -378,41 +544,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            private bool CanFlow(PrimitiveFlowNode from)
+            private bool CanMerge(PrimitiveFlowNode from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
                 return !Or.Any();
             }
-            private bool Flow( PrimitiveFlowNode from)
-            {
-                if (!Or.Any())
-                {
-                    var toAdd = new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> {
-                    OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode,OrFlowNode>(from)
-                });
-                    Or.Add(toAdd);
-                    return true;
-                }
-                else
-                {
-                    throw new Exception("actually don't flow");
-                }
-            }
-            private bool CanFlow( ConcreteFlowNode from)
-            {
-                if (!Or.Any())
-                {
-                    return true;
-                }
-                else
-                {
-                    return Or.All(x => x.And.All(y => y.SwitchReturns(
-                        z => z.CanFlow(ToOr(from)),
-                        z => z.CanFlow(ToOr(from)),
-                        z => z.CanFlow(ToOr(from)),
-                        z => z.CanFlow(ToOr(from)))));
-                }
-            }
-            private bool Flow( ConcreteFlowNode from)
+            private bool Flow( PrimitiveFlowNode from, SkipItCache skipItCache)
             {
                 if (!Or.Any())
                 {
@@ -420,6 +556,34 @@ namespace Tac.Frontend.New.CrzayNamespace
                         OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode,OrFlowNode>(from)
                     });
                     Or.Add(toAdd);
+                    skipItCache.Clear(this);
+                    return true;
+                }
+                else
+                {
+                    throw new Exception("actually don't flow");
+                }
+            }
+            private bool CanMerge( ConcreteFlowNode from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
+            {
+                if (!Or.Any())
+                {
+                    return true;
+                }
+                else
+                {
+                    return Or.All(x => x.And.All(y => y.GetValueAs(out IFlowNode _).CanMerge(ToOr(from), new List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>())));
+                }
+            }
+            private bool Flow( ConcreteFlowNode from, SkipItCache skipItCache)
+            {
+                if (!Or.Any())
+                {
+                    var toAdd = new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> {
+                        OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode,OrFlowNode>(from)
+                    });
+                    Or.Add(toAdd);
+                    skipItCache.Clear(this);
                     return true;
                 }
                 else
@@ -432,6 +596,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             nextList.Add(element.AddAsNew(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(from)));
                             // this is really only possibly a change what you added could be a subset
+                            skipItCache.Clear(this);
                             changes = true;
                         }
                         else
@@ -445,7 +610,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return changes;
                 }
             }
-            private bool CanFlow(InferredFlowNode from)
+            private bool CanMerge(InferredFlowNode from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
                 foreach (var fromItem in from.Or)
                 {
@@ -455,11 +620,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (!toItem.And.All(x =>
 
-                                 x.SwitchReturns(
-                                        toValue => toValue.CanFlow(element),
-                                        toValue => toValue.CanFlow(element),
-                                        toValue => toValue.CanFlow(element),
-                                        toValue => toValue.CanFlow(element))))
+                                 x.GetValueAs(out IFlowNode _).CanMerge(element, new List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>())))
                             {
                                 return false;
                             }
@@ -472,7 +633,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // cd =: C | D _
             // ab =: cd
             // ab is A&C | A&D | B&C | B&D
-            private bool Flow(InferredFlowNode from)
+            private bool Flow(InferredFlowNode from, SkipItCache skipItCache)
             {
                 if (!this.Or.Any())
                 {
@@ -480,7 +641,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         this.Or.Add(item);
                     }
-                    return from.Or.Any();
+                    if (from.Or.Any())
+                    {
+                        skipItCache.Clear(this);
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else
                 {
@@ -497,6 +665,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (!this.Or.SetEqual(newList))
                     {
                         this.Or = newList;
+                        skipItCache.Clear(this);
                         return true;
                     }
                     return false;
@@ -557,7 +726,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public override int GetHashCode()
                 {
-                    return HashCode.Combine(And);
+                    return And.Select(x=>x.GetHashCode()).Sum();
                 }
 
                 // please don't add to this, it will change the HashCode
