@@ -11,6 +11,24 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     internal partial class Tpn
     {
+        // ok so you have prime types and you have generated types
+        // prime types are primitives and concrete
+        // 
+        // generated are ors and ands
+        // generated types need to be cashed 
+        // or maybe just have some good idea of equality
+
+        // these generated types are going to need to be convertable as well
+
+        // no more big or
+        // virtual or type + virtual and type with good ideas of equality 
+
+
+        // SkipItCache sucks
+        // I think I am going to end up just not allow a flow to be called inside itself
+        // I will always catch it not the next round
+        // I can always try flowing again (and again) until there are no changes 
+
         // --------------------------------------------------------------------------------------------------------------------
 
 
@@ -33,6 +51,9 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
 
+        // I am not really sure this works 😖 
+        // I mean, you don't have to have to change to change
+        // if one of your constituents changes you also change
         public class SkipItCache {
 
             private readonly Dictionary<IFlowNode, List<IFlowNode>> backing = new Dictionary<IFlowNode, List<IFlowNode>>();
@@ -423,7 +444,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 return Possibly.Is(IntersectReduce(set));
             }
-
 
             private static List<CombinedTypesAnd> ToRep(InferredFlowNode from) {
                 return from.Or.ToList();
