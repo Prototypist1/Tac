@@ -115,6 +115,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new CombinedTypesAnd(set);
             }
 
+            internal IIsPossibly<Guid> Primitive()
+            {
+                if (And.Count == 1) {
+                    return And.First().GetValueAs(out IFlowNode _).Primitive();
+                }
+                return Possibly.IsNot<Guid>();
+            }
         }
 
 
@@ -166,6 +173,16 @@ namespace Tac.Frontend.New.CrzayNamespace
             public override int GetHashCode()
             {
                 return Or.Sum(x=>x.GetHashCode());
+            }
+
+
+            public IIsPossibly<Guid> Primitive()
+            {
+                var first = Or.FirstOrDefault();
+                if (first != null && Or.Count == 1) {
+                    return first.Primitive();
+                }
+                return Possibly.IsNot<Guid>();
             }
 
             public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
@@ -283,7 +300,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         // if one of your constituents changes you also change
         public class SkipItCache {
 
-            private readonly Dictionary<IFlowNode, List<IFlowNode>> backing = new Dictionary<IFlowNode, List<IFlowNode>>();
+            private readonly Dictionary<IVirtualFlowNode, List<IFlowNode>> backing = new Dictionary<IVirtualFlowNode, List<IFlowNode>>();
             public void Clear(IFlowNode source) {
                 if (backing.ContainsKey(source)) {
                     backing[source] = new List<IFlowNode>();
@@ -291,7 +308,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             /// returns true if already added
-            public bool CheckOrAdd(IFlowNode source, IFlowNode target)
+            public bool CheckOrAdd(IVirtualFlowNode source, IFlowNode target)
             {
                 var list = backing.GetOrAdd(source, new List<IFlowNode>());
 
@@ -306,8 +323,8 @@ namespace Tac.Frontend.New.CrzayNamespace
         public interface IFlowNode: IVirtualFlowNode
         {
 
-            bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue);
-            bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache);
+            bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue);
+            bool Flow(IVirtualFlowNode from, SkipItCache skipItCache);
         }
 
         public interface IVirtualFlowNode {
@@ -316,6 +333,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             IIsPossibly<VirtualNode> VirtualInput();
             IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers();
             HashSet<CombinedTypesAnd> ToRep();
+            IIsPossibly<Guid> Primitive();
         }
 
         //public class VirtualOrNode : IVirtualFlowNode
@@ -489,6 +507,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IIsPossibly<Tpn.TypeProblem2.Type> Source { get; }
             public Guid Guid { get; }
 
+            public IIsPossibly<Guid> Primitive() {
+                return Possibly.Is(Guid);
+            }
+
             public HashSet<CombinedTypesAnd> ToRep()
             {
                 return new HashSet<CombinedTypesAnd>
@@ -497,7 +519,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 };
             }
 
-            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue) {
+            public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue) {
                 var me = (from, ToOr(this));
                 if (assumeTrue.Contains(me))
                 {
@@ -505,9 +527,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 assumeTrue.Add(me);
 
-                return from.Is3(out var v3) && Equals(v3, this);
+                return from.Primitive().Is(out var guid) && guid == this.Guid;
             }
-            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache) {
+            public bool Flow(IVirtualFlowNode from, SkipItCache skipItCache) {
                 return false;
             }
 
@@ -548,6 +570,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IIsPossibly<VirtualNode> VirtualInput() => Input.TransformInner(x=>new VirtualNode( x.GetValueAs(out IVirtualFlowNode _).ToRep()));
             public IIsPossibly<VirtualNode> VirtualOutput() => Output.TransformInner(x => new VirtualNode(x.GetValueAs(out IVirtualFlowNode _).ToRep()));
 
+
+            public IIsPossibly<Guid> Primitive()
+            {
+                return Possibly.IsNot<Guid>();
+            }
+
             public HashSet<CombinedTypesAnd> ToRep()
             {
                 return new HashSet<CombinedTypesAnd>
@@ -557,28 +585,28 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue) {
+            public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue) {
                 var me = (from, ToOr(this));
                 if (assumeTrue.Contains(me)) {
                     return true;
                 }
                 assumeTrue.Add(me);
                 
-                if (from.Is3(out var _))
+                if (from.Primitive().Is(out var _))
                 {
                     return false;
                 }
 
-                if (Members.Any() && from.GetValueAs(out IFlowNode _).VirtualInput().Is(out var _))
+                if (Members.Any() && from.VirtualInput().Is(out var _))
                 {
                     return false;
                 }
 
-                if (Input.Is(out var _) && from.GetValueAs(out IFlowNode _).VirtualMembers().Any()) {
+                if (Input.Is(out var _) && from.VirtualMembers().Any()) {
                     return false;
                 }
 
-                foreach (var fromMember in from.GetValueAs(out IFlowNode _).VirtualMembers())
+                foreach (var fromMember in from.VirtualMembers())
                 {
                     if (!CanFlowMember(fromMember, assumeTrue.ToList()))
                     {
@@ -586,13 +614,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                if (Input.Is(out var input) && from.GetValueAs(out IFlowNode _).VirtualInput().Is(out var theirInput)) {
+                if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInput)) {
                     if (!input.GetValueAs(out IFlowNode _).CanFlow(theirInput, assumeTrue.ToList())) {
                         return false;
                     }
                 }
 
-                if (Output.Is(out var output) && from.GetValueAs(out IFlowNode _).VirtualOutput().Is(out var theirOutput))
+                if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutput))
                 {
                     if (!output.GetValueAs(out IFlowNode _).CanFlow(theirOutput, assumeTrue.ToList()))
                     {
@@ -602,29 +630,29 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return true;
             }
-            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache) {
+            public bool Flow(IVirtualFlowNode from, SkipItCache skipItCache) {
 
-                if (skipItCache.CheckOrAdd(from.GetValueAs(out IFlowNode _), this)) {
+                if (skipItCache.CheckOrAdd(from, this)) {
                     return false;
                 }
 
-                if (from.Is3(out var _))
+                if (from.Primitive().Is(out var _))
                 {
                     throw new Exception("actually don't flow");
                 }
 
                 var changes = false;
-                foreach (var fromMember in from.GetValueAs(out IFlowNode _).VirtualMembers())
+                foreach (var fromMember in from.VirtualMembers())
                 {
                     changes |= FlowMember(fromMember, skipItCache);
                 }
 
-                if (Input.Is(out var input) && from.GetValueAs(out IFlowNode _).VirtualInput().Is(out var theirInput))
+                if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInput))
                 {
                     changes |= input.GetValueAs(out IFlowNode _).Flow(theirInput, skipItCache);
                 }
 
-                if (Output.Is(out var output) && from.GetValueAs(out IFlowNode _).VirtualOutput().Is(out var theirOutput))
+                if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutput))
                 {
                     changes |= output.GetValueAs(out IFlowNode _).Flow(theirOutput, skipItCache);
                 }
@@ -632,7 +660,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return changes;
             }
 
-            private bool CanFlowMember( KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
+            private bool CanFlowMember( KeyValuePair<IKey, VirtualNode> fromMember, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
                 if (this.Members.TryGetValue(fromMember.Key, out var toMember))
                 {
@@ -644,7 +672,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            private bool FlowMember(KeyValuePair<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> fromMember, SkipItCache skipItCache)
+            private bool FlowMember(KeyValuePair<IKey, VirtualNode> fromMember, SkipItCache skipItCache)
             {
                 var changes = false;
                 if (this.Members.TryGetValue(fromMember.Key, out var toMember))
@@ -660,11 +688,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public HashSet<CombinedTypesAnd> ToRep()
             {
-                return this.Or.SelectMany(x => x.SwitchReturns(y => y.ToRep(), y => y.ToRep(), y => y.ToRep(), y => y.ToRep())).Distinct().ToHashSet();
+                return this.Or.SelectMany(x => x.GetValueAs(out IVirtualFlowNode _).ToRep()).Distinct().ToHashSet();
             }
 
+            public IIsPossibly<Guid> Primitive()
+            {
+                return Possibly.IsNot<Guid>();
+            }
 
-            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
+            public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
                 var me = (from, ToOr(this));
                 if (assumeTrue.Contains(me))
@@ -673,20 +705,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 assumeTrue.Add(me);
 
-                if (from.Is3(out var _)) {
+                if (from.Primitive().Is(out var _)) {
                     return false;
                 }
 
                 return Or.All(x => x.GetValueAs(out IFlowNode _).CanFlow(from, assumeTrue.ToList()));
             }
-            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache)
+            public bool Flow(IVirtualFlowNode from, SkipItCache skipItCache)
             {
-                if (skipItCache.CheckOrAdd(from.GetValueAs(out IFlowNode _), this))
+                if (skipItCache.CheckOrAdd(from, this))
                 {
                     return false;
                 }
 
-                if (from.Is3(out var _))
+                if (from.Primitive().Is(out var _))
                 {
                     throw new Exception("actually don't flow");
                 }
@@ -708,21 +740,19 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IIsPossibly<TypeProblem2.OrType> Source {get;}
 
-            // these should only be used for from
             public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
             {
-                return VirtualOrNode.VirtualMembers(Or.Select(x=>x.GetValueAs(out IVirtualFlowNode _)).ToHashSet());
+                return new VirtualNode(this.ToRep()).VirtualMembers();
             }
-
 
             public IIsPossibly<VirtualNode> VirtualInput()
             {
-                return VirtualOrNode.VirtualInput(Or.Select(x => x.GetValueAs(out IVirtualFlowNode _)).ToHashSet());
+                return new VirtualNode(this.ToRep()).VirtualInput();
             }
 
             public IIsPossibly<VirtualNode> VirtualOutput()
             {
-                return VirtualOrNode.VirtualOutput(Or.Select(x => x.GetValueAs(out IVirtualFlowNode _)).ToHashSet());
+                return new VirtualNode(this.ToRep()).VirtualOutput();
             }
 
         }
@@ -746,8 +776,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return this.Or.ToHashSet();
             }
 
-
-            public bool CanFlow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
+            public IIsPossibly<Guid> Primitive()
+            {
+                return new VirtualNode(Or.ToHashSet()).Primitive();
+            }
+            public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
                 var me = (from, ToOr(this));
                 if (assumeTrue.Contains(me))
@@ -756,20 +789,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 assumeTrue.Add(me);
 
-                return from.SwitchReturns(
-                    x => CanMerge(this.ToRep(),x.ToRep()),
-                    x => CanMerge(this.ToRep(), x.ToRep()),
-                    x => CanMerge(this.ToRep(), x.ToRep()),
-                    x => CanMerge(this.ToRep(), x.ToRep()));
+                return CanMerge(this.ToRep(), from.ToRep());
             }
-            public bool Flow(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> from, SkipItCache skipItCache)
+            public bool Flow(IVirtualFlowNode from, SkipItCache skipItCache)
             {
-                if (skipItCache.CheckOrAdd(from.GetValueAs(out IFlowNode _), this))
+                if (skipItCache.CheckOrAdd(from, this))
                 {
                     return false;
                 }
 
-                var merged = Union(this.ToRep(), from.GetValueAs(out IVirtualFlowNode _).ToRep());
+                var merged = Union(this.ToRep(), from.ToRep());
 
                 if (!this.Or.SetEqual(merged)) {
                     this.Or = merged;
@@ -780,19 +809,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return false;
             }
 
-            // this is pretty much the same method as OrFlowNode has
             public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
             {
                 return new VirtualNode(Or.ToHashSet()).VirtualMembers();
             }
 
-            // this is pretty much the same method as OrFlowNode has
             public IIsPossibly<VirtualNode> VirtualInput()
             {
                 return new VirtualNode(Or.ToHashSet()).VirtualInput();
             }
 
-            // this is pretty much the same method as OrFlowNode has
             public IIsPossibly<VirtualNode> VirtualOutput()
             {
                 return new VirtualNode(Or.ToHashSet()).VirtualOutput();
