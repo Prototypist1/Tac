@@ -1030,7 +1030,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
                     orsToFlowNodesBuild.Add(key, ToOr(concrete));
                     var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
-                    inferredFlowNode.Or.Add(new InferredFlowNode.CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode,  PrimitiveFlowNode>> { Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(concrete) }));
+                    inferredFlowNode.Or.Add(new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode,  PrimitiveFlowNode>> { Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(concrete) }));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
                 }
                 foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
@@ -1138,9 +1138,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))];
 
-                        if (fromType.GetValueAs(out IFlowNode _).CanFlow(toType, new List<(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>()))
+                        if (fromType.GetValueAs(out IFlowNode _).CanFlow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>()))
                         {
-                            go |= fromType.GetValueAs(out IFlowNode _).Flow(toType, new SkipItCache());
+                            go |= fromType.GetValueAs(out IFlowNode _).Flow(toType.GetValueAs(out IVirtualFlowNode _), new SkipItCache());
                         }
                     }
 

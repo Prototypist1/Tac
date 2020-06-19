@@ -86,7 +86,7 @@ namespace Tac.Frontend
 
     internal static class Help
     {
-        public static WeakScope GetScope(Tpn.TypeSolution typeSolution, IOrType<Tpn.IHavePrivateMembers, Tpn.IFlowNode> haveMembers)
+        public static WeakScope GetScope(Tpn.TypeSolution typeSolution, IOrType<Tpn.IHavePrivateMembers, Tpn.IVirtualFlowNode> haveMembers)
         {
             // ah, there needs to be 2 typeSolution.GetMember
             // one for TypeProblem2.Member
@@ -112,26 +112,30 @@ namespace Tac.Frontend
                 v2 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingTypeBox(typeSolution.GetExplicitType(v2.Source.GetOrThrow()))),
                 v3 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingObjectBox(typeSolution.GetObject(v3.Source.GetOrThrow()))),
                 v4 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingOrBox(typeSolution.GetOrType(v4.Source.GetOrThrow()))),
-                v5 => OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(v5, new InferredTypeConverter())),
+                v5 => OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(new Tpn.VirtualNode( v5.ToRep()))),
                 v6 => OrType.Make<IBox<IFrontendType>, IError>(v6)
                 );
         }
     }
 
-    internal class InferredTypeConverter : Tpn.IConvertTo<Tpn.IFlowNode, IFrontendType>
+    internal class InferredTypeConverter : Tpn.IConvertTo<Tpn.CombinedTypesAnd, IFrontendType>
     {
-        public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.IFlowNode flowNode)
+        public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.CombinedTypesAnd flowNode)
         {
+            if (flowNode.And.Count == 0)
+            {
+                return new AnyType();
+            }
 
             //var flowNode = typeSolution.GetFlowNode(from);
 
-            var scope = Help.GetScope(typeSolution, OrType.Make < Tpn.IHavePrivateMembers, Tpn.IFlowNode> (flowNode));
-
+            var scope = Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IVirtualFlowNode>(flowNode));
 
             typeSolution.TryGetInputMember(flowNode, out var input);
             typeSolution.TryGetResultMember(flowNode, out var output);
 
-            if ((input != default || output != default) && scope.membersList.Count > 1) {
+            if ((input != default || output != default) && scope.membersList.Count > 1)
+            {
                 // this might be wrong
                 // methods might end up with more than one member
                 // input counts as a member but it is really something different
@@ -145,8 +149,8 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        typeSolution.GetType(OrType.Make<Tpn.IFlowNode,IError>(input)).TransformInner(x=> x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
-                        typeSolution.GetType(OrType.Make<Tpn.IFlowNode, IError>(output)).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()));
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()));
             }
 
 
@@ -156,7 +160,7 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        typeSolution.GetType(OrType.Make<Tpn.IFlowNode, IError>(input)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType,IConvertableFrontendType<IVerifiableType>>()),
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()),
                         OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType()));
             }
 
@@ -166,8 +170,8 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>( new EmptyType()),
-                        typeSolution.GetType(OrType.Make<Tpn.IFlowNode, IError>(output)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
+                        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType()),
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
             }
 
             // if it has members it must be a scope
@@ -176,8 +180,35 @@ namespace Tac.Frontend
                 return new WeakTypeDefinition(new Box<WeakScope>(scope)).FrontendType();
             }
 
-            // otherwise, it could be anything
             return new AnyType();
+        }
+    }
+
+    internal class InferredTypeConverter2 : Tpn.IConvertTo<Tpn.VirtualNode, IFrontendType>
+    {
+        public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.VirtualNode flowNode)
+        {
+            if (flowNode.Or.Count == 0) {
+                return new AnyType();
+            }
+
+            if (flowNode.Or.Count == 1)
+            {
+                return typeSolution.GetInferredType(flowNode.Or.First()).GetValue();
+            }
+
+            // make a big Or!
+            var array = flowNode.Or.ToArray();
+            var first = array[0];
+            var second = array[1];
+            var res = new FrontEndOrType(OrType.Make<IFrontendType, IError>(typeSolution.GetInferredType(first).GetValue()), OrType.Make<IFrontendType, IError>(typeSolution.GetInferredType(second).GetValue()));
+            foreach (var entry in array.Skip(2))
+            {
+                res = new FrontEndOrType(OrType.Make<IFrontendType, IError>(res), OrType.Make<IFrontendType, IError>(typeSolution.GetInferredType(entry).GetValue()));
+            }
+
+            return res;
+
         }
     }
 
@@ -342,7 +373,7 @@ namespace Tac.Frontend
     //    }
     //}
 
-    internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition>
+    internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<IOrType<Tpn.IVirtualFlowNode, IError>, WeakMemberDefinition>
     {
         private readonly bool isReadonly;
         private readonly IKey nameKey;
@@ -353,7 +384,7 @@ namespace Tac.Frontend
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, IOrType< Tpn.IFlowNode,IError> from)
+        public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, IOrType< Tpn.IVirtualFlowNode, IError> from)
         {
             return new WeakMemberDefinition(isReadonly, nameKey, typeSolution.GetType(from));
         }

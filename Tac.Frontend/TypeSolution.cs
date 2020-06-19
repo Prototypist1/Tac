@@ -23,7 +23,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         // so I just don't
         // I create an Uhh
         // this idicates that they don't really have a source
-        private class Uhh { }
+        //private class Uhh { }
 
         // 🤫 the power was in you all along
         internal class TypeSolution 
@@ -100,13 +100,13 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private readonly Dictionary<FlowNodeMember, IBox<WeakMemberDefinition>> cacheMember2 = new Dictionary<FlowNodeMember, IBox<WeakMemberDefinition>>();
 
-            public IBox<WeakMemberDefinition> GetMember(FlowNodeMember member, Tpn.IConvertTo<IOrType<Tpn.IFlowNode,IError>, WeakMemberDefinition> convert)
+            public IBox<WeakMemberDefinition> GetMember(FlowNodeMember member, Tpn.IConvertTo<IOrType<Tpn.IVirtualFlowNode, IError>, WeakMemberDefinition> convert)
             {
                 if (!cacheMember2.ContainsKey(member))
                 {
                     var box = new Box<WeakMemberDefinition>();
                     cacheMember2[member] = box;
-                    box.Fill(convert.Convert(this, OrType.Make<Tpn.IFlowNode, IError>(member.FlowNode)));
+                    box.Fill(convert.Convert(this, OrType.Make<Tpn.IVirtualFlowNode, IError>(member.FlowNode)));
                 }
                 return cacheMember2[member];
             }
@@ -197,23 +197,38 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheMethodType[methodType];
             }
 
-            private readonly Dictionary<Tpn.IFlowNode, IBox<IFrontendType>> cacheInferredType = new Dictionary<Tpn.IFlowNode, IBox<IFrontendType>>();
+            private readonly Dictionary<Tpn.VirtualNode, IBox<IFrontendType>> cacheInferredType = new Dictionary<Tpn.VirtualNode, IBox<IFrontendType>>();
 
 
-            public IBox<IFrontendType> GetInferredType(Tpn.IFlowNode inferredType, Tpn.IConvertTo<Tpn.IFlowNode, IFrontendType> converter)
+            public IBox<IFrontendType> GetInferredType(Tpn.VirtualNode inferredType)
             {
                 if (!cacheInferredType.ContainsKey(inferredType))
                 {
                     var box = new Box<IFrontendType>();
                     cacheInferredType[inferredType] = box;
-                    box.Fill(converter.Convert(this, inferredType));
+                    box.Fill(new InferredTypeConverter2().Convert(this, inferredType));
                 }
                 return cacheInferredType[inferredType];
             }
 
+            // naming!
+            private readonly Dictionary<Tpn.CombinedTypesAnd, IBox<IFrontendType>> cacheInferredType2 = new Dictionary<Tpn.CombinedTypesAnd, IBox<IFrontendType>>();
+
+
+            public IBox<IFrontendType> GetInferredType(Tpn.CombinedTypesAnd inferredType)
+            {
+                if (!cacheInferredType2.ContainsKey(inferredType))
+                {
+                    var box = new Box<IFrontendType>();
+                    cacheInferredType2[inferredType] = box;
+                    box.Fill(new InferredTypeConverter().Convert(this, inferredType));
+                }
+                return cacheInferredType2[inferredType];
+            }
+
             public readonly struct FlowNodeMember
             {
-                public FlowNodeMember(IKey key, IFlowNode flowNode, IFlowNode of)
+                public FlowNodeMember(IKey key, IVirtualFlowNode flowNode, IFlowNode of)
                 {
                     Key = key ?? throw new ArgumentNullException(nameof(key));
                     FlowNode = flowNode ?? throw new ArgumentNullException(nameof(flowNode));
@@ -221,7 +236,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 public IKey Key { get; }
-                public IFlowNode FlowNode { get; }
+                public IVirtualFlowNode FlowNode { get; }
                 // this is used for equality
                 // a member is by what it is on + it's key
                 public IFlowNode Of { get; }
@@ -235,7 +250,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IReadOnlyList<FlowNodeMember> GetPublicMembers(IFlowNode from)
             {
                 return from.VirtualMembers().Select(x=> {
-                    return new FlowNodeMember(x.Key,x.Value.GetValueAs(out IFlowNode _), from);
+                    return new FlowNodeMember(x.Key,x.Value, from);
                 }).ToList();
             }
 
@@ -296,32 +311,28 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return orTypeElememts[from];
             }
 
-            public bool TryGetResultMember(IFlowNode from, [MaybeNullWhen(false)] out IFlowNode? transientMember)
+            public bool TryGetResultMember(IVirtualFlowNode from, [MaybeNullWhen(false)] out IVirtualFlowNode? transientMember)
             {
                 if (from.VirtualOutput().Is(out var value)) {
-                    transientMember = value.GetValueAs(out IFlowNode _);
+                    transientMember = value;
                     return true;
                 }
                 transientMember = default;
                 return false;
             }
 
-            public bool TryGetInputMember(IFlowNode from, [MaybeNullWhen(false)] out IFlowNode? member)
+            public bool TryGetInputMember(IVirtualFlowNode from, [MaybeNullWhen(false)] out IVirtualFlowNode? member)
             {
                 if (from.VirtualInput().Is(out var value))
                 {
-                    member = value.GetValueAs(out IFlowNode _);
+                    member = value;
                     return true;
                 }
                 member = default;
                 return false;
             }
 
-
-            
-
-            // this might not need to be IError right now I don't know of anythign driving it
-            public IOrType<IBox<IFrontendType>,IError> GetType(IOrType<IFlowNode,IError> or)
+            public IOrType<IBox<IFrontendType>,IError> GetType(IOrType<IVirtualFlowNode, IError> or)
             {
                 return or.SwitchReturns(node =>
                 {
@@ -348,21 +359,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return OrType.Make<IBox<IFrontendType>, IError>(
                             new UnWrappingOrBox(GetOrType(typeFlowOr.Source.GetOrThrow())));
                     }
-                    if (node is IFlowNode<TypeProblem2.InferredType> typeFlowInferred)
-                    {
-                        return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowInferred, new InferredTypeConverter()));
-                    }
 
-                    if (node is IFlowNode<Uhh> typeFlowUhh)
-                    {
-                        return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowUhh, new InferredTypeConverter()));
-                    }
+                    // at this point we are Concrete<Inferred>
+                    // or VirtualNode
+                    
+                    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(new VirtualNode(node.ToRep())));
+
+
+
+
+                    //if (node is IFlowNode<Uhh> typeFlowUhh)
+                    //{
+                    //    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowUhh, new InferredTypeConverter()));
+                    //}
                     throw new NotImplementedException("I thought i had to be one of those");
                 }, x => OrType.Make<IBox<IFrontendType>, IError>(x));
             }
 
 
-            public IFlowNode GetResultMember(IFlowNode<TypeProblem2.MethodType> from)
+            public IVirtualFlowNode GetResultMember(IFlowNode<TypeProblem2.MethodType> from)
             {
                 if (TryGetResultMember(from, out var res)) {
                     return res!;
@@ -370,7 +385,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 throw new Exception("that should not happen for a method");
             }
 
-            public IFlowNode GetInputMember(IFlowNode<TypeProblem2.MethodType> from)
+            public IVirtualFlowNode GetInputMember(IFlowNode<TypeProblem2.MethodType> from)
             {
                 if (TryGetInputMember(from, out var res))
                 {
