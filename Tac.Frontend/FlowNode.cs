@@ -28,7 +28,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return backing.SelectMany(x => x.GetValueAs(out IVirtualFlowNode _).VirtualMembers())
                         .GroupBy(x => x.Key)
-                        .Where(x=>x.Count() == backing.Count)
                         .Select(x =>
                         {
                             if (x.Count() == 1)
@@ -50,16 +49,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var set = backing.Select(x => x.GetValueAs(out IVirtualFlowNode _).VirtualInput())
                         .OfType<IIsDefinately<VirtualNode>>().Select(x => x.Value).ToList();
 
+
+                if (!set.Any()) {
+
+                    return Possibly.IsNot<VirtualNode>();
+                }
+
                 if (set.Count == 1)
                 {
                     return Possibly.Is(set.First());
                 }
-                if (set.Count == backing.Count)
-                {
-                    return Possibly.Is(VirtualNode.IsAll(set.ToHashSet()));
-                }
 
-                return Possibly.IsNot<VirtualNode>();
+                return Possibly.Is(VirtualNode.IsAll(set.ToHashSet()));
+                
             }
 
             public IIsPossibly<VirtualNode> VirtualOutput()
@@ -72,16 +74,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var set = backing.Select(x => x.GetValueAs(out IVirtualFlowNode _).VirtualOutput())
                         .OfType<IIsDefinately<VirtualNode>>().Select(x => x.Value).ToList();
 
+                if (!set.Any())
+                {
+                    return Possibly.IsNot<VirtualNode>();
+                }
+
                 if (set.Count == 1)
                 {
                     return Possibly.Is(set.First());
                 }
-                if (set.Count == backing.Count)
-                {
-                    return Possibly.Is(VirtualNode.IsAll(set.ToHashSet()));
-                }
 
-                return Possibly.IsNot<VirtualNode>();
+                return Possibly.Is(VirtualNode.IsAll(set.ToHashSet()));
             }
 
 
@@ -268,33 +271,40 @@ namespace Tac.Frontend.New.CrzayNamespace
         // I am not really sure this works 😖 
         // I mean, you don't have to have to change to change
         // if one of your constituents changes you also change
-        public class SkipItCache {
+        //public class SkipItCache {
 
-            private readonly Dictionary<IVirtualFlowNode, List<IFlowNode>> backing = new Dictionary<IVirtualFlowNode, List<IFlowNode>>();
-            public void Clear(IFlowNode source) {
-                if (backing.ContainsKey(source)) {
-                    backing[source] = new List<IFlowNode>();
-                }
-            }
+        //    private readonly Dictionary<IVirtualFlowNode, List<IFlowNode>> backing = new Dictionary<IVirtualFlowNode, List<IFlowNode>>();
+        //    public void Clear(IFlowNode source) {
+        //        if (backing.ContainsKey(source)) {
+        //            backing[source] = new List<IFlowNode>();
+        //        }
+        //    }
 
-            /// returns true if already added
-            public bool CheckOrAdd(IVirtualFlowNode source, IFlowNode target)
-            {
-                var list = backing.GetOrAdd(source, new List<IFlowNode>());
+        //    /// returns true if already added
+        //    public bool CheckOrAdd(IVirtualFlowNode source, IFlowNode target)
+        //    {
+        //        var list = backing.GetOrAdd(source, new List<IFlowNode>());
 
-                if (list.Contains(target)) {
-                    return true;
-                }
-                list.Add(target);
-                return false;
-            }
-        }
+        //        if (list.Contains(target)) {
+        //            return true;
+        //        }
+        //        list.Add(target);
+        //        return false;
+        //    }
+        //}
 
         public interface IFlowNode: IVirtualFlowNode
         {
 
             bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue);
-            bool Flow(IVirtualFlowNode from, SkipItCache skipItCache);
+            // flow is a bit inperfect
+            // alreadyFlowing prevents something A flowing in to B if A is already flowing in to B
+            // if A is changed somewhere down the stack from where it is flowing in to B
+            // that might not be caputered in the top level flow
+            // you would think if A.Flow(B) returns true
+            // then calling A.Flow(B) again would return false
+            // but you can't count on that
+            bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
         }
 
         public interface IVirtualFlowNode {
@@ -339,7 +349,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return from.Primitive().Is(out var guid) && guid == this.Guid;
             }
-            public bool Flow(IVirtualFlowNode from, SkipItCache skipItCache) {
+            public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing) {
                 return false;
             }
 
@@ -440,11 +450,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return true;
             }
-            public bool Flow(IVirtualFlowNode from, SkipItCache skipItCache) {
+            public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing) {
 
-                if (skipItCache.CheckOrAdd(from, this)) {
+                var me = (from, ToOr(this));
+                if (alreadyFlowing.Contains(me))
+                {
                     return false;
                 }
+                alreadyFlowing.Add(me);
+
 
                 if (from.Primitive().Is(out var _))
                 {
@@ -454,17 +468,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var changes = false;
                 foreach (var fromMember in from.VirtualMembers())
                 {
-                    changes |= FlowMember(fromMember, skipItCache);
+                    changes |= FlowMember(fromMember, alreadyFlowing);
                 }
 
                 if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInput))
                 {
-                    changes |= input.GetValueAs(out IFlowNode _).Flow(theirInput, skipItCache);
+                    changes |= input.GetValueAs(out IFlowNode _).Flow(theirInput, alreadyFlowing.ToList());
                 }
 
                 if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutput))
                 {
-                    changes |= output.GetValueAs(out IFlowNode _).Flow(theirOutput, skipItCache);
+                    changes |= output.GetValueAs(out IFlowNode _).Flow(theirOutput, alreadyFlowing.ToList());
                 }
 
                 return changes;
@@ -482,12 +496,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            private bool FlowMember(KeyValuePair<IKey, VirtualNode> fromMember, SkipItCache skipItCache)
+            private bool FlowMember(KeyValuePair<IKey, VirtualNode> fromMember, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 var changes = false;
                 if (this.Members.TryGetValue(fromMember.Key, out var toMember))
                 {
-                    changes |= toMember.GetValueAs(out IFlowNode _).Flow(fromMember.Value, skipItCache);
+                    changes |= toMember.GetValueAs(out IFlowNode _).Flow(fromMember.Value, alreadyFlowing.ToList());
                 }
                 return changes;
             }
@@ -521,12 +535,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return Or.All(x => x.GetValueAs(out IFlowNode _).CanFlow(from, assumeTrue.ToList()));
             }
-            public bool Flow(IVirtualFlowNode from, SkipItCache skipItCache)
+            public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
-                if (skipItCache.CheckOrAdd(from, this))
+                var me = (from, ToOr(this));
+                if (alreadyFlowing.Contains(me))
                 {
                     return false;
                 }
+                alreadyFlowing.Add(me);
 
                 if (from.Primitive().Is(out var _))
                 {
@@ -536,7 +552,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var changes = false;
                 foreach (var item in this.Or)
                 {
-                    changes |= item.GetValueAs(out IFlowNode _).Flow(from, skipItCache);
+                    changes |= item.GetValueAs(out IFlowNode _).Flow(from, alreadyFlowing.ToList());
                 }
                 return changes;
             }
@@ -599,20 +615,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 assumeTrue.Add(me);
 
-                return CanMerge(this.ToRep(), from.ToRep());
+                return CanMerge(this.ToRep(), from.ToRep(), new List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)>(), new List<(CombinedTypesAnd, CombinedTypesAnd)>());
             }
-            public bool Flow(IVirtualFlowNode from, SkipItCache skipItCache)
+            public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
-                if (skipItCache.CheckOrAdd(from, this))
+                var me = (from, ToOr(this));
+                if (alreadyFlowing.Contains(me))
                 {
                     return false;
                 }
+                alreadyFlowing.Add(me);
 
                 var merged = Union(this.ToRep(), from.ToRep());
 
                 if (!this.Or.SetEqual(merged)) {
                     this.Or = merged;
-                    skipItCache.Clear(this);
                     return true;
                 }
 
@@ -675,15 +692,29 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new CombinedTypesAnd(left.And.Union(right.And).ToHashSet());
             }
 
-            private static bool CanMerge(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right) {
-                return left.All(l => right.All(r => CanMerge(r,l)));
+            private static bool CanMerge(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right, List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner) {
+                var ours = (left, right);
+                if (assumeTrue.Contains(ours)) {
+                    return true;
+                }
+                assumeTrue.Add(ours);
+
+
+                return left.All(l => right.All(r => CanMerge(r,l,assumeTrue,assumeTrueInner)));
             }
 
-            private static bool CanMerge(CombinedTypesAnd left, CombinedTypesAnd right ) {
-                return left.And.All(l => right.And.All(r => CanMerge(r, l)));
+            private static bool CanMerge(CombinedTypesAnd left, CombinedTypesAnd right , List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner) {
+                var ours = (left, right);
+                if (assumeTrueInner.Contains(ours))
+                {
+                    return true;
+                }
+                assumeTrueInner.Add(ours);
+
+                return left.And.All(l => right.And.All(r => CanMerge(r, l, assumeTrue, assumeTrueInner)));
             }
 
-            private static bool CanMerge(IOrType<ConcreteFlowNode,PrimitiveFlowNode> left, IOrType<ConcreteFlowNode, PrimitiveFlowNode> right)
+            private static bool CanMerge(IOrType<ConcreteFlowNode,PrimitiveFlowNode> left, IOrType<ConcreteFlowNode, PrimitiveFlowNode> right, List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner)
             {
                 return left.SwitchReturns(
                     leftConcrete => right.SwitchReturns(
@@ -704,7 +735,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 if (rightConcrete.Members.TryGetValue(leftMember.Key, out var rightMember)) {
                                     var leftMemberRep = leftMember.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
                                     var rightMemberRep = rightMember.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                    if (!CanMerge(leftMemberRep, rightMemberRep)) {
+                                    if (!CanMerge(leftMemberRep, rightMemberRep, assumeTrue, assumeTrueInner)) {
                                         return false;
                                     }
                                 }
@@ -714,7 +745,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 var leftMemberRep = leftInput.GetValueAs(out IVirtualFlowNode _).ToRep();
                                 var rightMemberRep = rightInput.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                if (!CanMerge(leftMemberRep, rightMemberRep))
+                                if (!CanMerge(leftMemberRep, rightMemberRep, assumeTrue, assumeTrueInner))
                                 {
                                     return false;
                                 }
@@ -724,7 +755,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 var leftMemberRep = leftOutput.GetValueAs(out IVirtualFlowNode _).ToRep();
                                 var rightMemberRep = rightOutput.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                if (!CanMerge(leftMemberRep, rightMemberRep))
+                                if (!CanMerge(leftMemberRep, rightMemberRep, assumeTrue, assumeTrueInner))
                                 {
                                     return false;
                                 }

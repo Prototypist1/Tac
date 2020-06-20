@@ -1140,7 +1140,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         if (fromType.GetValueAs(out IFlowNode _).CanFlow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>()))
                         {
-                            go |= fromType.GetValueAs(out IFlowNode _).Flow(toType.GetValueAs(out IVirtualFlowNode _), new SkipItCache());
+                            go |= fromType.GetValueAs(out IFlowNode _).Flow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
                         }
                     }
 

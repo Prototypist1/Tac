@@ -354,7 +354,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelfWithInferred()
         {
-            throw new Exception("statck overflow!");
 
             // type[node-t] node {node[node-t] next}
             // type chicken {}
@@ -937,7 +936,7 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void Complex()
         {
-            throw new Exception("statck overflow!");
+            //throw new Exception("statck overflow!");
 
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
