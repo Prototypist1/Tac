@@ -127,6 +127,11 @@ namespace Tac.Frontend
                 return new AnyType();
             }
 
+            if (flowNode.Primitive().Is(out var prim)) {
+                var single = flowNode.And.Single().Is2OrThrow() ;
+                return typeSolution.GetExplicitType(single.Source.GetOrThrow()).GetValue().Is3OrThrow();
+            }
+
             //var flowNode = typeSolution.GetFlowNode(from);
 
             var scope = Help.GetScope(typeSolution, OrType.Make<Tpn.IHavePrivateMembers, Tpn.IVirtualFlowNode>(flowNode));

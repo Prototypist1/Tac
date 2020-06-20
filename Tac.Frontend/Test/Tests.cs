@@ -650,8 +650,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var cOrType = Assert.IsType<FrontEndOrType>(cType);
 
-            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(cOrType.left);
-            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.StringType>(cOrType.right);
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(cOrType.left.Is1OrThrow());
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.StringType>(cOrType.right.Is1OrThrow());
         }
 
         // 5 =: c
@@ -882,7 +882,8 @@ namespace Tac.Frontend.TypeProblem.Test
         // type B { number x}
         // A | number a
         // a =: B b
-        // x should be a number  
+        // x should not be a number  
+        // even if x was a number that would not make this a legal assignment 
         [Fact]
         public void FlowInToOneSideOfOrType()
         {
@@ -918,7 +919,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var aTypeSolution = solution.GetExplicitType(aType).GetValue().Is1OrThrow();
             var aMember = HasMember(aTypeSolution.FrontendType(), new NameKey("x"));
-            Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(aMember, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.False(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(aMember, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
 

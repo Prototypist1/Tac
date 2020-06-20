@@ -685,11 +685,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                         res.Add(Merge(leftEntry, rightEntry));
                     }
                 }
+
                 return res.Distinct().ToList();
             }
 
             private static CombinedTypesAnd Merge(CombinedTypesAnd left, CombinedTypesAnd right) {
-                return new CombinedTypesAnd(left.And.Union(right.And).ToHashSet());
+                var start = left.And.Union(right.And).Distinct().ToArray();
+
+                // remove empties
+                var v2 = start.Where(x => x.SwitchReturns(y => y.Input.Is(out var _) || y.Output.Is(out var _) || y.Members.Any(), y => true)).ToList();
+                // but if you end up removing them all, put one back
+                if (!v2.Any()) {
+                    v2.Add(start.First());
+                }
+                // empties are kind of a weird thing 
+                // why do I try to keep it to one?
+                // why do I want to make sure I have one?
+                // weird 
+
+                return new CombinedTypesAnd(v2.ToHashSet());
             }
 
             private static bool CanMerge(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right, List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner) {
@@ -764,17 +778,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return true;
                         },
                         rightPrimitve => {
-                            return false;
+                            return !leftConcrete.Members.Any() && !leftConcrete.Input.Is(out var _) && !leftConcrete.Output.Is(out var _);
                         }),
                     leftPrimitive => right.SwitchReturns(
                         rightConcrete => {
-                            return false;
+                            return !rightConcrete.Members.Any() && !rightConcrete.Input.Is(out var _) && !rightConcrete.Output.Is(out var _);
                         },
                         rightPrimitve => {
                             return leftPrimitive.Guid == rightPrimitve.Guid;
                         }));
             }
         }
+
+        internal class Uhh { } 
 
         public static IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> ToOr(ConcreteFlowNode node) {
             return OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(node);

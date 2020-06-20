@@ -1077,7 +1077,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow().Members.Add(
                             member.Key,
-                            orsToFlowNodesBuild[member.Value.LooksUp.GetOrThrow().SwitchReturns(
+                            orsToFlowNodesLookup[member.Value.LooksUp.GetOrThrow().SwitchReturns(
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1093,7 +1093,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (hasInputAndOutput.Input.Is(out var input))
                     {
                         orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Is1OrThrow().Input =
-                                    Possibly.Is(orsToFlowNodesBuild[input.LooksUp.GetOrThrow().SwitchReturns(
+                                    Possibly.Is(orsToFlowNodesLookup[input.LooksUp.GetOrThrow().SwitchReturns(
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1104,7 +1104,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (hasInputAndOutput.Returns.Is(out var output))
                     {
                         orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Is1OrThrow().Output = Possibly.Is(
-                                orsToFlowNodesBuild[output.LooksUp.GetOrThrow().SwitchReturns(
+                                orsToFlowNodesLookup[output.LooksUp.GetOrThrow().SwitchReturns(
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
