@@ -228,7 +228,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public readonly struct FlowNodeMember
             {
-                public FlowNodeMember(IKey key, IVirtualFlowNode flowNode, IFlowNode of)
+                public FlowNodeMember(IKey key, IVirtualFlowNode flowNode, IVirtualFlowNode of)
                 {
                     Key = key ?? throw new ArgumentNullException(nameof(key));
                     FlowNode = flowNode ?? throw new ArgumentNullException(nameof(flowNode));
@@ -239,7 +239,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IVirtualFlowNode FlowNode { get; }
                 // this is used for equality
                 // a member is by what it is on + it's key
-                public IFlowNode Of { get; }
+                public IVirtualFlowNode Of { get; }
             }
 
             public IReadOnlyList<TypeProblem2.Member> GetPrivateMembers(IHavePrivateMembers privateMembers)
@@ -247,7 +247,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return privateMembers.PrivateMembers.Values.ToList();
             }
 
-            public IReadOnlyList<FlowNodeMember> GetPublicMembers(IFlowNode from)
+            public IReadOnlyList<FlowNodeMember> GetPublicMembers(IVirtualFlowNode from)
             {
                 return from.VirtualMembers().Select(x=> {
                     return new FlowNodeMember(x.Key,x.Value, from);
