@@ -799,7 +799,7 @@ namespace Tac.Frontend.TypeProblem.Test
         // c =: B b
         // so c is...
         // A&B | C&B
-        // {x;} | {y;} 
+        // {x;y;z;} | {w;x;z; } 
         [Fact]
         public void OrTypeFlowsIn()
         {
@@ -988,7 +988,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = problem.Solve();
 
-            throw new NotImplementedException();
+            // mostly we just want this not to throw 
         }
     }
 }

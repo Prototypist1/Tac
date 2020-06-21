@@ -321,7 +321,29 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return false;
             }
 
+            public bool TryGetResultMember(CombinedTypesAnd from, [MaybeNullWhen(false)] out IVirtualFlowNode? transientMember)
+            {
+                if (from.VirtualOutput().Is(out var value))
+                {
+                    transientMember = value;
+                    return true;
+                }
+                transientMember = default;
+                return false;
+            }
+
             public bool TryGetInputMember(IVirtualFlowNode from, [MaybeNullWhen(false)] out IVirtualFlowNode? member)
+            {
+                if (from.VirtualInput().Is(out var value))
+                {
+                    member = value;
+                    return true;
+                }
+                member = default;
+                return false;
+            }
+
+            public bool TryGetInputMember(CombinedTypesAnd from, [MaybeNullWhen(false)] out IVirtualFlowNode? member)
             {
                 if (from.VirtualInput().Is(out var value))
                 {
@@ -363,7 +385,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // at this point we are Concrete<Inferred>
                     // or VirtualNode
                     
-                    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(new VirtualNode(node.ToRep())));
+                    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(new VirtualNode(node.ToRep(), node.SourcePath())));
 
 
 

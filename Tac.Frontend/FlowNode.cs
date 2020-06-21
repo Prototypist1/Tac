@@ -17,250 +17,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         // you can create it by merging together a bunch of nodes in an or-manner or an and-manner
 
-        public class CombinedTypesAnd: IVirtualFlowNode
-        {
-            public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
-            {
-                return VirtualMembers(And);
-            }
-
-            public static IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers(HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>> backing)
-            {
-                return backing.SelectMany(x => x.GetValueAs(out IVirtualFlowNode _).VirtualMembers())
-                        .GroupBy(x => x.Key)
-                        .Select(x =>
-                        {
-                            if (x.Count() == 1)
-                            {
-                                return new KeyValuePair<IKey, VirtualNode>(x.Key, x.First().Value);
-                            }
-
-                            return new KeyValuePair<IKey, VirtualNode>(x.Key, VirtualNode.IsAll(x.Select(y => y.Value).ToHashSet()));
-                        });
-            }
-
-            public IIsPossibly<VirtualNode> VirtualInput()
-            {
-                return VirtualInput(And);
-            }
-
-            public static IIsPossibly<VirtualNode> VirtualInput(HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>> backing)
-            {
-                var set = backing.Select(x => x.GetValueAs(out IVirtualFlowNode _).VirtualInput())
-                        .OfType<IIsDefinately<VirtualNode>>().Select(x => x.Value).ToList();
-
-
-                if (!set.Any()) {
-
-                    return Possibly.IsNot<VirtualNode>();
-                }
-
-                if (set.Count == 1)
-                {
-                    return Possibly.Is(set.First());
-                }
-
-                return Possibly.Is(VirtualNode.IsAll(set.ToHashSet()));
-                
-            }
-
-            public IIsPossibly<VirtualNode> VirtualOutput()
-            {
-                return VirtualOutput(And);
-            }
-
-            public static IIsPossibly<VirtualNode> VirtualOutput(HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>> backing)
-            {
-                var set = backing.Select(x => x.GetValueAs(out IVirtualFlowNode _).VirtualOutput())
-                        .OfType<IIsDefinately<VirtualNode>>().Select(x => x.Value).ToList();
-
-                if (!set.Any())
-                {
-                    return Possibly.IsNot<VirtualNode>();
-                }
-
-                if (set.Count == 1)
-                {
-                    return Possibly.Is(set.First());
-                }
-
-                return Possibly.Is(VirtualNode.IsAll(set.ToHashSet()));
-            }
-
-
-            public override bool Equals(object? obj)
-            {
-                return obj is CombinedTypesAnd and &&
-                       And.SetEqual(and.And);
-            }
-
-            public override int GetHashCode()
-            {
-                return And.Select(x => x.GetHashCode()).Sum();
-            }
-
-            // please don't add to this, it will change the HashCode
-            public HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>> And { get; }
-
-            public CombinedTypesAnd(HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>> and)
-            {
-                And = and ?? throw new ArgumentNullException(nameof(and));
-            }
-
-            internal CombinedTypesAnd AddAsNew(OrType<ConcreteFlowNode, PrimitiveFlowNode> orType)
-            {
-                var set = new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>();
-                foreach (var item in And)
-                {
-                    set.Add(item);
-                }
-                set.Add(orType);
-                return new CombinedTypesAnd(set);
-            }
-
-            public IIsPossibly<Guid> Primitive()
-            {
-                if (And.Count == 1) {
-                    return And.First().GetValueAs(out IFlowNode _).Primitive();
-                }
-                return Possibly.IsNot<Guid>();
-            }
-
-            public HashSet<CombinedTypesAnd> ToRep()
-            {
-                return new HashSet<CombinedTypesAnd> { this };
-            }
-
-        }
-
-
-        public class VirtualNode: IVirtualFlowNode
-        {
-
-            public HashSet<CombinedTypesAnd> Or = new HashSet<CombinedTypesAnd>();
-
-
-            public static VirtualNode IsAll(IEnumerable<IVirtualFlowNode> toMerge) {
-                return new VirtualNode(toMerge.Select(x => x.ToRep()).Aggregate((a, b) => Union(a, b)).Distinct().ToHashSet());
-                
-            }
-
-            public static VirtualNode IsAny(IEnumerable<IVirtualFlowNode> toMerge)
-            {
-                return new VirtualNode(toMerge.SelectMany(x => x.ToRep()).Distinct().ToHashSet());
-            }
-
-            public VirtualNode(HashSet<CombinedTypesAnd> or)
-            {
-                Or = or ?? throw new ArgumentNullException(nameof(or));
-            }
-
-            private static HashSet<CombinedTypesAnd> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right)
-            {
-                var res = new List<CombinedTypesAnd>();
-                foreach (var leftEntry in left)
-                {
-                    foreach (var rightEntry in right)
-                    {
-                        res.Add(Merge(leftEntry, rightEntry));
-                    }
-                }
-                return res.Distinct().ToHashSet();
-            }
-
-            private static CombinedTypesAnd Merge(CombinedTypesAnd left, CombinedTypesAnd right)
-            {
-                return new CombinedTypesAnd(left.And.Union(right.And).ToHashSet());
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is VirtualNode node &&
-                       Or.SetEquals( node.Or);
-            }
-
-            public override int GetHashCode()
-            {
-                return Or.Sum(x=>x.GetHashCode());
-            }
-
-
-            public IIsPossibly<Guid> Primitive()
-            {
-                var first = Or.FirstOrDefault();
-                if (first != null && Or.Count == 1) {
-                    return first.Primitive();
-                }
-                return Possibly.IsNot<Guid>();
-            }
-
-            public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
-            {
-                return VirtualMembers(Or);
-            }
-
-            public static IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers(HashSet<CombinedTypesAnd> backing)
-            {
-                return backing.SelectMany(x => x.VirtualMembers())
-                        .GroupBy(x => x.Key)
-                        .Select(x =>
-                        {
-                            if (x.Count() == 1)
-                            {
-                                return new KeyValuePair<IKey, VirtualNode>(x.Key, x.First().Value);
-                            }
-
-                            return new KeyValuePair<IKey, VirtualNode>(x.Key, IsAny(x.Select(y => y.Value).ToHashSet()));
-                        });
-            }
-
-            public IIsPossibly<VirtualNode> VirtualInput()
-            {
-                return VirtualInput(Or);
-            }
-
-            public static IIsPossibly<VirtualNode> VirtualInput(HashSet<CombinedTypesAnd> backing)
-            {
-                var set = backing.Select(x => x.VirtualInput())
-                        .OfType<IIsDefinately<VirtualNode>>().Select(x => x.Value).ToList();
-
-                if (!set.Any())
-                {
-                    return Possibly.IsNot<VirtualNode>();
-                }
-                if (set.Count == 1)
-                {
-                    return Possibly.Is(set.First());
-                }
-
-                return Possibly.Is(IsAny(set.ToHashSet()));
-            }
-
-            public IIsPossibly<VirtualNode> VirtualOutput()
-            {
-                return VirtualOutput(Or);
-            }
-
-            public static IIsPossibly<VirtualNode> VirtualOutput(HashSet<CombinedTypesAnd> backing)
-            {
-                var set = backing.Select(x => x.VirtualOutput())
-                        .OfType<IIsDefinately<VirtualNode>>().Select(x => x.Value).ToList();
-
-                if (!set.Any())
-                {
-                    return Possibly.IsNot<VirtualNode>();
-                }
-                if (set.Count == 1)
-                {
-                    return Possibly.Is(set.First());
-                }
-
-                return Possibly.Is(IsAny(set.ToHashSet()));
-            }
-
-            public HashSet<CombinedTypesAnd> ToRep() => Or;
-        }
-
 
         public interface IFlowNode<TSource> : IFlowNode
         {
@@ -293,6 +49,16 @@ namespace Tac.Frontend.New.CrzayNamespace
         //    }
         //}
 
+        public interface IVirtualFlowNode
+        {
+
+            IIsPossibly<VirtualNode> VirtualOutput();
+            IIsPossibly<VirtualNode> VirtualInput();
+            IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers();
+            HashSet<CombinedTypesAnd> ToRep();
+            IIsPossibly<Guid> Primitive();
+        }
+
         public interface IFlowNode: IVirtualFlowNode
         {
 
@@ -307,14 +73,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
         }
 
-        public interface IVirtualFlowNode {
 
-            IIsPossibly<VirtualNode> VirtualOutput();
-            IIsPossibly<VirtualNode> VirtualInput();
-            IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers();
-            HashSet<CombinedTypesAnd> ToRep();
-            IIsPossibly<Guid> Primitive();
-        }
 
         public class PrimitiveFlowNode: IFlowNode<Tpn.TypeProblem2.Type>
         {
@@ -366,6 +125,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers() {
                 return new Dictionary<IKey, VirtualNode>();
             }
+
+            private SourcePath SourcePath()
+            {
+                return new SourcePath(OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this), new List<IOrType<Member, Input, Output>>());
+            }
         }
 
         public class ConcreteFlowNode<TSource>: ConcreteFlowNode, IFlowNode<TSource>
@@ -386,9 +150,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> Input = Possibly.IsNot<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
             public IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> Output = Possibly.IsNot<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
 
-            public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers() => Members.Select(x=>new KeyValuePair<IKey, VirtualNode>(x.Key, new VirtualNode(x.Value.GetValueAs(out IVirtualFlowNode _).ToRep())));
-            public IIsPossibly<VirtualNode> VirtualInput() => Input.TransformInner(x=>new VirtualNode( x.GetValueAs(out IVirtualFlowNode _).ToRep()));
-            public IIsPossibly<VirtualNode> VirtualOutput() => Output.TransformInner(x => new VirtualNode(x.GetValueAs(out IVirtualFlowNode _).ToRep()));
+            public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers() => Members.Select(x=>new KeyValuePair<IKey, VirtualNode>(x.Key, new VirtualNode(x.Value.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath())));
+            public IIsPossibly<VirtualNode> VirtualInput() => Input.TransformInner(x=>new VirtualNode( x.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath()));
+            public IIsPossibly<VirtualNode> VirtualOutput() => Output.TransformInner(x => new VirtualNode(x.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath()));
 
 
             public IIsPossibly<Guid> Primitive()
@@ -505,6 +269,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 return changes;
             }
+
+            private SourcePath SourcePath()
+            {
+                return new SourcePath(OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this), new List<IOrType<Member, Input, Output>>());
+            }
         }
 
         public class OrFlowNode : IFlowNode<TypeProblem2.OrType>
@@ -515,10 +284,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return this.Or.SelectMany(x => x.GetValueAs(out IVirtualFlowNode _).ToRep()).Distinct().ToHashSet();
             }
 
-            public IIsPossibly<Guid> Primitive()
-            {
-                return Possibly.IsNot<Guid>();
-            }
 
             public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
@@ -566,21 +331,136 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IIsPossibly<TypeProblem2.OrType> Source {get;}
 
+            public IIsPossibly<Guid> Primitive()
+            {
+                return Possibly.IsNot<Guid>();
+            }
+
             public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
             {
-                return new VirtualNode(this.ToRep()).VirtualMembers();
+                return new VirtualNode(this.ToRep(), SourcePath()).VirtualMembers();
             }
 
             public IIsPossibly<VirtualNode> VirtualInput()
             {
-                return new VirtualNode(this.ToRep()).VirtualInput();
+                return new VirtualNode(this.ToRep(), SourcePath()).VirtualInput();
             }
 
             public IIsPossibly<VirtualNode> VirtualOutput()
             {
-                return new VirtualNode(this.ToRep()).VirtualOutput();
+                return new VirtualNode(this.ToRep(), SourcePath()).VirtualOutput();
             }
 
+            private SourcePath SourcePath()
+            {
+                return new SourcePath(OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this), new List<IOrType<Member, Input, Output>>());
+            }
+        }
+
+        // what a mess 😭😭😭
+        // if A | B flow in to empty
+        // it will flow and you will get A | B
+        // and it will flow again and you will get AA |AB |AB | BB aka A | AB | B
+
+        // maybe I can simplify A | AB | B to A | B
+
+        // the other option is tracking what flows in to a node
+        // that is a little bit of work since inflows are often virtual
+        // so maybe a path from a real node
+
+        // can a node ever loose a member?
+        // not right now
+
+        // if we think of InferredFlowNode as a sum in flows (and calculate what they have at time of use) they they could
+        // because a valid merge could become invald
+
+
+        public class Input
+        {
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is Input;
+            }
+
+            public override int GetHashCode()
+            {
+                return Guid.Parse("{41BEF862-F911-45AA-A7FA-BF53F455B6E5}").GetHashCode();
+            }
+        }
+        public class Output
+        {
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is Output;
+            }
+
+            public override int GetHashCode()
+            {
+                return Guid.Parse("{C3BA31B3-0779-4073-AB6F-E8965DD83F7A}").GetHashCode();
+            }
+        }
+        public class Member
+        {
+            public readonly IKey key;
+
+            public Member(IKey key)
+            {
+                this.key = key ?? throw new ArgumentNullException(nameof(key));
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is Member member && member.key.Equals(this.key);
+            }
+
+            public override int GetHashCode()
+            {
+                return key.GetHashCode();
+            }
+        }
+
+        public class SourcePath {
+            public readonly IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode> source;
+            public readonly IReadOnlyList<IOrType<Member, Input, Output>> path;
+
+            public SourcePath(IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode> source, IReadOnlyList<IOrType<Member, Input, Output>> path)
+            {
+                this.source = source ?? throw new ArgumentNullException(nameof(source));
+                this.path = path ?? throw new ArgumentNullException(nameof(path));
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is SourcePath inflow &&
+                       source.Equals(inflow.source) &&
+                       path.SequenceEqual(inflow.path);
+            }
+
+            public override int GetHashCode()
+            {
+                return source.GetHashCode() + path.Sum(x=>x.GetHashCode());
+            }
+
+            public SourcePath Member(IKey key) {
+                var newList = path.ToList();
+                newList.Add(OrType.Make<Member,Input, Output >(new Member(key)));
+                return new SourcePath(source, newList);
+            }
+
+            public SourcePath Input()
+            {
+                var newList = path.ToList();
+                newList.Add(OrType.Make<Member, Input, Output>(new Input()));
+                return new SourcePath(source, newList);
+
+            }
+
+            public SourcePath Output()
+            {
+                var newList = path.ToList();
+                newList.Add(OrType.Make<Member, Input, Output>(new Output()));
+                return new SourcePath(source, newList);
+            }
         }
 
         public class InferredFlowNode : IFlowNode<TypeProblem2.InferredType>
@@ -602,10 +482,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return this.Or.ToHashSet();
             }
 
-            public IIsPossibly<Guid> Primitive()
-            {
-                return new VirtualNode(Or.ToHashSet()).Primitive();
-            }
             public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
                 var me = (from, ToOr(this));
@@ -636,19 +512,28 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return false;
             }
 
+            public IIsPossibly<Guid> Primitive()
+            {
+                return new VirtualNode(Or.ToHashSet(), SourcePath()).Primitive();
+            }
             public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
             {
-                return new VirtualNode(Or.ToHashSet()).VirtualMembers();
+                return new VirtualNode(Or.ToHashSet(),SourcePath()).VirtualMembers();
             }
 
             public IIsPossibly<VirtualNode> VirtualInput()
             {
-                return new VirtualNode(Or.ToHashSet()).VirtualInput();
+                return new VirtualNode(Or.ToHashSet(), SourcePath()).VirtualInput();
             }
 
             public IIsPossibly<VirtualNode> VirtualOutput()
             {
-                return new VirtualNode(Or.ToHashSet()).VirtualOutput();
+                return new VirtualNode(Or.ToHashSet(), SourcePath()).VirtualOutput();
+            }
+
+            private SourcePath SourcePath()
+            {
+                return new SourcePath(OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this), new List<IOrType<Member, Input, Output>>());
             }
 
             //private static List<CombinedTypesAnd> ToRep(InferredFlowNode from) {
@@ -682,7 +567,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     foreach (var rightEntry in right)
                     {
-                        res.Add(Merge(leftEntry, rightEntry));
+                        if (CanMerge(leftEntry, rightEntry, new List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)>(),new List<(CombinedTypesAnd, CombinedTypesAnd)>()))
+                        {
+                            res.Add(Merge(leftEntry, rightEntry));
+                        }
                     }
                 }
 
@@ -714,7 +602,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 assumeTrue.Add(ours);
 
 
-                return left.All(l => right.All(r => CanMerge(r,l,assumeTrue,assumeTrueInner)));
+                return left.Any(l => right.Any(r => CanMerge(r,l,assumeTrue,assumeTrueInner)));
             }
 
             private static bool CanMerge(CombinedTypesAnd left, CombinedTypesAnd right , List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner) {
@@ -790,7 +678,209 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        internal class Uhh { } 
+
+        public class CombinedTypesAnd 
+        {
+            public List<KeyValuePair<IKey, List<VirtualNode>>> VirtualMembers()
+            {
+                return And.SelectMany(x => x.GetValueAs(out IVirtualFlowNode _).VirtualMembers())
+                        .GroupBy(x => x.Key)
+                        .Select(x => new KeyValuePair<IKey, List<VirtualNode>>(x.Key, x.Select(y=>y.Value).ToList()))
+                        .ToList();
+            }
+
+            public List<VirtualNode> VirtualInput()
+            {
+                return And.Select(x => x.GetValueAs(out IVirtualFlowNode _).VirtualInput())
+                        .OfType<IIsDefinately<VirtualNode>>().Select(x => x.Value).ToList();
+            }
+
+            public List<VirtualNode> VirtualOutput()
+            {
+                return And.Select(x => x.GetValueAs(out IVirtualFlowNode _).VirtualOutput())
+                        .OfType<IIsDefinately<VirtualNode>>().Select(x => x.Value).ToList();
+            }
+
+
+            public override bool Equals(object? obj)
+            {
+                return obj is CombinedTypesAnd and &&
+                       And.SetEqual(and.And);
+            }
+
+            public override int GetHashCode()
+            {
+                return And.Select(x => x.GetHashCode()).Sum();
+            }
+
+            // please don't add to this, it will change the HashCode
+            public HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>> And { get; }
+
+            public CombinedTypesAnd(HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>> and)
+            {
+                And = and ?? throw new ArgumentNullException(nameof(and));
+            }
+
+            internal CombinedTypesAnd AddAsNew(OrType<ConcreteFlowNode, PrimitiveFlowNode> orType)
+            {
+                var set = new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>();
+                foreach (var item in And)
+                {
+                    set.Add(item);
+                }
+                set.Add(orType);
+                return new CombinedTypesAnd(set);
+            }
+
+            public IIsPossibly<Guid> Primitive()
+            {
+                if (And.Count == 1)
+                {
+                    return And.First().GetValueAs(out IFlowNode _).Primitive();
+                }
+                return Possibly.IsNot<Guid>();
+            }
+
+            public HashSet<CombinedTypesAnd> ToRep()
+            {
+                return new HashSet<CombinedTypesAnd> { this };
+            }
+
+        }
+
+
+        public class VirtualNode : IVirtualFlowNode
+        {
+
+            public HashSet<CombinedTypesAnd> Or = new HashSet<CombinedTypesAnd>();
+
+
+            public static HashSet<CombinedTypesAnd> IsAll(IEnumerable<HashSet<CombinedTypesAnd>> toMerge)
+            {
+                if (toMerge.Count() == 0) {
+                    throw new Exception("well that is unexpected!");
+                }
+
+                if (toMerge.Count() == 1) {
+                    return toMerge.First();
+                }
+
+                return toMerge.Aggregate((a, b) => Union(a, b)).Distinct().ToHashSet();
+
+            }
+
+            public static HashSet<CombinedTypesAnd> IsAny(IEnumerable<HashSet<CombinedTypesAnd>> toMerge)
+            {
+                if (toMerge.Count() == 0)
+                {
+                    throw new Exception("well that is unexpected!");
+                }
+
+                if (toMerge.Count() == 1)
+                {
+                    return toMerge.First();
+                }
+
+                return toMerge.SelectMany(x => x).Distinct().ToHashSet();
+            }
+
+            public VirtualNode(HashSet<CombinedTypesAnd> or, SourcePath sourcePath)
+            {
+                Or = or ?? throw new ArgumentNullException(nameof(or));
+                this.sourcePath = sourcePath ?? throw new ArgumentNullException(nameof(sourcePath));
+            }
+
+            private static HashSet<CombinedTypesAnd> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right)
+            {
+                var res = new List<CombinedTypesAnd>();
+                foreach (var leftEntry in left)
+                {
+                    foreach (var rightEntry in right)
+                    {
+                        res.Add(Merge(leftEntry, rightEntry));
+                    }
+                }
+                return res.Distinct().ToHashSet();
+            }
+
+            private static CombinedTypesAnd Merge(CombinedTypesAnd left, CombinedTypesAnd right)
+            {
+                return new CombinedTypesAnd(left.And.Union(right.And).ToHashSet());
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is VirtualNode node &&
+                       Or.SetEquals(node.Or);
+            }
+
+            public override int GetHashCode()
+            {
+                return Or.Sum(x => x.GetHashCode());
+            }
+
+
+            public IIsPossibly<Guid> Primitive()
+            {
+                var first = Or.FirstOrDefault();
+                if (first != null && Or.Count == 1)
+                {
+                    return first.Primitive();
+                }
+                return Possibly.IsNot<Guid>();
+            }
+
+            public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
+            {
+                return Or.SelectMany(x => x.VirtualMembers())
+                        .GroupBy(x => x.Key)
+                        .Select(x =>
+                        {
+                            if (x.Count() == 1)
+                            {
+                                return new KeyValuePair<IKey, VirtualNode>(x.Key, new VirtualNode(IsAll(x.First().Value.Select(y => y.ToRep())), sourcePath.Member(x.Key)));
+                            }
+                            return new KeyValuePair<IKey, VirtualNode>(x.Key, new VirtualNode(IsAny(x.Select(y => IsAll(y.Value.Select(z => z.ToRep())))), sourcePath.Member(x.Key)));
+                        });
+            }
+
+            public IIsPossibly<VirtualNode> VirtualInput()
+            {
+                var set = Or.Select(x => x.VirtualInput()).ToArray();
+
+                if (!set.Any())
+                {
+                    return Possibly.IsNot<VirtualNode>();
+                }
+                if (set.Length == 1)
+                {
+                    return Possibly.Is(new VirtualNode(IsAll(set.First().Select(x => x.ToRep())), sourcePath.Input()));
+                }
+
+                return Possibly.Is(new VirtualNode(IsAny(set.Select(x => IsAll(x.Select(x => x.ToRep())))), sourcePath.Input()));
+            }
+
+            public IIsPossibly<VirtualNode> VirtualOutput()
+            {
+                var set = Or.Select(x => x.VirtualOutput()).ToArray();
+
+                if (!set.Any())
+                {
+                    return Possibly.IsNot<VirtualNode>();
+                }
+                if (set.Length == 1)
+                {
+                    return Possibly.Is(new VirtualNode(IsAll(set.First().Select(x => x.ToRep())), sourcePath.Output()));
+                }
+
+                return Possibly.Is(new VirtualNode(IsAny(set.Select(x => IsAll(x.Select(x => x.ToRep())))), sourcePath.Output()));
+            }
+
+            public HashSet<CombinedTypesAnd> ToRep() => Or;
+
+            private readonly SourcePath sourcePath;
+        }
+
 
         public static IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> ToOr(ConcreteFlowNode node) {
             return OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(node);
