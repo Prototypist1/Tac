@@ -113,7 +113,7 @@ namespace Tac.Frontend
                 v2 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingTypeBox(typeSolution.GetExplicitType(v2.Source.GetOrThrow()))),
                 v3 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingObjectBox(typeSolution.GetObject(v3.Source.GetOrThrow()))),
                 v4 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingOrBox(typeSolution.GetOrType(v4.Source.GetOrThrow()))),
-                v5 => OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(new Tpn.VirtualNode( v5.ToRep(), v5.SourcePath()))),
+                v5 => OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(new Tpn.VirtualNode( v5.ToRep(), null))),//Possibly.IsNot<Tpn.SourcePath>()
                 v6 => OrType.Make<IBox<IFrontendType>, IError>(v6)
                 );
         }
