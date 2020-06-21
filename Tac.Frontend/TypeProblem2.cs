@@ -1030,7 +1030,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
                     orsToFlowNodesBuild.Add(key, ToOr(concrete));
                     var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
-                    inferredFlowNode.Or.Add(new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode,  PrimitiveFlowNode>> { Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(concrete) }));
+                    inferredFlowNode.Sources.Add(new SourcePath(Prototypist.Toolbox.OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(concrete),new List<IOrType< Tpn.Member, Tpn.Input, Tpn.Output>>()));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
                 }
                 foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))

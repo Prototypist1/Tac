@@ -48,7 +48,8 @@ namespace Tac.Frontend.TypeProblem.Test
             return member.Type.Is1OrThrow().GetValue();
         }
 
-        private static void Equal(IFrontendType a, IFrontendType b) {
+        private static void Equal(IFrontendType a, IFrontendType b)
+        {
             Assert.True(a.TheyAreUs(b, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow() && b.TheyAreUs(a, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
@@ -97,11 +98,11 @@ namespace Tac.Frontend.TypeProblem.Test
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var hello = x.CreateType(x.ModuleRoot, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("hello")), new WeakTypeDefinitionConverter());
-            x.CreatePublicMember(hello, hello, new NameKey("x"), new WeakMemberDefinitionConverter(false,new NameKey("x")));
-            x.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(false,new NameKey("y")));
+            x.CreatePublicMember(hello, hello, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+            x.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
 
             var input = x.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"), new PlaceholderValueConverter());
-            var method = x.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()),false), new WeakMemberDefinitionConverter(false, new NameKey("input")));
+            var method = x.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), false), new WeakMemberDefinitionConverter(false, new NameKey("input")));
 
             var input_x = x.CreateHopefulMember(method.Input(), new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
             var input_y = x.CreateHopefulMember(method.Input(), new NameKey("y"), new WeakMemberDefinitionConverter(false, new NameKey("y")));
@@ -243,6 +244,8 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentMutual()
         {
 
+            throw new Exception("stack overflow");
+
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var m1 = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(false, new NameKey("m1")));
@@ -276,11 +279,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var pairType = x.CreateGenericType(
                 x.ModuleRoot,
-                OrType.Make<NameKey, ImplicitKey>(new NameKey("pair")), 
-                new []{ 
+                OrType.Make<NameKey, ImplicitKey>(new NameKey("pair")),
+                new[]{
                     new Tpn.TypeAndConverter(
-                        OrType.Make<NameKey, ImplicitKey>(new NameKey("T")), 
-                        new WeakTypeDefinitionConverter())}, 
+                        OrType.Make<NameKey, ImplicitKey>(new NameKey("T")),
+                        new WeakTypeDefinitionConverter())},
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
 
@@ -322,7 +325,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("node")),
                 new[]{
                     new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("node-t")), new WeakTypeDefinitionConverter())
-                }, 
+                },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
             );
 
@@ -381,7 +384,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<IKey, IError>(new NameKey("chicken"))
             })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
-            var xMember  = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("m4")));
+            var xMember = x.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("m4")));
 
             // this assignment is an important part of the test
             // we want to test that members flow as they should
@@ -418,7 +421,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var left = x.CreateGenericType(
                 x.ModuleRoot,
-                OrType.Make<NameKey, ImplicitKey>(new NameKey("left")), 
+                OrType.Make<NameKey, ImplicitKey>(new NameKey("left")),
                 new[]{
                     new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("left-t")), new WeakTypeDefinitionConverter())
                 },
@@ -430,10 +433,10 @@ namespace Tac.Frontend.TypeProblem.Test
             })), new WeakMemberDefinitionConverter(false, new NameKey("thing")));
 
             var right = x.CreateGenericType(
-                x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("right")), 
+                x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("right")),
                 new[]{
                     new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("right-t")), new WeakTypeDefinitionConverter())
-                }, 
+                },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
 
@@ -478,12 +481,12 @@ namespace Tac.Frontend.TypeProblem.Test
         {
 
             var x = new Tpn.TypeProblem2(
-                new WeakScopeConverter(), 
+                new WeakScopeConverter(),
                 new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var pairType = x.CreateGenericType(
                 x.ModuleRoot,
-                OrType.Make<NameKey, ImplicitKey>(new NameKey("pair")), 
+                OrType.Make<NameKey, ImplicitKey>(new NameKey("pair")),
                 new[]{
                     new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("T")), new WeakTypeDefinitionConverter())
                 },
@@ -521,7 +524,8 @@ namespace Tac.Frontend.TypeProblem.Test
         // C flows in to A and B
 
         [Fact]
-        public void FlowInToOrType() {
+        public void FlowInToOrType()
+        {
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
                 new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
@@ -618,7 +622,8 @@ namespace Tac.Frontend.TypeProblem.Test
         // c =: number | string b
         // c should be number | string
         [Fact]
-        public void ImplictTypeIntheMiddle() {
+        public void ImplictTypeIntheMiddle()
+        {
 
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
@@ -704,10 +709,11 @@ namespace Tac.Frontend.TypeProblem.Test
         // c =: B | D b
         // so c is...
         // A&B | A&D | C&B | C&D
-        // {x;} | {y;} | {z;} | {w;}
+        // {x;y;z;} | {x;y;w;} | {z;w;x;} | {z;w;y;}
 
         [Fact]
-        public void TwoOrTypesFlowIn() {
+        public void TwoOrTypesFlowIn()
+        {
 
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
@@ -762,32 +768,41 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var cTypeResult = solution.GetMember(c).GetValue().Type.Is1OrThrow().GetValue();
 
-            Assert.True( cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> { 
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
-                }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
+                new List<IBox<WeakMemberDefinition>> {
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                })), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                            new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
-                }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                })),
+                new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                                        new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
                 }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+                )),
+                new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                                                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
                 }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+                )),
+                new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.False(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {}
+                new List<IBox<WeakMemberDefinition>> { }
                 )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
         }
@@ -850,31 +865,23 @@ namespace Tac.Frontend.TypeProblem.Test
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
-                }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                })),
+                new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                            new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
-                }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                })),
+                new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
-            Assert.False(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {
-                                        new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
-                }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
-
-            Assert.False(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {
-                                                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
-                }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
-
-            Assert.False(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> { }
-                )), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.False(cTypeResult.TheyAreUs(
+                new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { })), 
+                new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
         }
 
@@ -895,7 +902,7 @@ namespace Tac.Frontend.TypeProblem.Test
             x.CreatePublicMember(aType, aType, new NameKey("x"), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var bType = x.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("B")), new WeakTypeDefinitionConverter());
-            x.CreatePublicMember(bType, bType, new NameKey("x"), OrType.Make<IKey,IError>(new NameKey("number")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+            x.CreatePublicMember(bType, bType, new NameKey("x"), OrType.Make<IKey, IError>(new NameKey("number")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
 
             var key = new ImplicitKey(Guid.NewGuid());
             var orType = x.CreateOrType(x.ModuleRoot, key,
@@ -956,7 +963,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var xType = problem.CreateType(
                 problem.ModuleRoot,
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("X")),
-                new WeakTypeDefinitionConverter() 
+                new WeakTypeDefinitionConverter()
             );
 
             var key = new ImplicitKey(Guid.NewGuid());
@@ -966,9 +973,9 @@ namespace Tac.Frontend.TypeProblem.Test
                 new WeakTypeOrOperationConverter());
 
             problem.CreatePublicMember(
-                xType,  
-                new NameKey("member"), 
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType), 
+                xType,
+                new NameKey("member"),
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType),
                 new WeakMemberDefinitionConverter(false, new NameKey("member")));
 
             var a = problem.CreatePublicMember(

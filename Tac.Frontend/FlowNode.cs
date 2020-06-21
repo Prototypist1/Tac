@@ -465,11 +465,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 newList.Add(OrType.Make<Member, Input, Output>(new Output()));
                 return new SourcePath(source, newList);
             }
+
+            public IVirtualFlowNode Walk() {
+                var res = source.GetValueAs(out IVirtualFlowNode _);
+                foreach (var pathElement in path)
+                {
+                    res = pathElement.SwitchReturns(x => res.VirtualMembers().Where(y => y.Key.Equals(x.key)).Single().Value, x => res.VirtualInput().GetOrThrow(), x => res.VirtualOutput().GetOrThrow());
+                }
+                return res;
+            }
         }
 
         public class InferredFlowNode : IFlowNode<TypeProblem2.InferredType>
         {
-            public List<CombinedTypesAnd> Or = new List<CombinedTypesAnd>();
+
+            public readonly HashSet<SourcePath> Sources = new HashSet<SourcePath>();
+
 
             public InferredFlowNode(IIsPossibly<TypeProblem2.InferredType> source)
             {
@@ -483,19 +494,22 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public HashSet<CombinedTypesAnd> ToRep()
             {
-                return this.Or.ToHashSet();
+                var sets =Sources.Select(x => x.Walk().ToRep()).ToArray();
+
+                if (sets.Length == 0) {
+                    return new HashSet<CombinedTypesAnd>();
+                }
+
+                if (sets.Length == 1) {
+                    return sets.First();
+                }
+
+                return sets.Aggregate((x, y) => Union(x, y).ToHashSet());
             }
 
             public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
             {
-                var me = (from, ToOr(this));
-                if (assumeTrue.Contains(me))
-                {
-                    return true;
-                }
-                assumeTrue.Add(me);
-
-                return CanMerge(this.ToRep(), from.ToRep(), new List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)>(), new List<(CombinedTypesAnd, CombinedTypesAnd)>());
+                return true;
             }
             public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
@@ -506,10 +520,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 alreadyFlowing.Add(me);
 
-                var merged = Union(this.ToRep(), from.ToRep());
 
-                if (!this.Or.SetEqual(merged)) {
-                    this.Or = merged;
+                var thing = from.SourcePath().GetOrThrow();
+                if (!Sources.Contains(thing)) {
+                    Sources.Add(thing);
                     return true;
                 }
 
@@ -518,21 +532,21 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IIsPossibly<Guid> Primitive()
             {
-                return new VirtualNode(Or.ToHashSet(), SourcePath()).Primitive();
+                return new VirtualNode(ToRep(), SourcePath()).Primitive();
             }
             public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers()
             {
-                return new VirtualNode(Or.ToHashSet(),SourcePath()).VirtualMembers();
+                return new VirtualNode(ToRep(), SourcePath()).VirtualMembers();
             }
 
             public IIsPossibly<VirtualNode> VirtualInput()
             {
-                return new VirtualNode(Or.ToHashSet(), SourcePath()).VirtualInput();
+                return new VirtualNode(ToRep(), SourcePath()).VirtualInput();
             }
 
             public IIsPossibly<VirtualNode> VirtualOutput()
             {
-                return new VirtualNode(Or.ToHashSet(), SourcePath()).VirtualOutput();
+                return new VirtualNode(ToRep(), SourcePath()).VirtualOutput();
             }
 
             public IIsPossibly<SourcePath> SourcePath()
