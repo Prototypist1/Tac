@@ -154,9 +154,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> Input = Possibly.IsNot<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
             public IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> Output = Possibly.IsNot<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
 
-            public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers() => Members.Select(x=>new KeyValuePair<IKey, VirtualNode>(x.Key, new VirtualNode(x.Value.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath())));
-            public IIsPossibly<VirtualNode> VirtualInput() => Input.TransformInner(x=>new VirtualNode( x.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath()));
-            public IIsPossibly<VirtualNode> VirtualOutput() => Output.TransformInner(x => new VirtualNode(x.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath()));
+            public IEnumerable<KeyValuePair<IKey, VirtualNode>> VirtualMembers() => Members.Select(x=>new KeyValuePair<IKey, VirtualNode>(x.Key, new VirtualNode(x.Value.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath().TransformInner(y=>y.Member(x.Key)))));
+            public IIsPossibly<VirtualNode> VirtualInput() => Input.TransformInner(x=>new VirtualNode( x.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath().TransformInner(y=>y.Input())));
+            public IIsPossibly<VirtualNode> VirtualOutput() => Output.TransformInner(x => new VirtualNode(x.GetValueAs(out IVirtualFlowNode _).ToRep(), SourcePath().TransformInner(y => y.Output())));
 
 
             public IIsPossibly<Guid> Primitive()
@@ -494,13 +494,29 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public HashSet<CombinedTypesAnd> ToRep()
             {
-                var sets =Sources.Select(x => x.Walk().ToRep()).ToArray();
+                return ToRep(new List<IVirtualFlowNode> { this });
+            }
 
-                if (sets.Length == 0) {
+            public HashSet<CombinedTypesAnd> ToRep(List<IVirtualFlowNode> skipList)
+            {
+                // this bit of wierdness is to avoid stack overflows
+                // we are calling ToRep from ToRep so that is never good 
+
+                var preList =Sources.Select(x => x.Walk()).Except(skipList).ToList();
+
+                var sets = new List<HashSet<CombinedTypesAnd>>();
+
+                var inferredFlowNodes = preList.OfType<InferredFlowNode>().ToList();
+
+                sets.AddRange(preList.OfType<InferredFlowNode>().Select(x=>x.ToRep(skipList)));
+
+                sets.AddRange(preList.Except(inferredFlowNodes).Select(x=>x.ToRep()));
+
+                if (sets.Count == 0) {
                     return new HashSet<CombinedTypesAnd>();
                 }
 
-                if (sets.Length == 1) {
+                if (sets.Count == 1) {
                     return sets.First();
                 }
 
@@ -519,9 +535,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return false;
                 }
                 alreadyFlowing.Add(me);
-
-
+ 
                 var thing = from.SourcePath().GetOrThrow();
+
+                // don't flow in to your self
+                if (thing.Walk() == this) {
+                    return false;
+                }
+
                 if (!Sources.Contains(thing)) {
                     Sources.Add(thing);
                     return true;
