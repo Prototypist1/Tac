@@ -942,8 +942,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void Complex()
         {
-            //throw new Exception("statck overflow!");
-
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
@@ -994,6 +992,88 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = problem.Solve();
 
             // mostly we just want this not to throw 
+        }
+
+        // () > a =: number d
+        // a is a method and it returns a number
+        [Fact]
+        public void InferredMethod() {
+
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+
+            var a = problem.CreatePublicMember(
+                    problem.ModuleRoot,
+                    problem.ModuleRoot,
+                    new NameKey("a"),
+                    new WeakMemberDefinitionConverter(false, new NameKey("a")));
+
+            var returns = problem.GetReturns(a);
+
+            var d = problem.CreatePublicMember(problem.ModuleRoot, problem.ModuleRoot, new NameKey("d"), OrType.Make<IKey, IError>(new NameKey("number")), new WeakMemberDefinitionConverter(false, new NameKey("d")));
+
+            problem.IsAssignedTo(returns, d);
+
+            var solution = problem.Solve();
+
+            var flowNode = solution.GetFlowNode2(a);
+            var res = solution.GetType(flowNode);
+            var method = Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.MethodType>(res.Is1OrThrow().GetValue());
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(method.OutputType.Is1OrThrow());
+        }
+
+
+        // type N { number x; }
+        // type B { bool x; }
+        // a =: N n
+        // c =: a
+        // a =: B b
+        
+        // what is c.x ??
+        [Fact]
+        public void UnmergableInferredType (){
+
+            var x = new Tpn.TypeProblem2(
+                new WeakScopeConverter(),
+                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+
+            var nType = x.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("N")), new WeakTypeDefinitionConverter());
+            x.CreatePublicMember(nType, nType, new NameKey("x"), OrType.Make<IKey, IError>(new NameKey("number")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+
+            var bType = x.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("B")), new WeakTypeDefinitionConverter());
+            x.CreatePublicMember(bType, bType, new NameKey("x"), OrType.Make<IKey, IError>(new NameKey("bool")), new WeakMemberDefinitionConverter(false, new NameKey("x")));
+
+            var a = x.CreatePublicMember(
+                    x.ModuleRoot,
+                    x.ModuleRoot,
+                    new NameKey("a"),
+                    new WeakMemberDefinitionConverter(false, new NameKey("a")));
+
+            var c = x.CreatePublicMember(
+                x.ModuleRoot,
+                x.ModuleRoot,
+                new NameKey("c"),
+                new WeakMemberDefinitionConverter(false, new NameKey("c")));
+
+            var b = x.CreatePublicMember(
+                    x.ModuleRoot,
+                    new NameKey("b"),
+                    OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(bType),
+                    new WeakMemberDefinitionConverter(false, new NameKey("b")));
+
+            var n = x.CreatePublicMember(
+                    x.ModuleRoot,
+                    new NameKey("n"),
+                    OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(nType),
+                    new WeakMemberDefinitionConverter(false, new NameKey("n")));
+
+            x.IsAssignedTo(a, n);
+            x.IsAssignedTo(c, a);
+            x.IsAssignedTo(a, b);
+
+            var solution = x.Solve();
+
+            var cFlowNode = solution.GetFlowNode2(c);
+            var cType = solution.GetType(cFlowNode);
         }
     }
 }
