@@ -494,33 +494,38 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public HashSet<CombinedTypesAnd> ToRep()
             {
-                return ToRep(new List<IVirtualFlowNode> { this });
-            }
+                var sets = Flatten(new List<InferredFlowNode> { this}).Select(x => x.ToRep()).ToList();
 
-            public HashSet<CombinedTypesAnd> ToRep(List<IVirtualFlowNode> skipList)
-            {
-                // this bit of wierdness is to avoid stack overflows
-                // we are calling ToRep from ToRep so that is never good 
-
-                var preList =Sources.Select(x => x.Walk()).Except(skipList).ToList();
-
-                var sets = new List<HashSet<CombinedTypesAnd>>();
-
-                var inferredFlowNodes = preList.OfType<InferredFlowNode>().ToList();
-
-                sets.AddRange(preList.OfType<InferredFlowNode>().Select(x=>x.ToRep(skipList)));
-
-                sets.AddRange(preList.Except(inferredFlowNodes).Select(x=>x.ToRep()));
-
-                if (sets.Count == 0) {
+                if (sets.Count == 0)
+                {
                     return new HashSet<CombinedTypesAnd>();
                 }
 
-                if (sets.Count == 1) {
+                if (sets.Count == 1)
+                {
                     return sets.First();
                 }
 
                 return sets.Aggregate((x, y) => Union(x, y).ToHashSet());
+            }
+
+            // this song an dance is to avoid stack overflows
+            // when you flow in to something and it flows in to you bad things can happen
+            public HashSet<IVirtualFlowNode> Flatten(List<InferredFlowNode> except) {
+                return Sources.SelectMany(x =>
+                {
+                    var walked = x.Walk();
+
+                    if (walked is InferredFlowNode node)
+                    {
+                        if (except.Contains(node)) {
+                            return new HashSet<IVirtualFlowNode> { };
+                        }
+                        except.Add(node);
+                        return node.Flatten(except);
+                    }
+                    return new HashSet<IVirtualFlowNode> { walked };
+                }).ToHashSet();
             }
 
             public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
