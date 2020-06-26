@@ -1,6 +1,7 @@
 ﻿using Prototypist.Toolbox;
 using Prototypist.Toolbox.Dictionary;
 using Prototypist.Toolbox.IEnumerable;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -229,6 +230,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return true;
             }
+
             public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing) {
 
                 var me = (from, ToOr(this));
@@ -239,23 +241,26 @@ namespace Tac.Frontend.New.CrzayNamespace
                 alreadyFlowing.Add(me);
 
 
-                if (from.Primitive().Is(out var _))
+                if (from.Primitive().Is1(out var prim) && prim.Is(out var _))
                 {
                     throw new Exception("actually don't flow");
                 }
 
                 var changes = false;
-                foreach (var fromMember in from.VirtualMembers())
+                if (from.VirtualMembers().Is1(out var members))
                 {
-                    changes |= FlowMember(fromMember, alreadyFlowing);
+                    foreach (var fromMember in members)
+                    {
+                        changes |= FlowMember(fromMember, alreadyFlowing);
+                    }
                 }
 
-                if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInput))
+                if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInputOr) && theirInputOr.Is1(out var theirInput))
                 {
                     changes |= input.GetValueAs(out IFlowNode _).Flow(theirInput, alreadyFlowing.ToList());
                 }
 
-                if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutput))
+                if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutputOr) && theirOutputOr.Is1(out var theirOutput))
                 {
                     changes |= output.GetValueAs(out IFlowNode _).Flow(theirOutput, alreadyFlowing.ToList());
                 }
@@ -275,12 +280,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            private bool FlowMember(KeyValuePair<IKey, VirtualNode> fromMember, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            private bool FlowMember(KeyValuePair<IKey, IOrType< VirtualNode,IError>> fromMember, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
+                if (fromMember.Value.Is2(out var _)) {
+                    return false;
+                }
+
                 var changes = false;
                 if (this.Members.TryGetValue(fromMember.Key, out var toMember))
                 {
-                    changes |= toMember.GetValueAs(out IFlowNode _).Flow(fromMember.Value, alreadyFlowing.ToList());
+                    changes |= toMember.GetValueAs(out IFlowNode _).Flow(fromMember.Value.Is1OrThrow(), alreadyFlowing.ToList());
                 }
                 return changes;
             }
@@ -322,7 +331,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 assumeTrue.Add(me);
 
-                if (from.Primitive().Is(out var _)) {
+                if (from.Primitive().Is1(out var prim) && prim.Is(out var _)) {
                     return false;
                 }
 
@@ -337,7 +346,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 alreadyFlowing.Add(me);
 
-                if (from.Primitive().Is(out var _))
+                if (from.Primitive().Is1(out var prim) && prim.Is(out var _))
                 {
                     throw new Exception("actually don't flow");
                 }
@@ -569,7 +578,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return OrType.Make<HashSet<CombinedTypesAnd>, IError>(sets.First());
                 }
 
-                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(sets.Aggregate((x, y) => Union(x, y).ToHashSet()));
+                var at = sets.First();
+                foreach (var item in sets.Skip(1))
+                {
+                    var or = Union(at, item);
+                    if (or.Is2(out var error)) {
+                        return OrType.Make<HashSet<CombinedTypesAnd>, IError>(error);
+                    }
+                    at = or.Is1OrThrow();
+                }
+                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(at);
             }
 
             // this song an dance is to avoid stack overflows
@@ -643,20 +661,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Possibly.Is( new SourcePath(OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this), new List<IOrType<Member, Input, Output>>()));
             }
 
-            private static List<CombinedTypesAnd> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right) {
+            private static IOrType<HashSet<CombinedTypesAnd>, IError> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right) {
                 var res = new List<CombinedTypesAnd>();
                 foreach (var leftEntry in left)
                 {
                     foreach (var rightEntry in right)
                     {
-                        if (CanMerge(leftEntry, rightEntry, new List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)>(), new List<(CombinedTypesAnd, CombinedTypesAnd)>()))
+                        var canMergeResult = CanMerge(leftEntry, rightEntry, new List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)>(), new List<(CombinedTypesAnd, CombinedTypesAnd)>());
+                        if (canMergeResult.Any())
                         {
-                            res.Add(Merge(leftEntry, rightEntry));
+                            return OrType.Make<HashSet<CombinedTypesAnd>, IError>(Error.Cascaded("", canMergeResult));
                         }
+                        res.Add(Merge(leftEntry, rightEntry));
                     }
                 }
 
-                return res.Distinct().ToList();
+                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(res.Distinct().ToHashSet());
             }
 
             private static CombinedTypesAnd Merge(CombinedTypesAnd left, CombinedTypesAnd right) {
@@ -676,29 +696,44 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new CombinedTypesAnd(v2.ToHashSet());
             }
 
-            private static bool CanMerge(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right, List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner) {
+            private static IError[] CanMerge(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right, List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner) {
                 var ours = (left, right);
                 if (assumeTrue.Contains(ours)) {
-                    return true;
+                    return new IError[] { };
                 }
                 assumeTrue.Add(ours);
 
+                foreach (var l in left)
+                {
+                    foreach (var r in right)
+                    {
+                        if (!CanMerge(r, l, assumeTrue, assumeTrueInner).Any())
+                        {
+                            return new IError[] { };
+                        }
+                    }
+                }
+                return new IError[] { Error.Other("No valid combinations") };
 
-                return left.Any(l => right.Any(r => CanMerge(r,l,assumeTrue,assumeTrueInner)));
+                //return left.Any(l => right.Any(r => CanMerge(r,l,assumeTrue,assumeTrueInner)));
             }
 
-            private static bool CanMerge(CombinedTypesAnd left, CombinedTypesAnd right , List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner) {
+            private static IError[] CanMerge(CombinedTypesAnd left, CombinedTypesAnd right , List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner) {
                 var ours = (left, right);
                 if (assumeTrueInner.Contains(ours))
                 {
-                    return true;
+                    return new IError[] { };
                 }
                 assumeTrueInner.Add(ours);
 
-                return left.And.All(l => right.And.All(r => CanMerge(r, l, assumeTrue, assumeTrueInner)));
+                return left.And.SelectMany(l => right.And.SelectMany(r => CanMerge(r, l, assumeTrue, assumeTrueInner))).ToArray();
             }
 
-            private static bool CanMerge(IOrType<ConcreteFlowNode,PrimitiveFlowNode> left, IOrType<ConcreteFlowNode, PrimitiveFlowNode> right, List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner)
+
+            // TODO YOU ARE HERE
+            // TODO compatiblity does not need to be deep!
+            // 
+            private static IError[] CanMerge(IOrType<ConcreteFlowNode,PrimitiveFlowNode> left, IOrType<ConcreteFlowNode, PrimitiveFlowNode> right, List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)> assumeTrue, List<(CombinedTypesAnd, CombinedTypesAnd)> assumeTrueInner)
             {
                 return left.SwitchReturns(
                     leftConcrete => right.SwitchReturns(
@@ -706,56 +741,47 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                             if (leftConcrete.Input.Is(out var _) && rightConcrete.Members.Any()) {
-                                return false;
+                                return new IError[] { Error.Other("can not merge something with members and something with I/O") };
                             }
 
                             if (leftConcrete.Members.Any() && rightConcrete.Input.Is(out var _))
                             {
-                                return false;
+                                return new IError[] { Error.Other("can not merge something with members and something with I/O") };
                             }
 
-                            foreach (var leftMember in leftConcrete.Members)
+                            if (leftConcrete.Output.Is(out var _) && rightConcrete.Members.Any())
                             {
-                                if (rightConcrete.Members.TryGetValue(leftMember.Key, out var rightMember)) {
-                                    var leftMemberRep = leftMember.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                    var rightMemberRep = rightMember.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                    if (!CanMerge(leftMemberRep, rightMemberRep, assumeTrue, assumeTrueInner)) {
-                                        return false;
-                                    }
-                                }
+                                return new IError[] { Error.Other("can not merge something with members and something with I/O") };
                             }
 
-                            if (leftConcrete.Input.Is(out var leftInput) && rightConcrete.Input.Is(out var rightInput))
+                            if (leftConcrete.Members.Any() && rightConcrete.Output.Is(out var _))
                             {
-                                var leftMemberRep = leftInput.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                var rightMemberRep = rightInput.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                if (!CanMerge(leftMemberRep, rightMemberRep, assumeTrue, assumeTrueInner))
-                                {
-                                    return false;
-                                }
+                                return new IError[] { Error.Other("can not merge something with members and something with I/O") };
                             }
 
-                            if (leftConcrete.Output.Is(out var leftOutput) && rightConcrete.Output.Is(out var rightOutput))
-                            {
-                                var leftMemberRep = leftOutput.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                var rightMemberRep = rightOutput.GetValueAs(out IVirtualFlowNode _).ToRep();
-                                if (!CanMerge(leftMemberRep, rightMemberRep, assumeTrue, assumeTrueInner))
-                                {
-                                    return false;
-                                }
-                            }
-
-                            return true;
+                            return new IError[] { };
                         },
                         rightPrimitve => {
-                            return !leftConcrete.Members.Any() && !leftConcrete.Input.Is(out var _) && !leftConcrete.Output.Is(out var _);
+                            if (leftConcrete.Members.Any() || leftConcrete.Input.Is(out var _) || leftConcrete.Output.Is(out var _))
+                            {
+                                return new IError[] { Error.Other("can not merge primitive and non-primitive") };
+                            }
+                            return new IError[] { };
                         }),
                     leftPrimitive => right.SwitchReturns(
                         rightConcrete => {
-                            return !rightConcrete.Members.Any() && !rightConcrete.Input.Is(out var _) && !rightConcrete.Output.Is(out var _);
+                            if (rightConcrete.Members.Any() || rightConcrete.Input.Is(out var _) || rightConcrete.Output.Is(out var _)) {
+
+                                return new IError[] { Error.Other("can not merge primitive and non-primitive") };
+                            }
+                            return new IError[] { };
                         },
                         rightPrimitve => {
-                            return leftPrimitive.Guid == rightPrimitve.Guid;
+                            if (leftPrimitive.Guid != rightPrimitve.Guid)
+                            {
+                                return new IError[] { Error.Other("can not merge different primitives") };
+                            }
+                            return new IError[] { };
                         }));
             }
         }
