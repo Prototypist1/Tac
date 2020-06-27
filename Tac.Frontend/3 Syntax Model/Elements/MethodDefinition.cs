@@ -41,7 +41,7 @@ namespace Tac.SemanticModel
             IOrType<IBox<IFrontendType>, IError> outputType,
             IBox<WeakMemberDefinition> parameterDefinition,
             IReadOnlyList<IOrType< IBox<IFrontendCodeElement>,IError>> body,
-            IBox<WeakScope> scope,
+            IOrType<IBox<WeakScope>, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
@@ -61,7 +61,7 @@ namespace Tac.SemanticModel
                     InputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
                     OutputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
-                    Scope.GetValue().Convert(context),
+                    Scope.Is1OrThrow().GetValue().Convert(context),
                     Body.Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });

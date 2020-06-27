@@ -51,17 +51,19 @@ namespace Tac.SemanticModel
 
     internal class WeakTypeDefinition : IWeakTypeDefinition, IIsType
     {
-        public WeakTypeDefinition(IBox<WeakScope> scope)//, IIsPossibly<IKey> key
+        public WeakTypeDefinition(IOrType< IBox<WeakScope>,IError> scope)//, IIsPossibly<IKey> key
         {
             //Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            lazy = new Lazy<IFrontendType>(() => new HasMembersType(Scope.GetValue()));
+            lazy = new Lazy<IFrontendType>(() => Scope.SwitchReturns<IFrontendType>(
+                x => new HasMembersType(x.GetValue()),
+                x => new IndeterminateType(x)));
         }
 
         //public IIsPossibly<IKey> Key { get; }
         // I am not sure I agree with this
         // it is an ordered set of types, names and acccessablity modifiers
-        public IBox<WeakScope> Scope { get; }
+        public IOrType<IBox<WeakScope>, IError> Scope { get; }
 
         private readonly  Lazy<IFrontendType> lazy;
         
@@ -71,7 +73,7 @@ namespace Tac.SemanticModel
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
             {
-                maker.Build(Scope.GetValue().Convert(context).Members.Values.Select(x=>x.Value).ToArray());
+                maker.Build(Scope.Is1OrThrow().GetValue().Convert(context).Members.Values.Select(x=>x.Value).ToArray());
             });
         }
 
@@ -80,7 +82,7 @@ namespace Tac.SemanticModel
             return lazy.Value;
         }
 
-        public IEnumerable<IError> Validate() => Scope.GetValue().Validate();
+        public IEnumerable<IError> Validate() => Scope.SwitchReturns(x=>x.GetValue().Validate(),x=>new IError[] { x});
 
     }
 

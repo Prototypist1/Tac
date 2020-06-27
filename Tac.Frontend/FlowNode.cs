@@ -67,14 +67,6 @@ namespace Tac.Frontend.New.CrzayNamespace
         public interface IFlowNode: IVirtualFlowNode
         {
 
-            bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue);
-            // flow is a bit inperfect
-            // alreadyFlowing prevents something A flowing in to B if A is already flowing in to B
-            // if A is changed somewhere down the stack from where it is flowing in to B
-            // that might not be caputered in the top level flow
-            // you would think if A.Flow(B) returns true
-            // then calling A.Flow(B) again would return false
-            // but you can't count on that
             bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
         }
 
@@ -103,16 +95,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 });
             }
 
-            public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue) {
-                var me = (from, ToOr(this));
-                if (assumeTrue.Contains(me))
-                {
-                    return true;
-                }
-                assumeTrue.Add(me);
-
-                return from.Primitive().Is(out var guid) && guid == this.Guid;
-            }
             public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing) {
                 return false;
             }
@@ -184,53 +166,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue) {
-                var me = (from, ToOr(this));
-                if (assumeTrue.Contains(me)) {
-                    return true;
-                }
-                assumeTrue.Add(me);
-                
-                if (from.Primitive().Is(out var _))
-                {
-                    return false;
-                }
-
-                if (Members.Any() && from.VirtualInput().Is(out var _))
-                {
-                    return false;
-                }
-
-                if (Input.Is(out var _) && from.VirtualMembers().Any()) {
-                    return false;
-                }
-
-                foreach (var fromMember in from.VirtualMembers())
-                {
-                    if (!CanFlowMember(fromMember, assumeTrue.ToList()))
-                    {
-                        return false;
-                    }
-                }
-
-                if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInput)) {
-                    if (!input.GetValueAs(out IFlowNode _).CanFlow(theirInput, assumeTrue.ToList())) {
-                        return false;
-                    }
-                }
-
-
-                if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutput))
-                {
-                    if (!output.GetValueAs(out IFlowNode _).CanFlow(theirOutput, assumeTrue.ToList()))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
             public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing) {
 
                 var me = (from, ToOr(this));
@@ -266,18 +201,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 return changes;
-            }
-
-            private bool CanFlowMember( KeyValuePair<IKey, VirtualNode> fromMember, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
-            {
-                if (this.Members.TryGetValue(fromMember.Key, out var toMember))
-                {
-                    return toMember.GetValueAs(out IFlowNode _).CanFlow(fromMember.Value, assumeTrue.ToList());
-                }
-                else
-                {
-                    return false;
-                }
             }
 
             private bool FlowMember(KeyValuePair<IKey, IOrType< VirtualNode,IError>> fromMember, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
@@ -321,22 +244,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<HashSet<CombinedTypesAnd>, IError>(couldBeErrors.SelectMany(x => x.Is1OrThrow()).Distinct().ToHashSet());
             }
 
-
-            public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
-            {
-                var me = (from, ToOr(this));
-                if (assumeTrue.Contains(me))
-                {
-                    return true;
-                }
-                assumeTrue.Add(me);
-
-                if (from.Primitive().Is1(out var prim) && prim.Is(out var _)) {
-                    return false;
-                }
-
-                return Or.All(x => x.GetValueAs(out IFlowNode _).CanFlow(from, assumeTrue.ToList()));
-            }
             public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 var me = (from, ToOr(this));
@@ -609,10 +516,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }).ToHashSet();
             }
 
-            public bool CanFlow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> assumeTrue)
-            {
-                return true;
-            }
             public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 var me = (from, ToOr(this));

@@ -180,6 +180,30 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
+    internal class IndeterminateType : IFrontendType
+    {
+        private readonly IError error;
+
+        public IndeterminateType(IError error)
+        {
+            this.error = error ?? throw new ArgumentNullException(nameof(error));
+        }
+
+        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
+        {
+            return OrType.Make<bool, IError>(ReferenceEquals(this, they));
+        }
+
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+
+        public IEnumerable<IError> Validate()
+        {
+            return new[] { error };
+        }
+    }
+
     internal struct BlockType : IConvertableFrontendType<IBlockType>, IPrimitiveType
     {
         public IBuildIntention<IBlockType> GetBuildIntention(IConversionContext context)

@@ -38,7 +38,7 @@ namespace Tac.SemanticModel
     {
         public WeakBlockDefinition(
             IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>> body,
-            IBox<WeakScope> scope,
+            IOrType< IBox<WeakScope>,IError> scope,
             IReadOnlyList<IIsPossibly<IFrontendCodeElement>> staticInitailizers) :
             base(scope, body, staticInitailizers)
         { }
@@ -49,7 +49,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IBlockDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    Scope.GetValue().Convert(context),
+                    Scope.Is1OrThrow().GetValue().Convert(context),
                     Body.Select(or => or.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });

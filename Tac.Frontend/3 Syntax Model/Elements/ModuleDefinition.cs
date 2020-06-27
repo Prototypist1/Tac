@@ -43,7 +43,7 @@ namespace Tac.SemanticModel
     // I think there should be a class for that
     internal class WeakModuleDefinition : IScoped, IConvertableFrontendCodeElement<IModuleDefinition>, IReturn
     {
-        public WeakModuleDefinition(IBox<WeakScope> scope, IReadOnlyList<IOrType<IBox<IFrontendCodeElement>,IError>> staticInitialization, IKey Key, IBox<WeakEntryPointDefinition> entryPoint)
+        public WeakModuleDefinition(IOrType< IBox<WeakScope>,IError> scope, IReadOnlyList<IOrType<IBox<IFrontendCodeElement>,IError>> staticInitialization, IKey Key, IBox<WeakEntryPointDefinition> entryPoint)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
@@ -51,7 +51,7 @@ namespace Tac.SemanticModel
             EntryPoint = entryPoint ?? throw new ArgumentNullException(nameof(entryPoint));
         }
         
-        public IBox<WeakScope> Scope { get; }
+        public IOrType<IBox<WeakScope>, IError> Scope { get; }
         IBox<WeakEntryPointDefinition> EntryPoint { get; }
         public IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>> StaticInitialization { get; }
 
@@ -81,7 +81,7 @@ namespace Tac.SemanticModel
 
 
                 maker.Build(
-                    Scope.GetValue().Convert(context),
+                    Scope.Is1OrThrow().GetValue().Convert(context),
                     staticInit.Select(x=>x.Is1OrThrow()).ToArray(),
                     Key,
                     EntryPoint.GetValue().Convert(context));
@@ -90,9 +90,17 @@ namespace Tac.SemanticModel
 
         public IEnumerable<IError> Validate()
         {
-            foreach (var error in Scope.GetValue().Validate())
+
+            if (Scope.Is2(out var e1))
             {
-                yield return error;
+                yield return e1;
+            }
+            else
+            {
+                foreach (var error in Scope.Is1OrThrow().GetValue().Validate())
+                {
+                    yield return error;
+                }
             }
             foreach (var error in EntryPoint.GetValue().Validate())
             {
@@ -109,7 +117,9 @@ namespace Tac.SemanticModel
 
         public IFrontendType AssuredReturns()
         {
-            return new HasMembersType(Scope.GetValue());
+            return Scope.SwitchReturns<IFrontendType>(
+                x=>new HasMembersType(x.GetValue()),
+                x=> new IndeterminateType(x));
         }
 
         public IOrType<IFrontendType, IError> Returns()

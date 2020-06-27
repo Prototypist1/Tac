@@ -46,7 +46,7 @@ namespace Tac.SemanticModel
     // I think there should be a class for that
     internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>, IScoped, IReturn
     {
-        public WeakObjectDefinition(IBox<WeakScope> scope, IReadOnlyList<IOrType<IBox<WeakAssignOperation>,IError>> assigns) {
+        public WeakObjectDefinition(IOrType<IBox<WeakScope>, IError> scope, IReadOnlyList<IOrType<IBox<WeakAssignOperation>,IError>> assigns) {
             if (assigns == null)
             {
                 throw new ArgumentNullException(nameof(assigns));
@@ -56,7 +56,7 @@ namespace Tac.SemanticModel
             Assignments = assigns.ToArray();
         }
 
-        public IBox<WeakScope> Scope { get; }
+        public IOrType<IBox<WeakScope>, IError> Scope { get; }
         public IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>> Assignments { get; }
 
         public IBuildIntention<IObjectDefiniton> GetBuildIntention(IConversionContext context)
@@ -65,17 +65,26 @@ namespace Tac.SemanticModel
             return new BuildIntention<IObjectDefiniton>(toBuild, () =>
             {
                 maker.Build(
-                    Scope.GetValue().Convert(context), 
+                    Scope.Is1OrThrow().GetValue().Convert(context), 
                     Assignments.Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray());
             });
         }
 
-        internal IFrontendType AssuredReturns() => new HasMembersType(Scope.GetValue());
+        internal IFrontendType AssuredReturns() => Scope.SwitchReturns<IFrontendType>(
+                x=>new HasMembersType(x.GetValue()),
+                x=> new IndeterminateType(x));
 
         public IEnumerable<IError> Validate() {
-            foreach (var item in Scope.GetValue().Validate())
+            if (Scope.Is2(out var e1))
             {
-                yield return item;
+                yield return e1;
+            }
+            else
+            {
+                foreach (var item in Scope.Is1OrThrow().GetValue().Validate())
+                {
+                    yield return item;
+                }
             }
             foreach (var assignment in Assignments)
             {

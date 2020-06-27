@@ -16,7 +16,7 @@ namespace Tac.SemanticModel
     // I am not really sure this is a useful concept
     internal interface IScoped
     {
-        IBox<WeakScope> Scope { get; }
+        IOrType<IBox<WeakScope>, IError> Scope { get; }
     }
 
     internal interface IFrontendGenericType : IFrontendType

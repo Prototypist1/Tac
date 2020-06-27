@@ -121,7 +121,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var methodResult = result.GetMethod(method).GetValue().Is1OrThrow();
 
-            var HackToLookAtScope = new HasMembersType(methodResult.Scope.GetValue());
+            var HackToLookAtScope = new HasMembersType(methodResult.Scope.Is1OrThrow().GetValue());
 
             HasMember(HackToLookAtScope, new NameKey("input"));
             HasMember(HackToLookAtScope, new NameKey("x"));

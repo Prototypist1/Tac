@@ -1138,10 +1138,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))];
 
-                        if (fromType.GetValueAs(out IFlowNode _).CanFlow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>()))
-                        {
+                        //if (fromType.GetValueAs(out IFlowNode _).CanFlow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>()))
+                        //{
                             go |= fromType.GetValueAs(out IFlowNode _).Flow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
-                        }
+                        //}
                     }
 
                     excapeValve++;

@@ -50,7 +50,7 @@ namespace Tac.SemanticModel
     {
         public WeakGenericTypeDefinition(
             IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
-            IBox<WeakScope> scope,
+            IOrType< IBox<WeakScope>,IError> scope,
             IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
@@ -60,14 +60,14 @@ namespace Tac.SemanticModel
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
-        public IBox<WeakScope> Scope { get; }
+        public IOrType<IBox<WeakScope>, IError> Scope { get; }
 
         public IFrontendType FrontendType()
         {
             return new SyntaxModel.Elements.AtomicTypes.AnyType();
         }
 
-        public IEnumerable<IError> Validate() => Scope.GetValue().Validate();
+        public IEnumerable<IError> Validate() => Scope.SwitchReturns(x => x.GetValue().Validate(), x => new IError[] { x });
     }
 
     internal class GenericTypeDefinitionMaker : IMaker<ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>>

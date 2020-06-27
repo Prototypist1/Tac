@@ -106,7 +106,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var box = new Box<WeakMemberDefinition>();
                     cacheMember2[member] = box;
-                    box.Fill(convert.Convert(this, OrType.Make<Tpn.IVirtualFlowNode, IError>(member.FlowNode)));
+                    box.Fill(convert.Convert(this, member.FlowNode));
                 }
                 return cacheMember2[member];
             }
@@ -228,7 +228,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public readonly struct FlowNodeMember
             {
-                public FlowNodeMember(IKey key, IVirtualFlowNode flowNode, IVirtualFlowNode of)
+                public FlowNodeMember(IKey key, IOrType< IVirtualFlowNode,IError> flowNode, IVirtualFlowNode of)
                 {
                     Key = key ?? throw new ArgumentNullException(nameof(key));
                     FlowNode = flowNode ?? throw new ArgumentNullException(nameof(flowNode));
@@ -236,7 +236,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 public IKey Key { get; }
-                public IVirtualFlowNode FlowNode { get; }
+                public IOrType<IVirtualFlowNode, IError> FlowNode { get; }
                 // this is used for equality
                 // a member is by what it is on + it's key
                 public IVirtualFlowNode Of { get; }
@@ -247,11 +247,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return privateMembers.PrivateMembers.Values.ToList();
             }
 
-            public IReadOnlyList<FlowNodeMember> GetPublicMembers(IVirtualFlowNode from)
+            public IOrType< IReadOnlyList<FlowNodeMember>,IError> GetPublicMembers(IVirtualFlowNode from)
             {
-                return from.VirtualMembers().Select(x=> {
-                    return new FlowNodeMember(x.Key,x.Value, from);
-                }).ToList();
+                return from.VirtualMembers().SwitchReturns(
+                    y=> OrType.Make<IReadOnlyList<FlowNodeMember>, IError> (y.Select(x=>  new FlowNodeMember(x.Key, x.Value, from)).ToList()),
+                    y=> OrType.Make<IReadOnlyList<FlowNodeMember>, IError>(y));
             }
 
             public IFlowNode<TypeProblem2.MethodType> GetFlowNode(TypeProblem2.MethodType type)
@@ -311,17 +311,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return orTypeElememts[from];
             }
 
-            public bool TryGetResultMember(IVirtualFlowNode from, [MaybeNullWhen(false)] out IVirtualFlowNode? transientMember)
-            {
-                if (from.VirtualOutput().Is(out var value)) {
-                    transientMember = value;
-                    return true;
-                }
-                transientMember = default;
-                return false;
-            }
+            //public bool TryGetResultMember(IVirtualFlowNode from, [MaybeNullWhen(false)] out IVirtualFlowNode? transientMember)
+            //{
+            //    if (from.VirtualOutput().Is(out var value)) {
+            //        transientMember = value;
+            //        return true;
+            //    }
+            //    transientMember = default;
+            //    return false;
+            //}
 
-            public bool TryGetResultMember(CombinedTypesAnd from, [MaybeNullWhen(false)] out IVirtualFlowNode? transientMember)
+            public bool TryGetResultMember(CombinedTypesAnd from, [MaybeNullWhen(false)] out IOrType<IVirtualFlowNode,IError>? transientMember)
             {
                 if (from.VirtualOutput().Is(out var value))
                 {
@@ -332,18 +332,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return false;
             }
 
-            public bool TryGetInputMember(IVirtualFlowNode from, [MaybeNullWhen(false)] out IVirtualFlowNode? member)
-            {
-                if (from.VirtualInput().Is(out var value))
-                {
-                    member = value;
-                    return true;
-                }
-                member = default;
-                return false;
-            }
+            //public bool TryGetInputMember(IVirtualFlowNode from, [MaybeNullWhen(false)] out IVirtualFlowNode? member)
+            //{
+            //    if (from.VirtualInput().Is(out var value))
+            //    {
+            //        member = value;
+            //        return true;
+            //    }
+            //    member = default;
+            //    return false;
+            //}
 
-            public bool TryGetInputMember(CombinedTypesAnd from, [MaybeNullWhen(false)] out IVirtualFlowNode? member)
+            public bool TryGetInputMember(CombinedTypesAnd from, [MaybeNullWhen(false)] out IOrType<IVirtualFlowNode, IError>? member)
             {
                 if (from.VirtualInput().Is(out var value))
                 {
@@ -384,8 +384,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     // at this point we are Concrete<Inferred>
                     // or VirtualNode
-                    
-                    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(new VirtualNode(node.ToRep(), node.SourcePath())));
+
+                    return node.ToRep().SwitchReturns(
+                        x => OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(new VirtualNode(x, node.SourcePath()))), 
+                        x => OrType.Make<IBox<IFrontendType>, IError>(x));
 
 
 
@@ -399,22 +401,22 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public IVirtualFlowNode GetResultMember(IFlowNode<TypeProblem2.MethodType> from)
-            {
-                if (TryGetResultMember(from, out var res)) {
-                    return res!;
-                }
-                throw new Exception("that should not happen for a method");
-            }
+            //public IVirtualFlowNode GetResultMember(IFlowNode<TypeProblem2.MethodType> from)
+            //{
+            //    if (TryGetResultMember(from, out var res)) {
+            //        return res!;
+            //    }
+            //    throw new Exception("that should not happen for a method");
+            //}
 
-            public IVirtualFlowNode GetInputMember(IFlowNode<TypeProblem2.MethodType> from)
-            {
-                if (TryGetInputMember(from, out var res))
-                {
-                    return  res!;
-                }
-                throw new Exception("that should not happen for a method");
-            }
+            //public IVirtualFlowNode GetInputMember(IFlowNode<TypeProblem2.MethodType> from)
+            //{
+            //    if (TryGetInputMember(from, out var res))
+            //    {
+            //        return  res!;
+            //    }
+            //    throw new Exception("that should not happen for a method");
+            //}
 
             public IIsPossibly<TypeProblem2.Scope> GetEntryPoint(IStaticScope from)
             {

@@ -38,7 +38,7 @@ namespace Tac.SemanticModel
     {
         public WeakEntryPointDefinition(
             IOrType<IBox<IFrontendCodeElement>,IError>[] body,
-            IBox<WeakScope> scope,
+            IOrType<IBox<WeakScope>, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             
@@ -50,7 +50,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IEntryPointDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    Scope.GetValue().Convert(context),
+                    Scope.Is1OrThrow().GetValue().Convert(context),
                     Body.Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
