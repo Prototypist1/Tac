@@ -19,17 +19,17 @@ namespace Tac.Infastructure
     
     internal interface ISetUpContext
     {
-        Tpn.ISetUpTypeProblem TypeProblem { get; }
+        Tpn.TypeProblem2.Builder TypeProblem { get; }
     }
 
     internal class SetUpContext : ISetUpContext
     {
-        public SetUpContext(Tpn.ISetUpTypeProblem typeProblem)
+        public SetUpContext(Tpn.TypeProblem2.Builder typeProblem)
         {
             TypeProblem = typeProblem ?? throw new ArgumentNullException(nameof(typeProblem));
         }
 
-        public Tpn.ISetUpTypeProblem TypeProblem { get; }
+        public Tpn.TypeProblem2.Builder TypeProblem { get; }
     }
 
     internal interface ISetUpResult<out TCodeElement, out TSetUpSideNode>

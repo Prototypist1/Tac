@@ -56,7 +56,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface ITypeProblemNode
         {
-            ISetUpTypeProblem Problem { get; }
+            TypeProblem2.Builder Problem { get; }
         }
 
         internal interface IHavePublicMembers : ITypeProblemNode

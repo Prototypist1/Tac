@@ -39,23 +39,23 @@ namespace Tac.Frontend
             foreach (var dependency in dependencies)
             {
 
-                var type = problem.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
+                var type = problem.builder.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
                 foreach (var memberPair in dependency.Scope.Members)
                 {
-                    var innerType = ConvertType(problem, type, OrType.Make<IVerifiableType, IError>( memberPair.Value.Value.Type));
+                    var innerType = ConvertType(problem.builder, type, OrType.Make<IVerifiableType, IError>( memberPair.Value.Value.Type));
                     innerType.Switch(x =>
                     {
-                        problem.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        problem.builder.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
                     }, y =>
                     {
-                        problem.CreatePublicMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        problem.builder.CreatePublicMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
                     });
                 }
-                problem.CreatePrivateMember(problem.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type), new WeakMemberDefinitionConverter(true, dependency.Key));
+                problem.builder.CreatePrivateMember(problem.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type), new WeakMemberDefinitionConverter(true, dependency.Key));
 
             }
 
-            var populateScopeContex = new SetUpContext(problem);
+            var populateScopeContex = new SetUpContext(problem.builder);
             var referanceResolvers = scopePopulators.Select(or => or.TransformInner(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
 
             var solution = problem.Solve();
@@ -70,7 +70,7 @@ namespace Tac.Frontend
         }
 
         private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> ConvertType(
-            Tpn.ISetUpTypeProblem problem,
+            Tpn.TypeProblem2.Builder problem,
             Tpn.IStaticScope scope,
             IOrType<IVerifiableType, IError> typeOrError)
         {
