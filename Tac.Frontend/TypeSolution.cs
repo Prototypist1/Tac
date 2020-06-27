@@ -389,9 +389,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         x => OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(new VirtualNode(x, node.SourcePath()))), 
                         x => OrType.Make<IBox<IFrontendType>, IError>(x));
 
-
-
-
                     //if (node is IFlowNode<Uhh> typeFlowUhh)
                     //{
                     //    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowUhh, new InferredTypeConverter()));

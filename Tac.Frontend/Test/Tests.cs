@@ -887,8 +887,8 @@ namespace Tac.Frontend.TypeProblem.Test
         // type B { number x}
         // A | number a
         // a =: B b
-        // x should not be a number  
-        // even if x was a number that would not make this a legal assignment 
+        // x should be a number  
+        // for this to be a legal assignement x has to be a number
         [Fact]
         public void FlowInToOneSideOfOrType()
         {
@@ -924,7 +924,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var aTypeSolution = solution.GetExplicitType(aType).GetValue().Is1OrThrow();
             var aMember = HasMember(aTypeSolution.FrontendType(), new NameKey("x"));
-            Assert.False(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(aMember, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
+            Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(aMember, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
 
@@ -1074,6 +1074,10 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var cFlowNode = solution.GetFlowNode2(c);
             var cType = solution.GetType(cFlowNode);
+
+            var hasMembers = Assert.IsType<HasMembersType>(cType.Is1OrThrow().GetValue());
+            hasMembers.TryGetMember(new NameKey("x")).Is1OrThrow().Is2OrThrow();
+
         }
     }
 }

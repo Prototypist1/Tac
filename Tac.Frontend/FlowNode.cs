@@ -4,6 +4,7 @@ using Prototypist.Toolbox.IEnumerable;
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -417,8 +418,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                             x => result.VirtualMembers().SwitchReturns(inner=> inner.Where(y => y.Key.Equals(x.key)).Single().Value, error=> (IOrType<IVirtualFlowNode, IError>) OrType.Make< IVirtualFlowNode, IError >(error)),
                             x => result.VirtualInput().GetOrThrow(), 
                             x => result.VirtualOutput().GetOrThrow());
-                    if (couldBeError.Is2(out var error)) {
+                    if (couldBeError.Is2(out var error))
+                    {
                         return OrType.Make<IVirtualFlowNode, IError>(error);
+                    }
+                    else {
+                        result = couldBeError.Is1OrThrow();
                     }
                 }
                 return OrType.Make<IVirtualFlowNode, IError>(result);
@@ -503,8 +508,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Sources.SelectMany(x =>
                 {
                     var walked = x.Walk();
-
-                    if (walked is InferredFlowNode node)
+                    if (walked.Is1(out var virtualFlowNode) && virtualFlowNode is InferredFlowNode node)
                     {
                         if (except.Contains(node)) {
                             return new HashSet<IOrType<IVirtualFlowNode, IError>> { };
@@ -564,19 +568,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Possibly.Is( new SourcePath(OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this), new List<IOrType<Member, Input, Output>>()));
             }
 
-            private static IOrType<HashSet<CombinedTypesAnd>, IError> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right) {
+            internal static IOrType<HashSet<CombinedTypesAnd>, IError> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right) {
                 var res = new List<CombinedTypesAnd>();
                 foreach (var leftEntry in left)
                 {
                     foreach (var rightEntry in right)
                     {
                         var canMergeResult = CanMerge(leftEntry, rightEntry, new List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)>(), new List<(CombinedTypesAnd, CombinedTypesAnd)>());
-                        if (canMergeResult.Any())
+                        if (!canMergeResult.Any())
                         {
-                            return OrType.Make<HashSet<CombinedTypesAnd>, IError>(Error.Cascaded("", canMergeResult));
+                            res.Add(Merge(leftEntry, rightEntry));
                         }
-                        res.Add(Merge(leftEntry, rightEntry));
                     }
+                }
+
+                if (!res.Any()) {
+                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(Error.Other("nothing could union!"));
                 }
 
                 return OrType.Make<HashSet<CombinedTypesAnd>, IError>(res.Distinct().ToHashSet());
@@ -744,7 +751,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return Possibly.Is(OrType.Make<VirtualNode, IError>(new VirtualNode(set.First(), Possibly.IsNot<SourcePath>())));
                 }
-                return Possibly.Is(OrType.Make<VirtualNode, IError>(new VirtualNode(VirtualNode.IsAll(set), Possibly.IsNot<SourcePath>())));
+                return Possibly.Is(VirtualNode.IsAll(set).TransformInner(y=>new VirtualNode(y, Possibly.IsNot<SourcePath>())));
             }
 
             public IIsPossibly<IOrType<VirtualNode, IError>> VirtualInput()
@@ -797,7 +804,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (set.Length == 1) {
                     return Possibly.Is(OrType.Make<VirtualNode, IError>(new VirtualNode(set.First(), Possibly.IsNot<SourcePath>())));
                 }
-                return Possibly.Is(OrType.Make<VirtualNode, IError>(new VirtualNode(VirtualNode.IsAll(set), Possibly.IsNot<SourcePath>())));
+                return Possibly.Is(VirtualNode.IsAll(set).TransformInner(y=>new VirtualNode(y, Possibly.IsNot<SourcePath>())));
             }
 
             public IOrType<IEnumerable<KeyValuePair<IKey, IOrType<VirtualNode, IError>>>, IError> VirtualMembers()
@@ -861,7 +868,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                             var set = errorCheck.Select(y => y.Is1OrThrow()).ToArray();
 
-                            return new KeyValuePair<IKey, IOrType<VirtualNode, IError>>(x.Key, OrType.Make<VirtualNode, IError>(new VirtualNode(VirtualNode.IsAll(set), Possibly.IsNot<SourcePath>())));
+                            return new KeyValuePair<IKey, IOrType<VirtualNode, IError>>(x.Key, VirtualNode.IsAll(set).TransformInner(y=>new VirtualNode(y, Possibly.IsNot<SourcePath>())));
                             
                             })
                         .ToArray());
@@ -924,17 +931,27 @@ namespace Tac.Frontend.New.CrzayNamespace
             public HashSet<CombinedTypesAnd> Or = new HashSet<CombinedTypesAnd>();
 
 
-            public static HashSet<CombinedTypesAnd> IsAll(IEnumerable<HashSet<CombinedTypesAnd>> toMerge)
+            public static IOrType<HashSet<CombinedTypesAnd>, IError> IsAll(IEnumerable<HashSet<CombinedTypesAnd>> toMerge)
             {
                 if (toMerge.Count() == 0) {
                     throw new Exception("well that is unexpected!");
                 }
 
                 if (toMerge.Count() == 1) {
-                    return toMerge.First();
+                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(toMerge.First());
                 }
 
-                return toMerge.Aggregate((a, b) => Union(a, b)).Distinct().ToHashSet();
+                var at = toMerge.First();
+                foreach (var item in toMerge.Skip(1))
+                {
+                    var or = InferredFlowNode.Union(at, item);
+                    if (or.Is2(out var error))
+                    {
+                        return OrType.Make<HashSet<CombinedTypesAnd>, IError>(error);
+                    }
+                    at = or.Is1OrThrow();
+                }
+                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(at);
 
             }
 
@@ -959,23 +976,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                 this.sourcePath = sourcePath ?? throw new ArgumentNullException(nameof(sourcePath));
             }
 
-            private static HashSet<CombinedTypesAnd> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right)
-            {
-                var res = new List<CombinedTypesAnd>();
-                foreach (var leftEntry in left)
-                {
-                    foreach (var rightEntry in right)
-                    {
-                        res.Add(Merge(leftEntry, rightEntry));
-                    }
-                }
-                return res.Distinct().ToHashSet();
-            }
+            //private static HashSet<CombinedTypesAnd> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right)
+            //{
+            //    var res = new List<CombinedTypesAnd>();
+            //    foreach (var leftEntry in left)
+            //    {
+            //        foreach (var rightEntry in right)
+            //        {
+            //            res.Add(Merge(leftEntry, rightEntry));
+            //        }
+            //    }
+            //    return res.Distinct().ToHashSet();
+            //}
 
-            private static CombinedTypesAnd Merge(CombinedTypesAnd left, CombinedTypesAnd right)
-            {
-                return new CombinedTypesAnd(left.And.Union(right.And).ToHashSet());
-            }
+            //private static CombinedTypesAnd Merge(CombinedTypesAnd left, CombinedTypesAnd right)
+            //{
+            //    return new CombinedTypesAnd(left.And.Union(right.And).ToHashSet());
+            //}
 
             public override bool Equals(object? obj)
             {

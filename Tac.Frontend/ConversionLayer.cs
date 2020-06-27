@@ -168,7 +168,7 @@ namespace Tac.Frontend
                 }
                 
             }
-            var output = inputOr?.Is1OrThrow();
+            var output = outputOr?.Is1OrThrow();
 
             if ((input != default || output != default) && scope.membersList.Count > 1)
             {
