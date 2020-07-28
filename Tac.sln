@@ -25,6 +25,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9141EFAF-6AFE-4CC4-A149-F820A6F14358}"
 	ProjectSection(SolutionItems) = preProject
 		notes.txt = notes.txt
+		ReadMe.md = ReadMe.md
 		Tac-Thinking.txt = Tac-Thinking.txt
 	EndProjectSection
 EndProject
