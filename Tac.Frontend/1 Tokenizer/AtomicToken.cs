@@ -20,5 +20,4 @@ namespace Tac.Parser
 
         public override int GetHashCode() => -979861770 + EqualityComparer<string>.Default.GetHashCode(Item);
     }
-
 }
