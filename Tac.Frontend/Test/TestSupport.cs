@@ -19,7 +19,7 @@ namespace Tac.Tests
         internal static FileToken Tokenize(string text)
         {
 
-            var tokenizer = new Parser.Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
+            var tokenizer = new Parser.Tokenizer();
             var res = tokenizer.Tokenize(text);
             return res;
         }

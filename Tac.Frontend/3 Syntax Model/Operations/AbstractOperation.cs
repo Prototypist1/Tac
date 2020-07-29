@@ -52,6 +52,9 @@ namespace Tac.SemanticModel.CodeStuff
         }
     }
 
+    // this is not actually used
+    // is it worth maintaining?
+    // if it is not used can I trust it?
     public partial class SymbolsRegistry
     {
         public SymbolsRegistry(IEnumerable<string> symbols)

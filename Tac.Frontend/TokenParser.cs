@@ -25,7 +25,7 @@ namespace Tac.Frontend
             where TBacking : IBacking
         {
 
-            var tokenizer = new Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.ToArray());
+            var tokenizer = new Tokenizer();
             var tokens = tokenizer.Tokenize(text);
 
             var elementMatchingContest = new ElementMatchingContext();

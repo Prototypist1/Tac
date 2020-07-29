@@ -6,11 +6,8 @@ namespace Tac.Parser
 {
     internal class Tokenizer
     {
-        private readonly IReadOnlyList<string> operations;
-
-        public Tokenizer(IReadOnlyList<string> operations)
+        public Tokenizer()
         {
-            this.operations = operations ?? throw new ArgumentNullException(nameof(operations));
         }
 
         private interface IResultAndExitString<out T>
@@ -135,8 +132,9 @@ namespace Tac.Parser
             }
         }
 
-        private IResultAndExitString<ElementToken> TokenizeElement(ref StringWalker enumerator)
+        private IResultAndExitString<LineToken> TokenzieLine(ref StringWalker enumerator)
         {
+
             var elementsParts = new List<IToken>();
             while (true)
             {
@@ -146,11 +144,11 @@ namespace Tac.Parser
                     {
                         if (elementsParts.Any())
                         {
-                            return new ResultAndExitString<ElementToken>(part!, new ElementToken(elementsParts.ToArray()));
+                            return new ResultAndExitString<LineToken>(part!, new LineToken(elementsParts.ToArray()));
                         }
                         else
                         {
-                            return new ResultAndExitString<ElementToken>(part!);
+                            return new ResultAndExitString<LineToken>(part!);
                         }
                     }
                     if (TryEnter(part!, ref enumerator, out var token))
@@ -166,11 +164,11 @@ namespace Tac.Parser
                 {
                     if (elementsParts.Any())
                     {
-                        return new ResultAndExitString<ElementToken>(new ElementToken(elementsParts.ToArray()));
+                        return new ResultAndExitString<LineToken>(new LineToken(elementsParts.ToArray()));
                     }
                     else
                     {
-                        return new ResultAndExitString<ElementToken>();
+                        return new ResultAndExitString<LineToken>();
                     }
                 }
             }
@@ -181,20 +179,13 @@ namespace Tac.Parser
                     str == ";" ||
                     str == "}" ||
                     str == ")" ||
-                    str == "]" ||
-                    operations.Contains(str);
+                    str == "]";
             }
-        }
-
-        private IResultAndExitString<LineToken> TokenzieLine(ref StringWalker enumerator)
-        {
-
-            return OuterTokenzie<LineToken>(ref enumerator, TokenizeElement, new[] { ";","}",")","]"}, x => new LineToken(x), false, true);
         }
 
         private IResultAndExitString<ParenthesisToken> TokenzieParenthesis(ref StringWalker enumerator)
         {
-            return OuterTokenzie(ref enumerator, TokenizeElement, new[] { ")", }, x => new ParenthesisToken(x), false, true);
+            return OuterTokenzie(ref enumerator, TokenzieLine, new[] { ")", }, x => new ParenthesisToken(x), false, true);
         }
 
         private IResultAndExitString<CurleyBracketToken> TokenzieCurleyBrackets(ref StringWalker enumerator)
@@ -251,7 +242,7 @@ namespace Tac.Parser
                     return true;
                 }
 
-                if (IsOperationOrExit(ref enumerator, out var exit))
+                if (IsExit(ref enumerator, out var exit))
                 {
                     if (buildingPart.Length != 0)
                     {
@@ -363,9 +354,9 @@ namespace Tac.Parser
 
         }
 
-        private bool IsOperationOrExit(ref StringWalker stringWalker,  out string? exitString)
+        private bool IsExit(ref StringWalker stringWalker, out string? exitString)
         {
-            foreach (var op in operations.Union(new[] { "{","}","(",")","[","]",";"}).OrderByDescending(x => x.Length))
+            foreach (var op in new[] { "{", "}", "(", ")", "[", "]", ";", "," })
             {
                 if (stringWalker.Span().StartsWith(op))
                 {
