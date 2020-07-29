@@ -1,6 +1,6 @@
 # Tac
 
-Tac is a proof of concept programming language that tests a flat approach to sharing logic between objects.
+Tac is a proof of concept programming language that tests a method factory based approach to sharing logic between objects.
 
 ![Tac reuse model](https://raw.githubusercontent.com/Prototypist1/Tac/master/tac-reuse-model.png)
 
