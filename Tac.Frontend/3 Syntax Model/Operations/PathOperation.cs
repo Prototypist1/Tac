@@ -98,8 +98,7 @@ namespace Tac.SemanticModel.Operations
                 .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching)
             {
-                if (tokenMatching.Tokens[tokenMatching.Tokens.Count - 1] is ElementToken elementToken &&
-                    elementToken.Tokens.Single() is AtomicToken atomic)
+                if (tokenMatching.Tokens[tokenMatching.Tokens.Count - 1] is AtomicToken atomic)
                 {
                     var left = matching.Context.ParseLine(match.perface);
                     //var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);

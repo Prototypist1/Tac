@@ -136,11 +136,9 @@ namespace Tac.Frontend.Parser
                            elementMatching.Tokens[0] is SquareBacketToken typeParameters &&
                                typeParameters.Tokens.All(x => x is LineToken line &&
                                    line.Tokens.Count == 1 &&
-                                   line.Tokens.ElementAt(0) is ElementToken element &&
-                                   element.Tokens.Count == 1 &&
-                                   element.Tokens.ElementAt(0) is AtomicToken))
+                                   line.Tokens.ElementAt(0) is AtomicToken))
             {
-                return TokenMatching<string[]>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, typeParameters.Tokens.Select(x => x.CastTo<LineToken>().Tokens.Single().CastTo<ElementToken>().Tokens.Single().CastTo<AtomicToken>().Item).ToArray());
+                return TokenMatching<string[]>.MakeMatch(elementMatching.Tokens.Skip(1).ToArray(), elementMatching.Context, typeParameters.Tokens.Select(x => x.CastTo<LineToken>().Tokens.Single().CastTo<AtomicToken>().Item).ToArray());
             }
 
             return TokenMatching<string[]>.MakeNotMatch(elementMatching.Context);
@@ -153,7 +151,7 @@ namespace Tac.Frontend.Parser
         {
             if (elementMatching.Tokens.Any() &&
                 elementMatching.Tokens[0] is SquareBacketToken typeParameters &&
-                typeParameters.Tokens.All(x => x is LineToken lt && lt.Tokens.All(y => y is ElementToken)) &&
+                typeParameters.Tokens.All(x => x is LineToken lt && lt.Tokens.All(y => y is AtomicToken)) &&
                 TryToToken(out var res))
             {
                 return TokenMatching<IKey[]>.MakeMatch(
@@ -205,7 +203,7 @@ namespace Tac.Frontend.Parser
             var right = elementMatching.Tokens[elementMatching.Tokens.Count - 1];
             if (elementMatching.Tokens.Any() &&
                             (right is ParenthesisToken ||
-                            right is ElementToken)
+                            right is AtomicToken)
                             )
             {
 

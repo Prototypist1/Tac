@@ -4,10 +4,10 @@ namespace Tac.Tests.Tokenizer
 {
     internal static class TokenHelp{
 
-        public static ElementToken Ele(params IToken[] tokens)
-        {
-            return new ElementToken(tokens);
-        }
+        //public static ElementToken Ele(params IToken[] tokens)
+        //{
+        //    return new ElementToken(tokens);
+        //}
         public static ParenthesisToken Par(params IToken[] tokens)
         {
             return new ParenthesisToken(tokens);
