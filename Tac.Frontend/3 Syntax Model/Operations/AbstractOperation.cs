@@ -121,15 +121,15 @@ namespace Tac.SemanticModel.CodeStuff
     { 
         public IOrType<IBox<TLeft>, IError> Left { get; }
         public IOrType<IBox<TRight>, IError> Right { get; }
-        public IEnumerable<IBox<IConvertableFrontendType<IVerifiableType>>> Operands { get {
+        public IEnumerable<IBox<IFrontendType>> Operands { get {
                 // this make me sad,
                 // if we could mark TLeft, TRight as classes and I would need these ugly casts
                 // but a lot of types are structs
                 // so I have casts
                 // I assume this has something to do with boxing
                 // the cast boxes
-                yield return (IBox<IConvertableFrontendType<IVerifiableType>>)Left;
-                yield return (IBox<IConvertableFrontendType<IVerifiableType>>)Right;
+                yield return (IBox<IFrontendType>)Left;
+                yield return (IBox<IFrontendType>)Right;
             }
         }
 
@@ -270,11 +270,11 @@ namespace Tac.SemanticModel.CodeStuff
     }
 
 
-    internal class BinaryTypeMaker : IMaker<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>
+    internal class BinaryTypeMaker : IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>
     {
         private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
-        public BinaryTypeMaker(string symbol, BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendType>, IError>> make,
+        public BinaryTypeMaker(string symbol, BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make,
             BinaryOperation.ToTypeProblemThings toTypeProblemThings
             )
         {
@@ -284,9 +284,9 @@ namespace Tac.SemanticModel.CodeStuff
         }
 
         public string Symbol { get; }
-        private BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendType>, IError>> Make { get; }
+        private BinaryOperation.MakeBinaryType<IBox<IFrontendType>> Make { get; }
 
-        public ITokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
                 .HasStruct(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
@@ -295,13 +295,13 @@ namespace Tac.SemanticModel.CodeStuff
                 var left = matching.Context.ParseTypeLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElementType(match.rhs);
 
-                return TokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
+                return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.Tokens,
                     matched.Context, 
                     new BinaryPopulateScope(left, right, Make, toTypeProblemThings));
             }
 
-            return TokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(
                     matching.Context);
         }
 
@@ -328,17 +328,17 @@ namespace Tac.SemanticModel.CodeStuff
 
 
 
-        private class BinaryPopulateScope : ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>
+        private class BinaryPopulateScope : ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>
         {
             private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> left;
             private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> right;
-            private readonly BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendType>, IError>> make;
+            private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make;
             private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
             public BinaryPopulateScope(
                 ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> left,
                 ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> right,
-                BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendType>, IError>> make,
+                BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make,
                 BinaryOperation.ToTypeProblemThings toTypeProblemThings)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
@@ -348,7 +348,7 @@ namespace Tac.SemanticModel.CodeStuff
             }
 
 
-            public ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
 
                 // TODO
@@ -369,7 +369,7 @@ namespace Tac.SemanticModel.CodeStuff
                 var nextRight = right.Run(scope, context);
                 var type = toTypeProblemThings(scope, context, nextLeft, nextRight);
 
-                return new SetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>(new BinaryResolveReferance(
+                return new SetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>(new BinaryResolveReferance(
                     nextLeft.Resolve,
                     nextRight.Resolve,
                     make
@@ -378,16 +378,16 @@ namespace Tac.SemanticModel.CodeStuff
         }
 
 
-        private class BinaryResolveReferance : IResolve<IOrType<IBox<IFrontendType>, IError>>
+        private class BinaryResolveReferance : IResolve<IBox<IFrontendType>>
         {
             public readonly IResolve<IOrType<IBox< IFrontendType>, IError>> left;
             public readonly IResolve<IOrType<IBox<IFrontendType>, IError>> right;
-            private readonly BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendType>, IError>> make;
+            private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make;
 
             public BinaryResolveReferance(
                 IResolve<IOrType<IBox<IFrontendType>, IError>> resolveReferance1,
                 IResolve<IOrType<IBox<IFrontendType>, IError>> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IOrType<IBox<IFrontendType>, IError>> make)
+                BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
@@ -396,7 +396,7 @@ namespace Tac.SemanticModel.CodeStuff
 
             // I think IResolve<TCodeElement> should return TCodeElement instead of IBox<TCodeElement>
             // that will be expensive but I think it gives me more control
-            public IOrType<IBox<IFrontendType>, IError> Run(Tpn.TypeSolution context)
+            public IBox<IFrontendType> Run(Tpn.TypeSolution context)
             {
                 var res = make(
                     left.Run(context),

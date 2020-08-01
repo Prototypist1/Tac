@@ -22,12 +22,12 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>> StaticTypeDefinitionMaker = AddTypeMaker(
+        private static readonly WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>> StaticTypeDefinitionMaker = AddTypeMaker(
             () => new TypeDefinitionMaker(),
-            MustBeBefore<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+            MustBeBefore<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
 
@@ -44,20 +44,21 @@ namespace Tac.SemanticModel
     }
 
 
-    internal interface IIsType {
-        public IFrontendType FrontendType();
-    }
+    //internal interface IIsType {
+    //    public IOrType< IConvertableFrontendType<IVerifiableType>,IError> FrontendType();
+    //}
 
 
-    internal class WeakTypeDefinition : IWeakTypeDefinition, IIsType
+    internal class WeakTypeDefinition : IWeakTypeDefinition//, IIsType
     {
         public WeakTypeDefinition(IOrType< IBox<WeakScope>,IError> scope)//, IIsPossibly<IKey> key
         {
             //Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            lazy = new Lazy<IFrontendType>(() => Scope.SwitchReturns<IFrontendType>(
-                x => new HasMembersType(x.GetValue()),
-                x => new IndeterminateType(x)));
+            lazy = new Lazy<IOrType<IFrontendType, IError>>(() => 
+                Scope.SwitchReturns(
+                    x => OrType.Make<IFrontendType, IError>( new HasMembersType(x.GetValue())),
+                    x => OrType.Make<IFrontendType, IError>(x)));
         }
 
         //public IIsPossibly<IKey> Key { get; }
@@ -65,7 +66,7 @@ namespace Tac.SemanticModel
         // it is an ordered set of types, names and acccessablity modifiers
         public IOrType<IBox<WeakScope>, IError> Scope { get; }
 
-        private readonly  Lazy<IFrontendType> lazy;
+        private readonly Lazy<IOrType<IFrontendType, IError>> lazy;
         
 
         public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
@@ -77,7 +78,7 @@ namespace Tac.SemanticModel
             });
         }
 
-        public IFrontendType FrontendType()
+        public IOrType<IFrontendType, IError> FrontendType()
         {
             return lazy.Value;
         }
@@ -87,13 +88,13 @@ namespace Tac.SemanticModel
     }
 
 
-    internal class TypeDefinitionMaker : IMaker<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>
+    internal class TypeDefinitionMaker : IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>
     {
         public TypeDefinitionMaker()
         {
         }
         
-        public ITokenMatching<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             return tokenMatching
                 .Has(new KeyWordMaker("type"), out var _)
@@ -103,7 +104,7 @@ namespace Tac.SemanticModel
                        typeName != default ? OrType.Make<NameKey, ImplicitKey>(new NameKey(typeName.Item)) : OrType.Make<NameKey, ImplicitKey>(new ImplicitKey(Guid.NewGuid()))));
         }
         
-        private class TypeDefinitionPopulateScope : ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>
+        private class TypeDefinitionPopulateScope : ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>
         {
             private readonly IReadOnlyList<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>> elements;
             private readonly IOrType< NameKey, ImplicitKey> key;
@@ -114,12 +115,12 @@ namespace Tac.SemanticModel
                 key = typeName ?? throw new ArgumentNullException(nameof(typeName));
             }
 
-            public ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
+            public ISetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
                 var type= context.TypeProblem.CreateType(scope, key,new WeakTypeDefinitionConverter());
                 var typeReference = context.TypeProblem.CreateTypeReference(scope, key.SwitchReturns<IKey>(x=>x,x=>x), new WeakTypeReferenceConverter());
                 elements.Select(x => x.TransformInner(y=>y.Run(type, context))).ToArray();
-                return new SetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>( new TypeReferanceMaker.TypeReferanceResolveReference(typeReference), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(typeReference));
+                return new SetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>( new TypeReferanceMaker.TypeReferanceResolveReference(typeReference), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(typeReference));
             }
         }
     }

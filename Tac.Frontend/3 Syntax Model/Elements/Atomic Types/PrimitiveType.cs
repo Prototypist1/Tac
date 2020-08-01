@@ -13,7 +13,7 @@ using Tac.Type;
 namespace Tac.SyntaxModel.Elements.AtomicTypes
 {
     internal static class FrontendTypeExtensions{
-        public static IOrType<IFrontendType,IError> UnwrapRefrence(this IFrontendType frontendType) 
+        public static IOrType<IFrontendType, IError> UnwrapRefrence(this IFrontendType frontendType) 
         {
             if (frontendType is RefType refType) {
                 return refType.inner;
@@ -22,11 +22,11 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
     }
 
-    internal interface IPrimitiveType: IFrontendType
+    internal interface IPrimitiveType
     {
     }
 
-    internal class FrontEndOrType : IConvertableFrontendType<ITypeOr>
+    internal class FrontEndOrType : IFrontendType
     {
         internal readonly IOrType<IFrontendType,IError> left, right;
 
@@ -41,7 +41,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             var (res, builder) = Tac.Model.Instantiated.TypeOr.Create();
 
@@ -52,8 +52,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.Is1OrThrow().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>().Convert(context),
-                        outputType.Is1OrThrow().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>().Convert(context));
+                        inputType.Is1OrThrow().SafeCastTo<IFrontendType, IFrontendType>().Convert(context),
+                        outputType.Is1OrThrow().SafeCastTo<IFrontendType, IFrontendType>().Convert(context));
                 });
         }
 
@@ -97,7 +97,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
     }
 
-    internal class HasMembersType : IConvertableFrontendType<IInterfaceModuleType> {
+    internal class HasMembersType : IFrontendType {
 
         private struct Yes { }
 
@@ -119,7 +119,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return HasMembersLibrary.TryGetMember(key, weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.TransformInner(x => x.GetValue()))).ToList());
         }
 
-        public IBuildIntention<IInterfaceModuleType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
@@ -151,8 +151,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     // but it probably does not mean what you think it means
     // it really means you can assign to it
     // this is what is returned by member and member reference 
-    internal class RefType : IConvertableFrontendType<IReferanceType>, IPrimitiveType {
-        public IBuildIntention<IReferanceType> GetBuildIntention(IConversionContext context)
+    internal class RefType : IFrontendType, IPrimitiveType {
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IReferanceType>(new Model.Instantiated.ReferanceType(), () => { });
         }
@@ -180,6 +180,10 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
+    // should this really exist?
+    // is it a type?
+    // it is an error...
+    // it is not convertable
     internal class IndeterminateType : IFrontendType
     {
         private readonly IError error;
@@ -204,9 +208,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
     }
 
-    internal struct BlockType : IConvertableFrontendType<IBlockType>, IPrimitiveType
+    internal struct BlockType : IFrontendType, IPrimitiveType
     {
-        public IBuildIntention<IBlockType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IBlockType>(new Model.Instantiated.BlockType(), () => { });
         }
@@ -221,9 +225,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
-    internal struct StringType : IConvertableFrontendType<IStringType>, IPrimitiveType
+    internal struct StringType : IFrontendType, IPrimitiveType
     {
-        public IBuildIntention<IStringType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IStringType>(new Model.Instantiated.StringType(), () => { });
         }
@@ -235,9 +239,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
-    internal struct EmptyType : IConvertableFrontendType<IEmptyType>, IPrimitiveType
+    internal struct EmptyType : IFrontendType, IPrimitiveType
     {
-        public IBuildIntention<IEmptyType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IEmptyType>(new Model.Instantiated.EmptyType(), () => { });
         }
@@ -248,9 +252,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
-    internal struct NumberType : IConvertableFrontendType<INumberType>, IPrimitiveType
+    internal struct NumberType : IFrontendType, IPrimitiveType
     {
-        public IBuildIntention<INumberType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<INumberType>(new Model.Instantiated.NumberType(), () => { });
         }
@@ -305,9 +309,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
-    internal struct AnyType : IConvertableFrontendType<IAnyType>, IPrimitiveType
+    internal struct AnyType : IFrontendType, IPrimitiveType
     {
-        public IBuildIntention<IAnyType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IAnyType>(new Model.Instantiated.AnyType(), () => { });
         }
@@ -319,9 +323,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
-    internal struct BooleanType : IConvertableFrontendType<IBooleanType>, IPrimitiveType
+    internal struct BooleanType : IFrontendType, IPrimitiveType
     {
-        public IBuildIntention<IBooleanType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IBooleanType>(new Tac.Model.Instantiated.BooleanType(), () => { });
         }
@@ -334,7 +338,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
 
-    internal class MethodType : IConvertableFrontendType<IMethodType>, IPrimitiveType
+    internal class MethodType : IFrontendType, IPrimitiveType
     {
 
         private struct Yes { }
@@ -346,7 +350,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             IOrType<IFrontendType, IError> contextType) {
             return new MethodType(
                 contextType,
-                OrType.Make<IConvertableFrontendType<IVerifiableType>, IError> (new MethodType(inputType, outputType)));
+                OrType.Make<IFrontendType, IError> (new MethodType(inputType, outputType)));
         }
 
         public MethodType(
@@ -360,7 +364,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IFrontendType, IError> InputType { get; }
         public IOrType<IFrontendType, IError> OutputType { get; }
 
-        public IBuildIntention<IMethodType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             var (res, builder) = Tac.Model.Instantiated.MethodType.Create();
 
@@ -372,8 +376,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.Is1OrThrow().SafeCastTo<IFrontendType,IConvertableFrontendType<IVerifiableType>>().Convert(context),
-                        outputType.Is1OrThrow().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>().Convert(context));
+                        inputType.Is1OrThrow().SafeCastTo<IFrontendType,IFrontendType>().Convert(context),
+                        outputType.Is1OrThrow().SafeCastTo<IFrontendType, IFrontendType>().Convert(context));
                 });
         }
 

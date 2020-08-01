@@ -104,7 +104,7 @@ namespace Tac.Frontend
         //    //}
         //}
 
-        public IConvertableFrontendType<IVerifiableType> TypeDefinition(IInterfaceType _)
+        public IFrontendType TypeDefinition(IInterfaceType _)
         {
             throw new NotImplementedException();
             //if (backing.TryGetValue(codeElement, out var res))
@@ -123,7 +123,7 @@ namespace Tac.Frontend
     internal static class TypeMap
     {
 
-        public static IConvertableFrontendType<IVerifiableType> MapType(IVerifiableType verifiableType)
+        public static IFrontendType MapType(IVerifiableType verifiableType)
         {
 
 
@@ -154,8 +154,8 @@ namespace Tac.Frontend
             if (verifiableType is IMethodType method)
             {
                 return new MethodType(
-                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(method.InputType)),
-                    OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(MapType(method.OutputType))
+                    OrType.Make<IFrontendType, IError>(MapType(method.InputType)),
+                    OrType.Make<IFrontendType, IError>(MapType(method.OutputType))
                     );
             }
             //if (verifiableType is IImplementationType implementation)

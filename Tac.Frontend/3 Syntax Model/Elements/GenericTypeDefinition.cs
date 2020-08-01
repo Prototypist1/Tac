@@ -46,7 +46,7 @@ namespace Tac.SemanticModel
 
     // TODO this returns a type
     // it is probably just an object type tho
-    internal class WeakGenericTypeDefinition : IFrontendCodeElement, IIsType //: //IWeakGenericTypeDefinition
+    internal class WeakGenericTypeDefinition : IFrontendCodeElement//, IIsType //: //IWeakGenericTypeDefinition
     {
         public WeakGenericTypeDefinition(
             IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
@@ -62,7 +62,7 @@ namespace Tac.SemanticModel
         public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
         public IOrType<IBox<WeakScope>, IError> Scope { get; }
 
-        public IFrontendType FrontendType()
+        public SyntaxModel.Elements.AtomicTypes.AnyType FrontendType()
         {
             return new SyntaxModel.Elements.AtomicTypes.AnyType();
         }

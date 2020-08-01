@@ -20,7 +20,7 @@ namespace Tac.Frontend
 
     // ref
     internal interface IReturn {
-        IOrType<IFrontendType,IError> Returns();
+        IOrType<IFrontendType, IError> Returns();
     }
 
     // not every frontend code element is convertable. type definitions are not.
@@ -55,7 +55,7 @@ namespace Tac.Frontend
     }
 
 
-    internal interface IFrontendType: IFrontendCodeElement
+    internal interface IFrontendType: IFrontendCodeElement, IConvertable<IVerifiableType>
     {
         // we need to pass around a list of assumed true
         // TheyAreUs is often called inside TheyAreUs
@@ -76,17 +76,11 @@ namespace Tac.Frontend
 
         public static IVerifiableType ConvertTypeOrThrow(this IFrontendType self, IConversionContext context)
         {
-            if (self is IConvertableFrontendType<IVerifiableType> convertable)
+            if (self is IFrontendType convertable)
             {
                 return convertable.Convert(context);
             }
             throw new Exception("could not be converted");
         }
-    }
-
-    // TODO, some of these transform to specific types!
-    internal interface IConvertableFrontendType<out T>: IFrontendType, IConvertable<T>
-        where T: IVerifiableType
-    {
     }
 }

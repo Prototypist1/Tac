@@ -45,7 +45,7 @@ namespace Tac.SemanticModel.CodeStuff
 namespace Tac.Frontend.SyntaxModel.Operations
 {
     // what even is the point of this? it just defers to the type
-    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>, IFrontendCodeElement, IIsType
+    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>, IFrontendCodeElement//, IIsType
     {
         private readonly IOrType<IBox<IFrontendType>, IError> left;
         private readonly IOrType<IBox<IFrontendType>, IError> right;
@@ -69,15 +69,9 @@ namespace Tac.Frontend.SyntaxModel.Operations
                 ));
         }
 
-
-        public FrontEndOrType AcutalType()
+        public FrontEndOrType FrontendType()
         {
             return lazy.Value;
-        }
-
-        public IFrontendType FrontendType()
-        {
-            return AcutalType();
         }
     }
 
@@ -85,7 +79,7 @@ namespace Tac.Frontend.SyntaxModel.Operations
     {
         public TypeOrOperationMaker() : base(
             SymbolsRegistry.StaticTypeOrSymbol, 
-            (l, r) => OrType.Make<IBox <FrontEndOrType>,IError>(new Box<FrontEndOrType>(new WeakTypeOrOperation(l, r).AcutalType())),
+            (l, r) => new Box<FrontEndOrType>(new WeakTypeOrOperation(l, r).FrontendType()),
             (s,c,l,r)=> {
 
                 var key = new ImplicitKey(Guid.NewGuid());

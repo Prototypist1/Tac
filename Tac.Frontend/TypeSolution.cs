@@ -159,12 +159,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheScope[scope];
             }
 
-            private readonly Dictionary<TypeProblem2.TypeReference, IBox<IOrType<IFrontendType, IError>>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, IBox<IOrType<IFrontendType, IError>>>();
-            public IBox<IOrType<IFrontendType, IError>> GetTypeReference(TypeProblem2.TypeReference typeReference)
+            private readonly Dictionary<TypeProblem2.TypeReference, IBox<IFrontendType>> cacheTypeReference = new Dictionary<TypeProblem2.TypeReference, IBox<IFrontendType>>();
+            public IBox<IFrontendType> GetTypeReference(TypeProblem2.TypeReference typeReference)
             {
                 if (!cacheTypeReference.ContainsKey(typeReference))
                 {
-                    var box = new Box<IOrType<IFrontendType, IError>>();
+                    var box = new Box<IFrontendType>();
                     cacheTypeReference[typeReference] = box;
                     box.Fill(typeReference.Converter.Convert(this, typeReference));
                 }

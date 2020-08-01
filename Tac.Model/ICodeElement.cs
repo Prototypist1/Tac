@@ -7,7 +7,7 @@ namespace Tac.Model
 
     public interface IConvertable {
         T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-        where TBacking : IBacking;
+            where TBacking : IBacking;
     }
 
     

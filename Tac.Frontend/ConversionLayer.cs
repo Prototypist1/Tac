@@ -118,7 +118,9 @@ namespace Tac.Frontend
                 v2 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingTypeBox(typeSolution.GetExplicitType(v2.Source.GetOrThrow()))),
                 v3 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingObjectBox(typeSolution.GetObject(v3.Source.GetOrThrow()))),
                 v4 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingOrBox(typeSolution.GetOrType(v4.Source.GetOrThrow()))),
-                v5 => v5.ToRep().SwitchReturns(x=> OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(new Tpn.VirtualNode( x, Possibly.IsNot<Tpn.SourcePath>()))),x=> OrType.Make<IBox<IFrontendType>, IError>(x)),
+                v5 => v5.ToRep().SwitchReturns(
+                    x=> OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(new Tpn.VirtualNode( x, Possibly.IsNot<Tpn.SourcePath>()))),
+                    x=> OrType.Make<IBox<IFrontendType>, IError>(x)),
                 v6 => OrType.Make<IBox<IFrontendType>, IError>(v6)
                 );
         }
@@ -185,8 +187,8 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()));
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().CastTo<IFrontendType>()),
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().CastTo<IFrontendType>()));
             }
 
 
@@ -196,8 +198,8 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()),
-                        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType()));
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IFrontendType>()),
+                        OrType.Make<IFrontendType, IError>(new EmptyType()));
             }
 
             if (output != default)
@@ -206,8 +208,8 @@ namespace Tac.Frontend
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
                     new MethodType(
-                        OrType.Make<IConvertableFrontendType<IVerifiableType>, IError>(new EmptyType()),
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IConvertableFrontendType<IVerifiableType>>()));
+                        OrType.Make<IFrontendType, IError>(new EmptyType()),
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IFrontendType>()));
             }
 
             // if it has members it must be a scope
@@ -331,9 +333,9 @@ namespace Tac.Frontend
             return
                 new MethodType(
                     typeSolution.GetType(typeSolution.GetFlowNode2(from.Input.GetOrThrow()))
-                    .TransformInner(x=>x.GetValue().CastTo<IConvertableFrontendType<IVerifiableType>>()),
+                    .TransformInner(x=>x.GetValue().CastTo<IFrontendType>()),
                     typeSolution.GetType(typeSolution.GetFlowNode2(from.Returns.GetOrThrow()))
-                    .TransformInner(x => x.GetValue().CastTo< IConvertableFrontendType<IVerifiableType>>()));
+                    .TransformInner(x => x.GetValue().CastTo< IFrontendType>()));
         }
     }
 
@@ -432,7 +434,8 @@ namespace Tac.Frontend
         {
             // I don't think this is safe see:
             // {D27D98BA-96CF-402C-824C-744DACC63FEE}
-            return Help.GetType(typeSolution, from).TransformInner(x=>x.GetValue());
+
+            return new WeakTypeReference(Help.GetType(typeSolution, from));
         }
     }
 
