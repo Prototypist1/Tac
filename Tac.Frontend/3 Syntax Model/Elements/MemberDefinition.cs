@@ -42,24 +42,24 @@ namespace Tac.SemanticModel
     internal static class MemberDefinitionShared
     {
 
-        public static IMemberDefinition Convert(IOrType<IBox<IFrontendType>, IError> Type, IConversionContext context, bool ReadOnly, IKey Key)
+        public static IMemberDefinition Convert(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (def, builder) = MemberDefinition.Create();
 
             //uhh seems bad
-            var buildIntention = Type.TransformInner(x => x.GetValue().CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context));
+            var buildIntention = Type.GetValue().TransformInner(x => x.CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context));
             var built = buildIntention.TransformInner(x => { x.Build(); return x.Tobuild; });
             builder.Build(Key, built.Is1OrThrow(), ReadOnly);
             return def;
         }
-        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IOrType<IBox<IFrontendType>, IError> Type, IConversionContext context, bool ReadOnly, IKey Key)
+        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, bool ReadOnly, IKey Key)
         {
             var (toBuild, maker) = MemberDefinition.Create();
             return new BuildIntention<IMemberDefinition>(toBuild, () =>
             {
                 maker.Build(
                     Key,
-                    Type.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
+                    Type.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     ReadOnly);
             });
         }
@@ -83,14 +83,14 @@ namespace Tac.SemanticModel
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate, IReturn
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, IOrType<IBox<IFrontendType>, IError> type)
+        public WeakMemberDefinition(bool readOnly, IKey key, IBox<IOrType<IFrontendType, IError>> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             ReadOnly = readOnly;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IOrType<IBox<IFrontendType>, IError> Type { get; }
+        public IBox<IOrType<IFrontendType, IError>> Type { get; }
         public bool ReadOnly { get; }
         public IKey Key { get; }
 
@@ -106,12 +106,12 @@ namespace Tac.SemanticModel
 
         public IOrType<IFrontendType, IError> Returns()
         {
-            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(Type.TransformInner(x => x.GetValue())));
+            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(Type.GetValue().TransformInner(x => x)));
         }
 
         public IEnumerable<IError> Validate()
         {
-            foreach (var error in Type.SwitchReturns(x => x.GetValue().Validate(), x => new[] { x }))
+            foreach (var error in Type.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
             {
                 yield return error;
             }

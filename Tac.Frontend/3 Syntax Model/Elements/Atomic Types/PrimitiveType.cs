@@ -105,18 +105,18 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return HasMembersLibrary.CanAssign(
                 they,
                 this,
-                weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.TransformInner(x=>x.GetValue()))).ToList(),
+                weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.GetValue().TransformInner(x=>x))).ToList(),
                 (target,key) => target.TryGetMember(key),
                 (target,other,assumes)=> target.TheyAreUs(other,assumes),
                 assumeTrue
                 );
         }
         
-        public IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.GetValue().Type.Possibly1()).OfType<IIsDefinately<IFrontendType>>().SelectMany(x => x.Value.Validate());
+        public IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.GetValue().Type.GetValue().Possibly1()).OfType<IIsDefinately<IFrontendType>>().SelectMany(x => x.Value.Validate());
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key)
         {
-            return HasMembersLibrary.TryGetMember(key, weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.TransformInner(x => x.GetValue()))).ToList());
+            return HasMembersLibrary.TryGetMember(key, weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.GetValue().TransformInner(x => x))).ToList());
         }
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)

@@ -502,21 +502,31 @@ namespace Tac.Parser
         //    throw new Exception("");
         //}
         
-        public IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> ParseFile(FileToken file)
+        public void ParseFile(FileToken file)
         {
-            return file.Tokens.Select(x => ParseLine(x.CastTo<LineToken>().Tokens)).ToArray();
+            foreach (var line in file.Tokens)
+            {
+                ParseLine(line.CastTo<LineToken>().Tokens);
+            }
+
+            //file.Tokens.Select(x => ParseLine(x.CastTo<LineToken>().Tokens)).ToArray();
         }
 
-        public IReadOnlyList< IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> ParseBlock(CurleyBracketToken block)
+        public void ParseBlock(CurleyBracketToken block)
         {
-            return block.Tokens.Select(x =>
+            foreach (var line in block.Tokens)
             {
-                if (x is LineToken lineToken)
-                {
-                    return ParseLine(lineToken.Tokens);
-                }
-                throw new Exception("unexpected token type");
-            }).ToArray();
+                ParseLine(line.CastTo<LineToken>().Tokens);
+            }
+
+            //return block.Tokens.Select(x =>
+            //{
+            //    if (x is LineToken lineToken)
+            //    {
+            //        return ParseLine(lineToken.Tokens);
+            //    }
+            //    throw new Exception("unexpected token type");
+            //}).ToArray();
         }
 
 

@@ -197,14 +197,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheMethodType[methodType];
             }
 
-            private readonly Dictionary<Tpn.VirtualNode, IBox<IFrontendType>> cacheInferredType = new Dictionary<Tpn.VirtualNode, IBox<IFrontendType>>();
+            private readonly Dictionary<Tpn.VirtualNode, IBox<IOrType<IFrontendType, IError>>> cacheInferredType = new Dictionary<Tpn.VirtualNode, IBox<IOrType<IFrontendType, IError>>>();
 
 
-            public IBox<IFrontendType> GetInferredType(Tpn.VirtualNode inferredType)
+            public IBox<IOrType<IFrontendType, IError>> GetInferredType(Tpn.VirtualNode inferredType)
             {
                 if (!cacheInferredType.ContainsKey(inferredType))
                 {
-                    var box = new Box<IFrontendType>();
+                    var box = new Box<IOrType<IFrontendType, IError>>();
                     cacheInferredType[inferredType] = box;
                     box.Fill(new InferredTypeConverter2().Convert(this, inferredType));
                 }
@@ -212,14 +212,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // naming!
-            private readonly Dictionary<Tpn.CombinedTypesAnd, IBox<IFrontendType>> cacheInferredType2 = new Dictionary<Tpn.CombinedTypesAnd, IBox<IFrontendType>>();
+            private readonly Dictionary<Tpn.CombinedTypesAnd, IBox<IOrType<IFrontendType,IError>>> cacheInferredType2 = new Dictionary<Tpn.CombinedTypesAnd, IBox<IOrType<IFrontendType, IError>>>();
 
 
-            public IBox<IFrontendType> GetInferredType(Tpn.CombinedTypesAnd inferredType)
+            public IBox<IOrType<IFrontendType, IError>> GetInferredType(Tpn.CombinedTypesAnd inferredType)
             {
                 if (!cacheInferredType2.ContainsKey(inferredType))
                 {
-                    var box = new Box<IFrontendType>();
+                    var box = new Box<IOrType<IFrontendType, IError>>();
                     cacheInferredType2[inferredType] = box;
                     box.Fill(new InferredTypeConverter().Convert(this, inferredType));
                 }
@@ -354,47 +354,45 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return false;
             }
 
-            public IOrType<IBox<IFrontendType>,IError> GetType(IOrType<IVirtualFlowNode, IError> or)
+            public IBox<IOrType<IFrontendType,IError>> GetType(IOrType<IVirtualFlowNode, IError> or)
             {
-                return or.SwitchReturns(node =>
+                return or.SwitchReturns<IBox<IOrType<IFrontendType, IError>>>(node =>
                 {
                     // the list of types here comes from the big Or in typeSolution 
                     // + Uhh see {A2333086-1634-4C8D-9FB1-453BE0BC2F03}
                     if (node is IFlowNode<TypeProblem2.MethodType> typeFlowMethodType)
                     {
-                        return OrType.Make<IBox<IFrontendType>, IError>(
-                                GetMethodType(typeFlowMethodType.Source.GetOrThrow()));
+                        return new UnWrappingMethodBox(GetMethodType(typeFlowMethodType.Source.GetOrThrow()));
                     }
                     if (node is IFlowNode<TypeProblem2.Type> typeFlowNode)
                     {
-                        return OrType.Make<IBox<IFrontendType>, IError>(
-                                new UnWrappingTypeBox(GetExplicitType(typeFlowNode.Source.GetOrThrow())));
+                        return new UnWrappingTypeBox(GetExplicitType(typeFlowNode.Source.GetOrThrow()));
                     }
                     if (node is IFlowNode<TypeProblem2.Object> typeFlowObject)
                     {
-                        return OrType.Make<IBox<IFrontendType>, IError>(
+                        return 
                             new UnWrappingObjectBox(
-                                GetObject(typeFlowObject.Source.GetOrThrow())));
+                                GetObject(typeFlowObject.Source.GetOrThrow()));
                     }
                     if (node is IFlowNode<TypeProblem2.OrType> typeFlowOr)
                     {
-                        return OrType.Make<IBox<IFrontendType>, IError>(
-                            new UnWrappingOrBox(GetOrType(typeFlowOr.Source.GetOrThrow())));
+                        return 
+                            new UnWrappingOrBox(GetOrType(typeFlowOr.Source.GetOrThrow()));
                     }
 
                     // at this point we are Concrete<Inferred>
                     // or VirtualNode
 
                     return node.ToRep().SwitchReturns(
-                        x => OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(new VirtualNode(x, node.SourcePath()))), 
-                        x => OrType.Make<IBox<IFrontendType>, IError>(x));
+                        x => GetInferredType(new VirtualNode(x, node.SourcePath())), 
+                        x => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x)));
 
                     //if (node is IFlowNode<Uhh> typeFlowUhh)
                     //{
                     //    return OrType.Make<IBox<IFrontendType>, IError>(GetInferredType(typeFlowUhh, new InferredTypeConverter()));
                     //}
                     throw new NotImplementedException("I thought i had to be one of those");
-                }, x => OrType.Make<IBox<IFrontendType>, IError>(x));
+                }, x => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x)));
             }
 
 
@@ -449,4 +447,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
     }
+
+    
 }

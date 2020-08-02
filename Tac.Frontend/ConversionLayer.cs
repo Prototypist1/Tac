@@ -42,6 +42,21 @@ namespace Tac.Frontend
         }
     }
 
+    internal class UnWrappingMethodBox : IBox<IOrType<IFrontendType, IError>>
+    {
+        private IBox<MethodType> box;
+
+        public UnWrappingMethodBox(IBox<MethodType> box)
+        {
+            this.box = box;
+        }
+
+        public IOrType<IFrontendType, IError> GetValue()
+        {
+            return OrType.Make<IFrontendType, IError>(box.GetValue());
+        }
+    }
+
     internal class UnWrappingTypeBox : IBox<IOrType<IFrontendType, IError>>
     {
         private readonly IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box;
@@ -98,7 +113,8 @@ namespace Tac.Frontend
     // I have a lot of GetValue on this page
     // I am sure they are ok when they are passed in the consturctor
     // but if they running of typeSolution they are not really safe
-
+    // if this becomes a problem, it  probably would be ok if boxes flowed out of there
+    // This is consumed by my weak model and that loves boxes
     internal static class Help
     {
         public static WeakScope GetScope(Tpn.TypeSolution typeSolution, Tpn.IHavePrivateMembers haveMembers)
@@ -134,7 +150,7 @@ namespace Tac.Frontend
                 v3 => new UnWrappingObjectBox(typeSolution.GetObject(v3.Source.GetOrThrow())),
                 v4 => new UnWrappingOrBox(typeSolution.GetOrType(v4.Source.GetOrThrow())),
                 v5 => v5.ToRep().SwitchReturns<IBox<IOrType<IFrontendType, IError>>>(
-                    x=> new UnwrappingInferredBox(typeSolution.GetInferredType(new Tpn.VirtualNode( x, Possibly.IsNot<Tpn.SourcePath>()))),
+                    x=> typeSolution.GetInferredType(new Tpn.VirtualNode( x, Possibly.IsNot<Tpn.SourcePath>())),
                     x=> new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x))),
                 v6 => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(v6))
                 );
@@ -203,8 +219,8 @@ namespace Tac.Frontend
                 return
                      OrType.Make<IFrontendType, IError>(
                     new MethodType(
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().CastTo<IFrontendType>()),
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().CastTo<IFrontendType>())));
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).GetValue().TransformInner(x => x.CastTo<IFrontendType>()),
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).GetValue().TransformInner(x => x.CastTo<IFrontendType>())));
             }
 
 
@@ -215,7 +231,7 @@ namespace Tac.Frontend
                 return
                      OrType.Make<IFrontendType, IError>(
                     new MethodType(
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IFrontendType>()),
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).GetValue().TransformInner(x => x.SafeCastTo<IFrontendType, IFrontendType>()),
                         OrType.Make<IFrontendType, IError>(new EmptyType())));
             }
 
@@ -227,7 +243,7 @@ namespace Tac.Frontend
                      OrType.Make<IFrontendType, IError>(
                     new MethodType(
                         OrType.Make<IFrontendType, IError>(new EmptyType()),
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IFrontendType>())));
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).GetValue().TransformInner(x => x.SafeCastTo<IFrontendType, IFrontendType>())));
             }
 
             // if it has members it must be a scope
@@ -240,12 +256,12 @@ namespace Tac.Frontend
         }
     }
 
-    internal class InferredTypeConverter2 : Tpn.IConvertTo<Tpn.VirtualNode, IFrontendType>
+    internal class InferredTypeConverter2 : Tpn.IConvertTo<Tpn.VirtualNode, IOrType< IFrontendType,IError>>
     {
-        public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.VirtualNode flowNode)
+        public IOrType<IFrontendType, IError> Convert(Tpn.TypeSolution typeSolution, Tpn.VirtualNode flowNode)
         {
             if (flowNode.Or.Count == 0) {
-                return new AnyType();
+                return OrType.Make < IFrontendType, IError > (new AnyType());
             }
 
             if (flowNode.Or.Count == 1)
@@ -257,13 +273,13 @@ namespace Tac.Frontend
             var array = flowNode.Or.ToArray();
             var first = array[0];
             var second = array[1];
-            var res = new FrontEndOrType(OrType.Make<IFrontendType, IError>(typeSolution.GetInferredType(first).GetValue()), OrType.Make<IFrontendType, IError>(typeSolution.GetInferredType(second).GetValue()));
+            var res = new FrontEndOrType(typeSolution.GetInferredType(first).GetValue(), typeSolution.GetInferredType(second).GetValue());
             foreach (var entry in array.Skip(2))
             {
-                res = new FrontEndOrType(OrType.Make<IFrontendType, IError>(res), OrType.Make<IFrontendType, IError>(typeSolution.GetInferredType(entry).GetValue()));
+                res = new FrontEndOrType(OrType.Make<IFrontendType, IError>(res), typeSolution.GetInferredType(entry).GetValue());
             }
 
-            return res;
+            return OrType.Make<IFrontendType, IError>(res);
 
         }
     }
@@ -351,9 +367,9 @@ namespace Tac.Frontend
             return
                 new MethodType(
                     typeSolution.GetType(typeSolution.GetFlowNode2(from.Input.GetOrThrow()))
-                    .TransformInner(x=>x.GetValue().CastTo<IFrontendType>()),
+                    .GetValue().TransformInner(x=>x.CastTo<IFrontendType>()),
                     typeSolution.GetType(typeSolution.GetFlowNode2(from.Returns.GetOrThrow()))
-                    .TransformInner(x => x.GetValue().CastTo< IFrontendType>()));
+                    .GetValue().TransformInner(x => x.CastTo< IFrontendType>()));
         }
     }
 

@@ -43,7 +43,7 @@ namespace Tac.SemanticModel
         public WeakImplementationDefinition(
             IBox<WeakMemberDefinition> contextDefinition,
             IBox<WeakMemberDefinition> parameterDefinition,
-            IOrType< IBox<IFrontendType>,IError> outputType,
+            IBox<IOrType<IFrontendType, IError>> outputType,
             IReadOnlyList<IBox<IFrontendCodeElement>> metohdBody,
             IBox<WeakScope> scope, 
             IEnumerable<IFrontendCodeElement> staticInitializers)
@@ -56,7 +56,7 @@ namespace Tac.SemanticModel
             StaticInitialzers = staticInitializers ?? throw new ArgumentNullException(nameof(staticInitializers));
         }
 
-        public IOrType<IBox<IFrontendType>, IError> OutputType { get; }
+        public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
         public IBox<WeakMemberDefinition> ContextDefinition { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
         public IBox<WeakScope> Scope { get; }
@@ -69,7 +69,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    OutputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
+                    OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     ContextDefinition.GetValue().Convert(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
@@ -83,15 +83,15 @@ namespace Tac.SemanticModel
             // TODO
             // are there really frontend types that arnt convertable?!
             return OrType.Make<IFrontendType, IError>(SyntaxModel.Elements.AtomicTypes.MethodType.ImplementationType(
-                ParameterDefinition.GetValue().Type.TransformInner(x=>x.GetValue()),
-                OutputType.TransformInner(x=>x.GetValue()),
-                ContextDefinition.GetValue().Type.TransformInner(x=>x.GetValue())
+                ParameterDefinition.GetValue().Type.GetValue().TransformInner(x=>x),
+                OutputType.GetValue().TransformInner(x=>x),
+                ContextDefinition.GetValue().Type.GetValue().TransformInner(x=>x)
                 ));
         }
 
         public IEnumerable<IError> Validate()
         {
-            foreach (var error in OutputType.SwitchReturns(x=>x.GetValue().Validate(),x=> new[] { x}))
+            foreach (var error in OutputType.GetValue().SwitchReturns(x=>x.Validate(),x=> new[] { x}))
             {
                 yield return error;
             }

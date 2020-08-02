@@ -38,7 +38,7 @@ namespace Tac.SemanticModel
         WeakAbstractBlockDefinition<IInternalMethodDefinition>, IReturn
     {
         public WeakMethodDefinition(
-            IOrType<IBox<IFrontendType>, IError> outputType,
+            IBox<IOrType<IFrontendType, IError>> outputType,
             IBox<WeakMemberDefinition> parameterDefinition,
             IReadOnlyList<IOrType< IBox<IFrontendCodeElement>,IError>> body,
             IOrType<IBox<WeakScope>, IError> scope,
@@ -49,7 +49,7 @@ namespace Tac.SemanticModel
         }
 
         public IOrType<IBox<IFrontendType>,IError> InputType => ParameterDefinition.GetValue().Type;
-        public IOrType<IBox<IFrontendType>, IError> OutputType { get; }
+        public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
 
         public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(IConversionContext context)
@@ -59,7 +59,7 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     InputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
-                    OutputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
+                    OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.Is1OrThrow().GetValue().Convert(context),
                     Body.Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
@@ -73,7 +73,7 @@ namespace Tac.SemanticModel
             // are there really frontend types that arn't convertable?
             return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
                 InputType.TransformInner(x=>x.GetValue()),
-                OutputType.TransformInner(x=>x.GetValue())
+                OutputType.GetValue().TransformInner(x=>x)
                 ));
         }
     }
