@@ -72,7 +72,7 @@ namespace Tac.SemanticModel.CodeStuff
         public delegate IBox<T> Make<out T>(IOrType<IBox<IFrontendCodeElement>, IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right);
 
         public delegate Tpn.TypeProblem2.TypeReference ToTypeProblemThings(Tpn.IStaticScope scope, ISetUpContext context, ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> left, ISetUpResult<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> right);
-        public delegate T MakeBinaryType<out T>(IOrType<IBox<IFrontendType>,IError> left, IOrType<IBox<IFrontendType>,IError> right);
+        public delegate T MakeBinaryType<out T>(IBox<IOrType<IFrontendType,IError>> left, IBox<IOrType<IFrontendType,IError>> right);
 
 
     }
@@ -119,8 +119,8 @@ namespace Tac.SemanticModel.CodeStuff
         where TRight : IFrontendType
         where TType: IVerifiableType 
     { 
-        public IOrType<IBox<TLeft>, IError> Left { get; }
-        public IOrType<IBox<TRight>, IError> Right { get; }
+        public IBox<IOrType<TLeft, IError>> Left { get; }
+        public IBox<IOrType<TRight, IError>> Right { get; }
         public IEnumerable<IBox<IFrontendType>> Operands { get {
                 // this make me sad,
                 // if we could mark TLeft, TRight as classes and I would need these ugly casts
@@ -133,7 +133,7 @@ namespace Tac.SemanticModel.CodeStuff
             }
         }
 
-        public BinaryTypeOperation(IOrType<IBox<TLeft>,IError> left, IOrType<IBox<TRight>, IError> right)
+        public BinaryTypeOperation(IBox<IOrType<TLeft, IError>> left, IBox<IOrType<TRight, IError>> right)
         {
             this.Left = left ?? throw new ArgumentNullException(nameof(left));
             this.Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -144,11 +144,11 @@ namespace Tac.SemanticModel.CodeStuff
 
         public virtual IEnumerable<IError> Validate()
         {
-            foreach (var error in Left.SwitchReturns(x=>x.GetValue().Validate(),x=>new[] { x}))
+            foreach (var error in Left.GetValue().SwitchReturns(x=>x.Validate(),x=>new[] { x}))
             {
                 yield return error;
             }
-            foreach (var error in Right.SwitchReturns(x => x.GetValue().Validate(), x => new[] { x }))
+            foreach (var error in Right.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
             {
                 yield return error;
             }
@@ -399,12 +399,29 @@ namespace Tac.SemanticModel.CodeStuff
             public IBox<IFrontendType> Run(Tpn.TypeSolution context)
             {
                 var res = make(
-                    left.Run(context),
-                    right.Run( context));
+                    new BoxThenOr(left.Run(context)),
+                    new BoxThenOr(right.Run( context)));
 
                 return res;
             }
         }
     }
 
+    // maybe this is a good standard format for my tetering towers of Boxes and Ors
+    internal class BoxThenOr : IBox<IOrType<IFrontendType, IError>>
+    {
+        private IOrType<IBox<IFrontendType>, IError> orType;
+
+        public BoxThenOr(IOrType<IBox<IFrontendType>, IError> orType)
+        {
+            this.orType = orType ?? throw new ArgumentNullException(nameof(orType));
+        }
+
+        public IOrType<IFrontendType, IError> GetValue()
+        {
+            return orType.SwitchReturns(
+                x => OrType.Make<IFrontendType, IError>(x.GetValue()),
+                x => OrType.Make<IFrontendType, IError>(x));
+        }
+    }
 }

@@ -18,16 +18,31 @@ namespace Tac.Frontend
 {
     internal class PlaceholderValue
     {
-        public readonly IOrType<IBox<IFrontendType>,IError> Type;
+        public readonly IBox<IOrType<IFrontendType, IError>> Type;
 
-        public PlaceholderValue(IOrType<IBox<IFrontendType>, IError> testType)
+        public PlaceholderValue(IBox<IOrType<IFrontendType, IError>> testType)
         {
             Type = testType ?? throw new ArgumentNullException(nameof(testType));
         }
     }
 
 
-    internal class UnWrappingTypeBox : IBox<IFrontendType>
+    internal class UnwrappingInferredBox : IBox<IOrType<IFrontendType, IError>>
+    {
+        private IBox<IFrontendType> box;
+
+        public UnwrappingInferredBox(IBox<IFrontendType> box)
+        {
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+        }
+
+        public IOrType<IFrontendType, IError> GetValue()
+        {
+            return OrType.Make<IFrontendType, IError>(box.GetValue());
+        }
+    }
+
+    internal class UnWrappingTypeBox : IBox<IOrType<IFrontendType, IError>>
     {
         private readonly IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box;
 
@@ -36,10 +51,10 @@ namespace Tac.Frontend
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IFrontendType GetValue() => box.GetValue().SwitchReturns<IFrontendType>(x => x.FrontendType(), x => x.FrontendType(), x => x);
+        public IOrType<IFrontendType, IError> GetValue() => box.GetValue().SwitchReturns(x => x.FrontendType(), x => OrType.Make<IFrontendType, IError>(x.FrontendType()), x => OrType.Make<IFrontendType, IError>(x));
     }
 
-    internal class UnWrappingOrBox : IBox<IFrontendType>
+    internal class UnWrappingOrBox : IBox<IOrType<IFrontendType, IError>>
     {
         private readonly IBox<WeakTypeOrOperation> box;
 
@@ -48,11 +63,11 @@ namespace Tac.Frontend
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IFrontendType GetValue() => box.GetValue().FrontendType();
+        public IOrType<IFrontendType, IError> GetValue() => OrType.Make<IFrontendType, IError>(box.GetValue().FrontendType());
     }
 
 
-    internal class UnWrappingObjectBox : IBox<IFrontendType>
+    internal class UnWrappingObjectBox : IBox<IOrType<IFrontendType,IError>>
     {
         private readonly IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> box;
 
@@ -61,16 +76,16 @@ namespace Tac.Frontend
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IFrontendType GetValue()
+        public IOrType<IFrontendType, IError> GetValue()
         {
             var inner = box.GetValue();
             if (inner.Is1(out var inner1))
             {
-                return inner1.AssuredReturns();
+                return inner1.Returns();
             }
             else if (inner.Is2(out var inner2))
             {
-                return inner2.AssuredReturns();
+                return inner2.Returns();
             }
             else
             {
@@ -111,53 +126,53 @@ namespace Tac.Frontend
             return OrType.Make<WeakScope, IError>(new WeakScope(publicMembersOr.Is1OrThrow().Select(x => typeSolution.GetMember(x, new WeakMemberDefinitionConverter(false, x.Key))).ToList()));
         }
 
-        public static IOrType< IBox<IFrontendType>,IError> GetType(Tpn.TypeSolution typeSolution, Tpn.ILookUpType lookUpType)
+        public static IBox<IOrType<IFrontendType, IError>> GetType(Tpn.TypeSolution typeSolution, Tpn.ILookUpType lookUpType)
         {
-            return typeSolution.GetFlowNode(lookUpType).SwitchReturns(
-                v1 => OrType.Make<IBox<IFrontendType>, IError>(new Box<IFrontendType>(typeSolution.GetMethodType(v1.Source.GetOrThrow()).GetValue())),
-                v2 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingTypeBox(typeSolution.GetExplicitType(v2.Source.GetOrThrow()))),
-                v3 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingObjectBox(typeSolution.GetObject(v3.Source.GetOrThrow()))),
-                v4 => OrType.Make<IBox<IFrontendType>, IError>(new UnWrappingOrBox(typeSolution.GetOrType(v4.Source.GetOrThrow()))),
-                v5 => v5.ToRep().SwitchReturns(
-                    x=> OrType.Make<IBox<IFrontendType>, IError>(typeSolution.GetInferredType(new Tpn.VirtualNode( x, Possibly.IsNot<Tpn.SourcePath>()))),
-                    x=> OrType.Make<IBox<IFrontendType>, IError>(x)),
-                v6 => OrType.Make<IBox<IFrontendType>, IError>(v6)
+            return typeSolution.GetFlowNode(lookUpType).SwitchReturns<IBox<IOrType<IFrontendType, IError>>>(
+                v1 => new Box<IOrType<IFrontendType, IError>>(OrType.Make < IFrontendType, IError > (typeSolution.GetMethodType(v1.Source.GetOrThrow()).GetValue())),
+                v2 => new UnWrappingTypeBox(typeSolution.GetExplicitType(v2.Source.GetOrThrow())),
+                v3 => new UnWrappingObjectBox(typeSolution.GetObject(v3.Source.GetOrThrow())),
+                v4 => new UnWrappingOrBox(typeSolution.GetOrType(v4.Source.GetOrThrow())),
+                v5 => v5.ToRep().SwitchReturns<IBox<IOrType<IFrontendType, IError>>>(
+                    x=> new UnwrappingInferredBox(typeSolution.GetInferredType(new Tpn.VirtualNode( x, Possibly.IsNot<Tpn.SourcePath>()))),
+                    x=> new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x))),
+                v6 => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(v6))
                 );
         }
     }
 
-    internal class InferredTypeConverter : Tpn.IConvertTo<Tpn.CombinedTypesAnd, IFrontendType>
+    internal class InferredTypeConverter : Tpn.IConvertTo<Tpn.CombinedTypesAnd, IOrType<IFrontendType, IError>>
     {
-        public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.CombinedTypesAnd flowNode)
+        public IOrType< IFrontendType,IError> Convert(Tpn.TypeSolution typeSolution, Tpn.CombinedTypesAnd flowNode)
         {
             if (flowNode.And.Count == 0)
             {
-                return new AnyType();
+                return OrType.Make<IFrontendType,IError>(new AnyType());
             }
 
             var prim = flowNode.Primitive();
 
             if (prim.Is2(out var error)) {
-                return new IndeterminateType(error);
+                return OrType.Make<IFrontendType, IError>(error);
             }
 
             if (prim.Is1OrThrow().Is(out var _)) {
                 var single = flowNode.And.Single().Is2OrThrow() ;
-                return typeSolution.GetExplicitType(single.Source.GetOrThrow()).GetValue().Is3OrThrow();
+                return OrType.Make<IFrontendType, IError>(typeSolution.GetExplicitType(single.Source.GetOrThrow()).GetValue().Is3OrThrow());
             }
 
             var scopeOr = Help.GetScope(typeSolution, flowNode);
 
             if (scopeOr.Is2(out var e4))
             {
-                return new IndeterminateType(e4);
+                return OrType.Make<IFrontendType, IError>(e4);
             }
             var scope = scopeOr.Is1OrThrow();
 
             if (typeSolution.TryGetInputMember(flowNode, out var inputOr)) {
                 if (inputOr.Is2(out var e2))
                 {
-                    return new IndeterminateType(e2);
+                    return OrType.Make<IFrontendType, IError>(e2);
                 }
             }
             var input = inputOr?.Is1OrThrow();
@@ -166,7 +181,7 @@ namespace Tac.Frontend
             if (typeSolution.TryGetResultMember(flowNode, out var outputOr)) { 
                 if (outputOr.Is2(out var e3))
                 {
-                    return new IndeterminateType(e3);
+                    return OrType.Make<IFrontendType, IError>(e3);
                 }
                 
             }
@@ -186,9 +201,10 @@ namespace Tac.Frontend
                 // I don't think this is safe see:
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
+                     OrType.Make<IFrontendType, IError>(
                     new MethodType(
                         typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().CastTo<IFrontendType>()),
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().CastTo<IFrontendType>()));
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().CastTo<IFrontendType>())));
             }
 
 
@@ -197,9 +213,10 @@ namespace Tac.Frontend
                 // I don't think this is safe see:
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
+                     OrType.Make<IFrontendType, IError>(
                     new MethodType(
                         typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(input)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IFrontendType>()),
-                        OrType.Make<IFrontendType, IError>(new EmptyType()));
+                        OrType.Make<IFrontendType, IError>(new EmptyType())));
             }
 
             if (output != default)
@@ -207,9 +224,10 @@ namespace Tac.Frontend
                 // I don't think this is safe see:
                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                 return
+                     OrType.Make<IFrontendType, IError>(
                     new MethodType(
                         OrType.Make<IFrontendType, IError>(new EmptyType()),
-                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IFrontendType>()));
+                        typeSolution.GetType(OrType.Make<Tpn.IVirtualFlowNode, IError>(output)).TransformInner(x => x.GetValue().SafeCastTo<IFrontendType, IFrontendType>())));
             }
 
             // if it has members it must be a scope
@@ -218,7 +236,7 @@ namespace Tac.Frontend
                 return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope))).FrontendType();
             }
 
-            return new AnyType();
+            return OrType.Make<IFrontendType, IError>(new AnyType());
         }
     }
 
@@ -428,9 +446,9 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IOrType< IFrontendType,IError>>
+    internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IFrontendType>
     {
-        public IOrType< IFrontendType,IError> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
+        public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
         {
             // I don't think this is safe see:
             // {D27D98BA-96CF-402C-824C-744DACC63FEE}

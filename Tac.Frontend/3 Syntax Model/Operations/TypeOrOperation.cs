@@ -22,10 +22,10 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
+        private static readonly WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
@@ -47,15 +47,15 @@ namespace Tac.Frontend.SyntaxModel.Operations
     // what even is the point of this? it just defers to the type
     internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>, IFrontendCodeElement//, IIsType
     {
-        private readonly IOrType<IBox<IFrontendType>, IError> left;
-        private readonly IOrType<IBox<IFrontendType>, IError> right;
+        //private readonly IBox<IOrType<IFrontendType, IError>> left;
+        //private readonly IBox<IOrType<IFrontendType, IError>> right;
         private readonly Lazy<FrontEndOrType> lazy;
 
-        public WeakTypeOrOperation(IOrType<IBox<IFrontendType>,IError> left, IOrType<IBox<IFrontendType>, IError> right) : base(left, right)
+        public WeakTypeOrOperation(IBox<IOrType<IFrontendType, IError>> left, IBox<IOrType<IFrontendType, IError>> right) : base(left, right)
         {
-            this.left = left ?? throw new ArgumentNullException(nameof(left));
-            this.right = right ?? throw new ArgumentNullException(nameof(right));
-            lazy = new Lazy<FrontEndOrType>(()=> new FrontEndOrType(left.TransformInner(x => x.GetValue()), right.TransformInner(x => x.GetValue())));
+            //this.left = left ?? throw new ArgumentNullException(nameof(left));
+            //this.right = right ?? throw new ArgumentNullException(nameof(right));
+            lazy = new Lazy<FrontEndOrType>(()=> new FrontEndOrType(left.GetValue().TransformInner(x => x), right.GetValue().TransformInner(x => x)));
         }
 
         public override IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
@@ -64,8 +64,8 @@ namespace Tac.Frontend.SyntaxModel.Operations
 
             var (res, builder) = TypeOr.Create();
             return new BuildIntention<ITypeOr>(res, () => builder.Build(
-                Left.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
-                Right.Is1OrThrow().GetValue().ConvertTypeOrThrow(context)
+                Left.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
+                Right.GetValue().Is1OrThrow().ConvertTypeOrThrow(context)
                 ));
         }
 

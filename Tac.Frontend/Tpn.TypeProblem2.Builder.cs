@@ -236,7 +236,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public TypeReference CreateTypeReference(IStaticScope context, IKey typeKey, IConvertTo<TypeReference, IOrType<IFrontendType, IError>> converter)
+                public TypeReference CreateTypeReference(IStaticScope context, IKey typeKey, IConvertTo<TypeReference, IFrontendType> converter)
                 {
                     var res = new TypeReference(this, typeKey.ToString()!, converter);
                     HasReference(context, res);

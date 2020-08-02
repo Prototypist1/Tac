@@ -22,7 +22,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
     }
 
-    internal interface IPrimitiveType
+    internal interface IPrimitiveType: IFrontendType
     {
     }
 
@@ -184,29 +184,29 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     // is it a type?
     // it is an error...
     // it is not convertable
-    internal class IndeterminateType : IFrontendType
-    {
-        private readonly IError error;
+    //internal class IndeterminateType : IFrontendType
+    //{
+    //    private readonly IError error;
 
-        public IndeterminateType(IError error)
-        {
-            this.error = error ?? throw new ArgumentNullException(nameof(error));
-        }
+    //    public IndeterminateType(IError error)
+    //    {
+    //        this.error = error ?? throw new ArgumentNullException(nameof(error));
+    //    }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
-        {
-            return OrType.Make<bool, IError>(ReferenceEquals(this, they));
-        }
+    //    public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
+    //    {
+    //        return OrType.Make<bool, IError>(ReferenceEquals(this, they));
+    //    }
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+    //    public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+    //    public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+    //    public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
 
-        public IEnumerable<IError> Validate()
-        {
-            return new[] { error };
-        }
-    }
+    //    public IEnumerable<IError> Validate()
+    //    {
+    //        return new[] { error };
+    //    }
+    //}
 
     internal struct BlockType : IFrontendType, IPrimitiveType
     {

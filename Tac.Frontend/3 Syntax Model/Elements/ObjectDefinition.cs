@@ -70,9 +70,6 @@ namespace Tac.SemanticModel
             });
         }
 
-        internal IFrontendType AssuredReturns() => Scope.SwitchReturns<IFrontendType>(
-                x=>new HasMembersType(x.GetValue()),
-                x=> new IndeterminateType(x));
 
         public IEnumerable<IError> Validate() {
             if (Scope.Is2(out var e1))
@@ -97,7 +94,9 @@ namespace Tac.SemanticModel
 
         public IOrType<IFrontendType, IError> Returns()
         {
-            return OrType.Make<IFrontendType, IError>(AssuredReturns());
+            return Scope.SwitchReturns(
+                x => OrType.Make<IFrontendType, IError > (new HasMembersType(x.GetValue())),
+                x => OrType.Make<IFrontendType, IError>(x));
         }
     }
 

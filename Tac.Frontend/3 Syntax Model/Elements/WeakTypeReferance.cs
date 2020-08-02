@@ -64,13 +64,13 @@ namespace Tac.SemanticModel
     // we have it because sometimes the reference might not find what it is looking for
     internal class WeakTypeReference : IFrontendType
     {
-        public WeakTypeReference(IOrType<IBox<IFrontendType>, IError> typeDefinition)
+        public WeakTypeReference(IBox<IOrType<IFrontendType, IError>> typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
 
 
-        public IOrType< IBox<IFrontendType>,IError> TypeDefinition { get; }
+        public IBox<IOrType<IFrontendType, IError>> TypeDefinition { get; }
 
         //public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         //{
@@ -80,7 +80,7 @@ namespace Tac.SemanticModel
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
-            return TypeDefinition.Is1OrThrow().GetValue().GetBuildIntention(context);
+            return TypeDefinition.GetValue().Is1OrThrow().GetBuildIntention(context);
         }
 
         //public IIsPossibly<IFrontendType> Returns()
@@ -90,36 +90,36 @@ namespace Tac.SemanticModel
 
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
         {
-            return TypeDefinition.TransformAndFlatten(x=> x.GetValue().TheyAreUs(they, assumeTrue));
+            return TypeDefinition.GetValue().TransformAndFlatten(x=> x.TheyAreUs(they, assumeTrue));
         }
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key)
         {
-            return TypeDefinition.SwitchReturns(
-                    x => x.GetValue().TryGetMember(key),
+            return TypeDefinition.GetValue().SwitchReturns(
+                    x => x.TryGetMember(key),
                     x => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(x)
                 );
         }
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn()
         {
-            return TypeDefinition.SwitchReturns(
-                x => x.GetValue().TryGetReturn(),
+            return TypeDefinition.GetValue().SwitchReturns(
+                x => x.TryGetReturn(),
                 x => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(x)
             );
         }
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput()
         {
-            return TypeDefinition.SwitchReturns(
-                x => x.GetValue().TryGetInput(),
+            return TypeDefinition.GetValue().SwitchReturns(
+                x => x.TryGetInput(),
                 x => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(x)
             );
         }
 
         public IEnumerable<IError> Validate()
         {
-            if (TypeDefinition.Is2(out var error)) {
+            if (TypeDefinition.GetValue().Is2(out var error)) {
                 yield return error;
             }
         }

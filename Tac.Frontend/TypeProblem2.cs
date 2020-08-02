@@ -46,9 +46,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 internal IConvertTo<Tin, Tout> Converter { get; }
             }
-            public class TypeReference : TypeProblemNode<TypeReference, IOrType<IFrontendType, IError>>, ILookUpType
+            public class TypeReference : TypeProblemNode<TypeReference, IFrontendType>, ILookUpType
             {
-                public TypeReference(Builder problem, string debugName, IConvertTo<TypeReference, IOrType<IFrontendType, IError>> converter) : base(problem, debugName, converter)
+                public TypeReference(Builder problem, string debugName, IConvertTo<TypeReference, IFrontendType> converter) : base(problem, debugName, converter)
                 {
                 }
 

@@ -115,16 +115,16 @@ namespace Tac.SemanticModel
             }
         }
 
-        public IFrontendType AssuredReturns()
-        {
-            return Scope.SwitchReturns<IFrontendType>(
-                x=>new HasMembersType(x.GetValue()),
-                x=> new IndeterminateType(x));
-        }
+        //public IFrontendType AssuredReturns()
+        //{
+        //    return Scope.SwitchReturns<IFrontendType>(
+        //        x=>new HasMembersType(x.GetValue()),
+        //        x=> new IndeterminateType(x));
+        //}
 
         public IOrType<IFrontendType, IError> Returns()
         {
-            return OrType.Make< IFrontendType, IError > (AssuredReturns());
+            return Scope.TransformInner(x => new HasMembersType(x.GetValue()));//  OrType.Make< IFrontendType, IError > (AssuredReturns());
         }
     }
     
