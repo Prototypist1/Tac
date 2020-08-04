@@ -48,7 +48,7 @@ namespace Tac.SemanticModel
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
 
-        public IOrType<IBox<IFrontendType>,IError> InputType => ParameterDefinition.GetValue().Type;
+        public IBox<IOrType<IFrontendType,IError>> InputType => ParameterDefinition.GetValue().Type;
         public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
 
@@ -58,7 +58,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    InputType.Is1OrThrow().GetValue().ConvertTypeOrThrow(context),
+                    InputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.Is1OrThrow().GetValue().Convert(context),
@@ -72,7 +72,7 @@ namespace Tac.SemanticModel
             // TODO
             // are there really frontend types that arn't convertable?
             return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
-                InputType.TransformInner(x=>x.GetValue()),
+                InputType.GetValue().TransformInner(x=>x),
                 OutputType.GetValue().TransformInner(x=>x)
                 ));
         }
