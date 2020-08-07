@@ -70,9 +70,9 @@ namespace Tac.SemanticModel
             if (match is IMatchedTokenMatching
                matched)
             {
-                var elements = tokenMatching.Context.ParseBlock(body!);
+                var elements = tokenMatching.Context.ParseBlock(body);
 
-                return TokenMatching<ISetUp<IBox<WeakBlockDefinition>, Tpn.IScope>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context,
+                return TokenMatching<ISetUp<IBox<WeakBlockDefinition>, Tpn.IScope>>.MakeMatch(matched.AllTokens, matched.Context,
                     new BlockDefinitionPopulateScope(elements));
             }
 

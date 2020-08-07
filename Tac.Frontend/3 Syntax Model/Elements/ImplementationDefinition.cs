@@ -132,19 +132,19 @@ namespace Tac.SemanticModel
         
         public ITokenMatching<ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>? context= null, input = null, output = null;
+            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> context= null, input = null, output = null;
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
                 .HasSquare(x => x
                     .HasLine(y=>y
-                        .HasElement(z=>z.Has(new TypeMaker(), out context))
+                        .Has(new TypeMaker(), out var context)
                         .Has(new DoneMaker()))
                     .HasLine(y => y
-                        .HasElement(z => z.Has(new TypeMaker(), out input))
+                        .Has(new TypeMaker(), out var input)
                         .Has(new DoneMaker()))
                     .HasLine(y => y
-                        .HasElement(z => z.Has(new TypeMaker(), out output))
+                        .Has(new TypeMaker(), out var output)
                         .Has(new DoneMaker()))
                     .Has(new DoneMaker()))
                 .OptionalHas(new NameMaker(), out var contextName)
@@ -153,16 +153,16 @@ namespace Tac.SemanticModel
             if (match is IMatchedTokenMatching matched)
             {
                 var elements = tokenMatching.Context.ParseBlock(body!);
-                
+
 
                 return TokenMatching<ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>>.MakeMatch(
-                    matched.Tokens,
+                    matched.AllTokens,
                     matched.Context,
                     new PopulateScopeImplementationDefinition(
-                        context!,
-                        input!, 
+                        context,
+                        input,
                         elements,
-                        output!,
+                        output,
                         contextName?.Item ?? "context",
                         parameterName?.Item ?? "input"));
             }
@@ -173,18 +173,18 @@ namespace Tac.SemanticModel
         
         private class PopulateScopeImplementationDefinition : ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>
         {
-            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> contextDefinition;
-            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+            private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> contextDefinition;
+            private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
             private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> output;
+            private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
             private readonly string contextName;
             private readonly string parameterName;
 
             public PopulateScopeImplementationDefinition(
-                ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> contextDefinition,
-                ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+                ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> contextDefinition,
+                ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
                 IReadOnlyList<IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements,
-                ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> output,
+                ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output,
                 string contextName,
                 string parameterName)
             {

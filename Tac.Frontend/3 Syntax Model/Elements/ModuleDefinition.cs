@@ -141,11 +141,11 @@ namespace Tac.SemanticModel
         public ITokenMatching<ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new KeyWordMaker("module"), out var _)
+                .Has(new KeyWordMaker("module"))
                 .Has(new NameMaker())
                 .Has(new BodyMaker());
 
-            return matching.ConvertIfMatched((name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseObject(third), new NameKey(name.Item)));
+            return matching.ConvertIfMatched((_,name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseObject(third), new NameKey(name.Item)));
         }
 
         private class ModuleDefinitionPopulateScope : ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>

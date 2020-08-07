@@ -119,9 +119,19 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .HasStruct(new TrailingOperationMatcher(Symbol), out var _);
+                .Has(new TrailingOperationMatcher(Symbol), out var _);
 
-            return matching.ConvertIfMatched(res => new TrailingPopulateScope(matching.Context.ParseLine(res.perface), Make, getReturnedValue));
+            return matching.ConvertIfMatched(match => {
+
+                var left = tokenMatching.Context.Map.GetGreatestParent(match.perface);
+
+                var res = new TrailingPopulateScope(left, Make, getReturnedValue);
+
+                tokenMatching.Context.Map.SetElementParent(left, res);
+
+                return res;
+
+            });
         }
         
         private class TrailingPopulateScope : ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>

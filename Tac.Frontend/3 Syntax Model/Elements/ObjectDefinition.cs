@@ -109,9 +109,9 @@ namespace Tac.SemanticModel
         public ITokenMatching<ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             return tokenMatching
-                .Has(new KeyWordMaker("object"), out var _)
+                .Has(new KeyWordMaker("object"))
                 .Has(new BodyMaker())
-                .ConvertIfMatched(block => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseObject(block)));
+                .ConvertIfMatched((_,block) => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseObject(block)));
         }
 
         private class ObjectDefinitionPopulateScope : ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>

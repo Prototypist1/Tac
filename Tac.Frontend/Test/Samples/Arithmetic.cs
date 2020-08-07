@@ -13,24 +13,21 @@ namespace Tac.Tests.Samples
             {
                 return TokenHelp.File(
                     TokenHelp.Line(
-                        TokenHelp.Ele(
-                            TokenHelp.Atom("module"),
-                            TokenHelp.Atom("math-module"),
-                                TokenHelp.Curl(
-                                    TokenHelp.Line(
-                                        TokenHelp.Ele(
-                                            TokenHelp.Par(
-                                                TokenHelp.Ele(TokenHelp.Atom("2")),
-                                                TokenHelp.Atom("+"),
-                                                TokenHelp.Ele(TokenHelp.Atom("5")))),
-                                        TokenHelp.Atom("*"),
-                                        TokenHelp.Ele(
-                                            TokenHelp.Par(
-                                                TokenHelp.Ele(TokenHelp.Atom("2")),
-                                                TokenHelp.Atom("+"),
-                                                TokenHelp.Ele(TokenHelp.Atom("7")))),
-                                        TokenHelp.Atom("=:"),
-                                        TokenHelp.Ele(TokenHelp.Atom("x")))))));
+                        TokenHelp.Atom("module"),
+                        TokenHelp.Atom("math-module"),
+                            TokenHelp.Curl(
+                                TokenHelp.Line(
+                                    TokenHelp.Par(
+                                        TokenHelp.Atom("2"),
+                                        TokenHelp.Atom("+"),
+                                        TokenHelp.Atom("5")),
+                                    TokenHelp.Atom("*"),
+                                    TokenHelp.Par(
+                                        TokenHelp.Atom("2"),
+                                        TokenHelp.Atom("+"),
+                                        TokenHelp.Atom("7")),
+                                    TokenHelp.Atom("=:"),
+                                    TokenHelp.Atom("x")))));
             }
         }
     }

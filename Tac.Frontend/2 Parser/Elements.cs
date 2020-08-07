@@ -17,6 +17,7 @@ using Prototypist.Toolbox.Object;
 using Prototypist.Toolbox.Bool;
 using Tac.Frontend.Parser;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace Tac.Parser
 {
@@ -36,24 +37,33 @@ namespace Tac.Parser
             elementParent[child] = parent;
         }
 
-        public object GetTokenElement(IToken token)
-        {
-            return tokenToElement[token];
-        }
+        //public object GetTokenElement(IToken token)
+        //{
+        //    return tokenToElement[token];
+        //}
 
-        public object GetElelmentParent(object child)
-        {
-            return elementParent[child];
-        }
+        //public object GetElelmentParent(object child)
+        //{
+        //    return elementParent[child];
+        //}
 
         internal bool TokenHasElement(IToken token)
         {
             return tokenToElement.ContainsKey(token);
         }
+
+        public object GetGreatestParent(IToken token) {
+            var startAt = tokenToElement[token];
+
+            while (elementParent.TryGetValue(startAt, out var x)) {
+                startAt = x;
+            }
+            return startAt;
+        }
     }
 
 
-    internal partial class MakerRegistry {
+    internal partial class MakerRegistry { // the real one
 
         public static MakerRegistry Instance = new MakerRegistry();
 
@@ -301,6 +311,7 @@ namespace Tac.Parser
         //    return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
         //}
 
+
         public void ParseLine(IReadOnlyList<IToken> tokens)
         {
 
@@ -326,10 +337,10 @@ namespace Tac.Parser
 
                     var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.Skip(startAt).Take(i - startAt).ToArray(), this,0);
 
-                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching matched)) {
+                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<object> matched)) {
                         foreach (var token in matched.MatchedTokens())
                         {
-                            Map.SetTokenElement(token,element!);
+                            Map.SetTokenElement(token,element);
                         }
                     }
                 }
@@ -1089,15 +1100,13 @@ namespace Tac.Parser
             return self;
         }
 
-
-
-        public static ITokenMatching Has<T>(this ITokenMatching self, IMaker<T> pattern, out T? t)
-            where T:class
+        public static ITokenMatching<T> Has<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
         {
-
             if (! (self is IMatchedTokenMatching firstMatched))
             {
+#pragma warning disable CS8601 // Possible null reference assignment.
                 t = default;
+#pragma warning restore CS8601 // Possible null reference assignment.
                 return TokenMatching<T>.MakeNotMatch(self.Context);
             }
 
@@ -1107,8 +1116,9 @@ namespace Tac.Parser
                 t = matched.Value;
                 return res;
             }
-
+#pragma warning disable CS8601 // Possible null reference assignment.
             t = default;
+#pragma warning restore CS8601 // Possible null reference assignment.
             return res;
         }
 
@@ -1203,26 +1213,26 @@ namespace Tac.Parser
             return TokenMatching<T1, T2, T3, T4,T5>.MakeNotMatch(self.Context);
         }
 
-        public static ITokenMatching<T> HasStruct<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
-            where T : struct
-        {
+        //public static ITokenMatching<T> HasStruct<T>(this ITokenMatching self, IMaker<T> pattern, out T t)
+        //    where T : struct
+        //{
 
-            if (!(self is IMatchedTokenMatching firstMatched))
-            {
-                t = default;
-                return TokenMatching<T>.MakeNotMatch(self.Context);
-            }
+        //    if (!(self is IMatchedTokenMatching firstMatched))
+        //    {
+        //        t = default;
+        //        return TokenMatching<T>.MakeNotMatch(self.Context);
+        //    }
 
-            var res = pattern.TryMake(firstMatched);
-            if (res is IMatchedTokenMatching<T> matched)
-            {
-                t = matched.Value;
-                return res;
-            }
+        //    var res = pattern.TryMake(firstMatched);
+        //    if (res is IMatchedTokenMatching<T> matched)
+        //    {
+        //        t = matched.Value;
+        //        return res;
+        //    }
 
-            t = default;
-            return res;
-        }
+        //    t = default;
+        //    return res;
+        //}
 
 
         public static ITokenMatching HasSquare(this ITokenMatching self, Func<IMatchedTokenMatching, ITokenMatching> inner)
@@ -1324,46 +1334,23 @@ namespace Tac.Parser
                 return self;
             }
 
-            if (matchedTokenMatching.Tokens.Any().Not()) {
+            if (matchedTokenMatching.AllTokens.Any().Not()) {
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
 
-            if (matchedTokenMatching.Tokens[0] is LineToken line)
+            if (matchedTokenMatching.AllTokens[matchedTokenMatching.EndIndex] is LineToken line)
             {
-                if (inner(TokenMatching<object>.MakeStart(line.Tokens, self.Context)) is IMatchedTokenMatching)
+                if (inner(TokenMatching<object>.MakeStart(line.Tokens, self.Context,0)) is IMatchedTokenMatching)
                 {
-                    return TokenMatching<object>.MakeStart(matchedTokenMatching.Tokens.Skip(1).ToArray(), self.Context);
+                    // uhhh new object?
+                    // todo make a IMatchedTokenMatching with out a generic just for this
+                    return TokenMatching<object>.MakeMatch(matchedTokenMatching.AllTokens, self.Context, new object(), matchedTokenMatching.EndIndex, matchedTokenMatching.EndIndex+1);
                 };
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
 
             return TokenMatching<object>.MakeNotMatch(self.Context);
         }
-
-        public static ITokenMatching HasElement(this ITokenMatching self, Func<IMatchedTokenMatching, ITokenMatching> inner)
-        {
-            if (!(self is IMatchedTokenMatching matchedTokenMatching))
-            {
-                return self;
-            }
-
-            if (matchedTokenMatching.Tokens.Any().Not())
-            {
-                return TokenMatching<object>.MakeNotMatch(self.Context);
-            }
-
-            if (matchedTokenMatching.Tokens[0] is ElementToken elementToken)
-            {
-                if (inner(TokenMatching<object>.MakeStart(elementToken.Tokens, self.Context)) is IMatchedTokenMatching matched)
-                {
-                    return TokenMatching<object>.MakeStart(matched.Tokens.Skip(1).ToArray(), self.Context);
-                };
-                return TokenMatching<object>.MakeNotMatch(self.Context);
-            }
-
-            return TokenMatching<object>.MakeNotMatch(self.Context);
-        }
-
 
         public static ITokenMatching<T> Has<T>(this ITokenMatching<T> self, IMaker pattern)
         {

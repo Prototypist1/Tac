@@ -179,9 +179,20 @@ namespace Tac.SemanticModel.CodeStuff
         {
 
             var matching = tokenMatching
-                .HasStruct(new BinaryOperationMatcher(Symbol), out var _);
+                .Has(new BinaryOperationMatcher(Symbol), out var _);
 
-            return matching.ConvertIfMatched(match => new BinaryPopulateScope(matching.Context.ParseLine(match.perface), matching.Context.ParseParenthesisOrElement(match.rhs), Make, keyMaker));
+            return matching.ConvertIfMatched(match => {
+
+                var left=  tokenMatching.Context.Map.GetGreatestParent(match.lhs);
+                var right = tokenMatching.Context.Map.GetGreatestParent(match.rhs);
+
+                var res = new BinaryPopulateScope(left, right, Make, keyMaker);
+
+                tokenMatching.Context.Map.SetElementParent(left, res);
+                tokenMatching.Context.Map.SetElementParent(right, res);
+
+                return res;
+            });
         }
 
 
@@ -289,16 +300,19 @@ namespace Tac.SemanticModel.CodeStuff
         public ITokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .HasStruct(new BinaryOperationMatcher(Symbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(Symbol), out (IToken perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseTypeLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElementType(match.rhs);
 
                 return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                    matched.Tokens,
+                    matched.AllTokens,
                     matched.Context, 
-                    new BinaryPopulateScope(left, right, Make, toTypeProblemThings));
+                    new BinaryPopulateScope(left, right, Make, toTypeProblemThings),
+                    matched.StartIndex,
+                    matched.EndIndex
+                    );
             }
 
             return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(

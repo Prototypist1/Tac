@@ -90,7 +90,7 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
-                .HasStruct(new BoolMaker(), out var dub);
+                .Has(new BoolMaker(), out var dub);
 
             if (match
                  is IMatchedTokenMatching matched)

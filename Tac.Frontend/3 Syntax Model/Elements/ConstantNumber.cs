@@ -68,7 +68,7 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var match = tokenMatching
-                .HasStruct(new NumberMaker(), out var dub);
+                .Has(new NumberMaker(), out var dub);
 
             if (match
                  is IMatchedTokenMatching matched)

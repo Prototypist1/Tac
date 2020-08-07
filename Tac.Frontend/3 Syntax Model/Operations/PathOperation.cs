@@ -95,7 +95,7 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching)
             {
                 if (tokenMatching.Tokens[tokenMatching.Tokens.Count - 1] is AtomicToken atomic)

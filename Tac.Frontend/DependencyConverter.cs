@@ -83,7 +83,7 @@ namespace Tac.Frontend
                 var interpetedMemberDefinition = new WeakMemberDefinition(
                     member.ReadOnly,
                     member.Key,
-                    OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>(TypeMap.MapType(member.Type))));
+                    new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType,IError>(TypeMap.MapType(member.Type))));
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition;
             }

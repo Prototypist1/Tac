@@ -84,7 +84,7 @@ namespace Tac.SemanticModel
                 .Has(new DefineGenericNMaker())
                 .Has(new NameMaker())
                 .Has(new BodyMaker())
-                .ConvertIfMatched((generics, name, lines) =>
+                .ConvertIfMatched((_,generics, name, lines) =>
                     new GenericTypeDefinitionPopulateScope(
                         new NameKey(name.Item),
                         tokenMatching.Context.ParseBlock(lines),

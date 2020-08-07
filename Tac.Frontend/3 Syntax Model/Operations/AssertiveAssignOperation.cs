@@ -118,16 +118,18 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(match.perface);
                 var right = matching.Context.ParseParenthesisOrElement(match.rhs);
 
                 return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeMatch(
-                    matched.Tokens,
+                    matched.AllTokens,
                     matched.Context,
-                    new WeakAssignOperationPopulateScope(left, right));
+                    new WeakAssignOperationPopulateScope(left, right),
+                    matched.StartIndex,
+                    matched.EndIndex);
             }
 
             return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeNotMatch(
@@ -219,16 +221,18 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .HasStruct(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IReadOnlyList<IToken> perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
                 var left = matching.Context.ParseLine(match.perface);
                 var right = matching.Context.ParseObjectMember(match.rhs);
 
                 return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeMatch(
-                    matched.Tokens,
+                    matched.AllTokens,
                     matched.Context,
-                    new WeakAssignOperationPopulateScope(left, right));
+                    new WeakAssignOperationPopulateScope(left, right),
+                    matched.StartIndex,
+                    matched.EndIndex);
             }
 
             return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeNotMatch(

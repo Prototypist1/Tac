@@ -69,13 +69,11 @@ namespace Tac.Frontend.Parser
                 self.AllTokens[index] is AtomicToken first &&
                 !double.TryParse(first.Item, out var _))
             {
-                var matchedToken = new List<IToken> { self.AllTokens[index] };
 
                 var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index);
                 var match = new GenericNMaker().TryMake(at);
                 if (match is IMatchedTokenMatching<IKey[]> mathced)
                 {
-                    matchedToken.AddRange(mathced.MatchedTokens());
 
                     return TokenMatching<IKey>.MakeMatch(
                         self.AllTokens,
@@ -192,12 +190,10 @@ namespace Tac.Frontend.Parser
                     var matcher = TokenMatching<object>.MakeStart(elementToken.Tokens, self.Context,0);
                     IKey? typeSource = null;
                     if (matcher
-                        .HasElement(x => x
                             .Has(new TypeNameMaker(), out typeSource)
-                            .Has(new DoneMaker()))
-                        .Has(new DoneMaker()) is IMatchedTokenMatching)
+                            .Has(new DoneMaker()) is IMatchedTokenMatching)
                     {
-                        typeSourcesBuilding.Add(typeSource!);
+                        typeSourcesBuilding.Add(typeSource);
                     }
                     else
                     {

@@ -148,41 +148,40 @@ namespace Tac.SemanticModel
 
             var matching = tokenMatching
                 .Has(new NameMaker(), out var typeName);
-
-            var list = new List<IKey>();
-            var genericMatachig = matching
-                .HasSquare(x =>
-                {
-                    while (true)
-                    {
-                        // colin, why! w x y z
-                        // you are an adult arn't you?
-                        var item = default(IKey);
-                        var y = x.HasLine(z => z.Has(new KeyMatcher(), out item) );
-                        if (y is IMatchedTokenMatching w)
-                        {
-                            x = w;
-                            list.Add(item!);
-                            if (w.Tokens.Any().Not())
-                            {
-                                return w;
-                            }
-                        }
-                        else
-                        {
-                            return y;
-                        }
-                    }
-                });
-
-            if (genericMatachig is IMatchedTokenMatching genericMatched)
-            {
-                return TokenMatching<IKey>.MakeMatch(genericMatched.Tokens, genericMatched.Context, new GenericNameKey(new NameKey(typeName!.Item), list.Select(x => OrType.Make<IKey, IError>(x)).ToArray().ToArray()));
-            }
-
             if (matching is IMatchedTokenMatching matched)
             {
-                return TokenMatching<IKey>.MakeMatch(matched.Tokens, matched.Context, new NameKey(typeName!.Item));
+                var list = new List<IKey>();
+                var genericMatachig = matching
+                    .HasSquare(x =>
+                    {
+                        while (true)
+                        {
+                            // colin, why! w x y z
+                            // you are an adult arn't you?
+                            var item = default(IKey);
+                            var y = x.HasLine(z => z.Has(new KeyMatcher(), out item));
+                            if (y is IMatchedTokenMatching w)
+                            {
+                                x = w;
+                                list.Add(item!);
+                                if (w.AllTokens.Any().Not())
+                                {
+                                    return w;
+                                }
+                            }
+                            else
+                            {
+                                return y;
+                            }
+                        }
+                    });
+
+
+                if (genericMatachig is IMatchedTokenMatching genericMatched)
+                {
+                    return TokenMatching<IKey>.MakeMatch(genericMatched.AllTokens, genericMatched.Context, new GenericNameKey(new NameKey(typeName.Item), list.Select(x => OrType.Make<IKey, IError>(x)).ToArray().ToArray()), matched.StartIndex, genericMatched.EndIndex);
+                }
+                return TokenMatching<IKey>.MakeMatch(matched.AllTokens, matched.Context, new NameKey(typeName.Item), matched.StartIndex,matched.EndIndex);
             }
 
             return TokenMatching<IKey>.MakeNotMatch(matching.Context);
