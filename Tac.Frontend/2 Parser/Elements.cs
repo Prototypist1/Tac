@@ -206,6 +206,7 @@ namespace Tac.Parser
         // type and element makers need to unify
         //
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] allMakers;
+        private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] typeLineMakes;
 
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers;
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers;
@@ -380,6 +381,46 @@ namespace Tac.Parser
             //return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
         }
 
+        public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseTypeLine(IReadOnlyList<IToken> tokens)
+        {
+
+            foreach (var maker in typeLineMakes)
+            {
+                for (int i = 0; i < tokens.Count; i++)
+                {
+                    var startAt = i;
+                    if (Map.TokenHasElement(tokens[i]))
+                    {
+                        continue;
+                    }
+
+                    if (tokens[i].SafeIs(out ParenthesisToken parenthesisToken))
+                    {
+                        ParseParenthesis(parenthesisToken);
+                        continue;
+                    }
+
+                    i++;
+                    while (i < tokens.Count && Map.TokenHasElement(tokens[i]))
+                    {
+                        i++;
+                    }
+
+                    var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens, this, startAt);
+
+                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> matched))
+                    {
+                        foreach (var token in matched.MatchedTokens())
+                        {
+                            Map.SetTokenElement(token, element);
+                        }
+                    }
+                }
+            }
+
+            return Map.GetGreatestParent(tokens.First());
+        }
+
         private void ParseParenthesis(ParenthesisToken parenthesisToken)
         {
             ParseLine(parenthesisToken.Tokens);
@@ -506,7 +547,7 @@ namespace Tac.Parser
 
         //    throw new Exception("");
         //}
-        
+
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>[] ParseFile(FileToken file)
         {
             foreach (var line in file.Tokens)
@@ -539,16 +580,26 @@ namespace Tac.Parser
         }
 
 
-        //public IReadOnlyList<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>> ParseType(CurleyBracketToken block)
+        public IReadOnlyList<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>> ParseType(CurleyBracketToken block)
+        {
+            foreach (var line in block.Tokens)
+            {
+                ParseTypeLine(line.CastTo<LineToken>().Tokens);
+            }
+
+            return block.Tokens.Select(x => Map.GetGreatestParent(x.CastTo<LineToken>().Tokens.First())).ToArray();
+        }
+
+        // it might be worth paring down what can happen in an object
+
+        //public IReadOnlyList<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>> ParseObject(CurleyBracketToken block)
         //{
-        //    return block.Tokens.Select(x =>
+        //    foreach (var line in block.Tokens)
         //    {
-        //        if (x is LineToken lineToken)
-        //        {
-        //            return ParseLineInDefinitionType(lineToken.Tokens);
-        //        }
-        //        throw new Exception("unexpected token type");
-        //    }).ToArray();
+        //        ParseLine(line.CastTo<LineToken>().Tokens);
+        //    }
+
+        //    return block.Tokens.Select(x => Map.GetGreatestParent(x.CastTo<LineToken>().Tokens.First())).ToArray();
         //}
 
         //public IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,  IError>> ParseObject(CurleyBracketToken block)

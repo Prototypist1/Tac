@@ -81,9 +81,12 @@ namespace Tac.Frontend.SyntaxModel.Operations
             SymbolsRegistry.StaticTypeOrSymbol, 
             (l, r) => new Box<FrontEndOrType>(new WeakTypeOrOperation(l, r).FrontendType()),
             (s,c,l,r)=> {
-
                 var key = new ImplicitKey(Guid.NewGuid());
-                c.TypeProblem.CreateOrType(s, key,l.SetUpSideNode.TransformInner(x=>x.SafeCastTo<Tpn.ITypeProblemNode,Tpn.TypeProblem2.TypeReference>()), r.SetUpSideNode.TransformInner(x => x.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), new WeakTypeOrOperationConverter());
+                c.TypeProblem.CreateOrType(
+                    s, 
+                    key,l.TransformInner(x=>x.SetUpSideNode.TransformInner(y=>y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>())), 
+                    r.TransformInner(x => x.SetUpSideNode.TransformInner(y => y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>())), 
+                    new WeakTypeOrOperationConverter());
                 var reference = c.TypeProblem.CreateTypeReference(s, key, new WeakTypeReferenceConverter());
                 return reference;
             })
