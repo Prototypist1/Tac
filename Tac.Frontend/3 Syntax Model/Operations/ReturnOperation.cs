@@ -127,7 +127,10 @@ namespace Tac.SemanticModel.Operations
 
                 var res = new TrailingPopulateScope(left, Make, getReturnedValue);
 
-                tokenMatching.Context.Map.SetElementParent(left, res);
+                if (left.Is1(out var leftValue))
+                {
+                    tokenMatching.Context.Map.SetElementParent(leftValue, res);
+                }
 
                 return res;
 

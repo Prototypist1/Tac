@@ -68,15 +68,15 @@ namespace Tac.SemanticModel.Operations
         {
             public ITokenMatching<bool> TryMake(IMatchedTokenMatching self)
             {
-                if (self.Tokens.Any() &&
-                    self.Tokens[0] is AtomicToken first)
+                if (self.AllTokens.Count > self.EndIndex && 
+                    self.AllTokens[self.EndIndex] is AtomicToken first)
                 {
                     if (first.Item == "true") {
-                        return TokenMatching<bool>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, true);
+                        return TokenMatching<bool>.MakeMatch(self.AllTokens, self.Context, true, self.EndIndex, self.EndIndex +1);
 
                     }
                     else if (first.Item == "false"){
-                        return TokenMatching<bool>.MakeMatch(self.Tokens.Skip(1).ToArray(), self.Context, false);
+                        return TokenMatching<bool>.MakeMatch(self.AllTokens, self.Context, false, self.EndIndex, self.EndIndex + 1);
 
                     }
 
@@ -95,7 +95,7 @@ namespace Tac.SemanticModel.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantBoolPopulateScope(dub));
+                return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeMatch(matched.AllTokens, matched.Context, new ConstantBoolPopulateScope(dub), matched.StartIndex, matched.EndIndex);
             }
             return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }

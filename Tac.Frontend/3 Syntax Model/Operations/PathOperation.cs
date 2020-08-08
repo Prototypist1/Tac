@@ -98,15 +98,17 @@ namespace Tac.SemanticModel.Operations
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching)
             {
-                if (tokenMatching.Tokens[tokenMatching.Tokens.Count - 1] is AtomicToken atomic)
+                if (match.rhs is AtomicToken atomic)
                 {
-                    var left = matching.Context.ParseLine(match.perface);
-                    //var right = matching.Context.ExpectPathPart(box).ParseParenthesisOrElement(match.rhs);
+
+                    var left = tokenMatching.Context.Map.GetGreatestParent(match.perface);
 
                     return TokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>>.MakeMatch(
                         Array.Empty<IToken>(),
                         matching.Context,
-                        new WeakPathOperationPopulateScope(left, atomic.Item));
+                        new WeakPathOperationPopulateScope(left, atomic.Item),
+                        tokenMatching.StartIndex,
+                        tokenMatching.EndIndex);
                 }
             }
 

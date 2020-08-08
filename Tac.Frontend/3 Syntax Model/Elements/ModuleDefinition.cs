@@ -137,7 +137,6 @@ namespace Tac.SemanticModel
         {
         }
         
-
         public ITokenMatching<ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
@@ -145,7 +144,9 @@ namespace Tac.SemanticModel
                 .Has(new NameMaker())
                 .Has(new BodyMaker());
 
-            return matching.ConvertIfMatched((_,name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseObject(third), new NameKey(name.Item)));
+            // this used to be ParseObject instead of ParseBlock
+            // I destoried ParseObject, not sure why.. 
+            return matching.ConvertIfMatched((_,name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseBlock(third), new NameKey(name.Item)));
         }
 
         private class ModuleDefinitionPopulateScope : ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>

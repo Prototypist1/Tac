@@ -25,40 +25,34 @@ namespace Tac.Parser
 
     internal class TokenSyntaxMap {
 
-        private readonly IDictionary<IToken, object> tokenToElement = new Dictionary<IToken, object>();
-        private readonly IDictionary<object, object> elementParent = new Dictionary<object, object>();
+        private readonly IDictionary<IToken, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> tokenToElement = new Dictionary<IToken, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>();
+        private readonly IDictionary<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> elementParent = new Dictionary<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>();
 
-        public void SetTokenElement(IToken token, object element) {
+        public void SetTokenElement(IToken token, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> element) {
             tokenToElement[token] = element;
         }
 
-        public void SetElementParent(object child, object parent)
+        public void SetElementParent(ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> child, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> parent)
         {
             elementParent[child] = parent;
         }
 
-        //public object GetTokenElement(IToken token)
-        //{
-        //    return tokenToElement[token];
-        //}
-
-        //public object GetElelmentParent(object child)
-        //{
-        //    return elementParent[child];
-        //}
 
         internal bool TokenHasElement(IToken token)
         {
             return tokenToElement.ContainsKey(token);
         }
 
-        public object GetGreatestParent(IToken token) {
-            var startAt = tokenToElement[token];
+        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> GetGreatestParent(IToken token) {
+            if (!tokenToElement.TryGetValue(token, out var startAt)) {
+                return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"token ({token}) is not mapped"));
+            }
 
             while (elementParent.TryGetValue(startAt, out var x)) {
                 startAt = x;
             }
-            return startAt;
+
+            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(startAt);
         }
     }
 
@@ -211,7 +205,7 @@ namespace Tac.Parser
         // YOU ARE HERE
         // type and element makers need to unify
         //
-        private readonly IMaker<object>[] allMakers;
+        private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] allMakers;
 
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers;
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers;
@@ -312,7 +306,7 @@ namespace Tac.Parser
         //}
 
 
-        public void ParseLine(IReadOnlyList<IToken> tokens)
+        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseLine(IReadOnlyList<IToken> tokens)
         {
 
             foreach (var maker in allMakers)
@@ -335,9 +329,9 @@ namespace Tac.Parser
                         i++;
                     }
 
-                    var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.Skip(startAt).Take(i - startAt).ToArray(), this,0);
+                    var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens, this, startAt);
 
-                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<object> matched)) {
+                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> matched)) {
                         foreach (var token in matched.MatchedTokens())
                         {
                             Map.SetTokenElement(token,element);
@@ -346,7 +340,7 @@ namespace Tac.Parser
                 }
             }
 
-
+            return Map.GetGreatestParent(tokens.First());
 
 
             //var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this, Possibly.IsNot<object>());
@@ -513,22 +507,26 @@ namespace Tac.Parser
         //    throw new Exception("");
         //}
         
-        public void ParseFile(FileToken file)
+        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>[] ParseFile(FileToken file)
         {
             foreach (var line in file.Tokens)
             {
                 ParseLine(line.CastTo<LineToken>().Tokens);
             }
 
+            return file.Tokens.Select(x => Map.GetGreatestParent(x.CastTo<LineToken>().Tokens.First())).ToArray();
+
             //file.Tokens.Select(x => ParseLine(x.CastTo<LineToken>().Tokens)).ToArray();
         }
 
-        public void ParseBlock(CurleyBracketToken block)
+        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>[] ParseBlock(CurleyBracketToken block)
         {
             foreach (var line in block.Tokens)
             {
                 ParseLine(line.CastTo<LineToken>().Tokens);
             }
+
+            return block.Tokens.Select(x => Map.GetGreatestParent(x.CastTo<LineToken>().Tokens.First())).ToArray();
 
             //return block.Tokens.Select(x =>
             //{

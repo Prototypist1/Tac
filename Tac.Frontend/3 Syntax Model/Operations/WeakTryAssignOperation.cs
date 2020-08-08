@@ -58,11 +58,11 @@ namespace Tac.SemanticModel.Operations
             if (matching
                  is IMatchedTokenMatching matched)
             {
-                var left = matching.Context.ParseLine(res.perface);
-                var right = matching.Context.ParseParenthesisOrElement(res.rhs);
+                var left = matching.Context.Map.GetGreatestParent(res.perface);
+                var right = matching.Context.Map.GetGreatestParent(res.rhs);
 
                 return TokenMatching<ISetUp<IBox<WeakTryAssignOperation>, Tpn.IValue>>.MakeMatch(
-                    matched.Tokens,
+                    matched.AllTokens,
                     matched.Context,
                     BinaryOperationMaker<WeakTryAssignOperation, ITryAssignOperation>.PopulateScope(left, right, (l, r) =>
                        new Box<WeakTryAssignOperation>(
@@ -73,7 +73,9 @@ namespace Tac.SemanticModel.Operations
                             throw new NotImplementedException("this should be an IError");
                         }
                         return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"), new PlaceholderValueConverter()));
-                        })
+                        }),
+                    matched.StartIndex,
+                    matched.EndIndex
                 );
             }
 

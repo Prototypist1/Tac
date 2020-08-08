@@ -73,7 +73,7 @@ namespace Tac.SemanticModel.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>>.MakeMatch(matched.Tokens.Skip(1).ToArray(), matched.Context, new ConstantNumberPopulateScope(dub));
+                return TokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>>.MakeMatch(matched.AllTokens, matched.Context, new ConstantNumberPopulateScope(dub),matched.StartIndex, matched.EndIndex);
             }
             return TokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }

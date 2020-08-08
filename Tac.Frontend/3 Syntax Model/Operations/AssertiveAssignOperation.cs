@@ -121,8 +121,8 @@ namespace Tac.SemanticModel.Operations
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
-                var left = matching.Context.ParseLine(match.perface);
-                var right = matching.Context.ParseParenthesisOrElement(match.rhs);
+                var left = matching.Context.Map.GetGreatestParent(match.perface);
+                var right = matching.Context.Map.GetGreatestParent(match.rhs);
 
                 return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeMatch(
                     matched.AllTokens,
@@ -224,8 +224,8 @@ namespace Tac.SemanticModel.Operations
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
-                var left = matching.Context.ParseLine(match.perface);
-                var right = matching.Context.ParseObjectMember(match.rhs);
+                var left = matching.Context.Map.GetGreatestParent(match.perface);
+                var right = matching.Context.Map.GetGreatestParent(match.rhs);
 
                 return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeMatch(
                     matched.AllTokens,
@@ -243,11 +243,11 @@ namespace Tac.SemanticModel.Operations
         private class WeakAssignOperationPopulateScope : ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>
         {
             private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
-            private readonly IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> right;
+            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> right;
 
             public WeakAssignOperationPopulateScope(
                 IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left,
-                IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> right)
+                IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> right)
             {
                 this.left = left ?? throw new ArgumentNullException(nameof(left));
                 this.right = right ?? throw new ArgumentNullException(nameof(right)); ;
@@ -296,11 +296,11 @@ namespace Tac.SemanticModel.Operations
         private class WeakAssignOperationResolveReferance : IResolve<IBox<WeakAssignOperation>>
         {
             public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
-            public readonly IOrType<IResolve<IBox<WeakMemberReference>>, IError> right;
+            public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> right;
 
             public WeakAssignOperationResolveReferance(
                 IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance1,
-                IOrType<IResolve<IBox<WeakMemberReference>>, IError> resolveReferance2)
+                IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance2)
             {
                 left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
                 right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));

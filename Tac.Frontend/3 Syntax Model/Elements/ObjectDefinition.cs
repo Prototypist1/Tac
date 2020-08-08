@@ -111,7 +111,7 @@ namespace Tac.SemanticModel
             return tokenMatching
                 .Has(new KeyWordMaker("object"))
                 .Has(new BodyMaker())
-                .ConvertIfMatched((_,block) => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseObject(block)));
+                .ConvertIfMatched((_,block) => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseBlock(block)));
         }
 
         private class ObjectDefinitionPopulateScope : ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>

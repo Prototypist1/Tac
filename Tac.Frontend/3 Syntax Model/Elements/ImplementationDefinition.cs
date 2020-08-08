@@ -132,7 +132,11 @@ namespace Tac.SemanticModel
         
         public ITokenMatching<ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
+            // this is not great
+            // but the typing here is hard to get right 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
             ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> context= null, input = null, output = null;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
             var match = tokenMatching
                 .Has(new KeyWordMaker("implementation"), out var _)
@@ -159,12 +163,15 @@ namespace Tac.SemanticModel
                     matched.AllTokens,
                     matched.Context,
                     new PopulateScopeImplementationDefinition(
-                        context,
-                        input,
+                        context!,
+                        input!,
                         elements,
-                        output,
+                        output!,
                         contextName?.Item ?? "context",
-                        parameterName?.Item ?? "input"));
+                        parameterName?.Item ?? "input"),
+                    tokenMatching.EndIndex,
+                    tokenMatching.EndIndex + 3 + (contextName == null ? 0:1) + (parameterName == null ? 0 : 1)
+                    ); ;
             }
 
 

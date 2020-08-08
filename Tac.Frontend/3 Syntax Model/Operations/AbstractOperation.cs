@@ -188,8 +188,14 @@ namespace Tac.SemanticModel.CodeStuff
 
                 var res = new BinaryPopulateScope(left, right, Make, keyMaker);
 
-                tokenMatching.Context.Map.SetElementParent(left, res);
-                tokenMatching.Context.Map.SetElementParent(right, res);
+                if (left.Is1(out var leftValue))
+                {
+                    tokenMatching.Context.Map.SetElementParent(leftValue, res);
+                }
+                if (right.Is1(out var rightValue))
+                {
+                    tokenMatching.Context.Map.SetElementParent(rightValue, res);
+                }
 
                 return res;
             });
@@ -207,18 +213,6 @@ namespace Tac.SemanticModel.CodeStuff
                  make,
                  key);
         }
-        //public static IResolve<TFrontendCodeElement> PopulateBoxes(
-        //        IOrType<IResolve<IConvertableFrontendCodeElement<ICodeElement>>, IError> resolveReferance1,
-        //        IOrType<IResolve<IConvertableFrontendCodeElement<ICodeElement>>, IError> resolveReferance2,
-        //        BinaryOperation.Make<TFrontendCodeElement> make)
-        //{
-        //    return new BinaryResolveReferance(
-        //        resolveReferance1,
-        //        resolveReferance2,
-        //        make);
-        //}
-
-
 
         private class BinaryPopulateScope : ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>
         {
@@ -303,8 +297,8 @@ namespace Tac.SemanticModel.CodeStuff
                 .Has(new BinaryOperationMatcher(Symbol), out (IToken perface, AtomicToken token, IToken rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
-                var left = matching.Context.ParseTypeLine(match.perface);
-                var right = matching.Context.ParseParenthesisOrElementType(match.rhs);
+                var left = matching.Context.Map.GetGreatestParent(match.perface);
+                var right = matching.Context.Map.GetGreatestParent(match.rhs);
 
                 return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                     matched.AllTokens,
