@@ -45,7 +45,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
         private static IFrontendType MemberToType(WeakMemberDefinition member)
         {
-            return member.Type.Is1OrThrow().GetValue();
+            return member.Type.GetValue().Is1OrThrow();
         }
 
         private static void Equal(IFrontendType a, IFrontendType b)
@@ -74,8 +74,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var resultHello = solution.GetExplicitType(hello).GetValue().Is1OrThrow();
 
-            HasMember(resultHello.FrontendType(), new NameKey("x"));
-            HasMember(resultHello.FrontendType(), new NameKey("y"));
+            HasMember(resultHello.FrontendType().Is1OrThrow(), new NameKey("x"));
+            HasMember(resultHello.FrontendType().Is1OrThrow(), new NameKey("y"));
         }
 
 
@@ -132,11 +132,11 @@ namespace Tac.Frontend.TypeProblem.Test
             HasMember(inputResult, new NameKey("y"));
 
             var helloResult = result.GetExplicitType(hello).GetValue().Is1OrThrow().FrontendType();
-            HasMember(helloResult, new NameKey("x"));
-            HasMember(helloResult, new NameKey("y"));
+            HasMember(helloResult.Is1OrThrow(), new NameKey("x"));
+            HasMember(helloResult.Is1OrThrow(), new NameKey("y"));
 
             // things don't flow downstream 
-            var methodReturns = methodResult.OutputType.Is1OrThrow().GetValue();
+            var methodReturns = methodResult.OutputType.GetValue().Is1OrThrow();
             DoesNotHaveMember(methodReturns, new NameKey("x"));
             DoesNotHaveMember(methodReturns, new NameKey("y"));
         }
@@ -561,11 +561,11 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
 
             var aTypeSolution = solution.GetExplicitType(aType).GetValue().Is1OrThrow();
-            var aMember = HasMember(aTypeSolution.FrontendType(), new NameKey("x"));
+            var aMember = HasMember(aTypeSolution.FrontendType().Is1OrThrow(), new NameKey("x"));
             Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(aMember, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             var bTypeSolution = solution.GetExplicitType(aType).GetValue().Is1OrThrow();
-            var bMember = HasMember(bTypeSolution.FrontendType(), new NameKey("x"));
+            var bMember = HasMember(bTypeSolution.FrontendType().Is1OrThrow(), new NameKey("x"));
             Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(bMember, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
         }
@@ -613,7 +613,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var member = solution.GetMember(c).GetValue();
 
-            HasMember(member.Type.Is1OrThrow().GetValue(), new NameKey("x"));
+            HasMember(member.Type.GetValue().Is1OrThrow(), new NameKey("x"));
         }
 
         // 5 =: c
@@ -649,7 +649,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cType = solution.GetMember(c).GetValue().Type.Is1OrThrow().GetValue();
+            var cType = solution.GetMember(c).GetValue().Type.GetValue().Is1OrThrow();
 
             var cOrType = Assert.IsType<FrontEndOrType>(cType);
 
@@ -692,7 +692,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cType = solution.GetMember(c).GetValue().Type.Is1OrThrow().GetValue();
+            var cType = solution.GetMember(c).GetValue().Type.GetValue().Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(cType);
 
@@ -764,37 +764,37 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cTypeResult = solution.GetMember(c).GetValue().Type.Is1OrThrow().GetValue();
+            var cTypeResult = solution.GetMember(c).GetValue().Type.GetValue().Is1OrThrow();
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
                 })), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
                 })),
                 new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
                 }
                 )),
                 new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
                 }
                 )),
                 new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
@@ -859,21 +859,21 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cTypeResult = solution.GetMember(c).GetValue().Type.Is1OrThrow().GetValue();
+            var cTypeResult = solution.GetMember(c).GetValue().Type.GetValue().Is1OrThrow();
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("y"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
                 })),
                 new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),OrType.Make<IBox<IFrontendType>,IError>(new Box<IFrontendType>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("w"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("x"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
+                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(false,new NameKey("z"),new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
                 })),
                 new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
 
@@ -923,7 +923,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
 
             var aTypeSolution = solution.GetExplicitType(aType).GetValue().Is1OrThrow();
-            var aMember = HasMember(aTypeSolution.FrontendType(), new NameKey("x"));
+            var aMember = HasMember(aTypeSolution.FrontendType().Is1OrThrow(), new NameKey("x"));
             Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(aMember, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
@@ -1017,7 +1017,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var flowNode = solution.GetFlowNode2(a);
             var res = solution.GetType(flowNode);
-            var method = Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.MethodType>(res.Is1OrThrow().GetValue());
+            var method = Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.MethodType>(res.GetValue().Is1OrThrow());
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(method.OutputType.Is1OrThrow());
         }
 
@@ -1075,7 +1075,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var cFlowNode = solution.GetFlowNode2(c);
             var cType = solution.GetType(cFlowNode);
 
-            var hasMembers = Assert.IsType<HasMembersType>(cType.Is1OrThrow().GetValue());
+            var hasMembers = Assert.IsType<HasMembersType>(cType.GetValue().Is1OrThrow());
             hasMembers.TryGetMember(new NameKey("x")).Is1OrThrow().Is2OrThrow();
 
         }

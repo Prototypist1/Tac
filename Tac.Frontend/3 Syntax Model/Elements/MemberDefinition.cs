@@ -148,9 +148,9 @@ namespace Tac.SemanticModel
         {
             private readonly IKey memberName;
             private readonly bool isReadonly;
-            private readonly ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> type;
+            private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> type;
 
-            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference> typeToken)
+            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;
@@ -215,7 +215,7 @@ namespace Tac.SemanticModel
                 .Has(new NameMaker())
                 .ConvertIfMatched((nameToken) =>
                 {
-                    return new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, Possibly.IsNot<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>>());
+                    return new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, Possibly.IsNot<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>());
                 });
         }
 
@@ -223,9 +223,9 @@ namespace Tac.SemanticModel
         {
             private readonly IKey memberName;
             private readonly bool isReadonly;
-            private readonly IIsPossibly< ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>> type;
+            private readonly IIsPossibly<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> type;
 
-            public MemberDefinitionPopulateScope(IKey item, bool v, IIsPossibly<ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.TypeProblem2.TypeReference>> typeToken)
+            public MemberDefinitionPopulateScope(IKey item, bool v, IIsPossibly<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> typeToken)
             {
                 memberName = item ?? throw new ArgumentNullException(nameof(item));
                 isReadonly = v;

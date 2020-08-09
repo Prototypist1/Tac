@@ -43,7 +43,7 @@ namespace Tac.SemanticModel
 
         public IOrType<IFrontendType, IError> Returns()
         {
-            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(MemberDefinition.GetValue().Type.TransformInner(x=>x.GetValue())));
+            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(MemberDefinition.GetValue().Type.GetValue()));
         }
 
         public IEnumerable<IError> Validate() => MemberDefinition.GetValue().Validate();

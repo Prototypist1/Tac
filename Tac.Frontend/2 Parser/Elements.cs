@@ -418,7 +418,7 @@ namespace Tac.Parser
                 }
             }
 
-            return Map.GetGreatestParent(tokens.First());
+            return Map.GetGreatestParent(tokens.First()).SafeCastTo(out IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> _);
         }
 
         private void ParseParenthesis(ParenthesisToken parenthesisToken)
@@ -582,12 +582,14 @@ namespace Tac.Parser
 
         public IReadOnlyList<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>> ParseType(CurleyBracketToken block)
         {
+            var list = new List<IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>>();
+
             foreach (var line in block.Tokens)
             {
-                ParseTypeLine(line.CastTo<LineToken>().Tokens);
+                list.Add(ParseTypeLine(line.CastTo<LineToken>().Tokens));
             }
 
-            return block.Tokens.Select(x => Map.GetGreatestParent(x.CastTo<LineToken>().Tokens.First())).ToArray();
+            return list;
         }
 
         // it might be worth paring down what can happen in an object

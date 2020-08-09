@@ -98,7 +98,7 @@ namespace Tac.Tests
             var assign = line.SafeCastTo<IFrontendCodeElement, WeakAssignOperation>();
             var codeElement = assign.Left.Is1OrThrow().GetValue();
             var method = codeElement.SafeCastTo<IFrontendCodeElement, WeakMethodDefinition>();
-            var error = method.InputType.Is2OrThrow();
+            var error = method.InputType.GetValue().Is2OrThrow();
             Assert.Equal(ErrorCodes.TypeNotFound, error.Code);
         }
     }
