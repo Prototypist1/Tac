@@ -35,7 +35,7 @@ namespace Tac.Tests.Samples
                                                             TokenHelp.Curl(
                                                                 TokenHelp.Line(
                                                                     TokenHelp.Atom("input"),
-                                                                    TokenHelp.Atom(" - "),
+                                                                    TokenHelp.Atom("-"),
                                                                     TokenHelp.Atom("1"),
                                                                     TokenHelp.Atom(">"),
                                                                     TokenHelp.Atom("fac"),

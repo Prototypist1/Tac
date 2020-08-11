@@ -53,7 +53,8 @@ namespace Tac.SemanticModel.Operations
         {
 
             var matching = tokenMatching
-            .Has(new BinaryOperationMatcher(SymbolsRegistry.TryAssignSymbol), out (IToken perface, AtomicToken token, IToken rhs) res);
+            .Has(new BinaryOperationMatcher(SymbolsRegistry.TryAssignSymbol), out (IToken perface, AtomicToken token, IToken rhs) res)
+            .Has(new BlockDefinitionMaker(), out var block);
 
             if (matching
                  is IMatchedTokenMatching matched)
@@ -111,6 +112,6 @@ namespace Tac.SemanticModel.CodeStuff
     // like wanderer modules 
     public partial class SymbolsRegistry
     {
-        public static readonly string TryAssignSymbol = StaticSymbolsRegistry.AddOrThrow("?=:");
+        public static readonly string TryAssignSymbol = StaticSymbolsRegistry.AddOrThrow("is");
     }
 }

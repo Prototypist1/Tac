@@ -37,16 +37,18 @@ namespace Tac.Tests.Samples
                                                 TokenHelp.Atom("y"),
                                                 TokenHelp.Atom("=:"),
                                                 TokenHelp.Par(
-                                                TokenHelp.Atom("context"),
-                                                TokenHelp.Atom("."),
-                                                TokenHelp.Atom("x"))),
+                                                    TokenHelp.Line(new[] {
+                                                        TokenHelp.Atom("context"),
+                                                        TokenHelp.Atom("."),
+                                                        TokenHelp.Atom("x") }))),
                                             TokenHelp.Line(
                                                 TokenHelp.Atom("temp"),
                                                 TokenHelp.Atom("=:"),
                                                 TokenHelp.Par(
-                                                    TokenHelp.Atom("context"),
-                                                    TokenHelp.Atom("."),
-                                                    TokenHelp.Atom("y")))),
+                                                    TokenHelp.Line(new[] {
+                                                        TokenHelp.Atom("context"),
+                                                        TokenHelp.Atom("."),
+                                                        TokenHelp.Atom("y") })))),
                                         TokenHelp.Atom("=:"),
                                         TokenHelp.Atom("mirror")))));
     }

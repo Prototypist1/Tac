@@ -18,14 +18,16 @@ namespace Tac.Tests.Samples
                             TokenHelp.Curl(
                                 TokenHelp.Line(
                                     TokenHelp.Par(
-                                        TokenHelp.Atom("2"),
-                                        TokenHelp.Atom("+"),
-                                        TokenHelp.Atom("5")),
+                                        TokenHelp.Line(new[] {
+                                            TokenHelp.Atom("2"),
+                                            TokenHelp.Atom("+"),
+                                            TokenHelp.Atom("5")})),
                                     TokenHelp.Atom("*"),
                                     TokenHelp.Par(
-                                        TokenHelp.Atom("2"),
-                                        TokenHelp.Atom("+"),
-                                        TokenHelp.Atom("7")),
+                                        TokenHelp.Line(new[] {
+                                            TokenHelp.Atom("2"),
+                                            TokenHelp.Atom("+"),
+                                            TokenHelp.Atom("7")})),
                                     TokenHelp.Atom("=:"),
                                     TokenHelp.Atom("x")))));
             }

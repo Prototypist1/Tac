@@ -6,35 +6,70 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Prototypist.Toolbox.Object;
 using Prototypist.Toolbox;
+using Tac.SemanticModel.CodeStuff;
+using Prototypist.Toolbox.Bool;
 
 namespace Tac.Frontend.Parser
 {
     // yep, it's a singleton
     // relax tho, it is really readonly
-    public class Keywords
-    {
+    //public class Keywords
+    //{
 
-        public static readonly Lazy<Keywords> Singleton = new Lazy<Keywords>(() => new Keywords());
+    //    public static readonly Lazy<Keywords> Singleton = new Lazy<Keywords>(() => new Keywords());
 
-        public readonly string Type;
-        public readonly IReadOnlyList<string> AllKeywords;
+    //    // TODO you have a sumbols registry!
+    //    // 
+    //    public readonly string Type;
+    //    public readonly string Plus;
+    //    public readonly string Minus;
+    //    public readonly string Equal;
+    //    public readonly string LessThan;
+    //    public readonly string AssignNext;
+    //    public readonly string AssignLast;
+    //    public readonly string Then;
+    //    public readonly string Else;
+    //    public readonly string CallNext;
+    //    public readonly string CallLast;
+    //    public readonly string Path;
+    //    public readonly string Return;
+    //    public readonly string TypeOr;
+    //    public readonly IReadOnlyList<string> AllKeywords;
 
-        public Keywords()
-        {
-            var all = new List<string>();
+    //    public Keywords()
+    //    {
+    //        var all = new List<string>();
 
-            Type = Add("Type");
+    //        Type = Add("Type");
+    //        Plus = Add("+");
+    //        Minus = Add("-");
+    //        Plus = Add("=");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        Plus = Add("+");
+    //        TypeOr = Add("|");
 
 
-            AllKeywords = all;
+    //        AllKeywords = all;
 
-            string Add(string toAdd)
-            {
-                all.Add(toAdd);
-                return toAdd;
-            }
-        }
-    }
+    //        string Add(string toAdd)
+    //        {
+    //            all.Add(toAdd);
+    //            return toAdd;
+    //        }
+    //    }
+    //}
+
+
 
     internal class NameMaker : IMaker<AtomicToken>
     {
@@ -55,7 +90,7 @@ namespace Tac.Frontend.Parser
 
         private bool IsNotKeyWord(string item)
         {
-            return !Keywords.Singleton.Value.AllKeywords.Contains(item);
+            return StaticSymbolsRegistry.SymbolsRegistry.Symbols.Contains(item).Not();//.!Keywords.Singleton.Value.AllKeywords;
         }
     }
 
@@ -67,7 +102,8 @@ namespace Tac.Frontend.Parser
 
             if (self.AllTokens.Count >= index &&
                 self.AllTokens[index] is AtomicToken first &&
-                !double.TryParse(first.Item, out var _))
+                !double.TryParse(first.Item, out var _) &&
+                IsNotKeyWord(first.Item))
             {
 
                 var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index);
@@ -87,6 +123,11 @@ namespace Tac.Frontend.Parser
             }
 
             return TokenMatching<IKey>.MakeNotMatch(self.Context);
+        }
+
+        private bool IsNotKeyWord(string item)
+        {
+            return StaticSymbolsRegistry.SymbolsRegistry.Symbols.Contains(item).Not();
         }
     }
 

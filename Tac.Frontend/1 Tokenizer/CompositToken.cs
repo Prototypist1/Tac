@@ -28,10 +28,13 @@ namespace Tac.Parser
         {
             unchecked
             {
-                return 1439444843 + Tokens.Sum(x => x.GetHashCode());
+                var x = 1439444843;
+                foreach (var item in Tokens)
+                {
+                    x += item.GetHashCode();
+                }
+                return x;
             }
         }
     }
-
-
 }

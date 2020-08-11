@@ -204,7 +204,7 @@ namespace Tac.SemanticModel
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
                 .Has(new TypeMaker())
                 .Has(new NameMaker())
-                .ConvertIfMatched((type,nameToken) =>new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, Possibly.Is(type)));
+                .ConvertIfMatched((type,nameToken) => new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, Possibly.Is(type)));
             
             if (firstTry is IMatchedTokenMatching) {
                 return firstTry;

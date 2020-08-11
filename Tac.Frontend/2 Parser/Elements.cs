@@ -179,42 +179,115 @@ namespace Tac.Parser
 
         public TokenSyntaxMap Map { get; } = new TokenSyntaxMap();
 
-        public ElementMatchingContext() : 
-            this(
-                MakerRegistry.Instance.OperationMatchers.ToArray(),
-                MakerRegistry.Instance.ElementMakers.ToArray(),
-                MakerRegistry.Instance.TypeOperationMatchers.ToArray(),
-                MakerRegistry.Instance.TypeMakers.ToArray()
-                )
+        public ElementMatchingContext() 
+            //: 
+            //this(
+            //    MakerRegistry.Instance.OperationMatchers.ToArray(),
+            //    MakerRegistry.Instance.ElementMakers.ToArray(),
+            //    MakerRegistry.Instance.TypeOperationMatchers.ToArray(),
+            //    MakerRegistry.Instance.TypeMakers.ToArray()
+            //    )
         {}
         
-        public ElementMatchingContext(
-            IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers, 
-            IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers,
-            IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeOperationMatchers,
-            IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeMakers
-            )
-        {
-            this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
-            this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
-            this.typeOperationMatchers = typeOperationMatchers ?? throw new ArgumentNullException(nameof(typeOperationMatchers));
-            this.typeMakers = typeMakers ?? throw new ArgumentNullException(nameof(typeMakers));
-        }
+        //public ElementMatchingContext(
+            //IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers, 
+            //IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers,
+            //IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeOperationMatchers,
+            //IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeMakers
+        //    )
+        //{
+            //this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
+            //this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
+            //this.typeOperationMatchers = typeOperationMatchers ?? throw new ArgumentNullException(nameof(typeOperationMatchers));
+            //this.typeMakers = typeMakers ?? throw new ArgumentNullException(nameof(typeMakers));
+        //}
 
         // elementMakers and operationMatchers should be one list
         // YOU ARE HERE
         // type and element makers need to unify
         //
-        private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] allMakers;
-        private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] typeLineMakes;
+        private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] allMakers = new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] { 
+            
+            // constants
+            new ConstantBoolMaker(),
+            new ConstantNumberMaker(),
+            new ConstantStringMaker(),
+            new EmptyInstanceMaker(),
 
-        private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers;
-        private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers;
+            // types
+            new TypeDefinitionMaker(),
+
+            // new TypeOrOperationMaker(),
+            // new TypeReferanceMaker(), // this is so general.. going to need context to know if we are a type or a 
+            // new TypeMaker(), // maybe I just need this?
+            // new TypeOrOperationMaker(),
+
+            // method likes
+            new EntryPointDefinitionMaker(),
+            new GenericTypeDefinitionMaker(),
+            new MethodDefinitionMaker(),
+            new ImplementationDefinitionMaker(),
+
+            //new BlockDefinitionMaker(), // called by other things
+
+            // object likes
+            new ModuleDefinitionMaker(),
+            new ObjectDefinitionMaker(),
+
+            new MemberDefinitionMaker(),
+            //new ObjectOrTypeMemberDefinitionMaker(), // this only eixts inside types, also objects... I think objects need a specail matcher
+            new MemberMaker(), // this matches very broadly so it pretty much goes last
+
+            new PathOperationMaker(),
+
+            new MultiplyOperationMaker(),
+            new AddOperationMaker(),
+            new SubtractOperationMaker(),
+
+            new LessThanOperationMaker(),
+
+            new NextCallOperationMaker(),
+            new LastCallOperationMaker(),
+
+            new IfTrueOperationMaker(),
+            new ElseOperationMaker(),
+
+            new AssertAssignOperationMaker(),
+            new AssertAssignInObjectOperationMaker(),
+
+            new ReturnOperationMaker(),
+
+            new TryAssignOperationMaker(),
 
 
+        };
+
+        // {48146F3A-6D75-4F24-B857-BED24CE846EA}
+        // TODO
+        // I think I need special parsing for inside ojects
+        // here is why
+        // 1 =: x;
+        // object {x =: x; 2 =: y;}
+        // in object the LHS x is resolves up 
+        // the RHS x resolves to create a new member
+        // looks like x := ...
+        // maybe just special init symbol :
         // 
-        private readonly IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeOperationMatchers;
-        private readonly IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeMakers;
+
+        private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] typeLineMakers = new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] {
+            new ObjectOrTypeMemberDefinitionMaker(), // maybe I just need this?
+
+            //new MemberDefinitionMaker(),
+            //new MemberMaker(), // this matches very broadly so it pretty much goes last
+        };
+
+        //private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers;
+        //private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers;
+
+
+        //// 
+        //private readonly IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeOperationMatchers;
+        //private readonly IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeMakers;
 
         #region Parse
 
@@ -332,10 +405,11 @@ namespace Tac.Parser
 
                     var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens, this, startAt);
 
-                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> matched)) {
+                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> matched))
+                    {
                         foreach (var token in matched.MatchedTokens())
                         {
-                            Map.SetTokenElement(token,element);
+                            Map.SetTokenElement(token, element);
                         }
                     }
                 }
@@ -384,7 +458,7 @@ namespace Tac.Parser
         public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseTypeLine(IReadOnlyList<IToken> tokens)
         {
 
-            foreach (var maker in typeLineMakes)
+            foreach (var maker in typeLineMakers)
             {
                 for (int i = 0; i < tokens.Count; i++)
                 {
@@ -423,7 +497,10 @@ namespace Tac.Parser
 
         private void ParseParenthesis(ParenthesisToken parenthesisToken)
         {
-            ParseLine(parenthesisToken.Tokens);
+            foreach (var item in parenthesisToken.Tokens)
+            {
+                ParseLine(item.SafeCastTo(out LineToken _).Tokens);
+            }
         }
 
         // only types and assignments 
@@ -1385,7 +1462,7 @@ namespace Tac.Parser
                 return self;
             }
 
-            if (matchedTokenMatching.AllTokens.Any().Not()) {
+            if (matchedTokenMatching.AllTokens.Count <= matchedTokenMatching.EndIndex) {
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
 

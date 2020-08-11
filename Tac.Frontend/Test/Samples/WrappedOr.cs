@@ -19,18 +19,20 @@ namespace Tac.Tests.Samples
                                             TokenHelp.Atom("5"),
                                             TokenHelp.Atom("=:"),
                                             TokenHelp.Par(
-                                                TokenHelp.Atom("bool"),
-                                                TokenHelp.Atom("|"),
-                                                TokenHelp.Atom("number")),
-                                            TokenHelp.Atom("x")), 
-                                    TokenHelp.Line(
-                                            TokenHelp.Atom("false")),
-                                            TokenHelp.Atom("=:"),
-                                                TokenHelp.Par(
+                                                TokenHelp.Line(new[] {
                                                     TokenHelp.Atom("bool"),
                                                     TokenHelp.Atom("|"),
-                                                    TokenHelp.Atom("number")),
-                                                TokenHelp.Atom("y"))));
+                                                    TokenHelp.Atom("number") })),
+                                            TokenHelp.Atom("x")), 
+                                    TokenHelp.Line(
+                                            TokenHelp.Atom("false"),
+                                            TokenHelp.Atom("=:"),
+                                                TokenHelp.Par(
+                                                    TokenHelp.Line(new[] {
+                                                        TokenHelp.Atom("bool"),
+                                                        TokenHelp.Atom("|"),
+                                                        TokenHelp.Atom("number")})),
+                                            TokenHelp.Atom("y")))));
             }
         }
     }

@@ -73,6 +73,7 @@ namespace Tac.SemanticModel
                 // object {1 =: x; 2 =: y;}
                 // the possible member for x in the object would not result in a real member 
 
+                // {48146F3A-6D75-4F24-B857-BED24CE846EA}
                 // here is a painful situaltion
                 // 1 =: x;
                 // object {x =: x; 2 =: y;}

@@ -58,6 +58,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
+    // just call this null!
     internal class EmptyInstanceMaker : IMaker<ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue>>
     {
         public EmptyInstanceMaker() { }
