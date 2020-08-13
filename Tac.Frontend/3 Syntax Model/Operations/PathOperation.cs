@@ -117,70 +117,71 @@ namespace Tac.SemanticModel.Operations
         }
 
 
-        private class WeakPathOperationPopulateScope : ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>
+    }
+
+    internal class WeakPathOperationPopulateScope : ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>
+    {
+        private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
+        private readonly string name;
+
+        public WeakPathOperationPopulateScope(IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left,
+            string name)
         {
-            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
-            private readonly string name;
-
-            public WeakPathOperationPopulateScope(IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left,
-                string name)
-            {
-                this.left = left ?? throw new ArgumentNullException(nameof(left));
-                this.name = name ?? throw new ArgumentNullException(nameof(name));
-            }
-
-            public ISetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                var nextLeft = left.TransformInner(x => x.Run(scope, context));
-
-                var member = nextLeft.SwitchReturns(
-                    good =>
-                    {
-                        if (good.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
-                        {
-                            return OrType.Make<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
-                                value,
-                                new NameKey(name),
-                                new WeakMemberDefinitionConverter(false, new NameKey(name))));
-                        }
-                        else
-                        {
-                            return OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Other(""));
-                            // todo better error handling 
-                            throw new NotImplementedException($"can not . off {good.SetUpSideNode}");
-                        }
-                    },
-                    error => OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Cascaded("We needed ", error)));
-
-                return new SetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
-                    nextLeft.TransformInner(x=>x.Resolve),
-                    member), 
-                    member);
-            }
+            this.left = left ?? throw new ArgumentNullException(nameof(left));
+            this.name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
-        private class WeakPathOperationResolveReference : IResolve<IBox<WeakPathOperation>>
+        public ISetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            readonly IOrType<IResolve<IBox<IFrontendCodeElement>>,IError> left;
-            readonly IOrType<Tpn.TypeProblem2.Member,IError> member;
+            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
 
-            public WeakPathOperationResolveReference(
-                IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReference,
-                IOrType<Tpn.TypeProblem2.Member, IError> member)
-            {
-                left = resolveReference ?? throw new ArgumentNullException(nameof(resolveReference));
-                this.member = member ?? throw new ArgumentNullException(nameof(member));
-            }
+            var member = nextLeft.SwitchReturns(
+                good =>
+                {
+                    if (good.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
+                    {
+                        return OrType.Make<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
+                            value,
+                            new NameKey(name),
+                            new WeakMemberDefinitionConverter(false, new NameKey(name))));
+                    }
+                    else
+                    {
+                        return OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Other(""));
+                            // todo better error handling 
+                            throw new NotImplementedException($"can not . off {good.SetUpSideNode}");
+                    }
+                },
+                error => OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Cascaded("We needed ", error)));
 
-            public IBox<WeakPathOperation> Run(Tpn.TypeSolution context)
-            {
-                var res = new Box<WeakPathOperation>(new WeakPathOperation(
-                    left.TransformInner(x => x.Run(context)),
-                    member.SwitchReturns(
-                        x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(x)))),
-                        y => OrType.Make<IBox<IFrontendCodeElement>, IError>(Error.Cascaded("", y)))));
-                return res;
-            }
+            return new SetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
+                nextLeft.TransformInner(x => x.Resolve),
+                member),
+                member);
+        }
+    }
+
+    internal class WeakPathOperationResolveReference : IResolve<IBox<WeakPathOperation>>
+    {
+        readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
+        readonly IOrType<Tpn.TypeProblem2.Member, IError> member;
+
+        public WeakPathOperationResolveReference(
+            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReference,
+            IOrType<Tpn.TypeProblem2.Member, IError> member)
+        {
+            left = resolveReference ?? throw new ArgumentNullException(nameof(resolveReference));
+            this.member = member ?? throw new ArgumentNullException(nameof(member));
+        }
+
+        public IBox<WeakPathOperation> Run(Tpn.TypeSolution context)
+        {
+            var res = new Box<WeakPathOperation>(new WeakPathOperation(
+                left.TransformInner(x => x.Run(context)),
+                member.SwitchReturns(
+                    x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(x)))),
+                    y => OrType.Make<IBox<IFrontendCodeElement>, IError>(Error.Cascaded("", y)))));
+            return res;
         }
     }
 }

@@ -80,33 +80,35 @@ namespace Tac.Frontend.SyntaxModel.Elements
             return new EmptyInstanceResolveReferance();
         }
 
-        private class EmptyInstancePopulateScope : ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue>
+    }
+
+
+    internal class EmptyInstancePopulateScope : ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue>
+    {
+
+        public EmptyInstancePopulateScope() { }
+
+        public ISetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-
-            public EmptyInstancePopulateScope() { }
-
-            public ISetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+            if (!(scope is Tpn.IScope runtimeScope))
             {
-                if (!(scope is Tpn.IScope runtimeScope))
-                {
-                    throw new NotImplementedException("this should be an IError");
-                }
-
-                var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"),new PlaceholderValueConverter());
-                return new SetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue>(new EmptyInstanceResolveReferance(),OrType.Make<Tpn.IValue,IError>(value));
+                throw new NotImplementedException("this should be an IError");
             }
+
+            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"), new PlaceholderValueConverter());
+            return new SetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue>(new EmptyInstanceResolveReferance(), OrType.Make<Tpn.IValue, IError>(value));
+        }
+    }
+
+    internal class EmptyInstanceResolveReferance : IResolve<IBox<WeakEmptyInstance>>
+    {
+        public EmptyInstanceResolveReferance()
+        {
         }
 
-        private class EmptyInstanceResolveReferance : IResolve<IBox<WeakEmptyInstance>>
+        public IBox<WeakEmptyInstance> Run(Tpn.TypeSolution context)
         {
-            public EmptyInstanceResolveReferance()
-            {
-            }
-
-            public IBox<WeakEmptyInstance> Run(Tpn.TypeSolution context)
-            {
-                return new Box<WeakEmptyInstance>(new WeakEmptyInstance());
-            }
+            return new Box<WeakEmptyInstance>(new WeakEmptyInstance());
         }
     }
 }

@@ -102,53 +102,52 @@ namespace Tac.SemanticModel.Operations
             return TokenMatching<ISetUp<IBox<WeakConstantString>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<IBox<WeakConstantString>, Tpn.IValue> PopulateScope(string str)
+        //public static ISetUp<IBox<WeakConstantString>, Tpn.IValue> PopulateScope(string str)
+        //{
+        //    return new ConstantStringPopulateScope(str);
+        //}
+        //public static IResolve<IBox<WeakConstantString>> PopulateBoxes(string str)
+        //{
+        //    return new ConstantStringResolveReferance(str);
+        //}
+
+    }
+
+    internal class ConstantStringPopulateScope : ISetUp<IBox<WeakConstantString>, Tpn.IValue>
+    {
+        private readonly string str;
+
+        public ConstantStringPopulateScope(string str)
         {
-            return new ConstantStringPopulateScope(str);
-        }
-        public static IResolve<IBox<WeakConstantString>> PopulateBoxes(string str)
-        {
-            return new ConstantStringResolveReferance(str);
-        }
-
-        private class ConstantStringPopulateScope : ISetUp<IBox<WeakConstantString>, Tpn.IValue>
-        {
-            private readonly string str;
-
-            public ConstantStringPopulateScope(string str)
-            {
-                this.str = str;
-            }
-
-            public ISetUpResult<IBox<WeakConstantString>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                if (!(scope is Tpn.IScope runtimeScope))
-                {
-                    throw new NotImplementedException("this should be an IError");
-                }
-
-                var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("string"), new PlaceholderValueConverter());
-                return new SetUpResult<IBox<WeakConstantString>, Tpn.IValue>(new ConstantStringResolveReferance(str),OrType.Make<Tpn.IValue,IError>(value));
-            }
+            this.str = str;
         }
 
-        private class ConstantStringResolveReferance : IResolve<IBox<WeakConstantString>>
+        public ISetUpResult<IBox<WeakConstantString>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly string str;
-
-            public ConstantStringResolveReferance(
-                string str)
+            if (!(scope is Tpn.IScope runtimeScope))
             {
-                this.str = str;
+                throw new NotImplementedException("this should be an IError");
             }
 
-            public IBox<WeakConstantString> Run(Tpn.TypeSolution context)
-            {
-                return new Box<WeakConstantString>(new WeakConstantString(Possibly.Is(str)));
-            }
+            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("string"), new PlaceholderValueConverter());
+            return new SetUpResult<IBox<WeakConstantString>, Tpn.IValue>(new ConstantStringResolveReferance(str), OrType.Make<Tpn.IValue, IError>(value));
         }
     }
 
+    internal class ConstantStringResolveReferance : IResolve<IBox<WeakConstantString>>
+    {
+        private readonly string str;
 
+        public ConstantStringResolveReferance(
+            string str)
+        {
+            this.str = str;
+        }
+
+        public IBox<WeakConstantString> Run(Tpn.TypeSolution context)
+        {
+            return new Box<WeakConstantString>(new WeakConstantString(Possibly.Is(str)));
+        }
+    }
 
 }

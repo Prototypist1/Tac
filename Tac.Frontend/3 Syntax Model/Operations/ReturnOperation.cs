@@ -125,7 +125,7 @@ namespace Tac.SemanticModel.Operations
 
                 var left = tokenMatching.Context.Map.GetGreatestParent(match.perface);
 
-                var res = new TrailingPopulateScope(left, Make, getReturnedValue);
+                var res = new TrailingPopulateScope<TFrontendCodeElement, TCodeElement>(left, Make, getReturnedValue);
 
                 if (left.Is1(out var leftValue))
                 {
@@ -137,43 +137,49 @@ namespace Tac.SemanticModel.Operations
             });
         }
         
-        private class TrailingPopulateScope : ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>
+    }
+
+
+    internal class TrailingPopulateScope<TFrontendCodeElement, TCodeElement> : ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>
+        where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
+        where TCodeElement : class, ICodeElement
+    {
+        private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
+        private readonly TrailingOperation.Make<TFrontendCodeElement> make;
+        private readonly TrailingOperation.GetReturnedValue getReturnedValue;
+
+        public TrailingPopulateScope(IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
         {
-            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
-            private readonly TrailingOperation.Make<TFrontendCodeElement> make;
-            private readonly TrailingOperation.GetReturnedValue getReturnedValue;
-
-            public TrailingPopulateScope(IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
-            {
-                this.left = left ?? throw new ArgumentNullException(nameof(left));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.getReturnedValue = getReturnedValue ?? throw new ArgumentNullException(nameof(getReturnedValue));
-            }
-
-            public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                var nextLeft = left.TransformInner(x=>x.Run(scope, context));
-                return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(
-                    new TrailingResolveReferance(nextLeft.TransformInner(x=>x.Resolve), make), 
-                    getReturnedValue(scope, context, nextLeft));
-            }
+            this.left = left ?? throw new ArgumentNullException(nameof(left));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.getReturnedValue = getReturnedValue ?? throw new ArgumentNullException(nameof(getReturnedValue));
         }
 
-        private class TrailingResolveReferance: IResolve<IBox<TFrontendCodeElement>>
+        public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
-            private readonly TrailingOperation.Make<TFrontendCodeElement> make;
+            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+            return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(
+                new TrailingResolveReferance<TFrontendCodeElement, TCodeElement>(nextLeft.TransformInner(x => x.Resolve), make),
+                getReturnedValue(scope, context, nextLeft));
+        }
+    }
 
-            public TrailingResolveReferance(IOrType<IResolve<IBox<IFrontendCodeElement>>,IError> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make)
-            {
-                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
+    internal class TrailingResolveReferance<TFrontendCodeElement, TCodeElement> : IResolve<IBox<TFrontendCodeElement>>
+        where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
+        where TCodeElement : class, ICodeElement
+    {
+        public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
+        private readonly TrailingOperation.Make<TFrontendCodeElement> make;
 
-            public IBox<TFrontendCodeElement> Run(Tpn.TypeSolution context)
-            {
-                return make(left.TransformInner(x => x.Run(context)));
-            }
+        public TrailingResolveReferance(IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance1, TrailingOperation.Make<TFrontendCodeElement> make)
+        {
+            left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        public IBox<TFrontendCodeElement> Run(Tpn.TypeSolution context)
+        {
+            return make(left.TransformInner(x => x.Run(context)));
         }
     }
 

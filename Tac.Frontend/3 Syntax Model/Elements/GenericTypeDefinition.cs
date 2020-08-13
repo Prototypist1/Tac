@@ -103,56 +103,58 @@ namespace Tac.SemanticModel
                 genericParameters);
         }
 
-        private class GenericTypeDefinitionPopulateScope : ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>
+        
+    }
+
+    internal class GenericTypeDefinitionPopulateScope : ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>
+    {
+        private readonly NameKey nameKey;
+        private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines;
+        private readonly IGenericTypeParameterPlacholder[] genericParameters;
+
+        public GenericTypeDefinitionPopulateScope(
+            NameKey nameKey,
+            IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines,
+            IGenericTypeParameterPlacholder[] genericParameters)
         {
-            private readonly NameKey nameKey;
-            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines;
-            private readonly IGenericTypeParameterPlacholder[] genericParameters;
-
-            public GenericTypeDefinitionPopulateScope(
-                NameKey nameKey,
-                IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines,
-                IGenericTypeParameterPlacholder[] genericParameters)
-            {
-                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-                this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
-                this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
-            }
-
-            public ISetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                // oh geez here is a mountain.
-                // I generic types are erased 
-                // what on earth does this return?
-                var myScope = context.TypeProblem.CreateGenericType(
-                    scope,
-                    OrType.Make<NameKey, ImplicitKey>(nameKey),
-                    genericParameters.Select(x => new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),
-                    new WeakTypeDefinitionConverter());
-                var nextLines = lines.Select(x => x.TransformInner(y => y.Run(myScope, context).Resolve)).ToArray();
-                return new SetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), OrType.Make<Tpn.IExplicitType, IError>(myScope));
-            }
+            this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+            this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
+            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
         }
 
-        private class GenericTypeDefinitionResolveReferance : IResolve<IBox<WeakGenericTypeDefinition>>
+        public ISetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly Tpn.TypeProblem2.Type myScope;
-            private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines;
+            // oh geez here is a mountain.
+            // I generic types are erased 
+            // what on earth does this return?
+            var myScope = context.TypeProblem.CreateGenericType(
+                scope,
+                OrType.Make<NameKey, ImplicitKey>(nameKey),
+                genericParameters.Select(x => new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),
+                new WeakTypeDefinitionConverter());
+            var nextLines = lines.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChild(this)).Resolve)).ToArray();
+            return new SetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), OrType.Make<Tpn.IExplicitType, IError>(myScope));
+        }
+    }
 
-            public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines)
-            {
-                this.myScope = myScope;
-                this.nextLines = nextLines;
-            }
+    internal class GenericTypeDefinitionResolveReferance : IResolve<IBox<WeakGenericTypeDefinition>>
+    {
+        private readonly Tpn.TypeProblem2.Type myScope;
+        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines;
+
+        public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines)
+        {
+            this.myScope = myScope;
+            this.nextLines = nextLines;
+        }
 
 
-            public IBox<WeakGenericTypeDefinition> Run(Tpn.TypeSolution context)
-            {
-                // uhhh it is werid that I have to do this
-                nextLines.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
+        public IBox<WeakGenericTypeDefinition> Run(Tpn.TypeSolution context)
+        {
+            // uhhh it is werid that I have to do this
+            nextLines.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
 
-                return new Box<WeakGenericTypeDefinition>(context.GetExplicitType(myScope).GetValue().Is2OrThrow());
-            }
+            return new Box<WeakGenericTypeDefinition>(context.GetExplicitType(myScope).GetValue().Is2OrThrow());
         }
     }
 }

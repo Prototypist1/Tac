@@ -178,99 +178,100 @@ namespace Tac.SemanticModel
             return TokenMatching<ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>>.MakeNotMatch(match.Context);
         }
         
-        private class PopulateScopeImplementationDefinition : ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>
-        {
-            private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> contextDefinition;
-            private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
-            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-            private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
-            private readonly string contextName;
-            private readonly string parameterName;
+    }
 
-            public PopulateScopeImplementationDefinition(
-                ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> contextDefinition,
-                ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-                IReadOnlyList<IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError>> elements,
-                ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output,
-                string contextName,
-                string parameterName)
+    internal class PopulateScopeImplementationDefinition : ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>
+    {
+        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> contextDefinition;
+        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+        private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
+        private readonly string contextName;
+        private readonly string parameterName;
+
+        public PopulateScopeImplementationDefinition(
+            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> contextDefinition,
+            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+            IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
+            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output,
+            string contextName,
+            string parameterName)
+        {
+            this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
+            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.output = output ?? throw new ArgumentNullException(nameof(output));
+            this.contextName = contextName ?? throw new ArgumentNullException(nameof(contextName));
+            this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
+        }
+
+        public ISetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+        {
+            if (!(scope is Tpn.IScope runtimeScope))
             {
-                this.contextDefinition = contextDefinition ?? throw new ArgumentNullException(nameof(contextDefinition));
-                this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.output = output ?? throw new ArgumentNullException(nameof(output));
-                this.contextName = contextName ?? throw new ArgumentNullException(nameof(contextName));
-                this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
+                throw new NotImplementedException("this should be an IError");
             }
 
-            public ISetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                if (!(scope is Tpn.IScope runtimeScope))
-                {
-                    throw new NotImplementedException("this should be an IError");
-                }
+            // TODO this is so painful, I think I need to look in to implementations having special treatment...
+            // maybe they need to be a generic on the tpn
+            // altho to the tpn they really are not special
+            // but here they might maybe convert to an implementation not a method that returns a method
+            // idk! 🤷‍😭
 
-                // TODO this is so painful, I think I need to look in to implementations having special treatment...
-                // maybe they need to be a generic on the tpn
-                // altho to the tpn they really are not special
-                // but here they might maybe convert to an implementation not a method that returns a method
-                // idk! 🤷‍😭
-
-                var realizeContext = contextDefinition.Run(scope, context);
-                var realizedInput = parameterDefinition.Run(scope, context);
-                var realizedOutput = output.Run(scope, context);
-                var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"),new[] {
+            var realizeContext = contextDefinition.Run(scope, context.CreateChild(this));
+            var realizedInput = parameterDefinition.Run(scope, context.CreateChild(this));
+            var realizedOutput = output.Run(scope, context.CreateChild(this));
+            var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"), new[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
-                }),new WeakTypeReferenceConverter());
+                }), new WeakTypeReferenceConverter());
 
-                var innerBox = new Box<Tpn.TypeProblem2.Method>();
-                var linesBox = new Box<IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>[]>();
-                var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, OrType.Make<TypeProblem2.TypeReference, IError>(outputTypeRef), contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IBox<IFrontendCodeElement>>[]>(Array.Empty<IResolve<IBox<IFrontendCodeElement>>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
+            var innerBox = new Box<Tpn.TypeProblem2.Method>();
+            var linesBox = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
+            var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, OrType.Make<TypeProblem2.TypeReference, IError>(outputTypeRef), contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IBox<IFrontendCodeElement>>[]>(Array.Empty<IResolve<IBox<IFrontendCodeElement>>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
-                var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox,false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
-                innerBox.Fill(inner);
-                linesBox.Fill(elements.Select(y => y.TransformInner(x=>x.Run(inner, context).Resolve)).ToArray());
+            var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox, false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
+            innerBox.Fill(inner);
+            linesBox.Fill(elements.Select(y => y.TransformInner(x => x.Run(inner, context.CreateChild(this)).Resolve)).ToArray());
 
-               var innerValue = context.TypeProblem.CreateValue(outer, 
-                    new GenericNameKey(new NameKey("method"), new[] {
+            var innerValue = context.TypeProblem.CreateValue(outer,
+                 new GenericNameKey(new NameKey("method"), new[] {
                          realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                          realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
-                    }), new PlaceholderValueConverter());
+                 }), new PlaceholderValueConverter());
 
-                innerValue.AssignTo(outer.Returns());
+            innerValue.AssignTo(outer.Returns());
 
-                var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new[] {
+            var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new[] {
                     realizeContext.SetUpSideNode.TransformInner(x=>x.Key()),
                     OrType.Make<IKey,IError>(new GenericNameKey(new NameKey("method"), new[] {
                          realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                          realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                     })),
-                }),new PlaceholderValueConverter());
+                }), new PlaceholderValueConverter());
 
-                return new SetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
-                    outer), OrType.Make<Tpn.IValue, IError>(value));
-            }
+            return new SetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
+                outer), OrType.Make<Tpn.IValue, IError>(value));
+        }
+    }
+
+    internal class ImplementationDefinitionResolveReferance : IResolve<IBox<WeakImplementationDefinition>>
+    {
+        private readonly Tpn.TypeProblem2.Method outer;
+
+        public ImplementationDefinitionResolveReferance(Tpn.TypeProblem2.Method outer)
+        {
+            this.outer = outer;
         }
 
-        private class ImplementationDefinitionResolveReferance : IResolve<IBox< WeakImplementationDefinition>>
+        public IBox<WeakImplementationDefinition> Run(Tpn.TypeSolution context)
         {
-            private readonly Tpn.TypeProblem2.Method outer;
-
-            public ImplementationDefinitionResolveReferance(Tpn.TypeProblem2.Method outer)
+            var res = context.GetMethod(outer);
+            if (res.GetValue().Is2(out var v2))
             {
-                this.outer = outer;
+                return new Box<WeakImplementationDefinition>(v2);
             }
-
-            public IBox<WeakImplementationDefinition> Run(Tpn.TypeSolution context)
-            {
-                var res = context.GetMethod(outer);
-                if (res.GetValue().Is2(out var v2))
-                {
-                    return new Box<WeakImplementationDefinition>(v2);
-                }
-                throw new Exception("wrong!");
-            }
+            throw new Exception("wrong!");
         }
     }
 }

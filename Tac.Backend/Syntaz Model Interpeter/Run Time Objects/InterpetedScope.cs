@@ -46,7 +46,7 @@ namespace Tac.Syntaz_Model_Interpeter
         public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> StaticScopeIntention(ConcurrentIndexed<IKey, IInterpetedMember> backing, IInterfaceModuleType type)
             => root => new RunTimeAnyRootEntry(new InterpetedStaticScope(backing, root), type);
 
-        // TODO you are here
+        // TODO
         // IInterpetedScope is a pretty big mess
         // objects and modules needs to be an interpeted scope
 

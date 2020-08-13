@@ -47,67 +47,99 @@ namespace Tac.SemanticModel
                 .ConvertIfMatched(token => new MemberPopulateScope(token.Item));
         }
 
-        public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(string item)
+        //public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(string item)
+        //{
+        //    return new MemberPopulateScope(item);
+        //}
+
+    }
+
+    internal class MemberPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
+    {
+        private readonly string memberName;
+
+        public MemberPopulateScope(string item)
         {
-            return new MemberPopulateScope(item);
+            memberName = item ?? throw new ArgumentNullException(nameof(item));
         }
 
-        private class MemberPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
+        public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly string memberName;
+            // this is a bit werid
+            // it creates member possibly on parent for code like
+            // type {x;y;}
+            // or
+            // object {1 =: x; 2 =: y;}
+            // the second is really bad tho, if you had:
+            // 1 =: x;
+            // object {1 =: x; 2 =: y;}
+            // the possible member for x in the object would not result in a real member 
 
-            public MemberPopulateScope(string item)
+            // {48146F3A-6D75-4F24-B857-BED24CE846EA}
+            // here is a painful situaltion
+            // 1 =: x;
+            // object {x =: x; 2 =: y;}
+            // in object the LHS x is resolves up 
+            // the RHS x resolves to create a new member
+
+            if (!(scope is Tpn.IHavePossibleMembers possibleScope))
             {
-                memberName = item ?? throw new ArgumentNullException(nameof(item));
+                throw new NotImplementedException("this should be an IError");
             }
 
-            public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
+            var nameKey = new NameKey(memberName);
+            var member = GetMember(scope, context, possibleScope, nameKey);
+            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+        }
+
+        private static Tpn.TypeProblem2.Member GetMember(Tpn.IStaticScope scope, ISetUpContext context, Tpn.IHavePossibleMembers possibleScope, NameKey nameKey)
+        {
+
+            // TODO
+            // there needs to be a case about being directly in a type
+
+            // this handles this case
+            // type example{
+            // x;
+            // type inner { x;} y;
+            //}
+            // and this case
+            // 1 =: x;
+            // object {x =: x; 2 =: y;}
+            // in object the LHS x is resolves up 
+            // the RHS x resolves to create a new member
+            if ((context.EnclosingSetUp is WeakAssignOperationPopulateScope &&
+                            context.Parent.Is(out var parent) &&
+                            (parent is ObjectDefinitionPopulateScope)) || context.EnclosingSetUp is TypeDefinitionPopulateScope)
             {
-                // this is a bit werid
-                // it creates member possibly on parent for code like
-                // type {x;y;}
-                // or
-                // object {1 =: x; 2 =: y;}
-                // the second is really bad tho, if you had:
-                // 1 =: x;
-                // object {1 =: x; 2 =: y;}
-                // the possible member for x in the object would not result in a real member 
-
-                // {48146F3A-6D75-4F24-B857-BED24CE846EA}
-                // here is a painful situaltion
-                // 1 =: x;
-                // object {x =: x; 2 =: y;}
-                // in object the LHS x is resolves up 
-                // the RHS x resolves to create a new member
-
-                if (!(scope is Tpn.IHavePossibleMembers possibleScope))
+                if (!(scope is Tpn.IHavePublicMembers havePublicMember))
                 {
-                    throw new NotImplementedException("this should be an IError");
+                    // this should only be used in object and type definitions 
+                    throw new NotImplementedException("this should be an ierror");
                 }
 
-                var nameKey = new NameKey(memberName);
-                var member = context.TypeProblem.CreateMemberPossiblyOnParent(scope, possibleScope, nameKey,new WeakMemberDefinitionConverter(false,nameKey));
-
-                return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+                return context.TypeProblem.CreatePublicMember(scope, havePublicMember, nameKey, new WeakMemberDefinitionConverter(false, nameKey)); ;
             }
-
-        }
-
-        private class MemberResolveReferance : IResolve<IBox< WeakMemberReference>>
-        {
-            private readonly Tpn.TypeProblem2.Member member;
-
-            public MemberResolveReferance(Tpn.TypeProblem2.Member member)
+            else
             {
-                this.member = member ?? throw new ArgumentNullException(nameof(member));
-            }
-
-            public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
-            {
-                return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
+               return context.TypeProblem.CreateMemberPossiblyOnParent(scope, possibleScope, nameKey, new WeakMemberDefinitionConverter(false, nameKey));
             }
         }
     }
 
-    
+    internal class MemberResolveReferance : IResolve<IBox<WeakMemberReference>>
+    {
+        private readonly Tpn.TypeProblem2.Member member;
+
+        public MemberResolveReferance(Tpn.TypeProblem2.Member member)
+        {
+            this.member = member ?? throw new ArgumentNullException(nameof(member));
+        }
+
+        public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
+        {
+            return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
+        }
+    }
+
 }

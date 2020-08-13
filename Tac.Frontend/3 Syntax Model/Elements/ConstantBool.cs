@@ -100,55 +100,57 @@ namespace Tac.SemanticModel.Operations
             return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<IBox<WeakConstantBool>, Tpn.IValue> PopulateScope(bool dub)
+        //public static ISetUp<IBox<WeakConstantBool>, Tpn.IValue> PopulateScope(bool dub)
+        //{
+        //    return new ConstantBoolPopulateScope(dub);
+        //}
+        //public static IResolve<IBox<WeakConstantBool>> PopulateBoxes(bool dub)
+        //{
+        //    return new ConstantBoolResolveReferance(dub);
+        //}
+
+    }
+
+
+    internal class ConstantBoolPopulateScope : ISetUp<IBox<WeakConstantBool>, Tpn.IValue>
+    {
+        private readonly bool dub;
+
+        public ConstantBoolPopulateScope(bool dub)
         {
-            return new ConstantBoolPopulateScope(dub);
-        }
-        public static IResolve<IBox<WeakConstantBool>> PopulateBoxes(bool dub)
-        {
-            return new ConstantBoolResolveReferance(dub);
-        }
-
-        private class ConstantBoolPopulateScope : ISetUp<IBox<WeakConstantBool>, Tpn.IValue>
-        {
-            private readonly bool dub;
-
-            public ConstantBoolPopulateScope(bool dub)
-            {
-                this.dub = dub;
-            }
-
-            public ISetUpResult<IBox<WeakConstantBool>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                if (!(scope is Tpn.IScope runtimeScope))
-                {
-                    throw new NotImplementedException("this should be an IError");
-                }
-
-                // PlaceholderValueConverter is a little weird
-                // I kind of think it should make the WeakConstantBool
-                // yeah it totally should
-                // TODO 
-                // this applies to my other constants 
-                var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"), new PlaceholderValueConverter());
-                return new SetUpResult<IBox<WeakConstantBool>, Tpn.IValue>(new ConstantBoolResolveReferance(dub),OrType.Make<Tpn.IValue,IError>(value));
-            }
+            this.dub = dub;
         }
 
-        private class ConstantBoolResolveReferance : IResolve<IBox<WeakConstantBool>>
+        public ISetUpResult<IBox<WeakConstantBool>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly bool dub;
-
-            public ConstantBoolResolveReferance(
-                bool dub)
+            if (!(scope is Tpn.IScope runtimeScope))
             {
-                this.dub = dub;
+                throw new NotImplementedException("this should be an IError");
             }
 
-            public IBox<WeakConstantBool> Run(Tpn.TypeSolution context)
-            {
-                return new Box<WeakConstantBool>(new WeakConstantBool(Possibly.Is(dub)));
-            }
+            // PlaceholderValueConverter is a little weird
+            // I kind of think it should make the WeakConstantBool
+            // yeah it totally should
+            // TODO 
+            // this applies to my other constants 
+            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"), new PlaceholderValueConverter());
+            return new SetUpResult<IBox<WeakConstantBool>, Tpn.IValue>(new ConstantBoolResolveReferance(dub), OrType.Make<Tpn.IValue, IError>(value));
+        }
+    }
+
+    internal class ConstantBoolResolveReferance : IResolve<IBox<WeakConstantBool>>
+    {
+        private readonly bool dub;
+
+        public ConstantBoolResolveReferance(
+            bool dub)
+        {
+            this.dub = dub;
+        }
+
+        public IBox<WeakConstantBool> Run(Tpn.TypeSolution context)
+        {
+            return new Box<WeakConstantBool>(new WeakConstantBool(Possibly.Is(dub)));
         }
     }
 }

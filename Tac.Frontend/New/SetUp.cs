@@ -19,17 +19,40 @@ namespace Tac.Infastructure
     
     internal interface ISetUpContext
     {
+        IIsPossibly<ISetUpContext> Parent { get; }
+        IIsPossibly<ISetUp> EnclosingSetUp { get; }
         Tpn.TypeProblem2.Builder TypeProblem { get; }
+
+        ISetUpContext CreateChild(ISetUp setUp);
     }
 
     internal class SetUpContext : ISetUpContext
     {
-        public SetUpContext(Tpn.TypeProblem2.Builder typeProblem)
+        public SetUpContext(Tpn.TypeProblem2.Builder typeProblem) : this(typeProblem, Possibly.IsNot<ISetUpContext>(), Possibly.IsNot<ISetUp>()) { }
+
+        private SetUpContext(Tpn.TypeProblem2.Builder typeProblem, IIsPossibly<ISetUpContext> parent, IIsPossibly<ISetUp> enclosingSetUp)
         {
             TypeProblem = typeProblem ?? throw new ArgumentNullException(nameof(typeProblem));
+            Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            EnclosingSetUp = enclosingSetUp ?? throw new ArgumentNullException(nameof(enclosingSetUp));
         }
 
         public Tpn.TypeProblem2.Builder TypeProblem { get; }
+
+        public IIsPossibly<ISetUpContext> Parent
+        {
+            get;
+        }
+
+        public IIsPossibly<ISetUp> EnclosingSetUp
+        {
+            get;
+        }
+
+        public ISetUpContext CreateChild(ISetUp setUp)
+        {
+            return new SetUpContext(TypeProblem, Possibly.Is(this), Possibly.Is(setUp));
+        }
     }
 
     internal interface ISetUpResult<out TCodeElement, out TSetUpSideNode>
@@ -52,7 +75,9 @@ namespace Tac.Infastructure
         public IOrType<TSetUpSideNode, IError> SetUpSideNode { get; }
     }
 
-    internal interface ISetUp<out TCodeElement, out TSetUpSideNode>
+    internal interface ISetUp { }
+
+    internal interface ISetUp<out TCodeElement, out TSetUpSideNode>: ISetUp
         where TSetUpSideNode: Tpn.ITypeProblemNode
     {
         ISetUpResult<TCodeElement, TSetUpSideNode> Run(Tpn.IStaticScope scope, ISetUpContext context);

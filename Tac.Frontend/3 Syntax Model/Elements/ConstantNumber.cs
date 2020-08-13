@@ -78,49 +78,51 @@ namespace Tac.SemanticModel.Operations
             return TokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ISetUp<IBox<WeakConstantNumber>, Tpn.IValue> PopulateScope(double dub)
+        //public static ISetUp<IBox<WeakConstantNumber>, Tpn.IValue> PopulateScope(double dub)
+        //{
+        //    return new ConstantNumberPopulateScope(dub);
+        //}
+        //public static IResolve<IBox<WeakConstantNumber>> PopulateBoxes(double dub)
+        //{
+        //    return new ConstantNumberResolveReferance(dub);
+        //}
+
+    }
+
+    internal class ConstantNumberPopulateScope : ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>
+    {
+        private readonly double dub;
+
+        public ConstantNumberPopulateScope(double dub)
         {
-            return new ConstantNumberPopulateScope(dub);
-        }
-        public static IResolve<IBox<WeakConstantNumber>> PopulateBoxes(double dub)
-        {
-            return new ConstantNumberResolveReferance(dub);
-        }
-
-        private class ConstantNumberPopulateScope : ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>
-        {
-            private readonly double dub;
-
-            public ConstantNumberPopulateScope(double dub)
-            {
-                this.dub = dub;
-            }
-
-            public ISetUpResult<IBox<WeakConstantNumber>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                if (!(scope is Tpn.IScope runtimeScope)) {
-                    throw new NotImplementedException("this should be an IError");
-                }
-
-                var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("number"), new PlaceholderValueConverter());
-                return new SetUpResult<IBox<WeakConstantNumber>, Tpn.IValue>(new ConstantNumberResolveReferance(dub), OrType.Make<Tpn.IValue, IError>(value));
-            }
+            this.dub = dub;
         }
 
-        private class ConstantNumberResolveReferance : IResolve<IBox< WeakConstantNumber>>
+        public ISetUpResult<IBox<WeakConstantNumber>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly double dub;
-
-            public ConstantNumberResolveReferance(
-                double dub)
+            if (!(scope is Tpn.IScope runtimeScope))
             {
-                this.dub = dub;
+                throw new NotImplementedException("this should be an IError");
             }
 
-            public IBox<WeakConstantNumber> Run(Tpn.TypeSolution context)
-            {
-                return new Box<WeakConstantNumber>(new WeakConstantNumber(Possibly.Is(dub)));
-            }
+            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("number"), new PlaceholderValueConverter());
+            return new SetUpResult<IBox<WeakConstantNumber>, Tpn.IValue>(new ConstantNumberResolveReferance(dub), OrType.Make<Tpn.IValue, IError>(value));
+        }
+    }
+
+    internal class ConstantNumberResolveReferance : IResolve<IBox<WeakConstantNumber>>
+    {
+        private readonly double dub;
+
+        public ConstantNumberResolveReferance(
+            double dub)
+        {
+            this.dub = dub;
+        }
+
+        public IBox<WeakConstantNumber> Run(Tpn.TypeSolution context)
+        {
+            return new Box<WeakConstantNumber>(new WeakConstantNumber(Possibly.Is(dub)));
         }
     }
 }

@@ -197,37 +197,37 @@ namespace Tac.SemanticModel
                 .ConvertIfMatched(name => new TypeReferancePopulateScope(name));
         }
 
+    }
 
-        public class TypeReferancePopulateScope : ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>
+    internal class TypeReferancePopulateScope : ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>
+    {
+        private readonly IKey key;
+
+        public TypeReferancePopulateScope(IKey typeName)
         {
-            private readonly IKey key;
-
-            public TypeReferancePopulateScope(IKey typeName)
-            {
-                key = typeName ?? throw new ArgumentNullException(nameof(typeName));
-            }
-
-            public ISetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                var type = context.TypeProblem.CreateTypeReference(scope,key, new WeakTypeReferenceConverter());
-                return new SetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
-                    type), OrType.Make<Tpn.TypeProblem2.TypeReference,IError>( type));
-            }
+            key = typeName ?? throw new ArgumentNullException(nameof(typeName));
         }
 
-        public class TypeReferanceResolveReference : IResolve<IBox<IFrontendType>>
+        public ISetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly Tpn.TypeProblem2.TypeReference type;
+            var type = context.TypeProblem.CreateTypeReference(scope, key, new WeakTypeReferenceConverter());
+            return new SetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
+                type), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(type));
+        }
+    }
 
-            public TypeReferanceResolveReference(Tpn.TypeProblem2.TypeReference type)
-            {
-                this.type = type ?? throw new ArgumentNullException(nameof(type));
-            }
+    internal class TypeReferanceResolveReference : IResolve<IBox<IFrontendType>>
+    {
+        private readonly Tpn.TypeProblem2.TypeReference type;
 
-            public IBox<IFrontendType> Run(Tpn.TypeSolution context)
-            {
-                return context.GetTypeReference(type);
-            }
+        public TypeReferanceResolveReference(Tpn.TypeProblem2.TypeReference type)
+        {
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
+        }
+
+        public IBox<IFrontendType> Run(Tpn.TypeSolution context)
+        {
+            return context.GetTypeReference(type);
         }
     }
 

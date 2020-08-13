@@ -114,80 +114,82 @@ namespace Tac.SemanticModel
                 .ConvertIfMatched((_,block) => new ObjectDefinitionPopulateScope(tokenMatching.Context.ParseBlock(block)));
         }
 
-        private class ObjectDefinitionPopulateScope : ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>
+    }
+
+
+    internal class ObjectDefinitionPopulateScope : ISetUp<IBox<WeakObjectDefinition>, Tpn.IValue>
+    {
+        private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+
+        public ObjectDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements)
         {
-            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-
-            public ObjectDefinitionPopulateScope(IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements)
-            {
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-            }
-
-            public ISetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                if (!(scope is Tpn.IScope runtimeScope))
-                {
-                    throw new NotImplementedException("this should be an IError");
-                }
-
-                var key = new ImplicitKey(Guid.NewGuid());
-
-                var box = new Box<IReadOnlyList< IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>>();
-                var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box), new WeakScopeConverter());
-
-                // {6B83A7F1-0E28-4D07-91C8-57E6878E97D9}
-                // module has similar code
-                //foreach (var element in elements)
-                //{
-                //    element.Switch(
-                //        y =>
-                //        {
-                //            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(myScope, context).Resolve));
-                //        },
-                //        y =>
-                //        {
-                //            // it is a bit weird that types are not used at all
-                //            y.Run(myScope, context);
-                //        },
-                //        y =>
-                //        {
-                //            // this is also a bit wierd, these errors are anything that was not parsed
-                //            // they are not really related to the assignments they are bing placed next to
-                //            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y));
-                //        });
-                //}
-
-                box.Fill(elements.Select(x =>
-                x.TransformInner(y => y.Run(myScope, context).Resolve)).ToArray());
-
-                var value = context.TypeProblem.CreateValue(runtimeScope, key, new PlaceholderValueConverter());
-                // ugh! an object is a type
-                //
-
-                return new SetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue>(new ResolveReferanceObjectDefinition(myScope), OrType.Make<Tpn.IValue, IError>(value));
-            }
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
         }
 
-        private class ResolveReferanceObjectDefinition : IResolve<IBox<WeakObjectDefinition>>
+        public ISetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly Tpn.TypeProblem2.Object myScope;
-
-            public ResolveReferanceObjectDefinition(Tpn.TypeProblem2.Object myScope)
+            if (!(scope is Tpn.IScope runtimeScope))
             {
-                this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
+                throw new NotImplementedException("this should be an IError");
             }
 
-            // do these really need to be IBox? they seeme to generally be filled...
-            // mayble IPossibly...
-            public IBox<WeakObjectDefinition> Run(Tpn.TypeSolution context)
+            var key = new ImplicitKey(Guid.NewGuid());
+
+            var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
+            var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box), new WeakScopeConverter());
+
+            // {6B83A7F1-0E28-4D07-91C8-57E6878E97D9}
+            // module has similar code
+            //foreach (var element in elements)
+            //{
+            //    element.Switch(
+            //        y =>
+            //        {
+            //            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(myScope, context).Resolve));
+            //        },
+            //        y =>
+            //        {
+            //            // it is a bit weird that types are not used at all
+            //            y.Run(myScope, context);
+            //        },
+            //        y =>
+            //        {
+            //            // this is also a bit wierd, these errors are anything that was not parsed
+            //            // they are not really related to the assignments they are bing placed next to
+            //            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y));
+            //        });
+            //}
+
+            box.Fill(elements.Select(x =>
+            x.TransformInner(y => y.Run(myScope, context.CreateChild(this)).Resolve)).ToArray());
+
+            var value = context.TypeProblem.CreateValue(runtimeScope, key, new PlaceholderValueConverter());
+            // ugh! an object is a type
+            //
+
+            return new SetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue>(new ResolveReferanceObjectDefinition(myScope), OrType.Make<Tpn.IValue, IError>(value));
+        }
+    }
+
+    internal class ResolveReferanceObjectDefinition : IResolve<IBox<WeakObjectDefinition>>
+    {
+        private readonly Tpn.TypeProblem2.Object myScope;
+
+        public ResolveReferanceObjectDefinition(Tpn.TypeProblem2.Object myScope)
+        {
+            this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
+        }
+
+        // do these really need to be IBox? they seeme to generally be filled...
+        // mayble IPossibly...
+        public IBox<WeakObjectDefinition> Run(Tpn.TypeSolution context)
+        {
+            var objectOr = context.GetObject(myScope);
+            if (objectOr.GetValue().Is1(out var v1))
             {
-                var objectOr = context.GetObject(myScope);
-                if (objectOr.GetValue().Is1(out var v1))
-                {
-                    return new Box<WeakObjectDefinition>(v1);
-                }
-                throw new Exception("wrong or");
+                return new Box<WeakObjectDefinition>(v1);
             }
+            throw new Exception("wrong or");
         }
     }
 }

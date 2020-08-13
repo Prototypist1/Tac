@@ -144,49 +144,60 @@ namespace Tac.SemanticModel
         //    return new MemberDefinitionPopulateScope(item, v,  typeToken);
         //}
 
-        private class MemberDefinitionPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
+
+    }
+
+    internal class MemberDefinitionPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
+    {
+        private readonly IKey memberName;
+        private readonly bool isReadonly;
+        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> type;
+
+        public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> typeToken)
         {
-            private readonly IKey memberName;
-            private readonly bool isReadonly;
-            private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> type;
-
-            public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> typeToken)
-            {
-                memberName = item ?? throw new ArgumentNullException(nameof(item));
-                isReadonly = v;
-                type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
-            }
-
-            public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-
-                var type = this.type.Run(scope, context);
-
-
-                var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x => x.Key()), new WeakMemberDefinitionConverter(isReadonly, memberName));
-
-
-                return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
-                    member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
-            }
-
+            memberName = item ?? throw new ArgumentNullException(nameof(item));
+            isReadonly = v;
+            type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
         }
 
-        private class MemberDefinitionResolveReferance : IResolve<IBox<WeakMemberReference>>
+        public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly Tpn.TypeProblem2.Member member;
 
-            public MemberDefinitionResolveReferance(Tpn.TypeProblem2.Member member)
-            {
-                this.member = member ?? throw new ArgumentNullException(nameof(member));
-            }
+            var type = this.type.Run(scope, context.CreateChild(this));
 
-            public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
-            {
-                return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
-            }
+
+            var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x => x.Key()), new WeakMemberDefinitionConverter(isReadonly, memberName));
+
+
+            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
+                member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+        }
+
+    }
+
+    internal class MemberDefinitionResolveReferance : IResolve<IBox<WeakMemberReference>>
+    {
+        private readonly Tpn.TypeProblem2.Member member;
+
+        public MemberDefinitionResolveReferance(Tpn.TypeProblem2.Member member)
+        {
+            this.member = member ?? throw new ArgumentNullException(nameof(member));
+        }
+
+        public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
+        {
+            return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
         }
     }
+
+    // you are here
+    // these two share a lot of code
+    // you should combine them in to one class that is context awake
+    // if it is in an assignment that is the root of a line in an object/module it does one thing
+    // if it is the root of a line in a type it does anotherr
+    // otherwise it does a third
+
+    // ObjectOrTypeMemberDefinitionMaker actually need to merge with MemberMaker
 
     // these two share a lot of code
     // but is all boiler plate so I don't care
@@ -204,7 +215,7 @@ namespace Tac.SemanticModel
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
                 .Has(new TypeMaker())
                 .Has(new NameMaker())
-                .ConvertIfMatched((type,nameToken) => new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, Possibly.Is(type)));
+                .ConvertIfMatched((type,nameToken) => new ObjectOrTypeMemberMemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, Possibly.Is(type)));
             
             if (firstTry is IMatchedTokenMatching) {
                 return firstTry;
@@ -215,63 +226,64 @@ namespace Tac.SemanticModel
                 .Has(new NameMaker())
                 .ConvertIfMatched((nameToken) =>
                 {
-                    return new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, Possibly.IsNot<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>());
+                    return new ObjectOrTypeMemberMemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, Possibly.IsNot<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>());
                 });
         }
 
-        private class MemberDefinitionPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
-        {
-            private readonly IKey memberName;
-            private readonly bool isReadonly;
-            private readonly IIsPossibly<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> type;
-
-            public MemberDefinitionPopulateScope(IKey item, bool v, IIsPossibly<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> typeToken)
-            {
-                memberName = item ?? throw new ArgumentNullException(nameof(item));
-                isReadonly = v;
-                type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
-            }
-
-            public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-
-                if (!(scope is Tpn.IHavePublicMembers havePublicMember)) {
-                    // this should only be used in object and type definitions 
-                    throw new NotImplementedException("this should be an ierror");
-                }
-
-                var member = this.type.IfElseReturn(x =>
-                {
-                    var type = x.Run(scope, context);
-                    return context.TypeProblem.CreatePublicMember(scope, havePublicMember, memberName, type.SetUpSideNode.TransformInner(x => x.Key()), new WeakMemberDefinitionConverter(isReadonly, memberName));
-                },
-                () =>
-                {
-                    return context.TypeProblem.CreatePublicMember(scope, havePublicMember, memberName, new WeakMemberDefinitionConverter(isReadonly, memberName));
-                });
-
-
-                return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
-                    member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
-            }
-
-        }
-
-        private class MemberDefinitionResolveReferance : IResolve<IBox<WeakMemberReference>>
-        {
-            private readonly Tpn.TypeProblem2.Member member;
-
-            public MemberDefinitionResolveReferance(Tpn.TypeProblem2.Member member)
-            {
-                this.member = member ?? throw new ArgumentNullException(nameof(member));
-            }
-
-            public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
-            {
-                return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
-            }
-        }
     }
 
 
+    internal class ObjectOrTypeMemberMemberDefinitionPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
+    {
+        private readonly IKey memberName;
+        private readonly bool isReadonly;
+        private readonly IIsPossibly<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> type;
+
+        public ObjectOrTypeMemberMemberDefinitionPopulateScope(IKey item, bool v, IIsPossibly<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> typeToken)
+        {
+            memberName = item ?? throw new ArgumentNullException(nameof(item));
+            isReadonly = v;
+            type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
+        }
+
+        public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
+        {
+
+            if (!(scope is Tpn.IHavePublicMembers havePublicMember))
+            {
+                // this should only be used in object and type definitions 
+                throw new NotImplementedException("this should be an ierror");
+            }
+
+            var member = this.type.IfElseReturn(x =>
+            {
+                var type = x.Run(scope, context.CreateChild(this));
+                return context.TypeProblem.CreatePublicMember(scope, havePublicMember, memberName, type.SetUpSideNode.TransformInner(x => x.Key()), new WeakMemberDefinitionConverter(isReadonly, memberName));
+            },
+            () =>
+            {
+                return context.TypeProblem.CreatePublicMember(scope, havePublicMember, memberName, new WeakMemberDefinitionConverter(isReadonly, memberName));
+            });
+
+
+            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new ObjectOrTypeMemberMemberDefinitionResolveReferance(
+                member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+        }
+
+    }
+
+    internal class ObjectOrTypeMemberMemberDefinitionResolveReferance : IResolve<IBox<WeakMemberReference>>
+    {
+        private readonly Tpn.TypeProblem2.Member member;
+
+        public ObjectOrTypeMemberMemberDefinitionResolveReferance(Tpn.TypeProblem2.Member member)
+        {
+            this.member = member ?? throw new ArgumentNullException(nameof(member));
+        }
+
+        public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
+        {
+            return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
+        }
+    }
 }

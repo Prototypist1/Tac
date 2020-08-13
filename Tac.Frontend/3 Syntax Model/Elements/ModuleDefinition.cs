@@ -149,68 +149,71 @@ namespace Tac.SemanticModel
             return matching.ConvertIfMatched((_,name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseBlock(third), new NameKey(name.Item)));
         }
 
-        private class ModuleDefinitionPopulateScope : ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>
+    }
+
+
+    internal class ModuleDefinitionPopulateScope : ISetUp<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>
+    {
+        private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+        private readonly NameKey nameKey;
+
+        public ModuleDefinitionPopulateScope(
+            IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
+            NameKey nameKey)
         {
-            private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-            private readonly NameKey nameKey;
-
-            public ModuleDefinitionPopulateScope(
-                IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,  IError>> elements,
-                NameKey nameKey)
-            {
-                this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-                this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-            }
-
-            public ISetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                var box = new Box<IReadOnlyList<IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>>>();
-                var myScope= context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey), new WeakScopeConverter());
-
-                // {6B83A7F1-0E28-4D07-91C8-57E6878E97D9}
-                // object has similar code
-                //foreach (var element in elements) {
-                //    element.Switch(
-                //        y =>
-                //        {
-                //            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(myScope, context).Resolve));
-                //        },
-                //        y =>
-                //        {
-                //            // it is a bit weird that types are not used at all
-                //            y.Run(myScope, context);
-                //        },
-                //        y =>
-                //        {
-                //            // this is also a bit wierd, these errors are anything that was not parsed
-                //            // they are not really related to the assignments they are bing placed next to
-                //            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y));
-                //        });
-                //}
-
-                box.Fill(elements.Select(x => x.TransformInner(y=>y.Run(myScope, context).Resolve)).ToArray());
-
-                return new SetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), OrType.Make<Tpn.TypeProblem2.Object, IError>(myScope));
-            }
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
-        private class ModuleDefinitionResolveReferance : IResolve<IBox<WeakModuleDefinition>>
+        public ISetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly Tpn.TypeProblem2.Object myScope;
+            var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
+            var myScope = context.TypeProblem.CreateObjectOrModule(scope, nameKey, new WeakModuleConverter(box, nameKey), new WeakScopeConverter());
 
-            public ModuleDefinitionResolveReferance(Tpn.TypeProblem2.Object myScope)
-            {
-                this.myScope = myScope;
-            }
+            // {6B83A7F1-0E28-4D07-91C8-57E6878E97D9}
+            // object has similar code
+            //foreach (var element in elements) {
+            //    element.Switch(
+            //        y =>
+            //        {
+            //            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(myScope, context).Resolve));
+            //        },
+            //        y =>
+            //        {
+            //            // it is a bit weird that types are not used at all
+            //            y.Run(myScope, context);
+            //        },
+            //        y =>
+            //        {
+            //            // this is also a bit wierd, these errors are anything that was not parsed
+            //            // they are not really related to the assignments they are bing placed next to
+            //            list.Add(OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y));
+            //        });
+            //}
 
-            public IBox<WeakModuleDefinition> Run(Tpn.TypeSolution context)
+            box.Fill(elements.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChild(this)).Resolve)).ToArray());
+
+            return new SetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), OrType.Make<Tpn.TypeProblem2.Object, IError>(myScope));
+        }
+    }
+
+    internal class ModuleDefinitionResolveReferance : IResolve<IBox<WeakModuleDefinition>>
+    {
+        private readonly Tpn.TypeProblem2.Object myScope;
+
+        public ModuleDefinitionResolveReferance(Tpn.TypeProblem2.Object myScope)
+        {
+            this.myScope = myScope;
+        }
+
+        public IBox<WeakModuleDefinition> Run(Tpn.TypeSolution context)
+        {
+            var moduleOr = context.GetObject(myScope);
+            if (moduleOr.GetValue().Is2(out var v2))
             {
-                var moduleOr = context.GetObject(myScope);
-                if (moduleOr.GetValue().Is2(out var v2)) {
-                    return new Box<WeakModuleDefinition>(v2);
-                }
-                throw new Exception("wrong or");
+                return new Box<WeakModuleDefinition>(v2);
             }
+            throw new Exception("wrong or");
         }
     }
 }

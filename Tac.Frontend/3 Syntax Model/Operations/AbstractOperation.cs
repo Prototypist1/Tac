@@ -243,9 +243,9 @@ namespace Tac.SemanticModel.CodeStuff
 
             public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
             {
-                var nextLeft = left.TransformInner(x=>x.Run(scope, context));
-                var nextRight = right.TransformInner(x => x.Run(scope, context));
-                var value = keyMaker(scope, context,nextLeft, nextRight);
+                var nextLeft = left.TransformInner(x=>x.Run(scope, context.CreateChild(this)));
+                var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+                var value = keyMaker(scope, context.CreateChild(this), nextLeft, nextRight);
 
                 return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(new BinaryResolveReferance(
                     nextLeft.TransformInner(x=>x.Resolve),
@@ -355,82 +355,85 @@ namespace Tac.SemanticModel.CodeStuff
 
 
 
-        private class BinaryPopulateScope : ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>
+    }
+
+
+
+    internal class BinaryPopulateScope : ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>
+    {
+        private readonly IOrType<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>, IError> left;
+        private readonly IOrType<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>, IError> right;
+        private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make;
+        private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
+
+        public BinaryPopulateScope(
+            IOrType<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>, IError> left,
+            IOrType<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>, IError> right,
+            BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make,
+            BinaryOperation.ToTypeProblemThings toTypeProblemThings)
         {
-            private readonly IOrType<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>, IError> left;
-            private readonly IOrType<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>, IError> right;
-            private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make;
-            private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
-
-            public BinaryPopulateScope(
-                IOrType<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>, IError> left,
-                IOrType<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>, IError> right,
-                BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make,
-                BinaryOperation.ToTypeProblemThings toTypeProblemThings)
-            {
-                this.left = left ?? throw new ArgumentNullException(nameof(left));
-                this.right = right ?? throw new ArgumentNullException(nameof(right));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.toTypeProblemThings = toTypeProblemThings ?? throw new ArgumentNullException(nameof(toTypeProblemThings));
-            }
-
-
-            public ISetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-
-                // TODO
-                // this is something I don't much like
-                // right runs first because of assign
-                // in assign you might have something like
-                // method [int;int] input { input < ? 2 if { 1 return; } else { input - 1 > fac * input return; } } =: fac
-                // if the left runs first than fac will not be found
-                // and so it will add it to the scope
-                // but if the right is run first 
-                // fac works
-                // if I add an assign that goes the other way...
-                // this will break
-
-                // part of me just thinks 
-                // force 'var' on member definition 
-                var nextLeft = left.TransformInner(x=>x.Run(scope, context));
-                var nextRight = right.TransformInner(x => x.Run(scope, context));
-                var type = toTypeProblemThings(scope, context, nextLeft, nextRight);
-
-                return new SetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>(new BinaryResolveReferance(
-                    nextLeft.TransformInner(x=>x.Resolve),
-                    nextRight.TransformInner(x => x.Resolve),
-                    make
-                    ), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>( type));
-            }
+            this.left = left ?? throw new ArgumentNullException(nameof(left));
+            this.right = right ?? throw new ArgumentNullException(nameof(right));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.toTypeProblemThings = toTypeProblemThings ?? throw new ArgumentNullException(nameof(toTypeProblemThings));
         }
 
 
-        private class BinaryResolveReferance : IResolve<IBox<IFrontendType>>
+        public ISetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            public readonly IOrType< IResolve<IBox<IFrontendType>>,IError> left;
-            public readonly IOrType<IResolve<IBox<IFrontendType>>, IError> right;
-            private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make;
 
-            public BinaryResolveReferance(
-                IOrType<IResolve<IBox<IFrontendType>>, IError> resolveReferance1,
-                IOrType<IResolve<IBox<IFrontendType>>, IError> resolveReferance2,
-                BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make)
-            {
-                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
+            // TODO
+            // this is something I don't much like
+            // right runs first because of assign
+            // in assign you might have something like
+            // method [int;int] input { input < ? 2 if { 1 return; } else { input - 1 > fac * input return; } } =: fac
+            // if the left runs first than fac will not be found
+            // and so it will add it to the scope
+            // but if the right is run first 
+            // fac works
+            // if I add an assign that goes the other way...
+            // this will break
 
-            // I think IResolve<TCodeElement> should return TCodeElement instead of IBox<TCodeElement>
-            // that will be expensive but I think it gives me more control
-            public IBox<IFrontendType> Run(Tpn.TypeSolution context)
-            {
-                var res = make(
-                    new BoxThenOr(left.TransformInner(x=>x.Run(context))),
-                    new BoxThenOr(right.TransformInner(x => x.Run( context))));
+            // part of me just thinks 
+            // force 'var' on member definition 
+            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+            var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+            var type = toTypeProblemThings(scope, context.CreateChild(this), nextLeft, nextRight);
 
-                return res;
-            }
+            return new SetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>(new BinaryResolveReferance(
+                nextLeft.TransformInner(x => x.Resolve),
+                nextRight.TransformInner(x => x.Resolve),
+                make
+                ), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(type));
+        }
+    }
+
+
+    internal class BinaryResolveReferance : IResolve<IBox<IFrontendType>>
+    {
+        public readonly IOrType<IResolve<IBox<IFrontendType>>, IError> left;
+        public readonly IOrType<IResolve<IBox<IFrontendType>>, IError> right;
+        private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make;
+
+        public BinaryResolveReferance(
+            IOrType<IResolve<IBox<IFrontendType>>, IError> resolveReferance1,
+            IOrType<IResolve<IBox<IFrontendType>>, IError> resolveReferance2,
+            BinaryOperation.MakeBinaryType<IBox<IFrontendType>> make)
+        {
+            left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+            right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+        }
+
+        // I think IResolve<TCodeElement> should return TCodeElement instead of IBox<TCodeElement>
+        // that will be expensive but I think it gives me more control
+        public IBox<IFrontendType> Run(Tpn.TypeSolution context)
+        {
+            var res = make(
+                new BoxThenOr(left.TransformInner(x => x.Run(context))),
+                new BoxThenOr(right.TransformInner(x => x.Run(context))));
+
+            return res;
         }
     }
 

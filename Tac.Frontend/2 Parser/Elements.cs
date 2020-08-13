@@ -253,7 +253,7 @@ namespace Tac.Parser
             new ElseOperationMaker(),
 
             new AssertAssignOperationMaker(),
-            new AssertAssignInObjectOperationMaker(),
+            //new AssertAssignInObjectOperationMaker(),
 
             new ReturnOperationMaker(),
 
@@ -275,7 +275,10 @@ namespace Tac.Parser
         // 
 
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] typeLineMakers = new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] {
-            new ObjectOrTypeMemberDefinitionMaker(), // maybe I just need this?
+
+            new MemberDefinitionMaker(),
+            new MemberMaker(),
+            // new ObjectOrTypeMemberDefinitionMaker(), // maybe I just need this?
 
             //new MemberDefinitionMaker(),
             //new MemberMaker(), // this matches very broadly so it pretty much goes last
@@ -382,38 +385,7 @@ namespace Tac.Parser
 
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseLine(IReadOnlyList<IToken> tokens)
         {
-
-            foreach (var maker in allMakers)
-            {
-                for (int i = 0; i < tokens.Count; i++)
-                {
-                    var startAt = i;
-                    if (Map.TokenHasElement(tokens[i])) {
-                        continue;
-                    }
-
-                    if (tokens[i].SafeIs(out ParenthesisToken parenthesisToken))
-                    {
-                        ParseParenthesis(parenthesisToken);
-                        continue;
-                    }
-
-                    i++;
-                    while (i < tokens.Count && Map.TokenHasElement(tokens[i])) {
-                        i++;
-                    }
-
-                    var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens, this, startAt);
-
-                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> matched))
-                    {
-                        foreach (var token in matched.MatchedTokens())
-                        {
-                            Map.SetTokenElement(token, element);
-                        }
-                    }
-                }
-            }
+            InnerParseLine(tokens,allMakers);
 
             return Map.GetGreatestParent(tokens.First());
 
@@ -455,14 +427,19 @@ namespace Tac.Parser
             //return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
         }
 
-        public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseTypeLine(IReadOnlyList<IToken> tokens)
+        private void InnerParseLine(IReadOnlyList<IToken> tokens, IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] makers)
         {
-
-            foreach (var maker in typeLineMakers)
+            foreach (var maker in makers)
             {
+                // TODO
+                // {796AF658-9160-41E2-AD6D-A6D5B905482F}
+                // some makers actually want to go right to left 
+                // x :=  aggregate < filter < transform < filter < somelist
+                // x := y := z := 1
+                // ++ ++ ++ ++ a
+                // fistletter of name of 'chris'
                 for (int i = 0; i < tokens.Count; i++)
                 {
-                    var startAt = i;
                     if (Map.TokenHasElement(tokens[i]))
                     {
                         continue;
@@ -470,17 +447,15 @@ namespace Tac.Parser
 
                     if (tokens[i].SafeIs(out ParenthesisToken parenthesisToken))
                     {
-                        ParseParenthesis(parenthesisToken);
+                        var res = ParseParenthesis(parenthesisToken);
+                        if (res.Is1(out var realRes))
+                        {
+                            Map.SetTokenElement(tokens[i], realRes);
+                        }
                         continue;
                     }
 
-                    i++;
-                    while (i < tokens.Count && Map.TokenHasElement(tokens[i]))
-                    {
-                        i++;
-                    }
-
-                    var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens, this, startAt);
+                    var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens, this, i);
 
                     if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> matched))
                     {
@@ -491,16 +466,29 @@ namespace Tac.Parser
                     }
                 }
             }
+        }
+
+        public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseTypeLine(IReadOnlyList<IToken> tokens)
+        {
+            InnerParseLine(tokens, typeLineMakers);
 
             return Map.GetGreatestParent(tokens.First()).SafeCastTo(out IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> _);
         }
 
-        private void ParseParenthesis(ParenthesisToken parenthesisToken)
+        private IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseParenthesis(ParenthesisToken parenthesisToken)
         {
-            foreach (var item in parenthesisToken.Tokens)
+            // TODO.. why have a signle line in a parenthesis?
+            // {FA9BEE9F-446E-488D-B591-C7634A989D03}
+            var item = parenthesisToken.Tokens.Single();
+            
+            var res = ParseLine(item.SafeCastTo(out LineToken lt).Tokens);
+            if (res.Is1(out var realRes))
             {
-                ParseLine(item.SafeCastTo(out LineToken _).Tokens);
+                Map.SetTokenElement(lt, realRes);
+                Map.SetTokenElement(parenthesisToken, realRes);
             }
+            
+            return Map.GetGreatestParent(parenthesisToken.Tokens.First());
         }
 
         // only types and assignments 

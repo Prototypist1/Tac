@@ -77,7 +77,7 @@ namespace Tac.Frontend.Parser
         {
             var index = elementToken.EndIndex;
 
-            if (elementToken.AllTokens.Count >= index &&
+            if (elementToken.AllTokens.Count > index &&
                 elementToken.AllTokens[index] is AtomicToken first &&
                 !double.TryParse(first.Item, out var _) &&
                 IsNotKeyWord(first.Item))
@@ -100,7 +100,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count >= index &&
+            if (self.AllTokens.Count > index &&
                 self.AllTokens[index] is AtomicToken first &&
                 !double.TryParse(first.Item, out var _) &&
                 IsNotKeyWord(first.Item))
@@ -137,7 +137,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count >= index &&
+            if (self.AllTokens.Count > index &&
                 self.AllTokens[index] is AtomicToken first &&
                 double.TryParse(first.Item, out var res))
             {
@@ -168,7 +168,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count >= index &&
+            if (self.AllTokens.Count > index &&
                 self.AllTokens[index] is CurleyBracketToken first)
             {
                 return TokenMatching<CurleyBracketToken>.MakeMatch(self.AllTokens, self.Context, first, index, index + 1);
@@ -184,7 +184,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count >= index &&
+            if (self.AllTokens.Count > index &&
                            self.AllTokens[index] is SquareBacketToken typeParameters &&
                                typeParameters.Tokens.All(x => x is LineToken line &&
                                    line.Tokens.Count == 1 &&
@@ -208,7 +208,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count >= index &&
+            if (self.AllTokens.Count > index &&
                 self.AllTokens[index] is SquareBacketToken typeParameters &&
                 typeParameters.Tokens.All(x => x is LineToken lt && lt.Tokens.All(y => y is AtomicToken)) &&
                 TryToToken(out var res))
@@ -261,7 +261,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count > index & index != 1 &&
+            if (self.AllTokens.Count > index & index != 0 &&
                     self.AllTokens[index] is AtomicToken op &&
                     op.Item == s)
             {
@@ -289,7 +289,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count >= index & index != 1 &&
+            if (self.AllTokens.Count > index & index != 1 &&
                     self.AllTokens[index] is AtomicToken op &&
                     op.Item == s)
             {
@@ -316,7 +316,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count >= index && self.AllTokens[index] is AtomicToken first &&
+            if (self.AllTokens.Count > index && self.AllTokens[index] is AtomicToken first &&
                                 first.Item == word)
             {
                 return TokenMatching<AtomicToken>.MakeMatch(self.AllTokens, self.Context, first,
