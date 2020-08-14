@@ -105,12 +105,14 @@ namespace Tac.SemanticModel.Operations
         where TCodeElement : class, ICodeElement
     {
         private readonly TrailingOperation.GetReturnedValue getReturnedValue;
+        private readonly bool intoInitScope;
 
-        public TrailingOperationMaker(string symbol, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
+        public TrailingOperationMaker(string symbol, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue, bool intoInitScope)
         {
             Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
             Make = make ?? throw new ArgumentNullException(nameof(make));
             this.getReturnedValue = getReturnedValue ?? throw new ArgumentNullException(nameof(getReturnedValue));
+            this.intoInitScope = intoInitScope;
         }
 
         public string Symbol { get; }
@@ -125,7 +127,7 @@ namespace Tac.SemanticModel.Operations
 
                 var left = tokenMatching.Context.Map.GetGreatestParent(match.perface);
 
-                var res = new TrailingPopulateScope<TFrontendCodeElement, TCodeElement>(left, Make, getReturnedValue);
+                var res = new TrailingPopulateScope<TFrontendCodeElement, TCodeElement>(left, Make, getReturnedValue, intoInitScope);
 
                 if (left.Is1(out var leftValue))
                 {
@@ -147,16 +149,25 @@ namespace Tac.SemanticModel.Operations
         private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
         private readonly TrailingOperation.Make<TFrontendCodeElement> make;
         private readonly TrailingOperation.GetReturnedValue getReturnedValue;
+        private readonly bool intoInitScope;
 
-        public TrailingPopulateScope(IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue)
+        public TrailingPopulateScope(IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left, TrailingOperation.Make<TFrontendCodeElement> make, TrailingOperation.GetReturnedValue getReturnedValue, bool intoInitScope)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.getReturnedValue = getReturnedValue ?? throw new ArgumentNullException(nameof(getReturnedValue));
+            this.intoInitScope = intoInitScope;
         }
 
         public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
+            // return should never be in an object init
+            // but other trailing operations might
+            if (intoInitScope)
+            {
+                scope = scope.EnterInitizaionScopeIfNessisary();
+            }
+
             var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
             return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(
                 new TrailingResolveReferance<TFrontendCodeElement, TCodeElement>(nextLeft.TransformInner(x => x.Resolve), make),
@@ -222,7 +233,7 @@ namespace Tac.SemanticModel.Operations
             finalVal.AssignTo(mem);
 
             return OrType.Make<Tpn.IValue, IError>( c.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"), new PlaceholderValueConverter()));
-        })
+        },false)
         {
         }
     }

@@ -14,6 +14,7 @@ using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
 using System.Collections.Generic;
 using System;
+using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Parser
 {
@@ -123,6 +124,9 @@ namespace Tac.SemanticModel.Operations
 
         public ISetUpResult<IBox<WeakConstantBool>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
+
+            scope = scope.EnterInitizaionScopeIfNessisary();
+
             if (!(scope is Tpn.IScope runtimeScope))
             {
                 throw new NotImplementedException("this should be an IError");

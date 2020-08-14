@@ -124,12 +124,23 @@ namespace Tac.SemanticModel.Operations
                 var left = matching.Context.Map.GetGreatestParent(match.perface);
                 var right = matching.Context.Map.GetGreatestParent(match.rhs);
 
+                var res = new WeakAssignOperationPopulateScope(left, right);
+
+                if (left.Is1(out var leftValue))
+                {
+                    tokenMatching.Context.Map.SetElementParent(leftValue, res);
+                }
+                if (right.Is1(out var rightValue))
+                {
+                    tokenMatching.Context.Map.SetElementParent(rightValue, res);
+                }
+
                 return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeMatch(
                     matched.AllTokens,
                     matched.Context,
-                    new WeakAssignOperationPopulateScope(left, right),
+                    res,
                     matched.StartIndex,
-                    matched.EndIndex);
+                    matched.EndIndex); ;
             }
 
             return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeNotMatch(
@@ -155,7 +166,6 @@ namespace Tac.SemanticModel.Operations
 
         public ISetUpResult<IBox<WeakAssignOperation>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-
             var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
             var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChild(this)));
 

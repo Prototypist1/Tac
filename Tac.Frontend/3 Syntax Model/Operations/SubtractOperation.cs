@@ -21,7 +21,7 @@ namespace Tac.SemanticModel.CodeStuff
     // this is how we register the symbol
     public partial class SymbolsRegistry
     {
-        public static readonly string StaticSubtractSymbol = StaticSymbolsRegistry.AddOrThrow(" - ");
+        public static readonly string StaticSubtractSymbol = StaticSymbolsRegistry.AddOrThrow("-");
         public readonly string SubtractSymbol = StaticSubtractSymbol;
     }
 }
@@ -104,7 +104,7 @@ namespace Tac.SemanticModel.Operations
                     .IfNotError(x => c.TypeProblem.IsNumber(runtimeScope, x));
 
                     return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(runtimeScope, new NameKey("number"), new PlaceholderValueConverter()));
-                })
+                },true)
         {}
     }
 }

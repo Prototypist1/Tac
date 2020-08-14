@@ -6,8 +6,11 @@ namespace Tac.Parser
 {
     internal class Tokenizer
     {
-        public Tokenizer()
+        private readonly IReadOnlyList<string> operations;
+
+        public Tokenizer(IReadOnlyList<string> operations)
         {
+            this.operations = operations ?? throw new ArgumentNullException(nameof(operations));
         }
 
         private interface IResultAndExitString<out T>
@@ -242,7 +245,7 @@ namespace Tac.Parser
                     return true;
                 }
 
-                if (IsExit(ref enumerator, out var exit))
+                if (IsOperationOrExit(ref enumerator, out var exit))
                 {
                     if (buildingPart.Length != 0)
                     {
@@ -354,9 +357,9 @@ namespace Tac.Parser
 
         }
 
-        private bool IsExit(ref StringWalker stringWalker, out string? exitString)
+        private bool IsOperationOrExit(ref StringWalker stringWalker, out string? exitString)
         {
-            foreach (var op in new[] { "{", "}", "(", ")", "[", "]", ";", "," })
+            foreach (var op in operations.Union(new[] { "{", "}", "(", ")", "[", "]", ";", "," }).OrderByDescending(x=>x.Length))
             {
                 if (stringWalker.Span().StartsWith(op))
                 {

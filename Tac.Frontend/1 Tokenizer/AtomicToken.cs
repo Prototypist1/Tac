@@ -12,12 +12,12 @@ namespace Tac.Parser
 
         public override string ToString()=> $"Atom({Item})";
 
-        public override bool Equals(object? obj)
-        {
-            return obj is AtomicToken token &&
-                   Item == token.Item;
-        }
+        //public override bool Equals(object? obj)
+        //{
+        //    return obj is AtomicToken token &&
+        //           Item == token.Item;
+        //}
 
-        public override int GetHashCode() => -979861770 + EqualityComparer<string>.Default.GetHashCode(Item);
+        //public override int GetHashCode() => -979861770 + EqualityComparer<string>.Default.GetHashCode(Item);
     }
 }

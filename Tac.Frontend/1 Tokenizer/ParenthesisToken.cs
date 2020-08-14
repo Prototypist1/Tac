@@ -13,14 +13,14 @@ namespace Tac.Parser
             return $"Par({base.ToString()})";
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is ParenthesisToken token && base.Equals(token);
-        }
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+        //public override bool Equals(object? obj)
+        //{
+        //    return obj is ParenthesisToken token && base.Equals(token);
+        //}
+        //public override int GetHashCode()
+        //{
+        //    return base.GetHashCode();
+        //}
     }
 
 

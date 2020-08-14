@@ -207,6 +207,9 @@ namespace Tac.SemanticModel
 
         public ISetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
+
+            scope = scope.EnterInitizaionScopeIfNessisary();
+
             if (!(scope is Tpn.IScope runtimeScope))
             {
                 throw new NotImplementedException("this should be an IError");

@@ -163,21 +163,40 @@ namespace Tac.SemanticModel.CodeStuff
         }
     }
 
-
+    internal static class ScopeExtensions {
+        public static Tpn.IStaticScope EnterInitizaionScopeIfNessisary(this Tpn.IStaticScope staticScope ) {
+            // this is for this:
+            // y := 5
+            // object { x := y + 1 }
+            // x is on the obect
+            // but the RHS is run in the initization scope
+            // y := 5
+            // object { z := x := y + 1 }
+            // operations exculding := push us in to the InitizationScope
+            if (staticScope is Tpn.TypeProblem2.Object objectScope)
+            {
+                return objectScope.InitizationScope;
+            }
+            return staticScope;
+        }
+    }
 
     internal class BinaryOperationMaker<TFrontendCodeElement, TCodeElement> : IMaker<ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>>
         where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
         where TCodeElement : class, ICodeElement
     {
         private readonly BinaryOperation.GetReturnedValue keyMaker;
+        private readonly bool intoInitScope;
 
         public BinaryOperationMaker(string symbol, BinaryOperation.Make<TFrontendCodeElement> make,
-                BinaryOperation.GetReturnedValue keyMaker
+                BinaryOperation.GetReturnedValue keyMaker,
+                bool intoInitScope
             )
         {
             Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
             Make = make ?? throw new ArgumentNullException(nameof(make));
             this.keyMaker = keyMaker ?? throw new ArgumentNullException(nameof(keyMaker));
+            this.intoInitScope = intoInitScope;
         }
 
         public string Symbol { get; }
@@ -194,7 +213,7 @@ namespace Tac.SemanticModel.CodeStuff
                 var left=  tokenMatching.Context.Map.GetGreatestParent(match.lhs);
                 var right = tokenMatching.Context.Map.GetGreatestParent(match.rhs);
 
-                var res = new BinaryPopulateScope(left, right, Make, keyMaker);
+                var res = new BinaryPopulateScope<TFrontendCodeElement, TCodeElement>(left, right, Make, keyMaker, intoInitScope);
 
                 if (left.Is1(out var leftValue))
                 {
@@ -210,75 +229,89 @@ namespace Tac.SemanticModel.CodeStuff
         }
 
 
-        public static ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue> PopulateScope(
-                IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> left,
-                IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> right,
-                BinaryOperation.Make<TFrontendCodeElement> make,
-                BinaryOperation.GetReturnedValue key)
+        //public static ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue> PopulateScope(
+        //        IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> left,
+        //        IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> right,
+        //        BinaryOperation.Make<TFrontendCodeElement> make,
+        //        BinaryOperation.GetReturnedValue key)
+        //{
+        //    return new BinaryPopulateScope(left,
+        //         right,
+        //         make,
+        //         key);
+        //}
+
+        
+    }
+
+    internal class BinaryPopulateScope<TFrontendCodeElement,TCodeElement> : ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>
+        where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
+        where TCodeElement : class, ICodeElement
+    {
+        private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
+        private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> right;
+        private readonly BinaryOperation.Make<TFrontendCodeElement> make;
+        private readonly BinaryOperation.GetReturnedValue keyMaker;
+        private readonly bool intoInitScope;
+
+        public BinaryPopulateScope(
+            IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left,
+            IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> right,
+            BinaryOperation.Make<TFrontendCodeElement> make,
+            BinaryOperation.GetReturnedValue key,
+            bool intoInitScope)
         {
-            return new BinaryPopulateScope(left,
-                 right,
-                 make,
-                 key);
+            this.left = left ?? throw new ArgumentNullException(nameof(left));
+            this.right = right ?? throw new ArgumentNullException(nameof(right));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.keyMaker = key ?? throw new ArgumentNullException(nameof(key));
+            this.intoInitScope = intoInitScope;
         }
 
-        private class BinaryPopulateScope : ISetUp<IBox<TFrontendCodeElement>, Tpn.IValue>
+        public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
-            private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> right;
-            private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-            private readonly BinaryOperation.GetReturnedValue keyMaker;
-
-            public BinaryPopulateScope(
-                IOrType< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> left,
-                IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>,IError> right,
-                BinaryOperation.Make<TFrontendCodeElement> make,
-                BinaryOperation.GetReturnedValue key)
+            if (intoInitScope)
             {
-                this.left = left ?? throw new ArgumentNullException(nameof(left));
-                this.right = right ?? throw new ArgumentNullException(nameof(right));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-                this.keyMaker = key ?? throw new ArgumentNullException(nameof(key));
+                scope = scope.EnterInitizaionScopeIfNessisary();
             }
 
-            public ISetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-            {
-                var nextLeft = left.TransformInner(x=>x.Run(scope, context.CreateChild(this)));
-                var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChild(this)));
-                var value = keyMaker(scope, context.CreateChild(this), nextLeft, nextRight);
+            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+            var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+            var value = keyMaker(scope, context.CreateChild(this), nextLeft, nextRight);
 
-                return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(new BinaryResolveReferance(
-                    nextLeft.TransformInner(x=>x.Resolve),
-                    nextRight.TransformInner(x => x.Resolve),
-                    make), value);
-            }
+            return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(new BinaryResolveReferance<TFrontendCodeElement, TCodeElement>(
+                nextLeft.TransformInner(x => x.Resolve),
+                nextRight.TransformInner(x => x.Resolve),
+                make), value);
+        }
+    }
+
+
+    internal class BinaryResolveReferance<TFrontendCodeElement, TCodeElement> : IResolve<IBox<TFrontendCodeElement>>
+        where TFrontendCodeElement : class, IConvertableFrontendCodeElement<TCodeElement>
+        where TCodeElement : class, ICodeElement
+    {
+        public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
+        public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> right;
+        private readonly BinaryOperation.Make<TFrontendCodeElement> make;
+
+        public BinaryResolveReferance(
+            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance1,
+            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance2,
+            BinaryOperation.Make<TFrontendCodeElement> make)
+        {
+            left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
+            right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
+            this.make = make ?? throw new ArgumentNullException(nameof(make));
         }
 
 
-        private class BinaryResolveReferance : IResolve<IBox<TFrontendCodeElement>>
+        public IBox<TFrontendCodeElement> Run(Tpn.TypeSolution context)
         {
-            public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
-            public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> right;
-            private readonly BinaryOperation.Make<TFrontendCodeElement> make;
-
-            public BinaryResolveReferance(
-                IOrType< IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance1,
-                IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance2,
-                BinaryOperation.Make<TFrontendCodeElement> make)
-            {
-                left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-                right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-                this.make = make ?? throw new ArgumentNullException(nameof(make));
-            }
-
-
-            public IBox<TFrontendCodeElement> Run(Tpn.TypeSolution context)
-            {
-                var res = make(
-                    left.TransformInner(x=>x.Run(context)),
-                    right.TransformInner(x => x.Run( context)));
-                return res;
-            }
+            var res = make(
+                left.TransformInner(x => x.Run(context)),
+                right.TransformInner(x => x.Run(context)));
+            return res;
         }
     }
 

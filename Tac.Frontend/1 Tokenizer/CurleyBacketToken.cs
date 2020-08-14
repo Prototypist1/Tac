@@ -13,14 +13,14 @@ namespace Tac.Parser
             return $"Curl({base.ToString()})";
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is CurleyBracketToken token && base.Equals(token);
-        }
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+        //public override bool Equals(object? obj)
+        //{
+        //    return obj is CurleyBracketToken token && base.Equals(token);
+        //}
+        //public override int GetHashCode()
+        //{
+        //    return base.GetHashCode();
+        //}
     }
 
 

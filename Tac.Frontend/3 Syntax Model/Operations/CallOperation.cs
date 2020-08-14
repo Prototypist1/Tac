@@ -158,7 +158,7 @@ namespace Tac.SemanticModel.Operations
                 x => methodOr.SwitchReturns(
                     y => OrType.Make<Tpn.IValue, IError>(y.Returns()),
                     y => OrType.Make<Tpn.IValue, IError>(y)));
-        })
+        },true)
         {
         }
     }
@@ -231,7 +231,7 @@ namespace Tac.SemanticModel.Operations
                      y => OrType.Make<Tpn.IValue, IError>(y.Returns()),
                      y => OrType.Make<Tpn.IValue, IError>(y)));
 
-        })
+        },true)
         {
         }
     }

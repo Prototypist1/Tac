@@ -13,13 +13,13 @@ namespace Tac.Parser
             return $"Square({base.ToString()})";
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is SquareBacketToken token && base.Equals(token);
-        }
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+        //public override bool Equals(object? obj)
+        //{
+        //    return obj is SquareBacketToken token && base.Equals(token);
+        //}
+        //public override int GetHashCode()
+        //{
+        //    return base.GetHashCode();
+        //}
     }
 }

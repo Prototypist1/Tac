@@ -175,6 +175,25 @@ entry-point {
             verifyBoolIn();
         }
 
+        [Fact]
+        public void NestedParn()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 4.0 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+ @"
+ entry-point {
+     ((((((((((2)) + ((2))))))) > (((out.write-number))))));
+ };");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
 
 
         [Fact]
@@ -188,10 +207,10 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
-     2 + 2 > (out.write-number);
-     3 + 2 > (out.write-number);
-     4 + 2 > (out.write-number);
-     5 + 2 > (out.write-number);
+     2 + 2 > (out . write-number);
+     3 + 2 > (out . write-number);
+     4 + 2 > (out . write-number);
+     5 + 2 > (out . write-number);
  };");
 
             verifyIntIn();
@@ -316,9 +335,9 @@ entry-point {
 entry-point {
     5 =: (bool|number) x;
 
-    x ?=: number y > (out.write-bool);
+    x ?=: number y { y > (out.write-bool) };
     y > (out.write-number);
-    x ?=: bool z > (out.write-bool);
+    x ?=: bool y { y > (out.write-bool) };
 };");
 
             verifyIntIn();
@@ -341,8 +360,8 @@ entry-point {
 entry-point {
     true =: (bool|number) x;
 
-    x ?=: number y > (out.write-bool);
-    x ?=: bool z > (out.write-bool);
+    x ?=: number y { y > (out.write-bool) };
+    x ?=: bool z { z > (out.write-bool) } ;
     z > (out.write-bool);
 };");
 

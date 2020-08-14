@@ -228,11 +228,11 @@ namespace Tac.Parser
             new MethodDefinitionMaker(),
             new ImplementationDefinitionMaker(),
 
-            //new BlockDefinitionMaker(), // called by other things
-
             // object likes
             new ModuleDefinitionMaker(),
             new ObjectDefinitionMaker(),
+
+            new BlockDefinitionMaker(),
 
             new MemberDefinitionMaker(),
             //new ObjectOrTypeMemberDefinitionMaker(), // this only eixts inside types, also objects... I think objects need a specail matcher
@@ -627,12 +627,14 @@ namespace Tac.Parser
 
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>[] ParseBlock(CurleyBracketToken block)
         {
+            var res = new List<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>>();
+
             foreach (var line in block.Tokens)
             {
-                ParseLine(line.CastTo<LineToken>().Tokens);
+                res.Add(ParseLine(line.CastTo<LineToken>().Tokens));
             }
 
-            return block.Tokens.Select(x => Map.GetGreatestParent(x.CastTo<LineToken>().Tokens.First())).ToArray();
+            return res.ToArray();
 
             //return block.Tokens.Select(x =>
             //{
@@ -653,6 +655,8 @@ namespace Tac.Parser
             {
                 list.Add(ParseTypeLine(line.CastTo<LineToken>().Tokens));
             }
+
+
 
             return list;
         }

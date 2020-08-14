@@ -14,6 +14,7 @@ using Tac.Frontend.Parser;
 using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
+using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Parser
 {
@@ -78,15 +79,6 @@ namespace Tac.SemanticModel.Operations
             return TokenMatching<ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
 
-        //public static ISetUp<IBox<WeakConstantNumber>, Tpn.IValue> PopulateScope(double dub)
-        //{
-        //    return new ConstantNumberPopulateScope(dub);
-        //}
-        //public static IResolve<IBox<WeakConstantNumber>> PopulateBoxes(double dub)
-        //{
-        //    return new ConstantNumberResolveReferance(dub);
-        //}
-
     }
 
     internal class ConstantNumberPopulateScope : ISetUp<IBox<WeakConstantNumber>, Tpn.IValue>
@@ -100,6 +92,8 @@ namespace Tac.SemanticModel.Operations
 
         public ISetUpResult<IBox<WeakConstantNumber>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
+            scope = scope.EnterInitizaionScopeIfNessisary();
+
             if (!(scope is Tpn.IScope runtimeScope))
             {
                 throw new NotImplementedException("this should be an IError");

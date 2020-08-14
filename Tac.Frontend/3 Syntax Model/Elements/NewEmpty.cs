@@ -15,6 +15,7 @@ using Tac.Frontend.New;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Frontend.Parser;
 using Prototypist.Toolbox;
+using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Parser
 {
@@ -90,6 +91,8 @@ namespace Tac.Frontend.SyntaxModel.Elements
 
         public ISetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
+
+            scope = scope.EnterInitizaionScopeIfNessisary();
             if (!(scope is Tpn.IScope runtimeScope))
             {
                 throw new NotImplementedException("this should be an IError");

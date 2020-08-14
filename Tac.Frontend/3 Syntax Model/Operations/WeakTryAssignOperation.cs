@@ -65,7 +65,7 @@ namespace Tac.SemanticModel.Operations
                 return TokenMatching<ISetUp<IBox<WeakTryAssignOperation>, Tpn.IValue>>.MakeMatch(
                     matched.AllTokens,
                     matched.Context,
-                    BinaryOperationMaker<WeakTryAssignOperation, ITryAssignOperation>.PopulateScope(left, right, (l, r) =>
+                    new BinaryPopulateScope<WeakTryAssignOperation, ITryAssignOperation>(left, right, (l, r) =>
                        new Box<WeakTryAssignOperation>(
                             new WeakTryAssignOperation(l, r)),
                     (s, c, l, r) => {
@@ -74,7 +74,7 @@ namespace Tac.SemanticModel.Operations
                             throw new NotImplementedException("this should be an IError");
                         }
                         return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"), new PlaceholderValueConverter()));
-                        }),
+                        },true),
                     matched.StartIndex,
                     matched.EndIndex
                 );

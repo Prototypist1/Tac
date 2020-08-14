@@ -102,11 +102,23 @@ namespace Tac.SemanticModel.Operations
                 {
 
                     var left = tokenMatching.Context.Map.GetGreatestParent(match.perface);
+                    var right = tokenMatching.Context.Map.GetGreatestParent(match.rhs);
+
+                    var res = new WeakPathOperationPopulateScope(left, atomic.Item);
+
+                    if (left.Is1(out var leftValue))
+                    {
+                        tokenMatching.Context.Map.SetElementParent(leftValue, res);
+                    }
+                    if (right.Is1(out var rightValue))
+                    {
+                        tokenMatching.Context.Map.SetElementParent(rightValue, res);
+                    }
 
                     return TokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>>.MakeMatch(
                         Array.Empty<IToken>(),
                         matching.Context,
-                        new WeakPathOperationPopulateScope(left, atomic.Item),
+                        res,
                         tokenMatching.StartIndex,
                         tokenMatching.EndIndex);
                 }
@@ -133,6 +145,8 @@ namespace Tac.SemanticModel.Operations
 
         public ISetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
+            scope = scope.EnterInitizaionScopeIfNessisary();
+
             var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
 
             var member = nextLeft.SwitchReturns(

@@ -12,6 +12,7 @@ using Tac.Model.Instantiated;
 using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
+using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Parser
 {
@@ -155,6 +156,7 @@ namespace Tac.SemanticModel
         public ISetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
 
+            scope = scope.EnterInitizaionScopeIfNessisary();
             if (!(scope is Tpn.IScope runtimeScope))
             {
                 throw new NotImplementedException("this should be an IError");

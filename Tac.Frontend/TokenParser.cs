@@ -25,7 +25,7 @@ namespace Tac.Frontend
             where TBacking : IBacking
         {
 
-            var tokenizer = new Tokenizer();
+            var tokenizer = new Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.Except(new[] { SymbolsRegistry.StaticSubtractSymbol }).ToArray());
             var tokens = tokenizer.Tokenize(text);
 
             var elementMatchingContest = new ElementMatchingContext();

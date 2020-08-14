@@ -99,7 +99,7 @@ namespace Tac.SemanticModel.Operations
             .IfNotError(x => c.TypeProblem.IsNumber(runtimeScope, x));
 
             return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"), new PlaceholderValueConverter()));
-        })
+        },true)
         {
         }
     }
