@@ -16,8 +16,8 @@ namespace Tac.Syntaz_Model_Interpeter
     { }
 
     internal class InterpetedTryAssignOperation<TLeft, TRight> : InterpetedBinaryOperation<TLeft, TRight, IBoxedBool>, IInterpetedTryAssignOperation<TLeft, TRight>
-    where TLeft : IInterpetedAnyType
-    where TRight : IInterpetedAnyType
+        where TLeft : IInterpetedAnyType
+        where TRight : IInterpetedAnyType
     {
         public override IInterpetedResult<IInterpetedMember<IBoxedBool>> Interpet(InterpetedContext interpetedContext)
         {
@@ -35,7 +35,13 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(rightReturned!);
             }
 
-            return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(rightValue!.CastTo<IInterpetedMemberSet<TRight>>().TrySet(leftValue!.Value))));
+            var res =TypeManager.Bool(rightValue!.CastTo<IInterpetedMemberSet<TRight>>().TrySet(leftValue!.Value));
+
+            if (res.Value) { 
+                
+
+            }
+            return InterpetedResult.Create(TypeManager.BoolMember(res));
         }
     }
 }

@@ -335,9 +335,9 @@ entry-point {
 entry-point {
     5 =: (bool|number) x;
 
-    x ?=: number y { y > (out.write-bool) };
+    x is number y { y > (out.write-bool) };
     y > (out.write-number);
-    x ?=: bool y { y > (out.write-bool) };
+    x is bool y { y > (out.write-bool) };
 };");
 
             verifyIntIn();
@@ -360,8 +360,8 @@ entry-point {
 entry-point {
     true =: (bool|number) x;
 
-    x ?=: number y { y > (out.write-bool) };
-    x ?=: bool z { z > (out.write-bool) } ;
+    x is number y { y > (out.write-bool) };
+    x is bool z { z > (out.write-bool) } ;
     z > (out.write-bool);
 };");
 

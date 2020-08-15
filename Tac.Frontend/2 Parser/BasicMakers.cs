@@ -261,7 +261,7 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count > index & index != 0 &&
+            if (self.AllTokens.Count-1 > index & index != 0 &&
                     self.AllTokens[index] is AtomicToken op &&
                     op.Item == s)
             {

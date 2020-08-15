@@ -5,24 +5,27 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
-    public class TryAssignOperation : ITryAssignOperation, IBinaryOperationBuilder
+    public class TryAssignOperation : ITryAssignOperation, IIsOperationBuilder
     {
         private readonly Buildable<ICodeElement> buildableLeft = new Buildable<ICodeElement>();
         private readonly Buildable<ICodeElement> buildableRight = new Buildable<ICodeElement>();
+        private readonly Buildable<ICodeElement> buildableBody = new Buildable<ICodeElement>();
 
-        public void Build(ICodeElement left, ICodeElement right)
+        public void Build(ICodeElement left, ICodeElement right, ICodeElement body)
         {
             buildableLeft.Set(left);
             buildableRight.Set(right);
+            buildableBody.Set(body);
         }
 
         public ICodeElement Left => buildableLeft.Get();
         public ICodeElement Right => buildableRight.Get();
-        public IReadOnlyList<ICodeElement> Operands => new[] { Left, Right };
+        public ICodeElement Body => buildableBody.Get();
+        public IReadOnlyList<ICodeElement> Operands => new[] { Left, Right , Body};
 
         private TryAssignOperation() { }
 
-        public static (ITryAssignOperation, IBinaryOperationBuilder) Create()
+        public static (ITryAssignOperation, IIsOperationBuilder) Create()
         {
             var res = new TryAssignOperation();
             return (res, res);
@@ -39,12 +42,18 @@ namespace Tac.Model.Instantiated
             return Left.Returns();
         }
 
-        public static ITryAssignOperation CreateAndBuild(ICodeElement left, ICodeElement right)
+        public static ITryAssignOperation CreateAndBuild(ICodeElement left, ICodeElement right, ICodeElement body)
         {
             var (x, y) = Create();
-            y.Build(left, right);
+            y.Build(left, right, body);
             return x;
         }
+    }
+
+
+    public interface IIsOperationBuilder
+    {
+        void Build(ICodeElement left, ICodeElement right, ICodeElement body);
     }
 
 }
