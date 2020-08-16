@@ -1,7 +1,13 @@
-﻿namespace Tac.Model.Operations
+﻿using Tac.Model.Elements;
+
+namespace Tac.Model.Operations
 {
-    public interface ITryAssignOperation : IBinaryOperation<ICodeElement, ICodeElement>
+    public interface ITryAssignOperation : IOperation
     {
+        ICodeElement Left { get; }
+        ICodeElement Right { get; }
+        ICodeElement Block { get; }
+        IFinalizedScope Scope { get; }
     }
 
 }

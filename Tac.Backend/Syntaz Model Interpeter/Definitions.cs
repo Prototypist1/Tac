@@ -94,13 +94,14 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
 
         public IInterpetedOperation<IInterpetedAnyType> TryAssignOperation(ITryAssignOperation co)
         {
-            var method = GetMethod(new System.Type[] { TypeMap.MapType(co.Left.Returns()), TypeMap.MapType(co.Right.Returns()) }, nameof(TryAssignOperation));
+            var method = GetMethod(new System.Type[] { TypeMap.MapType(co.Left.Returns()), TypeMap.MapType(co.Right.Returns()), TypeMap.MapType(co.Block.Returns()) }, nameof(TryAssignOperation));
             return method.Invoke(this, new object[] { co }).CastTo<IInterpetedOperation<IInterpetedAnyType>>();
         }
 
-        private IInterpetedOperation<IInterpetedAnyType> TryAssignOperation<TLeft, TRight>(ITryAssignOperation co)
+        private IInterpetedOperation<IInterpetedAnyType> TryAssignOperation<TLeft, TRight, TBlock>(ITryAssignOperation co)
             where TRight : class, IInterpetedAnyType
             where TLeft : class, IInterpetedAnyType
+            where TBlock : class, IInterpedEmpty
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -108,11 +109,13 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             }
             else
             {
-                var op = new InterpetedTryAssignOperation<TLeft, TRight>();
+                var op = new InterpetedTryAssignOperation<TLeft, TRight,TBlock>();
                 backing.Add(co, op);
                 op.Init(
                     co.Left.Convert(this).CastTo<IInterpetedOperation<TLeft>>(),
-                    co.Right.Convert(this).CastTo<IInterpetedOperation<TRight>>());
+                    co.Right.Convert(this).CastTo<IInterpetedOperation<TRight>>(),
+                    co.Block.Convert(this).CastTo<IInterpetedOperation<TBlock>>(),
+                    new InterpetedScopeTemplate(co.Scope, co.Scope.ToVerifiableType()));
                 return op;
             }
         }

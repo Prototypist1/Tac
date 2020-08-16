@@ -10,18 +10,22 @@ namespace Tac.Model.Instantiated
         private readonly Buildable<ICodeElement> buildableLeft = new Buildable<ICodeElement>();
         private readonly Buildable<ICodeElement> buildableRight = new Buildable<ICodeElement>();
         private readonly Buildable<ICodeElement> buildableBody = new Buildable<ICodeElement>();
+        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
 
-        public void Build(ICodeElement left, ICodeElement right, ICodeElement body)
+        public void Build(ICodeElement left, ICodeElement right, ICodeElement body, IFinalizedScope scope)
         {
             buildableLeft.Set(left);
             buildableRight.Set(right);
             buildableBody.Set(body);
+            buildableScope.Set(scope);
         }
 
         public ICodeElement Left => buildableLeft.Get();
         public ICodeElement Right => buildableRight.Get();
-        public ICodeElement Body => buildableBody.Get();
-        public IReadOnlyList<ICodeElement> Operands => new[] { Left, Right , Body};
+        public ICodeElement Block => buildableBody.Get();
+        public IFinalizedScope Scope => buildableScope.Get();
+        public IReadOnlyList<ICodeElement> Operands => new[] { Left, Right , Block };
+
 
         private TryAssignOperation() { }
 
@@ -42,10 +46,10 @@ namespace Tac.Model.Instantiated
             return Left.Returns();
         }
 
-        public static ITryAssignOperation CreateAndBuild(ICodeElement left, ICodeElement right, ICodeElement body)
+        public static ITryAssignOperation CreateAndBuild(ICodeElement left, ICodeElement right, ICodeElement body, IFinalizedScope scope)
         {
             var (x, y) = Create();
-            y.Build(left, right, body);
+            y.Build(left, right, body, scope);
             return x;
         }
     }
@@ -53,7 +57,7 @@ namespace Tac.Model.Instantiated
 
     public interface IIsOperationBuilder
     {
-        void Build(ICodeElement left, ICodeElement right, ICodeElement body);
+        void Build(ICodeElement left, ICodeElement right, ICodeElement body, IFinalizedScope scope);
     }
 
 }

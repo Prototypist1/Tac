@@ -84,8 +84,9 @@ namespace Tac.Frontend.SyntaxModel.Operations
                 var key = new ImplicitKey(Guid.NewGuid());
                 c.TypeProblem.CreateOrType(
                     s, 
-                    key,l.TransformInner(x=>x.SetUpSideNode.TransformInner(y=>y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>())), 
-                    r.TransformInner(x => x.SetUpSideNode.TransformInner(y => y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>())), 
+                    key,
+                    l.SetUpSideNode.TransformInner(y=>y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), 
+                    r.SetUpSideNode.TransformInner(y => y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), 
                     new WeakTypeOrOperationConverter());
                 var reference = c.TypeProblem.CreateTypeReference(s, key, new WeakTypeReferenceConverter());
                 return reference;

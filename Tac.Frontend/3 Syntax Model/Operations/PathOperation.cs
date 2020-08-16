@@ -96,7 +96,7 @@ namespace Tac.SemanticModel.Operations
         {
             var matching = tokenMatching
                 .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
-            if (matching is IMatchedTokenMatching)
+            if (matching is IMatchedTokenMatching matched)
             {
                 if (match.rhs is AtomicToken atomic)
                 {
@@ -117,10 +117,10 @@ namespace Tac.SemanticModel.Operations
 
                     return TokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>>.MakeMatch(
                         Array.Empty<IToken>(),
-                        matching.Context,
+                        matched.Context,
                         res,
-                        tokenMatching.StartIndex,
-                        tokenMatching.EndIndex);
+                        matched.StartIndex,
+                        matched.EndIndex);
                 }
             }
 

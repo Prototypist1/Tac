@@ -320,7 +320,6 @@ entry-point {
         }
 
 
-        // ?=: needs to be redone
         // types in the backend need to be redone
         [Fact]
         public void OrType1()
@@ -333,10 +332,9 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
-    5 =: (bool|number) x;
+    5 =: bool | number x;
 
-    x is number y { y > (out.write-bool) };
-    y > (out.write-number);
+    x is number y { y > (out.write-number) };
     x is bool y { y > (out.write-bool) };
 };");
 
@@ -345,7 +343,6 @@ entry-point {
             verifyBoolIn();
         }
 
-        // ?=: needs to be redone
         // types in the backend need to be redone
         [Fact]
         public void OrType2()
@@ -360,9 +357,8 @@ entry-point {
 entry-point {
     true =: (bool|number) x;
 
-    x is number y { y > (out.write-bool) };
+    x is number y { y > (out.write-number) };
     x is bool z { z > (out.write-bool) } ;
-    z > (out.write-bool);
 };");
 
             verifyIntIn();

@@ -8,6 +8,8 @@ using Prototypist.Toolbox.Object;
 using Prototypist.Toolbox;
 using Tac.SemanticModel.CodeStuff;
 using Prototypist.Toolbox.Bool;
+using Tac.SemanticModel;
+using Tac.Frontend.New.CrzayNamespace;
 
 namespace Tac.Frontend.Parser
 {
@@ -69,7 +71,30 @@ namespace Tac.Frontend.Parser
     //    }
     //}
 
+    internal class LiteralMaker : IMaker<AtomicToken>
+    {
+        private readonly string s;
 
+        public LiteralMaker(string s)
+        {
+            this.s = s ?? throw new ArgumentNullException(nameof(s));
+        }
+
+        public ITokenMatching<AtomicToken> TryMake(IMatchedTokenMatching elementToken)
+        {
+            var index = elementToken.EndIndex;
+
+            if (elementToken.AllTokens.Count > index &&
+                elementToken.AllTokens[index] is AtomicToken first &&
+                first.Item == s)
+            {
+                return TokenMatching<AtomicToken>.MakeMatch(elementToken.AllTokens, elementToken.Context, first, index, index + 1);
+            }
+
+            return TokenMatching<AtomicToken>.MakeNotMatch(elementToken.Context);
+        }
+
+    }
 
     internal class NameMaker : IMaker<AtomicToken>
     {
@@ -261,21 +286,49 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count-1 > index & index != 0 &&
+            if (self.AllTokens.Count - 1 > index & index != 0 &&
                     self.AllTokens[index] is AtomicToken op &&
                     op.Item == s)
             {
-                return TokenMatching<(IToken, AtomicToken, IToken)>.MakeMatch(self.AllTokens, self.Context, (self.AllTokens[index-1], op, self.AllTokens[index+1]),
+                return TokenMatching<(IToken, AtomicToken, IToken)>.MakeMatch(self.AllTokens, self.Context, (self.AllTokens[index - 1], op, self.AllTokens[index + 1]),
                     index,
                     index + 1);
             }
-            
+
 
             return TokenMatching<(IToken, AtomicToken, IToken)>.MakeNotMatch(self.Context);
         }
     }
 
-    
+    internal class BinaryTypeOperationMatcher : IMaker<(ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> lhs, AtomicToken token, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> rhs)>
+    {
+        private readonly string s;
+
+        public BinaryTypeOperationMatcher(string s)
+        {
+            this.s = s ?? throw new ArgumentNullException(nameof(s));
+        }
+
+        public ITokenMatching<(ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>)> TryMake(IMatchedTokenMatching self)
+        {
+            if (self.Has(new TypeMakerNoOp())
+                    .Has(new LiteralMaker(s))
+                    .Has(new TypeMaker()).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> matched))
+            {
+                return TokenMatching<(ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>)>.MakeMatch(
+                    matched.AllTokens,
+                    matched.Context,
+                    (matched.Value1, matched.Value2, matched.Value3),
+                    matched.StartIndex,
+                    matched.EndIndex);
+            }
+
+
+            return TokenMatching<(ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>)>.MakeNotMatch(self.Context);
+        }
+    }
+
+
     internal class TrailingOperationMatcher : IMaker<(IToken perface, AtomicToken atom)>
     {
         private readonly string s;

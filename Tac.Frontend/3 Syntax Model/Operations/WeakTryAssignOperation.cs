@@ -33,16 +33,22 @@ namespace Tac.SemanticModel.Operations
     internal class WeakTryAssignOperation : IConvertableFrontendCodeElement<ITryAssignOperation> 
     {
 
-        public WeakTryAssignOperation(IOrType<IBox<IFrontendCodeElement>,IError> left, IOrType<IBox<IFrontendCodeElement>,IError> right, IOrType<IBox<IFrontendCodeElement>, IError> body)
+        public WeakTryAssignOperation(
+            IOrType<IBox<IFrontendCodeElement>,IError> left, 
+            IOrType<IBox<IFrontendCodeElement>,IError> right, 
+            IOrType<IBox<IFrontendCodeElement>, IError> body,
+            IOrType<IBox<WeakScope>, IError> scope)
         {
-            Left = left;
-            Right = right;
-            Body = body;
+            Left = left ?? throw new ArgumentNullException(nameof(left));
+            Right = right ?? throw new ArgumentNullException(nameof(right));
+            Body = body ?? throw new ArgumentNullException(nameof(body));
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public IOrType<IBox<IFrontendCodeElement>, IError> Left { get; }
         public IOrType<IBox<IFrontendCodeElement>, IError> Right { get; }
         public IOrType<IBox<IFrontendCodeElement>, IError> Body { get; }
+        public IOrType<IBox<WeakScope>, IError> Scope { get; }
 
         public IBuildIntention<ITryAssignOperation> GetBuildIntention(IConversionContext context)
         {
@@ -51,7 +57,9 @@ namespace Tac.SemanticModel.Operations
             {
                 maker.Build(
                     Left.Is1OrThrow().GetValue().ConvertElementOrThrow(context), 
-                    Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context));
+                    Right.Is1OrThrow().GetValue().ConvertElementOrThrow(context),
+                    Body.Is1OrThrow().GetValue().ConvertElementOrThrow(context),
+                    Scope.Is1OrThrow().GetValue().Convert(context));
             });
         }
 
@@ -97,7 +105,7 @@ namespace Tac.SemanticModel.Operations
             {
                 var left = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index-1]);
                 var right = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index + 1]);
-                var block = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index + 2]);
+                var block = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index + 3]);
 
                 var res = new TryAssignOperationPopulateScope(left, right, block);
 
@@ -159,8 +167,8 @@ namespace Tac.SemanticModel.Operations
             var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));
 
             var nextLeft = left.TransformInner(x => x.Run(myScope, context.CreateChild(this)));
-            var nextblock = block.TransformInner(x => x.Run(myScope, context.CreateChild(this)));
             var nextRight = right.TransformInner(x => x.Run(myScope, context.CreateChild(this)));
+            var nextblock = block.TransformInner(x => x.Run(myScope, context.CreateChild(this)));
 
             if (nextLeft.Is1(out var nextLeft1) && nextLeft1.SetUpSideNode.Is1(out var node1) && nextRight.Is1(out var nextRight1) && nextRight1.SetUpSideNode.Is1(out var node2))
             {
@@ -189,12 +197,13 @@ namespace Tac.SemanticModel.Operations
             var res = new TryAssignOperationResolveReferance(
                 nextLeft.TransformInner(x => x.Resolve),
                 nextRight.TransformInner(x => x.Resolve),
-                nextblock.TransformInner(x => x.Resolve));
+                nextblock.TransformInner(x => x.Resolve),
+                myScope);
 
             box.Fill(new[] { OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(res) });
 
             return new SetUpResult<IBox<WeakTryAssignOperation>, Tpn.IValue>(res,
-                nextLeft.TransformAndFlatten(x => x.SetUpSideNode).OrCastToOr<Tpn.ITypeProblemNode, Tpn.IValue>(Error.Other(""));
+                nextLeft.TransformAndFlatten(x => x.SetUpSideNode).OrCastToOr<Tpn.ITypeProblemNode, Tpn.IValue>(Error.Other("")));
         }
     }
 
@@ -202,16 +211,19 @@ namespace Tac.SemanticModel.Operations
     {
         public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
         public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> right;
-        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> orType;
+        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> block;
+        private readonly Tpn.IHavePrivateMembers haveMembers;
 
         public TryAssignOperationResolveReferance(
-            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance1,
-            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReferance2,
-           IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> orType)
+            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> value,
+            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> member,
+           IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> block,
+           Tpn.IHavePrivateMembers haveMembers)
         {
-            left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
-            right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-            this.orType = orType ?? throw new ArgumentNullException(nameof(orType));
+            left = value ?? throw new ArgumentNullException(nameof(value));
+            right = member ?? throw new ArgumentNullException(nameof(member));
+            this.block = block ?? throw new ArgumentNullException(nameof(block));
+            this.haveMembers = haveMembers ?? throw new ArgumentNullException(nameof(haveMembers));
         }
 
 
@@ -220,7 +232,8 @@ namespace Tac.SemanticModel.Operations
             var res = new Box<WeakTryAssignOperation>(new WeakTryAssignOperation(
                 left.TransformInner(x => x.Run(context)),
                 right.TransformInner(x => x.Run(context)),
-                orType.TransformInner(x=>x.Run(context))));
+                block.TransformInner(x=>x.Run(context)),
+                OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(new WeakScope(context.GetPrivateMembers(haveMembers).Select(x => context.GetMember(x)).ToList())))));
             return res;
         }
     }

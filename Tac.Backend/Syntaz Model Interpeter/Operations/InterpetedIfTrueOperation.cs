@@ -11,7 +11,7 @@ namespace Tac.Syntaz_Model_Interpeter
         // this return bool
         // but sometimes it returns a return
 
-        // this takes a bool or a member bool
+        // this takes a bool or a member bool5
         // until I solve this we are a hot mess
         // probably the solution is give up on types!!
 
