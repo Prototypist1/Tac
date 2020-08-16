@@ -147,6 +147,30 @@ namespace Tac.SemanticModel
 
     }
 
+    // this one is for when the type was already matched
+    internal class MemberDefinitionMakerAlreadyMatched : IMaker<ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>>
+    {
+
+        public ITokenMatching<ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
+        {
+            return tokenMatching
+                .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
+                .Has(new TypeMakerAlreadyMatched())
+                .Has(new NameMaker())
+                .ConvertIfMatched((type, nameToken) => new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type));
+        }
+
+        //public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(
+        //    IKey item, 
+        //    bool v, 
+        //    ISetUp<IFrontendType, Tpn.TypeProblem2.TypeReference> typeToken)
+        //{
+        //    return new MemberDefinitionPopulateScope(item, v,  typeToken);
+        //}
+
+
+    }
+
     internal class MemberDefinitionPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
     {
         private readonly IKey memberName;

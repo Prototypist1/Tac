@@ -105,6 +105,8 @@ namespace Tac.SemanticModel.Operations
             {
                 var left = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index-1]);
                 var right = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index + 1]);
+                // this breaks if they declear the member readonly
+                // {6D7A8B47-254C-436E-B207-526A8EF67159}
                 var block = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index + 3]);
 
                 var res = new TryAssignOperationPopulateScope(left, right, block);
@@ -184,9 +186,6 @@ namespace Tac.SemanticModel.Operations
                     // todo I need real error handling
                     throw new NotImplementedException($"can not assign to {nextRight1.SetUpSideNode}");
                 }
-
-                canAssignFromMe.AssignTo(canBeAssignedTo);
-
             }
             else
             {

@@ -326,7 +326,7 @@ entry-point {
         {
             var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 5 });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
-            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true, false });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
@@ -349,7 +349,7 @@ entry-point {
         {
             var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
-            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { false, true , true });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
 
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},

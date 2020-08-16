@@ -216,8 +216,7 @@ namespace Tac.Parser
 
             // types
             new TypeDefinitionMaker(),
-
-            // new TypeOrOperationMaker(),
+            new TypeOrOperationMaker(),
             // new TypeReferanceMaker(), // this is so general.. going to need context to know if we are a type or a 
             // new TypeMaker(), // maybe I just need this?
             // new TypeOrOperationMaker(),
@@ -234,6 +233,7 @@ namespace Tac.Parser
 
             new BlockDefinitionMaker(),
 
+            new MemberDefinitionMakerAlreadyMatched(),
             new MemberDefinitionMaker(),
             //new ObjectOrTypeMemberDefinitionMaker(), // this only eixts inside types, also objects... I think objects need a specail matcher
             new MemberMaker(), // this matches very broadly so it pretty much goes last
@@ -440,6 +440,17 @@ namespace Tac.Parser
                 // fistletter of name of 'chris'
                 for (int i = 0; i < tokens.Count; i++)
                 {
+
+                    // TODO
+                    // {B79B92C7-ED61-4CD1-A8FC-2D0C100D2E93}
+                    // I can't do this at this level
+                    // things match on stuff that is already matched 
+                    // every matcher will need to handle already matched
+                    // -- actually
+                    // I might be able to leave this here
+                    // I just need to matchers to start from the unmatch element
+                    // and work out in all directions
+                    // I am so not build to work out to the left tho
                     if (Map.TokenHasElement(tokens[i]))
                     {
                         continue;
