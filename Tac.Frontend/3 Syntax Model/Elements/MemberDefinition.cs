@@ -133,7 +133,7 @@ namespace Tac.SemanticModel
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
                 .Has(new TypeMaker())
                 .Has(new NameMaker())
-                .ConvertIfMatched((type, nameToken) => new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type));
+                .ConvertIfMatched((type, nameToken) => new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type), tokenMatching);
         }
 
         //public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(
@@ -157,7 +157,7 @@ namespace Tac.SemanticModel
                 .OptionalHas(new KeyWordMaker("readonly"), out var readonlyToken)
                 .Has(new TypeMakerAlreadyMatched())
                 .Has(new NameMaker())
-                .ConvertIfMatched((type, nameToken) => new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type));
+                .ConvertIfMatched((type, nameToken) => new MemberDefinitionPopulateScope(new NameKey(nameToken.Item), readonlyToken != default, type), tokenMatching);
         }
 
         //public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(

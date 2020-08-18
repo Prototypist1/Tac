@@ -146,7 +146,7 @@ namespace Tac.SemanticModel
 
             // this used to be ParseObject instead of ParseBlock
             // I destoried ParseObject, not sure why.. 
-            return matching.ConvertIfMatched((_,name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseBlock(third), new NameKey(name.Item)));
+            return matching.ConvertIfMatched((_,name,third)=> new ModuleDefinitionPopulateScope(matching.Context.ParseBlock(third), new NameKey(name.Item)), tokenMatching);
         }
 
     }

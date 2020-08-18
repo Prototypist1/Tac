@@ -479,7 +479,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
-                        var inferredMethodType = new InferredType(this, "zzzz");
+                        var inferredMethodType = new InferredType(this, "generated infered method type");
                         value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                         // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
@@ -541,7 +541,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
-                        var inferredMethodType = new InferredType(this, "zzzz");
+                        var inferredMethodType = new InferredType(this, "generated infered method type");
                         value.HopefulMethod = Possibly.Is(inferredMethodType);
 
                         // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}

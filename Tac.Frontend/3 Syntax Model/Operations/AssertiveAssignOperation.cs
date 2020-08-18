@@ -118,28 +118,26 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticAssertAssignSymbol), out (ISetUp lhs, ISetUp rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
-                var left = matching.Context.Map.GetGreatestParent(match.perface);
-                var right = matching.Context.Map.GetGreatestParent(match.rhs);
+                var left = OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(match.lhs.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _));
+                var right = OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(match.rhs.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _));
 
                 var res = new WeakAssignOperationPopulateScope(left, right);
 
-                if (left.Is1(out var leftValue))
-                {
-                    tokenMatching.Context.Map.SetElementParent(leftValue, res);
-                }
-                if (right.Is1(out var rightValue))
-                {
-                    tokenMatching.Context.Map.SetElementParent(rightValue, res);
-                }
+                //if (left.Is1(out var leftValue))
+                //{
+                //    tokenMatching.Context.Map.SetElementParent(leftValue, res);
+                //}
+                //if (right.Is1(out var rightValue))
+                //{
+                //    tokenMatching.Context.Map.SetElementParent(rightValue, res);
+                //}
 
                 return TokenMatching<ISetUp<IBox<WeakAssignOperation>, Tpn.IValue>>.MakeMatch(
-                    matched.AllTokens,
-                    matched.Context,
+                    tokenMatching,
                     res,
-                    matched.StartIndex,
                     matched.EndIndex); ;
             }
 

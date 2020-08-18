@@ -25,11 +25,15 @@ namespace Tac.SemanticModel.Operations
     // otherwise you could write 
     // 5 is Cat cat { ... } ; cat.age > some-method
     // and that will error out
-    
+
     // really I might not need the name need the name
     // 5 is Cat { }
     //
 
+    // TODO 
+    // {7A6AD5B4-7706-4710-ADE5-D6F86B2757BC}
+    // this needs to validate that the left could possibly the right
+    // if the left is known to be a bool, it is never going to be an int
     internal class WeakTryAssignOperation : IConvertableFrontendCodeElement<ITryAssignOperation> 
     {
 
@@ -99,37 +103,24 @@ namespace Tac.SemanticModel.Operations
 
             var index = tokenMatching.EndIndex;
 
-            if (tokenMatching.AllTokens.Count - 2 > index & index != 0 &&
-                    tokenMatching.AllTokens[index] is AtomicToken op &&
-                    op.Item == SymbolsRegistry.TryAssignSymbol)
+            if (tokenMatching.AllTokens.Count - 3 > index &&
+                    tokenMatching.AllTokens[index+1].Is1(out var token) && token.SafeIs(out AtomicToken op) &&
+                    op.Item == SymbolsRegistry.TryAssignSymbol &&
+                    tokenMatching.AllTokens[index].Is2(out var lhs) &&
+                    tokenMatching.AllTokens[index + 2].Is2(out var rhs) &&
+                    tokenMatching.AllTokens[index + 3].Is2(out var rrhs))
             {
-                var left = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index-1]);
-                var right = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index + 1]);
-                // this breaks if they declear the member readonly
-                // {6D7A8B47-254C-436E-B207-526A8EF67159}
-                var block = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[index + 3]);
+                var left = OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(lhs.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _));
+                var right = OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(rhs.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _));
+                var block = OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(rrhs.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _));
+                
 
                 var res = new TryAssignOperationPopulateScope(left, right, block);
 
-                if (left.Is1(out var leftValue))
-                {
-                    tokenMatching.Context.Map.SetElementParent(leftValue, res);
-                }
-                if (right.Is1(out var rightValue))
-                {
-                    tokenMatching.Context.Map.SetElementParent(rightValue, res);
-                }
-                if (block.Is1(out var blockValue))
-                {
-                    tokenMatching.Context.Map.SetElementParent(blockValue, res);
-                }
-
                 return TokenMatching<ISetUp<IBox<WeakTryAssignOperation>, Tpn.IValue>>.MakeMatch(
-                    tokenMatching.AllTokens,
-                    tokenMatching.Context,
+                    tokenMatching,
                     res,
-                    tokenMatching.StartIndex - 1,
-                    tokenMatching.EndIndex + 2
+                    tokenMatching.EndIndex + 4
                 );
             }
 

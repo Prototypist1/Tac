@@ -95,33 +95,31 @@ namespace Tac.SemanticModel.Operations
         public ITokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             var matching = tokenMatching
-                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (IToken perface, AtomicToken token, IToken rhs) match);
+                .Has(new BinaryOperationMatcher(SymbolsRegistry.StaticPathSymbol), out (ISetUp lhs, ISetUp rhs) match);
             if (matching is IMatchedTokenMatching matched)
             {
-                if (match.rhs is AtomicToken atomic)
-                {
 
-                    var left = tokenMatching.Context.Map.GetGreatestParent(match.perface);
-                    var right = tokenMatching.Context.Map.GetGreatestParent(match.rhs);
 
-                    var res = new WeakPathOperationPopulateScope(left, atomic.Item);
+                    var left = OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(match.lhs.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _));
+                    var right = OrType.Make<MemberPopulateScope, IError>(match.rhs.SafeCastTo(out MemberPopulateScope _));
 
-                    if (left.Is1(out var leftValue))
-                    {
-                        tokenMatching.Context.Map.SetElementParent(leftValue, res);
-                    }
-                    if (right.Is1(out var rightValue))
-                    {
-                        tokenMatching.Context.Map.SetElementParent(rightValue, res);
-                    }
+
+                    var res = new WeakPathOperationPopulateScope(left, right.TransformInner(x=>x.memberName));
+
+                    //if (left.Is1(out var leftValue))
+                    //{
+                    //    tokenMatching.Context.Map.SetElementParent(leftValue, res);
+                    //}
+                    //if (right.Is1(out var rightValue))
+                    //{
+                    //    tokenMatching.Context.Map.SetElementParent(rightValue, res);
+                    //}
 
                     return TokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>>.MakeMatch(
-                        Array.Empty<IToken>(),
-                        matched.Context,
+                        tokenMatching,
                         res,
-                        matched.StartIndex,
                         matched.EndIndex);
-                }
+                
             }
 
             return TokenMatching<ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>>.MakeNotMatch(
@@ -134,10 +132,10 @@ namespace Tac.SemanticModel.Operations
     internal class WeakPathOperationPopulateScope : ISetUp<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>
     {
         private readonly IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left;
-        private readonly string name;
+        private readonly IOrType<string,IError> name;
 
         public WeakPathOperationPopulateScope(IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> left,
-            string name)
+             IOrType<string, IError> name)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.name = name ?? throw new ArgumentNullException(nameof(name));
@@ -151,21 +149,24 @@ namespace Tac.SemanticModel.Operations
 
             var member = nextLeft.SwitchReturns(
                 good =>
-                {
-                    if (good.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
+                name.SwitchReturns( 
+                    actualName =>
                     {
-                        return OrType.Make<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
-                            value,
-                            new NameKey(name),
-                            new WeakMemberDefinitionConverter(false, new NameKey(name))));
-                    }
-                    else
-                    {
-                        return OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Other(""));
-                            // todo better error handling 
-                            throw new NotImplementedException($"can not . off {good.SetUpSideNode}");
-                    }
-                },
+                        if (good.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
+                        {
+                            return OrType.Make<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
+                                value,
+                                new NameKey(actualName),
+                                new WeakMemberDefinitionConverter(false, new NameKey(actualName))));
+                        }
+                        else
+                        {
+                            return OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Other(""));
+                                // todo better error handling 
+                                throw new NotImplementedException($"can not . off {good.SetUpSideNode}");
+                        }
+                    }, 
+                    error => OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Cascaded("We needed ", error))),
                 error => OrType.Make<Tpn.TypeProblem2.Member, IError>(Error.Cascaded("We needed ", error)));
 
             return new SetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(

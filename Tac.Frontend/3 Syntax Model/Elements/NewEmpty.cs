@@ -55,7 +55,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.EmptyType());
+        public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new EmptyType());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
@@ -69,7 +69,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
             // change key word to nothing?
             return tokenMatching
                 .Has(new KeyWordMaker("new-empty"), out var _)
-                .ConvertIfMatched(()=> new EmptyInstancePopulateScope());
+                .ConvertIfMatched(()=> new EmptyInstancePopulateScope(), tokenMatching);
         }
 
         public static ISetUp<IBox<WeakEmptyInstance>, Tpn.IValue> PopulateScope()

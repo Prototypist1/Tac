@@ -125,18 +125,18 @@ namespace Tac.SemanticModel.Operations
 
             return matching.ConvertIfMatched(match => {
 
-                var left = tokenMatching.Context.Map.GetGreatestParent(match.perface);
+                //var left = tokenMatching.Context.Map.GetGreatestParent(match.perface);
 
-                var res = new TrailingPopulateScope<TFrontendCodeElement, TCodeElement>(left, Make, getReturnedValue, intoInitScope);
+                var res = new TrailingPopulateScope<TFrontendCodeElement, TCodeElement>(OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(match.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _)), Make, getReturnedValue, intoInitScope);
 
-                if (left.Is1(out var leftValue))
-                {
-                    tokenMatching.Context.Map.SetElementParent(leftValue, res);
-                }
+                //if (left.Is1(out var leftValue))
+                //{
+                //    tokenMatching.Context.Map.SetElementParent(leftValue, res);
+                //}
 
                 return res;
 
-            });
+            }, tokenMatching);
         }
         
     }

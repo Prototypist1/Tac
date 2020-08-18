@@ -101,7 +101,7 @@ namespace Tac.SemanticModel
                 .OptionalHas(new NameMaker(), out var typeName)
                 .Has(new BodyMaker()).ConvertIfMatched(body=> new TypeDefinitionPopulateScope(
                        tokenMatching.Context.ParseType(body),
-                       typeName != default ? OrType.Make<NameKey, ImplicitKey>(new NameKey(typeName.Item)) : OrType.Make<NameKey, ImplicitKey>(new ImplicitKey(Guid.NewGuid()))));
+                       typeName != default ? OrType.Make<NameKey, ImplicitKey>(new NameKey(typeName.Item)) : OrType.Make<NameKey, ImplicitKey>(new ImplicitKey(Guid.NewGuid()))), tokenMatching);
         }
     }
 

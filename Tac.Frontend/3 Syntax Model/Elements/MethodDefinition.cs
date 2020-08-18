@@ -88,7 +88,9 @@ namespace Tac.SemanticModel
 
         public ITokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
             ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
             var matching = tokenMatching
                 .Has(new KeyWordMaker("method"), out var _)
@@ -109,15 +111,13 @@ namespace Tac.SemanticModel
                 var elements = matching.Context.ParseBlock(body);
 
                 return TokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>>.MakeMatch(
-                    matched.AllTokens,
-                    matched.Context,
+                    tokenMatching,
                     new MethodDefinitionPopulateScope(
-                        inputType,
+                        inputType!,
                         elements,
-                        outputType,
+                        outputType!,
                         false,
                         parameterName!.Item),
-                    matched.StartIndex,
                     matched.EndIndex
                     );
             }

@@ -34,11 +34,13 @@ namespace Tac.Tests.Samples
                                                         TokenHelp.Atom("else"),
                                                             TokenHelp.Curl(
                                                                 TokenHelp.Line(
-                                                                    TokenHelp.Atom("input"),
-                                                                    TokenHelp.Atom("-"),
-                                                                    TokenHelp.Atom("1"),
-                                                                    TokenHelp.Atom(">"),
-                                                                    TokenHelp.Atom("fac"),
+                                                                    TokenHelp.Par(new IToken[] {
+                                                                        TokenHelp.Line(new IToken[]{
+                                                                            TokenHelp.Atom("input"),
+                                                                            TokenHelp.Atom("-"),
+                                                                            TokenHelp.Atom("1"),
+                                                                            TokenHelp.Atom(">"),
+                                                                            TokenHelp.Atom("fac") }) }),
                                                                     TokenHelp.Atom("*"),
                                                                     TokenHelp.Atom("input"),
                                                                     TokenHelp.Atom("return"))))),

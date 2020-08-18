@@ -44,7 +44,7 @@ namespace Tac.SemanticModel
         {
            return tokenMatching
                 .Has(new NameMaker())
-                .ConvertIfMatched(token => new MemberPopulateScope(token.Item));
+                .ConvertIfMatched(token => new MemberPopulateScope(token.Item), tokenMatching);
         }
 
         //public static ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> PopulateScope(string item)
@@ -56,7 +56,7 @@ namespace Tac.SemanticModel
 
     internal class MemberPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
     {
-        private readonly string memberName;
+        public readonly string memberName;
 
         public MemberPopulateScope(string item)
         {

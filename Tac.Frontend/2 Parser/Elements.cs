@@ -23,38 +23,38 @@ namespace Tac.Parser
 {
 
 
-    internal class TokenSyntaxMap {
+    //internal class TokenSyntaxMap {
 
-        private readonly IDictionary<IToken, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> tokenToElement = new Dictionary<IToken, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>();
-        private readonly IDictionary<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> elementParent = new Dictionary<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>();
+    //    private readonly IDictionary<IToken, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> tokenToElement = new Dictionary<IToken, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>();
+    //    private readonly IDictionary<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> elementParent = new Dictionary<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>();
 
-        public void SetTokenElement(IToken token, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> element) {
-            tokenToElement[token] = element;
-        }
+    //    public void SetTokenElement(IToken token, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> element) {
+    //        tokenToElement[token] = element;
+    //    }
 
-        public void SetElementParent(ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> child, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> parent)
-        {
-            elementParent[child] = parent;
-        }
+    //    public void SetElementParent(ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> child, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> parent)
+    //    {
+    //        elementParent[child] = parent;
+    //    }
 
 
-        internal bool TokenHasElement(IToken token)
-        {
-            return tokenToElement.ContainsKey(token);
-        }
+    //    internal bool TokenHasElement(IToken token)
+    //    {
+    //        return tokenToElement.ContainsKey(token);
+    //    }
 
-        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> GetGreatestParent(IToken token) {
-            if (!tokenToElement.TryGetValue(token, out var startAt)) {
-                return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"token ({token}) is not mapped"));
-            }
+    //    public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> GetGreatestParent(IToken token) {
+    //        if (!tokenToElement.TryGetValue(token, out var startAt)) {
+    //            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"token ({token}) is not mapped"));
+    //        }
 
-            while (elementParent.TryGetValue(startAt, out var x)) {
-                startAt = x;
-            }
+    //        while (elementParent.TryGetValue(startAt, out var x)) {
+    //            startAt = x;
+    //        }
 
-            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(startAt);
-        }
-    }
+    //        return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(startAt);
+    //    }
+    //}
 
 
     internal partial class MakerRegistry { // the real one
@@ -177,7 +177,7 @@ namespace Tac.Parser
     internal class ElementMatchingContext
     {
 
-        public TokenSyntaxMap Map { get; } = new TokenSyntaxMap();
+        //public TokenSyntaxMap Map { get; } = new TokenSyntaxMap();
 
         public ElementMatchingContext() 
             //: 
@@ -254,10 +254,11 @@ namespace Tac.Parser
 
             new AssertAssignOperationMaker(),
             //new AssertAssignInObjectOperationMaker(),
+            
+            new TryAssignOperationMaker(),
 
             new ReturnOperationMaker(),
 
-            new TryAssignOperationMaker(),
 
 
         };
@@ -385,10 +386,7 @@ namespace Tac.Parser
 
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseLine(IReadOnlyList<IToken> tokens)
         {
-            InnerParseLine(tokens,allMakers);
-
-            return Map.GetGreatestParent(tokens.First());
-
+            return InnerParseLine(tokens,allMakers).TransformInner(x=>x.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>_));
 
             //var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this, Possibly.IsNot<object>());
             //top:
@@ -427,8 +425,11 @@ namespace Tac.Parser
             //return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
         }
 
-        private void InnerParseLine(IReadOnlyList<IToken> tokens, IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] makers)
+        private IOrType<ISetUp,IError> InnerParseLine(IReadOnlyList<IToken> tokens, IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] makers)
         {
+
+            var myList = tokens.Select(x => OrType.Make<IToken, ISetUp>(x)).ToList();
+
             foreach (var maker in makers)
             {
                 // TODO
@@ -437,53 +438,64 @@ namespace Tac.Parser
                 // x :=  aggregate < filter < transform < filter < somelist
                 // x := y := z := 1
                 // ++ ++ ++ ++ a
-                // fistletter of name of 'chris'
-                for (int i = 0; i < tokens.Count; i++)
+                // a of b of c (as opposed to c.b.a)
+
+                if (maker is TryAssignOperationMaker) {
+                    var db = true;
+                }
+
+                top:
+                for (int i = 0; i < myList.Count; i++)
                 {
-
-                    // TODO
-                    // {B79B92C7-ED61-4CD1-A8FC-2D0C100D2E93}
-                    // I can't do this at this level
-                    // things match on stuff that is already matched 
-                    // every matcher will need to handle already matched
-                    // -- actually
-                    // I might be able to leave this here
-                    // I just need to matchers to start from the unmatch element
-                    // and work out in all directions
-                    // I am so not build to work out to the left tho
-                    if (Map.TokenHasElement(tokens[i]))
-                    {
-                        continue;
-                    }
-
-                    if (tokens[i].SafeIs(out ParenthesisToken parenthesisToken))
+                    if (myList[i].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
                     {
                         var res = ParseParenthesis(parenthesisToken);
-                        if (res.Is1(out var realRes))
+                        if (res.Is1(out var setUp))
                         {
-                            Map.SetTokenElement(tokens[i], realRes);
+                            myList[i] = OrType.Make<IToken, ISetUp>(setUp);
                         }
-                        continue;
+                        else if (res.Is2(out var error)) {
+                            return OrType.Make<ISetUp,IError>(error);
+                        }
+                        goto top;
                     }
 
-                    var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens, this, i);
+                    var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(myList, this, i);
 
                     if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> matched))
                     {
-                        foreach (var token in matched.MatchedTokens())
-                        {
-                            Map.SetTokenElement(token, element);
-                        }
+                        myList.RemoveRange(matched.StartIndex, matched.EndIndex - matched.StartIndex);
+                        myList.Insert(matched.StartIndex, OrType.Make<IToken, ISetUp>(matched.Value));
+                        goto top;
                     }
                 }
             }
+
+            if (myList.Count > 1) {
+                return OrType.Make<ISetUp, IError>(Error.Other("expected to parse down to one element"));
+            }
+
+            var single = myList.Single();
+
+            if (single.Is2(out var setup))
+            {
+                return OrType.Make<ISetUp, IError>(setup);
+            }
+
+            return OrType.Make<ISetUp, IError>(Error.Other("token could not be matched"));
         }
 
         public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseTypeLine(IReadOnlyList<IToken> tokens)
         {
-            InnerParseLine(tokens, typeLineMakers);
-
-            return Map.GetGreatestParent(tokens.First()).SafeCastTo(out IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> _);
+            return InnerParseLine(tokens, typeLineMakers).TransformAndFlatten(x=> {
+                if (x.SafeIs(out ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode> res))
+                {
+                    return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>,IError>( res);
+                }
+                else { 
+                    return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(Error.Other("member reference expected"));
+                }
+            });
         }
 
         private IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseParenthesis(ParenthesisToken parenthesisToken)
@@ -492,14 +504,7 @@ namespace Tac.Parser
             // {FA9BEE9F-446E-488D-B591-C7634A989D03}
             var item = parenthesisToken.Tokens.Single();
             
-            var res = ParseLine(item.SafeCastTo(out LineToken lt).Tokens);
-            if (res.Is1(out var realRes))
-            {
-                Map.SetTokenElement(lt, realRes);
-                Map.SetTokenElement(parenthesisToken, realRes);
-            }
-            
-            return Map.GetGreatestParent(parenthesisToken.Tokens.First());
+            return ParseLine(item.SafeCastTo(out LineToken lt).Tokens);
         }
 
         // only types and assignments 
@@ -626,14 +631,8 @@ namespace Tac.Parser
 
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>[] ParseFile(FileToken file)
         {
-            foreach (var line in file.Tokens)
-            {
-                ParseLine(line.CastTo<LineToken>().Tokens);
-            }
-
-            return file.Tokens.Select(x => Map.GetGreatestParent(x.CastTo<LineToken>().Tokens.First())).ToArray();
-
-            //file.Tokens.Select(x => ParseLine(x.CastTo<LineToken>().Tokens)).ToArray();
+            var res = file.Tokens.Select(line => ParseLine(line.CastTo<LineToken>().Tokens)).ToArray();
+            return res;
         }
 
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>[] ParseBlock(CurleyBracketToken block)
@@ -729,7 +728,7 @@ namespace Tac.Parser
 
     internal interface IMatchedTokenMatching: ITokenMatching
     {
-        IReadOnlyList<IToken> AllTokens { get; }
+        IReadOnlyList<IOrType< IToken, ISetUp >> AllTokens { get; }
 
         /// if you match a single element
         /// EndIndex - StartIndex  will be 1
@@ -739,11 +738,11 @@ namespace Tac.Parser
         int EndIndex { get; }
     }
 
-    internal static class IMatchedTokenMatchingExtensions {
-        public static IReadOnlyList<IToken> MatchedTokens(this IMatchedTokenMatching self) {
-            return self.AllTokens.Skip(self.StartIndex).Take(self.EndIndex - self.StartIndex).ToArray();
-        }
-    }
+    //internal static class IMatchedTokenMatchingExtensions {
+    //    public static IReadOnlyList<IOrType< IToken,ISetUp>> MatchedTokens(this IMatchedTokenMatching self) {
+    //        return self.AllTokens.Skip(self.StartIndex).Take(self.EndIndex - self.StartIndex).ToArray();
+    //    }
+    //}
 
     internal interface IMatchedTokenMatching<out T> : ITokenMatching<T>, IMatchedTokenMatching
     {
@@ -782,56 +781,56 @@ namespace Tac.Parser
 
 
     internal static class TokenMatchingExtensions {
-        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3, T4, T5>(this ITokenMatching<T1, T2, T3, T4, T5> tokenMatching, Func<T1,T2,T3,T4,T5, T> convert) {
+        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3, T4, T5>(this ITokenMatching<T1, T2, T3, T4, T5> tokenMatching, Func<T1,T2,T3,T4,T5, T> convert, IMatchedTokenMatching source) {
             if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1,T2,T3,T4,T5> matched)) {
-                return TokenMatching<T>.MakeMatch(matched.AllTokens,matched.Context, convert(matched.Value1, matched.Value2, matched.Value3, matched.Value4, matched.Value5), matched.StartIndex, matched.EndIndex);
+                return TokenMatching<T>.MakeMatch(source, convert(matched.Value1, matched.Value2, matched.Value3, matched.Value4, matched.Value5), matched.EndIndex);
             }
             return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3, T4>(this ITokenMatching<T1, T2, T3, T4> tokenMatching, Func<T1, T2, T3, T4, T> convert)
+        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3, T4>(this ITokenMatching<T1, T2, T3, T4> tokenMatching, Func<T1, T2, T3, T4, T> convert, IMatchedTokenMatching source)
         {
             if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1, T2, T3, T4> matched))
             {
-                return TokenMatching<T>.MakeMatch(matched.AllTokens, matched.Context, convert(matched.Value1, matched.Value2, matched.Value3, matched.Value4), matched.StartIndex, matched.EndIndex);
+                return TokenMatching<T>.MakeMatch(source, convert(matched.Value1, matched.Value2, matched.Value3, matched.Value4),  matched.EndIndex);
             }
             return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3>(this ITokenMatching<T1, T2, T3> tokenMatching, Func<T1, T2, T3, T> convert)
+        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2, T3>(this ITokenMatching<T1, T2, T3> tokenMatching, Func<T1, T2, T3, T> convert, IMatchedTokenMatching source)
         {
             if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1, T2, T3> matched))
             {
-                return TokenMatching<T>.MakeMatch(matched.AllTokens, matched.Context, convert(matched.Value1, matched.Value2, matched.Value3), matched.StartIndex, matched.EndIndex);
+                return TokenMatching<T>.MakeMatch(source, convert(matched.Value1, matched.Value2, matched.Value3),  matched.EndIndex);
             }
             return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
         }
 
 
-        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2>(this ITokenMatching<T1, T2> tokenMatching, Func<T1, T2, T> convert)
+        public static ITokenMatching<T> ConvertIfMatched<T, T1, T2>(this ITokenMatching<T1, T2> tokenMatching, Func<T1, T2, T> convert, IMatchedTokenMatching source)
         {
             if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1, T2> matched))
             {
-                return TokenMatching<T>.MakeMatch(matched.AllTokens, matched.Context, convert(matched.Value1, matched.Value2), matched.StartIndex, matched.EndIndex);
+                return TokenMatching<T>.MakeMatch(source, convert(matched.Value1, matched.Value2),  matched.EndIndex);
             }
             return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
         }
 
 
-        public static ITokenMatching<T> ConvertIfMatched<T, T1>(this ITokenMatching<T1> tokenMatching, Func<T1,  T> convert)
+        public static ITokenMatching<T> ConvertIfMatched<T, T1>(this ITokenMatching<T1> tokenMatching, Func<T1,  T> convert, IMatchedTokenMatching source)
         {
             if (tokenMatching.SafeIs(out IMatchedTokenMatching<T1> matched))
             {
-                return TokenMatching<T>.MakeMatch(matched.AllTokens, matched.Context, convert(matched.Value), matched.StartIndex, matched.EndIndex);
+                return TokenMatching<T>.MakeMatch(source, convert(matched.Value), matched.EndIndex);
             }
             return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
         }
 
-        public static ITokenMatching<T> ConvertIfMatched<T>(this ITokenMatching tokenMatching, Func<T> convert)
+        public static ITokenMatching<T> ConvertIfMatched<T>(this ITokenMatching tokenMatching, Func<T> convert, IMatchedTokenMatching source)
         {
             if (tokenMatching.SafeIs(out IMatchedTokenMatching matched))
             {
-                return TokenMatching<T>.MakeMatch(matched.AllTokens, matched.Context, convert(), matched.StartIndex, matched.EndIndex);
+                return TokenMatching<T>.MakeMatch(source, convert(),  matched.EndIndex);
             }
             return TokenMatching<T>.MakeNotMatch(tokenMatching.Context);
         }
@@ -841,7 +840,7 @@ namespace Tac.Parser
     {
         private class Start : IMatchedTokenMatching
         {
-            public Start(IReadOnlyList<IToken> allTokens, ElementMatchingContext context, int currentIndex)
+            public Start(IReadOnlyList<IOrType<IToken, ISetUp>> allTokens, ElementMatchingContext context, int currentIndex)
             {
                 AllTokens = allTokens ?? throw new ArgumentNullException(nameof(allTokens));
                 Context = context ?? throw new ArgumentNullException(nameof(context));
@@ -849,7 +848,7 @@ namespace Tac.Parser
                 EndIndex = currentIndex;
             }
 
-            public IReadOnlyList<IToken> AllTokens
+            public IReadOnlyList<IOrType<IToken, ISetUp>> AllTokens
             {
                 get;
             }
@@ -865,7 +864,7 @@ namespace Tac.Parser
 
         private class Matched : IMatchedTokenMatching<T>
         {
-            public Matched(IReadOnlyList<IToken> allTokens, ElementMatchingContext context, T value, int startIndex, int endIndex)
+            public Matched(IReadOnlyList<IOrType<IToken, ISetUp>> allTokens, ElementMatchingContext context, T value, int startIndex, int endIndex)
             {
                 AllTokens = allTokens ?? throw new ArgumentNullException(nameof(allTokens));
                 Context = context ?? throw new ArgumentNullException(nameof(context));
@@ -874,7 +873,7 @@ namespace Tac.Parser
                 StartIndex = startIndex;
             }
 
-            public IReadOnlyList<IToken> AllTokens
+            public IReadOnlyList<IOrType<IToken, ISetUp>> AllTokens
             {
                 get;
             }
@@ -906,15 +905,15 @@ namespace Tac.Parser
             }
         }
         
-        public static IMatchedTokenMatching MakeStart(IReadOnlyList<IToken> tokens, ElementMatchingContext context, int currentIndex)
+        public static IMatchedTokenMatching MakeStart(IReadOnlyList<IOrType<IToken, ISetUp>> tokens, ElementMatchingContext context, int currentIndex)
         {
             return new Start(tokens, context, currentIndex);
         }
 
 
-        public static IMatchedTokenMatching<T> MakeMatch(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T value, int startIndex, int endIndex)
+        public static IMatchedTokenMatching<T> MakeMatch(IMatchedTokenMatching parent, T value, int endIndex)
         {
-            return new Matched(tokens, context,value, startIndex, endIndex);
+            return new Matched(parent.AllTokens, parent.Context, value, parent.EndIndex, endIndex);
         }
 
         // TODO this should not take tokens 
@@ -935,7 +934,7 @@ namespace Tac.Parser
     internal static class TokenMatching<T1,T2> {
         private class Matched : IMatchedTokenMatching<T1,T2>
         {
-            public Matched(IReadOnlyList<IToken> allTokens, ElementMatchingContext context, T1 value1, T2 value2, int startIndex, int currentIndex)
+            public Matched(IReadOnlyList<IOrType<IToken, ISetUp>> allTokens, ElementMatchingContext context, T1 value1, T2 value2, int startIndex, int currentIndex)
             {
                 AllTokens = allTokens ?? throw new ArgumentNullException(nameof(allTokens));
                 Context = context ?? throw new ArgumentNullException(nameof(context));
@@ -945,7 +944,7 @@ namespace Tac.Parser
                 StartIndex = startIndex;
             }
 
-            public IReadOnlyList<IToken> AllTokens
+            public IReadOnlyList<IOrType<IToken, ISetUp>> AllTokens
             {
                 get;
             }
@@ -980,9 +979,9 @@ namespace Tac.Parser
             }
         }
 
-        public static IMatchedTokenMatching<T1,T2> MakeMatch(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T1 value1, T2 value2, int startIndex, int endIndex)
+        public static IMatchedTokenMatching<T1,T2> MakeMatch(IMatchedTokenMatching<T1> parent, T1 value1, T2 value2, int endIndex)
         {
-            return new Matched(tokens, context, value1, value2, startIndex, endIndex);
+            return new Matched(parent.AllTokens, parent.Context, value1, value2, parent.EndIndex, endIndex);
         }
 
         public static ITokenMatching<T1,T2> MakeNotMatch(ElementMatchingContext context)
@@ -995,7 +994,7 @@ namespace Tac.Parser
     {
         private class Matched : IMatchedTokenMatching<T1, T2, T3>
         {
-            public Matched(IReadOnlyList<IToken> allTokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, int startIndex, int endIndex)
+            public Matched(IReadOnlyList<IOrType<IToken, ISetUp>> allTokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, int startIndex, int endIndex)
             {
                 AllTokens = allTokens ?? throw new ArgumentNullException(nameof(allTokens));
                 Context = context ?? throw new ArgumentNullException(nameof(context));
@@ -1006,7 +1005,7 @@ namespace Tac.Parser
                 EndIndex = endIndex;
             }
 
-            public IReadOnlyList<IToken> AllTokens
+            public IReadOnlyList<IOrType<IToken, ISetUp>> AllTokens
             {
                 get;
             }
@@ -1045,9 +1044,9 @@ namespace Tac.Parser
             }
         }
 
-        public static IMatchedTokenMatching<T1, T2, T3> MakeMatch(IReadOnlyList<IToken> tokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, int startIndex, int endIndex)
+        public static IMatchedTokenMatching<T1, T2, T3> MakeMatch(IMatchedTokenMatching<T1, T2> parent, T1 value1, T2 value2, T3 value3, int endIndex)
         {
-            return new Matched(tokens, context, value1, value2, value3, startIndex, endIndex);
+            return new Matched(parent.AllTokens, parent.Context, value1, value2, value3, parent.EndIndex, endIndex);
         }
 
         public static ITokenMatching<T1, T2,T3> MakeNotMatch(ElementMatchingContext context)
@@ -1060,7 +1059,7 @@ namespace Tac.Parser
     {
         private class Matched : IMatchedTokenMatching<T1, T2, T3, T4>
         {
-            public Matched(IReadOnlyList<IToken> allTokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, T4 value4, int startIndex, int endIndex)
+            public Matched(IReadOnlyList<IOrType<IToken, ISetUp>> allTokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, T4 value4, int startIndex, int endIndex)
             {
                 AllTokens = allTokens ?? throw new ArgumentNullException(nameof(allTokens));
                 Context = context ?? throw new ArgumentNullException(nameof(context));
@@ -1072,7 +1071,7 @@ namespace Tac.Parser
                 EndIndex = endIndex;
             }
 
-            public IReadOnlyList<IToken> AllTokens
+            public IReadOnlyList<IOrType<IToken, ISetUp>> AllTokens
             {
                 get;
             }
@@ -1116,16 +1115,14 @@ namespace Tac.Parser
         }
 
         public static IMatchedTokenMatching<T1, T2, T3, T4> MakeMatch(
-            IReadOnlyList<IToken> tokens, 
-            ElementMatchingContext context, 
+            IMatchedTokenMatching<T1,T2,T3> parent,
             T1 value1, 
             T2 value2, 
             T3 value3,
             T4 value4, 
-            int startIndex, 
             int currentIndex)
         {
-            return new Matched(tokens, context, value1, value2, value3, value4, startIndex, currentIndex);
+            return new Matched(parent.AllTokens, parent.Context, value1, value2, value3, value4, parent.EndIndex, currentIndex);
         }
 
         public static ITokenMatching<T1, T2, T3,T4> MakeNotMatch(ElementMatchingContext context)
@@ -1138,7 +1135,7 @@ namespace Tac.Parser
     {
         private class Matched : IMatchedTokenMatching<T1, T2, T3, T4, T5>
         {
-            public Matched(IReadOnlyList<IToken> allTokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, int startIndex, int endIndex)
+            public Matched(IReadOnlyList<IOrType<IToken, ISetUp>> allTokens, ElementMatchingContext context, T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, int startIndex, int endIndex)
             {
                 AllTokens = allTokens ?? throw new ArgumentNullException(nameof(allTokens));
                 Context = context ?? throw new ArgumentNullException(nameof(context));
@@ -1151,7 +1148,7 @@ namespace Tac.Parser
                 EndIndex = endIndex;
             }
 
-            public IReadOnlyList<IToken> AllTokens
+            public IReadOnlyList<IOrType<IToken, ISetUp>> AllTokens
             {
                 get;
             }
@@ -1199,17 +1196,15 @@ namespace Tac.Parser
         }
 
         public static IMatchedTokenMatching<T1, T2, T3, T4, T5> MakeMatch(
-            IReadOnlyList<IToken> tokens,
-            ElementMatchingContext context,
+    IMatchedTokenMatching<T1,T2,T3,T4> parent,
             T1 value1,
             T2 value2,
             T3 value3,
             T4 value4,
             T5 value5, 
-            int startIndex,
             int endIndex)
         {
-            return new Matched(tokens, context, value1, value2, value3, value4, value5, startIndex, endIndex);
+            return new Matched(parent.AllTokens, parent.Context, value1, value2, value3, value4, value5, parent.EndIndex, endIndex);
         }
 
         public static ITokenMatching<T1, T2, T3,T4,T5> MakeNotMatch(ElementMatchingContext context)
@@ -1282,7 +1277,7 @@ namespace Tac.Parser
                 var res = pattern.TryMake(firstMatched);
                 if (res is IMatchedTokenMatching<T2> matched)
                 {
-                    return TokenMatching<T1, T2>.MakeMatch(matched.AllTokens, firstMatched.Context, firstMatched.Value, matched.Value, firstMatched.StartIndex, matched.EndIndex );
+                    return TokenMatching<T1, T2>.MakeMatch(firstMatched, firstMatched.Value, matched.Value, matched.EndIndex );
                 }
             }
 
@@ -1300,7 +1295,7 @@ namespace Tac.Parser
                 var res = pattern.TryMake(firstMatched);
                 if (res is IMatchedTokenMatching<T3> matched)
                 {
-                    return TokenMatching<T1, T2,T3>.MakeMatch(matched.AllTokens, firstMatched.Context, firstMatched.Value1, firstMatched.Value2, matched.Value, firstMatched.StartIndex, matched.EndIndex );
+                    return TokenMatching<T1, T2,T3>.MakeMatch(firstMatched, firstMatched.Value1, firstMatched.Value2, matched.Value, matched.EndIndex );
                 }
             }
 
@@ -1318,7 +1313,7 @@ namespace Tac.Parser
                 var res = pattern.TryMake(firstMatched);
                 if (res is IMatchedTokenMatching<T4> matched)
                 {
-                    return TokenMatching<T1, T2, T3,T4>.MakeMatch(matched.AllTokens, firstMatched.Context, firstMatched.Value1, firstMatched.Value2, firstMatched.Value3, matched.Value, firstMatched.StartIndex, matched.EndIndex);
+                    return TokenMatching<T1, T2, T3,T4>.MakeMatch(firstMatched, firstMatched.Value1, firstMatched.Value2, firstMatched.Value3, matched.Value, matched.EndIndex);
                 }
             }
 
@@ -1337,7 +1332,7 @@ namespace Tac.Parser
                 var res = pattern.TryMake(firstMatched);
                 if (res is IMatchedTokenMatching<T5> matched)
                 {
-                    return TokenMatching<T1, T2, T3, T4,T5>.MakeMatch(matched.AllTokens, firstMatched.Context, firstMatched.Value1, firstMatched.Value2, firstMatched.Value3, firstMatched.Value4, matched.Value, firstMatched.StartIndex, matched.EndIndex);
+                    return TokenMatching<T1, T2, T3, T4,T5>.MakeMatch(firstMatched, firstMatched.Value1, firstMatched.Value2, firstMatched.Value3, firstMatched.Value4, matched.Value, matched.EndIndex);
                 }
             }
 
@@ -1380,10 +1375,10 @@ namespace Tac.Parser
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
 
-            if (matchedTokenMatching.AllTokens[index] is SquareBacketToken squareBacketToken)
+            if (matchedTokenMatching.AllTokens[index].Is1(out var token)  && token.SafeIs(out SquareBacketToken squareBacketToken))
             {
-                if (inner(TokenMatching<object>.MakeStart(squareBacketToken.Tokens, self.Context, index)) is IMatchedTokenMatching<object> mtm) {
-                    return TokenMatching<object>.MakeMatch(matchedTokenMatching.AllTokens, self.Context,mtm.Value,index, index+1);
+                if (inner(TokenMatching<object>.MakeStart(squareBacketToken.Tokens.Select(x=> OrType.Make<IToken, ISetUp>(x)).ToList(), self.Context, 0)) is IMatchedTokenMatching<object> mtm) {
+                    return TokenMatching<object>.MakeMatch(matchedTokenMatching, mtm.Value, index+1);
                 };
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
@@ -1469,13 +1464,13 @@ namespace Tac.Parser
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
 
-            if (matchedTokenMatching.AllTokens[matchedTokenMatching.EndIndex] is LineToken line)
+            if (matchedTokenMatching.AllTokens[matchedTokenMatching.EndIndex].Is1(out var token) && token.SafeIs(out LineToken line))
             {
-                if (inner(TokenMatching<object>.MakeStart(line.Tokens, self.Context,0)) is IMatchedTokenMatching)
+                if (inner(TokenMatching<object>.MakeStart(line.Tokens.Select(x => OrType.Make<IToken, ISetUp>(x)).ToList(), self.Context,0)) is IMatchedTokenMatching)
                 {
                     // uhhh new object?
                     // todo make a IMatchedTokenMatching with out a generic just for this
-                    return TokenMatching<object>.MakeMatch(matchedTokenMatching.AllTokens, self.Context, new object(), matchedTokenMatching.EndIndex, matchedTokenMatching.EndIndex+1);
+                    return TokenMatching<object>.MakeMatch(matchedTokenMatching, new object(), matchedTokenMatching.EndIndex+1);
                 };
                 return TokenMatching<object>.MakeNotMatch(self.Context);
             }
@@ -1496,7 +1491,7 @@ namespace Tac.Parser
                 return TokenMatching<T>.MakeNotMatch(patternMatch.Context);
             }
 
-            return TokenMatching<T>.MakeMatch(matchedPattern.AllTokens, matchedPattern.Context, matchedTokenMatching.Value, matchedTokenMatching.StartIndex, matchedPattern.EndIndex);
+            return TokenMatching<T>.MakeMatch(matchedTokenMatching, matchedTokenMatching.Value, matchedPattern.EndIndex);
         }
 
         public static ITokenMatching Has(this ITokenMatching self, IMaker pattern)

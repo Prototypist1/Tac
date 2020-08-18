@@ -43,16 +43,14 @@ namespace Tac.SemanticModel
             // TODO peal off ()
 
 
-            if (tokenMatching.AllTokens[tokenMatching.StartIndex].SafeIs(out ParenthesisToken parenthesisToken))
+            if (tokenMatching.AllTokens[tokenMatching.StartIndex].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
             {
-                var matching = TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeStart(parenthesisToken.Tokens, tokenMatching.Context ,0);
+                var matching = TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeStart(parenthesisToken.Tokens.Select(x=>OrType.Make<IToken,ISetUp>(x)).ToArray(), tokenMatching.Context ,0);
                 var res = TryMake(matching);
                 if (res is IMatchedTokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> matched) {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                        tokenMatching.AllTokens,
-                        tokenMatching.Context,
+                        tokenMatching,
                         matched.Value,
-                        tokenMatching.StartIndex,
                         tokenMatching.StartIndex+1);
                 }
                 else {
@@ -67,10 +65,8 @@ namespace Tac.SemanticModel
                          is IMatchedTokenMatching matched)
                 {
                     return  TokenMatching<ISetUp<IBox<IFrontendType>,Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                            matched.AllTokens,
-                            matched.Context,
+                            tokenMatching,
                             type,
-                            matched.StartIndex,
                             matched.EndIndex);
                 }
             }
@@ -80,10 +76,8 @@ namespace Tac.SemanticModel
                         is IMatchedTokenMatching matched)
                 {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                            tokenMatching.AllTokens,
-                            matched.Context,
+                            tokenMatching,
                             type,
-                            matched.StartIndex,
                             matched.EndIndex);
 
                 }
@@ -94,10 +88,8 @@ namespace Tac.SemanticModel
                          is IMatchedTokenMatching matched)
                 {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                            matched.AllTokens,
-                            matched.Context,
+                            tokenMatching,
                             type,
-                            matched.StartIndex,
                             matched.EndIndex);
                 }
             }
@@ -114,26 +106,13 @@ namespace Tac.SemanticModel
 
             var at = tokenMatching.EndIndex;
 
-            var or = tokenMatching.Context.Map.GetGreatestParent(tokenMatching.AllTokens[at]);
+            if (tokenMatching.AllTokens[at].Is2(out var v2) && v2.SafeIs(out ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> mySetUp)) {
 
-            if (or.Is1(out var v1) && v1.SafeIs(out ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> mySetUp)) {
-
-                var list = new List<int>();
-                for (int i = 0; i < tokenMatching.AllTokens.Count; i++)
-                {
-                    var token = tokenMatching.AllTokens[i];
-                    if (tokenMatching.Context.Map.GetGreatestParent(token).Is1(out var setUp) && setUp == mySetUp) {
-
-                        list.Add(i);
-                    }
-                }
 
                 return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                    tokenMatching.AllTokens,
-                    tokenMatching.Context,
+                    tokenMatching,
                     mySetUp,
-                    list.Min(),
-                    list.Max()+1);
+                    tokenMatching.EndIndex + 1);
 
             }
             return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(tokenMatching.Context);
@@ -147,17 +126,15 @@ namespace Tac.SemanticModel
             // {90C5FBAF-C5BC-4299-98C6-83A1B5109056}
             // TODO peal off ()
 
-            if (tokenMatching.AllTokens[tokenMatching.StartIndex].SafeIs(out ParenthesisToken parenthesisToken))
+            if (tokenMatching.AllTokens[tokenMatching.StartIndex].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
             {
-                var matching = TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeStart(parenthesisToken.Tokens, tokenMatching.Context, 0);
+                var matching = TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeStart(parenthesisToken.Tokens.Select(x=> OrType.Make<IToken, ISetUp>(x)).ToArray(), tokenMatching.Context, 0);
                 var res = TryMake(matching);
                 if (res is IMatchedTokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> matched)
                 {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                        tokenMatching.AllTokens,
-                        tokenMatching.Context,
+                        tokenMatching,
                         matched.Value,
-                        tokenMatching.StartIndex,
                         tokenMatching.StartIndex + 1);
                 }
                 else
@@ -174,10 +151,8 @@ namespace Tac.SemanticModel
                          is IMatchedTokenMatching matched)
                 {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                            matched.AllTokens,
-                            matched.Context,
+                            tokenMatching,
                             type,
-                            matched.StartIndex,
                             matched.EndIndex);
                 }
             }
@@ -187,10 +162,8 @@ namespace Tac.SemanticModel
                          is IMatchedTokenMatching matched)
                 {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                            matched.AllTokens,
-                            matched.Context,
+                            tokenMatching,
                             type,
-                            matched.StartIndex,
                             matched.EndIndex);
                 }
             }

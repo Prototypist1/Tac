@@ -142,13 +142,13 @@ namespace Tac.SemanticModel
                 .Has(new KeyWordMaker("implementation"), out var _)
                 .HasSquare(x => x
                     .HasLine(y=>y
-                        .Has(new TypeMaker(), out var context)
+                        .Has(new TypeMaker(), out context)
                         .Has(new DoneMaker()))
                     .HasLine(y => y
-                        .Has(new TypeMaker(), out var input)
+                        .Has(new TypeMaker(), out input)
                         .Has(new DoneMaker()))
                     .HasLine(y => y
-                        .Has(new TypeMaker(), out var output)
+                        .Has(new TypeMaker(), out output)
                         .Has(new DoneMaker()))
                     .Has(new DoneMaker()))
                 .OptionalHas(new NameMaker(), out var contextName)
@@ -159,9 +159,8 @@ namespace Tac.SemanticModel
                 var elements = tokenMatching.Context.ParseBlock(body!);
 
 
-                return TokenMatching<ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>>.MakeMatch(
-                    matched.AllTokens,
-                    matched.Context,
+                return TokenMatching<ISetUp<IBox<WeakImplementationDefinition>, IValue>>.MakeMatch(
+                    tokenMatching,
                     new PopulateScopeImplementationDefinition(
                         context!,
                         input!,
@@ -169,13 +168,11 @@ namespace Tac.SemanticModel
                         output!,
                         contextName?.Item ?? "context",
                         parameterName?.Item ?? "input"),
-                    tokenMatching.EndIndex,
-                    tokenMatching.EndIndex + 3 + (contextName == null ? 0:1) + (parameterName == null ? 0 : 1)
-                    ); ;
+                    matched.EndIndex);
             }
 
 
-            return TokenMatching<ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>>.MakeNotMatch(match.Context);
+            return TokenMatching<ISetUp<IBox<WeakImplementationDefinition>, IValue>>.MakeNotMatch(match.Context);
         }
         
     }

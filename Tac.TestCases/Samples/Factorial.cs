@@ -80,7 +80,7 @@ module factorial {
         input <? 2 then {
             1 return ;
         } else {
-            input - 1 > fac * input return ;      
+            ( input - 1 > fac ) * input return ;      
         } ;
     } =: fac ;
 }";

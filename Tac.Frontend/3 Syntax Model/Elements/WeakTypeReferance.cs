@@ -179,9 +179,9 @@ namespace Tac.SemanticModel
 
                 if (genericMatachig is IMatchedTokenMatching genericMatched)
                 {
-                    return TokenMatching<IKey>.MakeMatch(genericMatched.AllTokens, genericMatched.Context, new GenericNameKey(new NameKey(typeName.Item), list.Select(x => OrType.Make<IKey, IError>(x)).ToArray().ToArray()), matched.StartIndex, genericMatched.EndIndex);
+                    return TokenMatching<IKey>.MakeMatch(tokenMatching, new GenericNameKey(new NameKey(typeName.Item), list.Select(x => OrType.Make<IKey, IError>(x)).ToArray().ToArray()),  genericMatched.EndIndex);
                 }
-                return TokenMatching<IKey>.MakeMatch(matched.AllTokens, matched.Context, new NameKey(typeName.Item), matched.StartIndex,matched.EndIndex);
+                return TokenMatching<IKey>.MakeMatch(tokenMatching, new NameKey(typeName.Item),matched.EndIndex);
             }
 
             return TokenMatching<IKey>.MakeNotMatch(matching.Context);
@@ -194,7 +194,7 @@ namespace Tac.SemanticModel
         {
             return tokenMatching
                 .Has(new TypeNameMaker())
-                .ConvertIfMatched(name => new TypeReferancePopulateScope(name));
+                .ConvertIfMatched(name => new TypeReferancePopulateScope(name), tokenMatching);
         }
 
     }

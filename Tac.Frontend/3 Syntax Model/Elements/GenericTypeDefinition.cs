@@ -89,7 +89,7 @@ namespace Tac.SemanticModel
                         new NameKey(name.Item),
                         tokenMatching.Context.ParseBlock(lines),
                         generics.Select(x =>
-                            new GenericTypeParameterPlacholder(OrType.Make<NameKey, ImplicitKey>(new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()));
+                            new GenericTypeParameterPlacholder(OrType.Make<NameKey, ImplicitKey>(new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()), tokenMatching);
         }
 
         public static ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> PopulateScope(

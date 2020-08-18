@@ -3,6 +3,10 @@
 Tac is a proof of concept programming language that tests a method factory based approach to sharing logic between objects.
 
 ![Tac reuse model](https://raw.githubusercontent.com/Prototypist1/Tac/master/tac-reuse-model.png)
+<!-- 
+    people think this diagram is bad
+    and I agree it should capure hieracrhy on the OOP side and flatnes on the Tac side
+ -->
 
 Tac has no inheritance or class hierarchies; instead, objects that share functionality are constructed using the same "building block" method-blueprints.
 
@@ -17,7 +21,7 @@ Tac has four core structures.
 - Methods – Group/organize logic.
 - Method-blueprints – Create methods that share logic but act with respect to different contexts. They allow us to easily reuse instance methods across different kinds of object, a capacity traditionally provided by inheritance.
 
-It's all pretty familiar stuff. Objects, types, and methods are more or less what you expect, and method-blueprints are just glorified method factories.
+These are familiar concepts. Objects, types, and methods are more or less what you expect, and method-blueprints are just glorified method factories.
 
 ## Objects
 
@@ -74,11 +78,16 @@ add-to-i := method<int, int> to-add {
 ```
 This method adds some value to `i`. Crucially, it always modifies the `i` that was defined next to it, even if a different `i` is defined where the method is being called. Moreover, the value of `i` persists from one call to the next, so calling this method repeatedly will return different values.
 
-The method modifies that specific `i` because it is bound to the context in which it was created. This is generally very useful, but it can be troublesome. For example, if we wanted to create two copies of the method above that were bound to different `i`s, it would require duplicate code - or worse, getting fancy. This problem becomes very real when you need to reuse logic in different objects.
+The method modifies that specific `i` because it is bound to the context in which it was created. This is generally very useful, but it can be troublesome. For example, if we wanted to create two copies of the method above that were bound to different `i`s, it would require duplicate code. This problem becomes very real when you need to reuse logic in different objects.
 
 ## Method-blueprints
 
 Method-blueprints make it easy to reuse the same logic in multiple places without duplicate code. A blueprint is a factory that creates methods with the same logic but bound to different contexts.
+
+<!-- 
+context as an input what does that mean? what is an context 
+I need to be clear that what it really takes in an object
+ -->
 
 Method-blueprints are really just methods. They take a context as their input and return a method that acts with respect to that context.
 
@@ -88,7 +97,7 @@ say-hello-blueprint := blueprint<named, named, string> context subject {
     "Hello " + subject.first-name + ", it's " +context.first-name return;
 }
 ```
-Unlike methods, method-blueprints have three type parameters: the first is the context's type, the second is the input of the returned method, and the third is the output of the returned method. A blueprint definition also includes the name of the context, the name of the created method's input, and the code that will be the body of that method.
+Unlike methods, method-blueprints have three type parameters: the first is the context's type, the second is the input of the returned method, and the third is the output of the returned method. A blueprint definition also includes the name of the context <!-- what do I mean "name of the context"?? how the blueprint will refer to it's context -->, the name of the created method's input, and the code that will be the body of that method.
 
 To create a method, call the blueprint like you would call a method and pass in an object that you want to be its context.
 

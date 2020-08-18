@@ -81,8 +81,8 @@ namespace Tac.SemanticModel.Operations
         }
 
         public static IOrType<IFrontendType, IError> Returns(IOrType<IBox<IFrontendCodeElement>, IError> method) { 
-            return method.ReturnsTypeOrErrors().TransformAndFlatten<IFrontendType, IFrontendType>(thing => {
-                if (thing is Tac.SyntaxModel.Elements.AtomicTypes.MethodType method)
+            return method.ReturnsTypeOrErrors().TransformAndFlatten(thing => {
+                if (thing is SyntaxModel.Elements.AtomicTypes.MethodType method)
                 {
                     return method.OutputType;
                 }

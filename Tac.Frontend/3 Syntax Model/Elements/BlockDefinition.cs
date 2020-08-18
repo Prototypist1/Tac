@@ -72,8 +72,8 @@ namespace Tac.SemanticModel
             {
                 var elements = tokenMatching.Context.ParseBlock(body);
 
-                return TokenMatching<ISetUp<IBox<WeakBlockDefinition>, Tpn.IScope>>.MakeMatch(matched.AllTokens, matched.Context,
-                    new BlockDefinitionPopulateScope(elements), matched.StartIndex, matched.EndIndex);
+                return TokenMatching<ISetUp<IBox<WeakBlockDefinition>, Tpn.IScope>>.MakeMatch(tokenMatching,
+                    new BlockDefinitionPopulateScope(elements), matched.EndIndex);
             }
 
             return TokenMatching<ISetUp<IBox<WeakBlockDefinition>, Tpn.IScope>>.MakeNotMatch(tokenMatching.Context);

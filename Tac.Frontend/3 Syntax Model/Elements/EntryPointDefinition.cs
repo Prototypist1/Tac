@@ -68,10 +68,8 @@ namespace Tac.SemanticModel
             var matching = tokenMatching
                     .Has(new KeyWordMaker("entry-point"), out var _)
                     .Has(new BodyMaker());
-            return matching.ConvertIfMatched((_,block) => new EntryPointDefinitionPopulateScope(matching.Context.ParseBlock(block)));
+            return matching.ConvertIfMatched((_,block) => new EntryPointDefinitionPopulateScope(matching.Context.ParseBlock(block)), tokenMatching);
         }
-
-
     }
 
 

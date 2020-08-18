@@ -15,6 +15,7 @@ using Prototypist.Toolbox;
 using System.Collections.Generic;
 using System;
 using Tac.SemanticModel.CodeStuff;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Parser
 {
@@ -70,14 +71,14 @@ namespace Tac.SemanticModel.Operations
             public ITokenMatching<bool> TryMake(IMatchedTokenMatching self)
             {
                 if (self.AllTokens.Count > self.EndIndex && 
-                    self.AllTokens[self.EndIndex] is AtomicToken first)
+                    self.AllTokens[self.EndIndex].Is1(out var token) && token.SafeIs(out AtomicToken first))
                 {
                     if (first.Item == "true") {
-                        return TokenMatching<bool>.MakeMatch(self.AllTokens, self.Context, true, self.EndIndex, self.EndIndex +1);
+                        return TokenMatching<bool>.MakeMatch(self, true, self.EndIndex +1);
 
                     }
                     else if (first.Item == "false"){
-                        return TokenMatching<bool>.MakeMatch(self.AllTokens, self.Context, false, self.EndIndex, self.EndIndex + 1);
+                        return TokenMatching<bool>.MakeMatch(self, false, self.EndIndex + 1);
 
                     }
 
@@ -96,7 +97,7 @@ namespace Tac.SemanticModel.Operations
             if (match
                  is IMatchedTokenMatching matched)
             {
-                return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeMatch(matched.AllTokens, matched.Context, new ConstantBoolPopulateScope(dub), matched.StartIndex, matched.EndIndex);
+                return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeMatch(tokenMatching, new ConstantBoolPopulateScope(dub), matched.EndIndex);
             }
             return TokenMatching<ISetUp<IBox<WeakConstantBool>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }

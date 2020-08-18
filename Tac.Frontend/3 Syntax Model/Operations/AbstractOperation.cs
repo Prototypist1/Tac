@@ -210,22 +210,13 @@ namespace Tac.SemanticModel.CodeStuff
 
             return matching.ConvertIfMatched(match => {
 
-                var left=  tokenMatching.Context.Map.GetGreatestParent(match.lhs);
-                var right = tokenMatching.Context.Map.GetGreatestParent(match.rhs);
+                var left= OrType.Make< ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>( match.lhs.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _));
+                var right = OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(match.rhs.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> _));
 
                 var res = new BinaryPopulateScope<TFrontendCodeElement, TCodeElement>(left, right, Make, keyMaker, intoInitScope);
 
-                if (left.Is1(out var leftValue))
-                {
-                    tokenMatching.Context.Map.SetElementParent(leftValue, res);
-                }
-                if (right.Is1(out var rightValue))
-                {
-                    tokenMatching.Context.Map.SetElementParent(rightValue, res);
-                }
-
                 return res;
-            });
+            }, tokenMatching);
         }
 
 
@@ -354,14 +345,12 @@ namespace Tac.SemanticModel.CodeStuff
 
                 var res = new BinaryPopulateScope(match.lhs, match.rhs, Make, toTypeProblemThings);
 
-                matching.Context.Map.SetElementParent(match.lhs, res);
-                matching.Context.Map.SetElementParent(match.rhs, res);
+                //matching.Context.Map.SetElementParent(match.lhs, res);
+                //matching.Context.Map.SetElementParent(match.rhs, res);
 
                 return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                    matched.AllTokens,
-                    matched.Context, 
+                    tokenMatching, 
                     res,
-                    matched.StartIndex,
                     matched.EndIndex
                     );
             }
