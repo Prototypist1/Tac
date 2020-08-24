@@ -25,10 +25,7 @@ namespace Tac.Tests
             Assert.NotEmpty(errors);
 
             var line = Assert.Single(converted.StaticInitialization);
-            var validLine = line.Is1OrThrow();
-            var assignOperation = validLine.GetValue().SafeCastTo<IFrontendCodeElement, WeakAssignOperation>();
-            var addOperation = assignOperation.Left.Is1OrThrow().GetValue().SafeCastTo<IFrontendCodeElement, WeakAddOperation>();
-            addOperation.Left.Is2OrThrow();
+            line.Is2OrThrow();
         }
 
         [Fact]

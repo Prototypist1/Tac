@@ -440,10 +440,6 @@ namespace Tac.Parser
                 // ++ ++ ++ ++ a
                 // a of b of c (as opposed to c.b.a)
 
-                if (maker is TryAssignOperationMaker) {
-                    var db = true;
-                }
-
                 top:
                 for (int i = 0; i < myList.Count; i++)
                 {
