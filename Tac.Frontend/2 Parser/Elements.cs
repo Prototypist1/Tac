@@ -188,18 +188,18 @@ namespace Tac.Parser
             //    MakerRegistry.Instance.TypeMakers.ToArray()
             //    )
         {}
-        
+
         //public ElementMatchingContext(
-            //IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers, 
-            //IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers,
-            //IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeOperationMatchers,
-            //IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeMakers
+        //IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers, 
+        //IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers,
+        //IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeOperationMatchers,
+        //IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeMakers
         //    )
         //{
-            //this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
-            //this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
-            //this.typeOperationMatchers = typeOperationMatchers ?? throw new ArgumentNullException(nameof(typeOperationMatchers));
-            //this.typeMakers = typeMakers ?? throw new ArgumentNullException(nameof(typeMakers));
+        //this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
+        //this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
+        //this.typeOperationMatchers = typeOperationMatchers ?? throw new ArgumentNullException(nameof(typeOperationMatchers));
+        //this.typeMakers = typeMakers ?? throw new ArgumentNullException(nameof(typeMakers));
         //}
 
         // elementMakers and operationMatchers should be one list
@@ -238,6 +238,8 @@ namespace Tac.Parser
             //new ObjectOrTypeMemberDefinitionMaker(), // this only eixts inside types, also objects... I think objects need a specail matcher
             new MemberMaker(), // this matches very broadly so it pretty much goes last
 
+            new ParenthesisOperationMaker(),
+
             new PathOperationMaker(),
 
             new MultiplyOperationMaker(),
@@ -262,6 +264,23 @@ namespace Tac.Parser
 
 
         };
+
+
+        private class ParenthesisOperationMaker : IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>
+        {
+            public ITokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> TryMake(IMatchedTokenMatching elementToken)
+            {
+                if (elementToken.AllTokens[elementToken.EndIndex].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
+                {
+                    var res = elementToken.Context.ParseParenthesis(parenthesisToken);
+                    if (res.Is1(out var setUp))
+                    {
+                        return TokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>.MakeMatch(elementToken,setUp, elementToken.EndIndex+1);
+                    }
+                }
+                return TokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>.MakeNotMatch(elementToken.Context);
+            }
+        }
 
         // {48146F3A-6D75-4F24-B857-BED24CE846EA}
         // TODO
@@ -443,18 +462,18 @@ namespace Tac.Parser
                 top:
                 for (int i = 0; i < myList.Count; i++)
                 {
-                    if (myList[i].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
-                    {
-                        var res = ParseParenthesis(parenthesisToken);
-                        if (res.Is1(out var setUp))
-                        {
-                            myList[i] = OrType.Make<IToken, ISetUp>(setUp);
-                        }
-                        else if (res.Is2(out var error)) {
-                            return OrType.Make<ISetUp,IError>(error);
-                        }
-                        goto top;
-                    }
+                    //if (myList[i].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
+                    //{
+                    //    var res = ParseParenthesis(parenthesisToken);
+                    //    if (res.Is1(out var setUp))
+                    //    {
+                    //        myList[i] = OrType.Make<IToken, ISetUp>(setUp);
+                    //    }
+                    //    else if (res.Is2(out var error)) {
+                    //        return OrType.Make<ISetUp,IError>(error);
+                    //    }
+                    //    goto top;
+                    //}
 
                     var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(myList, this, i);
 

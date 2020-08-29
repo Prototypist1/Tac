@@ -37,23 +37,42 @@ namespace Tac.SemanticModel
     /// </summary>
     internal class TypeMaker : IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>
     {
+
+        IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>[] makers = new IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>[] {
+            new TypeDefinitionMaker(),
+            new TypeOrOperationMaker(),
+            new TypeReferanceMaker(),
+        };
+
         public ITokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            // {90C5FBAF-C5BC-4299-98C6-83A1B5109056}
-            // TODO peal off ()
-
-
-            if (tokenMatching.AllTokens[tokenMatching.StartIndex].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
             {
-                var matching = TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeStart(parenthesisToken.Tokens.Select(x=>OrType.Make<IToken,ISetUp>(x)).ToArray(), tokenMatching.Context ,0);
+                if (tokenMatching.Has(new TypeOrOperationMaker(), out var type)
+                        is IMatchedTokenMatching matched)
+                {
+                    return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
+                            tokenMatching,
+                            type,
+                            matched.EndIndex);
+
+                }
+            }
+
+            if (tokenMatching.AllTokens[tokenMatching.EndIndex].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken) && parenthesisToken.Tokens.Count() == 1)
+            {
+                var line = parenthesisToken.Tokens.First().SafeCastTo(out LineToken _);
+
+                var matching = TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeStart(line.Tokens.Select(x => OrType.Make<IToken, ISetUp>(x)).ToArray(), tokenMatching.Context, 0);
                 var res = TryMake(matching);
-                if (res is IMatchedTokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> matched) {
+                if (res is IMatchedTokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> matched)
+                {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                         tokenMatching,
                         matched.Value,
-                        tokenMatching.StartIndex+1);
+                        tokenMatching.EndIndex + 1);
                 }
-                else {
+                else
+                {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeNotMatch(
                             tokenMatching.Context);
                 }
@@ -64,22 +83,10 @@ namespace Tac.SemanticModel
                 if (tokenMatching.Has(new TypeDefinitionMaker(), out var type)
                          is IMatchedTokenMatching matched)
                 {
-                    return  TokenMatching<ISetUp<IBox<IFrontendType>,Tpn.TypeProblem2.TypeReference>>.MakeMatch(
-                            tokenMatching,
-                            type,
-                            matched.EndIndex);
-                }
-            }
-
-            {
-                if (tokenMatching.Has(new TypeOrOperationMaker(), out var type)
-                        is IMatchedTokenMatching matched)
-                {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                             tokenMatching,
                             type,
                             matched.EndIndex);
-
                 }
             }
 
@@ -123,19 +130,20 @@ namespace Tac.SemanticModel
     {
         public ITokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            // {90C5FBAF-C5BC-4299-98C6-83A1B5109056}
-            // TODO peal off ()
 
-            if (tokenMatching.AllTokens[tokenMatching.StartIndex].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
+            if (tokenMatching.AllTokens[tokenMatching.EndIndex].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken) && parenthesisToken.Tokens.Count() == 1)
             {
-                var matching = TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeStart(parenthesisToken.Tokens.Select(x=> OrType.Make<IToken, ISetUp>(x)).ToArray(), tokenMatching.Context, 0);
-                var res = TryMake(matching);
+                var line = parenthesisToken.Tokens.First().SafeCastTo(out LineToken _);
+
+                var matching = TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeStart(line.Tokens.Select(x => OrType.Make<IToken, ISetUp>(x)).ToArray(), tokenMatching.Context, 0);
+                // you can be an or again (z | b) | c is legal
+                var res = new TypeMaker().TryMake(matching);
                 if (res is IMatchedTokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> matched)
                 {
                     return TokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>.MakeMatch(
                         tokenMatching,
                         matched.Value,
-                        tokenMatching.StartIndex + 1);
+                        tokenMatching.EndIndex + 1);
                 }
                 else
                 {

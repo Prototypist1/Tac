@@ -11,6 +11,7 @@ using System.Linq;
 
 namespace Tac.Tests
 {
+
     public class BadCode
     {
 
@@ -61,6 +62,8 @@ namespace Tac.Tests
             //var lineOr = Assert.Single(converted.StaticInitialization);
             //lineOr.Is2OrThrow();
         }
+
+
 
         //[Fact]
         //public void MissingCurleyBracket()
