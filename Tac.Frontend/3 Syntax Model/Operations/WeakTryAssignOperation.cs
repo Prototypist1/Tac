@@ -14,6 +14,7 @@ using Tac.SemanticModel;
 using System;
 using Prototypist.Toolbox.Object;
 using System.Linq;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
 namespace Tac.SemanticModel.Operations
 {
@@ -30,10 +31,6 @@ namespace Tac.SemanticModel.Operations
     // 5 is Cat { }
     //
 
-    // TODO 
-    // {7A6AD5B4-7706-4710-ADE5-D6F86B2757BC}
-    // this needs to validate that the left could possibly the right
-    // if the left is known to be a bool, it is never going to be an int
     internal class WeakTryAssignOperation : IConvertableFrontendCodeElement<ITryAssignOperation> 
     {
 
@@ -81,13 +78,20 @@ namespace Tac.SemanticModel.Operations
             {
                 yield return item;
             }
-            if (!Right.Possibly1().AsEnumerable().OfType<WeakBlockDefinition>().Any())
-            {
-                yield return Error.Other($"right hand side must be a block");
+
+            // it must be possible for left to be right
+            // this come down to them being the same C# type
+            // mostly they are both HasMembersType but they could both be methods
+            // they could as be the same primitive but that would not be very interesting
+            if (Left.ReturnsTypeOrErrors().Is1(out var leftType) && Right.ReturnsTypeOrErrors().Is1(out var rightType)){
+                if (leftType.GetType() != rightType.GetType()) {
+                    yield return Error.AssignmentMustBePossible("it must be possible for the left to be the right");
+                }
             }
-            foreach (var error in Left.TypeCheck(new Tac.SyntaxModel.Elements.AtomicTypes.BlockType()))
+
+            if (!Body.Possibly1().AsEnumerable().Select(x=>x.GetValue()).OfType<WeakBlockDefinition>().Any())
             {
-                yield return error;
+                yield return Error.Other($"body must be a block");
             }
         }
     }

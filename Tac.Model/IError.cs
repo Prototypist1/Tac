@@ -65,13 +65,15 @@ namespace Tac.Model
         public static readonly Guid TypeNotFound                = Guid.Parse("{BB3C0475-F8CC-4BDC-90B9-4959F14FD1BE}");
         public static readonly Guid Cascaded                    = Guid.Parse("{A22D59DC-088C-433F-BC23-C1797FD5B149}");
         public static readonly Guid Other                       = Guid.Parse("{F465B198-2788-4BF1-B4C0-CDE8FA25FE76}");
-        
+        public static readonly Guid AssignmentMustBePossible    = Guid.Parse("{F465B198-2788-4BF1-B4C0-CDE8FA25FE76}");
+
     }
 
     public class Error : IError
     {
         public static IError TypeNotFound(string message) => new Error(ErrorCodes.TypeNotFound, message);
         public static IError Other(string message) => new Error(ErrorCodes.Other, message);
+        public static IError AssignmentMustBePossible(string message) => new Error(ErrorCodes.AssignmentMustBePossible, message);
         public static IError Cascaded(string message,IError inner) => new Error(ErrorCodes.Cascaded, message, inner);
         public static IError Cascaded(string message, IError[] inner) => new Error(ErrorCodes.Cascaded, message, inner);
 

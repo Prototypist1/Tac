@@ -57,7 +57,9 @@ namespace Tac.SemanticModel.Operations
             var inputTypeOrErrors = input.ReturnsTypeOrErrors();
             var methodInputTypeOrErrors = method
                 .ReturnsTypeOrErrors()
-                .TransformAndFlatten(thing => thing.TryGetInput().SwitchReturns(orType=> orType, no=> OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return")), error => OrType.Make<IFrontendType, IError>(error)));
+                .TransformAndFlatten(thing => thing.TryGetInput().SwitchReturns(orType=> orType, no=>
+                { return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return")); }
+                , error => OrType.Make<IFrontendType, IError>(error)));
 
             return inputTypeOrErrors.SwitchReturns(
                 i => methodInputTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
@@ -138,7 +140,7 @@ namespace Tac.SemanticModel.Operations
             .TransformAndFlatten(x => 
                 x.SafeIs(out Tpn.ICanAssignFromMe assignFrom) ? 
                 OrType.Make<Tpn.ICanAssignFromMe, IError>(assignFrom) : 
-                throw new NotImplementedException("left should be assignable from, but I don't know where or how the error should happen"));
+                throw new NotImplementedException("left should be assignable from, but I don't know where or how the error could happen"));
 
 
             var methodOr = r
@@ -146,7 +148,7 @@ namespace Tac.SemanticModel.Operations
             .TransformAndFlatten(x => 
                 x.SafeIs(out Tpn.IValue value) ?
                 OrType.Make<Tpn.IValue, IError>(value) : 
-                throw new NotImplementedException("right should be a value type, but I don't know where or how the error should happen"));
+                throw new NotImplementedException("right should be a value type, but I don't know where or how the error could happen"));
 
            return inputOr.SwitchReturns(
                 x => methodOr.SwitchReturns(

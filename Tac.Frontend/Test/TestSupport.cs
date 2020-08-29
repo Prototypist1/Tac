@@ -26,7 +26,7 @@ namespace Tac.Tests
 
         internal static IModuleDefinition Convert(FileToken fileToken)
         {
-            var result = ConvertToWeak(fileToken);
+            var result = ConvertToWeak< WeakModuleDefinition>(fileToken);
 
             var context = TransformerExtensions.NewConversionContext();
 
@@ -34,7 +34,8 @@ namespace Tac.Tests
             return converted;
         }
 
-        internal static WeakModuleDefinition ConvertToWeak(FileToken fileToken)
+        internal static T ConvertToWeak<T>(FileToken fileToken)
+            where T : IFrontendCodeElement
         {
             var elementMatchingContest = new ElementMatchingContext();
 
@@ -55,7 +56,7 @@ namespace Tac.Tests
                 .Single()
                 .Is1OrThrow()
                 .GetValue()
-                .SafeCastTo<IFrontendCodeElement, WeakModuleDefinition>();
+                .SafeCastTo<IFrontendCodeElement, T>();
             return result;
         }
     }

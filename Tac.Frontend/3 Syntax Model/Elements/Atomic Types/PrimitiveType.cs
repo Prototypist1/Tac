@@ -168,6 +168,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             throw new Exception("I don't think this should ever happen");
 
             // this is a bit of a smell
+            // a lot of a smell
         }
 
         public readonly IOrType< IFrontendType,IError> inner;

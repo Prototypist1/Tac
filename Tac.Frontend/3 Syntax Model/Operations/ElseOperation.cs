@@ -76,11 +76,6 @@ namespace Tac.SemanticModel.Operations
             if (!Right.Possibly1().AsEnumerable().OfType<WeakBlockDefinition>().Any()) {
                 yield return Error.Other($"right hand side must be a block");
             }
-
-            foreach (var error in Left.TypeCheck(new Tac.SyntaxModel.Elements.AtomicTypes.BlockType()))
-            {
-                yield return error;
-            }
         }
     }
 
