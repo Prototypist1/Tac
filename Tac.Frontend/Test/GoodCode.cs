@@ -17,10 +17,37 @@ namespace Tac.Tests
             var errors = converted.Validate().ToArray();
 
             Assert.Empty(errors);
+        }
+
+        [Fact]
+        public void Method()
+        {
+            var res = TestSupport.Tokenize(
+    @"entry-point {
+        true =: bool | method[bool;bool;] x;
+    }");
+            var converted = TestSupport.ConvertToWeak<WeakEntryPointDefinition>(res);
+
+            var errors = converted.Validate().ToArray();
+
+            Assert.Empty(errors);
+
+        }
 
 
-            //var lineOr = Assert.Single(converted.StaticInitialization);
-            //lineOr.Is2OrThrow();
+        [Fact]
+        public void ComplexMethod()
+        {
+            var res = TestSupport.Tokenize(
+    @"entry-point {
+        true =: bool | method[method[bool;bool;];method[bool;bool;];] x;
+    }");
+            var converted = TestSupport.ConvertToWeak<WeakEntryPointDefinition>(res);
+
+            var errors = converted.Validate().ToArray();
+
+            Assert.Empty(errors);
+
         }
     }
 }

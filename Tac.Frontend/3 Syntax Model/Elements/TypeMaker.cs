@@ -37,13 +37,6 @@ namespace Tac.SemanticModel
     /// </summary>
     internal class TypeMaker : IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>
     {
-
-        IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>[] makers = new IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>[] {
-            new TypeDefinitionMaker(),
-            new TypeOrOperationMaker(),
-            new TypeReferanceMaker(),
-        };
-
         public ITokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             {

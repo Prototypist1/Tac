@@ -131,7 +131,7 @@ namespace Tac.Frontend.Parser
                 IsNotKeyWord(first.Item))
             {
 
-                var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index);
+                var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index+1);
                 var match = new GenericNMaker().TryMake(at);
                 if (match.SafeIs(out IMatchedTokenMatching<IKey[]> mathced))
                 {
@@ -222,6 +222,8 @@ namespace Tac.Frontend.Parser
         }
     }
 
+
+
     internal class GenericNMaker : IMaker<IKey[]>
     {
         public ITokenMatching<IKey[]> TryMake(IMatchedTokenMatching self)
@@ -230,7 +232,7 @@ namespace Tac.Frontend.Parser
 
             if (self.AllTokens.Count > index &&
                 self.AllTokens[index].Is1(out var v1) && v1.SafeIs(out SquareBacketToken typeParameters) &&
-                typeParameters.Tokens.All(x => x.SafeIs(out LineToken lt) && lt.Tokens.All(y => y.SafeIs(out AtomicToken _))) &&
+                typeParameters.Tokens.All(x => x.SafeIs(out LineToken lt) && lt.Tokens.First().SafeIs(out AtomicToken _)) &&
                 TryToToken(out var res))
             {
                 return TokenMatching<IKey[]>.MakeMatch(
