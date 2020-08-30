@@ -4,19 +4,18 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedReturnOperation<T> : InterpetedTrailingOperation<T,T>
-        where T : IInterpetedAnyType
+    internal class InterpetedReturnOperation : InterpetedTrailingOperation
     {
-        public override IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
             var argumentResult = Argument.Interpet(interpetedContext);
 
             if (argumentResult.IsReturn(out var argumentReturned, out var argumentValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<T>>(argumentReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(argumentReturned!);
             }
 
-            return InterpetedResult.Return<IInterpetedMember<T>>(argumentValue!);
+            return InterpetedResult.Return<IInterpetedMember>(argumentValue!);
         }
         
     }

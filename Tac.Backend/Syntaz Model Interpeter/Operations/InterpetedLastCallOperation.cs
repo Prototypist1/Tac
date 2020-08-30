@@ -4,27 +4,25 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedLastCallOperation<TIn,TOut> : InterpetedBinaryOperation<IInterpetedMethod<TIn,TOut>, TIn,TOut>
-        where TOut : IInterpetedAnyType
-        where TIn: class, IInterpetedAnyType
+    internal class InterpetedLastCallOperation : InterpetedBinaryOperation
     {
-        public override IInterpetedResult<IInterpetedMember<TOut>> Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
             var leftResult = Left.Interpet(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<TOut>>(leftReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(leftReturned!);
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<TOut>>(rightReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(rightReturned!);
             }
 
-            if (leftValue!.Value.Invoke(rightValue!).IsReturn(out var returned, out var _) && returned is IInterpetedMember<TOut> outReturned)
+            if (leftValue!.Value.Invoke(rightValue!).IsReturn(out var returned, out var _) && returned is IInterpetedMember outReturned)
             {
                 return InterpetedResult.Create(outReturned);
             }
@@ -33,24 +31,22 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    internal class InterpetedNextCallOperation<TIn, TOut> : InterpetedBinaryOperation<TIn, IInterpetedMethod<TIn, TOut>, TOut>
-        where TOut : IInterpetedAnyType
-        where TIn : class, IInterpetedAnyType
+    internal class InterpetedNextCallOperation : InterpetedBinaryOperation
     {
-        public override IInterpetedResult<IInterpetedMember<TOut>> Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
             var leftResult = Left.Interpet(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<TOut>>(leftReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(leftReturned!);
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<TOut>>(rightReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(rightReturned!);
             }
 
             if (!rightValue!.Value.Invoke(leftValue!).IsReturn(out var _, out var value)){

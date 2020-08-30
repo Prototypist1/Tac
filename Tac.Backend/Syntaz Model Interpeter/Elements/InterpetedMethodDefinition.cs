@@ -7,13 +7,11 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal class InterpetedMethodDefinition<TIn, TOut> : IInterpetedOperation<IInterpetedMethod<TIn, TOut>>
-        where TOut : class, IInterpetedAnyType
-        where TIn : class, IInterpetedAnyType
+    internal class InterpetedMethodDefinition : IInterpetedOperation
     {
         public void Init(
-            InterpetedMemberDefinition<TIn> parameterDefinition, 
-            IInterpetedOperation<IInterpetedAnyType>[] methodBody,
+            InterpetedMemberDefinition parameterDefinition, 
+            IInterpetedOperation[] methodBody,
             IInterpetedScopeTemplate scope,
             IMethodType methodType )
         {
@@ -24,11 +22,11 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
 
-        private InterpetedMemberDefinition<TIn>? parameterDefinition;
-        public InterpetedMemberDefinition<TIn> ParameterDefinition { get => parameterDefinition ?? throw new NullReferenceException(nameof(parameterDefinition)); private set => parameterDefinition = value ?? throw new NullReferenceException(nameof(value)); }
+        private InterpetedMemberDefinition? parameterDefinition;
+        public InterpetedMemberDefinition ParameterDefinition { get => parameterDefinition ?? throw new NullReferenceException(nameof(parameterDefinition)); private set => parameterDefinition = value ?? throw new NullReferenceException(nameof(value)); }
 
-        private IInterpetedOperation<IInterpetedAnyType>[]? body;
-        public IInterpetedOperation<IInterpetedAnyType>[] Body { get => body ?? throw new NullReferenceException(nameof(body)); private set => body = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedOperation[]? body;
+        public IInterpetedOperation[] Body { get => body ?? throw new NullReferenceException(nameof(body)); private set => body = value ?? throw new NullReferenceException(nameof(value)); }
 
         private IInterpetedScopeTemplate? scope;
         public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
@@ -38,9 +36,9 @@ namespace Tac.Syntaz_Model_Interpeter
         public IMethodType MethodType { get => methodType ?? throw new NullReferenceException(nameof(methodType)); private set => methodType = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TIn,TOut>>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
-            var thing = TypeManager.InternalMethod<TIn, TOut>(
+            var thing = TypeManager.InternalMethod(
                         ParameterDefinition,
                         Body,
                         interpetedContext,

@@ -7,8 +7,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal interface IInterpetedMemberDefinition<out T> : IInterpetedOperation<T>
-            where T : IInterpetedAnyType
+    internal interface IInterpetedMemberDefinition : IInterpetedOperation
     {
         IKey Key
         {
@@ -16,10 +15,9 @@ namespace Tac.Syntaz_Model_Interpeter
         }
     }
 
-    internal class InterpetedMemberDefinition<T>: IInterpetedMemberDefinition<T>
-        where T: IInterpetedAnyType
+    internal class InterpetedMemberDefinition: IInterpetedMemberDefinition
     {
-        public InterpetedMemberDefinition<T> Init(IKey key, IVerifiableType type)
+        public InterpetedMemberDefinition Init(IKey key, IVerifiableType type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -31,9 +29,9 @@ namespace Tac.Syntaz_Model_Interpeter
         private IKey? key;
         public IKey Key { get => key ?? throw new NullReferenceException(nameof(key)); private set => key = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
-            var member = TypeManager.Member<T>(Type);
+            var member = TypeManager.Member(Type);
 
             if (!interpetedContext.TryAddMember(Key, member)) {
                 throw new Exception("bad, shit");

@@ -9,56 +9,44 @@ using Prototypist.Toolbox.Object;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedImplementation<in TIn, in TMethodIn, out TMethodOut> : IInterpetedMethod<TIn, IInterpetedMethod<TMethodIn, TMethodOut>>
-        where TIn : class, IInterpetedAnyType
-        where TMethodIn : class, IInterpetedAnyType
-        where TMethodOut : class, IInterpetedAnyType
+    public interface IInterpetedImplementation: IInterpetedMethod
     {
     }
 
     public static partial class TypeManager
     {
-        internal static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> InterpetedImplementationIntention<TIn, TMethodIn, TMethodOut>(
-                InterpetedMemberDefinition<TMethodIn> parameterDefinition,
-                InterpetedMemberDefinition<TIn> contextDefinition,
-                IInterpetedOperation<IInterpetedAnyType>[] body,
+        internal static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> InterpetedImplementationIntention(
+                InterpetedMemberDefinition parameterDefinition,
+                InterpetedMemberDefinition contextDefinition,
+                IInterpetedOperation[] body,
                 InterpetedContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType implementationType)
-                   where TIn : class, IInterpetedAnyType
-                    where TMethodIn : class, IInterpetedAnyType
-                    where TMethodOut : class, IInterpetedAnyType
             => root =>
             {
 
-                var item = new InterpetedImplementation<TIn, TMethodIn, TMethodOut>(parameterDefinition, contextDefinition, body, context, scope, implementationType, root);
+                var item = new InterpetedImplementation(parameterDefinition, contextDefinition, body, context, scope, implementationType, root);
                 return new RunTimeAnyRootEntry(item, implementationType);
             };
 
 
-        internal static IInterpetedImplementation<TIn, TMethodIn, TMethodOut> Implementation<TIn, TMethodIn, TMethodOut>(InterpetedMemberDefinition<TMethodIn> parameterDefinition,
-                InterpetedMemberDefinition<TIn> contextDefinition,
-                IInterpetedOperation<IInterpetedAnyType>[] body,
+        internal static IInterpetedImplementation Implementation(InterpetedMemberDefinition parameterDefinition,
+                InterpetedMemberDefinition contextDefinition,
+                IInterpetedOperation[] body,
                 InterpetedContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType implementationType)
-                   where TIn : class, IInterpetedAnyType
-                    where TMethodIn : class, IInterpetedAnyType
-                    where TMethodOut : class, IInterpetedAnyType
-            => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { InterpetedImplementationIntention<TIn, TMethodIn, TMethodOut>(parameterDefinition, contextDefinition, body, context, scope, implementationType) }).Has<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>();
+            => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { InterpetedImplementationIntention(parameterDefinition, contextDefinition, body, context, scope, implementationType) }).Has<IInterpetedImplementation>();
 
 
-        private class InterpetedImplementation<TIn, TMethodIn, TMethodOut> : RootedTypeAny, IInterpetedImplementation<TIn, TMethodIn, TMethodOut>
-            where TIn : class, IInterpetedAnyType
-            where TMethodIn : class, IInterpetedAnyType
-            where TMethodOut : class, IInterpetedAnyType
+        private class InterpetedImplementation : RootedTypeAny, IInterpetedImplementation
         {
 
 
             public InterpetedImplementation(
-                InterpetedMemberDefinition<TMethodIn> parameterDefinition,
-                InterpetedMemberDefinition<TIn> contextDefinition,
-                IInterpetedOperation<IInterpetedAnyType>[] body,
+                InterpetedMemberDefinition parameterDefinition,
+                InterpetedMemberDefinition contextDefinition,
+                IInterpetedOperation[] body,
                 InterpetedContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType implementationType,
@@ -72,17 +60,17 @@ namespace Tac.Syntaz_Model_Interpeter
                 ImplementationType = implementationType ?? throw new ArgumentNullException(nameof(implementationType));
             }
 
-            private readonly InterpetedMemberDefinition<TIn> contextDefinition;
-            private InterpetedMemberDefinition<TMethodIn> ParameterDefinition { get; }
-            private IInterpetedOperation<IInterpetedAnyType>[] Body { get; }
+            private readonly InterpetedMemberDefinition contextDefinition;
+            private InterpetedMemberDefinition ParameterDefinition { get; }
+            private IInterpetedOperation[] Body { get; }
             private InterpetedContext InterpetedContext { get; }
             private IInterpetedScopeTemplate Scope { get; }
             public IMethodType ImplementationType { get; }
 
-            public IInterpetedResult<IInterpetedMember<IInterpetedMethod<TMethodIn, TMethodOut>>> Invoke(IInterpetedMember<TIn> input)
+            public IInterpetedResult<IInterpetedMember> Invoke(IInterpetedMember input)
             {
                 var context = InterpetedContext.Child(TypeManager.InstanceScope((contextDefinition.Key, input)));
-                var thing = InternalMethod<TMethodIn, TMethodOut>(
+                var thing = InternalMethod(
                                 ParameterDefinition,
                                 Body,
                                 context,

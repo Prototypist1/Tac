@@ -5,24 +5,16 @@ using System;
 namespace Tac.Syntaz_Model_Interpeter
 {
 
-    internal interface IInterpetedTryAssignOperation : IInterpetedOperation<IBoxedBool>
+    internal interface IInterpetedTryAssignOperation : IInterpetedOperation
     {
 
     }
 
-    internal interface IInterpetedTryAssignOperation<out TLeft, in TRight, in TBlock> : IInterpetedTryAssignOperation
-        where TLeft : IInterpetedAnyType
-        where TRight : IInterpetedAnyType
-        where TBlock : IInterpedEmpty
-    { }
 
-    internal class InterpetedTryAssignOperation<TLeft, TRight, TBlock> : IInterpetedTryAssignOperation<TLeft, TRight,TBlock>
-        where TLeft : IInterpetedAnyType
-        where TRight : IInterpetedAnyType
-        where TBlock : IInterpedEmpty
+    internal class InterpetedTryAssignOperation : IInterpetedTryAssignOperation
     {
 
-        public void Init(IInterpetedOperation<TLeft> left, IInterpetedOperation<TRight> right, IInterpetedOperation<TBlock> block, IInterpetedScopeTemplate scope)
+        public void Init(IInterpetedOperation left, IInterpetedOperation right, IInterpetedOperation block, IInterpetedScopeTemplate scope)
         {
             Left = left ?? throw new ArgumentNullException(nameof(left));
             Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -31,25 +23,25 @@ namespace Tac.Syntaz_Model_Interpeter
         }
 
 
-        private IInterpetedOperation<TLeft>? left;
-        public IInterpetedOperation<TLeft> Left { get => left ?? throw new NullReferenceException(nameof(left)); private set => left = value ?? throw new NullReferenceException(nameof(value)); }
-        private IInterpetedOperation<TRight>? right;
-        public IInterpetedOperation<TRight> Right { get => right ?? throw new NullReferenceException(nameof(right)); private set => right = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedOperation? left;
+        public IInterpetedOperation Left { get => left ?? throw new NullReferenceException(nameof(left)); private set => left = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedOperation? right;
+        public IInterpetedOperation Right { get => right ?? throw new NullReferenceException(nameof(right)); private set => right = value ?? throw new NullReferenceException(nameof(value)); }
         
-        private IInterpetedOperation<TBlock>? block;
-        public IInterpetedOperation<TBlock> Block { get => block ?? throw new NullReferenceException(nameof(right)); private set => block = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedOperation? block;
+        public IInterpetedOperation Block { get => block ?? throw new NullReferenceException(nameof(right)); private set => block = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedScopeTemplate? scope;
         public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        public IInterpetedResult<IInterpetedMember<IBoxedBool>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
             var leftResult = Left.Interpet(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(leftReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(leftReturned!);
             }
 
             var scope = interpetedContext.Child(Scope.Create());
@@ -58,10 +50,10 @@ namespace Tac.Syntaz_Model_Interpeter
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(rightReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(rightReturned!);
             }
 
-            var res =TypeManager.Bool(rightValue!.CastTo<IInterpetedMemberSet<TRight>>().TrySet(leftValue!.Value));
+            var res =TypeManager.Bool(rightValue!.CastTo<IInterpetedMemberSet>().TrySet(leftValue!.Value));
 
             if (res.Value) {
 
@@ -69,7 +61,7 @@ namespace Tac.Syntaz_Model_Interpeter
 
                 if (blockResult.IsReturn(out var blockReturned, out var _))
                 {
-                    return InterpetedResult.Return<IInterpetedMember<IBoxedBool>>(blockReturned!);
+                    return InterpetedResult.Return<IInterpetedMember>(blockReturned!);
                 }
 
             }

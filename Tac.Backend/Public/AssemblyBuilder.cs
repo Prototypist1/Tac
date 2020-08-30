@@ -21,7 +21,7 @@ namespace Tac.Backend.Public
     public class AssemblyBuilder
     {
         private readonly IKey key;
-        private readonly Dictionary<IKey, (IInterpetedOperation<IInterpetedAnyType>,IVerifiableType)> memberValues = new Dictionary<IKey, (IInterpetedOperation<IInterpetedAnyType>, IVerifiableType)>();
+        private readonly Dictionary<IKey, (IInterpetedOperation,IVerifiableType)> memberValues = new Dictionary<IKey, (IInterpetedOperation, IVerifiableType)>();
         private readonly List<IsStatic> members = new List<IsStatic>();
 
         public AssemblyBuilder(IKey key)
@@ -29,13 +29,11 @@ namespace Tac.Backend.Public
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public AssemblyBuilder AddMethod<TIn,TOut>(IKey key, Func<TIn,TOut> func, IMethodType type)
-            where TIn: IInterpetedAnyType
-            where TOut : IInterpetedAnyType
+        public AssemblyBuilder AddMethod(IKey key, Func<IInterpetedAnyType, IInterpetedAnyType> func, IMethodType type)
         {
-            var memberDef = new InterpetedMemberDefinition<IInterpetedMethod<TIn, TOut>>();
+            var memberDef = new InterpetedMemberDefinition();
             memberDef.Init(key, type);
-            var method = new InterpetedExternalMethodDefinition<TIn,TOut>();
+            var method = new InterpetedExternalMethodDefinition();
             method.Init(func, type);
             memberValues.Add(key, (method,type));
             members.Add(new IsStatic(MemberDefinition.CreateAndBuild(key, type, true),false));
@@ -44,16 +42,16 @@ namespace Tac.Backend.Public
 
         public class  InterpetedAssemblyBacking : IBacking
         {
-            private readonly Dictionary<IKey, (IInterpetedOperation<IInterpetedAnyType>, IVerifiableType)> memberValues;
+            private readonly Dictionary<IKey, (IInterpetedOperation, IVerifiableType)> memberValues;
             private readonly IFinalizedScope scope;
 
-            internal InterpetedAssemblyBacking(Dictionary<IKey, (IInterpetedOperation<IInterpetedAnyType>, IVerifiableType)> memberValues, IFinalizedScope scope)
+            internal InterpetedAssemblyBacking(Dictionary<IKey, (IInterpetedOperation, IVerifiableType)> memberValues, IFinalizedScope scope)
             {
                 this.memberValues = memberValues ?? throw new ArgumentNullException(nameof(memberValues));
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             }
 
-            internal IInterpetedMember<IInterpetedAnyType> CreateMember(InterpetedContext interpetedContext)
+            internal IInterpetedMember CreateMember(InterpetedContext interpetedContext)
             {
                 var scopeTemplate = new InterpetedScopeTemplate(scope, scope.ToVerifiableType());
                 var objectDefinition = new InterpetedObjectDefinition();
@@ -62,7 +60,7 @@ namespace Tac.Backend.Public
                         var method = typeof(InterpetedAssemblyBacking).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
                           x.Name == nameof(GetAssignemnt) && x.IsGenericMethod);
                         var madeMethod= method.MakeGenericMethod(new[] { typeParameter , typeParameter });
-                    return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2 }).CastTo<IInterpetedAssignOperation<IInterpetedAnyType>>();
+                    return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2 }).CastTo<IInterpetedAssignOperation>();
                 }));
 
                 if (objectDefinition.Interpet(interpetedContext).IsReturn(out var _, out var value)) {
@@ -72,16 +70,16 @@ namespace Tac.Backend.Public
                 return value!;
             }
 
-            private IInterpetedAssignOperation<TLeft,TRight> GetAssignemnt<TLeft, TRight>(IKey key, IInterpetedOperation<TLeft> operation, IVerifiableType type)
+            private IInterpetedAssignOperation GetAssignemnt<TLeft, TRight>(IKey key, IInterpetedOperation operation, IVerifiableType type)
                 where TLeft : TRight
                 where TRight : IInterpetedAnyType
             {
-                var memberDefinition = new InterpetedMemberDefinition<TRight>();
+                var memberDefinition = new InterpetedMemberDefinition();
                 memberDefinition.Init(key, type);
 
-                var memberReference = new InterpetedMemberReferance<TRight>();
+                var memberReference = new InterpetedMemberReferance();
                 memberReference.Init(memberDefinition);
-                var assign = new InterpetedAssignOperation<TLeft,TRight>();
+                var assign = new InterpetedAssignOperation();
                 assign.Init(operation, memberReference);
                 return assign;
             }

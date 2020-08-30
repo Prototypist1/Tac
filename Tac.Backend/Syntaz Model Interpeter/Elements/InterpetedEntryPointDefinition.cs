@@ -2,11 +2,11 @@
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedEntryPointDefinition: IInterpetedOperation<IInterpetedAnyType>
+    internal class InterpetedEntryPointDefinition: IInterpetedOperation
     {
 
-        private IInterpetedOperation<IInterpetedAnyType>[]? body;
-        public IInterpetedOperation<IInterpetedAnyType>[] Body { get => body ?? throw new NullReferenceException(nameof(body)); private set => body = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedOperation[]? body;
+        public IInterpetedOperation[] Body { get => body ?? throw new NullReferenceException(nameof(body)); private set => body = value ?? throw new NullReferenceException(nameof(value)); }
 
 
         public IInterpetedScopeTemplate? scope;
@@ -14,14 +14,14 @@ namespace Tac.Syntaz_Model_Interpeter
 
 
         public void Init(
-            IInterpetedOperation<IInterpetedAnyType>[] methodBody,
+            IInterpetedOperation[] methodBody,
             IInterpetedScopeTemplate scope)
         {
             Body = methodBody ?? throw new ArgumentNullException(nameof(methodBody));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public IInterpetedResult<IInterpetedMember<IInterpetedAnyType>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
             var scope = interpetedContext.Child(Scope.Create());
 
@@ -30,7 +30,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 var result = line.Interpet(scope);
                 if (result.IsReturn(out var res, out var _))
                 {
-                    return InterpetedResult.Return<IInterpetedMember<IInterpedEmpty>>(res!);
+                    return InterpetedResult.Return<IInterpetedMember>(res!);
                 }
             }
 

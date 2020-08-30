@@ -28,17 +28,17 @@ namespace Tac.Syntaz_Model_Interpeter
             return new InterpetedContext(new IInterpetedScope[] { TypeManager.InstanceScope() });
         }
 
-        internal bool TryAddMember<T>(IKey key, IInterpetedMember<T> member) where T : IInterpetedAnyType
+        internal bool TryAddMember(IKey key, IInterpetedMember member)
         {
             return Scopes.First().TryAddMember(key, member);
         }
 
-        internal IInterpetedMember<T> GetMember<T>(IKey key) where T : IInterpetedAnyType
+        internal IInterpetedMember GetMember(IKey key)
         {
             foreach (var item in Scopes)
             {
                 if (item.ContainsMember(key)) {
-                    return item.GetMember<T>(key);
+                    return item.GetMember(key);
                 }
             }
             throw new Exception($"key not found: {key}");
@@ -63,18 +63,18 @@ namespace Tac.Syntaz_Model_Interpeter
 
     internal static class InterpetedResultExtensions {
 
-        public static IInterpetedResult<IInterpetedMember<T>> Return<T>(this IInterpetedResult<T> self)
+        public static IInterpetedResult<IInterpetedMember> Return<T>(this IInterpetedResult<T> self)
             where T : class, IInterpetedAnyType
         {
 
             if (self is IInterpetedResultNotReturn<T> notReturn)
             {
-                return  InterpetedResult.Return<IInterpetedMember<T>>(notReturn.Value);
+                return  InterpetedResult.Return<IInterpetedMember>(notReturn.Value);
             }
 
             if (self is IInterpetedResultReturn<T> toReturn)
             {
-                return InterpetedResult.Return<IInterpetedMember<T>>(toReturn.Value);
+                return InterpetedResult.Return<IInterpetedMember>(toReturn.Value);
             }
 
             throw new Exception("should be one!");
@@ -187,17 +187,14 @@ namespace Tac.Syntaz_Model_Interpeter
             return new NotReturn<T>(value);
         }
         
-        public static IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Create()
+        public static IInterpetedResult<IInterpetedMember> Create()
         {
-            return new NotReturn<IInterpetedMember<IInterpedEmpty>>(TypeManager.EmptyMember(TypeManager.Empty()));
+            return new NotReturn<IInterpetedMember>(TypeManager.EmptyMember(TypeManager.Empty()));
         }
     }
 
-
-
-    internal interface IInterpetedOperation<out T>
-        where T : IInterpetedAnyType
+    internal interface IInterpetedOperation
     {
-        IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext);
+        IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext);
     }
 }

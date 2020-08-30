@@ -3,15 +3,14 @@ using Tac.Model;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal interface IInterpetedMemberReferance<out T>
+    internal interface IInterpetedMemberReferance
     {
         IKey Key { get; }
     }
 
-    internal class InterpetedMemberReferance<T> : IInterpetedOperation<T>, IInterpetedMemberReferance<T>
-        where T : IInterpetedAnyType
+    internal class InterpetedMemberReferance : IInterpetedOperation, IInterpetedMemberReferance
     {
-        public InterpetedMemberReferance<T> Init(InterpetedMemberDefinition<T> memberDefinition)
+        public InterpetedMemberReferance Init(InterpetedMemberDefinition memberDefinition)
         {
             MemberDefinition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
             return this;
@@ -19,12 +18,12 @@ namespace Tac.Syntaz_Model_Interpeter
 
         public IKey Key => MemberDefinition.Key;
 
-        private InterpetedMemberDefinition<T>? memberDefinition;
-        public InterpetedMemberDefinition<T> MemberDefinition { get => memberDefinition ?? throw new NullReferenceException(nameof(memberDefinition)); private set => memberDefinition = value ?? throw new NullReferenceException(nameof(value)); }
+        private InterpetedMemberDefinition? memberDefinition;
+        public InterpetedMemberDefinition MemberDefinition { get => memberDefinition ?? throw new NullReferenceException(nameof(memberDefinition)); private set => memberDefinition = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedResult<IInterpetedMember<T>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
-            return InterpetedResult.Create(interpetedContext.GetMember<T>(MemberDefinition.Key));
+            return InterpetedResult.Create(interpetedContext.GetMember(MemberDefinition.Key));
         }
     }
 }

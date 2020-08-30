@@ -7,9 +7,9 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedModuleDefinition : IInterpetedOperation<IInterpetedScope>
+    internal class InterpetedModuleDefinition : IInterpetedOperation
     {
-        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedOperation<IInterpetedAnyType>> staticInitialization, InterpetedEntryPointDefinition interpetedEntry)
+        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedOperation> staticInitialization, InterpetedEntryPointDefinition interpetedEntry)
         {
             ScopeTemplate = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
@@ -25,11 +25,11 @@ namespace Tac.Syntaz_Model_Interpeter
         public IInterpetedScopeTemplate ScopeTemplate { get => scopeTemplate ?? throw new NullReferenceException(nameof(scopeTemplate)); private set => scopeTemplate = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        private IEnumerable<IInterpetedOperation<IInterpetedAnyType>>? staticInitialization;
-        public IEnumerable<IInterpetedOperation<IInterpetedAnyType>> StaticInitialization { get => staticInitialization ?? throw new NullReferenceException(nameof(staticInitialization)); private set => staticInitialization = value ?? throw new NullReferenceException(nameof(value)); }
+        private IEnumerable<IInterpetedOperation>? staticInitialization;
+        public IEnumerable<IInterpetedOperation> StaticInitialization { get => staticInitialization ?? throw new NullReferenceException(nameof(staticInitialization)); private set => staticInitialization = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        public IInterpetedResult<IInterpetedMember<IInterpetedScope>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
             var scope = ScopeTemplate.Create();
 

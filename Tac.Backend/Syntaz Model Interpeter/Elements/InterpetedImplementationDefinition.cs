@@ -6,15 +6,12 @@ using Tac.Model.Elements;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedImplementationDefinition<TIn, TMethodIn, TMethodOut> : IInterpetedOperation<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>
-        where TIn : class, IInterpetedAnyType
-        where TMethodIn : class, IInterpetedAnyType
-        where TMethodOut : class, IInterpetedAnyType
+    internal class InterpetedImplementationDefinition : IInterpetedOperation
     {
         public void Init(
-            InterpetedMemberDefinition<TMethodIn> parameterDefinition,
-            InterpetedMemberDefinition<TIn> contextDefinition,
-            IInterpetedOperation<IInterpetedAnyType>[] methodBody,
+            InterpetedMemberDefinition parameterDefinition,
+            InterpetedMemberDefinition contextDefinition,
+            IInterpetedOperation[] methodBody,
             IInterpetedScopeTemplate scope,
             IMethodType implementationType)
         {
@@ -25,15 +22,15 @@ namespace Tac.Syntaz_Model_Interpeter
             ImplementationType = implementationType ?? throw new ArgumentNullException(nameof(implementationType));
         }
 
-        private InterpetedMemberDefinition<TMethodIn>? parameterDefinition;
-        public InterpetedMemberDefinition<TMethodIn> ParameterDefinition { get => parameterDefinition ?? throw new NullReferenceException(nameof(parameterDefinition)); private set => parameterDefinition = value ?? throw new NullReferenceException(nameof(value)); }
+        private InterpetedMemberDefinition? parameterDefinition;
+        public InterpetedMemberDefinition ParameterDefinition { get => parameterDefinition ?? throw new NullReferenceException(nameof(parameterDefinition)); private set => parameterDefinition = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        private InterpetedMemberDefinition<TIn>? contextDefinition;
-        public InterpetedMemberDefinition<TIn> ContextDefinition { get => contextDefinition ?? throw new NullReferenceException(nameof(contextDefinition)); private set => contextDefinition = value ?? throw new NullReferenceException(nameof(value)); }
+        private InterpetedMemberDefinition? contextDefinition;
+        public InterpetedMemberDefinition ContextDefinition { get => contextDefinition ?? throw new NullReferenceException(nameof(contextDefinition)); private set => contextDefinition = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedOperation<IInterpetedAnyType>[]? methodBody;
-        public IInterpetedOperation<IInterpetedAnyType>[] MethodBody { get => methodBody ?? throw new NullReferenceException(nameof(methodBody)); private set => methodBody = value ?? throw new NullReferenceException(nameof(value)); }
+        public IInterpetedOperation[]? methodBody;
+        public IInterpetedOperation[] MethodBody { get => methodBody ?? throw new NullReferenceException(nameof(methodBody)); private set => methodBody = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedScopeTemplate? scope;
         public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
@@ -41,9 +38,9 @@ namespace Tac.Syntaz_Model_Interpeter
         public IMethodType? implementationType;
         public IMethodType ImplementationType { get => implementationType ?? throw new NullReferenceException(nameof(implementationType)); private set => implementationType = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedResult<IInterpetedMember<IInterpetedImplementation<TIn, TMethodIn, TMethodOut>>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
-            var thing = TypeManager.Implementation<TIn, TMethodIn, TMethodOut>(
+            var thing = TypeManager.Implementation(
                 ParameterDefinition,
                 ContextDefinition,
                 MethodBody,

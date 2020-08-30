@@ -5,38 +5,31 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal interface IInterpetedAssignOperation<out TLeft> : IInterpetedOperation<TLeft>
-        where TLeft : IInterpetedAnyType
+    internal interface IInterpetedAssignOperation : IInterpetedOperation
     {
 
     }
 
-    internal interface IInterpetedAssignOperation<out TLeft, in TRight> : IInterpetedAssignOperation<TLeft>
-        where TLeft: TRight
-        where TRight : IInterpetedAnyType
-    { }
 
-    internal class InterpetedAssignOperation<TLeft, TRight> : InterpetedBinaryOperation<TLeft,TRight,TLeft>, IInterpetedAssignOperation<TLeft,TRight>
-        where TLeft : TRight
-        where TRight : IInterpetedAnyType
+    internal class InterpetedAssignOperation: InterpetedBinaryOperation, IInterpetedAssignOperation
     {
-        public override IInterpetedResult<IInterpetedMember<TLeft>> Interpet(InterpetedContext interpetedContext)
+        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
             var leftResult = Left.Interpet(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<TLeft>>(leftReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(leftReturned!);
             }
 
             var rightResult = Right.Interpet(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
-                return InterpetedResult.Return<IInterpetedMember<TLeft>>(rightReturned!);
+                return InterpetedResult.Return<IInterpetedMember>(rightReturned!);
             }
 
-            rightValue.CastTo<IInterpetedMemberSet<TRight>>().Set(leftValue!.Value);
+            rightValue.CastTo<IInterpetedMemberSet>().Set(leftValue!.Value);
              
             return InterpetedResult.Create(leftValue);
         }

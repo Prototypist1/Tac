@@ -2,11 +2,11 @@
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    internal class InterpetedGenericTypeDefinition : IInterpetedOperation<IInterpedEmpty>
+    internal class InterpetedGenericTypeDefinition : IInterpetedOperation
     {
         public void Init() { }
         
-        public IInterpetedResult<IInterpetedMember<IInterpedEmpty>> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
         {
             return InterpetedResult.Create(TypeManager.EmptyMember(TypeManager.Empty()));
         }
