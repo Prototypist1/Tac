@@ -25,4 +25,26 @@ namespace Tac.Syntaz_Model_Interpeter {
         }
 
     }
+
+
+    //public interface IInterpetedEmptyUnion : IInterpetedAnyType
+    //{
+    //}
+
+    //public static partial class TypeManager
+    //{
+
+    //    public static IInterpetedEmptyUnion EmptyUnion() => new RunTimeAnyRoot(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { EmptyUnionIntention() }).Has<IInterpetedEmptyUnion>();
+
+
+    //    public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> EmptyUnionIntention() => root => new RunTimeAnyRootEntry(new RunTimeNone(root), new EmptyType());
+
+    //    private class RunTimeNone : RootedTypeAny, IInterpedEmpty
+    //    {
+    //        public RunTimeNone(IRunTimeAnyRoot root) : base(root)
+    //        {
+    //        }
+    //    }
+
+    //}
 }

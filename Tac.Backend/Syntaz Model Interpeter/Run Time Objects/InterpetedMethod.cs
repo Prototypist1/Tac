@@ -6,7 +6,10 @@ using Tac.Model.Instantiated;
 
 namespace Tac.Syntaz_Model_Interpeter
 {
-    public interface IInterpetedMethod<in TIn, out TOut>: IInterpetedAnyType
+
+    public interface IInterpetedMethod : IInterpetedAnyType { }
+
+    public interface IInterpetedMethod<in TIn, out TOut>: IInterpetedMethod
         where TOut : IInterpetedAnyType
         where TIn : IInterpetedAnyType
     { 

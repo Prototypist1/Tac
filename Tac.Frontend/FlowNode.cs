@@ -256,7 +256,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (from.Primitive().Is1(out var prim) && prim.Is(out var _))
                 {
-                    throw new Exception("actually don't flow");
+                    return false;
+                    //throw new Exception("actually don't flow");
                 }
 
                 var changes = false;

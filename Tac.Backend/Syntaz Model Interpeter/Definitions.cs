@@ -606,14 +606,6 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 return typeof(IInterpetedScope);
             }
-            //if (verifiableType is IImplementationType implementation)
-            //{
-            //    return typeof(IInterpetedImplementation<,,>).MakeGenericType(
-            //        MapType(implementation.ContextType),
-            //        MapType(implementation.InputType),
-            //        MapType(implementation.OutputType)
-            //        );
-            //}
             if (verifiableType is IMethodType method)
             {
                 return typeof(IInterpetedMethod<,>).MakeGenericType(
@@ -625,18 +617,44 @@ namespace Tac.Backend.Syntaz_Model_Interpeter
             {
                 return MapType(memberReferance.MemberDefinition.Type);
             }
-            if (verifiableType is ITypeOr) {
-                // I am not really sure that is how it works over here...
-                // it might just be a any type
-                //return typeof(IInterpetedOrType<,>).MakeGenericType(
-                //    MapType(orType.Left),
-                //    MapType(orType.Right));
-                return typeof(IInterpetedAnyType);
+            if (verifiableType is ITypeOr typeOr)
+            {
+                // we try to find the intersection of the types
+                return MergeTypes(typeOr.Left, typeOr.Right);
             }
 
             throw new NotImplementedException();
         }
 
+        private static System.Type MergeTypes(IVerifiableType left, IVerifiableType right)
+        {
+
+            var leftType = MapType(left); ;
+            var rightType = MapType(right);
+
+            // if they are the same we are happy
+            if (leftType == rightType)
+            {
+                return leftType;
+            }
+
+            // if they are both methods 
+            // we have re merge the method io
+            if (left.TryGetInput().Is(out var leftInput) &&
+                right.TryGetInput().Is(out var rightInput) &&
+                left.TryGetReturn().Is(out var leftReturn) &&
+                right.TryGetReturn().Is(out var rightReturn))
+            {
+
+                return typeof(IInterpetedMethod<,>).MakeGenericType(
+                    MergeTypes(leftInput, rightInput),
+                    MergeTypes(leftReturn, rightReturn));
+            }
+
+            // we really can't merge them
+            // so call it empty?
+            return typeof(IInterpedEmpty);
+        }
     }
 
 }

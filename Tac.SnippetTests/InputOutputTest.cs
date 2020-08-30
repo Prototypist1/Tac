@@ -365,5 +365,91 @@ entry-point {
             verifyStringIn();
             verifyBoolIn();
         }
+
+        [Fact]
+        public void OrType3()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+@"
+entry-point {
+    true =: bool | bool x;
+
+    x  > (out.write-bool) ;
+};");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+
+        [Fact]
+        public void OrType4()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+@"
+entry-point {
+    object { ture =: bool b; 5 =: number a } =: type { bool b; number a;} | type { bool b; number num;} x;
+
+    x.b  > (out.write-bool) ;
+    x is type { bool b; number a;} z { z.a > (out.write-number) } ;
+};");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+        [Fact]
+        public void OrType5()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                    BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+@"
+entry-point {
+    true =: bool | ( bool| bool) | bool x;
+
+    x  > (out.write-bool) ;
+};");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+        [Fact]
+        public void OrType6()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+@"
+entry-point {
+    object { ture =: bool b; 5 =: number a } =: type { bool b; number a;} | bool x;
+
+    x is type { bool b; number a;} z { z.a > (out.write-number) } ;
+};");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
     }
 }
