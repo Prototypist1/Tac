@@ -56,11 +56,13 @@ namespace Tac.Backend.Public
                 var scopeTemplate = new InterpetedScopeTemplate(scope, scope.ToVerifiableType());
                 var objectDefinition = new InterpetedObjectDefinition();
                 objectDefinition.Init(scopeTemplate, memberValues.Select(memberValuePair => {
-                    var typeParameter = memberValuePair.Value.Item1.GetType().GetInterfaces().Where(x=>x.GetGenericTypeDefinition().Equals(typeof(IInterpetedOperation<>))).Single().GetGenericArguments().First();
-                        var method = typeof(InterpetedAssemblyBacking).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
-                          x.Name == nameof(GetAssignemnt) && x.IsGenericMethod);
-                        var madeMethod= method.MakeGenericMethod(new[] { typeParameter , typeParameter });
-                    return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2 }).CastTo<IInterpetedAssignOperation>();
+                    //var typeParameter = memberValuePair.Value.Item1.GetType().GetInterfaces().Where(x=>x.GetGenericTypeDefinition().Equals(typeof(IInterpetedOperation<>))).Single().GetGenericArguments().First();
+                    //    var method = typeof(InterpetedAssemblyBacking).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Single(x =>
+                    //      x.Name == nameof(GetAssignemnt) && x.IsGenericMethod);
+                    //    var madeMethod= method.MakeGenericMethod(new[] { typeParameter , typeParameter });
+                    //return madeMethod.Invoke(this, new object[] { memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2 }).CastTo<IInterpetedAssignOperation>();
+
+                    return GetAssignemnt(memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2).CastTo<IInterpetedAssignOperation>();
                 }));
 
                 if (objectDefinition.Interpet(interpetedContext).IsReturn(out var _, out var value)) {
@@ -70,9 +72,7 @@ namespace Tac.Backend.Public
                 return value!;
             }
 
-            private IInterpetedAssignOperation GetAssignemnt<TLeft, TRight>(IKey key, IInterpetedOperation operation, IVerifiableType type)
-                where TLeft : TRight
-                where TRight : IInterpetedAnyType
+            private IInterpetedAssignOperation GetAssignemnt(IKey key, IInterpetedOperation operation, IVerifiableType type)
             {
                 var memberDefinition = new InterpetedMemberDefinition();
                 memberDefinition.Init(key, type);

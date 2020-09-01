@@ -27,7 +27,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember>(leftReturned!);
             }
 
-            return InterpetedResult.Create(leftValue!.Value.GetMember(Right.Key));
+            return InterpetedResult.Create(leftValue!.Value.Has<IInterpetedScope>().GetMember(Right.Key));
         }
     }
 }

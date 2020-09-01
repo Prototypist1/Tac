@@ -22,7 +22,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember>(rightReturned!);
             }
 
-            if (leftValue!.Value.Invoke(rightValue!).IsReturn(out var returned, out var _) && returned is IInterpetedMember outReturned)
+            if (leftValue!.Value.Has<IInterpetedMethod>().Invoke(rightValue!).IsReturn(out var returned, out var _) && returned is IInterpetedMember outReturned)
             {
                 return InterpetedResult.Create(outReturned);
             }
@@ -49,7 +49,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember>(rightReturned!);
             }
 
-            if (!rightValue!.Value.Invoke(leftValue!).IsReturn(out var _, out var value)){
+            if (!rightValue!.Value.Has<IInterpetedMethod>().Invoke(leftValue!).IsReturn(out var _, out var value)){
                 return InterpetedResult.Create(value!);
             }
 

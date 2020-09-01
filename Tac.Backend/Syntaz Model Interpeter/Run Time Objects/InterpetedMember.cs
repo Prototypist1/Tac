@@ -26,22 +26,14 @@ namespace Tac.Syntaz_Model_Interpeter
     public static partial class TypeManager
     {
 
-        internal static IInterpetedMember MakeMember(IVerifiableType type)
-        {
-            var method = typeof(TypeManager).GetMethods(BindingFlags.Public | BindingFlags.Static).Single(x =>
-              x.Name == nameof(Member) && x.IsGenericMethod && x.GetParameters().Count() == 1);
-            var made = method.MakeGenericMethod(new System.Type[] { TypeMap.MapType(type) });
-            return made.Invoke(null,new object[] { type }).CastTo<IInterpetedMember>();
-        }
-
         public static IInterpetedMember AnyMember()
-            => Member<IInterpetedAnyType>(new AnyType());
+            => Member(new AnyType());
 
         public static IInterpetedMember AnyMember(IInterpetedAnyType t)
             => Member(new AnyType(), t);
 
         public static IInterpetedMember EmptyMember()
-            => Member<IInterpedEmpty>(new EmptyType());
+            => Member(new EmptyType());
 
         public static IInterpetedMember EmptyMember(IInterpedEmpty t)
             => Member(new EmptyType(), t);
@@ -50,25 +42,24 @@ namespace Tac.Syntaz_Model_Interpeter
             => Member(new NumberType(), t);
 
         public static IInterpetedMember NumberMember()
-            => Member<IBoxedDouble>(new NumberType());
+            => Member(new NumberType());
 
         public static IInterpetedMember StringMember(IBoxedString t)
             => Member(new StringType(), t);
 
         public static IInterpetedMember StringMember()
-            => Member<IBoxedString>(new StringType());
+            => Member(new StringType());
 
         public static IInterpetedMember BoolMember(IBoxedBool t)
             => Member(new BooleanType(), t);
 
         public static IInterpetedMember BoolMember()
-            => Member<IBoxedBool>(new BooleanType());
+            => Member(new BooleanType());
 
         public static IInterpetedMember Member(IVerifiableType type, IInterpetedAnyType t)
             => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { MemberIntention(type,t) }).Has<IInterpetedMember>();
 
-        public static IInterpetedMember Member<T>(IVerifiableType type)
-            where T : IInterpetedAnyType
+        public static IInterpetedMember Member(IVerifiableType type)
             => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { MemberIntention(type) }).Has<IInterpetedMember>();
 
         public static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> MemberIntention(IVerifiableType type)

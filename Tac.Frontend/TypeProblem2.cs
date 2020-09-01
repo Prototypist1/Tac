@@ -1078,8 +1078,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // no but they can have members that are implicit 
                         // plus maybe they could be in the future this some sort of implicit key word
                         // number || implict 
-                        orType.Left.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
-                        orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
+                        //orType.Left.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
+                        //orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
+
+                        //orType.Left.IfElse(x => 
+                        //    orType.Right.IfElse(
+                        //        y => HandleHopefulMember(key, hopeful,  GetType(x), GetType(y)),
+                        //        ()=> HandleHopefulMember(key, hopeful, GetType(x))),
+                        //    () => orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x))));
+
+                        // you are here!
+                        // after the first one merges it might not be a infered type
+                        // so it can't merge
+
+                        // how does this work?? or them and then merge?
+                        // yes, you or them and then merge
+
+                        //--- no!
+                        // I think it actually does not defer
+                        // maybe it just has an assignment relationship to each?
+
+                        // maybe it just doesn't defer?
+                        // ok for now it just doesn't defer 
+                        // kind of makes sense, who would it defer to?
+
 
                     },
                     inferredType =>

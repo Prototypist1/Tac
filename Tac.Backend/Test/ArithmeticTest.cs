@@ -27,7 +27,7 @@ namespace Tac.Backend.Test
             Assert.False(res.IsReturn(out var _, out var member));
 
             var scope = member!.Value.CastTo<IInterpetedScope>();
-            var x = scope.GetMember<IInterpetedAnyType>(new NameKey("x"));
+            var x = scope.GetMember(new NameKey("x"));
 
             Assert.Equal(63.0, x.Value.CastTo<IBoxedDouble>().Value);
         }

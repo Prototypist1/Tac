@@ -39,9 +39,9 @@ namespace Tac.Backend.Test
 
             var scope = value!.Value.CastTo<IInterpetedScope>();
             // no way this cast works...
-            var method = scope.GetMember<IInterpetedMethod<IBoxedDouble, IBoxedDouble>>(new NameKey("fac"));
+            var method = scope.GetMember(new NameKey("fac"));
 
-            Assert.False(method.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodReturn));
+            Assert.False(method.Value.Has<IInterpetedMethod>().Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodReturn));
 
             return methodReturn!.Value.CastTo<IBoxedDouble>().Value;
         }

@@ -70,14 +70,15 @@ namespace Tac.Syntaz_Model_Interpeter
             public IInterpetedResult<IInterpetedMember> Invoke(IInterpetedMember input)
             {
                 var context = InterpetedContext.Child(TypeManager.InstanceScope((contextDefinition.Key, input)));
+                ImplementationType.OutputType.SafeIs(out MethodType outputMethod);
                 var thing = InternalMethod(
                                 ParameterDefinition,
                                 Body,
                                 context,
                                 Scope,
                                 Tac.Model.Instantiated.MethodType.CreateAndBuild(
-                                    ImplementationType.InputType,
-                                    ImplementationType.OutputType));
+                                    outputMethod.InputType,
+                                    outputMethod.OutputType));
                 return
                     InterpetedResult.Create(
                         Member(

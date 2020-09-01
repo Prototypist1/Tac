@@ -22,7 +22,7 @@ namespace Tac.Backend.Test
             
             Assert.False( testCase.ModuleDefinition.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
 
-            var scope = res!.Value.CastTo<IInterpetedScope>().GetMember<IInterpetedAnyType>(new NameKey("point")).Value;
+            var scope = res!.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("point")).Value;
 
             Assert.True(scope.CastTo<IInterpetedScope>().ContainsMember(new NameKey("x")));
             Assert.True(scope.CastTo<IInterpetedScope>().ContainsMember(new NameKey("y")));
@@ -39,8 +39,8 @@ namespace Tac.Backend.Test
 
             Assert.False(testCase.ModuleDefinition.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
 
-            Assert.Equal(5, res!.Value.CastTo<IInterpetedScope>().GetMember<IInterpetedAnyType>(new NameKey("x")).Value.Has<IBoxedDouble>().Value);
-            Assert.False(res.Value.CastTo<IInterpetedScope>().GetMember<IInterpetedAnyType>(new NameKey("y")).Value.Has<IBoxedBool>().Value);
+            Assert.Equal(5, res!.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("x")).Value.Has<IBoxedDouble>().Value);
+            Assert.False(res.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("y")).Value.Has<IBoxedBool>().Value);
         }
     }
 }

@@ -34,12 +34,12 @@ namespace Tac.Backend.Test
 
             Assert.False(res.IsReturn(out var _, out var scope));
 
-            var method = scope.CastTo<IInterpetedMember<IInterpetedScope>>().Value.GetMember<IInterpetedMethod<IBoxedDouble,IInterpetedScope>>(new NameKey("pairify"));
+            var method = scope!.Value.Has<IInterpetedScope>().GetMember(new NameKey("pairify"));
 
-            Assert.False( method.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodResult));
+            Assert.False( method.Value.Has<IInterpetedMethod>().Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodResult));
 
-            Assert.Equal(d, methodResult!.Value.GetMember<IBoxedDouble>(new NameKey("x")).Value.Value);
-            Assert.Equal(d, methodResult!.Value.GetMember<IBoxedDouble>(new NameKey("y")).Value.Value);
+            Assert.Equal(d, methodResult!.Value.Has<IInterpetedScope>().GetMember(new NameKey("x")).Value.Has<IBoxedDouble>().Value);
+            Assert.Equal(d, methodResult!.Value.Has<IInterpetedScope>().GetMember(new NameKey("y")).Value.Has<IBoxedDouble>().Value);
         }
     }
 }

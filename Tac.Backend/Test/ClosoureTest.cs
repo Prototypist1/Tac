@@ -28,18 +28,18 @@ namespace Tac.Backend.Test
             Assert.False(res.IsReturn(out var _, out var value));
 
             var scope = value!.Value.CastTo<IInterpetedScope>();
-            var method = scope.GetMember<IInterpetedAnyType>(new NameKey("create-accululator")).Value.CastTo<IInterpetedMethod<IBoxedDouble, IInterpetedMethod<IBoxedDouble, IBoxedDouble>>>();
+            var method = scope.GetMember(new NameKey("create-accululator")).Value;
             
-            Assert.False(method.Invoke(TypeManager.NumberMember(TypeManager.Double(1))).IsReturn(out var _, out var innerMethod));
+            Assert.False(method.Has<IInterpetedMethod>().Invoke(TypeManager.NumberMember(TypeManager.Double(1))).IsReturn(out var _, out var innerMethod));
 
-            Assert.False(innerMethod!.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(2))).IsReturn(out var _, out var res1));
-            Assert.Equal(3, res1!.Value.Value);
+            Assert.False(innerMethod!.Value.Has<IInterpetedMethod>().Invoke(TypeManager.NumberMember(TypeManager.Double(2))).IsReturn(out var _, out var res1));
+            Assert.Equal(3, res1!.Value.Has<IBoxedDouble>().Value);
 
-            Assert.False(innerMethod.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(3))).IsReturn(out var _, out var res2));
-            Assert.Equal(6, res2!.Value.Value);
+            Assert.False(innerMethod.Value.Has<IInterpetedMethod>().Invoke(TypeManager.NumberMember(TypeManager.Double(3))).IsReturn(out var _, out var res2));
+            Assert.Equal(6, res2!.Value.Has<IBoxedDouble>().Value);
 
-            Assert.False(innerMethod.Value.Invoke(TypeManager.NumberMember(TypeManager.Double(4))).IsReturn(out var _, out var res3));
-            Assert.Equal(10, res3!.Value.Value);
+            Assert.False(innerMethod.Value.Has<IInterpetedMethod>().Invoke(TypeManager.NumberMember(TypeManager.Double(4))).IsReturn(out var _, out var res3));
+            Assert.Equal(10, res3!.Value.Has<IBoxedDouble>().Value);
         }
     }
 }

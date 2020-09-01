@@ -391,7 +391,7 @@ entry-point {
         [Fact]
         public void OrType4()
         {
-            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 5 });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
 
@@ -399,7 +399,7 @@ entry-point {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
 entry-point {
-    object { ture =: bool b; 5 =: number a } =: type { bool b; number a;} | type { bool b; number num;} x;
+    object { true =: bool b; 5 =: number a } =: type { bool b; number a;} | type { bool b; number num;} x;
 
     x.b  > (out.write-bool) ;
     x is type { bool b; number a;} z { z.a > (out.write-number) } ;
@@ -434,15 +434,15 @@ entry-point {
         [Fact]
         public void OrType6()
         {
-            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 5 });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
-            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] {  });
 
             Tac.Runner.Runner.Run("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
 entry-point {
-    object { ture =: bool b; 5 =: number a } =: type { bool b; number a;} | bool x;
+    object { true =: bool b; 5 =: number a } =: type { bool b; number a;} | bool x;
 
     x is type { bool b; number a;} z { z.a > (out.write-number) } ;
 };");

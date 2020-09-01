@@ -13,7 +13,7 @@ namespace Tac.Syntaz_Model_Interpeter
                 return InterpetedResult.Return<IInterpetedMember>(leftReturned!);
             }
 
-            if (leftValue!.Value.Value)
+            if (leftValue!.Value.Has<IBoxedBool>().Value)
             {
                 return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(false)));
             }

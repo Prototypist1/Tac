@@ -76,17 +76,8 @@ namespace Tac.Syntaz_Model_Interpeter
                     }
                 }
 
-                // TODO!
-                // does this work??
-                // wierd stuff around the way I am doing types
-                // life would be so much simpler if I just pulled it all out
-                // I should just pull it all out
-                // clearly I should
-                // 
-                if (typeof(IInterpedEmpty).IsAssignableFrom(typeof(IInterpetedAnyType)))
-                {
-                    var hack = TypeManager.Empty();
-                    return InterpetedResult.Create(Member(hack.Convert(TransformerExtensions.NewConversionContext()), hack.CastTo<IInterpetedAnyType>()));
+                if (MethodType.OutputType is EmptyType) {
+                    return InterpetedResult.Create(TypeManager.EmptyMember(TypeManager.Empty()));
                 }
 
                 throw new System.Exception("method did not return!");

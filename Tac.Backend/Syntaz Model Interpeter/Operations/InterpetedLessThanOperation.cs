@@ -23,8 +23,8 @@ namespace Tac.Syntaz_Model_Interpeter
             }
 
             return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(
-                leftValue!.Value.Value <
-                rightValue!.Value.Value)));
+                leftValue!.Value.Has<IBoxedDouble>().Value <
+                rightValue!.Value.Has<IBoxedDouble>().Value)));
         }
     }
 }
