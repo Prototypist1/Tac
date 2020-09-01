@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Frontend", "Tac.Fronten
 		{93328F92-D071-45DE-A94F-D1C4BF23FD72} = {93328F92-D071-45DE-A94F-D1C4BF23FD72}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Backend", "Tac.Backend\Tac.Backend.csproj", "{B3D7CA6D-A4B2-4772-AA86-D9260D777B10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Backend.Interpreted", "Tac.Backend.Interpreted\Tac.Backend.Interpreted.csproj", "{B3D7CA6D-A4B2-4772-AA86-D9260D777B10}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Model", "Tac.Model\Tac.Model.csproj", "{93328F92-D071-45DE-A94F-D1C4BF23FD72}"
 EndProject

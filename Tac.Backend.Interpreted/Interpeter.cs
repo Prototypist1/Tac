@@ -2,14 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Tac.Backend.Syntaz_Model_Interpeter;
-using Tac.Backend.Syntaz_Model_Interpeter.Elements;
+using Tac.Backend.Interpreted.Syntaz_Model_Interpeter;
+using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements;
 using Tac.Model.Elements;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
-using static Tac.Backend.Public.AssemblyBuilder;
+using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 
-namespace Tac.Backend
+namespace Tac.Backend.Interpreted
 {
     public static class Interpeter
     {

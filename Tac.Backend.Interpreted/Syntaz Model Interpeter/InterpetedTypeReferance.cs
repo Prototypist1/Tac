@@ -4,7 +4,7 @@
 //using Tac.Syntaz_Model_Interpeter;
 //using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
-//namespace Tac.Backend.Syntaz_Model_Interpeter
+//namespace Tac.Backend.Interpreted.Syntaz_Model_Interpeter
 //{
 //    internal class InterpetedTypeReferance : IInterpetedOperation<IInterpetedAnyType>, ITypeReferance
 //    {

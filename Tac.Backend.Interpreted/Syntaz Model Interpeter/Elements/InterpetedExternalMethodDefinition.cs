@@ -6,7 +6,7 @@ using Tac.Model.Instantiated;
 using Tac.Syntaz_Model_Interpeter;
 using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 
-namespace Tac.Backend.Syntaz_Model_Interpeter.Elements
+namespace Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements
 {
     internal class InterpetedExternalMethodDefinition : IInterpetedOperation
     {

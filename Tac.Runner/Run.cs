@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Tac.Backend;
+using Tac.Backend.Interpreted;
 using Tac.Frontend;
 using Tac.Model;
 using Tac.SemanticModel.CodeStuff;
-using static Tac.Backend.Public.AssemblyBuilder;
+using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 
 // yeah, I really do not need a project for this...
 namespace Tac.Runner

@@ -1,9 +1,9 @@
 ﻿//using System;
 //using System.Collections.Generic;
-//using Tac.Backend.Syntaz_Model_Interpeter.Elements;
+//using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements;
 //using Tac.Model.Elements;
 
-//namespace Tac.Backend.Syntaz_Model_Interpeter
+//namespace Tac.Backend.Interpreted.Syntaz_Model_Interpeter
 //{
 //    internal interface IExternalMethodSource
 //    {

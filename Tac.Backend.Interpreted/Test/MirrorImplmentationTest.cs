@@ -3,8 +3,8 @@ using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tac.Backend.Syntaz_Model_Interpeter;
-using Tac.Backend.Syntaz_Model_Interpeter.Elements;
+using Tac.Backend.Interpreted.Syntaz_Model_Interpeter;
+using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements;
 using Tac.Model;
 using Tac.Model.Instantiated;
 using Tac.Syntaz_Model_Interpeter;
@@ -12,7 +12,7 @@ using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
 using Tac.TestCases.Samples;
 using Xunit;
 
-namespace Tac.Backend.Test
+namespace Tac.Backend.Interpreted.Test
 {
     public class MirrorImplmentationTest {
 

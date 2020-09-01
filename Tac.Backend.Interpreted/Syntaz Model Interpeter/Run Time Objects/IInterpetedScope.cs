@@ -13,7 +13,7 @@ namespace Tac.Syntaz_Model_Interpeter
     {
         // TODO
         // hmmm maybe type should be passed in?
-        // Interpeted type???
+        // Interpreted type???
 
 
         // does this really go here?

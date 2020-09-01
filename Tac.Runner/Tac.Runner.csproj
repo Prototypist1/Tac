@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tac.Backend\Tac.Backend.csproj" />
+    <ProjectReference Include="..\Tac.Backend.Interpreted\Tac.Backend.Interpreted.csproj" />
     <ProjectReference Include="..\Tac.Frontend\Tac.Frontend.csproj" />
   </ItemGroup>
 
