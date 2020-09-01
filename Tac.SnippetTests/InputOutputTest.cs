@@ -451,5 +451,27 @@ entry-point {
             verifyStringIn();
             verifyBoolIn();
         }
+
+
+        [Fact]
+        public void OrType7()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 5 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] {  });
+
+            Tac.Runner.Runner.Run("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+@"
+entry-point {
+    object { true =: bool b; 5 =: number a } =: type { bool b; number a;} | type { bool b; number a;} x;
+
+    x.a is number a { a > out.write-number };
+};");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
     }
 }
