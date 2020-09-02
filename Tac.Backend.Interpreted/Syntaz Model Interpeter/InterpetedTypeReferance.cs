@@ -1,10 +1,10 @@
 ﻿//using System;
 //using Tac.Model;
 //using Tac.Model.Elements;
-//using Tac.Syntaz_Model_Interpeter;
-//using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+//using Tac.Backend.Interpreted.SyntazModelInterpeter;
+//using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 
-//namespace Tac.Backend.Interpreted.Syntaz_Model_Interpeter
+//namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 //{
 //    internal class InterpetedTypeReferance : IInterpetedOperation<IInterpetedAnyType>, ITypeReferance
 //    {

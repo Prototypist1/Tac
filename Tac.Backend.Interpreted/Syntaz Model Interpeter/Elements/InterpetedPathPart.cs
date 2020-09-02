@@ -1,7 +1,7 @@
 ﻿using System;
 using Tac.Model;
 
-namespace Tac.Syntaz_Model_Interpeter
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
     internal interface IInterpetedMemberReferance
     {

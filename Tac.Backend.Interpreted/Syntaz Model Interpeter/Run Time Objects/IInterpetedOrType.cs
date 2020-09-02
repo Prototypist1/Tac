@@ -1,6 +1,6 @@
 ﻿//using System;
 
-//namespace Tac.Syntaz_Model_Interpeter
+//namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 //{
 //    public interface IInterpetedOrType<T1, T2> : IInterpetedAnyType
 //        where T1 : IInterpetedAnyType

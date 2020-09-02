@@ -4,7 +4,7 @@ using System;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 
-namespace Tac.Syntaz_Model_Interpeter
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
 
     public interface IInterpetedMethod : IInterpetedAnyType { 

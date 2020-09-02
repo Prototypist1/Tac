@@ -1,10 +1,10 @@
 ﻿using System;
-using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 using Tac.Model;
 using Tac.Model.Instantiated;
 using Tac.Model.Elements;
 
-namespace Tac.Syntaz_Model_Interpeter
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
     internal class InterpetedImplementationDefinition : IInterpetedOperation
     {

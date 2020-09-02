@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Tac.Backend.Interpreted.Syntaz_Model_Interpeter;
-using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements;
+using Tac.Backend.Interpreted.SyntazModelInterpeter;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Elements;
 using Tac.Model.Elements;
-using Tac.Syntaz_Model_Interpeter;
-using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Backend.Interpreted.SyntazModelInterpeter;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 
 namespace Tac.Backend.Interpreted

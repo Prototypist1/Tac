@@ -2,7 +2,7 @@
 using Prototypist.Toolbox.Object;
 using System;
 
-namespace Tac.Syntaz_Model_Interpeter
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
 
     internal interface IInterpetedTryAssignOperation : IInterpetedOperation

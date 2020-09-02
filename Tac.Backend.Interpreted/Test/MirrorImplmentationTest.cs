@@ -3,12 +3,12 @@ using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tac.Backend.Interpreted.Syntaz_Model_Interpeter;
-using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements;
+using Tac.Backend.Interpreted.SyntazModelInterpeter;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Elements;
 using Tac.Model;
 using Tac.Model.Instantiated;
-using Tac.Syntaz_Model_Interpeter;
-using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Backend.Interpreted.SyntazModelInterpeter;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 using Tac.TestCases.Samples;
 using Xunit;
 

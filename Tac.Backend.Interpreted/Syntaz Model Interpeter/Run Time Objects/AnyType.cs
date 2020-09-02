@@ -5,9 +5,9 @@ using System.Linq;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
-using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 
-namespace Tac.Syntaz_Model_Interpeter
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
     public interface IInterpetedAnyType : IInterpeted {
 

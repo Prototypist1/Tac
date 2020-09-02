@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Tac.Model.Instantiated;
 
-namespace Tac.Syntaz_Model_Interpeter { 
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter { 
 
     public interface IInterpedEmpty : IInterpetedAnyType
     {

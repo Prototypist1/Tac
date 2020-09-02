@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Tac.Backend.Interpreted.Syntaz_Model_Interpeter;
-using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements;
+using Tac.Backend.Interpreted.SyntazModelInterpeter;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Elements;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
-using Tac.Syntaz_Model_Interpeter;
+using Tac.Backend.Interpreted.SyntazModelInterpeter;
 using static Tac.Model.Instantiated.Scope;
 using Prototypist.Toolbox.Object;
 

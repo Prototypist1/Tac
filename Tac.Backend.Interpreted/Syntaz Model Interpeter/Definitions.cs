@@ -4,18 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements;
-using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Elements;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Model.Operations;
-using Tac.Syntaz_Model_Interpeter;
-using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Backend.Interpreted.SyntazModelInterpeter;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 using Prototypist.Toolbox.Object;
 
-namespace Tac.Backend.Interpreted.Syntaz_Model_Interpeter
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
 
     internal class Definitions: IOpenBoxesContext<IInterpetedOperation, InterpetedAssemblyBacking>

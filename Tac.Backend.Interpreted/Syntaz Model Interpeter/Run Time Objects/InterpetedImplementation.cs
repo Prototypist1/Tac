@@ -1,13 +1,13 @@
 ﻿using Prototypist.Toolbox;
 using System;
 using System.Linq;
-using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 using Tac.Model;
 using Tac.Model.Instantiated;
 using Tac.Model.Elements;
 using Prototypist.Toolbox.Object;
 
-namespace Tac.Syntaz_Model_Interpeter
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
     public interface IInterpetedImplementation: IInterpetedMethod
     {

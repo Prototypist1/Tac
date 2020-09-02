@@ -1,8 +1,8 @@
 ﻿using System;
 using Tac.Model.Elements;
-using Tac.Syntaz_Model_Interpeter.Run_Time_Objects;
+using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 
-namespace Tac.Syntaz_Model_Interpeter
+namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
     internal class InterpetedConstantBool : IInterpetedOperation
     {
