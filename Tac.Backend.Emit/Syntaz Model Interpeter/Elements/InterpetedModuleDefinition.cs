@@ -7,9 +7,9 @@ using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
-    internal class InterpetedModuleDefinition : IInterpetedOperation
+    internal class InterpetedModuleDefinition : IAssembledOperation
     {
-        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedOperation> staticInitialization, InterpetedEntryPointDefinition interpetedEntry)
+        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IAssembledOperation> staticInitialization, InterpetedEntryPointDefinition interpetedEntry)
         {
             ScopeTemplate = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
@@ -25,11 +25,11 @@ namespace Tac.Backend.Emit.SyntaxModel
         public IInterpetedScopeTemplate ScopeTemplate { get => scopeTemplate ?? throw new NullReferenceException(nameof(scopeTemplate)); private set => scopeTemplate = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        private IEnumerable<IInterpetedOperation>? staticInitialization;
-        public IEnumerable<IInterpetedOperation> StaticInitialization { get => staticInitialization ?? throw new NullReferenceException(nameof(staticInitialization)); private set => staticInitialization = value ?? throw new NullReferenceException(nameof(value)); }
+        private IEnumerable<IAssembledOperation>? staticInitialization;
+        public IEnumerable<IAssembledOperation> StaticInitialization { get => staticInitialization ?? throw new NullReferenceException(nameof(staticInitialization)); private set => staticInitialization = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
             var scope = ScopeTemplate.Create();
 
@@ -37,7 +37,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 
             foreach (var line in StaticInitialization)
             {
-                line.Interpet(context);
+                line.Assemble(context);
             }
 
             return InterpetedResult.Create(TypeManager.Member(scope.Convert(TransformerExtensions.NewConversionContext()), scope));

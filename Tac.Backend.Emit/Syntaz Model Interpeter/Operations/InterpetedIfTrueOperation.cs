@@ -15,9 +15,9 @@ namespace Tac.Backend.Emit.SyntaxModel
         // until I solve this we are a hot mess
         // probably the solution is give up on types!!
 
-        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public override void Assemble(AssemblyContextWithGenerator interpetedContext)
         {
-            var leftResult = Left.Interpet(interpetedContext);
+            var leftResult = Left.Assemble(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
@@ -29,7 +29,7 @@ namespace Tac.Backend.Emit.SyntaxModel
                 return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(false)));
             }
 
-            var rightResult = Right.Interpet(interpetedContext);
+            var rightResult = Right.Assemble(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var _))
             {

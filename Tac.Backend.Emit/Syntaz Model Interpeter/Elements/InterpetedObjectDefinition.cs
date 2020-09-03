@@ -8,7 +8,7 @@ using Tac.Model.Instantiated;
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
-    internal class InterpetedObjectDefinition :  IInterpetedOperation
+    internal class InterpetedObjectDefinition :  IAssembledOperation
     {
         public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedAssignOperation> assignments)
         {
@@ -22,7 +22,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         private IEnumerable<IInterpetedAssignOperation>? assignments;
         public IEnumerable<IInterpetedAssignOperation> Assignments { get => assignments ?? throw new NullReferenceException(nameof(assignments)); private set => assignments = value ?? throw new NullReferenceException(nameof(value)); }
         
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
             var scope = Scope.Create();
 
@@ -30,7 +30,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 
             foreach (var line in Assignments)
             {
-                line.Interpet(context);
+                line.Assemble(context);
             }
 
             return InterpetedResult.Create(TypeManager.Member(scope.Convert(TransformerExtensions.NewConversionContext()), scope));

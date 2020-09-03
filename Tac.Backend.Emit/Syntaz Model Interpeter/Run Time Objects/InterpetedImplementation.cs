@@ -18,8 +18,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         internal static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> InterpetedImplementationIntention(
                 InterpetedMemberDefinition parameterDefinition,
                 InterpetedMemberDefinition contextDefinition,
-                IInterpetedOperation[] body,
-                InterpetedContext context,
+                IAssembledOperation[] body,
+                AssemblyContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType implementationType)
             => root =>
@@ -32,8 +32,8 @@ namespace Tac.Backend.Emit.SyntaxModel
 
         internal static IInterpetedImplementation Implementation(InterpetedMemberDefinition parameterDefinition,
                 InterpetedMemberDefinition contextDefinition,
-                IInterpetedOperation[] body,
-                InterpetedContext context,
+                IAssembledOperation[] body,
+                AssemblyContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType implementationType)
             => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { InterpetedImplementationIntention(parameterDefinition, contextDefinition, body, context, scope, implementationType) }).Has<IInterpetedImplementation>();
@@ -46,8 +46,8 @@ namespace Tac.Backend.Emit.SyntaxModel
             public InterpetedImplementation(
                 InterpetedMemberDefinition parameterDefinition,
                 InterpetedMemberDefinition contextDefinition,
-                IInterpetedOperation[] body,
-                InterpetedContext context,
+                IAssembledOperation[] body,
+                AssemblyContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType implementationType,
                 IRunTimeAnyRoot root) : base(root)
@@ -62,8 +62,8 @@ namespace Tac.Backend.Emit.SyntaxModel
 
             private readonly InterpetedMemberDefinition contextDefinition;
             private InterpetedMemberDefinition ParameterDefinition { get; }
-            private IInterpetedOperation[] Body { get; }
-            private InterpetedContext InterpetedContext { get; }
+            private IAssembledOperation[] Body { get; }
+            private AssemblyContext InterpetedContext { get; }
             private IInterpetedScopeTemplate Scope { get; }
             public IMethodType ImplementationType { get; }
 

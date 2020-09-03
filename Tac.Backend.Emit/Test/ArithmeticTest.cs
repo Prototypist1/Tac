@@ -6,7 +6,6 @@ using System.Text;
 using Tac.Backend.Emit.SyntaxModel;
 using Tac.Backend.Emit.SyntaxModel.Elements;
 using Tac.Model;
-using Tac.Backend.Emit.SyntaxModel;
 using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 using Tac.Tests.Samples;
 using Xunit;
@@ -22,7 +21,7 @@ namespace Tac.Backend.Emit.Test
             var conversionContext = new Definitions();
             var module = testCase.ModuleDefinition.Convert(conversionContext);
 
-            var res = module.Interpet(InterpetedContext.Root());
+            var res = module.Assemble(AssemblyContext.Root());
 
             Assert.False(res.IsReturn(out var _, out var member));
 

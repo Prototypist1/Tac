@@ -6,9 +6,9 @@ namespace Tac.Backend.Emit.SyntaxModel
 {
     internal class InterpetedReturnOperation : InterpetedTrailingOperation
     {
-        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public override void Assemble(AssemblyContextWithGenerator interpetedContext)
         {
-            var argumentResult = Argument.Interpet(interpetedContext);
+            var argumentResult = Argument.Assemble(interpetedContext);
 
             if (argumentResult.IsReturn(out var argumentReturned, out var argumentValue))
             {

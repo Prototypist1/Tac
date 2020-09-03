@@ -18,9 +18,9 @@ using Prototypist.Toolbox.Object;
 namespace Tac.Backend.Emit.SyntaxModel
 {
 
-    internal class Definitions: IOpenBoxesContext<IInterpetedOperation, InterpetedAssemblyBacking>
+    internal class Definitions: IOpenBoxesContext<IAssembledOperation, InterpetedAssemblyBacking>
     {
-        private readonly Dictionary<object, IInterpetedOperation> backing = new Dictionary<object, IInterpetedOperation>();
+        private readonly Dictionary<object, IAssembledOperation> backing = new Dictionary<object, IAssembledOperation>();
 
 
         public InterpetedEntryPointDefinition? EntryPoint { get; private set; }
@@ -29,7 +29,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         {
         }
 
-        public IInterpetedOperation MemberDefinition(IMemberDefinition member)
+        public IAssembledOperation MemberDefinition(IMemberDefinition member)
         {
             if (backing.TryGetValue(member, out var res))
             {
@@ -43,7 +43,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation AddOperation(IAddOperation co)
+        public IAssembledOperation AddOperation(IAddOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -59,7 +59,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation AssignOperation(IAssignOperation co)
+        public IAssembledOperation AssignOperation(IAssignOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -76,7 +76,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation TryAssignOperation(ITryAssignOperation co)
+        public IAssembledOperation TryAssignOperation(ITryAssignOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -96,7 +96,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         }
 
 
-        public IInterpetedOperation BlockDefinition(IBlockDefinition codeElement)
+        public IAssembledOperation BlockDefinition(IBlockDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -113,7 +113,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation ConstantNumber(IConstantNumber codeElement)
+        public IAssembledOperation ConstantNumber(IConstantNumber codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -128,7 +128,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation ConstantString(IConstantString co)
+        public IAssembledOperation ConstantString(IConstantString co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -144,7 +144,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         }
 
 
-        public IInterpetedOperation ConstantBool(IConstantBool constantBool)
+        public IAssembledOperation ConstantBool(IConstantBool constantBool)
         {
             if (backing.TryGetValue(constantBool, out var res))
             {
@@ -160,7 +160,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         }
 
 
-        public IInterpetedOperation EmptyInstance(IEmptyInstance co)
+        public IAssembledOperation EmptyInstance(IEmptyInstance co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -175,7 +175,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation ElseOperation(IElseOperation co)
+        public IAssembledOperation ElseOperation(IElseOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -192,7 +192,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation IfTrueOperation(IIfOperation co)
+        public IAssembledOperation IfTrueOperation(IIfOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -209,7 +209,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation ImplementationDefinition(IImplementationDefinition codeElement)
+        public IAssembledOperation ImplementationDefinition(IImplementationDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -231,7 +231,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 
 
 
-        public IInterpetedOperation LastCallOperation(ILastCallOperation co)
+        public IAssembledOperation LastCallOperation(ILastCallOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -248,7 +248,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation LessThanOperation(ILessThanOperation co)
+        public IAssembledOperation LessThanOperation(ILessThanOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -265,7 +265,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation MemberReferance(IMemberReferance codeElement)
+        public IAssembledOperation MemberReferance(IMemberReferance codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -283,7 +283,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 
 
 
-        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation, InterpetedAssemblyBacking>.EntryPoint(IEntryPointDefinition codeElement)
+        IAssembledOperation IOpenBoxesContext<IAssembledOperation, InterpetedAssemblyBacking>.EntryPoint(IEntryPointDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -308,7 +308,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         }
 
 
-        public IInterpetedOperation MethodDefinition(IInternalMethodDefinition codeElement)
+        public IAssembledOperation MethodDefinition(IInternalMethodDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -327,7 +327,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation ModuleDefinition(IModuleDefinition codeElement)
+        public IAssembledOperation ModuleDefinition(IModuleDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -340,13 +340,13 @@ namespace Tac.Backend.Emit.SyntaxModel
                 op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.StaticInitialization.Select(x => x.Convert(this)).ToArray(),
                     // yikos yuckos
-                    (this as IOpenBoxesContext<IInterpetedOperation, InterpetedAssemblyBacking>).EntryPoint(codeElement.EntryPoint).CastTo<InterpetedEntryPointDefinition>()
+                    (this as IOpenBoxesContext<IAssembledOperation, InterpetedAssemblyBacking>).EntryPoint(codeElement.EntryPoint).CastTo<InterpetedEntryPointDefinition>()
                     );
                 return op;
             }
         }
 
-        public IInterpetedOperation MultiplyOperation(IMultiplyOperation co)
+        public IAssembledOperation MultiplyOperation(IMultiplyOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -363,7 +363,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation NextCallOperation(INextCallOperation co)
+        public IAssembledOperation NextCallOperation(INextCallOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -380,7 +380,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation ObjectDefinition(IObjectDefiniton codeElement)
+        public IAssembledOperation ObjectDefinition(IObjectDefiniton codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -397,7 +397,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation PathOperation(IPathOperation co)
+        public IAssembledOperation PathOperation(IPathOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -415,7 +415,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         }
 
 
-        public IInterpetedOperation ReturnOperation(IReturnOperation co)
+        public IAssembledOperation ReturnOperation(IReturnOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -431,7 +431,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation SubtractOperation(ISubtractOperation co)
+        public IAssembledOperation SubtractOperation(ISubtractOperation co)
         {
             if (backing.TryGetValue(co, out var res))
             {
@@ -448,7 +448,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IInterpetedOperation TypeDefinition(IInterfaceType codeElement)
+        public IAssembledOperation TypeDefinition(IInterfaceType codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {

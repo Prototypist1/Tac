@@ -5,7 +5,7 @@ using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
-    internal interface IInterpetedAssignOperation : IInterpetedOperation
+    internal interface IInterpetedAssignOperation : IAssembledOperationRequiresGenerator
     {
 
     }
@@ -13,16 +13,16 @@ namespace Tac.Backend.Emit.SyntaxModel
 
     internal class InterpetedAssignOperation: InterpetedBinaryOperation, IInterpetedAssignOperation
     {
-        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public override void Assemble(AssemblyContextWithGenerator interpetedContext)
         {
-            var leftResult = Left.Interpet(interpetedContext);
+            var leftResult = Left.Assemble(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
                 return InterpetedResult.Return<IInterpetedMember>(leftReturned!);
             }
 
-            var rightResult = Right.Interpet(interpetedContext);
+            var rightResult = Right.Assemble(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {

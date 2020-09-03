@@ -20,7 +20,7 @@ namespace Tac.Backend.Emit.Test
             var testCase = new PointObject();
             var conversionContext = new Definitions();
             
-            Assert.False( testCase.ModuleDefinition.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
+            Assert.False( testCase.ModuleDefinition.Convert(conversionContext).Assemble(AssemblyContext.Root()).IsReturn(out var _, out var res));
 
             var scope = res!.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("point")).Value;
 
@@ -37,7 +37,7 @@ namespace Tac.Backend.Emit.Test
             var testCase = new OrTypeSample();
             var conversionContext = new Definitions();
 
-            Assert.False(testCase.ModuleDefinition.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
+            Assert.False(testCase.ModuleDefinition.Convert(conversionContext).Assemble(AssemblyContext.Root()).IsReturn(out var _, out var res));
 
             Assert.Equal(5, res!.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("x")).Value.Has<IBoxedDouble>().Value);
             Assert.False(res.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("y")).Value.Has<IBoxedBool>().Value);

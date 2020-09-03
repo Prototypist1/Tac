@@ -8,7 +8,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         IKey Key { get; }
     }
 
-    internal class InterpetedMemberReferance : IInterpetedOperation, IInterpetedMemberReferance
+    internal class InterpetedMemberReferance : IAssembledOperation, IInterpetedMemberReferance
     {
         public InterpetedMemberReferance Init(InterpetedMemberDefinition memberDefinition)
         {
@@ -21,7 +21,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         private InterpetedMemberDefinition? memberDefinition;
         public InterpetedMemberDefinition MemberDefinition { get => memberDefinition ?? throw new NullReferenceException(nameof(memberDefinition)); private set => memberDefinition = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
             return InterpetedResult.Create(interpetedContext.GetMember(MemberDefinition.Key));
         }

@@ -5,7 +5,7 @@ using System;
 namespace Tac.Backend.Emit.SyntaxModel
 {
 
-    internal interface IInterpetedTryAssignOperation : IInterpetedOperation
+    internal interface IInterpetedTryAssignOperation : IAssembledOperationRequiresGenerator
     {
 
     }
@@ -14,7 +14,7 @@ namespace Tac.Backend.Emit.SyntaxModel
     internal class InterpetedTryAssignOperation : IInterpetedTryAssignOperation
     {
 
-        public void Init(IInterpetedOperation left, IInterpetedOperation right, IInterpetedOperation block, IInterpetedScopeTemplate scope)
+        public void Init(IAssembledOperation left, IAssembledOperation right, IAssembledOperation block, IInterpetedScopeTemplate scope)
         {
             Left = left ?? throw new ArgumentNullException(nameof(left));
             Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -23,21 +23,21 @@ namespace Tac.Backend.Emit.SyntaxModel
         }
 
 
-        private IInterpetedOperation? left;
-        public IInterpetedOperation Left { get => left ?? throw new NullReferenceException(nameof(left)); private set => left = value ?? throw new NullReferenceException(nameof(value)); }
-        private IInterpetedOperation? right;
-        public IInterpetedOperation Right { get => right ?? throw new NullReferenceException(nameof(right)); private set => right = value ?? throw new NullReferenceException(nameof(value)); }
+        private IAssembledOperation? left;
+        public IAssembledOperation Left { get => left ?? throw new NullReferenceException(nameof(left)); private set => left = value ?? throw new NullReferenceException(nameof(value)); }
+        private IAssembledOperation? right;
+        public IAssembledOperation Right { get => right ?? throw new NullReferenceException(nameof(right)); private set => right = value ?? throw new NullReferenceException(nameof(value)); }
         
-        private IInterpetedOperation? block;
-        public IInterpetedOperation Block { get => block ?? throw new NullReferenceException(nameof(right)); private set => block = value ?? throw new NullReferenceException(nameof(value)); }
+        private IAssembledOperation? block;
+        public IAssembledOperation Block { get => block ?? throw new NullReferenceException(nameof(right)); private set => block = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedScopeTemplate? scope;
         public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public void Assemble(AssemblyContextWithGenerator interpetedContext)
         {
-            var leftResult = Left.Interpet(interpetedContext);
+            var leftResult = Left.Assemble(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
@@ -46,7 +46,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 
             var scope = interpetedContext.Child(Scope.Create());
 
-            var rightResult = Right.Interpet(scope);
+            var rightResult = Right.Assemble(scope);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {
@@ -57,7 +57,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 
             if (res.Value) {
 
-                var blockResult = Block.Interpet(scope);
+                var blockResult = Block.Assemble(scope);
 
                 if (blockResult.IsReturn(out var blockReturned, out var _))
                 {

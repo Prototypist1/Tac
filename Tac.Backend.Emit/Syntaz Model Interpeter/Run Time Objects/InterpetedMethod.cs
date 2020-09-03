@@ -16,16 +16,16 @@ namespace Tac.Backend.Emit.SyntaxModel
     {
 
         internal static IInterpetedMethod InternalMethod(InterpetedMemberDefinition parameterDefinition,
-                IInterpetedOperation[] body,
-                InterpetedContext context,
+                IAssembledOperation[] body,
+                AssemblyContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType methodType)
             => Root(new Func<IRunTimeAnyRoot, RunTimeAnyRootEntry>[] { InterpetedMethodIntention(parameterDefinition, body, context, scope, methodType) }).Has<IInterpetedMethod>();
 
         internal static Func<IRunTimeAnyRoot, RunTimeAnyRootEntry> InterpetedMethodIntention(
                 InterpetedMemberDefinition parameterDefinition,
-                IInterpetedOperation[] body,
-                InterpetedContext context,
+                IAssembledOperation[] body,
+                AssemblyContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType methodType)
             => root => {
@@ -38,8 +38,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         {
             public InterpetedMethod(
                 InterpetedMemberDefinition parameterDefinition,
-                IInterpetedOperation[] body,
-                InterpetedContext context,
+                IAssembledOperation[] body,
+                AssemblyContext context,
                 IInterpetedScopeTemplate scope,
                 IMethodType methodType,
                 IRunTimeAnyRoot root) : base(root)
@@ -52,8 +52,8 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
 
             private InterpetedMemberDefinition ParameterDefinition { get; }
-            private IInterpetedOperation[] Body { get; }
-            private InterpetedContext Context { get; }
+            private IAssembledOperation[] Body { get; }
+            private AssemblyContext Context { get; }
             private IInterpetedScopeTemplate Scope { get; }
             public IMethodType MethodType { get; }
             private IInterpetedStaticScope StaticScope { get; } = TypeManager.EmptyStaticScope();
@@ -69,7 +69,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 
                 foreach (var line in Body)
                 {
-                    var result = line.Interpet(scope);
+                    var result = line.Assemble(scope);
                     if (result.IsReturn(out var resMember, out var value))
                     {
                         return InterpetedResult.Create(resMember.CastTo<IInterpetedMember>());

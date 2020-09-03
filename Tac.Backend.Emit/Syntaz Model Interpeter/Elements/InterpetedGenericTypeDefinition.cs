@@ -2,11 +2,11 @@
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
-    internal class InterpetedGenericTypeDefinition : IInterpetedOperation
+    internal class InterpetedGenericTypeDefinition : IAssembledOperation
     {
         public void Init() { }
-        
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+
+        public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
             return InterpetedResult.Create(TypeManager.EmptyMember(TypeManager.Empty()));
         }

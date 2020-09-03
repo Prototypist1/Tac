@@ -21,7 +21,7 @@ namespace Tac.Backend.Emit.Public
     public class AssemblyBuilder
     {
         private readonly IKey key;
-        private readonly Dictionary<IKey, (IInterpetedOperation,IVerifiableType)> memberValues = new Dictionary<IKey, (IInterpetedOperation, IVerifiableType)>();
+        private readonly Dictionary<IKey, (IAssembledOperation,IVerifiableType)> memberValues = new Dictionary<IKey, (IAssembledOperation, IVerifiableType)>();
         private readonly List<IsStatic> members = new List<IsStatic>();
 
         public AssemblyBuilder(IKey key)
@@ -42,16 +42,16 @@ namespace Tac.Backend.Emit.Public
 
         public class  InterpetedAssemblyBacking : IBacking
         {
-            private readonly Dictionary<IKey, (IInterpetedOperation, IVerifiableType)> memberValues;
+            private readonly Dictionary<IKey, (IAssembledOperation, IVerifiableType)> memberValues;
             private readonly IFinalizedScope scope;
 
-            internal InterpetedAssemblyBacking(Dictionary<IKey, (IInterpetedOperation, IVerifiableType)> memberValues, IFinalizedScope scope)
+            internal InterpetedAssemblyBacking(Dictionary<IKey, (IAssembledOperation, IVerifiableType)> memberValues, IFinalizedScope scope)
             {
                 this.memberValues = memberValues ?? throw new ArgumentNullException(nameof(memberValues));
                 this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             }
 
-            internal IInterpetedMember CreateMember(InterpetedContext interpetedContext)
+            internal IInterpetedMember CreateMember(AssemblyContext interpetedContext)
             {
                 var scopeTemplate = new InterpetedScopeTemplate(scope, scope.ToVerifiableType());
                 var objectDefinition = new InterpetedObjectDefinition();
@@ -65,14 +65,14 @@ namespace Tac.Backend.Emit.Public
                     return GetAssignemnt(memberValuePair.Key, memberValuePair.Value.Item1, memberValuePair.Value.Item2).CastTo<IInterpetedAssignOperation>();
                 }));
 
-                if (objectDefinition.Interpet(interpetedContext).IsReturn(out var _, out var value)) {
+                if (objectDefinition.Assemble(interpetedContext).IsReturn(out var _, out var value)) {
                     throw new Exception("this should not throw");
                 }
 
                 return value!;
             }
 
-            private IInterpetedAssignOperation GetAssignemnt(IKey key, IInterpetedOperation operation, IVerifiableType type)
+            private IInterpetedAssignOperation GetAssignemnt(IKey key, IAssembledOperation operation, IVerifiableType type)
             {
                 var memberDefinition = new InterpetedMemberDefinition();
                 memberDefinition.Init(key, type);

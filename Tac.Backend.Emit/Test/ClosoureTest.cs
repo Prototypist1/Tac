@@ -23,7 +23,7 @@ namespace Tac.Backend.Emit.Test
             var conversionContext = new Definitions();
             var module = testCase.ModuleDefinition.Convert(conversionContext);
 
-            var res = module.Interpet(InterpetedContext.Root());
+            var res = module.Assemble(AssemblyContext.Root());
 
             Assert.False(res.IsReturn(out var _, out var value));
 

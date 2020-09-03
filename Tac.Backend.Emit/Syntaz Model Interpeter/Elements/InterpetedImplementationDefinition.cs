@@ -6,12 +6,12 @@ using Tac.Model.Elements;
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
-    internal class InterpetedImplementationDefinition : IInterpetedOperation
+    internal class InterpetedImplementationDefinition : IAssembledOperation
     {
         public void Init(
             InterpetedMemberDefinition parameterDefinition,
             InterpetedMemberDefinition contextDefinition,
-            IInterpetedOperation[] methodBody,
+            IAssembledOperation[] methodBody,
             IInterpetedScopeTemplate scope,
             IMethodType implementationType)
         {
@@ -29,8 +29,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         private InterpetedMemberDefinition? contextDefinition;
         public InterpetedMemberDefinition ContextDefinition { get => contextDefinition ?? throw new NullReferenceException(nameof(contextDefinition)); private set => contextDefinition = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedOperation[]? methodBody;
-        public IInterpetedOperation[] MethodBody { get => methodBody ?? throw new NullReferenceException(nameof(methodBody)); private set => methodBody = value ?? throw new NullReferenceException(nameof(value)); }
+        public IAssembledOperation[]? methodBody;
+        public IAssembledOperation[] MethodBody { get => methodBody ?? throw new NullReferenceException(nameof(methodBody)); private set => methodBody = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedScopeTemplate? scope;
         public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
@@ -38,7 +38,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         public IMethodType? implementationType;
         public IMethodType ImplementationType { get => implementationType ?? throw new NullReferenceException(nameof(implementationType)); private set => implementationType = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
             var thing = TypeManager.Implementation(
                 ParameterDefinition,

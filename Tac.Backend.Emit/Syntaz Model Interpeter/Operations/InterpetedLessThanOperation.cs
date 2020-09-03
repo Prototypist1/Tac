@@ -6,16 +6,16 @@ namespace Tac.Backend.Emit.SyntaxModel
 {
     internal class InterpetedLessThanOperation : InterpetedBinaryOperation
     {
-        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public override void Assemble(AssemblyContextWithGenerator interpetedContext)
         {
-            var leftResult = Left.Interpet(interpetedContext);
+            var leftResult = Left.Assemble(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
                 return InterpetedResult.Return<IInterpetedMember>(leftReturned!);
             }
 
-            var rightResult = Right.Interpet(interpetedContext);
+            var rightResult = Right.Assemble(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var rightValue))
             {

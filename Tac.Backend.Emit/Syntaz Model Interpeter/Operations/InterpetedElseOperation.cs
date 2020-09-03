@@ -5,8 +5,8 @@ namespace Tac.Backend.Emit.SyntaxModel
 
     internal class InterpetedElseOperation : InterpetedBinaryOperation
     {
-        public override IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext) {
-            var leftResult = Left.Interpet(interpetedContext);
+        public override void Assemble(AssemblyContextWithGenerator interpetedContext) {
+            var leftResult = Left.Assemble(interpetedContext);
 
             if (leftResult.IsReturn(out var leftReturned, out var leftValue))
             {
@@ -18,7 +18,7 @@ namespace Tac.Backend.Emit.SyntaxModel
                 return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(false)));
             }
 
-            var rightResult = Right.Interpet(interpetedContext);
+            var rightResult = Right.Assemble(interpetedContext);
 
             if (rightResult.IsReturn(out var rightReturned, out var _))
             {

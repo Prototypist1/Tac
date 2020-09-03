@@ -2,11 +2,11 @@
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
-    internal class InterpetedEntryPointDefinition: IInterpetedOperation
+    internal class InterpetedEntryPointDefinition: IAssembledOperation
     {
 
-        private IInterpetedOperation[]? body;
-        public IInterpetedOperation[] Body { get => body ?? throw new NullReferenceException(nameof(body)); private set => body = value ?? throw new NullReferenceException(nameof(value)); }
+        private IAssembledOperation[]? body;
+        public IAssembledOperation[] Body { get => body ?? throw new NullReferenceException(nameof(body)); private set => body = value ?? throw new NullReferenceException(nameof(value)); }
 
 
         public IInterpetedScopeTemplate? scope;
@@ -14,20 +14,20 @@ namespace Tac.Backend.Emit.SyntaxModel
 
 
         public void Init(
-            IInterpetedOperation[] methodBody,
+            IAssembledOperation[] methodBody,
             IInterpetedScopeTemplate scope)
         {
             Body = methodBody ?? throw new ArgumentNullException(nameof(methodBody));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
             var scope = interpetedContext.Child(Scope.Create());
 
             foreach (var line in Body)
             {
-                var result = line.Interpet(scope);
+                var result = line.Assemble(scope);
                 if (result.IsReturn(out var res, out var _))
                 {
                     return InterpetedResult.Return<IInterpetedMember>(res!);

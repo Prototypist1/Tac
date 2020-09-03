@@ -7,7 +7,7 @@ using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 namespace Tac.Backend.Emit.SyntaxModel
 {
 
-    internal interface IInterpetedMemberDefinition : IInterpetedOperation
+    internal interface IInterpetedMemberDefinition : IAssembledOperation
     {
         IKey Key
         {
@@ -29,7 +29,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         private IKey? key;
         public IKey Key { get => key ?? throw new NullReferenceException(nameof(key)); private set => key = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
             var member = TypeManager.Member(Type);
 

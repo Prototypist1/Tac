@@ -4,7 +4,7 @@ using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
-    internal class InterpetedConstantBool : IInterpetedOperation
+    internal class InterpetedConstantBool : IAssembledOperationRequiresGenerator
     {
         public void Init(bool value)
         {
@@ -13,9 +13,16 @@ namespace Tac.Backend.Emit.SyntaxModel
 
         public bool Value { get; private set; }
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public void Assemble(AssemblyContextWithGenerator interpetedContext)
         {
-            return InterpetedResult.Create(TypeManager.BoolMember(TypeManager.Bool(Value)));
+            if (Value)
+            {
+                interpetedContext.generator.Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0);
+            }
+            else
+            {
+                interpetedContext.generator.Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1);
+            }
         }
     }
 }

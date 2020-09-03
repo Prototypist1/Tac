@@ -4,7 +4,7 @@ using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
-    internal class InterpetedConstantNumber : IInterpetedOperation
+    internal class InterpetedConstantNumber : IAssembledOperationRequiresGenerator
     {
         public void Init(double value) {
             this.Value = value;
@@ -12,9 +12,9 @@ namespace Tac.Backend.Emit.SyntaxModel
 
         public double Value { get; private set; }
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public void Assemble(AssemblyContextWithGenerator interpetedContext)
         {
-            return InterpetedResult.Create(TypeManager.NumberMember(TypeManager.Double(Value)));
+            interpetedContext.generator.Emit(System.Reflection.Emit.OpCodes.Ldc_R8, Value);
         }
     }
 }

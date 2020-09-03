@@ -8,7 +8,7 @@ using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 
 namespace Tac.Backend.Emit.SyntaxModel.Elements
 {
-    internal class InterpetedExternalMethodDefinition : IInterpetedOperation
+    internal class InterpetedExternalMethodDefinition : IAssembledOperation
     {
         private IMethodType? methodType;
         public IMethodType MethodType { get => methodType ?? throw new NullReferenceException(nameof(methodType)); private set => methodType = value ?? throw new NullReferenceException(nameof(value)); }
@@ -19,7 +19,7 @@ namespace Tac.Backend.Emit.SyntaxModel.Elements
             MethodType = methodType ?? throw new ArgumentNullException(nameof(methodType));
         }
 
-        public IInterpetedResult<IInterpetedMember> Interpet(InterpetedContext interpetedContext)
+        public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
             var thing = TypeManager.ExternalMethod(Backing, MethodType);
 
