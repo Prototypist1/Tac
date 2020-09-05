@@ -14,7 +14,7 @@ namespace Tac.Backend.Emit.SyntaxModel
     internal class InterpetedTryAssignOperation : IInterpetedTryAssignOperation
     {
 
-        public void Init(IAssembledOperation left, IAssembledOperation right, IAssembledOperation block, IInterpetedScopeTemplate scope)
+        public void Init(IAssembledOperation left, IAssembledOperation right, IAssembledOperation block, IInterpetedScope scope)
         {
             Left = left ?? throw new ArgumentNullException(nameof(left));
             Right = right ?? throw new ArgumentNullException(nameof(right));
@@ -31,8 +31,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         private IAssembledOperation? block;
         public IAssembledOperation Block { get => block ?? throw new NullReferenceException(nameof(right)); private set => block = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedScopeTemplate? scope;
-        public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
+        public IInterpetedScope? scope;
+        public IInterpetedScope Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
 
 
         public void Assemble(AssemblyContextWithGenerator interpetedContext)

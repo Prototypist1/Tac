@@ -4,10 +4,10 @@ using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 namespace Tac.Backend.Emit.SyntaxModel
 {
 
-    internal interface IInterpetedScopeTemplate
-    {
-        IInterpetedScope Create();
-    }
+    //internal interface IInterpetedScopeTemplate
+    //{
+    //    IInterpetedScope Create();
+    //}
 
     public interface IInterpetedScope: IInterpetedAnyType
     {

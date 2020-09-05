@@ -9,7 +9,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 {
     internal class InterpetedModuleDefinition : IAssembledOperation
     {
-        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IAssembledOperation> staticInitialization, InterpetedEntryPointDefinition interpetedEntry)
+        public void Init(IInterpetedScope scope, IEnumerable<IAssembledOperation> staticInitialization, InterpetedEntryPointDefinition interpetedEntry)
         {
             ScopeTemplate = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialization = staticInitialization ?? throw new ArgumentNullException(nameof(staticInitialization));
@@ -21,8 +21,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         public InterpetedEntryPointDefinition InterpetedEntry { get => interpetedEntry ?? throw new NullReferenceException(nameof(interpetedEntry)); private set => interpetedEntry = value ?? throw new NullReferenceException(nameof(value)); }
 
 
-        private IInterpetedScopeTemplate? scopeTemplate;
-        public IInterpetedScopeTemplate ScopeTemplate { get => scopeTemplate ?? throw new NullReferenceException(nameof(scopeTemplate)); private set => scopeTemplate = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedScope? scopeTemplate;
+        public IInterpetedScope ScopeTemplate { get => scopeTemplate ?? throw new NullReferenceException(nameof(scopeTemplate)); private set => scopeTemplate = value ?? throw new NullReferenceException(nameof(value)); }
 
 
         private IEnumerable<IAssembledOperation>? staticInitialization;

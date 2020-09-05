@@ -12,7 +12,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         public void Init(
             InterpetedMemberDefinition parameterDefinition, 
             IAssembledOperation[] methodBody,
-            IInterpetedScopeTemplate scope,
+            IInterpetedScope scope,
             IMethodType methodType )
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -28,8 +28,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         private IAssembledOperation[]? body;
         public IAssembledOperation[] Body { get => body ?? throw new NullReferenceException(nameof(body)); private set => body = value ?? throw new NullReferenceException(nameof(value)); }
 
-        private IInterpetedScopeTemplate? scope;
-        public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedScope? scope;
+        public IInterpetedScope Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
 
 
         private IMethodType? methodType;
@@ -38,6 +38,19 @@ namespace Tac.Backend.Emit.SyntaxModel
 
         public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
+            // the method exists on a object that is the methods closure
+            // we need to initiate the object with the right values
+
+            // we need to go through the code to see what members should be on our closure
+            
+            // then we need to init the object
+            // then we need to set the members
+
+
+
+
+
+
             // ok so I make a class
             // I figure out what needs to be in the closure
             // I put that stuff in the type

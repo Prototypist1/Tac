@@ -10,14 +10,14 @@ namespace Tac.Backend.Emit.SyntaxModel
 {
     internal class InterpetedObjectDefinition :  IAssembledOperation
     {
-        public void Init(IInterpetedScopeTemplate scope, IEnumerable<IInterpetedAssignOperation> assignments)
+        public void Init(IInterpetedScope scope, IEnumerable<IInterpetedAssignOperation> assignments)
         {
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Assignments = assignments ?? throw new ArgumentNullException(nameof(assignments));
         }
 
-        private IInterpetedScopeTemplate? scope;
-        public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
+        private IInterpetedScope? scope;
+        public IInterpetedScope Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
 
         private IEnumerable<IInterpetedAssignOperation>? assignments;
         public IEnumerable<IInterpetedAssignOperation> Assignments { get => assignments ?? throw new NullReferenceException(nameof(assignments)); private set => assignments = value ?? throw new NullReferenceException(nameof(value)); }

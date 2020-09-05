@@ -14,21 +14,22 @@ namespace Tac.Backend.Emit.SyntaxModel
 {
 
 
-    internal class InterpetedScopeTemplate : IInterpetedScopeTemplate
-    {
-        private readonly IInterpetedStaticScope staticScope;
-        private readonly IFinalizedScope finalizedScope;
+    //internal class InterpetedScopeTemplate : IInterpetedScopeTemplate
+    //{
+    //    private readonly IInterpetedStaticScope staticScope;
+    //    private readonly IFinalizedScope finalizedScope;
 
-        public InterpetedScopeTemplate(IFinalizedScope finalizedScope, IInterfaceModuleType type) {
-            this.staticScope = TypeManager.StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>(), type);
-            this.finalizedScope = finalizedScope ?? throw new ArgumentNullException(nameof(finalizedScope));
-        }
+    //    public InterpetedScopeTemplate(IFinalizedScope finalizedScope, IInterfaceModuleType type)
+    //    {
+    //        this.staticScope = TypeManager.StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>(), type);
+    //        this.finalizedScope = finalizedScope ?? throw new ArgumentNullException(nameof(finalizedScope));
+    //    }
 
-        public IInterpetedScope Create()
-        {
-            return TypeManager.InstanceScope(staticScope, finalizedScope);
-        }
-    }
+    //    public IInterpetedScope Create()
+    //    {
+    //        return TypeManager.InstanceScope(staticScope, finalizedScope);
+    //    }
+    //}
 
     public static partial class TypeManager
     {
@@ -84,6 +85,10 @@ namespace Tac.Backend.Emit.SyntaxModel
                 return false;
             }
         }
+
+
+        internal static IInterpetedScope InstanceScope(IFinalizedScope finalizedScope, IInterfaceModuleType type)
+            => InstanceScope(TypeManager.StaticScope(new ConcurrentIndexed<IKey, IInterpetedMember>(), type), finalizedScope);
 
 
         internal static IInterpetedScope InstanceScope(IInterpetedStaticScope staticBacking,

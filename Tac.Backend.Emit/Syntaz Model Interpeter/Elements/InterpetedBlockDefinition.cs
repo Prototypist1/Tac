@@ -7,7 +7,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 {
     internal class InterpetedBlockDefinition :  IAssembledOperation
     {
-        public void Init(IAssembledOperationRequiresGenerator[] body, IInterpetedScopeTemplate scope)
+        public void Init(IAssembledOperationRequiresGenerator[] body, IInterpetedScope scope)
         {
             Body = body ?? throw new ArgumentNullException(nameof(body));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -16,8 +16,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         public IAssembledOperationRequiresGenerator[]? body; 
         public IAssembledOperationRequiresGenerator[] Body { get=>body?? throw new NullReferenceException(nameof(body)); private set=>body= value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedScopeTemplate? scope;
-        public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
+        public IInterpetedScope? scope;
+        public IInterpetedScope Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {

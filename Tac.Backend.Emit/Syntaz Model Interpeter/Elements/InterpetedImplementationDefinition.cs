@@ -12,7 +12,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             InterpetedMemberDefinition parameterDefinition,
             InterpetedMemberDefinition contextDefinition,
             IAssembledOperation[] methodBody,
-            IInterpetedScopeTemplate scope,
+            IInterpetedScope scope,
             IMethodType implementationType)
         {
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -32,8 +32,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         public IAssembledOperation[]? methodBody;
         public IAssembledOperation[] MethodBody { get => methodBody ?? throw new NullReferenceException(nameof(methodBody)); private set => methodBody = value ?? throw new NullReferenceException(nameof(value)); }
 
-        public IInterpetedScopeTemplate? scope;
-        public IInterpetedScopeTemplate Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
+        public IInterpetedScope? scope;
+        public IInterpetedScope Scope { get => scope ?? throw new NullReferenceException(nameof(scope)); private set => scope = value ?? throw new NullReferenceException(nameof(value)); }
 
         public IMethodType? implementationType;
         public IMethodType ImplementationType { get => implementationType ?? throw new NullReferenceException(nameof(implementationType)); private set => implementationType = value ?? throw new NullReferenceException(nameof(value)); }

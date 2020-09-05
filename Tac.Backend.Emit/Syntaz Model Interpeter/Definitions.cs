@@ -93,7 +93,7 @@ namespace Tac.Backend.Emit.SyntaxModel
                     co.Left.Convert(this),
                     co.Right.Convert(this),
                     co.Block.Convert(this),
-                    new InterpetedScopeTemplate(co.Scope, co.Scope.ToVerifiableType()));
+                    TypeManager.InstanceScope(co.Scope, co.Scope.ToVerifiableType()));
                 return op;
             }
         }
@@ -111,7 +111,7 @@ namespace Tac.Backend.Emit.SyntaxModel
                 backing.Add(codeElement, op);
                 op.Init(
                     codeElement.Body.Select(x=>x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()));
+                    TypeManager.InstanceScope(codeElement.Scope, codeElement.Scope.ToVerifiableType()));
                 return op;
             }
         }
@@ -226,7 +226,7 @@ namespace Tac.Backend.Emit.SyntaxModel
                     MemberDefinition(codeElement.ParameterDefinition).CastTo<InterpetedMemberDefinition>(),
                     MemberDefinition(codeElement.ContextDefinition).CastTo<InterpetedMemberDefinition>(),
                     codeElement.MethodBody.Select(x => x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
+                    TypeManager.InstanceScope(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.Returns().CastTo<IMethodType>());
                 return op;
             }
@@ -298,7 +298,7 @@ namespace Tac.Backend.Emit.SyntaxModel
                 backing.Add(codeElement, op);
                 op.Init(
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()));
+                    TypeManager.InstanceScope(codeElement.Scope, codeElement.Scope.ToVerifiableType()));
                 if (EntryPoint == null)
                 {
                     EntryPoint = op;
@@ -324,7 +324,7 @@ namespace Tac.Backend.Emit.SyntaxModel
                 op.Init(
                     MemberDefinition(codeElement.ParameterDefinition).CastTo<InterpetedMemberDefinition>(),
                     codeElement.Body.Select(x => x.Convert(this)).ToArray(),
-                    new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
+                    TypeManager.InstanceScope(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.Returns().CastTo<IMethodType>());
                 return op;
             }
@@ -340,7 +340,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             {
                 var op = new InterpetedModuleDefinition();
                 backing.Add(codeElement, op);
-                op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
+                op.Init(TypeManager.InstanceScope(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.StaticInitialization.Select(x => x.Convert(this)).ToArray(),
                     // yikos yuckos
                     (this as IOpenBoxesContext<IAssembledOperation, InterpetedAssemblyBacking>).EntryPoint(codeElement.EntryPoint).CastTo<InterpetedEntryPointDefinition>()
@@ -393,7 +393,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             {
                 var op = new InterpetedObjectDefinition();
                 backing.Add(codeElement, op);
-                op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
+                op.Init(TypeManager.InstanceScope(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.Assignments.Select(x => AssignOperation(x).CastTo<IInterpetedAssignOperation>()).ToArray()
                     );
                 return op;
