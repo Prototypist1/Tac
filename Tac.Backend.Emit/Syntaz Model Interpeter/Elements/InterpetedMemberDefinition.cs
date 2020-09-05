@@ -17,17 +17,14 @@ namespace Tac.Backend.Emit.SyntaxModel
 
     internal class InterpetedMemberDefinition: IInterpetedMemberDefinition
     {
-        public InterpetedMemberDefinition Init(IKey key, IVerifiableType type)
+        public InterpetedMemberDefinition Init(IKey key, InterpetedTypeDefinition type)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
-            Key = key ?? throw new ArgumentNullException(nameof(key));
             return this;
         }
 
-        private IVerifiableType? type;
-        public IVerifiableType Type { get => type ?? throw new NullReferenceException(nameof(type)); private set => type = value ?? throw new NullReferenceException(nameof(value)); }
-        private IKey? key;
-        public IKey Key { get => key ?? throw new NullReferenceException(nameof(key)); private set => key = value ?? throw new NullReferenceException(nameof(value)); }
+
+        public InterpetedTypeDefinition interpetedTypeDefinition;
+        public string name;
 
         public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {

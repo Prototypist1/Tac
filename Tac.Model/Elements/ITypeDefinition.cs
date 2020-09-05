@@ -39,16 +39,18 @@ namespace Tac.Model.Elements
     }
 
 
+    public interface IPrimitiveType : IVerifiableType { }
+
     public interface IBlockType : IVerifiableType { }
     public interface IEntryPointType : IVerifiableType { }
     public interface IReferanceType : IVerifiableType { }
 
-    public interface INumberType: IVerifiableType { }
-    public interface IBooleanType: IVerifiableType { }
-    public interface IStringType: IVerifiableType { }
+    public interface INumberType: IPrimitiveType { }
+    public interface IBooleanType: IPrimitiveType { }
+    public interface IStringType: IPrimitiveType { }
 
     public interface IAnyType : IVerifiableType { }
-    public interface IEmptyType : IVerifiableType { }
+    public interface IEmptyType : IPrimitiveType { }
 
     public interface IInterfaceModuleType : IVerifiableType, ICodeElement
     {

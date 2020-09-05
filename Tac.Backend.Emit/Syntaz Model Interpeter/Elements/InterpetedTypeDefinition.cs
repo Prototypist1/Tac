@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Reflection;
 using System.Reflection.Emit;
 using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 
@@ -9,10 +10,12 @@ namespace Tac.Backend.Emit.SyntaxModel
     {
 
 
-        public void Init(string name, InterpetedMemberDefinition[]? members)
+        public InterpetedTypeDefinition Init(string name, InterpetedMemberDefinition[]? members, ModuleBuilder moduleBuilder)
         {
             this.name = name;
             this.members = members;
+            this.type = moduleBuilder.DefineType(Name);
+            return this;
         }
 
 
@@ -20,6 +23,8 @@ namespace Tac.Backend.Emit.SyntaxModel
         public string Name => name ?? throw new NullReferenceException(nameof(name));
 
         public InterpetedMemberDefinition[]? members;
+        private TypeBuilder? type;
+        public System.Type Type => type ?? throw new NullReferenceException(nameof(type));
 
 
         // there has to be a type pass
@@ -32,9 +37,7 @@ namespace Tac.Backend.Emit.SyntaxModel
 
             foreach (var member in members)
             {
-                // in a type everything is a Ref<T>
-                // 
-                type.DefineField();
+                type.DefineField(member.name, member.interpetedTypeDefinition.Type, FieldAttributes.Public);
             }
 
             // I am going to have to create types in order??

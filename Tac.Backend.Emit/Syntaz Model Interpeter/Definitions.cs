@@ -14,6 +14,9 @@ using Tac.Backend.Emit.SyntaxModel;
 using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
 using static Tac.Backend.Emit.Public.AssemblyBuilder;
 using Prototypist.Toolbox.Object;
+using Prototypist.Toolbox.Dictionary;
+using System.Reflection.Emit;
+using System.Threading;
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
@@ -450,6 +453,8 @@ namespace Tac.Backend.Emit.SyntaxModel
 
         public IAssembledOperation TypeDefinition(IInterfaceType codeElement)
         {
+            // as a line this converts to no-op
+
             if (backing.TryGetValue(codeElement, out var res))
             {
                 return res;
@@ -494,87 +499,181 @@ namespace Tac.Backend.Emit.SyntaxModel
 
     }
 
+    internal class Empty { 
+    
+    }
+
+    internal class Ref<T> { 
+    
+    }
+
     internal static class TypeMap {
 
-        //public static System.Type MapType(IVerifiableType verifiableType)
-        //{
-        //    if (verifiableType is INumberType)
-        //    {
-        //        return typeof(IBoxedDouble);
-        //    }
-        //    if (verifiableType is IBooleanType)
-        //    {
-        //        return typeof(IBoxedBool);
-        //    }
-        //    if (verifiableType is IStringType)
-        //    {
-        //        return typeof(IBoxedString);
-        //    }
-        //    if (verifiableType is IBlockType)
-        //    {
-        //        return typeof(IInterpedEmpty);
-        //    }
-        //    if (verifiableType is IEmptyType)
-        //    {
-        //        return typeof(IInterpedEmpty);
-        //    }
-        //    if (verifiableType is IAnyType)
-        //    {
-        //        return typeof(IInterpetedAnyType);
-        //    }
-        //    if (verifiableType is IModuleType || verifiableType is IInterfaceType || verifiableType is IObjectDefiniton)
-        //    {
-        //        return typeof(IInterpetedScope);
-        //    }
-        //    if (verifiableType is IMethodType method)
-        //    {
-        //        return typeof(IInterpetedMethod<,>).MakeGenericType(
-        //            MapType(method.InputType),
-        //            MapType(method.OutputType)
-        //            );
-        //    }
-        //    if (verifiableType is IMemberReferance memberReferance)
-        //    {
-        //        return MapType(memberReferance.MemberDefinition.Type);
-        //    }
-        //    if (verifiableType is ITypeOr typeOr)
-        //    {
-        //        // we try to find the intersection of the types
-        //        return MergeTypes(typeOr.Left, typeOr.Right);
-        //    }
 
-        //    throw new NotImplementedException();
-        //}
+        public static Dictionary<IVerifiableType, System.Type> typeCache = new Dictionary<IVerifiableType, System.Type>();
 
-        //private static System.Type MergeTypes(IVerifiableType left, IVerifiableType right)
-        //{
+        public static System.Type InnerMapType(IVerifiableType verifiableType, ModuleBuilder moduleBuilder)
+        {
+            var list = new LinkedList<Action>();
+            var res = MapType(verifiableType, list, moduleBuilder);
 
-        //    var leftType = MapType(left); ;
-        //    var rightType = MapType(right);
+            while (list.Any()) {
 
-        //    // if they are the same we are happy
-        //    if (leftType == rightType)
-        //    {
-        //        return leftType;
-        //    }
+                var action = list.First();
+                action();
+                list.RemoveFirst();
+            }
 
-        //    // if they are both methods 
-        //    // we have re merge the method io
-        //    if (left.TryGetInput().Is(out var leftInput) &&
-        //        right.TryGetInput().Is(out var rightInput) &&
-        //        left.TryGetReturn().Is(out var leftReturn) &&
-        //        right.TryGetReturn().Is(out var rightReturn))
-        //    {
+            foreach (var action in list)
+            {
+                action();
+            }
 
-        //        return typeof(IInterpetedMethod<,>).MakeGenericType(
-        //            MergeTypes(leftInput, rightInput),
-        //            MergeTypes(leftReturn, rightReturn));
-        //    }
+            return res;
+        }
 
-        //    // we really can't merge them
-        //    // so call it empty?
-        //    return typeof(IInterpedEmpty);
-        //}
+        private static System.Type MapType(IVerifiableType verifiableType, LinkedList<Action> followUp, ModuleBuilder moduleBuilder) {
+
+            return typeCache.GetOrAdd(verifiableType, () => InnerMapType(verifiableType, followUp, moduleBuilder));
+
+
+        }
+
+
+
+        private static System.Type InnerMapType(IVerifiableType verifiableType, LinkedList<Action> followUp, ModuleBuilder moduleBuilder)
+        {
+            if (verifiableType is INumberType)
+            {
+                return typeof(double);
+            }
+            if (verifiableType is IBooleanType)
+            {
+                return typeof(bool);
+            }
+            if (verifiableType is IStringType)
+            {
+                return typeof(string);
+            }
+            if (verifiableType is IBlockType)
+            {
+                // ??
+                return typeof(Action);
+            }
+            if (verifiableType is IEmptyType)
+            {
+                return typeof(Empty);
+            }
+            if (verifiableType is IAnyType)
+            {
+                return typeof(object);
+            }
+            if (verifiableType.SafeIs(out IInterfaceModuleType moduleType))
+            {
+                var myType = moduleBuilder.DefineType(new Guid().ToString("N"));
+
+                followUp.AddLast(() => {
+                    foreach (var member in moduleType.Members) {
+
+                        // duplicate code {BEAEC647-A435-4315-919B-D6CF353A8B27}
+                        var type = InnerMapType(member.Type, followUp, moduleBuilder);
+
+                        if (type.IsPrimitive)
+                        {
+                            myType.DefineField(member.Key.SafeCastTo(out NameKey _).Name, typeof(Ref<>).MakeGenericType(type), FieldAttributes.Public);
+                        }
+                        else {
+                            myType.DefineField(member.Key.SafeCastTo(out NameKey _).Name, typeof(Func<>).MakeGenericType(typeof(Ref<>).MakeGenericType(type)), FieldAttributes.Public);
+                        }
+                    }
+                });
+
+                return myType;
+            }
+            if (verifiableType is IMethodType method)
+            {
+                return typeof(Func<,>).MakeGenericType(
+                    MapType(method.InputType, followUp, moduleBuilder),
+                    MapType(method.OutputType, followUp, moduleBuilder)
+                    );
+            }
+            if (verifiableType is IMemberReferance memberReferance)
+            {
+                // I have to fresh up on what this means....
+                // I think it is ref<T> 
+                // used on the target of assignment 
+                return MapType(memberReferance.MemberDefinition.Type, followUp, moduleBuilder);
+            }
+            if (verifiableType is ITypeOr typeOr)
+            {
+                // we try to find the intersection of the types
+                return MergeTypes(typeOr.Left, typeOr.Right, followUp, moduleBuilder);
+            }
+
+            throw new NotImplementedException();
+        }
+
+        private static System.Type MergeTypes(IVerifiableType left, IVerifiableType right, LinkedList<Action> followUp, ModuleBuilder moduleBuilder)
+        {
+
+            var leftType = InnerMapType(left, followUp, moduleBuilder); ;
+            var rightType = InnerMapType(right, followUp, moduleBuilder);
+
+            // if they are the same we are happy'
+            if (leftType == rightType)
+            {
+                return leftType;
+            }
+
+            // if either is a primitive type... return empty?
+            if (left.SafeIs(out IPrimitiveType _) || right.SafeIs(out IPrimitiveType _))
+            {
+                return typeof(Empty);
+            }
+
+            // if they are both methods 
+            // we have re merge the method io
+            if (left.TryGetInput().Is(out var leftInput) &&
+                right.TryGetInput().Is(out var rightInput) &&
+                left.TryGetReturn().Is(out var leftReturn) &&
+                right.TryGetReturn().Is(out var rightReturn))
+            {
+
+                return typeof(Func<,>).MakeGenericType(
+                    MergeTypes(leftInput, rightInput, followUp, moduleBuilder),
+                    MergeTypes(leftReturn, rightReturn, followUp, moduleBuilder));
+            }
+
+            if (left.SafeIs(out IInterfaceModuleType leftHasMembers) && right.SafeIs(out IInterfaceModuleType rightHasMembers)) { 
+                var myType = moduleBuilder.DefineType(new Guid().ToString("N"));
+
+
+                followUp.AddLast(() => {
+
+                    foreach (var member in leftHasMembers.Members)
+                    {
+                        if (rightHasMembers.TryGetMember(member.Key).Is(out var memberType)) {
+
+                            // duplicate code {BEAEC647-A435-4315-919B-D6CF353A8B27}
+                            var type = InnerMapType(member.Type, followUp, moduleBuilder);
+
+                            if (type.IsPrimitive)
+                            {
+                                myType.DefineField(member.Key.SafeCastTo(out NameKey _).Name, typeof(Ref<>).MakeGenericType(type), FieldAttributes.Public);
+                            }
+                            else
+                            {
+                                myType.DefineField(member.Key.SafeCastTo(out NameKey _).Name, typeof(Func<>).MakeGenericType(typeof(Ref<>).MakeGenericType(type)), FieldAttributes.Public);
+                            }
+                        }
+                    }
+                });
+
+                return myType;
+            }
+
+            return typeof(Empty);
+        }
     }
 
 }
