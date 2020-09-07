@@ -164,8 +164,8 @@ namespace Tac.SemanticModel.Operations
 
         public ISetUpResult<IBox<WeakAssignOperation>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
-            var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChildContext(this)));
+            var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChildContext(this)));
 
             if (nextLeft.Is1(out var nextLeft1) && nextLeft1.SetUpSideNode.Is1(out var node1) && nextRight.Is1(out var nextRight1) && nextRight1.SetUpSideNode.Is1(out var node2))
             {

@@ -162,14 +162,14 @@ namespace Tac.SemanticModel
                 throw new NotImplementedException("this should be an IError");
             }
 
-            var realizedInput = parameterDefinition.Run(scope, context.CreateChild(this));
-            var realizedOutput = output.Run(scope, context.CreateChild(this));
+            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
+            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
 
             var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
             var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
             var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
 
-            box.Fill(elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChild(this)).Resolve)).ToArray());
+            box.Fill(elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray());
 
             var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),

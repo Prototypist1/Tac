@@ -66,15 +66,23 @@ namespace Tac.SemanticModel
         public IBuildIntention<IImplementationDefinition> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = ImplementationDefinition.Create();
+
+ 
+
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
+                var contextMember = ContextDefinition.GetValue().Convert(context);
+
                 maker.Build(
                     OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
-                    ContextDefinition.GetValue().Convert(context),
+                    contextMember,
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
                     MethodBody.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
-                    StaticInitialzers.Select(x => x.ConvertElementOrThrow(context)).ToArray());
+                    StaticInitialzers.Select(x => x.ConvertElementOrThrow(context)).ToArray(),
+                    Model.Instantiated.Scope.CreateAndBuild(new IsStatic[] {
+                        new IsStatic(contextMember,false)
+                    }));
             });
         }
 
@@ -218,9 +226,9 @@ namespace Tac.SemanticModel
             // but here they might maybe convert to an implementation not a method that returns a method
             // idk! 🤷‍😭
 
-            var realizeContext = contextDefinition.Run(scope, context.CreateChild(this));
-            var realizedInput = parameterDefinition.Run(scope, context.CreateChild(this));
-            var realizedOutput = output.Run(scope, context.CreateChild(this));
+            var realizeContext = contextDefinition.Run(scope, context.CreateChildContext(this));
+            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
+            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
             var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"), new[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
@@ -228,11 +236,32 @@ namespace Tac.SemanticModel
 
             var innerBox = new Box<Tpn.TypeProblem2.Method>();
             var linesBox = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
-            var outer = context.TypeProblem.CreateMethod(scope, realizeContext.SetUpSideNode, OrType.Make<TypeProblem2.TypeReference, IError>(outputTypeRef), contextName, new WeakImplementationDefinitionConverter(new Box<IResolve<IBox<IFrontendCodeElement>>[]>(Array.Empty<IResolve<IBox<IFrontendCodeElement>>>()), innerBox), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
+            var outer = context.TypeProblem.CreateMethod(
+                scope, 
+                realizeContext.SetUpSideNode, 
+                OrType.Make<TypeProblem2.TypeReference, IError>(outputTypeRef), 
+                contextName, 
+                new WeakImplementationDefinitionConverter(
+                    new Box<IResolve<IBox<IFrontendCodeElement>>[]>(Array.Empty<IResolve<IBox<IFrontendCodeElement>>>()), 
+                    innerBox), 
+                new WeakMemberDefinitionConverter(
+                    false, 
+                    new NameKey(parameterName)));
 
-            var inner = context.TypeProblem.CreateMethod(outer, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, new WeakMethodDefinitionConverter(linesBox, false), new WeakMemberDefinitionConverter(false, new NameKey(parameterName)));
+            var inner = context.TypeProblem.CreateMethod(
+                outer, 
+                realizedInput.SetUpSideNode, 
+                realizedOutput.SetUpSideNode, 
+                parameterName, 
+                new WeakMethodDefinitionConverter(
+                    linesBox, 
+                    false), 
+                new WeakMemberDefinitionConverter(
+                    false, 
+                    new NameKey(parameterName)));
+
             innerBox.Fill(inner);
-            linesBox.Fill(elements.Select(y => y.TransformInner(x => x.Run(inner, context.CreateChild(this)).Resolve)).ToArray());
+            linesBox.Fill(elements.Select(y => y.TransformInner(x => x.Run(inner, context.CreateChildContext(this)).Resolve)).ToArray());
 
             var innerValue = context.TypeProblem.CreateValue(outer,
                  new GenericNameKey(new NameKey("method"), new[] {

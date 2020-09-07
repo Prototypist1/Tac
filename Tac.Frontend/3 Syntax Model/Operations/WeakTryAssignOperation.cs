@@ -163,9 +163,9 @@ namespace Tac.SemanticModel.Operations
 
             var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));
 
-            var nextLeft = left.TransformInner(x => x.Run(myScope, context.CreateChild(this)));
-            var nextRight = right.TransformInner(x => x.Run(myScope, context.CreateChild(this)));
-            var nextblock = block.TransformInner(x => x.Run(myScope, context.CreateChild(this)));
+            var nextLeft = left.TransformInner(x => x.Run(myScope, context.CreateChildContext(this)));
+            var nextRight = right.TransformInner(x => x.Run(myScope, context.CreateChildContext(this)));
+            var nextblock = block.TransformInner(x => x.Run(myScope, context.CreateChildContext(this)));
 
             if (nextLeft.Is1(out var nextLeft1) && nextLeft1.SetUpSideNode.Is1(out var node1) && nextRight.Is1(out var nextRight1) && nextRight1.SetUpSideNode.Is1(out var node2))
             {

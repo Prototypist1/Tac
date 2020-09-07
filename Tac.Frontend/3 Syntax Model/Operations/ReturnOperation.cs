@@ -168,7 +168,7 @@ namespace Tac.SemanticModel.Operations
                 scope = scope.EnterInitizaionScopeIfNessisary();
             }
 
-            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChildContext(this)));
             return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(
                 new TrailingResolveReferance<TFrontendCodeElement, TCodeElement>(nextLeft.TransformInner(x => x.Resolve), make),
                 getReturnedValue(scope, context, nextLeft));

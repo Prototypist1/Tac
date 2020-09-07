@@ -23,7 +23,7 @@ namespace Tac.Infastructure
         IIsPossibly<ISetUp> EnclosingSetUp { get; }
         Tpn.TypeProblem2.Builder TypeProblem { get; }
 
-        ISetUpContext CreateChild(ISetUp setUp);
+        ISetUpContext CreateChildContext(ISetUp setUp);
     }
 
     internal class SetUpContext : ISetUpContext
@@ -49,7 +49,7 @@ namespace Tac.Infastructure
             get;
         }
 
-        public ISetUpContext CreateChild(ISetUp setUp)
+        public ISetUpContext CreateChildContext(ISetUp setUp)
         {
             return new SetUpContext(TypeProblem, Possibly.Is(this), Possibly.Is(setUp));
         }

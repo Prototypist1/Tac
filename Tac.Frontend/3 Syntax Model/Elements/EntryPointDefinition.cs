@@ -94,7 +94,7 @@ namespace Tac.SemanticModel
 
             box.Fill(elements.Select(x =>
                 x.SwitchReturns(
-                    y => OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(innerScope, context.CreateChild(this)).Resolve),
+                    y => OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(innerScope, context.CreateChildContext(this)).Resolve),
                     y => OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y)))
             .ToArray());
 

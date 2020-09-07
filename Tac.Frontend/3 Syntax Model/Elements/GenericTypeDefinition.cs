@@ -132,7 +132,7 @@ namespace Tac.SemanticModel
                 OrType.Make<NameKey, ImplicitKey>(nameKey),
                 genericParameters.Select(x => new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),
                 new WeakTypeDefinitionConverter());
-            var nextLines = lines.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChild(this)).Resolve)).ToArray();
+            var nextLines = lines.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray();
             return new SetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), OrType.Make<Tpn.IExplicitType, IError>(myScope));
         }
     }

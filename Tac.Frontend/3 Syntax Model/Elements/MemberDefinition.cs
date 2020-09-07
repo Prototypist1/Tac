@@ -187,7 +187,7 @@ namespace Tac.SemanticModel
         public ISetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
 
-            var type = this.type.Run(scope, context.CreateChild(this));
+            var type = this.type.Run(scope, context.CreateChildContext(this));
 
 
             var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x => x.Key()), new WeakMemberDefinitionConverter(isReadonly, memberName));

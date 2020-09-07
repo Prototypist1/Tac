@@ -191,7 +191,7 @@ namespace Tac.SemanticModel
             //        });
             //}
 
-            box.Fill(elements.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChild(this)).Resolve)).ToArray());
+            box.Fill(elements.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray());
 
             return new SetUpResult<IBox<WeakModuleDefinition>, Tpn.TypeProblem2.Object>(new ModuleDefinitionResolveReferance(myScope), OrType.Make<Tpn.TypeProblem2.Object, IError>(myScope));
         }

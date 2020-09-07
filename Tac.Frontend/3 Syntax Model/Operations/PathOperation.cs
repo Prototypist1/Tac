@@ -145,7 +145,7 @@ namespace Tac.SemanticModel.Operations
         {
             scope = scope.EnterInitizaionScopeIfNessisary();
 
-            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
+            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChildContext(this)));
 
             var member = nextLeft.SwitchReturns(
                 good =>

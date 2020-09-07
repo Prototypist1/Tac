@@ -12,5 +12,6 @@ namespace Tac.Model.Elements
         IFinalizedScope Scope { get; }
         IEnumerable<ICodeElement> MethodBody { get; }
         IEnumerable<ICodeElement> StaticInitialzers { get; }
+        IFinalizedScope IntermediateScope { get; }
     }
 }

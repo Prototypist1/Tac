@@ -14,6 +14,7 @@ namespace Tac.Model.Instantiated
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
         private readonly Buildable<IEnumerable<ICodeElement>> buildableMethodBody = new Buildable<IEnumerable<ICodeElement>>();
         private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitialzers = new Buildable<IEnumerable<ICodeElement>>();
+        private readonly Buildable<IFinalizedScope> intermediateScope = new Buildable<IFinalizedScope>();
 
         private ImplementationDefinition()
         {
@@ -27,6 +28,7 @@ namespace Tac.Model.Instantiated
         public IFinalizedScope Scope { get => buildableScope.Get(); }
         public IEnumerable<ICodeElement> MethodBody { get => buildableMethodBody.Get(); }
         public IEnumerable<ICodeElement> StaticInitialzers { get => buildableStaticInitialzers.Get(); }
+        public IFinalizedScope IntermediateScope { get => intermediateScope.Get(); }
 
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking
@@ -42,7 +44,15 @@ namespace Tac.Model.Instantiated
 
         #endregion
         
-        public void Build(IVerifiableType outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers) {
+        public void Build(
+            IVerifiableType outputType, 
+            IMemberDefinition contextDefinition, 
+            IMemberDefinition parameterDefinition, 
+            IFinalizedScope scope, 
+            IEnumerable<ICodeElement> methodBody, 
+            IEnumerable<ICodeElement> staticInitialzers,
+            IFinalizedScope intermediateScope) 
+        {
             buildableOutputType.Set(outputType);
             buildableContextDefinition.Set(contextDefinition);
             buildableParameterDefinition.Set(parameterDefinition);
@@ -57,15 +67,30 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IImplementationDefinition CreateAndBuild(IVerifiableType outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers) {
+        public static IImplementationDefinition CreateAndBuild(
+            IVerifiableType outputType, 
+            IMemberDefinition contextDefinition, 
+            IMemberDefinition parameterDefinition, 
+            IFinalizedScope scope, 
+            IEnumerable<ICodeElement> methodBody, 
+            IEnumerable<ICodeElement> staticInitialzers, 
+            IFinalizedScope intermediateScope) 
+        {
             var (x, y) = Create();
-            y.Build(outputType, contextDefinition, parameterDefinition, scope, methodBody, staticInitialzers);
+            y.Build(outputType, contextDefinition, parameterDefinition, scope, methodBody, staticInitialzers, intermediateScope);
             return x;
         }
     }
 
     public interface IImplementationDefinitionBuilder
     {
-        void Build(IVerifiableType outputType, IMemberDefinition contextDefinition, IMemberDefinition parameterDefinition, IFinalizedScope scope, IEnumerable<ICodeElement> methodBody, IEnumerable<ICodeElement> staticInitialzers);
+        void Build(
+            IVerifiableType outputType, 
+            IMemberDefinition contextDefinition, 
+            IMemberDefinition parameterDefinition, 
+            IFinalizedScope scope, 
+            IEnumerable<ICodeElement> methodBody, 
+            IEnumerable<ICodeElement> staticInitialzers, 
+            IFinalizedScope intermediateScope);
     }
 }

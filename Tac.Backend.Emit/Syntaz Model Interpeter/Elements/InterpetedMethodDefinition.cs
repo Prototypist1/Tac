@@ -131,85 +131,8 @@ namespace Tac.Backend.Emit.SyntaxModel
 
         }
 
-        private void Walk(IEnumerable<ICodeElement> elements, IReadOnlyList<IFinalizedScope> scopeStack) {
-            
-            
-            
-            foreach (var line in elements)
-            {
-                if (line.SafeIs(out IPathOperation path))
-                {
-                    // we are not interested in the second member
-                    Walk(path.Operands.Take(1), scopeStack);
-
-                    if (path.Operands.Count != 2)
-                    {
-                        throw new Exception("i am assuming ther e are 2 parms and the second is a member reference");
-                    }
-
-                    if (!path.Right.SafeIs(out IMemberReferance referance))
-                    {
-                        throw new Exception("i am assuming ther e are 2 parms and the second is a member reference");
-                    }
-
-                }
-                else if (line.SafeIs(out IInternalMethodDefinition method)) {
-                    var nextScopeStack = scopeStack.ToList();
-
-                    nextScopeStack.Add(method.Scope);
-
-                    if (method.StaticInitailizers.Any()) {
-                        throw new Exception("I don't undterstand why a method would have static initailizers, if this exception is hit then you are in a postition to find out");
-                    }
-
-                    Walk(method.Body, scopeStack);
-
-                }
-                else if (line.SafeIs(out IObjectDefiniton @object))
-                {
-                    var nextScopeStack = scopeStack.ToList();
-
-                    nextScopeStack.Add(@object.Scope);
-
-
-                    Walk(@object.Assignments, scopeStack);
-
-                }
-                else if (line.SafeIs(out IModuleDefinition module))
-                {
-                    var nextScopeStack = scopeStack.ToList();
-
-                    nextScopeStack.Add(module.Scope);
-
-
-                    Walk(module.StaticInitialization, scopeStack);
-
-                }
-                else if (line.SafeIs(out IImplementationDefinition implementation))
-                {
-                    var nextScopeStack = scopeStack.ToList();
-
-                    nextScopeStack.Add(implementation.Scope);
-
-
-                    Walk(module.StaticInitialization, scopeStack);
-
-                }
-
-
-
-
-                else if (line.SafeIs(out IOperation op))
-                {
-                    Walk(op.Operands, scopeStack);
-                }
-            }
-
-        }
-
+       
     }
-
-
 }
 
 

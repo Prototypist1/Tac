@@ -266,9 +266,9 @@ namespace Tac.SemanticModel.CodeStuff
                 scope = scope.EnterInitizaionScopeIfNessisary();
             }
 
-            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChild(this)));
-            var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChild(this)));
-            var value = keyMaker(scope, context.CreateChild(this), nextLeft, nextRight);
+            var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChildContext(this)));
+            var nextRight = right.TransformInner(x => x.Run(scope, context.CreateChildContext(this)));
+            var value = keyMaker(scope, context.CreateChildContext(this), nextLeft, nextRight);
 
             return new SetUpResult<IBox<TFrontendCodeElement>, Tpn.IValue>(new BinaryResolveReferance<TFrontendCodeElement, TCodeElement>(
                 nextLeft.TransformInner(x => x.Resolve),
@@ -423,9 +423,9 @@ namespace Tac.SemanticModel.CodeStuff
 
             // part of me just thinks 
             // force 'var' on member definition 
-            var nextLeft = left.Run(scope, context.CreateChild(this));
-            var nextRight = right.Run(scope, context.CreateChild(this));
-            var type = toTypeProblemThings(scope, context.CreateChild(this), nextLeft, nextRight);
+            var nextLeft = left.Run(scope, context.CreateChildContext(this));
+            var nextRight = right.Run(scope, context.CreateChildContext(this));
+            var type = toTypeProblemThings(scope, context.CreateChildContext(this), nextLeft, nextRight);
 
             return new SetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>(new BinaryResolveReferance(
                 nextLeft.Resolve,
