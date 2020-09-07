@@ -3,6 +3,11 @@ using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Backend.Emit.SyntaxModel.Run_Time_Objects;
+using System.Linq;
+using Tac.Model.Operations;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Backend.Emit.SyntaxModel
 {
@@ -38,18 +43,14 @@ namespace Tac.Backend.Emit.SyntaxModel
 
         public IInterpetedResult<IInterpetedMember> Assemble(AssemblyContext interpetedContext)
         {
-            // the method exists on a object that is the methods closure
-            // we need to initiate the object with the right values
-
-            // we need to go through the code to see what members should be on our closure
-            
-            // then we need to init the object
-            // then we need to set the members
 
 
 
 
 
+
+
+            // -----------------------------------------
 
             // ok so I make a class
             // I figure out what needs to be in the closure
@@ -59,7 +60,6 @@ namespace Tac.Backend.Emit.SyntaxModel
             // defines anything that is going to live in there
             // in the closure
             // that sounds more optimised than I want atm
-
 
             // it is possible we are in a type
             // so we don't need to make a type
@@ -81,6 +81,19 @@ namespace Tac.Backend.Emit.SyntaxModel
             // it should probably be defined on it own type
             // and have it own closure
             // that makes my life simpler anyway
+
+            // ------------------------------------------
+
+            // the method exists on a object that is the methods closure
+            // we need to initiate the object with the right values
+
+            // we need to go through the code to see what members should be on our closure
+
+            // then we need to init the object
+
+            // so member reference that are not the right child of a path operation
+
+            
 
 
             var thing = TypeManager.InternalMethod(
@@ -107,4 +120,96 @@ namespace Tac.Backend.Emit.SyntaxModel
         //}
 
     }
+
+
+    internal class IInternalMethodDefinitionAnalyzer
+    {
+
+        public void analyze(IInternalMethodDefinition target) {
+
+
+
+        }
+
+        private void Walk(IEnumerable<ICodeElement> elements, IReadOnlyList<IFinalizedScope> scopeStack) {
+            
+            
+            
+            foreach (var line in elements)
+            {
+                if (line.SafeIs(out IPathOperation path))
+                {
+                    // we are not interested in the second member
+                    Walk(path.Operands.Take(1), scopeStack);
+
+                    if (path.Operands.Count != 2)
+                    {
+                        throw new Exception("i am assuming ther e are 2 parms and the second is a member reference");
+                    }
+
+                    if (!path.Right.SafeIs(out IMemberReferance referance))
+                    {
+                        throw new Exception("i am assuming ther e are 2 parms and the second is a member reference");
+                    }
+
+                }
+                else if (line.SafeIs(out IInternalMethodDefinition method)) {
+                    var nextScopeStack = scopeStack.ToList();
+
+                    nextScopeStack.Add(method.Scope);
+
+                    if (method.StaticInitailizers.Any()) {
+                        throw new Exception("I don't undterstand why a method would have static initailizers, if this exception is hit then you are in a postition to find out");
+                    }
+
+                    Walk(method.Body, scopeStack);
+
+                }
+                else if (line.SafeIs(out IObjectDefiniton @object))
+                {
+                    var nextScopeStack = scopeStack.ToList();
+
+                    nextScopeStack.Add(@object.Scope);
+
+
+                    Walk(@object.Assignments, scopeStack);
+
+                }
+                else if (line.SafeIs(out IModuleDefinition module))
+                {
+                    var nextScopeStack = scopeStack.ToList();
+
+                    nextScopeStack.Add(module.Scope);
+
+
+                    Walk(module.StaticInitialization, scopeStack);
+
+                }
+                else if (line.SafeIs(out IImplementationDefinition implementation))
+                {
+                    var nextScopeStack = scopeStack.ToList();
+
+                    nextScopeStack.Add(implementation.Scope);
+
+
+                    Walk(module.StaticInitialization, scopeStack);
+
+                }
+
+
+
+
+                else if (line.SafeIs(out IOperation op))
+                {
+                    Walk(op.Operands, scopeStack);
+                }
+            }
+
+        }
+
+    }
+
+
 }
+
+

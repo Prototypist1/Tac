@@ -1,5 +1,6 @@
 ﻿
 using Prototypist.Toolbox;
+using System.Collections.Generic;
 using Tac.Model.Elements;
 
 namespace Tac.Model

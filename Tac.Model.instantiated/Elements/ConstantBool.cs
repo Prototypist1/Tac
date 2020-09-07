@@ -1,5 +1,6 @@
 ﻿using Tac.Model.Elements;
 using Prototypist.Toolbox;
+using System.Collections.Generic;
 
 namespace Tac.Model.Instantiated
 {
@@ -12,6 +13,8 @@ namespace Tac.Model.Instantiated
         #region IConstantBool
 
         public bool Value { get => valueBuilder.Get(); }
+
+
         public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
             where TBacking : IBacking
         {
