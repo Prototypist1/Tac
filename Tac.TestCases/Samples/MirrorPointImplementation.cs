@@ -62,6 +62,10 @@ module mirror-module {
                     new IsStatic( input ,false),
                     new IsStatic(temp ,false) });
 
+            var intermediateScope = Scope.CreateAndBuild(
+                new List<IsStatic> {
+                    new IsStatic( context ,false)});
+
 
             ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                  Scope.CreateAndBuild(
@@ -88,7 +92,8 @@ module mirror-module {
                                         PathOperation.CreateAndBuild(MemberReference.CreateAndBuild(context),MemberReference.CreateAndBuild(localY))
                                         )
                             },
-                            Array.Empty<ICodeElement>()),
+                            Array.Empty<ICodeElement>(),
+                            intermediateScope),
                     MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))
                 },
                 new NameKey("mirror-module"),

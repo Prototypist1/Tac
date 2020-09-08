@@ -40,7 +40,7 @@ namespace Tac.Backend.Interpreted.Public
             return this;
         }
 
-        public class  InterpetedAssemblyBacking : IBacking
+        public class  InterpetedAssemblyBacking 
         {
             private readonly Dictionary<IKey, (IInterpetedOperation, IVerifiableType)> memberValues;
             private readonly IFinalizedScope scope;
@@ -114,8 +114,7 @@ namespace Tac.Backend.Interpreted.Public
             public IFinalizedScope Scope { get; }
             public InterpetedAssemblyBacking Backing {get;}
 
-            public T Convert<T, TBaking>(IOpenBoxesContext<T,TBaking> _)
-                where TBaking:IBacking
+            public T Convert<T>(IOpenBoxesContext<T> _)
 
             {
                 throw new NotImplementedException();

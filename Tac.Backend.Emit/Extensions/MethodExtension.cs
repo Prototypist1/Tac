@@ -5,7 +5,7 @@ using Tac.Model.Elements;
 
 namespace Tac.Backend.Emit.Extensions
 {
-    class MethodExtension
+    class ClosureExtension
     {
         public readonly List<IMemberDefinition> closureMember = new List<IMemberDefinition>();
     }

@@ -6,7 +6,6 @@ using Tac.Model.Elements;
 namespace Tac.Model
 {
     public interface IAssembly<TBacking>
-        where TBacking : IBacking
     {
         IKey Key { get; }
         IFinalizedScope Scope { get; }
@@ -14,5 +13,5 @@ namespace Tac.Model
         TBacking Backing { get; }
     }
 
-    public interface IBacking { }
+    //public interface IBacking { }
 }

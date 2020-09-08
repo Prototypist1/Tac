@@ -9,7 +9,7 @@ using Tac.Model.Operations;
 
 namespace Tac.Backend.Emit.Walkers
 {
-    class ClosureWalker
+    class ClosureWalker : IOpenBoxesContext<IAssembledOperation>
     {
 
         public void Walk(ICodeElement root, ExtensionLookup extensionLookup) {

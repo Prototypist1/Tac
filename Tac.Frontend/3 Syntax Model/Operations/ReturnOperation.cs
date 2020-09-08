@@ -88,7 +88,7 @@ namespace Tac.SemanticModel.Operations
     internal abstract class TrailingOperion<T> 
     {
         public abstract IConvertableFrontendCodeElement<ICodeElement>[] Operands { get; }
-        public abstract T1 Convert<T1,TBacking>(IOpenBoxesContext<T1,TBacking> context) where TBacking:IBacking;
+        public abstract T1 Convert<T1>(IOpenBoxesContext<T1> context);
         public abstract IVerifiableType Returns();
     }
 

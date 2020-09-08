@@ -59,9 +59,9 @@ namespace Tac.Frontend
 
     internal class UnWrappingTypeBox : IBox<IOrType<IFrontendType, IError>>
     {
-        private readonly IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box;
+        private readonly IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> box;
 
-        public UnWrappingTypeBox(IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> box)
+        public UnWrappingTypeBox(IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> box)
         {
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
@@ -284,20 +284,20 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
+    internal class WeakTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>>
     {
 
         public WeakTypeDefinitionConverter()
         {
         }
 
-        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
             var placeHolders = typeSolution.HasPlacholders(from);
 
             return placeHolders.IfElseReturn(x =>
             {
-                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(
+                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
                     new WeakGenericTypeDefinition(
                         from.Key,
                         Help.GetScope(typeSolution, typeSolution.GetFlowNode(from)).TransformInner(y=>new Box<WeakScope>(y)),
@@ -305,25 +305,25 @@ namespace Tac.Frontend
             },
             () =>
             {
-                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(new WeakTypeDefinition(Help.GetScope(typeSolution, typeSolution.GetFlowNode(from)).TransformInner(y=>new Box<WeakScope>(y))));//, key ?
+                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(new WeakTypeDefinition(Help.GetScope(typeSolution, typeSolution.GetFlowNode(from)).TransformInner(y=>new Box<WeakScope>(y))));//, key ?
             });
 
         }
     }
 
 
-    internal class PrimitiveTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>
+    internal class PrimitiveTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>>
     {
-        public PrimitiveTypeConverter(IPrimitiveType primitiveType)
+        public PrimitiveTypeConverter(Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType primitiveType)
         {
             PrimitiveType = primitiveType;
         }
 
-        public IPrimitiveType PrimitiveType { get; }
+        public Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType PrimitiveType { get; }
 
-        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
-            return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(PrimitiveType);
+            return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(PrimitiveType);
         }
     }
 

@@ -18,7 +18,7 @@ using Prototypist.Toolbox.Object;
 namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
 
-    internal class Definitions: IOpenBoxesContext<IInterpetedOperation, InterpetedAssemblyBacking>
+    internal class Definitions: IOpenBoxesContext<IInterpetedOperation>
     {
         private readonly Dictionary<object, IInterpetedOperation> backing = new Dictionary<object, IInterpetedOperation>();
 
@@ -283,7 +283,7 @@ namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 
 
 
-        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation, InterpetedAssemblyBacking>.EntryPoint(IEntryPointDefinition codeElement)
+        IInterpetedOperation IOpenBoxesContext<IInterpetedOperation>.EntryPoint(IEntryPointDefinition codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -340,7 +340,7 @@ namespace Tac.Backend.Interpreted.SyntazModelInterpeter
                 op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
                     codeElement.StaticInitialization.Select(x => x.Convert(this)).ToArray(),
                     // yikos yuckos
-                    (this as IOpenBoxesContext<IInterpetedOperation, InterpetedAssemblyBacking>).EntryPoint(codeElement.EntryPoint).CastTo<InterpetedEntryPointDefinition>()
+                    (this as IOpenBoxesContext<IInterpetedOperation>).EntryPoint(codeElement.EntryPoint).CastTo<InterpetedEntryPointDefinition>()
                     );
                 return op;
             }

@@ -20,8 +20,7 @@ namespace Tac.Model.Instantiated
         public IKey Key => buildableKey.Get();
         public IEntryPointDefinition EntryPoint => buildableEntryPoint.Get();
 
-        public T Convert<T,TBaking>(IOpenBoxesContext<T, TBaking> context)
-            where TBaking: IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ModuleDefinition(this);
         }

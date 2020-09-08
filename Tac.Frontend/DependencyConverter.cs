@@ -18,7 +18,6 @@ namespace Tac.Frontend
 
 
         public WeakTypeDefinition ConvertToType<TBaking>(IAssembly<TBaking> assembly)
-            where TBaking : IBacking
         {
             // is it ok to create a scope here?
             // yeah i think so

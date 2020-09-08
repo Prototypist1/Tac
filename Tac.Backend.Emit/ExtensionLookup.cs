@@ -9,25 +9,25 @@ namespace Tac.Backend.Emit
 {
     class ExtensionLookup
     {
-        private readonly Dictionary<IInternalMethodDefinition, MethodExtension> methodLookup = new Dictionary<IInternalMethodDefinition, MethodExtension>();
-        public MethodExtension LookUpOrThrow(IInternalMethodDefinition methodDefinition) {
-            return methodLookup[methodDefinition];
+        private readonly Dictionary<IInternalMethodDefinition, ClosureExtension> methodLookup = new Dictionary<IInternalMethodDefinition, ClosureExtension>();
+        //public MethodExtension LookUpOrThrow(IInternalMethodDefinition methodDefinition) {
+        //    return methodLookup[methodDefinition];
+        //}
+
+        public ClosureExtension LookUpOrAdd(IInternalMethodDefinition methodDefinition)
+        {
+            return methodLookup.GetOrAdd(methodDefinition, new ClosureExtension());
         }
 
-        public MethodExtension LookUpOrAdd(IInternalMethodDefinition methodDefinition)
-        {
-            return methodLookup.GetOrAdd(methodDefinition, new MethodExtension());
-        }
+        private readonly Dictionary<IImplementationDefinition, ClosureExtension> implementationLookup = new Dictionary<IImplementationDefinition, ClosureExtension>();
+        //public MethodExtension LookUpOrThrow(IImplementationDefinition implementationDefinition)
+        //{
+        //    return implementationLookup[implementationDefinition];
+        //}
 
-        private readonly Dictionary<IImplementationDefinition, ImplementationExtension> implementationLookup = new Dictionary<IImplementationDefinition, ImplementationExtension>();
-        public ImplementationExtension LookUpOrThrow(IImplementationDefinition implementationDefinition)
+        public ClosureExtension LookUpOrAdd(IImplementationDefinition implementationDefinition)
         {
-            return implementationLookup[implementationDefinition];
-        }
-
-        public ImplementationExtension LookUpOrAdd(IImplementationDefinition implementationDefinition)
-        {
-            return implementationLookup.GetOrAdd(implementationDefinition,new ImplementationExtension());
+            return implementationLookup.GetOrAdd(implementationDefinition,new ClosureExtension());
         }
     }
 }

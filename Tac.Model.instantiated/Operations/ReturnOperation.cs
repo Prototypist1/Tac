@@ -15,8 +15,7 @@ namespace Tac.Model.Instantiated
         }
 
         public ICodeElement Result => buildableResult.Get();
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-            where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ReturnOperation(this);
         }

@@ -22,7 +22,6 @@ namespace Tac.Frontend
         private readonly Dictionary<IVerifiableType, Tpn.TypeProblem2.Type> typeCache = new Dictionary<IVerifiableType, Tpn.TypeProblem2.Type>();
 
         public IProject<TBacking> Parse<TBacking>(string text, IReadOnlyList<IAssembly<TBacking>> dependencies, string name)
-            where TBacking : IBacking
         {
 
             var tokenizer = new Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.Except(new[] { SymbolsRegistry.StaticSubtractSymbol }).ToArray());

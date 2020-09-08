@@ -60,8 +60,7 @@ namespace Tac.Model.Instantiated
         {
             return this;
         }
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-            where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.TypeDefinition(this);
         }

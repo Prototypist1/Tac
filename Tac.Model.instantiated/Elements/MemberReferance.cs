@@ -13,8 +13,7 @@ namespace Tac.Model.Instantiated
         }
 
         public IMemberDefinition MemberDefinition => buildableMemberDefinition.Get();
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-            where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.MemberReferance(this);
         }

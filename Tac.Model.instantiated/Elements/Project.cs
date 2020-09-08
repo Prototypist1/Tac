@@ -5,7 +5,6 @@ using Tac.Model.Elements;
 namespace Tac.Model.Instantiated
 {
     public class Project<TBacking> : IProject<TBacking>
-        where TBacking : IBacking
     {
         public Project(IModuleDefinition moduleDefinition, IReadOnlyList<IAssembly<TBacking>> references)
         {

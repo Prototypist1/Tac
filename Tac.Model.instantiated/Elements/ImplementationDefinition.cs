@@ -30,8 +30,7 @@ namespace Tac.Model.Instantiated
         public IEnumerable<ICodeElement> StaticInitialzers { get => buildableStaticInitialzers.Get(); }
         public IFinalizedScope IntermediateScope { get => intermediateScope.Get(); }
 
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-            where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ImplementationDefinition(this);
         }

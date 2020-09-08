@@ -15,8 +15,7 @@ namespace Tac.Model.Instantiated
         public bool Value { get => valueBuilder.Get(); }
 
 
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-            where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ConstantBool(this);
         }

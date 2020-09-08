@@ -33,8 +33,7 @@ namespace Tac.Model.Instantiated
         // they could almost be implemented as extensions
         // I mean they are going to look the same in every set of implemenation of the ICodeElements
         // but... I want to ensure they are there so I include them on the interface
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-            where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.PathOperation(this);
         }

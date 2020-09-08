@@ -20,8 +20,7 @@ namespace Tac.Model.Instantiated
         public ICodeElement Left => buildableLeft.Get();
         public ICodeElement Right => buildableRight.Get();
         public IReadOnlyList<ICodeElement> Operands => new[] { Left, Right };
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-            where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.SubtractOperation(this);
         }

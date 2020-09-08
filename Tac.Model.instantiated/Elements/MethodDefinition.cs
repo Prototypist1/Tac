@@ -50,7 +50,7 @@ namespace Tac.Model.Instantiated
             return new EntryPointType();
         }
 
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context) where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.EntryPoint(this);
         }
@@ -87,8 +87,7 @@ namespace Tac.Model.Instantiated
         public IReadOnlyList<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
 
 
-        public T Convert<T, TBacking>(IOpenBoxesContext<T, TBacking> context)
-            where TBacking : IBacking
+        public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.MethodDefinition(this);
         }
