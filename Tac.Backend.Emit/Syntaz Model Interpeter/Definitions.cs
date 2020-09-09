@@ -535,11 +535,7 @@ namespace Tac.Backend.Emit.SyntaxModel
         private static System.Type MapType(IVerifiableType verifiableType, LinkedList<Action> followUp, ModuleBuilder moduleBuilder) {
 
             return typeCache.GetOrAdd(verifiableType, () => InnerMapType(verifiableType, followUp, moduleBuilder));
-
-
         }
-
-
 
         private static System.Type InnerMapType(IVerifiableType verifiableType, LinkedList<Action> followUp, ModuleBuilder moduleBuilder)
         {

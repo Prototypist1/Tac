@@ -2,7 +2,7 @@
 
 namespace Tac.Model.Operations
 {
-    public interface IReturnOperation : ICodeElement{
+    public interface IReturnOperation : IOperation{
         ICodeElement Result { get; }
     }
 }

@@ -24,6 +24,8 @@ namespace Tac.Backend.Emit
         //    return implementationLookup.GetOrAdd(implementationDefinition,new ClosureExtension());
         //}
 
+
+        // I really doubt blocks need closures
         public readonly Dictionary<IBlockDefinition, ClosureExtension> blockLookup = new Dictionary<IBlockDefinition, ClosureExtension>();
 
         //public ClosureExtension LookUpOrAdd(IBlockDefinition methodDefinition)
