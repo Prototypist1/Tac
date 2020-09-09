@@ -94,7 +94,7 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> MemberDefinition(IMemberDefinition codeElement)
         {
-            throw new NotImplementedException();
+            return new List<IMemberDefinition>();
         }
 
         public IReadOnlyList<IMemberDefinition> MemberReferance(IMemberReferance memberReferance)
