@@ -1,69 +1,101 @@
-﻿using Prototypist.Toolbox.Object;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Reflection.Emit;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
-using Tac.Type;
 
 namespace Tac.Backend.Emit.Walkers
 {
-
-    class TypeChangeWalker : IOpenBoxesContext<Nothing>
+    class AssemblerWalker : IOpenBoxesContext<Nothing>
     {
 
-        private readonly TypeChangeLookup typeChangeLookup;
-
-        public TypeChangeWalker(TypeChangeLookup typeChangeLookup)
+        public  IIsPossibly<ILGenerator> generator;
+        public AssemblerWalker(TypeChangeLookup typeChangeLookup)
         {
-            this.typeChangeLookup = typeChangeLookup ?? throw new ArgumentNullException(nameof(typeChangeLookup));
         }
 
         public Nothing AddOperation(IAddOperation co)
         {
-            return Walk(co.Operands);
+            Walk(co.Operands);
+            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Add_Ovf);
+            return new Nothing();
         }
 
         public Nothing AssignOperation(IAssignOperation co)
         {
-            // there could be a conversion here!
-            var fromType = co.Left.Returns();
-            var toType = co.Right.Returns();
+            throw new NotImplementedException("we have to generate the converters");
 
-            if (fromType != toType)
-            {
-                typeChangeLookup.TryAdd(fromType, toType);
-            }
+            // there is different store command for different targets
+            // is it an arg?
+            // is it a field
+            // is it a local?
 
             return Walk(co.Operands);
         }
 
         public Nothing BlockDefinition(IBlockDefinition codeElement)
         {
-            return  Walk(codeElement.Body);
+            // this is nothing to MSIL
+            return Walk(codeElement.Body);
         }
 
-        public Nothing ConstantBool(IConstantBool constantBool) => new Nothing();
-        public Nothing ConstantNumber(IConstantNumber codeElement) => new Nothing();
-        public Nothing ConstantString(IConstantString co) => new Nothing();
-        public Nothing EmptyInstance(IEmptyInstance co) => new Nothing();
+        public Nothing ConstantBool(IConstantBool constantBool) {
+            if (constantBool.Value)
+            {
+                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0);
+            }
+            else
+            {
+                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1);
+            }
+            return new Nothing();
+        }
+        public Nothing ConstantNumber(IConstantNumber codeElement) {
+            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_R8, codeElement.Value);
+            return new Nothing();
+        }
+        public Nothing ConstantString(IConstantString co)
+        {
+            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldstr, co.Value);
+            return new Nothing();
+        }
+        public Nothing EmptyInstance(IEmptyInstance co)
+        {
+            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldnull);
+            return new Nothing();
+        }
         public Nothing TypeDefinition(IInterfaceType codeElement) => new Nothing();
 
 
         public Nothing ElseOperation(IElseOperation co)
         {
+            throw new NotImplementedException("");
+            // we need to put a branch 
+            // but we need to know who far to brach
+            
+            // I think I am going to need different walkers
+            // one that walks stuff like if blocks
+            // and just ques up a list of op codes to write
+            // then this can count how many, and put the correct jump in
+
             return Walk(co.Operands);
         }
 
 
         public Nothing EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
+
+            throw new NotImplementedException("");
             return Walk(entryPointDefinition.Body);
         }
 
         public Nothing IfTrueOperation(IIfOperation co)
         {
+            throw new NotImplementedException("");
+            // we need to put a branch 
+            // but we need to know who far to brach
             return Walk(co.Operands);
         }
 
@@ -74,20 +106,14 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing LastCallOperation(ILastCallOperation co)
         {
-            // there could be a conversion here!
-            var fromType = co.Right.Returns();
-            var toType = co.Left.Returns().SafeCastTo(out IMethodType _).InputType;
-
-            if (fromType != toType) {
-                typeChangeLookup.TryAdd(fromType, toType);
-            }
-
             return Walk(co.Operands);
         }
 
         public Nothing LessThanOperation(ILessThanOperation co)
         {
-            return Walk(co.Operands);
+            Walk(co.Operands);
+            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Clt);
+            return new Nothing();
         }
 
         public Nothing MemberDefinition(IMemberDefinition codeElement)
@@ -112,20 +138,13 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing MultiplyOperation(IMultiplyOperation co)
         {
-            return Walk(co.Operands);
+            Walk(co.Operands);
+            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Mul_Ovf);
+            return new Nothing();
         }
 
         public Nothing NextCallOperation(INextCallOperation co)
         {
-            // there could be a conversion here!
-            var fromType = co.Left.Returns();
-            var toType = co.Right.Returns().SafeCastTo(out IMethodType _).InputType;
-
-            if (fromType != toType)
-            {
-                typeChangeLookup.TryAdd(fromType, toType);
-            }
-
             return Walk(co.Operands);
         }
 
@@ -148,14 +167,13 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing SubtractOperation(ISubtractOperation co)
         {
-            return Walk(co.Operands);
+            Walk(co.Operands);
+            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Sub_Ovf);
+            return new Nothing();
         }
 
         public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation)
         {
-            // this sucks
-            // we have to do a metadata based check to see if the type qualifies
-            // and we have to do a metadata based converstion
             return Walk(tryAssignOperation.Operands);
         }
 
