@@ -1,5 +1,6 @@
 ﻿using Prototypist.Toolbox;
 using System;
+using System.Collections.Generic;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
 
@@ -15,6 +16,9 @@ namespace Tac.Model.Instantiated
         }
 
         public ICodeElement Result => buildableResult.Get();
+
+        public IReadOnlyList<ICodeElement> Operands => new ICodeElement[] { buildableResult.Get() };
+
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.ReturnOperation(this);

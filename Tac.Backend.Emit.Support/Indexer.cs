@@ -4,15 +4,15 @@ using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Text;
+using Tac.Model;
 using Tac.Model.Elements;
 
 namespace Tac.Backend.Emit.Support
 {
 
-    // TODO unit test!
-
-    struct TacCastObject : ITacObject
+    public struct TacCastObject : ITacObject
     {
         public TacObject @object;
         public Indexer indexer;
@@ -29,6 +29,10 @@ namespace Tac.Backend.Emit.Support
         // read-write complex members must be the same type as they are in TacObject
         // if they were more restrictive setting would be on the TacCastObject object could break the TacObject
         // if they were less restrictive setting on TacObject could break the TacCastObject
+
+        // there is some danager of the same type defined in two different places
+        // I need to be careful to sort members by name when I create objects
+        // and when I create interfaces
         public TacCastObject GetComplexMember(int position) {
             return @object.GetComplexMember(indexer.indexOffsets[position]);
         }
@@ -60,10 +64,13 @@ namespace Tac.Backend.Emit.Support
 
     }
 
-    class TacObject : ITacObject
+    public class TacObject : ITacObject
     {
 
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         public object[] members;
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
         //public IVerifiableType type;
 
         public TacCastObject GetComplexMember(int position)
@@ -127,7 +134,7 @@ namespace Tac.Backend.Emit.Support
     // mice-killed is 0 in mouse-trap and 2 in cat
     // nemesis is 1 in mouse-trap and 3 in cat
     // nextIndexers would be [null, indexer to convert a mouse to a mouse]
-    class Indexer
+    public class Indexer
     {
         public Indexer[] nextIndexers;
         public int[] indexOffsets;
@@ -183,13 +190,16 @@ namespace Tac.Backend.Emit.Support
             var toAdd = new Indexer();
             if (map.TryAdd((from, to), toAdd)) {
 
-                var indexOffsets = new int[to.Members.Count];
-                var nextIndexers = new Indexer[to.Members.Count];
+                var toMembers = to.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
+                var fromMembers = from.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
 
-                for (int toIndex = 0; toIndex < to.Members.Count; toIndex++) {
-                    var toMember = to.Members[toIndex];
-                    for (int fromIndex = 0; fromIndex < from.Members.Count; fromIndex++) {
-                        var fromMember = from.Members[fromIndex];
+                var indexOffsets = new int[toMembers.Count];
+                var nextIndexers = new Indexer[toMembers.Count];
+
+                for (int toIndex = 0; toIndex < toMembers.Count; toIndex++) {
+                    var toMember = toMembers[toIndex];
+                    for (int fromIndex = 0; fromIndex < fromMembers.Count; fromIndex++) {
+                        var fromMember = fromMembers[fromIndex];
                         if (fromMember.Key.Equals(toMember.Key)) {
                             indexOffsets[toIndex] = fromIndex;
                             if (fromMember.Type.SafeIs(out IInterfaceModuleType fromInterface) && toMember.Type.SafeIs(out IInterfaceType toInterface)) {
