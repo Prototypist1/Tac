@@ -1,10 +1,125 @@
-﻿using System;
+﻿using Prototypist.TaskChain;
+using Prototypist.Toolbox.IEnumerable;
+using Prototypist.Toolbox.Object;
+using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Text;
 using Tac.Model.Elements;
 
 namespace Tac.Backend.Emit.Support
 {
+
+    // TODO unit test!
+
+    struct TacCastObject : ITacObject
+    {
+        public TacObject @object;
+        public Indexer indexer;
+        //public IVerifiableType memberType;
+        private static TacCastObject Create(Indexer nextIndexer, TacCastObject tacCastObject)
+        {
+            return new TacCastObject()
+            {
+                @object = tacCastObject.@object,
+                indexer = Indexer.Overlay(tacCastObject.indexer, nextIndexer)
+            };
+        }
+
+        // read-write complex members must be the same type as they are in TacObject
+        // if they were more restrictive setting would be on the TacCastObject object could break the TacObject
+        // if they were less restrictive setting on TacObject could break the TacCastObject
+        public TacCastObject GetComplexMember(int position) {
+            return @object.GetComplexMember(indexer.indexOffsets[position]);
+        }
+
+        public void SetComplexMember(int position, TacCastObject value)
+        {
+            @object.SetComplexMember(indexer.indexOffsets[position], value);
+        }
+
+        public T GetSimpleMember<T>(int position)
+        {
+            return @object.GetSimpleMember<T>(indexer.indexOffsets[position]);
+        }
+
+        public void SetSimpleMember(int position, object o)
+        {
+            @object.SetSimpleMember(indexer.indexOffsets[position],o);
+        }
+
+        public TacCastObject GetComplexReadonlyMember(int position)
+        {
+            return Create(indexer.nextIndexers[position], @object.GetComplexMember(indexer.indexOffsets[position]));
+        }
+
+        public void SetComplexWriteonlyMember(int position, TacCastObject tacCastObject)
+        {
+            throw new NotImplementedException();
+        }
+
+    }
+
+    class TacObject : ITacObject
+    {
+
+        public object[] members;
+        //public IVerifiableType type;
+
+        public TacCastObject GetComplexMember(int position)
+        {
+            // when this returns a member it is important that it is a copy
+            // if the member on TacObject is modified the TacCastObject should not be
+            return (TacCastObject)members[position];
+        }
+
+        public void SetComplexMember(int position, TacCastObject tacCastObject)
+        {
+            members[position] = tacCastObject;
+        }
+
+
+        public T GetSimpleMember<T>(int position)
+        {
+            return (T)members[position];
+        }
+
+
+        public void SetSimpleMember(int position, object value)
+        {
+            members[position] = value;
+        }
+
+        public TacCastObject GetComplexReadonlyMember(int position)
+        {
+            return GetComplexMember(position);
+        }
+
+        public void SetComplexWriteonlyMember(int position, TacCastObject tacCastObject)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    //class TacCastObject {
+    //    TacObject @object;
+    //    Indexer indexer;
+    //    public IVerifiableType memberType;
+
+    //    public TacTransfromedObject GetComplexMember(int position)
+    //    {
+    //        return @object.GetComplexMember(indexer.indexOffsets[position]);
+    //    }
+
+    //    public T GetSimpleMember<T>(int position)
+    //    {
+    //        return @object.GetSimpleMember<T>(indexer.indexOffsets[position]);
+    //    }
+
+    //}
+
+
+
     // an indexer describes how to convert from one known type to another known type
     // say this converts cat {  number birds-killed; number bugs-killed;  number mice-killed; mouse nemesis}
     // to mouse-trap { number mice-killed; ; mouse nemesis;}
@@ -14,12 +129,19 @@ namespace Tac.Backend.Emit.Support
     // nextIndexers would be [null, indexer to convert a mouse to a mouse]
     class Indexer
     {
-        private Indexer[] nextIndexers;
-        private int[] indexOffsets;
+        public Indexer[] nextIndexers;
+        public int[] indexOffsets;
 
-        public (Indexer, object[]) GetComplexMember(object[] @object, int position) {
+        // for assignment to work we need two layers of overlay
+        // this index is from one interface to another. say i1 to i2
+        // when the members in @object change they may need an indexer to present like i1
+        // those indexers are in objectIndexers
+        // 
+        public (Indexer, object[]) GetComplexMember(object[] @object, Indexer[] objectIndexers, int position) {
             return (
-                nextIndexers[position], 
+                // this overlay makes my very sad, it makes preformance a lot worse
+                // if the member cannot be set this is not a concern
+                Overlay(objectIndexers[indexOffsets[position]], nextIndexers[position]), 
                 (object[])@object[indexOffsets[position]]);
         }
 
@@ -53,7 +175,37 @@ namespace Tac.Backend.Emit.Support
                 nextIndexers = resultNextIndexers,
                 indexOffsets = resultIndexOffsets,
             };
-        } 
+        }
+
+        private static ConcurrentIndexed<(IInterfaceModuleType, IInterfaceModuleType), Indexer> map = new ConcurrentIndexed<(IInterfaceModuleType, IInterfaceModuleType), Indexer>();
+
+        public static Indexer Create(IInterfaceModuleType from, IInterfaceModuleType to) {
+            var toAdd = new Indexer();
+            if (map.TryAdd((from, to), toAdd)) {
+
+                var indexOffsets = new int[to.Members.Count];
+                var nextIndexers = new Indexer[to.Members.Count];
+
+                for (int toIndex = 0; toIndex < to.Members.Count; toIndex++) {
+                    var toMember = to.Members[toIndex];
+                    for (int fromIndex = 0; fromIndex < from.Members.Count; fromIndex++) {
+                        var fromMember = from.Members[fromIndex];
+                        if (fromMember.Key.Equals(toMember.Key)) {
+                            indexOffsets[toIndex] = fromIndex;
+                            if (fromMember.Type.SafeIs(out IInterfaceModuleType fromInterface) && toMember.Type.SafeIs(out IInterfaceType toInterface)) {
+                                nextIndexers[toIndex] = Create(fromInterface, toInterface);
+                            }
+                            goto matched;
+                        }
+                    }
+            matched:;
+                }
+                toAdd.nextIndexers = nextIndexers;
+                toAdd.indexOffsets = indexOffsets;
+                return toAdd;
+            }
+            return map[(from, to)];
+        }
     }
 
     // the thrid thing we pass around is the IVerifableType
@@ -64,5 +216,10 @@ namespace Tac.Backend.Emit.Support
   
 
     // how does setting work?
+    // I might need a two layer system
+    // what is in the member to the interface the class persents
+    // the interface the class persents to the interface subquenet types persent
+
+
 
 }
