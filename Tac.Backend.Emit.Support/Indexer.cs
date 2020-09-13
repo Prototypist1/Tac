@@ -171,6 +171,11 @@ namespace Tac.Backend.Emit.Support
         // indexerc2 = [indexerc1[indexer12[0]], indexerc1[indexer12[1]]];
         // the next indederx can be calculated similarly
         public static Indexer Overlay(Indexer first, Indexer second) {
+            if (first == null && second == null) {
+                // it's primitive
+                return null;
+            }
+
             var resultIndexOffsets = new int[second.indexOffsets.Length];
             var resultNextIndexers = new Indexer[second.indexOffsets.Length];
             for (int i = 0; i < second.indexOffsets.Length;i++) {
