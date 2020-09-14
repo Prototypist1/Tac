@@ -25,7 +25,7 @@ namespace Tac.Model.Instantiated
 
         public static IInterfaceModuleType ToVerifiableType(this (IKey, IVerifiableType)[] scope)
         {
-            return InterfaceType.CreateAndBuild(scope.Select(x => MemberDefinition.CreateAndBuild(x.Item1, x.Item2, false)).ToList());
+            return InterfaceType.CreateAndBuild(scope.Select(x => MemberDefinition.CreateAndBuild(x.Item1, x.Item2, Access.ReadWrite)).ToList());
         }
     }
 

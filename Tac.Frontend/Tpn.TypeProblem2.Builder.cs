@@ -487,7 +487,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // it is not a public member
                         // and infered to do not have private members
                         var methodInputKey = new NameKey("implicit input - " + Guid.NewGuid());
-                        var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
+                        var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey));
                         inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
@@ -549,7 +549,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // it is not a public member
                         // and infered to do not have private members
                         var methodInputKey = new NameKey("implicit input - " + Guid.NewGuid());
-                        var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(false, methodInputKey));
+                        var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey));
                         inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 

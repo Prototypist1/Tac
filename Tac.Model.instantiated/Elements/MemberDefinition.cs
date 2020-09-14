@@ -10,18 +10,18 @@ namespace Tac.Model.Instantiated
 
         private readonly Buildable<IKey> buildableKey = new Buildable<IKey>();
         private readonly Buildable<IVerifiableType> buildableType = new Buildable<IVerifiableType>();
-        private readonly BuildableValue<bool> buildableReadOnly = new BuildableValue<bool>();
+        private readonly BuildableValue<Access> buildableReadOnly = new BuildableValue<Access>();
         
         public IKey Key { get => buildableKey.Get(); }
         public IVerifiableType Type { get => buildableType.Get(); }
-        public bool ReadOnly { get => buildableReadOnly.Get(); }
+        public Access Access { get => buildableReadOnly.Get(); }
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
             return context.MemberDefinition(this);
         }
 
-        public void Build(IKey key, IVerifiableType type, bool readOnly)
+        public void Build(IKey key, IVerifiableType type, Access readOnly)
         {
             buildableKey.Set(key);
             buildableType.Set(type);
@@ -34,7 +34,7 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IMemberDefinition CreateAndBuild(IKey key, IVerifiableType type, bool readOnly)
+        public static IMemberDefinition CreateAndBuild(IKey key, IVerifiableType type, Access readOnly)
         {
             var (x, y) = Create();
             y.Build(key, type, readOnly);
@@ -45,6 +45,6 @@ namespace Tac.Model.Instantiated
 
     public interface IMemberDefinitionBuilder
     {
-        void Build(IKey key, IVerifiableType type, bool readOnly);
+        void Build(IKey key, IVerifiableType type, Access readOnly);
     }
 }

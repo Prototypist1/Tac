@@ -36,7 +36,7 @@ namespace Tac.Backend.Interpreted.Public
             var method = new InterpetedExternalMethodDefinition();
             method.Init(func, type);
             memberValues.Add(key, (method,type));
-            members.Add(new IsStatic(MemberDefinition.CreateAndBuild(key, type, true),false));
+            members.Add(new IsStatic(MemberDefinition.CreateAndBuild(key, type, Access.ReadOnly),false));
             return this;
         }
 

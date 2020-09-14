@@ -129,7 +129,6 @@ namespace Tac.Backend.Emit.Support.Test
             Assert.Equal(2, friend1_friend_After.GetSimpleMember<int>(0));
         }
 
-        // TODO test readonly members with more narrow interfaces 
         [Fact]
         public void ReadNarrowedReadonlyMember() {
             var friend1 = new TacObject();
@@ -174,6 +173,8 @@ namespace Tac.Backend.Emit.Support.Test
 
     }
 
+    // TODO test a long chain of narrowing and not narrowing 
+
     public class Types {
         public readonly IInterfaceType hasFriend;
         public readonly IInterfaceType hasAge;
@@ -186,9 +187,9 @@ namespace Tac.Backend.Emit.Support.Test
             var (hasHasAgeType, hasHasAgeBuilder) = InterfaceType.Create();
             var (personType, personBuilder) = InterfaceType.Create();
 
-            var ageMember = MemberDefinition.CreateAndBuild(new NameKey("age"), new NumberType(), false);
-            var friendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), personType, false);
-            var friendHasAgeMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), hasAgeType, true);
+            var ageMember = MemberDefinition.CreateAndBuild(new NameKey("age"), new NumberType(), Access.ReadWrite);
+            var friendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), personType, Access.ReadWrite);
+            var friendHasAgeMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), hasAgeType, Access.ReadWrite);
 
             hasFriendBuilder.Build(new List<IMemberDefinition> { friendMember });
             hasAgeBuilder.Build(new List<IMemberDefinition> { ageMember });

@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tac.Backend.Emit", "Tac.Bac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tac.Backend.Emit.Support", "Tac.Backend.Emit.Support\Tac.Backend.Emit.Support.csproj", "{F6EAD2D6-8EA8-4674-B2DB-CD43DD4F480F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tac.Backend.Emit.Support.Test", "Tac.Backend.Emit.Support.Text\Tac.Backend.Emit.Support.Test.csproj", "{18B9C703-A636-471F-942A-749A21D5E7B3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tac.Backend.Emit.Support.Test", "Tac.Backend.Emit.Support.Test\Tac.Backend.Emit.Support.Test.csproj", "{18B9C703-A636-471F-942A-749A21D5E7B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

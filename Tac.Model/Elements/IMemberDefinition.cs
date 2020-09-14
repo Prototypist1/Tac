@@ -7,6 +7,12 @@ namespace Tac.Model.Elements
     {
         IKey Key { get; }
         IVerifiableType Type { get; }
-        bool ReadOnly { get; }
+        Access Access { get; }
+    }
+
+    public enum Access { 
+        ReadOnly,
+        ReadWrite,
+        WriteOnly
     }
 }

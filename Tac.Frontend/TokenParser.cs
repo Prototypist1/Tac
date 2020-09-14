@@ -44,13 +44,13 @@ namespace Tac.Frontend
                     var innerType = ConvertType(problem.builder, type, OrType.Make<IVerifiableType, IError>( memberPair.Value.Value.Type));
                     innerType.Switch(x =>
                     {
-                        problem.builder.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        problem.builder.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
                     }, y =>
                     {
-                        problem.builder.CreatePublicMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
+                        problem.builder.CreatePublicMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
                     });
                 }
-                problem.builder.CreatePrivateMember(problem.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type), new WeakMemberDefinitionConverter(true, dependency.Key));
+                problem.builder.CreatePrivateMember(problem.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type), new WeakMemberDefinitionConverter(Access.ReadOnly, dependency.Key));
 
             }
 
@@ -118,10 +118,10 @@ namespace Tac.Frontend
                         var innerType = ConvertType(problem, tpnType, OrType.Make<IVerifiableType, IError>(memberPair.Type));
                         innerType.Switch(x =>
                         {
-                            problem.CreatePublicMember(tpnType, tpnType, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(true, memberPair.Key));
+                            problem.CreatePublicMember(tpnType, tpnType, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
                         }, y =>
                         {
-                            problem.CreatePublicMember(tpnType, memberPair.Key, y, new WeakMemberDefinitionConverter(true, memberPair.Key));
+                            problem.CreatePublicMember(tpnType, memberPair.Key, y, new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
                         });
                     }
                     return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(orType);

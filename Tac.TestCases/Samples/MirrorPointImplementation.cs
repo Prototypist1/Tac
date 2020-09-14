@@ -34,10 +34,10 @@ module mirror-module {
         public MirrorPointImplementation()
         {
             var keyX = new NameKey("x");
-            var localX = MemberDefinition.CreateAndBuild(keyX, new AnyType(), false);
+            var localX = MemberDefinition.CreateAndBuild(keyX, new AnyType(), Access.ReadWrite);
 
             var keyY = new NameKey("y");
-            var localY = MemberDefinition.CreateAndBuild(keyY, new AnyType(), false);
+            var localY = MemberDefinition.CreateAndBuild(keyY, new AnyType(), Access.ReadWrite);
 
             var contextKey = new NameKey("context");
 
@@ -49,13 +49,13 @@ module mirror-module {
                                 new IsStatic(localX ,false),
                                 new IsStatic(localY ,false),
                             }).Members.Values.Select(x => x.Value).ToList()),
-                false); ;
+                Access.ReadWrite); ;
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, new EmptyType(), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, new EmptyType(), Access.ReadWrite);
 
             var tempKey = new NameKey("temp");
-            var temp = MemberDefinition.CreateAndBuild(tempKey, new AnyType(), false);
+            var temp = MemberDefinition.CreateAndBuild(tempKey, new AnyType(), Access.ReadWrite);
 
             var implementationScope = Scope.CreateAndBuild(
                 new List<IsStatic> {
@@ -70,7 +70,7 @@ module mirror-module {
             ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                  Scope.CreateAndBuild(
                     new List<IsStatic>() {
-                        new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false) ,false) }),
+                        new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), Access.ReadWrite) ,false) }),
                 new[] {
                     AssignOperation.CreateAndBuild(
                         ImplementationDefinition.CreateAndBuild(
@@ -94,7 +94,7 @@ module mirror-module {
                             },
                             Array.Empty<ICodeElement>(),
                             intermediateScope),
-                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), false)))
+                    MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), Access.ReadWrite)))
                 },
                 new NameKey("mirror-module"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));

@@ -42,17 +42,17 @@ namespace Tac.SemanticModel
     internal static class MemberDefinitionShared
     {
 
-        public static IMemberDefinition Convert(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, bool ReadOnly, IKey Key)
+        public static IMemberDefinition Convert(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, Access access, IKey Key)
         {
             var (def, builder) = MemberDefinition.Create();
 
             //uhh seems bad
             var buildIntention = Type.GetValue().TransformInner(x => x.CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context));
             var built = buildIntention.TransformInner(x => { x.Build(); return x.Tobuild; });
-            builder.Build(Key, built.Is1OrThrow(), ReadOnly);
+            builder.Build(Key, built.Is1OrThrow(), access);
             return def;
         }
-        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, bool ReadOnly, IKey Key)
+        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, Access access, IKey Key)
         {
             var (toBuild, maker) = MemberDefinition.Create();
             return new BuildIntention<IMemberDefinition>(toBuild, () =>
@@ -60,7 +60,7 @@ namespace Tac.SemanticModel
                 maker.Build(
                     Key,
                     Type.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
-                    ReadOnly);
+                    access);
             });
         }
 
@@ -83,25 +83,25 @@ namespace Tac.SemanticModel
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate, IReturn
     {
-        public WeakMemberDefinition(bool readOnly, IKey key, IBox<IOrType<IFrontendType, IError>> type)
+        public WeakMemberDefinition(Access access, IKey key, IBox<IOrType<IFrontendType, IError>> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
-            ReadOnly = readOnly;
+            Access = access;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public IBox<IOrType<IFrontendType, IError>> Type { get; }
-        public bool ReadOnly { get; }
+        public Access Access { get; }
         public IKey Key { get; }
 
         public IMemberDefinition Convert(IConversionContext context)
         {
-            return MemberDefinitionShared.Convert(Type, context, ReadOnly, Key);
+            return MemberDefinitionShared.Convert(Type, context, Access, Key);
         }
 
         public IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context)
         {
-            return MemberDefinitionShared.GetBuildIntention(Type, context, ReadOnly, Key);
+            return MemberDefinitionShared.GetBuildIntention(Type, context, Access, Key);
         }
 
         public IOrType<IFrontendType, IError> Returns()
@@ -174,13 +174,13 @@ namespace Tac.SemanticModel
     internal class MemberDefinitionPopulateScope : ISetUp<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>
     {
         private readonly IKey memberName;
-        private readonly bool isReadonly;
+        private readonly Access access;
         private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> type;
 
         public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> typeToken)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
-            isReadonly = v;
+            access = v? Access.ReadOnly: Access.ReadWrite;
             type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
         }
 
@@ -190,7 +190,7 @@ namespace Tac.SemanticModel
             var type = this.type.Run(scope, context.CreateChildContext(this));
 
 
-            var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x => x.Key()), new WeakMemberDefinitionConverter(isReadonly, memberName));
+            var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x => x.Key()), new WeakMemberDefinitionConverter(access, memberName));
 
 
             return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(

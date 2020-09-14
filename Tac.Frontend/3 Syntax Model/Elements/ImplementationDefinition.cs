@@ -245,7 +245,7 @@ namespace Tac.SemanticModel
                     new Box<IResolve<IBox<IFrontendCodeElement>>[]>(Array.Empty<IResolve<IBox<IFrontendCodeElement>>>()), 
                     innerBox), 
                 new WeakMemberDefinitionConverter(
-                    false, 
+                    Access.ReadWrite, 
                     new NameKey(parameterName)));
 
             var inner = context.TypeProblem.CreateMethod(
@@ -257,7 +257,7 @@ namespace Tac.SemanticModel
                     linesBox, 
                     false), 
                 new WeakMemberDefinitionConverter(
-                    false, 
+                    Access.ReadWrite, 
                     new NameKey(parameterName)));
 
             innerBox.Fill(inner);

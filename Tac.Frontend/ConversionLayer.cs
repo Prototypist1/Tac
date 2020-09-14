@@ -139,7 +139,7 @@ namespace Tac.Frontend
                 return OrType.Make<WeakScope, IError>(error);
             }
 
-            return OrType.Make<WeakScope, IError>(new WeakScope(publicMembersOr.Is1OrThrow().Select(x => typeSolution.GetMember(x, new WeakMemberDefinitionConverter(false, x.Key))).ToList()));
+            return OrType.Make<WeakScope, IError>(new WeakScope(publicMembersOr.Is1OrThrow().Select(x => typeSolution.GetMember(x, new WeakMemberDefinitionConverter(Access.ReadWrite, x.Key))).ToList()));
         }
 
         public static IBox<IOrType<IFrontendType, IError>> GetType(Tpn.TypeSolution typeSolution, Tpn.ILookUpType lookUpType)
@@ -447,18 +447,18 @@ namespace Tac.Frontend
 
     internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<IOrType<Tpn.IVirtualFlowNode, IError>, WeakMemberDefinition>
     {
-        private readonly bool isReadonly;
+        private readonly Access access;
         private readonly IKey nameKey;
 
-        public WeakMemberDefinitionConverter(bool isReadonly, IKey nameKey)
+        public WeakMemberDefinitionConverter(Access access, IKey nameKey)
         {
-            this.isReadonly = isReadonly;
+            this.access = access;
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
         }
 
         public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, IOrType< Tpn.IVirtualFlowNode, IError> from)
         {
-            return new WeakMemberDefinition(isReadonly, nameKey, typeSolution.GetType(from));
+            return new WeakMemberDefinition(access, nameKey, typeSolution.GetType(from));
         }
     }
 

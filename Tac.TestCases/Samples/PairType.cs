@@ -30,24 +30,24 @@ module pair-type {
             var pairTypeNumber =
                 InterfaceType.CreateAndBuild(
                         new List<IMemberDefinition>{
-                                MemberDefinition.CreateAndBuild(new NameKey("x"),new NumberType(), false) ,
-                                MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false)
+                                MemberDefinition.CreateAndBuild(new NameKey("x"),new NumberType(), Access.ReadWrite) ,
+                                MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Access.ReadWrite)
                         });
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), Access.ReadWrite);
             
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input, false) });
 
-            var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), false);
-            var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), false);
+            var localX = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Access.ReadWrite);
+            var localY = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Access.ReadWrite);
 
             var pairifyKey = new NameKey("pairify");
-            var pairify = MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false);
+            var pairify = MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), Access.ReadWrite);
 
             ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
-                    new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), false), false) }),
+                    new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), Access.ReadWrite), false) }),
                 new [] {
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(

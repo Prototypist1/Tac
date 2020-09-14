@@ -13,10 +13,10 @@ namespace Tac.Tests.Samples
         public Closoure()
         {
             var xKey = new NameKey("x");
-            var x = MemberDefinition.CreateAndBuild(xKey, new NumberType(), false);
+            var x = MemberDefinition.CreateAndBuild(xKey, new NumberType(), Access.ReadWrite);
 
             var yKey = new NameKey("y");
-            var y = MemberDefinition.CreateAndBuild(yKey, new NumberType(), false);
+            var y = MemberDefinition.CreateAndBuild(yKey, new NumberType(), Access.ReadWrite);
 
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(x ,false) });
             var innerMethodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(y ,false) });
@@ -24,7 +24,7 @@ namespace Tac.Tests.Samples
             ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
                 Scope.CreateAndBuild(
                     new List<IsStatic>() {
-                        new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(), false) ,false) }),
+                        new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(), Access.ReadWrite) ,false) }),
                 new []{
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(
@@ -52,7 +52,7 @@ namespace Tac.Tests.Samples
                                         Array.Empty<ICodeElement>())
                                     )},
                             Array.Empty<ICodeElement>()),
-                        MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),false)))
+                        MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),Access.ReadWrite)))
                  },
                 new NameKey("closoure"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));

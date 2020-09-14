@@ -17,10 +17,10 @@ namespace Tac.Tests.Samples
             var elseBlock = Scope.CreateAndBuild(new List<IsStatic> { });
 
             var inputKey = new NameKey("input");
-            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), false);
+            var input = MemberDefinition.CreateAndBuild(inputKey, new NumberType(), Access.ReadWrite);
 
             var facKey = new NameKey("fac");
-            var fac = MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), false);
+            var fac = MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(new NumberType(), new NumberType()), Access.ReadWrite);
 
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(input ,false) });
 
@@ -29,7 +29,7 @@ namespace Tac.Tests.Samples
                      Scope.CreateAndBuild(
                         new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(facKey, MethodType.CreateAndBuild(
                             new NumberType(),
-                            new NumberType()), false), false) }),
+                            new NumberType()), Access.ReadWrite), false) }),
                     new ICodeElement[]{
                         AssignOperation.CreateAndBuild(
                                 MethodDefinition.CreateAndBuild(

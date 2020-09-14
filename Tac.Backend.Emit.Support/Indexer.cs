@@ -12,19 +12,15 @@ using Tac.Model.Elements;
 namespace Tac.Backend.Emit.Support
 {
 
-    public struct TacCastObject : ITacObject
+    // NOTE I spent once redid this to stack TacCastObject on TacCastObject for GetComplexReadonlyMember
+    // you don't need to call Indexer.Overlay 
+    // @object becomes a ITacObject
+
+    public struct TacCastObject //: ITacObject
     {
         public TacObject @object;
         public Indexer indexer;
         //public IVerifiableType memberType;
-        private static TacCastObject Create(Indexer nextIndexer, TacCastObject tacCastObject)
-        {
-            return new TacCastObject()
-            {
-                @object = tacCastObject.@object,
-                indexer = Indexer.Overlay(tacCastObject.indexer, nextIndexer)
-            };
-        }
 
         // read-write complex members must be the same type as they are in TacObject
         // if they were more restrictive setting would be on the TacCastObject object could break the TacObject
@@ -54,22 +50,33 @@ namespace Tac.Backend.Emit.Support
 
         public TacCastObject GetComplexReadonlyMember(int position)
         {
-            return Create(indexer.nextIndexers[position], @object.GetComplexMember(indexer.indexOffsets[position]));
+            var tacCastObject = @object.GetComplexMember(indexer.indexOffsets[position]);
+            return new TacCastObject()
+            {
+                @object = tacCastObject.@object,
+                indexer = Indexer.Overlay(tacCastObject.indexer, indexer.nextIndexers[position])
+            };
         }
 
         public void SetComplexWriteonlyMember(int position, TacCastObject tacCastObject)
         {
-            throw new NotImplementedException();
+            // tacCastObject has to be converted to the type our TacObject wants 
+            // we trust our index to convert that way
+            @object.SetComplexMember(
+                indexer.indexOffsets[position],
+                new TacCastObject()
+                {
+                    @object = tacCastObject.@object,
+                    indexer = Indexer.Overlay(tacCastObject.indexer, indexer.nextIndexers[position])
+                });
         }
 
     }
 
-    public class TacObject : ITacObject
+    public class TacObject // : ITacObject
     {
-
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        // this is: null, double, string, bool or TacCastObject
         public object[] members;
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
         //public IVerifiableType type;
 
@@ -95,16 +102,6 @@ namespace Tac.Backend.Emit.Support
         public void SetSimpleMember(int position, object value)
         {
             members[position] = value;
-        }
-
-        public TacCastObject GetComplexReadonlyMember(int position)
-        {
-            return GetComplexMember(position);
-        }
-
-        public void SetComplexWriteonlyMember(int position, TacCastObject tacCastObject)
-        {
-            throw new NotImplementedException();
         }
     }
 
@@ -208,7 +205,7 @@ namespace Tac.Backend.Emit.Support
                         if (fromMember.Key.Equals(toMember.Key)) {
                             indexOffsets[toIndex] = fromIndex;
                             if (fromMember.Type.SafeIs(out IInterfaceModuleType fromInterface) && toMember.Type.SafeIs(out IInterfaceType toInterface)) {
-                                nextIndexers[toIndex] = Create(fromInterface, toInterface);
+                                nextIndexers[toIndex] = GetIndexer( toMember.Access,fromInterface, toInterface);
                             }
                             goto matched;
                         }
@@ -220,6 +217,20 @@ namespace Tac.Backend.Emit.Support
                 return toAdd;
             }
             return map[(from, to)];
+        }
+
+        public static Indexer GetIndexer(Access access, IInterfaceModuleType from, IInterfaceModuleType to) {
+            switch (access)
+            {
+                case Access.ReadOnly:
+                    return Create(from, to);
+                case Access.ReadWrite:
+                    return null;
+                case Access.WriteOnly:
+                    return Create(to, from);
+                default:
+                    throw new NotImplementedException("");
+            }
         }
     }
 

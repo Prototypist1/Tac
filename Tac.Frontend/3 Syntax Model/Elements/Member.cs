@@ -118,11 +118,11 @@ namespace Tac.SemanticModel
                     throw new NotImplementedException("this should be an ierror");
                 }
 
-                return context.TypeProblem.CreatePublicMember(scope, havePublicMember, nameKey, new WeakMemberDefinitionConverter(false, nameKey)); ;
+                return context.TypeProblem.CreatePublicMember(scope, havePublicMember, nameKey, new WeakMemberDefinitionConverter(Access.ReadWrite, nameKey)); ;
             }
             else
             {
-               return context.TypeProblem.CreateMemberPossiblyOnParent(scope, possibleScope, nameKey, new WeakMemberDefinitionConverter(false, nameKey));
+               return context.TypeProblem.CreateMemberPossiblyOnParent(scope, possibleScope, nameKey, new WeakMemberDefinitionConverter(Access.ReadWrite, nameKey));
             }
         }
     }

@@ -1576,7 +1576,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
                 // here it is ok for these to be members because we are using a method type
-                res.Input = Possibly.Is(builder.CreatePrivateMember(res, res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(false, methodInputKey)));
+                res.Input = Possibly.Is(builder.CreatePrivateMember(res, res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey)));
                 res.Returns = Possibly.Is(builder.CreateTransientMember(res, new NameKey("T2")));
                 builder.IsChildOf(Primitive, res);
             }
