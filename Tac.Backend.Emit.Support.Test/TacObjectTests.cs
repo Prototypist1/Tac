@@ -189,7 +189,7 @@ namespace Tac.Backend.Emit.Support.Test
 
             var ageMember = MemberDefinition.CreateAndBuild(new NameKey("age"), new NumberType(), Access.ReadWrite);
             var friendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), personType, Access.ReadWrite);
-            var friendHasAgeMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), hasAgeType, Access.ReadWrite);
+            var friendHasAgeMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), hasAgeType, Access.ReadOnly);
 
             hasFriendBuilder.Build(new List<IMemberDefinition> { friendMember });
             hasAgeBuilder.Build(new List<IMemberDefinition> { ageMember });
