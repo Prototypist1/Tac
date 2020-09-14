@@ -16,9 +16,9 @@ namespace Tac.Backend.Emit.Support
     // you don't need to call Indexer.Overlay 
     // @object becomes a ITacObject
 
-    public struct TacCastObject //: ITacObject
+    public struct TacCastObject : ITacObject
     {
-        public TacObject @object;
+        public ITacObject @object;
         public Indexer indexer;
         //public IVerifiableType memberType;
 
@@ -29,11 +29,11 @@ namespace Tac.Backend.Emit.Support
         // there is some danager of the same type defined in two different places
         // I need to be careful to sort members by name when I create objects
         // and when I create interfaces
-        public TacCastObject GetComplexMember(int position) {
+        public ITacObject GetComplexMember(int position) {
             return @object.GetComplexMember(indexer.indexOffsets[position]);
         }
 
-        public void SetComplexMember(int position, TacCastObject value)
+        public void SetComplexMember(int position, ITacObject value)
         {
             @object.SetComplexMember(indexer.indexOffsets[position], value);
         }
@@ -48,60 +48,64 @@ namespace Tac.Backend.Emit.Support
             @object.SetSimpleMember(indexer.indexOffsets[position],o);
         }
 
-        public TacCastObject GetComplexReadonlyMember(int position)
+        public ITacObject GetComplexReadonlyMember(int position)
         {
-            var tacCastObject = @object.GetComplexMember(indexer.indexOffsets[position]);
             return new TacCastObject()
             {
-                @object = tacCastObject.@object,
-                indexer = Indexer.Overlay(tacCastObject.indexer, indexer.nextIndexers[position])
+                @object = @object.GetComplexReadonlyMember(indexer.indexOffsets[position]),
+                indexer = indexer.nextIndexers[position]
             };
         }
 
-        public void SetComplexWriteonlyMember(int position, TacCastObject tacCastObject)
+        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
         {
             // tacCastObject has to be converted to the type our TacObject wants 
             // we trust our index to convert that way
-            @object.SetComplexMember(
+            @object.SetComplexWriteonlyMember(
                 indexer.indexOffsets[position],
                 new TacCastObject()
                 {
-                    @object = tacCastObject.@object,
-                    indexer = Indexer.Overlay(tacCastObject.indexer, indexer.nextIndexers[position])
+                    @object = tacCastObject,
+                    indexer = indexer.nextIndexers[position]
                 });
         }
 
     }
 
-    public class TacObject // : ITacObject
+    public class TacObject : ITacObject
     {
         // this is: null, double, string, bool or TacCastObject
         public object[] members;
 
         //public IVerifiableType type;
 
-        public TacCastObject GetComplexMember(int position)
+        public ITacObject GetComplexMember(int position)
         {
             // when this returns a member it is important that it is a copy
             // if the member on TacObject is modified the TacCastObject should not be
-            return (TacCastObject)members[position];
+            return (ITacObject)members[position];
         }
 
-        public void SetComplexMember(int position, TacCastObject tacCastObject)
+        public void SetComplexMember(int position, ITacObject tacCastObject)
         {
             members[position] = tacCastObject;
         }
-
 
         public T GetSimpleMember<T>(int position)
         {
             return (T)members[position];
         }
 
-
         public void SetSimpleMember(int position, object value)
         {
             members[position] = value;
+        }
+
+        public ITacObject GetComplexReadonlyMember(int position) {
+            return GetComplexMember(position);
+        }
+        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject) {
+            SetComplexMember(position, tacCastObject);
         }
     }
 
@@ -141,18 +145,18 @@ namespace Tac.Backend.Emit.Support
         // when the members in @object change they may need an indexer to present like i1
         // those indexers are in objectIndexers
         // 
-        public (Indexer, object[]) GetComplexMember(object[] @object, Indexer[] objectIndexers, int position) {
-            return (
-                // this overlay makes my very sad, it makes preformance a lot worse
-                // if the member cannot be set this is not a concern
-                Overlay(objectIndexers[indexOffsets[position]], nextIndexers[position]), 
-                (object[])@object[indexOffsets[position]]);
-        }
+        //public (Indexer, object[]) GetComplexMember(object[] @object, Indexer[] objectIndexers, int position) {
+        //    return (
+        //        // this overlay makes my very sad, it makes preformance a lot worse
+        //        // if the member cannot be set this is not a concern
+        //        Overlay(objectIndexers[indexOffsets[position]], nextIndexers[position]), 
+        //        (object[])@object[indexOffsets[position]]);
+        //}
 
-        public T GetSimpleMember<T>(object[] @object, int position)
-        {
-            return (T)@object[indexOffsets[position]];
-        }
+        //public T GetSimpleMember<T>(object[] @object, int position)
+        //{
+        //    return (T)@object[indexOffsets[position]];
+        //}
 
         // indexes have to overlay existing indexers?
         // class -> interface1 -> interface2
@@ -167,10 +171,18 @@ namespace Tac.Backend.Emit.Support
         // run the 
         // indexerc2 = [indexerc1[indexer12[0]], indexerc1[indexer12[1]]];
         // the next indederx can be calculated similarly
+
+        // for write only member the overlays can be backwords
+        // I think this is ok, because writeonly will only ever overlay writeonly
+        // readonly will likewise only ever overlay readonly
+        // do I even use overlay??
         public static Indexer Overlay(Indexer first, Indexer second) {
-            if (first == null && second == null) {
-                // it's primitive
-                return null;
+            if (first == null) {
+                return second;
+            }
+            if (second == null)
+            {
+                return first;
             }
 
             var resultIndexOffsets = new int[second.indexOffsets.Length];

@@ -169,37 +169,98 @@ namespace Tac.Backend.Emit.Support.Test
             Assert.Equal(30, friend1AsHasHasAge.GetComplexReadonlyMember(0).GetSimpleMember<int>(0));
         }
 
+        [Fact]
+        public void WriteWiderWriteonlyMember() {
+
+            var colin = new TacObject();
+            var emily = new TacObject();
+
+            colin.members = new object[] {
+                30,
+                new TacCastObject{
+                    @object = colin,
+                    indexer = Indexer.Create(Types.Value.namedPerson, Types.Value.person)
+                },
+                "Colin"
+            };
+
+            var colinAsPerson = new TacCastObject
+            {
+                @object = colin,
+                indexer = Indexer.Create(Types.Value.namedPerson, Types.Value.person)
+            };
+
+            var colinAsHasNamedPersonFriend = new TacCastObject
+            {
+                @object = colin,
+                indexer = Indexer.Create(Types.Value.namedPerson, Types.Value.hasNamedPersonFriend)
+            };
+
+
+            emily.members = new object[] {
+                29,
+                new TacCastObject{
+                    @object = emily,
+                    indexer = Indexer.Create(Types.Value.namedPerson, Types.Value.person)
+                },
+                "Emily"
+            };
+
+            colinAsHasNamedPersonFriend.SetComplexWriteonlyMember(
+                0,
+                new TacCastObject
+                {
+                    @object = emily,
+                    indexer = Indexer.Create(Types.Value.hasNamedPersonFriend, Types.Value.hasNamedPersonFriend)
+                });
+
+            Assert.Equal(29, colinAsPerson.GetComplexMember(1).GetSimpleMember<int>(0));
+        }
+
+
+        // TODO test a long chain of narrowing and not narrowing 
+
+
         public static Lazy<Types> Types = new Lazy<Types>(() => new Types());
 
     }
 
-    // TODO test a long chain of narrowing and not narrowing 
 
     public class Types {
         public readonly IInterfaceType hasFriend;
         public readonly IInterfaceType hasAge;
         public readonly IInterfaceType hasHasAge;
         public readonly IInterfaceType person;
+        public readonly IInterfaceType namedPerson;
+        public readonly IInterfaceType hasNamedPersonFriend;
 
         public Types() {
             var (hasFriendType, hasFriendBuilder) = InterfaceType.Create();
             var (hasAgeType, hasAgeBuilder) = InterfaceType.Create();
             var (hasHasAgeType, hasHasAgeBuilder) = InterfaceType.Create();
             var (personType, personBuilder) = InterfaceType.Create();
+            var (namedPersonType, namedPersonBuilder) = InterfaceType.Create();
+            var (hasNamedPersonFriendType, hasNamedPersonFriendBuilder) = InterfaceType.Create();
 
             var ageMember = MemberDefinition.CreateAndBuild(new NameKey("age"), new NumberType(), Access.ReadWrite);
             var friendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), personType, Access.ReadWrite);
             var friendHasAgeMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), hasAgeType, Access.ReadOnly);
+            var namedFriendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), namedPersonType, Access.WriteOnly);
+            var nameMember = MemberDefinition.CreateAndBuild(new NameKey("name"), new StringType(), Access.ReadWrite);
 
             hasFriendBuilder.Build(new List<IMemberDefinition> { friendMember });
             hasAgeBuilder.Build(new List<IMemberDefinition> { ageMember });
             hasHasAgeBuilder.Build(new List<IMemberDefinition> { friendHasAgeMember });
-            personBuilder.Build(new List<IMemberDefinition> { friendMember , ageMember });
+            personBuilder.Build(new List<IMemberDefinition> { friendMember , ageMember  });
+            namedPersonBuilder.Build(new List<IMemberDefinition> { friendMember, ageMember , nameMember });
+            hasNamedPersonFriendBuilder.Build(new List<IMemberDefinition> { namedFriendMember });
 
             hasFriend = hasFriendType;
             hasAge = hasAgeType;
             person = personType;
             hasHasAge = hasHasAgeType;
+            namedPerson = namedPersonType;
+            hasNamedPersonFriend = hasNamedPersonFriendType;
         }
     }
 }
