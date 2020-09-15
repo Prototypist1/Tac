@@ -193,7 +193,7 @@ namespace Tac.Backend.Emit.Support.Test
             var colinAsHasNamedPersonFriend = new TacCastObject
             {
                 @object = colin,
-                indexer = Indexer.Create(Types.Value.namedPerson, Types.Value.hasNamedPersonFriend)
+                indexer = Indexer.Create(Types.Value.namedPerson, Types.Value.hasWriteOnlyNamedPersonFriend)
             };
 
 
@@ -211,7 +211,7 @@ namespace Tac.Backend.Emit.Support.Test
                 new TacCastObject
                 {
                     @object = emily,
-                    indexer = Indexer.Create(Types.Value.hasNamedPersonFriend, Types.Value.hasNamedPersonFriend)
+                    indexer = Indexer.Create(Types.Value.hasWriteOnlyNamedPersonFriend, Types.Value.hasWriteOnlyNamedPersonFriend)
                 });
 
             Assert.Equal(29, colinAsPerson.GetComplexMember(1).GetSimpleMember<int>(0));
@@ -219,6 +219,57 @@ namespace Tac.Backend.Emit.Support.Test
 
 
         // TODO test a long chain of narrowing and not narrowing 
+        [Fact]
+        public void StackedNarrowingTest() {
+            var colin = new TacObject();
+
+            var emily = new TacObject();
+
+            colin.members = new object[] {
+                30,
+                new TacCastObject{
+                    @object = emily,
+                    indexer = Indexer.Create(Types.Value.namedPerson, Types.Value.person)
+                },
+                "Colin"
+            };
+
+            emily.members = new object[] {
+                29,
+                new TacCastObject{
+                    @object = emily,
+                    indexer = Indexer.Create(Types.Value.namedPerson, Types.Value.person)
+                },
+                "Emily"
+            };
+
+            var colinAsHasNamedPersonFriendAndAge = new TacCastObject
+            {
+                @object = colin,
+                indexer = Indexer.Create(Types.Value.hasNamedPersonFriendAndAge, Types.Value.hasNamedPersonFriendAndAge)
+            };
+
+            var colinAsHasNamedPersonFriend = new TacCastObject
+            {
+                @object = colinAsHasNamedPersonFriendAndAge,
+                indexer = Indexer.Create(Types.Value.hasNamedPersonFriendAndAge, Types.Value.hasNamedPersonFriend)
+            };
+
+            var colinAsHasReadOnlyFriend = new TacCastObject
+            {
+                @object = colinAsHasNamedPersonFriend,
+                indexer = Indexer.Create(Types.Value.hasNamedPersonFriend, Types.Value.hasReadOnlyFriend)
+            };
+
+            var colinAsHasHasAge = new TacCastObject
+            {
+                @object = colinAsHasReadOnlyFriend,
+                indexer = Indexer.Create(Types.Value.hasReadOnlyFriend, Types.Value.hasHasAge)
+            };
+
+            Assert.Equal(29, colinAsHasHasAge.GetComplexMember(0).GetSimpleMember<int>(0));
+
+        }
 
 
         public static Lazy<Types> Types = new Lazy<Types>(() => new Types());
@@ -228,24 +279,32 @@ namespace Tac.Backend.Emit.Support.Test
 
     public class Types {
         public readonly IInterfaceType hasFriend;
+        public readonly IInterfaceType hasReadOnlyFriend;
         public readonly IInterfaceType hasAge;
         public readonly IInterfaceType hasHasAge;
         public readonly IInterfaceType person;
         public readonly IInterfaceType namedPerson;
+        public readonly IInterfaceType hasWriteOnlyNamedPersonFriend;
         public readonly IInterfaceType hasNamedPersonFriend;
+        public readonly IInterfaceType hasNamedPersonFriendAndAge;
 
         public Types() {
             var (hasFriendType, hasFriendBuilder) = InterfaceType.Create();
+            var (hasReadOnlyFriendType, hasReadOnlyFriendBuilder) = InterfaceType.Create();
             var (hasAgeType, hasAgeBuilder) = InterfaceType.Create();
             var (hasHasAgeType, hasHasAgeBuilder) = InterfaceType.Create();
             var (personType, personBuilder) = InterfaceType.Create();
             var (namedPersonType, namedPersonBuilder) = InterfaceType.Create();
+            var (hasWriteOnlyNamedPersonFriendType, hasWriteOnlyNamedPersonFriendBuilder) = InterfaceType.Create();
             var (hasNamedPersonFriendType, hasNamedPersonFriendBuilder) = InterfaceType.Create();
+            var (hasNamedPersonFriendAndAgeType, hasNamedPersonFriendAndAgeBuilder) = InterfaceType.Create();
 
             var ageMember = MemberDefinition.CreateAndBuild(new NameKey("age"), new NumberType(), Access.ReadWrite);
             var friendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), personType, Access.ReadWrite);
+            var readonlyFriendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), personType, Access.ReadOnly);
             var friendHasAgeMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), hasAgeType, Access.ReadOnly);
-            var namedFriendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), namedPersonType, Access.WriteOnly);
+            var writeonlyNamedFriendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), namedPersonType, Access.WriteOnly);
+            var namedFriendMember = MemberDefinition.CreateAndBuild(new NameKey("friend"), namedPersonType, Access.ReadWrite);
             var nameMember = MemberDefinition.CreateAndBuild(new NameKey("name"), new StringType(), Access.ReadWrite);
 
             hasFriendBuilder.Build(new List<IMemberDefinition> { friendMember });
@@ -253,14 +312,20 @@ namespace Tac.Backend.Emit.Support.Test
             hasHasAgeBuilder.Build(new List<IMemberDefinition> { friendHasAgeMember });
             personBuilder.Build(new List<IMemberDefinition> { friendMember , ageMember  });
             namedPersonBuilder.Build(new List<IMemberDefinition> { friendMember, ageMember , nameMember });
+            hasWriteOnlyNamedPersonFriendBuilder.Build(new List<IMemberDefinition> { writeonlyNamedFriendMember });
             hasNamedPersonFriendBuilder.Build(new List<IMemberDefinition> { namedFriendMember });
+            hasNamedPersonFriendAndAgeBuilder.Build(new List<IMemberDefinition> { namedFriendMember, ageMember });
+            hasReadOnlyFriendBuilder.Build(new List<IMemberDefinition> { readonlyFriendMember });
 
             hasFriend = hasFriendType;
             hasAge = hasAgeType;
             person = personType;
             hasHasAge = hasHasAgeType;
             namedPerson = namedPersonType;
+            hasWriteOnlyNamedPersonFriend = hasWriteOnlyNamedPersonFriendType;
             hasNamedPersonFriend = hasNamedPersonFriendType;
+            hasNamedPersonFriendAndAge = hasNamedPersonFriendAndAgeType;
+            hasReadOnlyFriend = hasReadOnlyFriendType;
         }
     }
 }
