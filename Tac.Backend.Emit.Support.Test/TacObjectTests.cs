@@ -217,8 +217,6 @@ namespace Tac.Backend.Emit.Support.Test
             Assert.Equal(29, colinAsPerson.GetComplexMember(1).GetSimpleMember<int>(0));
         }
 
-
-        // TODO test a long chain of narrowing and not narrowing 
         [Fact]
         public void StackedNarrowingTest() {
             var colin = new TacObject();
