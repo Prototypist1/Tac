@@ -36,6 +36,8 @@ namespace Tac.Model
 
     // honestly this is a pretty bad interface
     // I was clearly adding what I needed as I went 
+
+
     public interface IFinalizedScope
     {
         IReadOnlyDictionary<IKey, IsStatic> Members { get; }

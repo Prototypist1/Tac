@@ -5,11 +5,11 @@ using Tac.Model.Elements;
 
 namespace Tac.Backend.Emit.Extensions
 {
-    class ClosureExtension
+    class ClosureLookup
     {
         public readonly IReadOnlyList<IMemberDefinition> closureMember;
 
-        public ClosureExtension(IReadOnlyList<IMemberDefinition> closureMember)
+        public ClosureLookup(IReadOnlyList<IMemberDefinition> closureMember)
         {
             this.closureMember = closureMember ?? throw new ArgumentNullException(nameof(closureMember));
         }

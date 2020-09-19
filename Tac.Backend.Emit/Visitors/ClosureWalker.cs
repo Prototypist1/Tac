@@ -11,6 +11,11 @@ using Tac.Model.Operations;
 
 namespace Tac.Backend.Emit.Walkers
 {
+
+    // does this handle argument well?
+    // they should not be part of the closure
+    // do argument endup as part of the 
+
     class ClosureVisitor : IOpenBoxesContext<IReadOnlyList<IMemberDefinition>>
     {
         private readonly ExtensionLookup extensionLookup;
@@ -32,13 +37,20 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> BlockDefinition(IBlockDefinition codeElement)
         {
-            return extensionLookup.blockLookup.GetOrAdd(codeElement,()=> {
-                var implementationClosure = Walk(codeElement.Body, extensionLookup);
 
-                return new ClosureExtension(implementationClosure
-                .Except(codeElement.Scope.Members.Select(x => x.Value.Value)).ToArray());
+            var implementationClosure = Walk(codeElement.Body, extensionLookup);
 
-            }).closureMember;
+            return implementationClosure
+            .Except(codeElement.Scope.Members.Select(x => x.Value.Value)).ToArray();
+
+            // TODO BLOCKS DONT NEED CLOSURES
+            //return extensionLookup.blockLookup.GetOrAdd(codeElement,()=> {
+            //    var implementationClosure = Walk(codeElement.Body, extensionLookup);
+
+            //    return new ClosureLookup(implementationClosure
+            //    .Except(codeElement.Scope.Members.Select(x => x.Value.Value)).ToArray());
+
+            //}).closureMember;
         }
 
         public IReadOnlyList<IMemberDefinition> ConstantBool(IConstantBool constantBool) => new List<IMemberDefinition>();
@@ -59,8 +71,9 @@ namespace Tac.Backend.Emit.Walkers
             return extensionLookup.entryPointLookup.GetOrAdd(entryPointDefinition, () => {
                 var implementationClosure = Walk(entryPointDefinition.Body, extensionLookup);
 
-                return new ClosureExtension(implementationClosure
-                .Except(entryPointDefinition.Scope.Members.Select(x => x.Value.Value)).ToArray());
+                return new ClosureLookup(implementationClosure
+                    .Except(entryPointDefinition.Scope.Members.Select(x => x.Value.Value))
+                    .ToArray());
 
             }).closureMember;
         }
@@ -75,7 +88,7 @@ namespace Tac.Backend.Emit.Walkers
             return extensionLookup.implementationLookup.GetOrAdd(implementation, () => {
                 var implementationClosure = Walk(implementation.MethodBody, extensionLookup);
 
-                return new ClosureExtension(implementationClosure
+                return new ClosureLookup(implementationClosure
                     .Except(implementation.IntermediateScope.Members.Select(x => x.Value.Value))
                     .Except(implementation.Scope.Members.Select(x => x.Value.Value)).ToArray());
 
@@ -107,8 +120,9 @@ namespace Tac.Backend.Emit.Walkers
             return extensionLookup.methodLookup.GetOrAdd(method, () => {
                 var implementationClosure = Walk(method.Body, extensionLookup);
 
-                return new ClosureExtension(implementationClosure
-                .Except(method.Scope.Members.Select(x => x.Value.Value)).ToArray());
+                return new ClosureLookup(implementationClosure
+                .Except(method.Scope.Members.Select(x => x.Value.Value))
+                .ToArray());
 
             }).closureMember;
         }

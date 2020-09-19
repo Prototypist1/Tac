@@ -14,9 +14,6 @@ using Tac.Type;
 namespace Tac.Backend.Emit.Visitors
 {
 
-    // TODO this needs to coordinate with ClosureVisitor
-    // things in the closure are fields 
-
     class MemberKindVisitor : IOpenBoxesContext<Nothing>
     {
 
@@ -34,9 +31,6 @@ namespace Tac.Backend.Emit.Visitors
             list.Add(another);
             return new MemberKindVisitor(list);
         }
-
-        
-
 
         private void Walk(IEnumerable<ICodeElement> codeElements) {
             foreach (var element in codeElements)
@@ -118,25 +112,20 @@ namespace Tac.Backend.Emit.Visitors
         public Nothing TypeDefinition(IInterfaceType codeElement) => new Nothing();
 
 
-        private void AddLocalsToLookup(IFinalizedScope scope, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition> owner)
-        {
-            foreach (var entry in scope.Members.Values)
-            {
-                if (entry.Static)
-                {
-                    // atleast not yet
-                    throw new Exception("this can't be static");
-                }
-                else
-                {
-                    lookup.AddLocal(owner, entry.Value);
-                }
-            }
-        }
+
 
         public Nothing EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
-            AddLocalsToLookup(entryPointDefinition.Scope, OrType.Make < IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition > (entryPointDefinition));
+            if (entryPointDefinition.Scope.Members.Values.Any(x => x.Static))
+            {
+                throw new Exception("cant be static at this time");
+            }
+
+
+            foreach (var entry in entryPointDefinition.Scope.Members.Values.Select(x => x.Value))
+            {
+                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(entryPointDefinition), entry);
+            }
 
             var next = Push(entryPointDefinition);
             next.Walk(entryPointDefinition.Body);
@@ -162,7 +151,12 @@ namespace Tac.Backend.Emit.Visitors
                 return new IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>[] { };
             }).First();
 
-            AddLocalsToLookup(codeElement.Scope, owner);
+
+            foreach (var entry in codeElement.Scope.Members.Values.Select(x => x.Value))
+            {
+                lookup.AddLocal(owner, entry);
+            }
+
 
             var next = Push(codeElement);
             next.Walk(codeElement.Body);
@@ -172,7 +166,10 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing MethodDefinition(IInternalMethodDefinition co)
         {
-            AddLocalsToLookup(co.Scope, OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(co));
+            foreach (var entry in co.Scope.Members.Values.Select(x => x.Value).Except(new[] { co.ParameterDefinition }))
+            {
+                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(co), entry);
+            }
             lookup.AddArgument(OrType.Make<IImplementationDefinition, IInternalMethodDefinition>(co), co.ParameterDefinition);
 
             var next = Push(co);
@@ -183,7 +180,10 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing ImplementationDefinition(IImplementationDefinition codeElement)
         {
-            AddLocalsToLookup(codeElement.Scope, OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(codeElement));
+            foreach (var entry in codeElement.Scope.Members.Values.Select(x => x.Value).Except(new[] { codeElement.ParameterDefinition }))
+            {
+                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(codeElement), entry);
+            }
 
             lookup.AddArgument(OrType.Make < IImplementationDefinition, IInternalMethodDefinition > (codeElement),codeElement.ParameterDefinition);
             lookup.AddField(OrType .Make< IImplementationDefinition, IObjectDefiniton >( codeElement), codeElement.ContextDefinition);

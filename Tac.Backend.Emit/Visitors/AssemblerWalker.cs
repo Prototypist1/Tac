@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using Tac.Backend.Emit.Lookup;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -12,10 +13,9 @@ namespace Tac.Backend.Emit.Walkers
 {
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
-        // TODO
-        // I am going to need a local variable lookup
 
         private readonly TypeChangeLookup typeChangeLookup;
+        private readonly MemberKindLookup memberKindLookup;
         private IReadOnlyList<ICodeElement> stack;
         public  IIsPossibly<ILGenerator> generator;
         public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack)
@@ -184,6 +184,64 @@ namespace Tac.Backend.Emit.Walkers
             // is it an argument 
             // ldarg
 
+
+            // TODO I need to add a pass to emit type for methods and impls
+            //
+
+            if (memberKindLookup.IsArgument(memberReference.MemberDefinition, out var orTypeArg)) {
+                return orTypeArg.SwitchReturns(
+                    imp =>
+                    {
+                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+                        return new Nothing();
+                    },
+                    method =>
+                    {
+                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+                        return new Nothing();
+                    });
+            }
+            if (memberKindLookup.IsLocal(memberReference.MemberDefinition, out var orTypeLocal))
+            {
+                return orTypeLocal.SwitchReturns(
+                    entryPoint => {
+                        // I need the index of the local
+                        throw new NotImplementedException("");
+
+                        return new Nothing();
+                    },
+                    imp => {
+                        // I need the index of the local
+                        throw new NotImplementedException("");
+
+                        return new Nothing();
+                    },
+                    method => {
+                        // I need the index of the local
+                        throw new NotImplementedException("");
+
+                        return new Nothing();
+                    });
+            }
+
+            if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField)) {
+                return orTypeField.SwitchReturns(
+                    imp => {
+                        // this is the closure
+                        // I need the index of the feild
+                        throw new NotImplementedException("");
+
+                        return new Nothing();
+
+                    },
+                    obj =>
+                    {
+                        // this is inside a path a.b
+                        throw new NotImplementedException("");
+
+                        return new Nothing();
+                    });
+            }
 
             return new Nothing();
         }
