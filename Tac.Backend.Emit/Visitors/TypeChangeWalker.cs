@@ -10,12 +10,12 @@ using Tac.Type;
 namespace Tac.Backend.Emit.Walkers
 {
 
-    class TypeChangeWalker : IOpenBoxesContext<Nothing>
+    class TypeChangeVisitor : IOpenBoxesContext<Nothing>
     {
 
         private readonly TypeChangeLookup typeChangeLookup;
 
-        public TypeChangeWalker(TypeChangeLookup typeChangeLookup)
+        public TypeChangeVisitor(TypeChangeLookup typeChangeLookup)
         {
             this.typeChangeLookup = typeChangeLookup ?? throw new ArgumentNullException(nameof(typeChangeLookup));
         }
@@ -95,7 +95,7 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        public Nothing MemberReferance(IMemberReferance memberReferance)
+        public Nothing MemberReferance(IMemberReference memberReferance)
         {
             return new Nothing();
         }

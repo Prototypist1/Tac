@@ -1,6 +1,6 @@
 ﻿namespace Tac.Model.Elements
 {
-    public interface IMemberReferance : ICodeElement
+    public interface IMemberReference : ICodeElement
     {
         IMemberDefinition MemberDefinition { get; }
     }

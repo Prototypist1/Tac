@@ -11,11 +11,11 @@ using Tac.Model.Operations;
 
 namespace Tac.Backend.Emit.Walkers
 {
-    class ClosureWalker : IOpenBoxesContext<IReadOnlyList<IMemberDefinition>>
+    class ClosureVisitor : IOpenBoxesContext<IReadOnlyList<IMemberDefinition>>
     {
         private readonly ExtensionLookup extensionLookup;
 
-        public ClosureWalker(ExtensionLookup extensionLookup)
+        public ClosureVisitor(ExtensionLookup extensionLookup)
         {
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
         }
@@ -97,7 +97,7 @@ namespace Tac.Backend.Emit.Walkers
             return new List<IMemberDefinition>();
         }
 
-        public IReadOnlyList<IMemberDefinition> MemberReferance(IMemberReferance memberReferance)
+        public IReadOnlyList<IMemberDefinition> MemberReferance(IMemberReference memberReferance)
         {
             return new List<IMemberDefinition> { memberReferance.MemberDefinition };
         }

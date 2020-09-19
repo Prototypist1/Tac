@@ -17,14 +17,14 @@ namespace Tac.Backend.Emit.Walkers
 {
 
     class Nothing { }
-    class TypeWalker : IOpenBoxesContext<Nothing>
+    class TypeVisitor : IOpenBoxesContext<Nothing>
     {
         private readonly ModuleBuilder moduleBuilder;
 
         public readonly Dictionary<IVerifiableType, System.Type> typeCache = new Dictionary<IVerifiableType, System.Type>();
         private readonly LinkedList<Action> followUp = new LinkedList<Action>();
 
-        public TypeWalker(ModuleBuilder moduleBuilder)
+        public TypeVisitor(ModuleBuilder moduleBuilder)
         {
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
         }
@@ -115,7 +115,7 @@ namespace Tac.Backend.Emit.Walkers
                     HandleType(method.OutputType)
                     );
             }
-            if (verifiableType is IMemberReferance memberReferance)
+            if (verifiableType is IMemberReference memberReferance)
             {
                 // I have to fresh up on what this means....
                 // I think it is ref<T> 
@@ -251,7 +251,7 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        public Nothing MemberReferance(IMemberReferance codeElement)
+        public Nothing MemberReferance(IMemberReference codeElement)
         {
             codeElement.MemberDefinition.Convert(this);
             return new Nothing();

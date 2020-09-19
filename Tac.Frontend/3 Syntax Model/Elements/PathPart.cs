@@ -16,7 +16,7 @@ namespace Tac.SemanticModel
 {
 
     // does not seems like this should be an "IFrontendType"
-    internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReferance>
+    internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReference>
     {
         IBox<WeakMemberDefinition> MemberDefinition { get; }
     }
@@ -32,10 +32,10 @@ namespace Tac.SemanticModel
 
         public IBox<WeakMemberDefinition> MemberDefinition { get; }
 
-        public IBuildIntention<IMemberReferance> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IMemberReference> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = MemberReference.Create();
-            return new BuildIntention<IMemberReferance>(toBuild, () =>
+            return new BuildIntention<IMemberReference>(toBuild, () =>
             {
                 maker.Build(MemberDefinition.GetValue().Convert(context));
             });

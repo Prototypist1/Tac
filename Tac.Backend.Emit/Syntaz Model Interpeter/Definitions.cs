@@ -268,7 +268,7 @@ namespace Tac.Backend.Emit.SyntaxModel
             }
         }
 
-        public IAssembledOperation MemberReferance(IMemberReferance codeElement)
+        public IAssembledOperation MemberReferance(IMemberReference codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {
@@ -593,7 +593,7 @@ namespace Tac.Backend.Emit.SyntaxModel
                     MapType(method.OutputType, followUp, moduleBuilder)
                     );
             }
-            if (verifiableType is IMemberReferance memberReferance)
+            if (verifiableType is IMemberReference memberReferance)
             {
                 // I have to fresh up on what this means....
                 // I think it is ref<T> 

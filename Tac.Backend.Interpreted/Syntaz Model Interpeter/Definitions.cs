@@ -265,7 +265,7 @@ namespace Tac.Backend.Interpreted.SyntazModelInterpeter
             }
         }
 
-        public IInterpetedOperation MemberReferance(IMemberReferance codeElement)
+        public IInterpetedOperation MemberReferance(IMemberReference codeElement)
         {
             if (backing.TryGetValue(codeElement, out var res))
             {

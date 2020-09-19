@@ -10,21 +10,24 @@ using Tac.Model.Operations;
 
 namespace Tac.Backend.Emit.Walkers
 {
-    class AssemblerWalker : IOpenBoxesContext<Nothing>
+    class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
+        // TODO
+        // I am going to need a local variable lookup
+
         private readonly TypeChangeLookup typeChangeLookup;
         private IReadOnlyList<ICodeElement> stack;
         public  IIsPossibly<ILGenerator> generator;
-        public AssemblerWalker(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack)
+        public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack)
         {
             this.typeChangeLookup = typeChangeLookup;
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
         }
 
-        public AssemblerWalker Push(ICodeElement another) {
+        public AssemblerVisitor Push(ICodeElement another) {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerWalker(typeChangeLookup, list);
+            return new AssemblerVisitor(typeChangeLookup, list);
         }
 
         public Nothing AddOperation(IAddOperation co)
@@ -173,8 +176,15 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        public Nothing MemberReferance(IMemberReferance memberReferance)
+        public Nothing MemberReferance(IMemberReference memberReference)
         {
+            // we need to determine what type of member reference it is 
+            // is it a local?
+            // ldloc
+            // is it an argument 
+            // ldarg
+
+
             return new Nothing();
         }
 

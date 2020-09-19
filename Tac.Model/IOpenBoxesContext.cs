@@ -26,7 +26,7 @@ namespace Tac.Model
         T TryAssignOperation(ITryAssignOperation tryAssignOperation);
         T ImplementationDefinition(IImplementationDefinition codeElement);
         T MemberDefinition(IMemberDefinition codeElement);
-        T MemberReferance(IMemberReferance codeElement);
+        T MemberReferance(IMemberReference codeElement);
         T ModuleDefinition(IModuleDefinition codeElement);
         T LastCallOperation(ILastCallOperation co);
         T ObjectDefinition(IObjectDefiniton codeElement);

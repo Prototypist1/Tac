@@ -4,7 +4,7 @@ using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
-    public class MemberReference : IMemberReferance, IMemberReferanceBuilder
+    public class MemberReference : IMemberReference, IMemberReferanceBuilder
     {
         private readonly Buildable<IMemberDefinition> buildableMemberDefinition = new Buildable<IMemberDefinition>();
 
@@ -28,13 +28,13 @@ namespace Tac.Model.Instantiated
             buildableMemberDefinition.Set(memberDefinition);
         }
         
-        public static (IMemberReferance, IMemberReferanceBuilder) Create()
+        public static (IMemberReference, IMemberReferanceBuilder) Create()
         {
             var res = new MemberReference();
             return (res, res);
         }
 
-        public static IMemberReferance CreateAndBuild(IMemberDefinition memberDefinition) {
+        public static IMemberReference CreateAndBuild(IMemberDefinition memberDefinition) {
             var (x, y) = Create();
             y.Build(memberDefinition);
             return x;
