@@ -11,6 +11,9 @@ using Tac.Model.Operations;
 
 namespace Tac.Backend.Emit.Walkers
 {
+    // {CC9EC96A-4DD8-4E0D-A016-3E6BB1320DE9}
+    // does this handle static well?
+
 
     // does this handle argument well?
     // they should not be part of the closure
@@ -68,6 +71,8 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
+            // {BA693CBB-0A22-45DA-9C94-146E72D8C0A4}
+            // TODO I don't think an entyr point can have a closure
             return extensionLookup.entryPointLookup.GetOrAdd(entryPointDefinition, () => {
                 var implementationClosure = Walk(entryPointDefinition.Body, extensionLookup);
 

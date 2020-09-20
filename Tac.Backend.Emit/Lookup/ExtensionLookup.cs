@@ -36,6 +36,7 @@ namespace Tac.Backend.Emit
         //    return blockLookup.GetOrAdd(methodDefinition, new ClosureExtension());
         //}
 
+            
         public readonly ConcurrentIndexed<IEntryPointDefinition, ClosureLookup> entryPointLookup = new ConcurrentIndexed<IEntryPointDefinition, ClosureLookup>();
 
         //public ClosureExtension LookUpOrAdd(IEntryPointDefinition methodDefinition)

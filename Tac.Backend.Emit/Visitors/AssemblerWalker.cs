@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using Tac.Backend.Emit.Lookup;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -16,6 +17,10 @@ namespace Tac.Backend.Emit.Walkers
 
         private readonly TypeChangeLookup typeChangeLookup;
         private readonly MemberKindLookup memberKindLookup;
+        private readonly ExtensionLookup extensionLookup;
+        private readonly RealizedMethodLookup realizedMethodLookup;
+
+
         private IReadOnlyList<ICodeElement> stack;
         public  IIsPossibly<ILGenerator> generator;
         public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack)
@@ -176,6 +181,21 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
+        private IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition> ConvertToMethodlike(ICodeElement frame) {
+            if (frame.SafeIs(out IInternalMethodDefinition method)) {
+                return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method);
+            }
+            if (frame.SafeIs(out IImplementationDefinition imp))
+            {
+                return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp);
+            }
+            if (frame.SafeIs(out IEntryPointDefinition entry))
+            {
+                return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entry);
+            }
+            throw new Exception("should have been one of those");
+        }
+
         public Nothing MemberReferance(IMemberReference memberReference)
         {
             // we need to determine what type of member reference it is 
@@ -187,6 +207,23 @@ namespace Tac.Backend.Emit.Walkers
 
             // TODO I need to add a pass to emit type for methods and impls
             //
+            foreach (var frame in stack.Reverse())
+            {
+                if (extensionLookup.TryGetClosure(frame, out var closure)) {
+                    // these are fields!!
+
+                    if (closure.closureMember.Contains(memberReference.MemberDefinition)) {
+
+                        var realizedMethod =  realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
+
+                        var field = realizedMethod.fields[memberReference.MemberDefinition];
+
+                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+
+                        return new Nothing();
+                    }
+                }
+            } 
 
             if (memberKindLookup.IsArgument(memberReference.MemberDefinition, out var orTypeArg)) {
                 return orTypeArg.SwitchReturns(
@@ -205,22 +242,13 @@ namespace Tac.Backend.Emit.Walkers
             {
                 return orTypeLocal.SwitchReturns(
                     entryPoint => {
-                        // I need the index of the local
-                        throw new NotImplementedException("");
-
-                        return new Nothing();
+                        // I need to know the index!
                     },
                     imp => {
-                        // I need the index of the local
-                        throw new NotImplementedException("");
-
-                        return new Nothing();
+                        // I need to know the index!
                     },
                     method => {
-                        // I need the index of the local
-                        throw new NotImplementedException("");
-
-                        return new Nothing();
+                        // I need to know the index!
                     });
             }
 
@@ -228,11 +256,15 @@ namespace Tac.Backend.Emit.Walkers
                 return orTypeField.SwitchReturns(
                     imp => {
                         // this is the closure
-                        // I need the index of the feild
-                        throw new NotImplementedException("");
+                        // I need the field info...
+
+                        var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
+
+                        var field = realizedMethod.fields[memberReference.MemberDefinition];
+
+                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
 
                         return new Nothing();
-
                     },
                     obj =>
                     {
