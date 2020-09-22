@@ -29,7 +29,7 @@ namespace Tac.Backend.Emit.Support
         // there is some danager of the same type defined in two different places
         // I need to be careful to sort members by name when I create objects
         // and when I create interfaces
-        public ITacObject GetComplexMember(int position) {
+        public  ITacObject GetComplexMember(int position) {
             return @object.GetComplexMember(indexer.indexOffsets[position]);
         }
 

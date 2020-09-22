@@ -3,9 +3,11 @@ using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using Tac.Backend.Emit.Lookup;
+using Tac.Backend.Emit.Support;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -19,6 +21,7 @@ namespace Tac.Backend.Emit.Walkers
         private readonly MemberKindLookup memberKindLookup;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
+        private readonly Dictionary<IVerifiableType, System.Type> typeCache;
 
 
         private IReadOnlyList<ICodeElement> stack;
@@ -205,8 +208,8 @@ namespace Tac.Backend.Emit.Walkers
             // ldarg
 
 
-            // TODO I need to add a pass to emit type for methods and impls
-            //
+            // see if it is on the closure 
+            // walk up the stack and hope you run in to it
             foreach (var frame in stack.Reverse())
             {
                 if (extensionLookup.TryGetClosure(frame, out var closure)) {
@@ -229,26 +232,36 @@ namespace Tac.Backend.Emit.Walkers
                 return orTypeArg.SwitchReturns(
                     imp =>
                     {
+                        // I only allow 1 argument 
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
                         return new Nothing();
                     },
                     method =>
                     {
+                        // I only allow 1 argument 
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
                         return new Nothing();
                     });
             }
+
             if (memberKindLookup.IsLocal(memberReference.MemberDefinition, out var orTypeLocal))
             {
                 return orTypeLocal.SwitchReturns(
                     entryPoint => {
-                        // I need to know the index!
+
+                       var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                       LoadLocal(index);
+                        return new Nothing();
                     },
                     imp => {
-                        // I need to know the index!
+                        var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                        LoadLocal(index);
+                        return new Nothing();
                     },
                     method => {
-                        // I need to know the index!
+                        var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                        LoadLocal(index);
+                        return new Nothing();
                     });
             }
 
@@ -268,7 +281,24 @@ namespace Tac.Backend.Emit.Walkers
                     },
                     obj =>
                     {
-                        // this is inside a path a.b
+
+                        // this "b" inside a path like: a.b
+                        // we count on "a" to have already been load
+
+                        var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                        LoadInt(index);
+
+                        if (typeCache[memberReference.MemberDefinition.Type] == typeof(TacCastObject)) {
+                            generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexMember.Value, new[] {typeof( int)});
+                        }
+                        else
+                        {
+
+                            
+
+                            generator.GetOrThrow().EmitCall(OpCodes.Call, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                        }
+
                         throw new NotImplementedException("");
 
                         return new Nothing();
@@ -276,6 +306,91 @@ namespace Tac.Backend.Emit.Walkers
             }
 
             return new Nothing();
+        }
+
+        private Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() => {
+            return typeof(TacCastObject).GetMethod(nameof(TacCastObject.GetComplexMember));
+        });
+
+        private Lazy<MethodInfo> getSimpleMember = new Lazy<MethodInfo>(() => {
+            return typeof(TacCastObject).GetMethod(nameof(TacCastObject.GetSimpleMember));
+        });
+
+        private void LoadInt(int value)
+        {
+            switch (value)
+            {
+                case 0:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0);
+                    return;
+                case 1:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1);
+                    return;
+                case 2:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_2);
+                    return;
+                case 3:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_3);
+                    return;
+                case 4:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_4);
+                    return;
+                case 5:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_5);
+                    return;
+                case 6:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_6);
+                    return;
+                case 7:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_7);
+                    return;
+                default:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4, value);
+                    return;
+            }
+        }
+
+        private void LoadLocal(int index) {
+            switch (index)
+            {
+                case 0:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_0);
+                    return;
+                case 1:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_1);
+                    return;
+                case 2:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_2);
+                    return;
+                case 3:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_3);
+                    return;
+                default:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_S, index);
+                    return;
+            }
+        }
+
+        private void LoadLocalAddress(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloca,index);
+                    return;
+                case 1:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_1);
+                    return;
+                case 2:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_2);
+                    return;
+                case 3:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_3);
+                    return;
+                default:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_S, index);
+                    return;
+            }
         }
 
         public Nothing MethodDefinition(IInternalMethodDefinition method)

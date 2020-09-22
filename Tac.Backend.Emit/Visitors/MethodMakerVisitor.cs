@@ -2,6 +2,7 @@
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -18,6 +19,7 @@ namespace Tac.Backend.Emit.Visitors
         private readonly ModuleBuilder moduleBuilder;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
+        public readonly Dictionary<IVerifiableType, System.Type> typeCache;
 
         private void Walk(IEnumerable<ICodeElement> codeElements)
         {
@@ -155,17 +157,22 @@ namespace Tac.Backend.Emit.Visitors
 
         private System.Type TranslateType(IVerifiableType type)
         {
+            return typeCache[type];
         }
 
         private string TranslateName(string name)
         {
+            return name.Replace("_", "__").Replace("-", "_");
         }
+
+        private static readonly Random random = new Random();
 
         private string GenerateName()
         {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            return new string(Enumerable.Repeat(chars, 20)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-
-
 
         public Nothing LastCallOperation(ILastCallOperation co)
         {
