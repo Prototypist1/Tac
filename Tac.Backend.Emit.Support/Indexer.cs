@@ -11,6 +11,22 @@ using Tac.Model.Elements;
 
 namespace Tac.Backend.Emit.Support
 {
+    // TODO YOU ARE HERE
+    // I need to make a typeCastMethod
+    // or something like that
+    // it is like an indexer for methods
+    // it transforms the input and output
+    // simple vs complex vs method
+
+    // methods might just use a indexer with a trivial mapping and 2 next indexers
+    // the frist used for input
+    // the second used for output
+
+    // calling a method on a TacCastObject is:
+    // 1 - cast object transforms the input
+    // 2 - call the method
+    // 3  - cast object transforms the output
+
 
     // NOTE I spent once redid this to stack TacCastObject on TacCastObject for GetComplexReadonlyMember
     // you don't need to call Indexer.Overlay 

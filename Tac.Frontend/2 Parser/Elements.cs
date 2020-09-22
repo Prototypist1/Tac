@@ -202,10 +202,6 @@ namespace Tac.Parser
         //this.typeMakers = typeMakers ?? throw new ArgumentNullException(nameof(typeMakers));
         //}
 
-        // elementMakers and operationMatchers should be one list
-        // YOU ARE HERE
-        // type and element makers need to unify
-        //
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] allMakers = new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] { 
             
             // constants

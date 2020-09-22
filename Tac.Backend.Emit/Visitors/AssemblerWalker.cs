@@ -288,18 +288,22 @@ namespace Tac.Backend.Emit.Walkers
                         var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
                         LoadInt(index);
 
-                        if (typeCache[memberReference.MemberDefinition.Type] == typeof(TacCastObject)) {
-                            generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexMember.Value, new[] {typeof( int)});
+                        if (typeCache[memberReference.MemberDefinition.Type] == typeof(TacCastObject))
+                        {
+                            generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexMember.Value, new[] { typeof(int) });
+                        }
+                        else if (1 == 1) {
+
+                            throw new NotImplementedException("handle methods!");
                         }
                         else
                         {
 
-                            
+
 
                             generator.GetOrThrow().EmitCall(OpCodes.Call, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
                         }
 
-                        throw new NotImplementedException("");
 
                         return new Nothing();
                     });
