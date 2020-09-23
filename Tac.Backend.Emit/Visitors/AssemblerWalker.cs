@@ -288,7 +288,7 @@ namespace Tac.Backend.Emit.Walkers
                         var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
                         LoadInt(index);
 
-                        if (typeCache[memberReference.MemberDefinition.Type] == typeof(TacCastObject))
+                        if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
                         {
                             generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexMember.Value, new[] { typeof(int) });
                         }
@@ -313,11 +313,11 @@ namespace Tac.Backend.Emit.Walkers
         }
 
         private Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() => {
-            return typeof(TacCastObject).GetMethod(nameof(TacCastObject.GetComplexMember));
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexMember));
         });
 
         private Lazy<MethodInfo> getSimpleMember = new Lazy<MethodInfo>(() => {
-            return typeof(TacCastObject).GetMethod(nameof(TacCastObject.GetSimpleMember));
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetSimpleMember));
         });
 
         private void LoadInt(int value)

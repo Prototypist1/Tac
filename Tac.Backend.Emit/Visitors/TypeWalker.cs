@@ -87,7 +87,7 @@ namespace Tac.Backend.Emit.Walkers
             }
             if (verifiableType.SafeIs(out IInterfaceModuleType moduleType))
             {
-                return typeof(TacCastObject);
+                return typeof(ITacObject);
 
                 //var myType = moduleBuilder.DefineType(new Guid().ToString("N"));
 

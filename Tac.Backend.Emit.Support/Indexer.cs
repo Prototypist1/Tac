@@ -32,6 +32,75 @@ namespace Tac.Backend.Emit.Support
     // you don't need to call Indexer.Overlay 
     // @object becomes a ITacObject
 
+
+    //public class TacMethod<TIn,TOut>: ITacMethod<TIn, TOut>
+    //{
+    //    Func<TIn, TOut> backing;
+
+    //    public TOut Invoke(TIn @in) {
+    //        return backing.Invoke(@in);
+    //    }
+    //}
+
+    public class TacMethod<Tin, Tout> : ITacMethod<Tin, Tout> {
+        Func<Tin, Tout> backing;
+
+        public Tout Invoke(Tin @in) => backing.Invoke(@in);
+    }
+
+    public class TacCastMethod : ITacMethod<ITacObject, ITacObject>
+    {
+
+        ITacMethod<ITacObject, ITacObject> backing;
+        public Indexer inputIndexer;
+        public Indexer outputIndexer;
+
+        public ITacObject Invoke(ITacObject @in)
+        {
+            return new TacCastObject()
+            {
+                @object = backing.Invoke(new TacCastObject()
+                {
+                    indexer = inputIndexer,
+                    @object = @in
+                }),
+                indexer = outputIndexer
+            };
+        }
+    }
+
+    public class TacInCastMethod<Tout>: ITacMethod<ITacObject, Tout>
+    {
+
+        Func<ITacObject, Tout> backing;
+        public Indexer inputIndexer;
+
+        public Tout Invoke(ITacObject @in)
+        {
+            return backing.Invoke(new TacCastObject()
+            {
+                indexer = inputIndexer,
+                @object = @in
+            });
+        }
+    }
+
+    public class TacOutCastMethod<Tin> : ITacMethod<Tin,ITacObject>
+    {
+
+        Func<Tin, ITacObject> backing;
+        public Indexer outputIndexer;
+
+        public ITacObject Invoke(Tin @in)
+        {
+            return new TacCastObject()
+            {
+                @object = backing.Invoke(@in),
+                indexer = outputIndexer
+            };
+        }
+    }
+
     public struct TacCastObject : ITacObject
     {
         public ITacObject @object;
