@@ -42,64 +42,312 @@ namespace Tac.Backend.Emit.Support
     //    }
     //}
 
-    public class TacMethod<Tin, Tout> : ITacMethod<Tin, Tout> {
-        Func<Tin, Tout> backing;
-
-        public Tout Invoke(Tin @in) => backing.Invoke(@in);
-    }
-
-    public class TacCastMethod : ITacMethod<ITacObject, ITacObject>
+    public class TacMethod_Complex_Complex: ITacObject
     {
+        Func<ITacObject, ITacObject> backing;
 
-        ITacMethod<ITacObject, ITacObject> backing;
-        public Indexer inputIndexer;
-        public Indexer outputIndexer;
-
-        public ITacObject Invoke(ITacObject @in)
+        public Tout Call_Complex_Simple<Tout>(ITacObject input)
         {
-            return new TacCastObject()
-            {
-                @object = backing.Invoke(new TacCastObject()
-                {
-                    indexer = inputIndexer,
-                    @object = @in
-                }),
-                indexer = outputIndexer
-            };
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject Call_Simple_Complex<Tin>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject GetComplexMember(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject GetComplexReadonlyMember(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public T GetSimpleMember<T>(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetComplexMember(int position, ITacObject tacCastObject)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetSimpleMember(int position, object value)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        ITacObject Call_Complex_Complex(ITacObject input) => backing(input);
+
+        ITacObject ITacObject.Call_Complex_Complex(ITacObject input)
+        {
+            throw new NotImplementedException("not supported");
         }
     }
 
-    public class TacInCastMethod<Tout>: ITacMethod<ITacObject, Tout>
+    public class TacMethod_Simple_Complex: ITacObject
     {
+        Func<object, ITacObject> backing;
 
-        Func<ITacObject, Tout> backing;
-        public Indexer inputIndexer;
-
-        public Tout Invoke(ITacObject @in)
+        public ITacObject Call_Complex_Complex(ITacObject input)
         {
-            return backing.Invoke(new TacCastObject()
-            {
-                indexer = inputIndexer,
-                @object = @in
-            });
+            throw new NotImplementedException("not supported");
         }
+
+        public Tout Call_Complex_Simple<Tout>(ITacObject input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject Call_Simple_Complex<Tin>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject GetComplexMember(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject GetComplexReadonlyMember(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public T GetSimpleMember<T>(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetComplexMember(int position, ITacObject tacCastObject)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetSimpleMember(int position, object value)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        ITacObject Call_Simple_Complex<Tin>(object input) => backing((Tin)input);
+    }
+    public class TacMethod_Complex_Simple: ITacObject
+    {
+        Func<ITacObject, object> backing;
+
+        public ITacObject Call_Complex_Complex(ITacObject input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public Tout Call_Complex_Simple<Tout>(ITacObject input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject Call_Simple_Complex<Tin>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject GetComplexMember(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject GetComplexReadonlyMember(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public T GetSimpleMember<T>(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetComplexMember(int position, ITacObject tacCastObject)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetSimpleMember(int position, object value)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        Tout Call_Comlex_Complex<Tout>(ITacObject input) => (Tout)backing(input);
     }
 
-    public class TacOutCastMethod<Tin> : ITacMethod<Tin,ITacObject>
+    public class TacMethod_Simple_Simple: ITacObject
     {
+        Func<object, object> backing;
 
-        Func<Tin, ITacObject> backing;
-        public Indexer outputIndexer;
-
-        public ITacObject Invoke(Tin @in)
+        public ITacObject Call_Complex_Complex(ITacObject input)
         {
-            return new TacCastObject()
-            {
-                @object = backing.Invoke(@in),
-                indexer = outputIndexer
-            };
+            throw new NotImplementedException("not supported");
         }
+
+        public Tout Call_Complex_Simple<Tout>(ITacObject input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject Call_Simple_Complex<Tin>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject GetComplexMember(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject GetComplexReadonlyMember(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public T GetSimpleMember<T>(int position)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetComplexMember(int position, ITacObject tacCastObject)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public void SetSimpleMember(int position, object value)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        Tout Call_Comlex_Complex<Tin,Tout>(Tin input) => (Tout)backing((Tin)input);
     }
+
+    //public class TacCastMethod_Complex_Complex
+    //{
+    //    Func<ITacObject, ITacObject> backing;
+
+    //    ITacObject Call_Complex_Complex(ITacObject input) => backing(input);
+    //}
+
+    //public class TacCastMethod_Simple_Complex
+    //{
+    //    Func<object, ITacObject> backing;
+
+    //    ITacObject Call_Simple_Complex<Tin>(object input) => backing((Tin)input);
+    //}
+    //public class TacCastMethod_Complex_Simple
+    //{
+    //    Func<ITacObject, object> backing;
+
+    //    Tout Call_Comlex_Complex<Tout>(ITacObject input) => (Tout)backing(input);
+    //}
+
+
+    //public class TacMethod<Tin, Tout> : ITacMethod<Tin, Tout> {
+    //    Func<Tin, Tout> backing;
+
+    //    public Tout Invoke(Tin @in) => backing.Invoke(@in);
+    //}
+
+    //public class TacCastMethod : ITacMethod<ITacObject, ITacObject>
+    //{
+
+    //    ITacMethod<ITacObject, ITacObject> backing;
+    //    public Indexer inputIndexer;
+    //    public Indexer outputIndexer;
+
+    //    public ITacObject Invoke(ITacObject @in)
+    //    {
+    //        return new TacCastObject()
+    //        {
+    //            @object = backing.Invoke(new TacCastObject()
+    //            {
+    //                indexer = inputIndexer,
+    //                @object = @in
+    //            }),
+    //            indexer = outputIndexer
+    //        };
+    //    }
+    //}
+
+    //public class TacInCastMethod<Tout>: ITacMethod<ITacObject, Tout>
+    //{
+
+    //    Func<ITacObject, Tout> backing;
+    //    public Indexer inputIndexer;
+
+    //    public Tout Invoke(ITacObject @in)
+    //    {
+    //        return backing.Invoke(new TacCastObject()
+    //        {
+    //            indexer = inputIndexer,
+    //            @object = @in
+    //        });
+    //    }
+    //}
+
+    //public class TacOutCastMethod<Tin> : ITacMethod<Tin,ITacObject>
+    //{
+
+    //    Func<Tin, ITacObject> backing;
+    //    public Indexer outputIndexer;
+
+    //    public ITacObject Invoke(Tin @in)
+    //    {
+    //        return new TacCastObject()
+    //        {
+    //            @object = backing.Invoke(@in),
+    //            indexer = outputIndexer
+    //        };
+    //    }
+    //}
 
     public struct TacCastObject : ITacObject
     {
@@ -155,6 +403,36 @@ namespace Tac.Backend.Emit.Support
                 });
         }
 
+        // we actully could be a method
+
+        public ITacObject Call_Complex_Complex(ITacObject input) {
+            return new TacCastObject()
+            {
+                @object = @object.Call_Complex_Complex(new TacCastObject()
+                {
+                    indexer = indexer.nextIndexers[0],
+                    @object = input
+                }),
+                indexer = indexer.nextIndexers[1]
+            };
+        }
+        public ITacObject Call_Simple_Complex<Tin>(Tin input) {
+            return new TacCastObject()
+            {
+                @object = @object.Call_Simple_Complex(input),
+                indexer = indexer.nextIndexers[1]
+            };
+        }
+        public Tout Call_Complex_Simple<Tout>(ITacObject input) {
+            return @object.Call_Complex_Simple<Tout>(new TacCastObject()
+            {
+                indexer = indexer.nextIndexers[0],
+                @object = input
+            });
+        }
+        public Tout Call_Simple_Simple<Tin, Tout>(Tin input) {
+            return @object.Call_Simple_Simple<Tin, Tout>(input);
+        }
     }
 
     public class TacObject : ITacObject
@@ -191,6 +469,26 @@ namespace Tac.Backend.Emit.Support
         }
         public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject) {
             SetComplexMember(position, tacCastObject);
+        }
+
+        public ITacObject Call_Complex_Complex(ITacObject input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public ITacObject Call_Simple_Complex<Tin>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public Tout Call_Complex_Simple<Tout>(ITacObject input)
+        {
+            throw new NotImplementedException("not supported");
+        }
+
+        public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
+        {
+            throw new NotImplementedException("not supported");
         }
     }
 
@@ -261,59 +559,99 @@ namespace Tac.Backend.Emit.Support
         // I think this is ok, because writeonly will only ever overlay writeonly
         // readonly will likewise only ever overlay readonly
         // do I even use overlay??
-        public static Indexer Overlay(Indexer first, Indexer second) {
-            if (first == null) {
-                return second;
-            }
-            if (second == null)
+        //public static Indexer Overlay(Indexer first, Indexer second) {
+        //    if (first == null) {
+        //        return second;
+        //    }
+        //    if (second == null)
+        //    {
+        //        return first;
+        //    }
+
+        //    var resultIndexOffsets = new int[second.indexOffsets.Length];
+        //    var resultNextIndexers = new Indexer[second.indexOffsets.Length];
+        //    for (int i = 0; i < second.indexOffsets.Length;i++) {
+        //        resultIndexOffsets[i] = first.indexOffsets[second.indexOffsets[i]];
+        //        resultNextIndexers[i] = Overlay(first.nextIndexers[second.indexOffsets[i]], second.nextIndexers[i]);
+        //    }
+        //    return new Indexer()
+        //    {
+        //        nextIndexers = resultNextIndexers,
+        //        indexOffsets = resultIndexOffsets,
+        //    };
+        //}
+
+        private static ConcurrentIndexed<(IVerifiableType, IVerifiableType), Indexer> map = new ConcurrentIndexed<(IVerifiableType, IVerifiableType), Indexer>();
+
+        public static Indexer Create(IVerifiableType from, IVerifiableType to) {
+
+
+            if (from.SafeIs(out IInterfaceType fromInterface) && to.SafeIs(out IInterfaceType toInterface))
             {
-                return first;
-            }
+                var toAdd = new Indexer();
+                if (map.TryAdd((from, to), toAdd))
+                {
+                    var toMembers = toInterface.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
+                    var fromMembers = fromInterface.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
 
-            var resultIndexOffsets = new int[second.indexOffsets.Length];
-            var resultNextIndexers = new Indexer[second.indexOffsets.Length];
-            for (int i = 0; i < second.indexOffsets.Length;i++) {
-                resultIndexOffsets[i] = first.indexOffsets[second.indexOffsets[i]];
-                resultNextIndexers[i] = Overlay(first.nextIndexers[second.indexOffsets[i]], second.nextIndexers[i]);
-            }
-            return new Indexer()
-            {
-                nextIndexers = resultNextIndexers,
-                indexOffsets = resultIndexOffsets,
-            };
-        }
+                    var indexOffsets = new int[toMembers.Count];
+                    var nextIndexers = new Indexer[toMembers.Count];
 
-        private static ConcurrentIndexed<(IInterfaceModuleType, IInterfaceModuleType), Indexer> map = new ConcurrentIndexed<(IInterfaceModuleType, IInterfaceModuleType), Indexer>();
-
-        public static Indexer Create(IInterfaceModuleType from, IInterfaceModuleType to) {
-            var toAdd = new Indexer();
-            if (map.TryAdd((from, to), toAdd)) {
-
-                var toMembers = to.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
-                var fromMembers = from.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
-
-                var indexOffsets = new int[toMembers.Count];
-                var nextIndexers = new Indexer[toMembers.Count];
-
-                for (int toIndex = 0; toIndex < toMembers.Count; toIndex++) {
-                    var toMember = toMembers[toIndex];
-                    for (int fromIndex = 0; fromIndex < fromMembers.Count; fromIndex++) {
-                        var fromMember = fromMembers[fromIndex];
-                        if (fromMember.Key.Equals(toMember.Key)) {
-                            indexOffsets[toIndex] = fromIndex;
-                            if (fromMember.Type.SafeIs(out IInterfaceModuleType fromInterface) && toMember.Type.SafeIs(out IInterfaceType toInterface)) {
-                                nextIndexers[toIndex] = GetIndexer( toMember.Access,fromInterface, toInterface);
+                    for (int toIndex = 0; toIndex < toMembers.Count; toIndex++)
+                    {
+                        var toMember = toMembers[toIndex];
+                        for (int fromIndex = 0; fromIndex < fromMembers.Count; fromIndex++)
+                        {
+                            var fromMember = fromMembers[fromIndex];
+                            if (fromMember.Key.Equals(toMember.Key))
+                            {
+                                indexOffsets[toIndex] = fromIndex;
+                                if (fromMember.Type.SafeIs(out IMethodType innerFromMethod) && toMember.Type.SafeIs(out IMethodType innerToMethod))
+                                {
+                                    nextIndexers[toIndex] = new Indexer()
+                                    {
+                                        nextIndexers = new[] {
+                                                Create(innerFromMethod.InputType,innerToMethod.InputType),
+                                                Create(innerToMethod.OutputType,innerFromMethod.OutputType)
+                                            }
+                                    };
+                                }
+                                if (fromMember.Type.SafeIs(out IInterfaceModuleType innerFromInterface) && toMember.Type.SafeIs(out IInterfaceType innerToInterface))
+                                {
+                                    nextIndexers[toIndex] = GetIndexer(toMember.Access, innerFromInterface, innerToInterface);
+                                }
+                                goto matched;
                             }
-                            goto matched;
                         }
+                    matched:;
                     }
-            matched:;
+                    toAdd.nextIndexers = nextIndexers;
+                    toAdd.indexOffsets = indexOffsets;
+                    return toAdd;
                 }
-                toAdd.nextIndexers = nextIndexers;
-                toAdd.indexOffsets = indexOffsets;
-                return toAdd;
+                else {
+
+                    return map[(from, to)];
+                }
             }
-            return map[(from, to)];
+
+            if (from.SafeIs(out IMethodType fromMethod) && to.SafeIs(out IMethodType toMethod))
+            {
+                var toAdd = new Indexer();
+                if (map.TryAdd((from, to), toAdd))
+                {
+                    toAdd.nextIndexers = new[] {
+                        Create(fromMethod.InputType,toMethod.InputType),
+                        Create(toMethod.OutputType,fromMethod.OutputType)
+                    };
+                    return toAdd;
+                }
+                else {
+                    return map[(from, to)];
+                }
+            }
+
+            return null;
         }
 
         public static Indexer GetIndexer(Access access, IInterfaceModuleType from, IInterfaceModuleType to) {

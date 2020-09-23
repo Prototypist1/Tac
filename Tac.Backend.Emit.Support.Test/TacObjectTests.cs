@@ -18,10 +18,10 @@ namespace Tac.Backend.Emit.Support.Test
 
             friend1.members = new object[] {
                 30,
-                new TacCastObject{ 
+                new TacCastObject{
                     @object = friend2,
                     indexer = Indexer.Create(Types.Value.person, Types.Value.person)
-                } 
+                }
             };
 
             friend2.members = new object[] {
@@ -55,7 +55,7 @@ namespace Tac.Backend.Emit.Support.Test
 
             Assert.Equal(30, friend1AsHasAge.GetSimpleMember<int>(0));
 
-
+            // all these friend1AsPerson are pointless they are an artifact of an older time
             var friend1AsPerson = new TacCastObject()
             {
                 @object = friend1,
@@ -266,6 +266,35 @@ namespace Tac.Backend.Emit.Support.Test
             };
 
             Assert.Equal(29, colinAsHasHasAge.GetComplexMember(0).GetSimpleMember<int>(0));
+
+        }
+
+        [Fact]
+        public void ComplexComplexMethodTest() {
+            // method[type{a;b;c;},type{a;b;}] method-1 = method[type{a;b;c;},type{a;b;}] input {  input return; }
+            // type { method[type{a;b;c;d;},type{a;}] my-method } object-1 = object { my-method = method-1 } ;
+            // object { a := 1; b := 2; c := 3; d := 4; e := 5; } > (object-1.method-1) =: result
+
+            var aMember = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var bMember = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+            var cMember = MemberDefinition.CreateAndBuild(new NameKey("c"), new NumberType(), Access.ReadWrite);
+            var dMember = MemberDefinition.CreateAndBuild(new NameKey("d"), new NumberType(), Access.ReadWrite);
+            var eMember = MemberDefinition.CreateAndBuild(new NameKey("e"), new NumberType(), Access.ReadWrite);
+
+            var aType= InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember });
+            var abType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember });
+            var abcType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember });
+            var abcdType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember, dMember });
+            var abcdeType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember, dMember, eMember });
+
+            var methodType = MethodType.CreateAndBuild(abcType, abType);
+
+            var methodMemberType = MethodType.CreateAndBuild(abcdType, aType);
+
+            var typeType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> {
+                 MemberDefinition.CreateAndBuild(new NameKey("my-method"), methodMemberType, Access.ReadWrite)
+            });
+
 
         }
 
