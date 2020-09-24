@@ -44,7 +44,7 @@ namespace Tac.Backend.Emit.Support
 
     public class TacMethod_Complex_Complex: ITacObject
     {
-        Func<ITacObject, ITacObject> backing;
+        public Func<ITacObject, ITacObject> backing;
 
         public Tout Call_Complex_Simple<Tout>(ITacObject input)
         {
@@ -91,12 +91,8 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        ITacObject Call_Complex_Complex(ITacObject input) => backing(input);
+        public ITacObject Call_Complex_Complex(ITacObject input) => backing(input);
 
-        ITacObject ITacObject.Call_Complex_Complex(ITacObject input)
-        {
-            throw new NotImplementedException("not supported");
-        }
     }
 
     public class TacMethod_Simple_Complex: ITacObject
@@ -113,10 +109,6 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public ITacObject Call_Simple_Complex<Tin>(Tin input)
-        {
-            throw new NotImplementedException("not supported");
-        }
 
         public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
         {
@@ -153,7 +145,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        ITacObject Call_Simple_Complex<Tin>(object input) => backing((Tin)input);
+        public ITacObject Call_Simple_Complex<Tin>(Tin input) => backing(input);
     }
     public class TacMethod_Complex_Simple: ITacObject
     {
@@ -164,11 +156,6 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public Tout Call_Complex_Simple<Tout>(ITacObject input)
-        {
-            throw new NotImplementedException("not supported");
-        }
-
         public ITacObject Call_Simple_Complex<Tin>(Tin input)
         {
             throw new NotImplementedException("not supported");
@@ -209,7 +196,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        Tout Call_Comlex_Complex<Tout>(ITacObject input) => (Tout)backing(input);
+        public Tout Call_Complex_Simple<Tout>(ITacObject input) => (Tout)backing(input);
     }
 
     public class TacMethod_Simple_Simple: ITacObject
@@ -231,11 +218,6 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
-        {
-            throw new NotImplementedException("not supported");
-        }
-
         public ITacObject GetComplexMember(int position)
         {
             throw new NotImplementedException("not supported");
@@ -266,7 +248,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        Tout Call_Comlex_Complex<Tin,Tout>(Tin input) => (Tout)backing((Tin)input);
+        public Tout Call_Simple_Simple<Tin,Tout>(Tin input) => (Tout)backing(input);
     }
 
     //public class TacCastMethod_Complex_Complex
@@ -404,6 +386,9 @@ namespace Tac.Backend.Emit.Support
         }
 
         // we actully could be a method
+        // methods are understood to have an indexer with nothing in its indexOffsets 
+        // and 2 nextIndexers with 0 being the input and 1 being the output
+        // nextIndexers can be null if the input or output is primitive     
 
         public ITacObject Call_Complex_Complex(ITacObject input) {
             return new TacCastObject()
@@ -611,8 +596,8 @@ namespace Tac.Backend.Emit.Support
                                     nextIndexers[toIndex] = new Indexer()
                                     {
                                         nextIndexers = new[] {
-                                                Create(innerFromMethod.InputType,innerToMethod.InputType),
-                                                Create(innerToMethod.OutputType,innerFromMethod.OutputType)
+                                                Create(innerToMethod.InputType,innerFromMethod.InputType),
+                                                Create(innerFromMethod.OutputType,innerToMethod.OutputType)
                                             }
                                     };
                                 }
@@ -641,8 +626,8 @@ namespace Tac.Backend.Emit.Support
                 if (map.TryAdd((from, to), toAdd))
                 {
                     toAdd.nextIndexers = new[] {
-                        Create(fromMethod.InputType,toMethod.InputType),
-                        Create(toMethod.OutputType,fromMethod.OutputType)
+                        Create(toMethod.InputType,fromMethod.InputType),
+                        Create(fromMethod.OutputType,toMethod.OutputType)
                     };
                     return toAdd;
                 }

@@ -271,9 +271,9 @@ namespace Tac.Backend.Emit.Support.Test
 
         [Fact]
         public void ComplexComplexMethodTest() {
-            // method[type{a;b;c;},type{a;b;}] method-1 = method[type{a;b;c;},type{a;b;}] input {  input return; }
-            // type { method[type{a;b;c;d;},type{a;}] my-method } object-1 = object { my-method = method-1 } ;
-            // object { a := 1; b := 2; c := 3; d := 4; e := 5; } > (object-1.method-1) =: result
+            // method[type{a;b;c;},type{a;b;}] method-1 := method[type{a;b;c;},type{a;b;}] input {  input return; }
+            // method[type{a;b;c;d;},type{b;}] method-2 := method-1 ;
+            // object { a := 1; b := 2; c := 3; d := 4; e := 5; } > method-2 =: result
 
             var aMember = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
             var bMember = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
@@ -281,20 +281,59 @@ namespace Tac.Backend.Emit.Support.Test
             var dMember = MemberDefinition.CreateAndBuild(new NameKey("d"), new NumberType(), Access.ReadWrite);
             var eMember = MemberDefinition.CreateAndBuild(new NameKey("e"), new NumberType(), Access.ReadWrite);
 
-            var aType= InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember });
+            var bType= InterfaceType.CreateAndBuild(new List<IMemberDefinition> { bMember });
             var abType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember });
             var abcType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember });
             var abcdType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember, dMember });
             var abcdeType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember, dMember, eMember });
 
-            var methodType = MethodType.CreateAndBuild(abcType, abType);
+            var method1Type = MethodType.CreateAndBuild(abcType, abType);
 
-            var methodMemberType = MethodType.CreateAndBuild(abcdType, aType);
+            var method2Type = MethodType.CreateAndBuild(abcdType, bType);
 
-            var typeType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> {
-                 MemberDefinition.CreateAndBuild(new NameKey("my-method"), methodMemberType, Access.ReadWrite)
-            });
+            Func<ITacObject, ITacObject> func = x => new TacCastObject
+            {
+                indexer = Indexer.Create(abcType, abType),
+                @object = x
+            };
 
+            var method = new TacMethod_Complex_Complex()
+            {
+                backing = func
+            };
+
+            var castMethod = new TacCastObject()
+            {
+                indexer = Indexer.Create(method1Type, method2Type),
+                @object = method
+            };
+
+            var @object = new TacObject
+            {
+                members = new object[] { 3, 2, 5, 1, 4 }
+            };
+
+            var objectAsABCD = new TacCastObject
+            {
+                @object = @object,
+                indexer = Indexer.Create(abcdeType, abcdType),
+            };
+
+            var objectAsABC = new TacCastObject
+            {
+                @object = @object,
+                indexer = Indexer.Create(abcdeType, abcType),
+            };
+
+            var objectAsAB = method.Call_Complex_Complex(objectAsABC);
+
+
+            Assert.Equal(3, objectAsAB.GetSimpleMember<int>(0));
+            Assert.Equal(2, objectAsAB.GetSimpleMember<int>(1));
+
+            var objectAsB = castMethod.Call_Complex_Complex(objectAsABCD);
+
+            Assert.Equal(2, objectAsB.GetSimpleMember<int>(0));
 
         }
 
