@@ -290,27 +290,35 @@ namespace Tac.Backend.Emit.Walkers
 
                         if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
                         {
-                            generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexMember.Value, new[] { typeof(int) });
-                        }
-                        else if (1 == 1) {
-
-                            throw new NotImplementedException("handle methods!");
+                            switch (memberReference.MemberDefinition.Access)
+                            {
+                                case Access.ReadOnly:
+                                    generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexReadonlyMember.Value, new[] { typeof(int) });
+                                    return new Nothing();
+                                case Access.ReadWrite:
+                                    generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexMember.Value, new[] { typeof(int) });
+                                    return new Nothing();
+                                case Access.WriteOnly:
+                                    throw new Exception("this should have benn handled inside assignment");
+                                default:
+                                    throw new Exception("that is unexpected");
+                            }
                         }
                         else
                         {
-
-
-
                             generator.GetOrThrow().EmitCall(OpCodes.Call, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                            return new Nothing();
                         }
-
-
-                        return new Nothing();
                     });
             }
 
             return new Nothing();
         }
+
+
+        private Lazy<MethodInfo> getComplexReadonlyMember = new Lazy<MethodInfo>(() => {
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexReadonlyMember));
+        });
 
         private Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() => {
             return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexMember));
@@ -399,11 +407,13 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing MethodDefinition(IInternalMethodDefinition method)
         {
+            throw new NotImplementedException();
             return Walk(method.Body, method);
         }
 
         public Nothing ModuleDefinition(IModuleDefinition module)
         {
+            throw new NotImplementedException();
             return Walk(module.StaticInitialization, module);
         }
 
@@ -416,22 +426,26 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing NextCallOperation(INextCallOperation co)
         {
+            throw new NotImplementedException();
             return Walk(co.Operands, co);
         }
 
         public Nothing ObjectDefinition(IObjectDefiniton @object)
         {
+            throw new NotImplementedException();
             return Walk(@object.Assignments, @object);
         }
 
         public Nothing PathOperation(IPathOperation path)
         {
-
+            throw new NotImplementedException();
             return Walk(path.Operands,path);
         }
 
         public Nothing ReturnOperation(IReturnOperation co)
         {
+
+            throw new NotImplementedException();
             // there could be a conversion here!
             return Walk(co.Operands, co);
         }
@@ -445,13 +459,13 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation)
         {
+            throw new NotImplementedException();
             return Walk(tryAssignOperation.Operands, tryAssignOperation);
         }
 
 
         private Nothing Walk(IEnumerable<ICodeElement> elements, ICodeElement element)
         {
-
             foreach (var line in elements)
             {
                 line.Convert(this.Push(element));

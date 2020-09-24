@@ -149,7 +149,7 @@ namespace Tac.Backend.Emit.Support
     }
     public class TacMethod_Complex_Simple: ITacObject
     {
-        Func<ITacObject, object> backing;
+        public Func<ITacObject, object> backing;
 
         public ITacObject Call_Complex_Complex(ITacObject input)
         {

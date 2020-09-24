@@ -338,6 +338,66 @@ namespace Tac.Backend.Emit.Support.Test
         }
 
 
+        [Fact]
+        public void ComplexSimpleMethodTest()
+        {
+            // type-1 { method[type{b;c;d;},int] method-1} instance-1 := object{  method-1:= method[type{b;c;d;},int] input {  input.c return; }}
+            // type-2 { readonly method[type{a;b;c;d;},int] method-1 } instance-2 := instance-1 ;
+            // object { a := 1; b := 2; c := 3; d := 4; e := 5; } > (instance-2.method-1) =: result
+
+            var aMember = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var bMember = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+            var cMember = MemberDefinition.CreateAndBuild(new NameKey("c"), new NumberType(), Access.ReadWrite);
+            var dMember = MemberDefinition.CreateAndBuild(new NameKey("d"), new NumberType(), Access.ReadWrite);
+            var eMember = MemberDefinition.CreateAndBuild(new NameKey("e"), new NumberType(), Access.ReadWrite);
+
+            var bcdType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { bMember, cMember, dMember });
+            var abcdType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember, dMember });
+            var abcdeType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember, dMember, eMember });
+
+            var method1Type = MethodType.CreateAndBuild(bcdType, new NumberType());
+
+            var method2Type = MethodType.CreateAndBuild(abcdType, new NumberType());
+
+            var methodMemberForType1 = MemberDefinition.CreateAndBuild(new NameKey("method-1"), method1Type, Access.ReadWrite);
+            var methodMemberForType2 = MemberDefinition.CreateAndBuild(new NameKey("method-1"), method2Type, Access.ReadOnly);
+
+
+            var type1 = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { methodMemberForType1 });
+            var type2 = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { methodMemberForType2 });
+
+            Func<ITacObject, object> func = x =>
+            {
+                return x.GetSimpleMember<int>(1);
+            };
+
+            var @object = new TacObject
+            {
+                members = new object[] { new TacMethod_Complex_Simple { backing = func } }
+            };
+
+            var castObject = new TacCastObject
+            {
+                @object = @object,
+                indexer = Indexer.Create(type1, type2)
+            };
+
+
+            var inputObject = new TacObject
+            {
+                members = new object[] { 3, 2, 5, 1, 4 }
+            };
+
+            var inputObjectAsABCD = new TacCastObject
+            {
+                @object = inputObject,
+                indexer = Indexer.Create(abcdeType, abcdType),
+            };
+
+            Assert.Equal(5, castObject.GetComplexReadonlyMember(0).Call_Complex_Simple<int>(inputObjectAsABCD));
+
+        }
+
         public static Lazy<Types> Types = new Lazy<Types>(() => new Types());
 
     }
