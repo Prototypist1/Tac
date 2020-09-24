@@ -97,7 +97,7 @@ namespace Tac.Backend.Emit.Support.Test
                 indexer = Indexer.Create(Types.Value.person, Types.Value.person)
             };
 
-            friend1.SetComplexMember(1, friend2AsPerson);
+            friend1.SetComplexMember(friend2AsPerson,1);
 
 
             var friend1_friend_After = friend1.GetComplexMember(1);
@@ -117,7 +117,7 @@ namespace Tac.Backend.Emit.Support.Test
                 indexer = Indexer.Create(Types.Value.person, Types.Value.person)
             };
 
-            friend1AsHasFriends.SetComplexMember(0, friend1AsPerson);
+            friend1AsHasFriends.SetComplexMember(friend1AsPerson,0);
 
             // when we set all the forms should work
             Assert.Equal(1, friend1AsHasFriends.GetComplexMember(0).GetSimpleMember<int>(0));
@@ -164,7 +164,7 @@ namespace Tac.Backend.Emit.Support.Test
                 indexer = Indexer.Create(Types.Value.person, Types.Value.person)
             };
 
-            friend1.SetComplexMember(1, friend1AsPerson);
+            friend1.SetComplexMember(friend1AsPerson,1);
 
             Assert.Equal(30, friend1AsHasHasAge.GetComplexReadonlyMember(0).GetSimpleMember<int>(0));
         }
@@ -207,12 +207,11 @@ namespace Tac.Backend.Emit.Support.Test
             };
 
             colinAsHasNamedPersonFriend.SetComplexWriteonlyMember(
-                0,
                 new TacCastObject
                 {
                     @object = emily,
                     indexer = Indexer.Create(Types.Value.hasWriteOnlyNamedPersonFriend, Types.Value.hasWriteOnlyNamedPersonFriend)
-                });
+                },0);
 
             Assert.Equal(29, colinAsPerson.GetComplexMember(1).GetSimpleMember<int>(0));
         }

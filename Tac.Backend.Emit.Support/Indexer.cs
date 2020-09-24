@@ -76,17 +76,17 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public void SetComplexMember(int position, ITacObject tacCastObject)
+        public void SetComplexMember(ITacObject tacCastObject,int position)
         {
             throw new NotImplementedException("not supported");
         }
 
-        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        public void SetComplexWriteonlyMember(ITacObject tacCastObject,int position)
         {
             throw new NotImplementedException("not supported");
         }
 
-        public void SetSimpleMember(int position, object value)
+        public void SetSimpleMember(object value,int position)
         {
             throw new NotImplementedException("not supported");
         }
@@ -130,17 +130,17 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public void SetComplexMember(int position, ITacObject tacCastObject)
+        public void SetComplexMember(ITacObject tacCastObject,int position)
         {
             throw new NotImplementedException("not supported");
         }
 
-        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        public void SetComplexWriteonlyMember(ITacObject tacCastObject,int position)
         {
             throw new NotImplementedException("not supported");
         }
 
-        public void SetSimpleMember(int position, object value)
+        public void SetSimpleMember(object value,int position)
         {
             throw new NotImplementedException("not supported");
         }
@@ -181,17 +181,17 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public void SetComplexMember(int position, ITacObject tacCastObject)
+        public void SetComplexMember(ITacObject tacCastObject,int position)
         {
             throw new NotImplementedException("not supported");
         }
 
-        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        public void SetComplexWriteonlyMember(ITacObject tacCastObject,int position)
         {
             throw new NotImplementedException("not supported");
         }
 
-        public void SetSimpleMember(int position, object value)
+        public void SetSimpleMember(object value,int position)
         {
             throw new NotImplementedException("not supported");
         }
@@ -233,17 +233,17 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public void SetComplexMember(int position, ITacObject tacCastObject)
+        public void SetComplexMember(ITacObject tacCastObject,int position)
         {
             throw new NotImplementedException("not supported");
         }
 
-        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        public void SetComplexWriteonlyMember(ITacObject tacCastObject,int position)
         {
             throw new NotImplementedException("not supported");
         }
 
-        public void SetSimpleMember(int position, object value)
+        public void SetSimpleMember(object value,int position)
         {
             throw new NotImplementedException("not supported");
         }
@@ -348,9 +348,9 @@ namespace Tac.Backend.Emit.Support
             return @object.GetComplexMember(indexer.indexOffsets[position]);
         }
 
-        public void SetComplexMember(int position, ITacObject value)
+        public void SetComplexMember(ITacObject value,int position)
         {
-            @object.SetComplexMember(indexer.indexOffsets[position], value);
+            @object.SetComplexMember(value, indexer.indexOffsets[position]);
         }
 
         public T GetSimpleMember<T>(int position)
@@ -358,9 +358,9 @@ namespace Tac.Backend.Emit.Support
             return @object.GetSimpleMember<T>(indexer.indexOffsets[position]);
         }
 
-        public void SetSimpleMember(int position, object o)
+        public void SetSimpleMember(object o,int position)
         {
-            @object.SetSimpleMember(indexer.indexOffsets[position],o);
+            @object.SetSimpleMember(o,indexer.indexOffsets[position]);
         }
 
         public ITacObject GetComplexReadonlyMember(int position)
@@ -372,17 +372,17 @@ namespace Tac.Backend.Emit.Support
             };
         }
 
-        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject)
+        public void SetComplexWriteonlyMember(ITacObject tacCastObject,int position)
         {
             // tacCastObject has to be converted to the type our TacObject wants 
             // we trust our index to convert that way
             @object.SetComplexWriteonlyMember(
-                indexer.indexOffsets[position],
                 new TacCastObject()
                 {
                     @object = tacCastObject,
                     indexer = indexer.nextIndexers[position]
-                });
+                },
+                indexer.indexOffsets[position]);
         }
 
         // we actully could be a method
@@ -434,7 +434,7 @@ namespace Tac.Backend.Emit.Support
             return (ITacObject)members[position];
         }
 
-        public void SetComplexMember(int position, ITacObject tacCastObject)
+        public void SetComplexMember(ITacObject tacCastObject,int position)
         {
             members[position] = tacCastObject;
         }
@@ -444,7 +444,7 @@ namespace Tac.Backend.Emit.Support
             return (T)members[position];
         }
 
-        public void SetSimpleMember(int position, object value)
+        public void SetSimpleMember(object value,int position)
         {
             members[position] = value;
         }
@@ -452,8 +452,8 @@ namespace Tac.Backend.Emit.Support
         public ITacObject GetComplexReadonlyMember(int position) {
             return GetComplexMember(position);
         }
-        public void SetComplexWriteonlyMember(int position, ITacObject tacCastObject) {
-            SetComplexMember(position, tacCastObject);
+        public void SetComplexWriteonlyMember(ITacObject tacCastObject,int position) {
+            SetComplexMember(tacCastObject,position);
         }
 
         public ITacObject Call_Complex_Complex(ITacObject input)

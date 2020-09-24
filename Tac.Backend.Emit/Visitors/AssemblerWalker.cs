@@ -25,14 +25,15 @@ namespace Tac.Backend.Emit.Walkers
 
 
         private IReadOnlyList<ICodeElement> stack;
-        public  IIsPossibly<ILGenerator> generator;
+        public IIsPossibly<ILGenerator> generator;
         public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack)
         {
             this.typeChangeLookup = typeChangeLookup;
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
         }
 
-        public AssemblerVisitor Push(ICodeElement another) {
+        public AssemblerVisitor Push(ICodeElement another)
+        {
             var list = stack.ToList();
             list.Add(another);
             return new AssemblerVisitor(typeChangeLookup, list);
@@ -47,15 +48,157 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing AssignOperation(IAssignOperation co)
         {
-            throw new NotImplementedException("we have to generate the converters");
 
-            // there is different store command for different targets
-            // is it an arg?
-            // is it a field
-            // is it a local?
+
 
             // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
             // be careful this does not leave anything on the stack
+
+
+
+            // {870866D9-D3EC-47B1-B7D3-6966EE651F5F}
+            // storing and loading have a lot in commmon
+
+            // the kind of thing the taget is define how we proceed
+            if (co.Right.SafeIs(out IMemberReference memberReference))
+            {
+                // see if it is on the closure 
+                // walk up the stack and hope you run in to it
+                foreach (var frame in stack.Reverse())
+                {
+                    if (extensionLookup.TryGetClosure(frame, out var closure))
+                    {
+                        // these are fields!!
+
+                        if (closure.closureMember.Contains(memberReference.MemberDefinition))
+                        {
+
+                            var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
+
+                            var field = realizedMethod.fields[memberReference.MemberDefinition];
+
+                            co.Left.Convert(this);
+                            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+
+                            return new Nothing();
+                        }
+                    }
+                }
+
+                if (memberKindLookup.IsArgument(memberReference.MemberDefinition, out var orTypeArg))
+                {
+                    // I only allow 1 argument 
+                    co.Left.Convert(this);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Starg, 0);
+                    return new Nothing();
+                }
+
+                if (memberKindLookup.IsLocal(memberReference.MemberDefinition, out var orTypeLocal))
+                {
+                    co.Left.Convert(this);
+                    return orTypeLocal.SwitchReturns(
+                        entryPoint =>
+                        {
+
+                            var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                            StoreLocal(index);
+                            return new Nothing();
+                        },
+                        imp =>
+                        {
+                            var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                            StoreLocal(index);
+                            return new Nothing();
+                        },
+                        method =>
+                        {
+                            var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                            StoreLocal(index);
+                            return new Nothing();
+                        });
+                }
+
+                if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField))
+                {
+                    return orTypeField.SwitchReturns(
+                        imp =>
+                        {
+                            // this is the closure
+                            // I need the field info...
+
+                            var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
+
+                            var field = realizedMethod.fields[memberReference.MemberDefinition];
+
+                            co.Left.Convert(this);
+                            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+
+                            return new Nothing();
+                        },
+                        obj =>
+                        {
+                            throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
+
+                        });
+                }
+            }
+            else if (co.Right.SafeIs(out IPathOperation path))
+            {
+                // who we are calling it on
+                path.Left.Convert(this);
+                if (path.Right.SafeIs(out IMemberReference pathMemberReference))
+                {
+
+                    // this "b" inside a path like: a.b
+                    // we count on "a" to have already been load
+                    if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField))
+                    {
+                        return orTypeField.SwitchReturns(
+                            imp =>
+                            {
+                                throw new Exception("we are part of a path so we know it is an ojbect");
+                            },
+                            obj =>
+                            {
+                                // 1st parm, the new value
+                                co.Left.Convert(this);
+
+                                // second parm, the index
+                                var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), pathMemberReference.MemberDefinition);
+                                LoadInt(index);
+
+                                if (typeCache[pathMemberReference.MemberDefinition.Type] == typeof(ITacObject))
+                                {
+                                    switch (pathMemberReference.MemberDefinition.Access)
+                                    {
+                                        case Access.ReadOnly:
+                                            throw new Exception("this should have benn handled inside assignment");
+                                        case Access.ReadWrite:
+                                            generator.GetOrThrow().EmitCall(OpCodes.Call, setComplexMember.Value, new[] { typeof(int) });
+                                            return new Nothing();
+                                        case Access.WriteOnly:
+                                            generator.GetOrThrow().EmitCall(OpCodes.Call, setComplexWriteonlyMember.Value, new[] { typeof(int) });
+                                            return new Nothing();
+                                        default:
+                                            throw new Exception("that is unexpected");
+                                    }
+                                }
+                                else
+                                {
+                                    generator.GetOrThrow().EmitCall(OpCodes.Call, setSimpleMember.Value.MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                                    return new Nothing();
+                                }
+                            });
+                    }
+                }
+            }
+            else
+            {
+                throw new Exception("if it is not a reference.... what is it?");
+            }
+
+
+            throw new NotImplementedException("we have to generate the converters");
 
             return Walk(co.Operands, co);
         }
@@ -66,7 +209,8 @@ namespace Tac.Backend.Emit.Walkers
             return Walk(codeElement.Body, codeElement);
         }
 
-        public Nothing ConstantBool(IConstantBool constantBool) {
+        public Nothing ConstantBool(IConstantBool constantBool)
+        {
             if (constantBool.Value)
             {
                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0);
@@ -77,7 +221,8 @@ namespace Tac.Backend.Emit.Walkers
             }
             return new Nothing();
         }
-        public Nothing ConstantNumber(IConstantNumber codeElement) {
+        public Nothing ConstantNumber(IConstantNumber codeElement)
+        {
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_R8, codeElement.Value);
             return new Nothing();
         }
@@ -106,7 +251,8 @@ namespace Tac.Backend.Emit.Walkers
             var bottomOfElse = generator.GetOrThrow().DefineLabel();
             myIf.Operands[0].Convert(nextNext);
             // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-            if (this.stack.Last().SafeIs(out IOperation _)) {
+            if (this.stack.Last().SafeIs(out IOperation _))
+            {
                 // we dup so that we return
                 // else in tac returns false if it ran, true otherwise
                 // so you can do
@@ -169,12 +315,12 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing LastCallOperation(ILastCallOperation co)
         {
-            return Walk(co.Operands,co);
+            return Walk(co.Operands, co);
         }
 
         public Nothing LessThanOperation(ILessThanOperation co)
         {
-            Walk(co.Operands,co);
+            Walk(co.Operands, co);
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Clt);
             return new Nothing();
         }
@@ -184,8 +330,10 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        private IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition> ConvertToMethodlike(ICodeElement frame) {
-            if (frame.SafeIs(out IInternalMethodDefinition method)) {
+        private IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition> ConvertToMethodlike(ICodeElement frame)
+        {
+            if (frame.SafeIs(out IInternalMethodDefinition method))
+            {
                 return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method);
             }
             if (frame.SafeIs(out IImplementationDefinition imp))
@@ -208,16 +356,21 @@ namespace Tac.Backend.Emit.Walkers
             // ldarg
 
 
+            // {870866D9-D3EC-47B1-B7D3-6966EE651F5F}
+            // storing and loading have a lot in commmon
+
             // see if it is on the closure 
             // walk up the stack and hope you run in to it
             foreach (var frame in stack.Reverse())
             {
-                if (extensionLookup.TryGetClosure(frame, out var closure)) {
+                if (extensionLookup.TryGetClosure(frame, out var closure))
+                {
                     // these are fields!!
 
-                    if (closure.closureMember.Contains(memberReference.MemberDefinition)) {
+                    if (closure.closureMember.Contains(memberReference.MemberDefinition))
+                    {
 
-                        var realizedMethod =  realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
+                        var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
 
                         var field = realizedMethod.fields[memberReference.MemberDefinition];
 
@@ -226,9 +379,10 @@ namespace Tac.Backend.Emit.Walkers
                         return new Nothing();
                     }
                 }
-            } 
+            }
 
-            if (memberKindLookup.IsArgument(memberReference.MemberDefinition, out var orTypeArg)) {
+            if (memberKindLookup.IsArgument(memberReference.MemberDefinition, out var orTypeArg))
+            {
                 return orTypeArg.SwitchReturns(
                     imp =>
                     {
@@ -247,27 +401,32 @@ namespace Tac.Backend.Emit.Walkers
             if (memberKindLookup.IsLocal(memberReference.MemberDefinition, out var orTypeLocal))
             {
                 return orTypeLocal.SwitchReturns(
-                    entryPoint => {
+                    entryPoint =>
+                    {
 
-                       var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
-                       LoadLocal(index);
+                        var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                        LoadLocal(index);
                         return new Nothing();
                     },
-                    imp => {
+                    imp =>
+                    {
                         var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
                         LoadLocal(index);
                         return new Nothing();
                     },
-                    method => {
+                    method =>
+                    {
                         var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
                         LoadLocal(index);
                         return new Nothing();
                     });
             }
 
-            if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField)) {
+            if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField))
+            {
                 return orTypeField.SwitchReturns(
-                    imp => {
+                    imp =>
+                    {
                         // this is the closure
                         // I need the field info...
 
@@ -316,16 +475,34 @@ namespace Tac.Backend.Emit.Walkers
         }
 
 
-        private Lazy<MethodInfo> getComplexReadonlyMember = new Lazy<MethodInfo>(() => {
+        private Lazy<MethodInfo> getComplexReadonlyMember = new Lazy<MethodInfo>(() =>
+        {
             return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexReadonlyMember));
         });
 
-        private Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() => {
+        private Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() =>
+        {
             return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexMember));
         });
 
-        private Lazy<MethodInfo> getSimpleMember = new Lazy<MethodInfo>(() => {
+        private Lazy<MethodInfo> getSimpleMember = new Lazy<MethodInfo>(() =>
+        {
             return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetSimpleMember));
+        });
+
+        private Lazy<MethodInfo> setComplexWriteonlyMember = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexWriteonlyMember));
+        });
+
+        private Lazy<MethodInfo> setComplexMember = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexMember));
+        });
+
+        private Lazy<MethodInfo> setSimpleMember = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetSimpleMember));
         });
 
         private void LoadInt(int value)
@@ -362,7 +539,32 @@ namespace Tac.Backend.Emit.Walkers
             }
         }
 
-        private void LoadLocal(int index) {
+
+        private void StoreLocal(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_0);
+                    return;
+                case 1:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_1);
+                    return;
+                case 2:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_2);
+                    return;
+                case 3:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_3);
+                    return;
+                default:
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_S, index);
+                    return;
+            }
+        }
+
+
+        private void LoadLocal(int index)
+        {
             switch (index)
             {
                 case 0:
@@ -383,27 +585,6 @@ namespace Tac.Backend.Emit.Walkers
             }
         }
 
-        private void LoadLocalAddress(int index)
-        {
-            switch (index)
-            {
-                case 0:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloca,index);
-                    return;
-                case 1:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_1);
-                    return;
-                case 2:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_2);
-                    return;
-                case 3:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_3);
-                    return;
-                default:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_S, index);
-                    return;
-            }
-        }
 
         public Nothing MethodDefinition(IInternalMethodDefinition method)
         {
@@ -439,7 +620,7 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing PathOperation(IPathOperation path)
         {
             throw new NotImplementedException();
-            return Walk(path.Operands,path);
+            return Walk(path.Operands, path);
         }
 
         public Nothing ReturnOperation(IReturnOperation co)
@@ -452,7 +633,7 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing SubtractOperation(ISubtractOperation co)
         {
-            Walk(co.Operands,co);
+            Walk(co.Operands, co);
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Sub_Ovf);
             return new Nothing();
         }
