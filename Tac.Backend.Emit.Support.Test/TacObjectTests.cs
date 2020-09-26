@@ -348,7 +348,7 @@ namespace Tac.Backend.Emit.Support.Test
             var bMember = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
             var cMember = MemberDefinition.CreateAndBuild(new NameKey("c"), new NumberType(), Access.ReadWrite);
             var dMember = MemberDefinition.CreateAndBuild(new NameKey("d"), new NumberType(), Access.ReadWrite);
-            var eMember = MemberDefinition.CreateAndBuild(new NameKey("e"), new NumberType(), Access.ReadWrite);
+               var eMember = MemberDefinition.CreateAndBuild(new NameKey("e"), new NumberType(), Access.ReadWrite);
 
             var bcdType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { bMember, cMember, dMember });
             var abcdType = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { aMember, bMember, cMember, dMember });

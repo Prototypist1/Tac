@@ -270,10 +270,10 @@ namespace Tac.Backend.Emit.Walkers
                                         case Access.ReadOnly:
                                             throw new Exception("this should have benn handled inside assignment");
                                         case Access.ReadWrite:
-                                            generator.GetOrThrow().EmitCall(OpCodes.Call, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
+                                            generator.GetOrThrow().EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
                                             return new Nothing();
                                         case Access.WriteOnly:
-                                            generator.GetOrThrow().EmitCall(OpCodes.Call, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
+                                            generator.GetOrThrow().EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
                                             return new Nothing();
                                         default:
                                             throw new Exception("that is unexpected");
@@ -281,7 +281,7 @@ namespace Tac.Backend.Emit.Walkers
                                 }
                                 else
                                 {
-                                    generator.GetOrThrow().EmitCall(OpCodes.Call, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
                                     return new Nothing();
                                 }
                             });
@@ -553,10 +553,10 @@ namespace Tac.Backend.Emit.Walkers
                             switch (memberReference.MemberDefinition.Access)
                             {
                                 case Access.ReadOnly:
-                                    generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexReadonlyMember.Value, new[] { typeof(int) });
+                                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new[] { typeof(int) });
                                     return new Nothing();
                                 case Access.ReadWrite:
-                                    generator.GetOrThrow().EmitCall(OpCodes.Call, getComplexMember.Value, new[] { typeof(int) });
+                                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getComplexMember.Value, new[] { typeof(int) });
                                     return new Nothing();
                                 case Access.WriteOnly:
                                     throw new Exception("this should have benn handled inside assignment");
@@ -566,7 +566,7 @@ namespace Tac.Backend.Emit.Walkers
                         }
                         else
                         {
-                            generator.GetOrThrow().EmitCall(OpCodes.Call, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                            generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
                             return new Nothing();
                         }
                     });
@@ -724,6 +724,9 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing NextCallOperation(INextCallOperation co)
         {
+
+
+            // there could be a conversion here!
             throw new NotImplementedException();
             return Walk(co.Operands, co);
         }
@@ -736,7 +739,7 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing PathOperation(IPathOperation path)
         {
-            throw new NotImplementedException();
+            // all the goods here are inside
             return Walk(path.Operands, path);
         }
 
@@ -757,6 +760,9 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation)
         {
+            // goodness, how is this going to work?
+            // everything has to carry around what type they are
+
             throw new NotImplementedException();
             return Walk(tryAssignOperation.Operands, tryAssignOperation);
         }
