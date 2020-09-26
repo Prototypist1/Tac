@@ -10,6 +10,9 @@ using Tac.Type;
 namespace Tac.Backend.Emit.Walkers
 {
 
+    // I don't think I really need this 
+    // this can all be determined in the assember
+
     class TypeChangeVisitor : IOpenBoxesContext<Nothing>
     {
 

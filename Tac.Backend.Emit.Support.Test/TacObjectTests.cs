@@ -397,6 +397,8 @@ namespace Tac.Backend.Emit.Support.Test
 
         }
 
+        // TODO quick test of simple simple and simple complex
+
         public static Lazy<Types> Types = new Lazy<Types>(() => new Types());
 
     }

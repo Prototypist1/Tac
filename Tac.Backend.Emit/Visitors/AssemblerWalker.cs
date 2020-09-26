@@ -14,6 +14,34 @@ using Tac.Model.Operations;
 
 namespace Tac.Backend.Emit.Walkers
 {
+
+    public class IndexerList {
+
+        public static IIsPossibly<int> GetOrAdd(IVerifiableType fromType, IVerifiableType toType) {
+            if (fromType == toType)
+            {
+                return Possibly.IsNot<int>();
+            }
+
+            var myIndexer = Indexer.Create(fromType, toType);
+            if (myIndexer == null)
+            {
+                return Possibly.IsNot<int>();
+            }
+
+            var index = indexers.IndexOf(myIndexer);
+            if (index != -1) {
+                return Possibly.Is(index);
+            }
+
+            indexers.Add(myIndexer);
+
+            return Possibly.Is(indexers.Count - 1);
+        }
+
+        public static List<Indexer> indexers = new List<Indexer>();
+    }
+
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
 
@@ -46,14 +74,41 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
+        private void PossiblyConvert(IVerifiableType fromType, IVerifiableType toType) {
+            // we create the indexer now
+            // and we put it in a big array
+            // this is kind of a hack
+            // it means the code that I am emitting cannot be run standalone
+            // it will only work inline
+            if (IndexerList.GetOrAdd(fromType, toType).SafeIs(out IIsDefinately<int> definate)) {
+                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, indexersField.Value);
+                LoadInt(definate.Value);
+                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldelem_Ref);
+                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Newobj, castConstructor.Value);
+            }
+        }
+
+
+        private Lazy<FieldInfo> indexersField = new Lazy<FieldInfo>(() =>
+        {
+            return typeof(IndexerList).GetField(nameof(IndexerList.indexers)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+
+        private Lazy<ConstructorInfo> castConstructor = new Lazy<ConstructorInfo>(() =>
+        {
+            return typeof(TacCastObject).GetConstructor(new[] { typeof(ITacObject), typeof(Indexer) }) ?? throw new NullReferenceException("should not be null!");
+        });
+
+
         public Nothing AssignOperation(IAssignOperation co)
         {
 
-
-
             // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
             // be careful this does not leave anything on the stack
-
+            // =: in tac returns returns the value just saved
+            // we need it not to do that if nothing is going to consume that
+            var leaveOnStack = this.stack.Last().SafeIs(out IOperation _);
 
 
             // {870866D9-D3EC-47B1-B7D3-6966EE651F5F}
@@ -78,6 +133,12 @@ namespace Tac.Backend.Emit.Walkers
                             var field = realizedMethod.fields[memberReference.MemberDefinition];
 
                             co.Left.Convert(this);
+                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
+                            if (leaveOnStack)
+                            {
+                                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
+                            }
                             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
 
                             return new Nothing();
@@ -88,18 +149,28 @@ namespace Tac.Backend.Emit.Walkers
                 if (memberKindLookup.IsArgument(memberReference.MemberDefinition, out var orTypeArg))
                 {
                     // I only allow 1 argument 
+                    // 0th arg is this
                     co.Left.Convert(this);
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Starg, 0);
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    if (leaveOnStack)
+                    {
+                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
+                    }
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Starg, 1);
                     return new Nothing();
                 }
 
                 if (memberKindLookup.IsLocal(memberReference.MemberDefinition, out var orTypeLocal))
                 {
                     co.Left.Convert(this);
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    if (leaveOnStack)
+                    {
+                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
+                    }
                     return orTypeLocal.SwitchReturns(
                         entryPoint =>
                         {
-
                             var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
                             StoreLocal(index);
                             return new Nothing();
@@ -123,15 +194,37 @@ namespace Tac.Backend.Emit.Walkers
                     return orTypeField.SwitchReturns(
                         imp =>
                         {
+
                             // this is the closure
-                            // I need the field info...
 
-                            var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
-
-                            var field = realizedMethod.fields[memberReference.MemberDefinition];
+                            // I need a reference to this
+                            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
 
                             co.Left.Convert(this);
-                            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
+                            // I need the field info...
+                            var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
+                            var field = realizedMethod.fields[memberReference.MemberDefinition];
+
+                            if (leaveOnStack)
+                            {
+                                // TODO I could end up with many of this switching locals of the same type in one method
+                                // i should probably store and reuse them
+
+                                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
+
+                                var loc = generator.GetOrThrow().DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
+                                StoreLocal(loc.LocalIndex);
+
+                                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+
+                                LoadLocal(loc.LocalIndex);
+                            }
+                            else {
+
+                                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                            }
 
                             return new Nothing();
                         },
@@ -141,6 +234,8 @@ namespace Tac.Backend.Emit.Walkers
 
                         });
                 }
+
+                throw new Exception("should have been one of those things...");
             }
             else if (co.Right.SafeIs(out IPathOperation path))
             {
@@ -162,6 +257,7 @@ namespace Tac.Backend.Emit.Walkers
                             {
                                 // 1st parm, the new value
                                 co.Left.Convert(this);
+                                PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
                                 // second parm, the index
                                 var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), pathMemberReference.MemberDefinition);
@@ -174,10 +270,10 @@ namespace Tac.Backend.Emit.Walkers
                                         case Access.ReadOnly:
                                             throw new Exception("this should have benn handled inside assignment");
                                         case Access.ReadWrite:
-                                            generator.GetOrThrow().EmitCall(OpCodes.Call, setComplexMember.Value, new[] { typeof(int) });
+                                            generator.GetOrThrow().EmitCall(OpCodes.Call, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
                                             return new Nothing();
                                         case Access.WriteOnly:
-                                            generator.GetOrThrow().EmitCall(OpCodes.Call, setComplexWriteonlyMember.Value, new[] { typeof(int) });
+                                            generator.GetOrThrow().EmitCall(OpCodes.Call, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
                                             return new Nothing();
                                         default:
                                             throw new Exception("that is unexpected");
@@ -185,22 +281,25 @@ namespace Tac.Backend.Emit.Walkers
                                 }
                                 else
                                 {
-                                    generator.GetOrThrow().EmitCall(OpCodes.Call, setSimpleMember.Value.MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                                    generator.GetOrThrow().EmitCall(OpCodes.Call, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
                                     return new Nothing();
                                 }
                             });
                     }
+                    else
+                    {
+                        throw new Exception("should be a field");
+                    }
+                }
+                else
+                {
+                    throw new Exception("should be a reference");
                 }
             }
             else
             {
                 throw new Exception("if it is not a reference.... what is it?");
             }
-
-
-            throw new NotImplementedException("we have to generate the converters");
-
-            return Walk(co.Operands, co);
         }
 
         public Nothing BlockDefinition(IBlockDefinition codeElement)
@@ -428,10 +527,12 @@ namespace Tac.Backend.Emit.Walkers
                     imp =>
                     {
                         // this is the closure
+
+                        // I need a reference to this
+                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
+
                         // I need the field info...
-
                         var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
-
                         var field = realizedMethod.fields[memberReference.MemberDefinition];
 
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
@@ -477,32 +578,48 @@ namespace Tac.Backend.Emit.Walkers
 
         private Lazy<MethodInfo> getComplexReadonlyMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexReadonlyMember));
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexReadonlyMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexMember));
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> getSimpleMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetSimpleMember));
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> setComplexWriteonlyMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexWriteonlyMember));
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexWriteonlyMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> setComplexMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexMember));
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> setSimpleMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetSimpleMember));
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+
+        private Lazy<MethodInfo> setComplexWriteonlyMemberReturn = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexWriteonlyMemberReturn)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+        private Lazy<MethodInfo> setComplexMemberReturn = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexMemberReturn)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+        private Lazy<MethodInfo> setSimpleMemberReturn = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetSimpleMemberReturn)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private void LoadInt(int value)

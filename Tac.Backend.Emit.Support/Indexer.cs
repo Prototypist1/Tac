@@ -93,6 +93,23 @@ namespace Tac.Backend.Emit.Support
 
         public ITacObject Call_Complex_Complex(ITacObject input) => backing(input);
 
+        public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
+
+        public object SetSimpleMemberReturn(object value, int position)
+        {
+            SetSimpleMemberReturn(value, position);
+            return value;
+        }
+
+        public ITacObject SetComplexWriteonlyMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexWriteonlyMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
     }
 
     public class TacMethod_Simple_Complex: ITacObject
@@ -146,6 +163,23 @@ namespace Tac.Backend.Emit.Support
         }
 
         public ITacObject Call_Simple_Complex<Tin>(Tin input) => backing(input);
+        public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
+
+        public object SetSimpleMemberReturn(object value, int position)
+        {
+            SetSimpleMemberReturn(value, position);
+            return value;
+        }
+
+        public ITacObject SetComplexWriteonlyMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexWriteonlyMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
     }
     public class TacMethod_Complex_Simple: ITacObject
     {
@@ -197,6 +231,23 @@ namespace Tac.Backend.Emit.Support
         }
 
         public Tout Call_Complex_Simple<Tout>(ITacObject input) => (Tout)backing(input);
+        public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
+
+        public object SetSimpleMemberReturn(object value, int position)
+        {
+            SetSimpleMemberReturn(value, position);
+            return value;
+        }
+
+        public ITacObject SetComplexWriteonlyMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexWriteonlyMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
     }
 
     public class TacMethod_Simple_Simple: ITacObject
@@ -249,6 +300,23 @@ namespace Tac.Backend.Emit.Support
         }
 
         public Tout Call_Simple_Simple<Tin,Tout>(Tin input) => (Tout)backing(input);
+        public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
+
+        public object SetSimpleMemberReturn(object value, int position)
+        {
+            SetSimpleMemberReturn(value, position);
+            return value;
+        }
+
+        public ITacObject SetComplexWriteonlyMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexWriteonlyMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
     }
 
     //public class TacCastMethod_Complex_Complex
@@ -335,6 +403,13 @@ namespace Tac.Backend.Emit.Support
     {
         public ITacObject @object;
         public Indexer indexer;
+
+        public TacCastObject(ITacObject @object, Indexer indexer)
+        {
+            this.@object = @object ?? throw new ArgumentNullException(nameof(@object));
+            this.indexer = indexer ?? throw new ArgumentNullException(nameof(indexer));
+        }
+
         //public IVerifiableType memberType;
 
         // read-write complex members must be the same type as they are in TacObject
@@ -418,6 +493,23 @@ namespace Tac.Backend.Emit.Support
         public Tout Call_Simple_Simple<Tin, Tout>(Tin input) {
             return @object.Call_Simple_Simple<Tin, Tout>(input);
         }
+        public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
+
+        public object SetSimpleMemberReturn(object value, int position)
+        {
+            SetSimpleMemberReturn(value, position);
+            return value;
+        }
+
+        public ITacObject SetComplexWriteonlyMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexWriteonlyMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
     }
 
     public class TacObject : ITacObject
@@ -474,6 +566,23 @@ namespace Tac.Backend.Emit.Support
         public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
         {
             throw new NotImplementedException("not supported");
+        }
+        public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexMemberReturn(tacCastObject, position);
+            return tacCastObject;
+        }
+
+        public object SetSimpleMemberReturn(object value, int position)
+        {
+            SetSimpleMemberReturn(value, position);
+            return value;
+        }
+
+        public ITacObject SetComplexWriteonlyMemberReturn(ITacObject tacCastObject, int position)
+        {
+            SetComplexWriteonlyMemberReturn(tacCastObject, position);
+            return tacCastObject;
         }
     }
 
