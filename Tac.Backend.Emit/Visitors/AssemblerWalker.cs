@@ -578,48 +578,71 @@ namespace Tac.Backend.Emit.Walkers
 
         private Lazy<MethodInfo> getComplexReadonlyMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexReadonlyMember)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.GetComplexReadonlyMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetComplexMember)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.GetComplexMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> getSimpleMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.GetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.GetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> setComplexWriteonlyMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexWriteonlyMember)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.SetComplexWriteonlyMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> setComplexMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexMember)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.SetComplexMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> setSimpleMember = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.SetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
         });
-
 
         private Lazy<MethodInfo> setComplexWriteonlyMemberReturn = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexWriteonlyMemberReturn)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.SetComplexWriteonlyMemberReturn)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> setComplexMemberReturn = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetComplexMemberReturn)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.SetComplexMemberReturn)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private Lazy<MethodInfo> setSimpleMemberReturn = new Lazy<MethodInfo>(() =>
         {
-            return typeof(ITacObject).GetMethod(nameof(TacCastObject.SetSimpleMemberReturn)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.SetSimpleMemberReturn)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+
+        private Lazy<MethodInfo> callSimpleSimple = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Simple_Simple)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+
+        private Lazy<MethodInfo> callSimpleComplex = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Simple_Complex)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+
+        private Lazy<MethodInfo> callComplexSimple = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Complex_Simple)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+
+        private Lazy<MethodInfo> callComplexComplex = new Lazy<MethodInfo>(() =>
+        {
+            return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Complex_Complex)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private void LoadInt(int value)
@@ -725,10 +748,44 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing NextCallOperation(INextCallOperation co)
         {
 
+            // TODO I need to load 
+            // the method and then the input on to the stack
+            // but I need to evaluate them in the other order
 
-            // there could be a conversion here!
-            throw new NotImplementedException();
-            return Walk(co.Operands, co);
+            if (!co.Right.Returns().SafeIs(out IMethodType method))
+            {
+                throw new Exception("it has got to be a method");
+            }
+
+            var inType = typeCache[method.InputType];
+            var outType = typeCache[method.OutputType];
+
+            if (inType == typeof(ITacObject))
+            {
+                if (outType == typeof(ITacObject))
+                {
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new[] { typeof(int) });
+                }
+                else
+                {
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new[] { typeof(int) });
+                }
+            }
+            else {
+                if (outType == typeof(ITacObject))
+                {
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new[] { typeof(int) });
+                }
+                else
+                {
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new[] { typeof(int) });
+                }
+            }
+            return new Nothing();
         }
 
         public Nothing ObjectDefinition(IObjectDefiniton @object)
