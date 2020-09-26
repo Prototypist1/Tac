@@ -52,6 +52,12 @@ namespace Tac.Backend.Emit.Walkers
         private readonly Dictionary<IVerifiableType, System.Type> typeCache;
 
 
+        // TODO 
+        // this should be a lot better
+        // 1 - mutliple AssemblerVisitor are going to share a evaluationStackDepth
+        // so it need to be a reference of some sort
+        // 2 - I think it should be bound to emit in some way, so I can't forget to modify the stack depth
+        private int evaluationStackDepth;
         private IReadOnlyList<ICodeElement> stack;
         public IIsPossibly<ILGenerator> generator;
         public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack)
@@ -71,6 +77,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             Walk(co.Operands, co);
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Add_Ovf);
+            evaluationStackDepth--;
             return new Nothing();
         }
 
@@ -82,9 +89,12 @@ namespace Tac.Backend.Emit.Walkers
             // it will only work inline
             if (IndexerList.GetOrAdd(fromType, toType).SafeIs(out IIsDefinately<int> definate)) {
                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, indexersField.Value);
-                LoadInt(definate.Value);
+                evaluationStackDepth++;
+                LoadInt(definate.Value); 
                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldelem_Ref);
+                evaluationStackDepth--;
                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Newobj, castConstructor.Value);
+                evaluationStackDepth--;
             }
         }
 
@@ -132,14 +142,16 @@ namespace Tac.Backend.Emit.Walkers
 
                             var field = realizedMethod.fields[memberReference.MemberDefinition];
 
-                            co.Left.Convert(this);
+                            co.Left.Convert(this.Push(co));
                             PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
                             if (leaveOnStack)
                             {
                                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
+                                evaluationStackDepth++;
                             }
                             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                            evaluationStackDepth--;
 
                             return new Nothing();
                         }
@@ -150,23 +162,26 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     // I only allow 1 argument 
                     // 0th arg is this
-                    co.Left.Convert(this);
+                    co.Left.Convert(this.Push(co));
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     if (leaveOnStack)
                     {
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
+                        evaluationStackDepth++;
                     }
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Starg, 1);
+                    evaluationStackDepth--;
                     return new Nothing();
                 }
 
                 if (memberKindLookup.IsLocal(memberReference.MemberDefinition, out var orTypeLocal))
                 {
-                    co.Left.Convert(this);
+                    co.Left.Convert(this.Push(co));
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     if (leaveOnStack)
                     {
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
+                        evaluationStackDepth++;
                     }
                     return orTypeLocal.SwitchReturns(
                         entryPoint =>
@@ -199,8 +214,9 @@ namespace Tac.Backend.Emit.Walkers
 
                             // I need a reference to this
                             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
+                            evaluationStackDepth++;
 
-                            co.Left.Convert(this);
+                            co.Left.Convert(this.Push(co));
                             PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
                             // I need the field info...
@@ -209,21 +225,26 @@ namespace Tac.Backend.Emit.Walkers
 
                             if (leaveOnStack)
                             {
+
                                 // TODO I could end up with many of this switching locals of the same type in one method
                                 // i should probably store and reuse them
+                                // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
 
                                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
+                                evaluationStackDepth++;
 
                                 var loc = generator.GetOrThrow().DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
                                 StoreLocal(loc.LocalIndex);
 
                                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                                evaluationStackDepth--;
 
                                 LoadLocal(loc.LocalIndex);
                             }
                             else {
 
                                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                                evaluationStackDepth--;
                             }
 
                             return new Nothing();
@@ -240,7 +261,7 @@ namespace Tac.Backend.Emit.Walkers
             else if (co.Right.SafeIs(out IPathOperation path))
             {
                 // who we are calling it on
-                path.Left.Convert(this);
+                path.Left.Convert(this.Push(co));
                 if (path.Right.SafeIs(out IMemberReference pathMemberReference))
                 {
 
@@ -256,7 +277,7 @@ namespace Tac.Backend.Emit.Walkers
                             obj =>
                             {
                                 // 1st parm, the new value
-                                co.Left.Convert(this);
+                                co.Left.Convert(this.Push(co));
                                 PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
                                 // second parm, the index
@@ -271,9 +292,17 @@ namespace Tac.Backend.Emit.Walkers
                                             throw new Exception("this should have benn handled inside assignment");
                                         case Access.ReadWrite:
                                             generator.GetOrThrow().EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
+                                            evaluationStackDepth--;
+                                            if (!leaveOnStack) {
+                                                evaluationStackDepth--;
+                                            }
                                             return new Nothing();
                                         case Access.WriteOnly:
                                             generator.GetOrThrow().EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
+                                            if (!leaveOnStack)
+                                            {
+                                                evaluationStackDepth--;
+                                            }
                                             return new Nothing();
                                         default:
                                             throw new Exception("that is unexpected");
@@ -282,6 +311,10 @@ namespace Tac.Backend.Emit.Walkers
                                 else
                                 {
                                     generator.GetOrThrow().EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                                    if (!leaveOnStack)
+                                    {
+                                        evaluationStackDepth--;
+                                    }
                                     return new Nothing();
                                 }
                             });
@@ -313,26 +346,31 @@ namespace Tac.Backend.Emit.Walkers
             if (constantBool.Value)
             {
                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0);
+                evaluationStackDepth++;
             }
             else
             {
                 generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1);
+                evaluationStackDepth++;
             }
             return new Nothing();
         }
         public Nothing ConstantNumber(IConstantNumber codeElement)
         {
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_R8, codeElement.Value);
+            evaluationStackDepth++;
             return new Nothing();
         }
         public Nothing ConstantString(IConstantString co)
         {
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldstr, co.Value);
+            evaluationStackDepth++;
             return new Nothing();
         }
         public Nothing EmptyInstance(IEmptyInstance co)
         {
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldnull);
+            evaluationStackDepth++;
             return new Nothing();
         }
         public Nothing TypeDefinition(IInterfaceType codeElement) => new Nothing();
@@ -357,6 +395,7 @@ namespace Tac.Backend.Emit.Walkers
                 // so you can do
                 // ... else {} > someMethod
                 generator.GetOrThrow().Emit(OpCodes.Dup);
+                evaluationStackDepth++;
                 // this is a very important assumption
                 // the {} of the if CANNOT leave anything on the stack
                 // I don't think that should happen very often since each statement tend to clear it's stack
@@ -364,6 +403,7 @@ namespace Tac.Backend.Emit.Walkers
                 // that is why we need to check something is consuming it 
             }
             generator.GetOrThrow().Emit(OpCodes.Brfalse, topOfElseLabel);
+            evaluationStackDepth--;
             myIf.Operands[1].Convert(nextNext);
             generator.GetOrThrow().Emit(OpCodes.Br, bottomOfElse);
             generator.GetOrThrow().MarkLabel(topOfElseLabel);
@@ -395,6 +435,7 @@ namespace Tac.Backend.Emit.Walkers
                 // so you can do
                 // ... if {} > someMethod
                 generator.GetOrThrow().Emit(OpCodes.Dup);
+                evaluationStackDepth++;
                 // this is a very important assumption
                 // the {} of the if CANNOT leave anything on the stack
                 // I don't think that should happen very often since each statement tend to clear it's stack
@@ -402,6 +443,7 @@ namespace Tac.Backend.Emit.Walkers
                 // that is why we need to check something is consuming it 
             }
             generator.GetOrThrow().Emit(OpCodes.Brfalse, label);
+            evaluationStackDepth--;
             co.Operands[1].Convert(next);
             generator.GetOrThrow().MarkLabel(label);
             return new Nothing();
@@ -421,6 +463,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             Walk(co.Operands, co);
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Clt);
+            evaluationStackDepth--;
             return new Nothing();
         }
 
@@ -474,6 +517,7 @@ namespace Tac.Backend.Emit.Walkers
                         var field = realizedMethod.fields[memberReference.MemberDefinition];
 
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+                        evaluationStackDepth++;
 
                         return new Nothing();
                     }
@@ -487,12 +531,14 @@ namespace Tac.Backend.Emit.Walkers
                     {
                         // I only allow 1 argument 
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+                        evaluationStackDepth++;
                         return new Nothing();
                     },
                     method =>
                     {
                         // I only allow 1 argument 
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+                        evaluationStackDepth++;
                         return new Nothing();
                     });
             }
@@ -530,12 +576,14 @@ namespace Tac.Backend.Emit.Walkers
 
                         // I need a reference to this
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
+                        evaluationStackDepth++;
 
                         // I need the field info...
                         var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
                         var field = realizedMethod.fields[memberReference.MemberDefinition];
 
                         generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+                        // no change in stack
 
                         return new Nothing();
                     },
@@ -554,9 +602,11 @@ namespace Tac.Backend.Emit.Walkers
                             {
                                 case Access.ReadOnly:
                                     generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new[] { typeof(int) });
+                                    evaluationStackDepth--;
                                     return new Nothing();
                                 case Access.ReadWrite:
                                     generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getComplexMember.Value, new[] { typeof(int) });
+                                    evaluationStackDepth--;
                                     return new Nothing();
                                 case Access.WriteOnly:
                                     throw new Exception("this should have benn handled inside assignment");
@@ -567,6 +617,7 @@ namespace Tac.Backend.Emit.Walkers
                         else
                         {
                             generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                            evaluationStackDepth--;
                             return new Nothing();
                         }
                     });
@@ -576,71 +627,69 @@ namespace Tac.Backend.Emit.Walkers
         }
 
 
-        private Lazy<MethodInfo> getComplexReadonlyMember = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> getComplexReadonlyMember = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.GetComplexReadonlyMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> getComplexMember = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.GetComplexMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private Lazy<MethodInfo> getSimpleMember = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> getSimpleMember = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.GetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private Lazy<MethodInfo> setComplexWriteonlyMember = new Lazy<MethodInfo>(() =>
+
+        private readonly Lazy<MethodInfo> setComplexWriteonlyMember = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.SetComplexWriteonlyMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private Lazy<MethodInfo> setComplexMember = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> setComplexMember = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.SetComplexMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private Lazy<MethodInfo> setSimpleMember = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> setSimpleMember = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.SetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private Lazy<MethodInfo> setComplexWriteonlyMemberReturn = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> setComplexWriteonlyMemberReturn = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.SetComplexWriteonlyMemberReturn)) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private Lazy<MethodInfo> setComplexMemberReturn = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> setComplexMemberReturn = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.SetComplexMemberReturn)) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private Lazy<MethodInfo> setSimpleMemberReturn = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> setSimpleMemberReturn = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.SetSimpleMemberReturn)) ?? throw new NullReferenceException("should not be null!");
         });
 
 
-        private Lazy<MethodInfo> callSimpleSimple = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> callSimpleSimple = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Simple_Simple)) ?? throw new NullReferenceException("should not be null!");
         });
 
-
-        private Lazy<MethodInfo> callSimpleComplex = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> callSimpleComplex = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Simple_Complex)) ?? throw new NullReferenceException("should not be null!");
         });
 
-
-        private Lazy<MethodInfo> callComplexSimple = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> callComplexSimple = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Complex_Simple)) ?? throw new NullReferenceException("should not be null!");
         });
 
-
-        private Lazy<MethodInfo> callComplexComplex = new Lazy<MethodInfo>(() =>
+        private readonly Lazy<MethodInfo> callComplexComplex = new Lazy<MethodInfo>(() =>
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Complex_Complex)) ?? throw new NullReferenceException("should not be null!");
         });
@@ -650,31 +699,31 @@ namespace Tac.Backend.Emit.Walkers
             switch (value)
             {
                 case 0:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0); evaluationStackDepth++;
                     return;
                 case 1:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1); evaluationStackDepth++;
                     return;
                 case 2:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_2);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_2); evaluationStackDepth++;
                     return;
                 case 3:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_3);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_3); evaluationStackDepth++;
                     return;
                 case 4:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_4);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_4); evaluationStackDepth++;
                     return;
                 case 5:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_5);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_5); evaluationStackDepth++;
                     return;
                 case 6:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_6);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_6); evaluationStackDepth++;
                     return;
                 case 7:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_7);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_7); evaluationStackDepth++;
                     return;
                 default:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4, value);
+                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4, value); evaluationStackDepth++;
                     return;
             }
         }
@@ -686,18 +735,23 @@ namespace Tac.Backend.Emit.Walkers
             {
                 case 0:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_0);
+                    evaluationStackDepth--;
                     return;
                 case 1:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_1);
+                    evaluationStackDepth--;
                     return;
                 case 2:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_2);
+                    evaluationStackDepth--;
                     return;
                 case 3:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_3);
+                    evaluationStackDepth--;
                     return;
                 default:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_S, index);
+                    evaluationStackDepth--;
                     return;
             }
         }
@@ -709,18 +763,23 @@ namespace Tac.Backend.Emit.Walkers
             {
                 case 0:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_0);
+                    evaluationStackDepth++;
                     return;
                 case 1:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_1);
+                    evaluationStackDepth++;
                     return;
                 case 2:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_2);
+                    evaluationStackDepth++;
                     return;
                 case 3:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_3);
+                    evaluationStackDepth++;
                     return;
                 default:
                     generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_S, index);
+                    evaluationStackDepth++;
                     return;
             }
         }
@@ -742,15 +801,12 @@ namespace Tac.Backend.Emit.Walkers
         {
             Walk(co.Operands, co);
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Mul_Ovf);
+            evaluationStackDepth--;
             return new Nothing();
         }
 
         public Nothing NextCallOperation(INextCallOperation co)
         {
-
-            // TODO I need to load 
-            // the method and then the input on to the stack
-            // but I need to evaluate them in the other order
 
             if (!co.Right.Returns().SafeIs(out IMethodType method))
             {
@@ -760,17 +816,34 @@ namespace Tac.Backend.Emit.Walkers
             var inType = typeCache[method.InputType];
             var outType = typeCache[method.OutputType];
 
+
+            // the method and then the input on to the stack
+            // but I need to evaluate them in the other order
+            // I need a local
+
+            // TODO I could probably reuse this local
+            // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
+
+            co.Left.Convert(this.Push(co));
+            var loc = generator.GetOrThrow().DeclareLocal(inType);
+            StoreLocal(loc.LocalIndex);
+
+            co.Right.Convert(this.Push(co));
+            LoadLocal(loc.LocalIndex);
+
             if (inType == typeof(ITacObject))
             {
                 if (outType == typeof(ITacObject))
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new[] { typeof(int) });
+                    evaluationStackDepth--;
                 }
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new[] { typeof(int) });
+                    evaluationStackDepth--;
                 }
             }
             else {
@@ -778,11 +851,13 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new[] { typeof(int) });
+                    evaluationStackDepth--;
                 }
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new[] { typeof(int) });
+                    evaluationStackDepth--;
                 }
             }
             return new Nothing();
@@ -803,15 +878,40 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing ReturnOperation(IReturnOperation co)
         {
 
-            throw new NotImplementedException();
+            // we need to clear the evaluation stack except the value we are returning
+            // this means tracking its depth
+
+            while (evaluationStackDepth > 0) {
+                generator.GetOrThrow().Emit(OpCodes.Pop);
+                evaluationStackDepth--;
+            }
+
+            co.Result.Convert(this.Push(co));
+
             // there could be a conversion here!
-            return Walk(co.Operands, co);
+            // we need to walk up the stack till we hit a method (or possibly an entrypoint)
+            // and get it's output type
+
+            foreach (var frame in stack.Reverse())
+            {
+                if (frame.SafeIs(out IInternalMethodDefinition method)) {
+                    PossiblyConvert(co.Result.Returns(), method.OutputType);
+                    goto end;
+                }
+            }
+            end:
+
+            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ret);
+            evaluationStackDepth--;
+
+            return new Nothing();
         }
 
         public Nothing SubtractOperation(ISubtractOperation co)
         {
             Walk(co.Operands, co);
             generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Sub_Ovf);
+            evaluationStackDepth--;
             return new Nothing();
         }
 
