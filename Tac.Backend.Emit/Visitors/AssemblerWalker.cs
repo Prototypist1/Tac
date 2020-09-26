@@ -42,6 +42,17 @@ namespace Tac.Backend.Emit.Walkers
         public static List<Indexer> indexers = new List<Indexer>();
     }
 
+
+    class GeneratorHolder {
+        public int EvaluationStackDepth { get; private set; }
+        public IIsPossibly<ILGenerator> generator;
+        public ILGenerator GetGeneratorAndUpdateStack(int stackChange)
+        {
+            EvaluationStackDepth += stackChange;
+            return generator.GetOrThrow();
+        }
+    }
+
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
 
@@ -52,19 +63,23 @@ namespace Tac.Backend.Emit.Walkers
         private readonly Dictionary<IVerifiableType, System.Type> typeCache;
 
 
+        private readonly GeneratorHolder generatorHolder;
+
         // TODO 
         // this should be a lot better
         // 1 - mutliple AssemblerVisitor are going to share a evaluationStackDepth
         // so it need to be a reference of some sort
         // 2 - I think it should be bound to emit in some way, so I can't forget to modify the stack depth
-        private int evaluationStackDepth;
+
         private IReadOnlyList<ICodeElement> stack;
-        public IIsPossibly<ILGenerator> generator;
         public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack)
         {
             this.typeChangeLookup = typeChangeLookup;
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
         }
+
+
+
 
         public AssemblerVisitor Push(ICodeElement another)
         {
@@ -76,8 +91,7 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing AddOperation(IAddOperation co)
         {
             Walk(co.Operands, co);
-            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Add_Ovf);
-            evaluationStackDepth--;
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Add_Ovf);
             return new Nothing();
         }
 
@@ -88,13 +102,10 @@ namespace Tac.Backend.Emit.Walkers
             // it means the code that I am emitting cannot be run standalone
             // it will only work inline
             if (IndexerList.GetOrAdd(fromType, toType).SafeIs(out IIsDefinately<int> definate)) {
-                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, indexersField.Value);
-                evaluationStackDepth++;
-                LoadInt(definate.Value); 
-                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldelem_Ref);
-                evaluationStackDepth--;
-                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Newobj, castConstructor.Value);
-                evaluationStackDepth--;
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldfld, indexersField.Value);
+                LoadInt(definate.Value);
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Ldelem_Ref);
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, castConstructor.Value);
             }
         }
 
@@ -147,11 +158,9 @@ namespace Tac.Backend.Emit.Walkers
 
                             if (leaveOnStack)
                             {
-                                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
-                                evaluationStackDepth++;
+                                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
                             }
-                            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
-                            evaluationStackDepth--;
+                            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
 
                             return new Nothing();
                         }
@@ -166,11 +175,9 @@ namespace Tac.Backend.Emit.Walkers
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     if (leaveOnStack)
                     {
-                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
-                        evaluationStackDepth++;
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
                     }
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Starg, 1);
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Starg, 1);
                     return new Nothing();
                 }
 
@@ -180,8 +187,7 @@ namespace Tac.Backend.Emit.Walkers
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     if (leaveOnStack)
                     {
-                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
-                        evaluationStackDepth++;
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
                     }
                     return orTypeLocal.SwitchReturns(
                         entryPoint =>
@@ -213,8 +219,7 @@ namespace Tac.Backend.Emit.Walkers
                             // this is the closure
 
                             // I need a reference to this
-                            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
-                            evaluationStackDepth++;
+                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
 
                             co.Left.Convert(this.Push(co));
                             PossiblyConvert(co.Left.Returns(), co.Right.Returns());
@@ -230,21 +235,17 @@ namespace Tac.Backend.Emit.Walkers
                                 // i should probably store and reuse them
                                 // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
 
-                                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Dup);
-                                evaluationStackDepth++;
+                                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
 
-                                var loc = generator.GetOrThrow().DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
+                                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
                                 StoreLocal(loc.LocalIndex);
 
-                                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
-                                evaluationStackDepth--;
+                                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
 
                                 LoadLocal(loc.LocalIndex);
                             }
                             else {
-
-                                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stfld, field);
-                                evaluationStackDepth--;
+                                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
                             }
 
                             return new Nothing();
@@ -291,18 +292,10 @@ namespace Tac.Backend.Emit.Walkers
                                         case Access.ReadOnly:
                                             throw new Exception("this should have benn handled inside assignment");
                                         case Access.ReadWrite:
-                                            generator.GetOrThrow().EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
-                                            evaluationStackDepth--;
-                                            if (!leaveOnStack) {
-                                                evaluationStackDepth--;
-                                            }
+                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2:-3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
                                             return new Nothing();
                                         case Access.WriteOnly:
-                                            generator.GetOrThrow().EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
-                                            if (!leaveOnStack)
-                                            {
-                                                evaluationStackDepth--;
-                                            }
+                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
                                             return new Nothing();
                                         default:
                                             throw new Exception("that is unexpected");
@@ -310,11 +303,7 @@ namespace Tac.Backend.Emit.Walkers
                                 }
                                 else
                                 {
-                                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
-                                    if (!leaveOnStack)
-                                    {
-                                        evaluationStackDepth--;
-                                    }
+                                    generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
                                     return new Nothing();
                                 }
                             });
@@ -345,32 +334,27 @@ namespace Tac.Backend.Emit.Walkers
         {
             if (constantBool.Value)
             {
-                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0);
-                evaluationStackDepth++;
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0);
             }
             else
             {
-                generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1);
-                evaluationStackDepth++;
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1);
             }
             return new Nothing();
         }
         public Nothing ConstantNumber(IConstantNumber codeElement)
         {
-            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_R8, codeElement.Value);
-            evaluationStackDepth++;
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_R8, codeElement.Value);
             return new Nothing();
         }
         public Nothing ConstantString(IConstantString co)
         {
-            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldstr, co.Value);
-            evaluationStackDepth++;
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldstr, co.Value);
             return new Nothing();
         }
         public Nothing EmptyInstance(IEmptyInstance co)
         {
-            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldnull);
-            evaluationStackDepth++;
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldnull);
             return new Nothing();
         }
         public Nothing TypeDefinition(IInterfaceType codeElement) => new Nothing();
@@ -384,8 +368,8 @@ namespace Tac.Backend.Emit.Walkers
             var myIf = co.Operands[0].SafeCastTo(out IIfOperation _);
 
             var nextNext = next.Push(myIf);
-            var topOfElseLabel = generator.GetOrThrow().DefineLabel();
-            var bottomOfElse = generator.GetOrThrow().DefineLabel();
+            var topOfElseLabel = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
+            var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
             myIf.Operands[0].Convert(nextNext);
             // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
             if (this.stack.Last().SafeIs(out IOperation _))
@@ -394,21 +378,19 @@ namespace Tac.Backend.Emit.Walkers
                 // else in tac returns false if it ran, true otherwise
                 // so you can do
                 // ... else {} > someMethod
-                generator.GetOrThrow().Emit(OpCodes.Dup);
-                evaluationStackDepth++;
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Dup);
                 // this is a very important assumption
                 // the {} of the if CANNOT leave anything on the stack
                 // I don't think that should happen very often since each statement tend to clear it's stack
                 // often but not always, right here we are leaving something on the statck
                 // that is why we need to check something is consuming it 
             }
-            generator.GetOrThrow().Emit(OpCodes.Brfalse, topOfElseLabel);
-            evaluationStackDepth--;
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
             myIf.Operands[1].Convert(nextNext);
-            generator.GetOrThrow().Emit(OpCodes.Br, bottomOfElse);
-            generator.GetOrThrow().MarkLabel(topOfElseLabel);
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Br, bottomOfElse);
+            generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(topOfElseLabel);
             co.Operands[1].Convert(next);
-            generator.GetOrThrow().MarkLabel(bottomOfElse);
+            generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(bottomOfElse);
 
             return new Nothing();
         }
@@ -425,7 +407,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             var next = this.Push(co);
 
-            var label = generator.GetOrThrow().DefineLabel();
+            var label = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
             co.Operands[0].Convert(next);
             // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
             if (this.stack.Last().SafeIs(out IOperation _))
@@ -434,18 +416,16 @@ namespace Tac.Backend.Emit.Walkers
                 // if in tac returns true if it ran, false otherwise
                 // so you can do
                 // ... if {} > someMethod
-                generator.GetOrThrow().Emit(OpCodes.Dup);
-                evaluationStackDepth++;
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 // this is a very important assumption
                 // the {} of the if CANNOT leave anything on the stack
                 // I don't think that should happen very often since each statement tend to clear it's stack
                 // often but not always, right here we are leaving something on the statck
                 // that is why we need to check something is consuming it 
             }
-            generator.GetOrThrow().Emit(OpCodes.Brfalse, label);
-            evaluationStackDepth--;
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, label);
             co.Operands[1].Convert(next);
-            generator.GetOrThrow().MarkLabel(label);
+            generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(label);
             return new Nothing();
         }
 
@@ -462,8 +442,7 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing LessThanOperation(ILessThanOperation co)
         {
             Walk(co.Operands, co);
-            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Clt);
-            evaluationStackDepth--;
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Clt);
             return new Nothing();
         }
 
@@ -516,8 +495,7 @@ namespace Tac.Backend.Emit.Walkers
 
                         var field = realizedMethod.fields[memberReference.MemberDefinition];
 
-                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
-                        evaluationStackDepth++;
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
 
                         return new Nothing();
                     }
@@ -530,15 +508,13 @@ namespace Tac.Backend.Emit.Walkers
                     imp =>
                     {
                         // I only allow 1 argument 
-                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
-                        evaluationStackDepth++;
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
                         return new Nothing();
                     },
                     method =>
                     {
                         // I only allow 1 argument 
-                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
-                        evaluationStackDepth++;
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
                         return new Nothing();
                     });
             }
@@ -575,14 +551,13 @@ namespace Tac.Backend.Emit.Walkers
                         // this is the closure
 
                         // I need a reference to this
-                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
-                        evaluationStackDepth++;
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
 
                         // I need the field info...
                         var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
                         var field = realizedMethod.fields[memberReference.MemberDefinition];
 
-                        generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
                         // no change in stack
 
                         return new Nothing();
@@ -601,12 +576,10 @@ namespace Tac.Backend.Emit.Walkers
                             switch (memberReference.MemberDefinition.Access)
                             {
                                 case Access.ReadOnly:
-                                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new[] { typeof(int) });
-                                    evaluationStackDepth--;
+                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new[] { typeof(int) });
                                     return new Nothing();
                                 case Access.ReadWrite:
-                                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getComplexMember.Value, new[] { typeof(int) });
-                                    evaluationStackDepth--;
+                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new[] { typeof(int) });
                                     return new Nothing();
                                 case Access.WriteOnly:
                                     throw new Exception("this should have benn handled inside assignment");
@@ -616,8 +589,7 @@ namespace Tac.Backend.Emit.Walkers
                         }
                         else
                         {
-                            generator.GetOrThrow().EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
-                            evaluationStackDepth--;
+                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
                             return new Nothing();
                         }
                     });
@@ -699,31 +671,31 @@ namespace Tac.Backend.Emit.Walkers
             switch (value)
             {
                 case 0:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_0); 
                     return;
                 case 1:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_1);
                     return;
                 case 2:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_2); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_2); 
                     return;
                 case 3:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_3); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_3);
                     return;
                 case 4:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_4); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_4); 
                     return;
                 case 5:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_5); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_5); 
                     return;
                 case 6:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_6); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_6);
                     return;
                 case 7:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4_7); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4_7);
                     return;
                 default:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldc_I4, value); evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldc_I4, value); 
                     return;
             }
         }
@@ -734,24 +706,19 @@ namespace Tac.Backend.Emit.Walkers
             switch (index)
             {
                 case 0:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_0);
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_0);
                     return;
                 case 1:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_1);
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_1);
                     return;
                 case 2:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_2);
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_2);
                     return;
                 case 3:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_3);
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_3);
                     return;
                 default:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Stloc_S, index);
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_S, index);
                     return;
             }
         }
@@ -762,24 +729,19 @@ namespace Tac.Backend.Emit.Walkers
             switch (index)
             {
                 case 0:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_0);
-                    evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldloc_0);
                     return;
                 case 1:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_1);
-                    evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldloc_1);
                     return;
                 case 2:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_2);
-                    evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldloc_2);
                     return;
                 case 3:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_3);
-                    evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldloc_3);
                     return;
                 default:
-                    generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ldloc_S, index);
-                    evaluationStackDepth++;
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldloc_S, index);
                     return;
             }
         }
@@ -800,8 +762,7 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing MultiplyOperation(IMultiplyOperation co)
         {
             Walk(co.Operands, co);
-            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Mul_Ovf);
-            evaluationStackDepth--;
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Mul_Ovf);
             return new Nothing();
         }
 
@@ -825,7 +786,7 @@ namespace Tac.Backend.Emit.Walkers
             // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
 
             co.Left.Convert(this.Push(co));
-            var loc = generator.GetOrThrow().DeclareLocal(inType);
+            var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(inType);
             StoreLocal(loc.LocalIndex);
 
             co.Right.Convert(this.Push(co));
@@ -836,28 +797,24 @@ namespace Tac.Backend.Emit.Walkers
                 if (outType == typeof(ITacObject))
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new[] { typeof(int) });
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new[] { typeof(int) });
                 }
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new[] { typeof(int) });
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new[] { typeof(int) });
                 }
             }
             else {
                 if (outType == typeof(ITacObject))
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new[] { typeof(int) });
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new[] { typeof(int) });
                 }
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                    generator.GetOrThrow().EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new[] { typeof(int) });
-                    evaluationStackDepth--;
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new[] { typeof(int) });
                 }
             }
             return new Nothing();
@@ -881,9 +838,8 @@ namespace Tac.Backend.Emit.Walkers
             // we need to clear the evaluation stack except the value we are returning
             // this means tracking its depth
 
-            while (evaluationStackDepth > 0) {
-                generator.GetOrThrow().Emit(OpCodes.Pop);
-                evaluationStackDepth--;
+            while (generatorHolder.EvaluationStackDepth > 0) {
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
             }
 
             co.Result.Convert(this.Push(co));
@@ -901,8 +857,7 @@ namespace Tac.Backend.Emit.Walkers
             }
             end:
 
-            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Ret);
-            evaluationStackDepth--;
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Ret);
 
             return new Nothing();
         }
@@ -910,8 +865,7 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing SubtractOperation(ISubtractOperation co)
         {
             Walk(co.Operands, co);
-            generator.GetOrThrow().Emit(System.Reflection.Emit.OpCodes.Sub_Ovf);
-            evaluationStackDepth--;
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Sub_Ovf);
             return new Nothing();
         }
 
