@@ -44,8 +44,14 @@ namespace Tac.Backend.Emit.Walkers
 
 
     class GeneratorHolder {
-        public int EvaluationStackDepth { get; private set; }
+        public int EvaluationStackDepth { get; private set; } = 0;
         public IIsPossibly<ILGenerator> generator;
+
+        public GeneratorHolder(IIsPossibly<ILGenerator> generator)
+        {
+            this.generator = generator ?? throw new ArgumentNullException(nameof(generator));
+        }
+
         public ILGenerator GetGeneratorAndUpdateStack(int stackChange)
         {
             EvaluationStackDepth += stackChange;
@@ -72,20 +78,26 @@ namespace Tac.Backend.Emit.Walkers
         // 2 - I think it should be bound to emit in some way, so I can't forget to modify the stack depth
 
         private IReadOnlyList<ICodeElement> stack;
-        public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack)
+        public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack, GeneratorHolder generatorHolder)
         {
             this.typeChangeLookup = typeChangeLookup;
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
+            this.generatorHolder = generatorHolder ?? throw new ArgumentNullException(nameof(generatorHolder));
         }
-
-
-
 
         public AssemblerVisitor Push(ICodeElement another)
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(typeChangeLookup, list);
+            return new AssemblerVisitor(typeChangeLookup, list, generatorHolder);
+        }
+
+
+        public AssemblerVisitor Push(ICodeElement another, ILGenerator generator)
+        {
+            var list = stack.ToList();
+            list.Add(another);
+            return new AssemblerVisitor(typeChangeLookup, list, new GeneratorHolder(Possibly.Is(generator)));
         }
 
         public Nothing AddOperation(IAddOperation co)
@@ -148,6 +160,8 @@ namespace Tac.Backend.Emit.Walkers
 
                         if (closure.closureMember.Contains(memberReference.MemberDefinition))
                         {
+                            // this
+                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
 
                             var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
 
@@ -158,9 +172,21 @@ namespace Tac.Backend.Emit.Walkers
 
                             if (leaveOnStack)
                             {
+                                // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
+
                                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
+
+                                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
+                                StoreLocal(loc.LocalIndex);
+
+                                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+
+                                LoadLocal(loc.LocalIndex);
                             }
-                            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                            else
+                            {
+                                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                            }
 
                             return new Nothing();
                         }
@@ -490,12 +516,14 @@ namespace Tac.Backend.Emit.Walkers
 
                     if (closure.closureMember.Contains(memberReference.MemberDefinition))
                     {
+                        // this
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
 
                         var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
 
                         var field = realizedMethod.fields[memberReference.MemberDefinition];
 
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
 
                         return new Nothing();
                     }
@@ -508,13 +536,13 @@ namespace Tac.Backend.Emit.Walkers
                     imp =>
                     {
                         // I only allow 1 argument 
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_1);
                         return new Nothing();
                     },
                     method =>
                     {
                         // I only allow 1 argument 
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_1);
                         return new Nothing();
                     });
             }
@@ -551,13 +579,13 @@ namespace Tac.Backend.Emit.Walkers
                         // this is the closure
 
                         // I need a reference to this
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_1);
 
                         // I need the field info...
                         var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
                         var field = realizedMethod.fields[memberReference.MemberDefinition];
 
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
                         // no change in stack
 
                         return new Nothing();
@@ -746,11 +774,106 @@ namespace Tac.Backend.Emit.Walkers
             }
         }
 
+        public System.Type ToITacObjectOrOject(System.Type type ) {
+            if (type == typeof(ITacObject)) {
+                return type;
+            }
+            return typeof(object);
+        }
+
 
         public Nothing MethodDefinition(IInternalMethodDefinition method)
         {
-            throw new NotImplementedException();
-            return Walk(method.Body, method);
+
+            var realizedMethod = realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method));
+            var myMethod = realizedMethod.type.DefineMethod(GenerateName(), MethodAttributes.Public, CallingConventions.HasThis, ToITacObjectOrOject(typeCache[ method.OutputType]), new[] { ToITacObjectOrOject(typeCache[method.InputType]) });
+            
+            var inner = this.Push(method, myMethod.GetILGenerator());
+            foreach (var line in method.Body)
+            {
+                line.Convert(inner);
+            }
+
+            // create new instance
+            // get the default constuctor 
+            var constructor = realizedMethod.type.GetConstructor(new System.Type[] { }) ?? throw new NullReferenceException("could not find default constructor");
+
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, constructor);
+
+
+            // pass stuff in to the closure
+            if (extensionLookup.TryGetClosure(method, out var ourClosure))
+            {
+                // find our parent
+                var frame = stack.Reverse().Select(frame => { return extensionLookup.TryGetClosure(frame, out var _)? frame:null; }).Where(x => x != null).First() ?? throw new ArgumentNullException("should find one") ;
+
+                foreach (var member in ourClosure.closureMember)
+                {
+                    if (realizedMethod.fields.TryGetValue(member, out var fieldInfo)) {
+
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+
+                        // we need to get the value off the closure 
+                        // push this 
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+
+                        var outerRealizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
+                        var field = outerRealizedMethod.fields[member];
+
+                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+
+                        // now we need to push the new value on to out closure 
+                        var newfield = realizedMethod.fields[member];
+
+                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, newfield);
+                    }
+                }
+            }
+
+            // now I need to make a TacMethod or whatever
+
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Ldftn, myMethod);
+
+
+            // TODO lazy all this reflection
+            if (typeCache[method.InputType] == typeof(ITacObject))
+            {
+                if (typeCache[method.OutputType] == typeof(ITacObject))
+                {
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, ITacObject>).GetConstructors().First());
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(TacMethod_Complex_Complex).GetConstructor(new[] { typeof(Func<ITacObject, ITacObject>) }));
+                }
+                else
+                {
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, object>).GetConstructors().First());
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(TacMethod_Complex_Simple).GetConstructor(new[] { typeof(Func<ITacObject, object>) }));
+                }
+            }
+            else {
+                if (typeCache[method.OutputType] == typeof(ITacObject))
+                {
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, ITacObject>).GetConstructors().First());
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(TacMethod_Simple_Complex).GetConstructor(new[] { typeof(Func<object, ITacObject>) }));
+                }
+                else
+                {
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(TacMethod_Simple_Simple).GetConstructor(new[] { typeof(Func<object, object>) }));
+                }
+            }
+
+            return new Nothing();
+        }
+
+
+
+        // {4E963BB1-1C86-4F75-BD4C-3F9BE16386A9}
+        private static readonly Random random = new Random();
+        private string GenerateName()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            return new string(Enumerable.Repeat(chars, 20)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         public Nothing ModuleDefinition(IModuleDefinition module)
@@ -881,9 +1004,10 @@ namespace Tac.Backend.Emit.Walkers
 
         private Nothing Walk(IEnumerable<ICodeElement> elements, ICodeElement element)
         {
+            var inner = this.Push(element);
             foreach (var line in elements)
             {
-                line.Convert(this.Push(element));
+                line.Convert(inner);
             }
 
             return new Nothing();

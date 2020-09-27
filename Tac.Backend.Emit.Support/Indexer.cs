@@ -46,6 +46,11 @@ namespace Tac.Backend.Emit.Support
     {
         public Func<ITacObject, ITacObject> backing;
 
+        public TacMethod_Complex_Complex(Func<ITacObject, ITacObject> backing)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
+
         public Tout Call_Complex_Simple<Tout>(ITacObject input)
         {
             throw new NotImplementedException("not supported");
@@ -116,6 +121,11 @@ namespace Tac.Backend.Emit.Support
     {
         Func<object, ITacObject> backing;
 
+        public TacMethod_Simple_Complex(Func<object, ITacObject> backing)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
+
         public ITacObject Call_Complex_Complex(ITacObject input)
         {
             throw new NotImplementedException("not supported");
@@ -183,7 +193,13 @@ namespace Tac.Backend.Emit.Support
     }
     public class TacMethod_Complex_Simple: ITacObject
     {
+
         public Func<ITacObject, object> backing;
+
+        public TacMethod_Complex_Simple(Func<ITacObject, object> backing)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
 
         public ITacObject Call_Complex_Complex(ITacObject input)
         {
@@ -253,6 +269,11 @@ namespace Tac.Backend.Emit.Support
     public class TacMethod_Simple_Simple: ITacObject
     {
         Func<object, object> backing;
+
+        public TacMethod_Simple_Simple(Func<object, object> backing)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
 
         public ITacObject Call_Complex_Complex(ITacObject input)
         {

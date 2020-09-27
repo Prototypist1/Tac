@@ -165,8 +165,8 @@ namespace Tac.Backend.Emit.Visitors
             return name.Replace("_", "__").Replace("-", "_");
         }
 
+        // {4E963BB1-1C86-4F75-BD4C-3F9BE16386A9}
         private static readonly Random random = new Random();
-
         private string GenerateName()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
