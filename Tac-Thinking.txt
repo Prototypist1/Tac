@@ -526,3 +526,29 @@ I think from there I could figure out ele(bool,|,int,x) was a member. it ends wi
 maybe I need another step where I parse in to a more reasonible represnetation. it could group type operations. and tree operations properally. 
 think about it project for later I think 
 
+=========================== how does static work?
+
+
+static y := 1
+static z := "test"
+
+// this can't access other static things?
+// because we don't know the order 
+
+static x := object{
+    
+}
+
+// I just want to keep punting on this problem 
+// what I need right now are static methods 
+// methods are safe and feature complete
+
+
+// ok so delete module and add static method, but what I am going to do with my WIP code
+// anything defined in root is static
+
+x := method[int,int]
+
+// maybe you can also init other stuff but it only has access to things above the file
+// or something 
+// same rules as member references with in objects (whatever those are)

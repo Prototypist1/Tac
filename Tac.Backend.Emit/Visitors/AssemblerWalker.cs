@@ -122,17 +122,41 @@ namespace Tac.Backend.Emit.Walkers
         }
 
 
-        private Lazy<FieldInfo> indexersField = new Lazy<FieldInfo>(() =>
+        private readonly Lazy<FieldInfo>  indexersField = new Lazy<FieldInfo>(() =>
         {
             return typeof(IndexerList).GetField(nameof(IndexerList.indexers)) ?? throw new NullReferenceException("should not be null!");
         });
 
-
-        private Lazy<ConstructorInfo> castConstructor = new Lazy<ConstructorInfo>(() =>
+        private readonly Lazy<ConstructorInfo> castConstructor = new Lazy<ConstructorInfo>(() =>
         {
             return typeof(TacCastObject).GetConstructor(new[] { typeof(ITacObject), typeof(Indexer) }) ?? throw new NullReferenceException("should not be null!");
         });
 
+        private readonly Lazy<ConstructorInfo> tacObjectConstructor = new Lazy<ConstructorInfo>(() =>
+        {
+            return typeof(TacObject).GetConstructor(new System.Type[] { }) ?? throw new NullReferenceException("should not be null!");
+        });
+
+
+        private readonly Lazy<ConstructorInfo> tacMethod_Complex_ComplexConstructor = new Lazy<ConstructorInfo>(() =>
+        {
+            return typeof(TacMethod_Complex_Complex).GetConstructor(new[] { typeof(Func<ITacObject, ITacObject>) }) ?? throw new NullReferenceException("should not be null!");
+        });
+
+        private readonly Lazy<ConstructorInfo> tacMethod_Complex_SimpleConstructor = new Lazy<ConstructorInfo>(() =>
+        {
+            return typeof(TacMethod_Complex_Simple).GetConstructor(new[] { typeof(Func<ITacObject, object>) }) ?? throw new NullReferenceException("should not be null!");
+        });
+
+        private readonly Lazy<ConstructorInfo> tacMethod_Simple_ComplexConstructor = new Lazy<ConstructorInfo>(() =>
+        {
+            return typeof(TacMethod_Simple_Complex).GetConstructor(new[] { typeof(Func<object, ITacObject>) }) ?? throw new NullReferenceException("should not be null!");
+        });
+
+        private readonly Lazy<ConstructorInfo> tacMethod_Simple_SimpleConstructor = new Lazy<ConstructorInfo>(() =>
+        {
+            return typeof(TacMethod_Simple_Simple).GetConstructor(new[] { typeof(Func<object, object>) }) ?? throw new NullReferenceException("should not be null!");
+        });
 
         public Nothing AssignOperation(IAssignOperation co)
         {
@@ -404,7 +428,7 @@ namespace Tac.Backend.Emit.Walkers
                 // else in tac returns false if it ran, true otherwise
                 // so you can do
                 // ... else {} > someMethod
-                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Dup);
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 // this is a very important assumption
                 // the {} of the if CANNOT leave anything on the stack
                 // I don't think that should happen very often since each statement tend to clear it's stack
@@ -425,8 +449,40 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
 
+
+
+            var realizedMethod = realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPointDefinition));
+            var myMethod = realizedMethod.type.DefineMethod(
+                GenerateName(), 
+                MethodAttributes.Public, 
+                CallingConventions.HasThis, 
+                typeof(object), new[] { typeof(object) });
+
+            var inner = this.Push(entryPointDefinition, myMethod.GetILGenerator());
+            foreach (var line in entryPointDefinition.Body)
+            {
+                line.Convert(inner);
+            }
+
+            // it does not have a constructor 
+
+            // create new instance
+            // get the default constuctor 
+            var constructor = realizedMethod.type.GetConstructor(new System.Type[] { }) ?? throw new NullReferenceException("could not find default constructor");
+
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, constructor);
+
+            // now I need to make a TacMethod or whatever
+
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Ldftn, myMethod);
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());           // TODO lazy this reflection
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_SimpleConstructor.Value);
+
+            return new Nothing();
+
+
+            // TODO this needs to be stored statically 
             throw new NotImplementedException("");
-            return Walk(entryPointDefinition.Body, entryPointDefinition);
         }
 
         public Nothing IfTrueOperation(IIfOperation co)
@@ -493,6 +549,20 @@ namespace Tac.Backend.Emit.Walkers
             }
             throw new Exception("should have been one of those");
         }
+
+        
+        // TODO
+        // AAaaa! member reference could be static!
+        // could it tho?
+        // module mean static -- horrible name
+        // but how are they implemented
+        // if they are not defined inside another module they are static member of some root thing
+        // if they are not on root they are just objects
+
+        // I need to make a root object to host entrypoint
+        // and modules, but only modules
+        // I need to review modules, they are dumb
+
 
         public Nothing MemberReferance(IMemberReference memberReference)
         {
@@ -694,6 +764,8 @@ namespace Tac.Backend.Emit.Walkers
             return typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Complex_Complex)) ?? throw new NullReferenceException("should not be null!");
         });
 
+
+
         private void LoadInt(int value)
         {
             switch (value)
@@ -841,24 +913,24 @@ namespace Tac.Backend.Emit.Walkers
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, ITacObject>).GetConstructors().First());
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(TacMethod_Complex_Complex).GetConstructor(new[] { typeof(Func<ITacObject, ITacObject>) }));
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Complex_ComplexConstructor.Value);
                 }
                 else
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, object>).GetConstructors().First());
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(TacMethod_Complex_Simple).GetConstructor(new[] { typeof(Func<ITacObject, object>) }));
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Complex_SimpleConstructor.Value);
                 }
             }
             else {
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, ITacObject>).GetConstructors().First());
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(TacMethod_Simple_Complex).GetConstructor(new[] { typeof(Func<object, ITacObject>) }));
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_ComplexConstructor.Value);
                 }
                 else
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(TacMethod_Simple_Simple).GetConstructor(new[] { typeof(Func<object, object>) }));
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_SimpleConstructor.Value);
                 }
             }
 
@@ -921,11 +993,21 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new[] { typeof(int) });
+                    // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+                    if (!this.stack.Last().SafeIs(out IOperation _))
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
+                    }
                 }
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new[] { typeof(int) });
+                    // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+                    if (!this.stack.Last().SafeIs(out IOperation _))
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
+                    }
                 }
             }
             else {
@@ -933,11 +1015,21 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new[] { typeof(int) });
+                    // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+                    if (!this.stack.Last().SafeIs(out IOperation _))
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
+                    }
                 }
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new[] { typeof(int) });
+                    // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+                    if (!this.stack.Last().SafeIs(out IOperation _))
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
+                    }
                 }
             }
             return new Nothing();
@@ -945,8 +1037,30 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing ObjectDefinition(IObjectDefiniton @object)
         {
-            throw new NotImplementedException();
-            return Walk(@object.Assignments, @object);
+            // ok, an object is an array 
+
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacObjectConstructor.Value);
+
+
+            // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+            if (this.stack.Last().SafeIs(out IOperation _))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+            }
+
+            LoadInt(@object.Scope.Members.Count);
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newarr, typeof(object[]));
+
+
+            var field = typeof(TacObject).GetField(nameof(TacObject.members)) ?? throw new NullReferenceException("that field better exist");
+
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+
+
+            Walk(@object.Assignments, @object);
+
+
+            return new Nothing(); 
         }
 
         public Nothing PathOperation(IPathOperation path)
