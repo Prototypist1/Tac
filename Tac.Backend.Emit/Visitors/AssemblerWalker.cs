@@ -45,7 +45,7 @@ namespace Tac.Backend.Emit.Walkers
 
     class GeneratorHolder {
         public int EvaluationStackDepth { get; private set; } = 0;
-        public IIsPossibly<ILGenerator> generator;
+        private IIsPossibly<ILGenerator> generator;
 
         public GeneratorHolder(IIsPossibly<ILGenerator> generator)
         {
@@ -62,11 +62,13 @@ namespace Tac.Backend.Emit.Walkers
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
 
+
         private readonly TypeChangeLookup typeChangeLookup;
         private readonly MemberKindLookup memberKindLookup;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
         private readonly Dictionary<IVerifiableType, System.Type> typeCache;
+        private readonly TypeBuilder rootType;
 
 
         private readonly GeneratorHolder generatorHolder;
@@ -77,7 +79,14 @@ namespace Tac.Backend.Emit.Walkers
         // so it need to be a reference of some sort
         // 2 - I think it should be bound to emit in some way, so I can't forget to modify the stack depth
 
+
+
         private IReadOnlyList<ICodeElement> stack;
+        // I think I want an object to hold the state
+        // I need it for stuff like entryPointField
+        // since I am creating a new visitor for each run
+        private FieldBuilder entryPointField;
+
         public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack, GeneratorHolder generatorHolder)
         {
             this.typeChangeLookup = typeChangeLookup;
@@ -464,6 +473,10 @@ namespace Tac.Backend.Emit.Walkers
                 line.Convert(inner);
             }
 
+            // everything is in a method on rootType
+            // ldarg_0 is this
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldarg_0);
+
             // it does not have a constructor 
 
             // create new instance
@@ -478,11 +491,17 @@ namespace Tac.Backend.Emit.Walkers
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());           // TODO lazy this reflection
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_SimpleConstructor.Value);
 
+            
+            var field = rootType.DefineField(GenerateName(), typeof(ITacObject), FieldAttributes.Public);
+
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Stfld, field);
+
+            // TODO
+            // we have to remember to call it 
+            
+            entryPointField = field;
+
             return new Nothing();
-
-
-            // TODO this needs to be stored statically 
-            throw new NotImplementedException("");
         }
 
         public Nothing IfTrueOperation(IIfOperation co)

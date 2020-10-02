@@ -45,10 +45,12 @@ namespace Tac.Backend.Emit.Support
     public class TacMethod_Complex_Complex: ITacObject
     {
         public Func<ITacObject, ITacObject> backing;
+        private readonly IVerifiableType type;
 
-        public TacMethod_Complex_Complex(Func<ITacObject, ITacObject> backing)
+        public TacMethod_Complex_Complex(Func<ITacObject, ITacObject> backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public Tout Call_Complex_Simple<Tout>(ITacObject input)
@@ -115,15 +117,19 @@ namespace Tac.Backend.Emit.Support
             SetComplexWriteonlyMemberReturn(tacCastObject, position);
             return tacCastObject;
         }
+
+        public IVerifiableType TacType() => type;
     }
 
     public class TacMethod_Simple_Complex: ITacObject
     {
         Func<object, ITacObject> backing;
+        private readonly IVerifiableType type;
 
-        public TacMethod_Simple_Complex(Func<object, ITacObject> backing)
+        public TacMethod_Simple_Complex(Func<object, ITacObject> backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public ITacObject Call_Complex_Complex(ITacObject input)
@@ -190,15 +196,18 @@ namespace Tac.Backend.Emit.Support
             SetComplexWriteonlyMemberReturn(tacCastObject, position);
             return tacCastObject;
         }
+        public IVerifiableType TacType() => type;
     }
     public class TacMethod_Complex_Simple: ITacObject
     {
 
         public Func<ITacObject, object> backing;
+        private readonly IVerifiableType type;
 
-        public TacMethod_Complex_Simple(Func<ITacObject, object> backing)
+        public TacMethod_Complex_Simple(Func<ITacObject, object> backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public ITacObject Call_Complex_Complex(ITacObject input)
@@ -264,13 +273,15 @@ namespace Tac.Backend.Emit.Support
             SetComplexWriteonlyMemberReturn(tacCastObject, position);
             return tacCastObject;
         }
+        public IVerifiableType TacType() => type;
     }
 
     public class TacMethod_Simple_Simple: ITacObject
     {
         Func<object, object> backing;
+        private readonly IVerifiableType type;
 
-        public TacMethod_Simple_Simple(Func<object, object> backing)
+        public TacMethod_Simple_Simple(Func<object, object> backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
@@ -338,17 +349,19 @@ namespace Tac.Backend.Emit.Support
             SetComplexWriteonlyMemberReturn(tacCastObject, position);
             return tacCastObject;
         }
+        public IVerifiableType TacType() => type;
     }
 
     public struct TacCastObject : ITacObject
     {
         public ITacObject @object;
         public Indexer indexer;
-
-        public TacCastObject(ITacObject @object, Indexer indexer)
+        private readonly IVerifiableType type;
+        public TacCastObject(ITacObject @object, Indexer indexer, IVerifiableType type)
         {
             this.@object = @object ?? throw new ArgumentNullException(nameof(@object));
             this.indexer = indexer ?? throw new ArgumentNullException(nameof(indexer));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         //public IVerifiableType memberType;
@@ -451,12 +464,16 @@ namespace Tac.Backend.Emit.Support
             SetComplexWriteonlyMemberReturn(tacCastObject, position);
             return tacCastObject;
         }
+        public IVerifiableType TacType() => type;
     }
 
+
+    //why does everything else not have a consturctor
     public class TacObject : ITacObject
     {
         // this is: null, double, string, bool or TacCastObject
         public object[] members;
+        private IVerifiableType type;
 
         //public IVerifiableType type;
 
@@ -525,6 +542,7 @@ namespace Tac.Backend.Emit.Support
             SetComplexWriteonlyMemberReturn(tacCastObject, position);
             return tacCastObject;
         }
+        public IVerifiableType TacType() => type;
     }
 
     //class TacCastObject {

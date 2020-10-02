@@ -1,4 +1,6 @@
-﻿namespace Tac.Backend.Emit.Support
+﻿using Tac.Model.Elements;
+
+namespace Tac.Backend.Emit.Support
 {
     public interface ITacObject
     {
@@ -18,5 +20,7 @@
         ITacObject Call_Simple_Complex<Tin>(Tin input);
         Tout Call_Complex_Simple<Tout>(ITacObject input);
         Tout Call_Simple_Simple<Tin, Tout>(Tin input);
+
+        IVerifiableType TacType();
     }
 }
