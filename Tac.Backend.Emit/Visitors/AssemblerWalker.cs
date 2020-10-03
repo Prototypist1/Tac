@@ -1238,13 +1238,111 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation)
         {
-            // goodness, how is this going to work?
-            // everything has to carry around what type they are
 
-            throw new NotImplementedException();
-            return Walk(tryAssignOperation.Operands, tryAssignOperation);
+
+            var topOfElseLabel = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
+            var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
+
+
+            tryAssignOperation.Left.Convert(this.Push(tryAssignOperation));
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+
+            var memberDef = tryAssignOperation.Right.SafeCastTo(out IMemberReference _).MemberDefinition;
+
+            GetVerifyableType(memberDef.Type);
+
+            // I am just going to write this staticly in C#
+            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblerVisitor).GetMethod(nameof(AssemblerVisitor.TryAssignOperationHelper_Is)), new System.Type[] { });
+
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
+
+
+            
+            if (memberKindLookup.IsLocal(memberDef, out var orTypeLocal))
+            {
+                // I think I need to do the conversion in C#
+                GetVerifyableType(memberDef.Type);
+                generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblerVisitor).GetMethod(nameof(AssemblerVisitor.TryAssignOperationHelper_Cast)), new System.Type[] { });
+
+                orTypeLocal.SwitchReturns(
+                    entryPoint =>
+                    {
+                        var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDef);
+                        StoreLocal(index);
+                        return new Nothing();
+                    },
+                    imp =>
+                    {
+                        var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDef);
+                        StoreLocal(index);
+                        return new Nothing();
+                    },
+                    method =>
+                    {
+                        var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDef);
+                        StoreLocal(index);
+                        return new Nothing();
+                    });
+            }
+            else {
+                throw new Exception("should always be a local");
+            }
+
+            tryAssignOperation.Block.Convert(this.Push(tryAssignOperation));
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Br, bottomOfElse);
+
+            // if false pop the one we pused
+            generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(topOfElseLabel);
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
+            generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(bottomOfElse);
+
+            return new Nothing();
         }
 
+        public static object TryAssignOperationHelper_Cast(object o, IVerifiableType targetType)
+        {
+            if (o.SafeIs(out ITacObject tacObject))
+            {
+                if (tacObject.TacType() == targetType) {
+                    return o;
+                }
+                return new TacCastObject(tacObject, Indexer.Create(tacObject.TacType(), targetType), targetType);
+            }
+            if (o.SafeIs(out double _))
+            {
+                return o;
+            }
+            if (o.SafeIs(out string _))
+            {
+                return o;
+            }
+            if (o.SafeIs(out bool _))
+            {
+                return o;
+            }
+            throw new NotImplementedException();
+        }
+
+        public static bool TryAssignOperationHelper_Is(object o, IVerifiableType targetType)
+        {
+            if (o.SafeIs(out ITacObject verifiableType))
+            {
+                return targetType.TheyAreUs(verifiableType.TacType(), new List<(IVerifiableType, IVerifiableType)>());
+            }
+            if (o.SafeIs(out double _))
+            {
+                return targetType.SafeIs(out INumberType _);
+            }
+            if (o.SafeIs(out string _))
+            {
+                return targetType.SafeIs(out IStringType _);
+            }
+            if (o.SafeIs(out bool _))
+            {
+                return targetType.SafeIs(out IBooleanType _);
+            }
+            throw new NotImplementedException();
+        }
 
         private Nothing Walk(IEnumerable<ICodeElement> elements, ICodeElement element)
         {
