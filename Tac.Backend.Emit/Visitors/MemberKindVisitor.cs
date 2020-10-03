@@ -194,23 +194,23 @@ namespace Tac.Backend.Emit.Visitors
             return new Nothing();
         }
 
-        public Nothing ModuleDefinition(IModuleDefinition codeElement)
-        {
+        //public Nothing ModuleDefinition(IModuleDefinition codeElement)
+        //{
 
-            if (codeElement.Scope.Members.Values.Any(x => !x.Static)) {
-                throw new Exception("a modules members are all static");
-            }
+        //    if (codeElement.Scope.Members.Values.Any(x => !x.Static)) {
+        //        throw new Exception("a modules members are all static");
+        //    }
 
-            foreach (var member in codeElement.Scope.Members.Values.Select(x=>x.Value))
-            {
-                lookup.AddStaticField(codeElement, member);
-            }
+        //    foreach (var member in codeElement.Scope.Members.Values.Select(x=>x.Value))
+        //    {
+        //        lookup.AddStaticField(codeElement, member);
+        //    }
 
-            var next = Push(codeElement);
-            next.Walk(codeElement.StaticInitialization);
+        //    var next = Push(codeElement);
+        //    next.Walk(codeElement.StaticInitialization);
 
-            return new Nothing();
-        }
+        //    return new Nothing();
+        //}
 
         public Nothing ObjectDefinition(IObjectDefiniton codeElement)
         {

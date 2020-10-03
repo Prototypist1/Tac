@@ -2,6 +2,7 @@
 using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -13,7 +14,7 @@ namespace Tac.Backend.Emit.Lookup
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>> locals = new ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>();
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>> arguments = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>>();
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton>> fields = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton>>();
-        private readonly ConcurrentIndexed<IMemberDefinition, IModuleDefinition> staticFields = new ConcurrentIndexed<IMemberDefinition, IModuleDefinition>();
+        private readonly ConcurrentIndexed<IMemberDefinition, FieldInfo> staticFields = new ConcurrentIndexed<IMemberDefinition, FieldInfo>();
 
         internal void AddLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition> owner, IMemberDefinition value)
         {
@@ -30,9 +31,9 @@ namespace Tac.Backend.Emit.Lookup
             fields.AddOrThrow(contextDefinition, codeElement);
         }
 
-        internal void AddStaticField(IModuleDefinition codeElement, IMemberDefinition member)
+        internal void AddStaticField(FieldInfo fieldInfo, IMemberDefinition member)
         {
-            staticFields.AddOrThrow(member, codeElement);
+            staticFields.AddOrThrow(member, fieldInfo);
         }
 
         internal bool IsLocal(IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition> orType)
@@ -48,7 +49,7 @@ namespace Tac.Backend.Emit.Lookup
         {
             return fields.TryGetValue(member, out orType);
         }
-        internal bool IsStaticField(IMemberDefinition member, out IModuleDefinition module)
+        internal bool IsStaticField(IMemberDefinition member, out FieldInfo module)
         {
             return staticFields.TryGetValue(member, out module);
         }

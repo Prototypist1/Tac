@@ -2,6 +2,6 @@
 {
     public interface IEntryPointDefinition: IAbstractBlockDefinition
     {
-
+        //IVerifiableType VerifiableType();
     }
 }

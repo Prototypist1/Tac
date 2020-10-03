@@ -473,7 +473,7 @@ namespace Tac.Backend.Emit.Support
     {
         // this is: null, double, string, bool or TacCastObject
         public object[] members;
-        private IVerifiableType type;
+        public IVerifiableType type;
 
         //public IVerifiableType type;
 

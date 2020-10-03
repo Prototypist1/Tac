@@ -45,9 +45,11 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
+        //public IVerifiableType VerifiableType() => new EntryPointType();
+
         public IVerifiableType Returns()
         {
-            return new EntryPointType();
+            return new EmptyType();
         }
 
         public T Convert<T>(IOpenBoxesContext<T> context)

@@ -17,7 +17,7 @@ namespace Tac.Backend.Emit.Walkers
 
     public class IndexerList {
 
-        public static IIsPossibly<int> GetOrAdd(IVerifiableType fromType, IVerifiableType toType) {
+        public IIsPossibly<int> GetOrAdd(IVerifiableType fromType, IVerifiableType toType) {
             if (fromType == toType)
             {
                 return Possibly.IsNot<int>();
@@ -39,7 +39,27 @@ namespace Tac.Backend.Emit.Walkers
             return Possibly.Is(indexers.Count - 1);
         }
 
-        public static List<Indexer> indexers = new List<Indexer>();
+        public List<Indexer> indexers = new List<Indexer>();
+    }
+
+    public class VerifyableTypesList
+    {
+
+        public IIsPossibly<int> GetOrAdd(IVerifiableType type)
+        {
+
+            var index = types.IndexOf(type);
+            if (index != -1)
+            {
+                return Possibly.Is(index);
+            }
+
+            types.Add(type);
+
+            return Possibly.Is(types.Count - 1);
+        }
+
+        public List<IVerifiableType> types = new List<IVerifiableType>();
     }
 
 
@@ -59,8 +79,18 @@ namespace Tac.Backend.Emit.Walkers
         }
     }
 
+    public class TacCompilation {
+        public Indexer[] indexerArray;
+        public IVerifiableType[] verifyableTypesArray;
+        public Func<object, object> main;
+    } 
+
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
+
+        private readonly IndexerList indexerList;
+        private readonly VerifyableTypesList verifyableTypesList;
+
 
 
         private readonly TypeChangeLookup typeChangeLookup;
@@ -69,6 +99,7 @@ namespace Tac.Backend.Emit.Walkers
         private readonly RealizedMethodLookup realizedMethodLookup;
         private readonly Dictionary<IVerifiableType, System.Type> typeCache;
         private readonly TypeBuilder rootType;
+        private readonly FieldBuilder rootSelfField;
 
 
         private readonly GeneratorHolder generatorHolder;
@@ -85,13 +116,22 @@ namespace Tac.Backend.Emit.Walkers
         // I think I want an object to hold the state
         // I need it for stuff like entryPointField
         // since I am creating a new visitor for each run
-        private FieldBuilder entryPointField;
+        //private FieldBuilder entryPointField;
 
         public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack, GeneratorHolder generatorHolder)
         {
             this.typeChangeLookup = typeChangeLookup;
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
             this.generatorHolder = generatorHolder ?? throw new ArgumentNullException(nameof(generatorHolder));
+        }
+
+
+
+        private static (TypeBuilder,FieldBuilder) CreateRootType(ModuleBuilder moduleBuilder) {
+
+            var type = moduleBuilder.DefineType(GenerateName(),TypeAttributes.Public&TypeAttributes.Class, typeof(TacCompilation));
+            var selfField = type.DefineField(GenerateName() + "_self", type, FieldAttributes.Static & FieldAttributes.Public);
+            return (type, selfField);
         }
 
         public AssemblerVisitor Push(ICodeElement another)
@@ -116,24 +156,51 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        private void PossiblyConvert(IVerifiableType fromType, IVerifiableType toType) {
+        private void PossiblyConvert(IVerifiableType fromType, IVerifiableType toType)
+        {
             // we create the indexer now
             // and we put it in a big array
             // this is kind of a hack
             // it means the code that I am emitting cannot be run standalone
             // it will only work inline
-            if (IndexerList.GetOrAdd(fromType, toType).SafeIs(out IIsDefinately<int> definate)) {
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldfld, indexersField.Value);
-                LoadInt(definate.Value);
+            if (indexerList.GetOrAdd(fromType, toType).SafeIs(out IIsDefinately<int> definateIndexer))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldsfld, rootSelfField);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, indexersField.Value);
+                LoadInt(definateIndexer.Value);
                 generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Ldelem_Ref);
-                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, castConstructor.Value);
+            }
+            else
+            {
+                throw new Exception("you shit");
+            }
+            GetVerifyableType(toType);
+
+            generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Newobj, castConstructor.Value);
+        }
+
+        private void GetVerifyableType(IVerifiableType toType)
+        {
+            if (verifyableTypesList.GetOrAdd(toType).SafeIs(out IIsDefinately<int> definateType))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldsfld, rootSelfField);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, typesField.Value);
+                LoadInt(definateType.Value);
+            }
+            else
+            {
+                throw new Exception("you shit");
             }
         }
 
-
         private readonly Lazy<FieldInfo>  indexersField = new Lazy<FieldInfo>(() =>
         {
-            return typeof(IndexerList).GetField(nameof(IndexerList.indexers)) ?? throw new NullReferenceException("should not be null!");
+            return typeof(TacCompilation).GetField(nameof(TacCompilation.indexerArray)) ?? throw new NullReferenceException("should not be null!");
+        });
+
+        private readonly Lazy<FieldInfo> typesField = new Lazy<FieldInfo>(() =>
+        {
+            return typeof(TacCompilation).GetField(nameof(TacCompilation.verifyableTypesArray)) ?? throw new NullReferenceException("should not be null!");
         });
 
         private readonly Lazy<ConstructorInfo> castConstructor = new Lazy<ConstructorInfo>(() =>
@@ -299,12 +366,12 @@ namespace Tac.Backend.Emit.Walkers
                                 var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
                                 StoreLocal(loc.LocalIndex);
 
-                                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
 
                                 LoadLocal(loc.LocalIndex);
                             }
                             else {
-                                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
                             }
 
                             return new Nothing();
@@ -314,6 +381,38 @@ namespace Tac.Backend.Emit.Walkers
                             throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
                         });
+                }
+
+                if (memberKindLookup.IsStaticField(memberReference.MemberDefinition, out var fieldInfo))
+                {
+
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldsfld, rootSelfField);
+
+                    co.Left.Convert(this.Push(co));
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
+                    if (leaveOnStack)
+                    {
+
+                        // TODO I could end up with many of this switching locals of the same type in one method
+                        // i should probably store and reuse them
+                        // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
+
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
+
+                        var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
+                        StoreLocal(loc.LocalIndex);
+
+                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, fieldInfo);
+
+                        LoadLocal(loc.LocalIndex);
+                    }
+                    else
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, fieldInfo);
+                    }
+
+                    return new Nothing();
                 }
 
                 throw new Exception("should have been one of those things...");
@@ -475,31 +574,24 @@ namespace Tac.Backend.Emit.Walkers
 
             // everything is in a method on rootType
             // ldarg_0 is this
-            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldarg_0);
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
 
             // it does not have a constructor 
 
             // create new instance
             // get the default constuctor 
-            var constructor = realizedMethod.type.GetConstructor(new System.Type[] { }) ?? throw new NullReferenceException("could not find default constructor");
+            var constructor = realizedMethod.type.GetConstructor(new System.Type[] { }) ?? throw new NullReferenceException("could not find default constructor"); // TODO lazy this reflection
 
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, constructor);
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Newobj, constructor);
 
             // now I need to make a TacMethod or whatever
 
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Ldftn, myMethod);
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());           // TODO lazy this reflection
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_SimpleConstructor.Value);
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldftn, myMethod);
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());           // TODO lazy this reflection
 
-            
-            var field = rootType.DefineField(GenerateName(), typeof(ITacObject), FieldAttributes.Public);
+            var field = typeof(TacCompilation).GetField(nameof(TacCompilation.main)) ?? throw new NullReferenceException("that field better exist");
 
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Stfld, field);
-
-            // TODO
-            // we have to remember to call it 
-            
-            entryPointField = field;
 
             return new Nothing();
         }
@@ -712,7 +804,15 @@ namespace Tac.Backend.Emit.Walkers
                     });
             }
 
-            return new Nothing();
+            if (memberKindLookup.IsStaticField(memberReference.MemberDefinition, out var fieldInfo)) {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldsfld, rootSelfField);
+
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, fieldInfo);
+                
+                return new Nothing();
+            }
+
+            throw new Exception("how did we end up here?");
         }
 
 
@@ -932,11 +1032,13 @@ namespace Tac.Backend.Emit.Walkers
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, ITacObject>).GetConstructors().First());
+                    GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Complex_ComplexConstructor.Value);
                 }
                 else
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, object>).GetConstructors().First());
+                    GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Complex_SimpleConstructor.Value);
                 }
             }
@@ -944,11 +1046,13 @@ namespace Tac.Backend.Emit.Walkers
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, ITacObject>).GetConstructors().First());
+                    GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_ComplexConstructor.Value);
                 }
                 else
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
+                    GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_SimpleConstructor.Value);
                 }
             }
@@ -960,7 +1064,7 @@ namespace Tac.Backend.Emit.Walkers
 
         // {4E963BB1-1C86-4F75-BD4C-3F9BE16386A9}
         private static readonly Random random = new Random();
-        private string GenerateName()
+        private static string GenerateName()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
             return new string(Enumerable.Repeat(chars, 20)
@@ -1067,17 +1171,24 @@ namespace Tac.Backend.Emit.Walkers
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
             }
 
-            LoadInt(@object.Scope.Members.Count);
-            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newarr, typeof(object[]));
+            // itit field
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+                GetVerifyableType(@object.Returns());
+                var field = typeof(TacObject).GetField(nameof(TacObject.type)) ?? throw new NullReferenceException("that field better exist");
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+            }
 
-
-            var field = typeof(TacObject).GetField(nameof(TacObject.members)) ?? throw new NullReferenceException("that field better exist");
-
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
-
+            // init member
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+                LoadInt(@object.Scope.Members.Count);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newarr, typeof(object[]));
+                var field = typeof(TacObject).GetField(nameof(TacObject.members)) ?? throw new NullReferenceException("that field better exist");
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+            }
 
             Walk(@object.Assignments, @object);
-
 
             return new Nothing(); 
         }
