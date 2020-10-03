@@ -85,6 +85,8 @@ namespace Tac.Backend.Emit.Walkers
         public Func<object, object> main;
     } 
 
+
+
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
 
@@ -118,14 +120,46 @@ namespace Tac.Backend.Emit.Walkers
         // since I am creating a new visitor for each run
         //private FieldBuilder entryPointField;
 
-        public AssemblerVisitor(TypeChangeLookup typeChangeLookup, IReadOnlyList<ICodeElement> stack, GeneratorHolder generatorHolder)
+        private AssemblerVisitor(
+            TypeChangeLookup typeChangeLookup, 
+            IReadOnlyList<ICodeElement> stack, 
+            GeneratorHolder generatorHolder,
+            MemberKindLookup memberKindLookup,
+            ExtensionLookup extensionLookup,
+            Dictionary<IVerifiableType, System.Type> typeCache,
+            TypeBuilder rootType,
+             FieldBuilder rootSelfField,
+             IndexerList indexerList,
+             VerifyableTypesList verifyableTypesList,
+             RealizedMethodLookup realizedMethodLookup
+            )
         {
             this.typeChangeLookup = typeChangeLookup;
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
             this.generatorHolder = generatorHolder ?? throw new ArgumentNullException(nameof(generatorHolder));
+            this.memberKindLookup = memberKindLookup ?? throw new ArgumentNullException(nameof(memberKindLookup));
+            this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
+            this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
+            this.rootType = rootType ?? throw new ArgumentNullException(nameof(rootType));
+            this.rootSelfField = rootSelfField ?? throw new ArgumentNullException(nameof(rootSelfField));
+            this.indexerList = indexerList ?? throw new ArgumentNullException(nameof(indexerList));
+            this.verifyableTypesList = verifyableTypesList ?? throw new ArgumentNullException(nameof(verifyableTypesList));
+            this.realizedMethodLookup = realizedMethodLookup ?? throw new ArgumentNullException(nameof(realizedMethodLookup));
         }
 
 
+        public static AssemblerVisitor Create(
+            TypeChangeLookup typeChangeLookup,
+            GeneratorHolder generatorHolder,
+            MemberKindLookup memberKindLookup,
+            ExtensionLookup extensionLookup,
+            Dictionary<IVerifiableType, System.Type> typeCache,
+             ModuleBuilder moduleBuilder,
+             RealizedMethodLookup realizedMethodLookup)
+        {
+            var (typeBulder, fieldBuilder) = CreateRootType(moduleBuilder);
+            return new AssemblerVisitor(typeChangeLookup, new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, typeBulder, fieldBuilder, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup);
+        }
 
         private static (TypeBuilder,FieldBuilder) CreateRootType(ModuleBuilder moduleBuilder) {
 
@@ -138,7 +172,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(typeChangeLookup, list, generatorHolder);
+            return new AssemblerVisitor(typeChangeLookup, list, generatorHolder,memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField,indexerList,verifyableTypesList, realizedMethodLookup);
         }
 
 
@@ -146,7 +180,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(typeChangeLookup, list, new GeneratorHolder(Possibly.Is(generator)));
+            return new AssemblerVisitor(typeChangeLookup, list, new GeneratorHolder(Possibly.Is(generator)), memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField, indexerList, verifyableTypesList, realizedMethodLookup);
         }
 
         public Nothing AddOperation(IAddOperation co)
@@ -1256,8 +1290,6 @@ namespace Tac.Backend.Emit.Walkers
 
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
 
-
-            
             if (memberKindLookup.IsLocal(memberDef, out var orTypeLocal))
             {
                 // I think I need to do the conversion in C#
