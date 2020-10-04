@@ -33,16 +33,26 @@ namespace Tac.Backend.Emit.Lookup
             }
             throw new Exception("key not found");
         }
+
+        internal void CreateTypes()
+        {
+            foreach (var realizedMethod in backing.Values)
+            {
+                realizedMethod.type.CreateType();
+            } 
+        }
     }
 
     internal class RealizedMethod {
         public readonly IReadOnlyDictionary<IMemberDefinition,FieldInfo> fields;
         public readonly TypeBuilder type;
+        public readonly ConstructorBuilder defaultConstructor;
 
-        public RealizedMethod(IReadOnlyDictionary<IMemberDefinition, FieldInfo> fields, TypeBuilder type)
+        public RealizedMethod(IReadOnlyDictionary<IMemberDefinition, FieldInfo> fields, TypeBuilder type, ConstructorBuilder defaultConstructor)
         {
             this.fields = fields ?? throw new ArgumentNullException(nameof(fields));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
+            this.defaultConstructor = defaultConstructor ?? throw new ArgumentNullException(nameof(defaultConstructor));
         }
     }
 }

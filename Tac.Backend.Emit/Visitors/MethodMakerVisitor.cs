@@ -94,6 +94,10 @@ namespace Tac.Backend.Emit.Visitors
             var name = GenerateName();
             var typeBuilder = moduleBuilder.DefineType(name);
 
+            var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
+            var myConstructorIL = constructor.GetILGenerator();
+            myConstructorIL.Emit(OpCodes.Ret);
+
             var map = new Dictionary<IMemberDefinition, FieldInfo>();
 
             if (extensionLookup.implementationLookup.TryGetValue(codeElement, out var closure))
@@ -111,7 +115,7 @@ namespace Tac.Backend.Emit.Visitors
                 map[codeElement.ContextDefinition] = field;
             }
 
-            realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(codeElement), new RealizedMethod(map, typeBuilder));
+            realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(codeElement), new RealizedMethod(map, typeBuilder, constructor));
 
             Walk(codeElement.MethodBody);
             return new Nothing();
@@ -121,6 +125,9 @@ namespace Tac.Backend.Emit.Visitors
         {
             var name = GenerateName();
             var typeBuilder = moduleBuilder.DefineType(name);
+            var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
+            var myConstructorIL = constructor.GetILGenerator();
+            myConstructorIL.Emit(OpCodes.Ret);
 
             var map = new Dictionary<IMemberDefinition, FieldInfo>();
 
@@ -133,7 +140,7 @@ namespace Tac.Backend.Emit.Visitors
                 }
             }
 
-            realizedMethodLookup.Add(OrType.Make< IInternalMethodDefinition , IImplementationDefinition , IEntryPointDefinition >( co), new RealizedMethod(map, typeBuilder));
+            realizedMethodLookup.Add(OrType.Make< IInternalMethodDefinition , IImplementationDefinition , IEntryPointDefinition >( co), new RealizedMethod(map, typeBuilder, constructor));
 
             Walk(co.Body);
             return new Nothing();
@@ -143,6 +150,9 @@ namespace Tac.Backend.Emit.Visitors
         {
             var name = GenerateName();
             var typeBuilder = moduleBuilder.DefineType(name);
+            var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
+            var myConstructorIL = constructor.GetILGenerator();
+            myConstructorIL.Emit(OpCodes.Ret);
 
             var map = new Dictionary<IMemberDefinition, FieldInfo>();
 
@@ -157,7 +167,7 @@ namespace Tac.Backend.Emit.Visitors
             //    }
             //}
 
-            realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPointDefinition), new RealizedMethod(map, typeBuilder));
+            realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPointDefinition), new RealizedMethod(map, typeBuilder, constructor));
 
             Walk(entryPointDefinition.Body);
             return new Nothing();

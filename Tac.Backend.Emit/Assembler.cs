@@ -72,8 +72,7 @@ namespace Tac.Backend.Emit
                 line.Convert(methodMakerVisitor);
             }
 
-            var assemblerVisitor = AssemblerVisitor.Create(
-                new GeneratorHolder(Possibly.IsNot<ILGenerator>()),
+            var (assemblerVisitor,after) = AssemblerVisitor.Create(
                 memberKindLookup,
                 extensionLookup,
                 typeCache,
@@ -85,8 +84,21 @@ namespace Tac.Backend.Emit
                 line.Convert(assemblerVisitor);
             }
 
+            //finish up
+            // this is a bit sloppy, maybe disposable?
+            after();
+
+            // we have to actually create the types
+            realizedMethodLookup.CreateTypes();
+            assemblerVisitor.rootType.CreateType();
+
+
             // now I need to reflexively find my type and call main
             var complitation =(TacCompilation)Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name);
+
+            complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();
+            complitation.verifyableTypesArray = assemblerVisitor.verifyableTypesList.types.ToArray();
+            complitation.Init();
             var result = complitation.main(null);
 
         }

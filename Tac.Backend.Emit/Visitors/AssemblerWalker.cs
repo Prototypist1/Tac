@@ -83,6 +83,7 @@ namespace Tac.Backend.Emit.Walkers
         public Indexer[] indexerArray;
         public IVerifiableType[] verifyableTypesArray;
         public Func<object, object> main;
+        public abstract void Init();
     } 
 
 
@@ -90,8 +91,8 @@ namespace Tac.Backend.Emit.Walkers
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
 
-        private readonly IndexerList indexerList;
-        private readonly VerifyableTypesList verifyableTypesList;
+        public readonly IndexerList indexerList;
+        public readonly VerifyableTypesList verifyableTypesList;
 
 
 
@@ -103,7 +104,7 @@ namespace Tac.Backend.Emit.Walkers
         private readonly FieldBuilder rootSelfField;
 
 
-        private readonly GeneratorHolder generatorHolder;
+        public readonly GeneratorHolder generatorHolder;
 
         // TODO 
         // this should be a lot better
@@ -144,25 +145,30 @@ namespace Tac.Backend.Emit.Walkers
             this.realizedMethodLookup = realizedMethodLookup ?? throw new ArgumentNullException(nameof(realizedMethodLookup));
         }
 
-
-        public static AssemblerVisitor Create(
-            GeneratorHolder generatorHolder,
+        public static (AssemblerVisitor,Action) Create(
             MemberKindLookup memberKindLookup,
             ExtensionLookup extensionLookup,
             Dictionary<IVerifiableType, System.Type> typeCache,
              ModuleBuilder moduleBuilder,
              RealizedMethodLookup realizedMethodLookup)
         {
-            var (typeBulder, fieldBuilder) = CreateRootType(moduleBuilder);
-            return new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, typeBulder, fieldBuilder, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup);
-        }
+            var typebuilder = moduleBuilder.DefineType(GenerateName(), TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation));
+            var selfField = typebuilder.DefineField(GenerateName() + "_self", typebuilder, FieldAttributes.Static | FieldAttributes.Public);
 
-        private static (TypeBuilder,FieldBuilder) CreateRootType(ModuleBuilder moduleBuilder) {
+            var initMethod = typebuilder.DefineMethod(nameof(TacCompilation.Init), MethodAttributes.Public | MethodAttributes.Virtual);
+            typebuilder.DefineMethodOverride(initMethod, typeof(TacCompilation).GetMethod(nameof(TacCompilation.Init)));
 
-            var type = moduleBuilder.DefineType(GenerateName(),TypeAttributes.Public&TypeAttributes.Class, typeof(TacCompilation));
-            var selfField = type.DefineField(GenerateName() + "_self", type, FieldAttributes.Static & FieldAttributes.Public);
-
-            return (type, selfField);
+            var generatorHolder = new GeneratorHolder(Possibly.Is(initMethod.GetILGenerator()));
+            return
+                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, typebuilder, selfField, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup), () =>
+                {
+                    while (generatorHolder.EvaluationStackDepth > 0)
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
+                    }
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ret);
+                }
+            );
         }
 
         public AssemblerVisitor Push(ICodeElement another)
@@ -607,13 +613,7 @@ namespace Tac.Backend.Emit.Walkers
             // ldarg_0 is this
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
 
-            // it does not have a constructor 
-
-            // create new instance
-            // get the default constuctor 
-            var constructor = realizedMethod.type.GetConstructor(new System.Type[] { }) ?? throw new NullReferenceException("could not find default constructor"); // TODO lazy this reflection
-
-            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Newobj, constructor);
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Newobj, realizedMethod.defaultConstructor);
 
             // now I need to make a TacMethod or whatever
 
@@ -622,7 +622,7 @@ namespace Tac.Backend.Emit.Walkers
 
             var field = typeof(TacCompilation).GetField(nameof(TacCompilation.main)) ?? throw new NullReferenceException("that field better exist");
 
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Stfld, field);
+            generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
 
             return new Nothing();
         }
@@ -1242,6 +1242,13 @@ namespace Tac.Backend.Emit.Walkers
 
             co.Result.Convert(this.Push(co));
 
+            // this could leave more than one thing on the stack!
+            // so I really need to do the pop here!
+            if (generatorHolder.EvaluationStackDepth > 1) {
+                throw new Exception("you lazy!");
+            }
+
+
             // there could be a conversion here!
             // we need to walk up the stack till we hit a method (or possibly an entrypoint)
             // and get it's output type
@@ -1254,6 +1261,9 @@ namespace Tac.Backend.Emit.Walkers
                 }
             }
             end:
+
+
+
 
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Ret);
 
