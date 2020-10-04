@@ -1,5 +1,6 @@
 ﻿using Prototypist.Toolbox;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -10,19 +11,27 @@ namespace Tac.Backend.Emit.Lookup
 {
     internal class RealizedMethodLookup
     {
+        private readonly ConcurrentDictionary<IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>, RealizedMethod> backing = new ConcurrentDictionary<IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>, RealizedMethod>();
+
         internal void Add(IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition> orType, RealizedMethod realizedMethod)
         {
-            throw new NotImplementedException();
+            if (!backing.TryAdd(orType, realizedMethod))
+            {
+                throw new Exception("should have added, I think");
+            }
         }
 
         internal bool TryGetValue(IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition> orType, out RealizedMethod realizedMethod)
         {
-            throw new NotImplementedException();
+            return backing.TryGetValue(orType, out realizedMethod);
         }
 
         internal RealizedMethod GetValueOrThrow(IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition> orType)
         {
-            throw new NotImplementedException();
+            if (backing.TryGetValue(orType, out var res)) {
+                return res;
+            }
+            throw new Exception("key not found");
         }
     }
 

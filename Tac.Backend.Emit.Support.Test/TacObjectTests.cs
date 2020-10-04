@@ -296,10 +296,7 @@ namespace Tac.Backend.Emit.Support.Test
                 @object = x
             };
 
-            var method = new TacMethod_Complex_Complex()
-            {
-                backing = func
-            };
+            var method = new TacMethod_Complex_Complex(func, method1Type);
 
             var castMethod = new TacCastObject()
             {
@@ -372,7 +369,7 @@ namespace Tac.Backend.Emit.Support.Test
 
             var @object = new TacObject
             {
-                members = new object[] { new TacMethod_Complex_Simple { backing = func } }
+                members = new object[] { new TacMethod_Complex_Simple ( func , method1Type) }
             };
 
             var castObject = new TacCastObject

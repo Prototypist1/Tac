@@ -79,7 +79,7 @@ namespace Tac.Backend.Emit.Walkers
         }
     }
 
-    public class TacCompilation {
+    public abstract class TacCompilation {
         public Indexer[] indexerArray;
         public IVerifiableType[] verifyableTypesArray;
         public Func<object, object> main;
@@ -95,12 +95,11 @@ namespace Tac.Backend.Emit.Walkers
 
 
 
-        private readonly TypeChangeLookup typeChangeLookup;
         private readonly MemberKindLookup memberKindLookup;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
         private readonly Dictionary<IVerifiableType, System.Type> typeCache;
-        private readonly TypeBuilder rootType;
+        public readonly TypeBuilder rootType;
         private readonly FieldBuilder rootSelfField;
 
 
@@ -121,7 +120,6 @@ namespace Tac.Backend.Emit.Walkers
         //private FieldBuilder entryPointField;
 
         private AssemblerVisitor(
-            TypeChangeLookup typeChangeLookup, 
             IReadOnlyList<ICodeElement> stack, 
             GeneratorHolder generatorHolder,
             MemberKindLookup memberKindLookup,
@@ -134,7 +132,6 @@ namespace Tac.Backend.Emit.Walkers
              RealizedMethodLookup realizedMethodLookup
             )
         {
-            this.typeChangeLookup = typeChangeLookup;
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
             this.generatorHolder = generatorHolder ?? throw new ArgumentNullException(nameof(generatorHolder));
             this.memberKindLookup = memberKindLookup ?? throw new ArgumentNullException(nameof(memberKindLookup));
@@ -149,7 +146,6 @@ namespace Tac.Backend.Emit.Walkers
 
 
         public static AssemblerVisitor Create(
-            TypeChangeLookup typeChangeLookup,
             GeneratorHolder generatorHolder,
             MemberKindLookup memberKindLookup,
             ExtensionLookup extensionLookup,
@@ -158,13 +154,14 @@ namespace Tac.Backend.Emit.Walkers
              RealizedMethodLookup realizedMethodLookup)
         {
             var (typeBulder, fieldBuilder) = CreateRootType(moduleBuilder);
-            return new AssemblerVisitor(typeChangeLookup, new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, typeBulder, fieldBuilder, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup);
+            return new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, typeBulder, fieldBuilder, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup);
         }
 
         private static (TypeBuilder,FieldBuilder) CreateRootType(ModuleBuilder moduleBuilder) {
 
             var type = moduleBuilder.DefineType(GenerateName(),TypeAttributes.Public&TypeAttributes.Class, typeof(TacCompilation));
             var selfField = type.DefineField(GenerateName() + "_self", type, FieldAttributes.Static & FieldAttributes.Public);
+
             return (type, selfField);
         }
 
@@ -172,7 +169,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(typeChangeLookup, list, generatorHolder,memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField,indexerList,verifyableTypesList, realizedMethodLookup);
+            return new AssemblerVisitor(list, generatorHolder,memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField,indexerList,verifyableTypesList, realizedMethodLookup);
         }
 
 
@@ -180,7 +177,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(typeChangeLookup, list, new GeneratorHolder(Possibly.Is(generator)), memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField, indexerList, verifyableTypesList, realizedMethodLookup);
+            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(generator)), memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField, indexerList, verifyableTypesList, realizedMethodLookup);
         }
 
         public Nothing AddOperation(IAddOperation co)

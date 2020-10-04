@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using Tac.Backend.Emit.Support;
-using Tac.Backend.Emit.SyntaxModel;
+//using Tac.Backend.Emit.SyntaxModel;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -16,18 +16,16 @@ using Tac.Type;
 
 namespace Tac.Backend.Emit.Walkers
 {
-
+    class Empty { }
     class Nothing { }
     class TypeVisitor : IOpenBoxesContext<Nothing>
     {
-        private readonly ModuleBuilder moduleBuilder;
 
-        public readonly Dictionary<IVerifiableType, System.Type> typeCache = new Dictionary<IVerifiableType, System.Type>();
-        private readonly LinkedList<Action> followUp = new LinkedList<Action>();
+        public readonly Dictionary<IVerifiableType, System.Type> typeCache;
 
-        public TypeVisitor(ModuleBuilder moduleBuilder)
+        public TypeVisitor(Dictionary<IVerifiableType, System.Type> typeCache)
         {
-            this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
+            this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
         }
 
         private void HandleLines(IEnumerable<ICodeElement> lines)
@@ -88,35 +86,10 @@ namespace Tac.Backend.Emit.Walkers
             if (verifiableType.SafeIs(out IInterfaceModuleType moduleType))
             {
                 return typeof(ITacObject);
-
-                //var myType = moduleBuilder.DefineType(new Guid().ToString("N"));
-
-                //followUp.AddLast(() => {
-                //    foreach (var member in moduleType.Members)
-                //    {
-
-                //        // duplicate code {BEAEC647-A435-4315-919B-D6CF353A8B27}
-                //        var type = InnerMapType(member.Type);
-
-                //        if (type.IsPrimitive)
-                //        {
-                //            myType.DefineField(member.Key.SafeCastTo(out NameKey _).Name, typeof(Ref<>).MakeGenericType(type), FieldAttributes.Public);
-                //        }
-                //        else
-                //        {
-                //            myType.DefineField(member.Key.SafeCastTo(out NameKey _).Name, typeof(Func<>).MakeGenericType(typeof(Ref<>).MakeGenericType(type)), FieldAttributes.Public);
-                //        }
-                //    }
-                //});
-
-                //return myType;
             }
             if (verifiableType is IMethodType method)
             {
-                return typeof(Func<,>).MakeGenericType(
-                    HandleType(method.InputType),
-                    HandleType(method.OutputType)
-                    );
+                return typeof(ITacObject);
             }
             if (verifiableType is IMemberReference memberReferance)
             {
@@ -161,40 +134,12 @@ namespace Tac.Backend.Emit.Walkers
                 right.TryGetReturn().Is(out var rightReturn))
             {
 
-                return typeof(Func<,>).MakeGenericType(
-                    MergeTypes(leftInput, rightInput),
-                    MergeTypes(leftReturn, rightReturn));
+                return typeof(ITacObject);
             }
 
-            if (left.SafeIs(out IInterfaceModuleType leftHasMembers) && right.SafeIs(out IInterfaceModuleType rightHasMembers)) {
+            if (left.SafeIs(out IInterfaceModuleType _) && right.SafeIs(out IInterfaceModuleType _)) {
 
-                return typeof(TacCastObject);
-
-                //var myType = moduleBuilder.DefineType(new Guid().ToString("N"));
-
-
-                //followUp.AddLast(() => {
-
-                //    foreach (var member in leftHasMembers.Members)
-                //    {
-                //        if (rightHasMembers.TryGetMember(member.Key).Is(out var memberType)) {
-
-                //            // duplicate code {BEAEC647-A435-4315-919B-D6CF353A8B27}
-                //            var type = InnerMapType(member.Type);
-
-                //            if (type.IsPrimitive)
-                //            {
-                //                myType.DefineField(member.Key.SafeCastTo(out NameKey _).Name, typeof(Ref<>).MakeGenericType(type), FieldAttributes.Public);
-                //            }
-                //            else
-                //            {
-                //                myType.DefineField(member.Key.SafeCastTo(out NameKey _).Name, typeof(Func<>).MakeGenericType(typeof(Ref<>).MakeGenericType(type)), FieldAttributes.Public);
-                //            }
-                //        }
-                //    }
-                //});
-
-                //return myType;
+                return typeof(ITacObject);
             }
 
             return typeof(Empty);

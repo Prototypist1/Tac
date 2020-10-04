@@ -1,44 +1,94 @@
 ﻿using System;
-using Tac.Backend.Emit.SyntaxModel;
 using Tac.Model.Elements;
 using System.Reflection;
-using static Tac.Backend.Emit.Public.AssemblyBuilder;
 using System.Reflection.Emit;
+using System.Collections.Generic;
+using Tac.Model;
+using Tac.Backend.Emit.Walkers;
+using Tac.Backend.Emit.Lookup;
+using Tac.Backend.Emit.Visitors;
+using Prototypist.Toolbox;
+using System.Linq;
 
 namespace Tac.Backend.Emit
 {
     public static class Compiler
     {
-        public static void Build(IProject<InterpetedAssemblyBacking> moduleDefinition)
-        {
-            var conversionContext = new Definitions();
 
+        // {4E963BB1-1C86-4F75-BD4C-3F9BE16386A9}
+        private static readonly Random random = new Random();
+        private static string GenerateName()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            return new string(Enumerable.Repeat(chars, 20)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+
+        private static Lazy<AssemblyBuilder> Assembly = new Lazy<AssemblyBuilder>(() => {
 
             var assemblyName = new AssemblyName();
-            assemblyName.Name = "HelloReflectionEmit";
-            var assembly = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
+            assemblyName.Name = GenerateName();
+            return System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
+        });
 
+        private static Lazy<ModuleBuilder> module = new Lazy<ModuleBuilder>(() =>
+        {
 
-            var module = assembly.DefineDynamicModule(assemblyName.Name);
+            return Assembly.Value.DefineDynamicModule(GenerateName());
+        });
 
+        public static void BuildAndRun(IReadOnlyList<ICodeElement> lines)
+        {
 
+            // I think we are actually not making an assembly,
+            // just a type 
 
-
-            var interpetedContext = AssemblyContext.Root();
-            foreach (var reference in moduleDefinition.References)
+            var extensionLookup = new ExtensionLookup();
+            var closureVisitor = new ClosureVisitor(extensionLookup);
+            foreach (var line in lines)
             {
-                interpetedContext.TryAddMember(reference.Key, reference.Backing.CreateMember(interpetedContext));
+                line.Convert(closureVisitor);
             }
 
-            if (conversionContext.ModuleDefinition(moduleDefinition.ModuleDefinition).Assemble(interpetedContext).IsReturn(out var _, out var _))
+            var memberKindLookup = new MemberKindLookup();
+            var memberKindVisitor = new MemberKindVisitor(new List<ICodeElement>(), memberKindLookup);
+            foreach (var line in lines)
             {
-                throw new Exception("this should not really return");
+                line.Convert(memberKindVisitor);
             }
 
-            if (conversionContext.EntryPoint == null) {
-                throw new NullReferenceException();
+            var typeCache = new Dictionary<IVerifiableType, System.Type>();
+            var typeVisitor = new TypeVisitor(typeCache);
+            foreach (var line in lines)
+            {
+                line.Convert(typeVisitor);
             }
-            conversionContext.EntryPoint.Assemble(interpetedContext);
+
+            var realizedMethodLookup = new RealizedMethodLookup();
+            var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeCache);
+            foreach (var line in lines)
+            {
+                line.Convert(methodMakerVisitor);
+            }
+
+            var assemblerVisitor = AssemblerVisitor.Create(
+                new GeneratorHolder(Possibly.IsNot<ILGenerator>()),
+                memberKindLookup,
+                extensionLookup,
+                typeCache,
+                module.Value,
+                realizedMethodLookup
+                );
+            foreach (var line in lines)
+            {
+                line.Convert(assemblerVisitor);
+            }
+
+            // now I need to reflexively find my type and call main
+            var complitation =(TacCompilation)Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name);
+            var result = complitation.main(null);
+
         }
     }
 }

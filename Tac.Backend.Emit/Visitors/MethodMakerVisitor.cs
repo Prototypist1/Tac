@@ -21,6 +21,14 @@ namespace Tac.Backend.Emit.Visitors
         private readonly RealizedMethodLookup realizedMethodLookup;
         public readonly Dictionary<IVerifiableType, System.Type> typeCache;
 
+        public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, Dictionary<IVerifiableType, System.Type> typeCache)
+        {
+            this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
+            this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
+            this.realizedMethodLookup = realizedMethodLookup ?? throw new ArgumentNullException(nameof(realizedMethodLookup));
+            this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
+        }
+
         private void Walk(IEnumerable<ICodeElement> codeElements)
         {
             foreach (var element in codeElements)
@@ -167,6 +175,8 @@ namespace Tac.Backend.Emit.Visitors
 
         // {4E963BB1-1C86-4F75-BD4C-3F9BE16386A9}
         private static readonly Random random = new Random();
+
+
         private string GenerateName()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

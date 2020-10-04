@@ -18,18 +18,19 @@ namespace Tac.Backend.Emit.Visitors
     {
 
         private IReadOnlyList<ICodeElement> stack;
-        private MemberKindLookup lookup;
+        private readonly MemberKindLookup lookup;
 
-        public MemberKindVisitor(IReadOnlyList<ICodeElement> stack)
+        public MemberKindVisitor(IReadOnlyList<ICodeElement> stack, MemberKindLookup lookup)
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
+            this.lookup = lookup ?? throw new ArgumentNullException(nameof(lookup));
         }
 
         public MemberKindVisitor Push(ICodeElement another)
         {
             var list = stack.ToList();
             list.Add(another);
-            return new MemberKindVisitor(list);
+            return new MemberKindVisitor(list, lookup);
         }
 
         private void Walk(IEnumerable<ICodeElement> codeElements) {
@@ -194,23 +195,25 @@ namespace Tac.Backend.Emit.Visitors
             return new Nothing();
         }
 
-        //public Nothing ModuleDefinition(IModuleDefinition codeElement)
-        //{
+        public Nothing ModuleDefinition(IModuleDefinition codeElement)
+        {
+            throw new NotImplementedException();
 
-        //    if (codeElement.Scope.Members.Values.Any(x => !x.Static)) {
-        //        throw new Exception("a modules members are all static");
-        //    }
+            //if (codeElement.Scope.Members.Values.Any(x => !x.Static))
+            //{
+            //    throw new Exception("a modules members are all static");
+            //}
 
-        //    foreach (var member in codeElement.Scope.Members.Values.Select(x=>x.Value))
-        //    {
-        //        lookup.AddStaticField(codeElement, member);
-        //    }
+            //foreach (var member in codeElement.Scope.Members.Values.Select(x => x.Value))
+            //{
+            //    lookup.AddStaticField(codeElement, member);
+            //}
 
-        //    var next = Push(codeElement);
-        //    next.Walk(codeElement.StaticInitialization);
+            //var next = Push(codeElement);
+            //next.Walk(codeElement.StaticInitialization);
 
-        //    return new Nothing();
-        //}
+            return new Nothing();
+        }
 
         public Nothing ObjectDefinition(IObjectDefiniton codeElement)
         {
