@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Tac.Backend.Emit.Lookup;
 using Tac.Backend.Emit.Support;
 using Tac.Model;
@@ -63,19 +64,112 @@ namespace Tac.Backend.Emit.Walkers
     }
 
 
-    class GeneratorHolder {
-        public int EvaluationStackDepth { get; private set; } = 0;
-        private IIsPossibly<ILGenerator> generator;
+    public class DebuggableILGenerator
+    {
+        
+        ILGenerator backing;
+        string debugString = "";
 
-        public GeneratorHolder(IIsPossibly<ILGenerator> generator)
+        public DebuggableILGenerator(ILGenerator backing, string name)
+        {
+            debugString += name +": "+ Environment.NewLine;
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
+
+        internal void Emit(OpCode code, string str)
+        {
+            str += code.ToString() + ", " + str + Environment.NewLine;
+            backing.Emit(code, str);
+        }
+
+        internal void Emit(OpCode code, MethodInfo method)
+        {
+            debugString += code.ToString() + ", " + method.Name + /*"(" + string.Join<string>(',', method.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            backing.Emit(code, method);
+        }
+
+        internal void Emit(OpCode code, double dub)
+        {
+            debugString += code.ToString() + ", " + dub + Environment.NewLine;
+            backing.Emit(code, dub);
+        }
+
+        internal void Emit(OpCode code, Label label)
+        {
+            debugString += code.ToString() + ", " + label + Environment.NewLine;
+            backing.Emit(code, label);
+        }
+
+
+        internal void Emit(OpCode code, System.Type type)
+        {
+            debugString += code.ToString() + ", " + type.Name + Environment.NewLine;
+            backing.Emit(code, type);
+        }
+        internal void Emit(OpCode code, FieldInfo field)
+        {
+            debugString += code.ToString() + ", " + field.Name + Environment.NewLine;
+            backing.Emit(code, field);
+        }
+
+        internal void Emit(OpCode code)
+        {
+            debugString += code.ToString() + Environment.NewLine;
+            backing.Emit(code);
+        }
+        internal void Emit(OpCode code, ConstructorInfo rootSelfField)
+        {
+            debugString += code.ToString() + ", " + rootSelfField.DeclaringType.Name + /*"(" + string.Join<string>(',', rootSelfField.GetParameters().Select(x=>x.ParameterType.Name)) + ")"+*/ Environment.NewLine;
+            backing.Emit(code, rootSelfField);
+        }
+
+        internal LocalBuilder DeclareLocal(System.Type type)
+        {
+            debugString += "local, " + type.Name + Environment.NewLine;
+            return backing.DeclareLocal(type);
+        }
+
+        internal void EmitCall(OpCode code, MethodInfo methodInfo, System.Type[] type)
+        {
+            debugString += code.ToString() + ", " + methodInfo.DeclaringType.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            backing.EmitCall(code,methodInfo,type);
+        }
+
+        internal void MarkLabel(Label topOfElseLabel)
+        {
+            debugString += topOfElseLabel.ToString() + Environment.NewLine;
+            backing.MarkLabel(topOfElseLabel);
+        }
+
+        internal Label DefineLabel()
+        {
+            return backing.DefineLabel();
+        }
+
+        public string GetDeubbingSting() {
+            return debugString.ToString();
+        }
+    }
+
+    class GeneratorHolder {
+
+        
+        public int EvaluationStackDepth { get; private set; } = 0;
+        private IIsPossibly<DebuggableILGenerator> generator;
+
+        public GeneratorHolder(IIsPossibly<DebuggableILGenerator> generator)
         {
             this.generator = generator ?? throw new ArgumentNullException(nameof(generator));
         }
 
-        public ILGenerator GetGeneratorAndUpdateStack(int stackChange)
+        public DebuggableILGenerator GetGeneratorAndUpdateStack(int stackChange)
         {
             EvaluationStackDepth += stackChange;
             return generator.GetOrThrow();
+        }
+
+        public string DebugString() {
+            return generator.GetOrThrow().GetDeubbingSting();
         }
     }
 
@@ -90,6 +184,8 @@ namespace Tac.Backend.Emit.Walkers
 
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
+
+        public readonly List<DebuggableILGenerator> gens ;
 
         public readonly IndexerList indexerList;
         public readonly VerifyableTypesList verifyableTypesList;
@@ -130,7 +226,8 @@ namespace Tac.Backend.Emit.Walkers
              FieldBuilder rootSelfField,
              IndexerList indexerList,
              VerifyableTypesList verifyableTypesList,
-             RealizedMethodLookup realizedMethodLookup
+             RealizedMethodLookup realizedMethodLookup,
+             List<DebuggableILGenerator> gens
             )
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
@@ -143,6 +240,7 @@ namespace Tac.Backend.Emit.Walkers
             this.indexerList = indexerList ?? throw new ArgumentNullException(nameof(indexerList));
             this.verifyableTypesList = verifyableTypesList ?? throw new ArgumentNullException(nameof(verifyableTypesList));
             this.realizedMethodLookup = realizedMethodLookup ?? throw new ArgumentNullException(nameof(realizedMethodLookup));
+            this.gens = gens ?? throw new ArgumentNullException(nameof(gens));
         }
 
         public static (AssemblerVisitor,Action) Create(
@@ -158,9 +256,11 @@ namespace Tac.Backend.Emit.Walkers
             var initMethod = typebuilder.DefineMethod(nameof(TacCompilation.Init), MethodAttributes.Public | MethodAttributes.Virtual);
             typebuilder.DefineMethodOverride(initMethod, typeof(TacCompilation).GetMethod(nameof(TacCompilation.Init)));
 
-            var generatorHolder = new GeneratorHolder(Possibly.Is(initMethod.GetILGenerator()));
+            var gen = new DebuggableILGenerator(initMethod.GetILGenerator(), "Init");
+            var gens = new List<DebuggableILGenerator> { gen };
+            var generatorHolder = new GeneratorHolder(Possibly.Is(gen));
             return
-                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, typebuilder, selfField, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup), () =>
+                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, typebuilder, selfField, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup, gens), () =>
                 {
                     while (generatorHolder.EvaluationStackDepth > 0)
                     {
@@ -175,15 +275,16 @@ namespace Tac.Backend.Emit.Walkers
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(list, generatorHolder,memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField,indexerList,verifyableTypesList, realizedMethodLookup);
+            return new AssemblerVisitor(list, generatorHolder,memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField,indexerList,verifyableTypesList, realizedMethodLookup,gens);
         }
 
 
-        public AssemblerVisitor Push(ICodeElement another, ILGenerator generator)
+        public AssemblerVisitor Push(ICodeElement another, DebuggableILGenerator gen)
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(generator)), memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField, indexerList, verifyableTypesList, realizedMethodLookup);
+            gens.Add(gen);
+            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(gen)), memberKindLookup,extensionLookup,typeCache,rootType,rootSelfField, indexerList, verifyableTypesList, realizedMethodLookup,gens);
         }
 
         public Nothing AddOperation(IAddOperation co)
@@ -206,14 +307,11 @@ namespace Tac.Backend.Emit.Walkers
                 generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, indexersField.Value);
                 LoadInt(definateIndexer.Value);
                 generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Ldelem_Ref);
-            }
-            else
-            {
-                throw new Exception("you shit");
-            }
-            GetVerifyableType(toType);
 
-            generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Newobj, castConstructor.Value);
+                GetVerifyableType(toType);
+
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Newobj, castConstructor.Value);
+            }
         }
 
         private void GetVerifyableType(IVerifiableType toType)
@@ -560,34 +658,52 @@ namespace Tac.Backend.Emit.Walkers
 
             var next = this.Push(co);
 
-            var myIf = co.Operands[0].SafeCastTo(out IIfOperation _);
-
-            var nextNext = next.Push(myIf);
-            var topOfElseLabel = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
-            var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
-            myIf.Operands[0].Convert(nextNext);
-            // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-            if (this.stack.Last().SafeIs(out IOperation _))
+            if (co.Operands[0].SafeIs(out IIfOperation myIf))
             {
-                // we dup so that we return
-                // else in tac returns false if it ran, true otherwise
-                // so you can do
-                // ... else {} > someMethod
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
-                // this is a very important assumption
-                // the {} of the if CANNOT leave anything on the stack
-                // I don't think that should happen very often since each statement tend to clear it's stack
-                // often but not always, right here we are leaving something on the statck
-                // that is why we need to check something is consuming it 
-            }
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
-            myIf.Operands[1].Convert(nextNext);
-            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Br, bottomOfElse);
-            generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(topOfElseLabel);
-            co.Operands[1].Convert(next);
-            generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(bottomOfElse);
 
-            return new Nothing();
+                var nextNext = next.Push(myIf);
+                var topOfElseLabel = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
+                var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
+                myIf.Operands[0].Convert(nextNext);
+                // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+                if (this.stack.Last().SafeIs(out IOperation _))
+                {
+                    // we dup so that we return
+                    // else in tac returns false if it ran, true otherwise
+                    // so you can do
+                    // ... else {} > someMethod
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+                    // this is a very important assumption
+                    // the {} of the if CANNOT leave anything on the stack
+                    // I don't think that should happen very often since each statement tend to clear it's stack
+                    // often but not always, right here we are leaving something on the statck
+                    // that is why we need to check something is consuming it 
+                }
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
+                myIf.Operands[1].Convert(nextNext);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Br, bottomOfElse);
+                generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(topOfElseLabel);
+                co.Operands[1].Convert(next);
+                generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(bottomOfElse);
+
+                return new Nothing();
+            }
+            else {
+                co.Left.Convert(next);
+                // duplicate code { 9EAD95C4 - 6FAD - 4911 - 94EE - 106528B7A3B2}
+                if (this.stack.Last().SafeIs(out IOperation _))
+                {
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+                }
+
+                var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, bottomOfElse);
+
+                co.Right.Convert(next);
+                generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(bottomOfElse);
+
+                return new Nothing();
+            }
         }
 
 
@@ -603,7 +719,16 @@ namespace Tac.Backend.Emit.Walkers
                 CallingConventions.HasThis, 
                 typeof(object), new[] { typeof(object) });
 
-            var inner = this.Push(entryPointDefinition, myMethod.GetILGenerator());
+
+            var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), "main");
+
+            // I need to declare the locals
+            foreach (var local in entryPointDefinition.Scope.Members)
+            {
+                gen.DeclareLocal(typeCache[ local.Value.Value.Type]);
+            }
+
+            var inner = this.Push(entryPointDefinition, gen);
             foreach (var line in entryPointDefinition.Body)
             {
                 line.Convert(inner);
@@ -1008,9 +1133,18 @@ namespace Tac.Backend.Emit.Walkers
         {
 
             var realizedMethod = realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method));
-            var myMethod = realizedMethod.type.DefineMethod(GenerateName(), MethodAttributes.Public, CallingConventions.HasThis, ToITacObjectOrOject(typeCache[ method.OutputType]), new[] { ToITacObjectOrOject(typeCache[method.InputType]) });
-            
-            var inner = this.Push(method, myMethod.GetILGenerator());
+            var name = GenerateName();
+            var myMethod = realizedMethod.type.DefineMethod(name, MethodAttributes.Public, CallingConventions.HasThis, ToITacObjectOrOject(typeCache[ method.OutputType]), new[] { ToITacObjectOrOject(typeCache[method.InputType]) });
+
+            var gen = new DebuggableILGenerator( myMethod.GetILGenerator(), name);
+
+            // I need to declare the locals
+            foreach (var local in method.Scope.Members)
+            {
+                gen.DeclareLocal(typeCache[local.Value.Value.Type]);
+            }
+
+            var inner = this.Push(method, gen);
             foreach (var line in method.Body)
             {
                 line.Convert(inner);

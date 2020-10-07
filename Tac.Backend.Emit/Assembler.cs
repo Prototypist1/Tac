@@ -92,6 +92,7 @@ namespace Tac.Backend.Emit
             realizedMethodLookup.CreateTypes();
             assemblerVisitor.rootType.CreateType();
 
+            var yo = String.Join(Environment.NewLine, assemblerVisitor.gens.Select(x=>x.GetDeubbingSting()));
 
             // now I need to reflexively find my type and call main
             var complitation =(TacCompilation)Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name);
