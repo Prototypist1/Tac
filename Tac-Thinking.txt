@@ -552,3 +552,15 @@ x := method[int,int]
 // maybe you can also init other stuff but it only has access to things above the file
 // or something 
 // same rules as member references with in objects (whatever those are)
+
+================================= shorter names?
+
+"method-blueprint" no way anyone wants to type that
+users should use real names but programming language features can be shortened
+
+fn { } // you don't have to name input, it is just input. tac can figure out the types
+obj { }
+imp { } 
+type {} // type is fine
+
+

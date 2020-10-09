@@ -117,6 +117,8 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> MemberReferance(IMemberReference memberReferance)
         {
+            // this is only sometimes a closure
+            // 
             return new List<IMemberDefinition> { memberReferance.MemberDefinition };
         }
 

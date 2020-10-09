@@ -184,5 +184,77 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>())
             });
         }
+
+        [Fact]
+        public void PassThroughFunc()
+        {
+            var input = MemberDefinition.CreateAndBuild(new NameKey("test"), new NumberType(),Model.Elements.Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                        }),
+                        new List<ICodeElement> {
+                            NextCallOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) ,
+                                Model.Instantiated.MethodDefinition.CreateAndBuild(
+                                    new NumberType(),
+                                    new NumberType(),
+                                    input,
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic( input,false)
+                                    }),
+                                    new List<ICodeElement>{
+                                        ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(input))
+                                    },
+                                    Array.Empty<ICodeElement>())),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
+                    Array.Empty<ICodeElement>()) 
+                });
+        }
+
+
+        // TODO boxing unboxing and any!
+        // I don't think I should need boxing tho
+        // Func should be <double, double>
+
+        [Fact]
+        public void ClosureFunc()
+        {
+
+            var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            var input = MemberDefinition.CreateAndBuild(new NameKey("test"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(memberDefinition, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(3) , Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),
+                            NextCallOperation.CreateAndBuild(
+                                ConstantNumber.CreateAndBuild(2) ,
+                                Model.Instantiated.MethodDefinition.CreateAndBuild(
+                                    new NumberType(),
+                                    new NumberType(),
+                                    input,
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(input,false)
+                                    }),
+                                    new List<ICodeElement>{
+
+                                        ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(input))
+                                        //ReturnOperation.CreateAndBuild(
+                                        //    AddOperation.CreateAndBuild(
+                                        //        Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                        //        Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)))
+                                    },
+                                    Array.Empty<ICodeElement>())),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
+                    Array.Empty<ICodeElement>())
+                }); ; ;
+        }
     }
 }

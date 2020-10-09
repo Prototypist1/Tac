@@ -119,7 +119,7 @@ namespace Tac.Backend.Emit.Walkers
         }
         internal void Emit(OpCode code, ConstructorInfo rootSelfField)
         {
-            debugString += code.ToString() + ", " + rootSelfField.DeclaringType.Name + /*"(" + string.Join<string>(',', rootSelfField.GetParameters().Select(x=>x.ParameterType.Name)) + ")"+*/ Environment.NewLine;
+            debugString += code.ToString() + ", " + rootSelfField.DeclaringType.FullName + /*"(" + string.Join<string>(',', rootSelfField.GetParameters().Select(x=>x.ParameterType.Name)) + ")"+*/ Environment.NewLine;
             backing.Emit(code, rootSelfField);
         }
 
@@ -131,7 +131,7 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void EmitCall(OpCode code, MethodInfo methodInfo, System.Type[] type)
         {
-            debugString += code.ToString() + ", " + methodInfo.DeclaringType.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            debugString += code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
             backing.EmitCall(code,methodInfo,type);
         }
 
@@ -197,7 +197,7 @@ namespace Tac.Backend.Emit.Walkers
         private readonly RealizedMethodLookup realizedMethodLookup;
         private readonly Dictionary<IVerifiableType, System.Type> typeCache;
         public readonly TypeBuilder rootType;
-        private readonly FieldBuilder rootSelfField;
+        public readonly FieldBuilder rootSelfField;
 
 
         public readonly GeneratorHolder generatorHolder;
@@ -257,8 +257,15 @@ namespace Tac.Backend.Emit.Walkers
             typebuilder.DefineMethodOverride(initMethod, typeof(TacCompilation).GetMethod(nameof(TacCompilation.Init)));
 
             var gen = new DebuggableILGenerator(initMethod.GetILGenerator(), "Init");
+
+
             var gens = new List<DebuggableILGenerator> { gen };
             var generatorHolder = new GeneratorHolder(Possibly.Is(gen));
+
+            // set the self field
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
+            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Stsfld, selfField);
+
             return
                 (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, typebuilder, selfField, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup, gens), () =>
                 {
@@ -321,6 +328,7 @@ namespace Tac.Backend.Emit.Walkers
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldsfld, rootSelfField);
                 generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, typesField.Value);
                 LoadInt(definateType.Value);
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Ldelem_Ref);
             }
             else
             {
@@ -340,7 +348,7 @@ namespace Tac.Backend.Emit.Walkers
 
         private readonly Lazy<ConstructorInfo> castConstructor = new Lazy<ConstructorInfo>(() =>
         {
-            return typeof(TacCastObject).GetConstructor(new[] { typeof(ITacObject), typeof(Indexer) }) ?? throw new NullReferenceException("should not be null!");
+            return typeof(TacCastObject).GetConstructor(new[] { typeof(ITacObject), typeof(Indexer), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
         });
 
         private readonly Lazy<ConstructorInfo> tacObjectConstructor = new Lazy<ConstructorInfo>(() =>
@@ -351,22 +359,22 @@ namespace Tac.Backend.Emit.Walkers
 
         private readonly Lazy<ConstructorInfo> tacMethod_Complex_ComplexConstructor = new Lazy<ConstructorInfo>(() =>
         {
-            return typeof(TacMethod_Complex_Complex).GetConstructor(new[] { typeof(Func<ITacObject, ITacObject>) }) ?? throw new NullReferenceException("should not be null!");
+            return typeof(TacMethod_Complex_Complex).GetConstructor(new[] { typeof(Func<ITacObject, ITacObject>), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
         });
 
         private readonly Lazy<ConstructorInfo> tacMethod_Complex_SimpleConstructor = new Lazy<ConstructorInfo>(() =>
         {
-            return typeof(TacMethod_Complex_Simple).GetConstructor(new[] { typeof(Func<ITacObject, object>) }) ?? throw new NullReferenceException("should not be null!");
+            return typeof(TacMethod_Complex_Simple).GetConstructor(new[] { typeof(Func<ITacObject, object>), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
         });
 
         private readonly Lazy<ConstructorInfo> tacMethod_Simple_ComplexConstructor = new Lazy<ConstructorInfo>(() =>
         {
-            return typeof(TacMethod_Simple_Complex).GetConstructor(new[] { typeof(Func<object, ITacObject>) }) ?? throw new NullReferenceException("should not be null!");
+            return typeof(TacMethod_Simple_Complex).GetConstructor(new[] { typeof(Func<object, ITacObject>), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
         });
 
         private readonly Lazy<ConstructorInfo> tacMethod_Simple_SimpleConstructor = new Lazy<ConstructorInfo>(() =>
         {
-            return typeof(TacMethod_Simple_Simple).GetConstructor(new[] { typeof(Func<object, object>) }) ?? throw new NullReferenceException("should not be null!");
+            return typeof(TacMethod_Simple_Simple).GetConstructor(new[] { typeof(Func<object, object>) ,typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
         });
 
         public Nothing AssignOperation(IAssignOperation co)
@@ -845,6 +853,7 @@ namespace Tac.Backend.Emit.Walkers
 
             // see if it is on the closure 
             // walk up the stack and hope you run in to it
+
             foreach (var frame in stack.Reverse())
             {
                 if (extensionLookup.TryGetClosure(frame, out var closure))
@@ -867,7 +876,15 @@ namespace Tac.Backend.Emit.Walkers
                 }
             }
 
-            if (memberKindLookup.IsArgument(memberReference.MemberDefinition, out var orTypeArg))
+            return  EmitMemberReference(memberReference.MemberDefinition);
+
+        }
+
+        /// this does not look in the closure
+        private Nothing EmitMemberReference(IMemberDefinition memberDefinition) {
+
+
+            if (memberKindLookup.IsArgument(memberDefinition, out var orTypeArg))
             {
                 return orTypeArg.SwitchReturns(
                     imp =>
@@ -884,31 +901,31 @@ namespace Tac.Backend.Emit.Walkers
                     });
             }
 
-            if (memberKindLookup.IsLocal(memberReference.MemberDefinition, out var orTypeLocal))
+            if (memberKindLookup.IsLocal(memberDefinition, out var orTypeLocal))
             {
                 return orTypeLocal.SwitchReturns(
                     entryPoint =>
                     {
 
-                        var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                        var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDefinition);
                         LoadLocal(index);
                         return new Nothing();
                     },
                     imp =>
                     {
-                        var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                        var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDefinition);
                         LoadLocal(index);
                         return new Nothing();
                     },
                     method =>
                     {
-                        var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                        var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDefinition);
                         LoadLocal(index);
                         return new Nothing();
                     });
             }
 
-            if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField))
+            if (memberKindLookup.IsField(memberDefinition, out var orTypeField))
             {
                 return orTypeField.SwitchReturns(
                     imp =>
@@ -920,7 +937,7 @@ namespace Tac.Backend.Emit.Walkers
 
                         // I need the field info...
                         var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
-                        var field = realizedMethod.fields[memberReference.MemberDefinition];
+                        var field = realizedMethod.fields[memberDefinition];
 
                         generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
                         // no change in stack
@@ -933,12 +950,12 @@ namespace Tac.Backend.Emit.Walkers
                         // this "b" inside a path like: a.b
                         // we count on "a" to have already been load
 
-                        var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                        var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDefinition);
                         LoadInt(index);
 
-                        if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
+                        if (typeCache[memberDefinition.Type] == typeof(ITacObject))
                         {
-                            switch (memberReference.MemberDefinition.Access)
+                            switch (memberDefinition.Access)
                             {
                                 case Access.ReadOnly:
                                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new[] { typeof(int) });
@@ -954,19 +971,21 @@ namespace Tac.Backend.Emit.Walkers
                         }
                         else
                         {
-                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new[] { typeof(int) });
                             return new Nothing();
                         }
                     });
             }
 
-            if (memberKindLookup.IsStaticField(memberReference.MemberDefinition, out var fieldInfo)) {
+            if (memberKindLookup.IsStaticField(memberDefinition, out var fieldInfo))
+            {
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldsfld, rootSelfField);
 
                 generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, fieldInfo);
-                
+
                 return new Nothing();
             }
+
 
             throw new Exception("how did we end up here?");
         }
@@ -1141,7 +1160,10 @@ namespace Tac.Backend.Emit.Walkers
             // I need to declare the locals
             foreach (var local in method.Scope.Members)
             {
-                gen.DeclareLocal(typeCache[local.Value.Value.Type]);
+                if (local.Value.Value != method.ParameterDefinition)
+                {
+                    gen.DeclareLocal(typeCache[local.Value.Value.Type]);
+                }
             }
 
             var inner = this.Push(method, gen);
@@ -1152,9 +1174,9 @@ namespace Tac.Backend.Emit.Walkers
 
             // create new instance
             // get the default constuctor 
-            var constructor = realizedMethod.type.GetConstructor(new System.Type[] { }) ?? throw new NullReferenceException("could not find default constructor");
+            var constructor = realizedMethod.defaultConstructor;
 
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, constructor);
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Newobj, constructor);
 
 
             // pass stuff in to the closure
@@ -1169,26 +1191,25 @@ namespace Tac.Backend.Emit.Walkers
 
                         generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
 
-                        // we need to get the value off the closure 
-                        // push this 
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
-
                         var outerRealizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
-                        var field = outerRealizedMethod.fields[member];
-
-                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+                        // if it is on the closure read the field
+                        if (outerRealizedMethod.fields.TryGetValue(member, out var field))
+                        {
+                            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Ldfld, field);
+                        }
+                        else {
+                            EmitMemberReference(member);
+                        }
 
                         // now we need to push the new value on to out closure 
-                        var newfield = realizedMethod.fields[member];
-
-                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, newfield);
+                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, fieldInfo);
                     }
                 }
             }
 
             // now I need to make a TacMethod or whatever
 
-            generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Ldftn, myMethod);
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldftn, myMethod);
 
 
             // TODO lazy all this reflection
@@ -1196,13 +1217,13 @@ namespace Tac.Backend.Emit.Walkers
             {
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, ITacObject>).GetConstructors().First());
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, ITacObject>).GetConstructors().First());
                     GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Complex_ComplexConstructor.Value);
                 }
                 else
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, object>).GetConstructors().First());
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, object>).GetConstructors().First());
                     GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Complex_SimpleConstructor.Value);
                 }
@@ -1210,13 +1231,13 @@ namespace Tac.Backend.Emit.Walkers
             else {
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, ITacObject>).GetConstructors().First());
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, ITacObject>).GetConstructors().First());
                     GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_ComplexConstructor.Value);
                 }
                 else
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
                     GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_SimpleConstructor.Value);
                 }
