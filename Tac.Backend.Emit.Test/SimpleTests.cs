@@ -244,12 +244,10 @@ namespace Tac.Backend.Emit.Test
                                         new IsStatic(input,false)
                                     }),
                                     new List<ICodeElement>{
-
-                                        ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(input))
-                                        //ReturnOperation.CreateAndBuild(
-                                        //    AddOperation.CreateAndBuild(
-                                        //        Model.Instantiated.MemberReference.CreateAndBuild(input),
-                                        //        Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)))
+                                        ReturnOperation.CreateAndBuild(
+                                            AddOperation.CreateAndBuild(
+                                                Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)))
                                     },
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},

@@ -362,7 +362,7 @@ namespace Tac.Backend.Emit.Support.Test
             var type1 = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { methodMemberForType1 });
             var type2 = InterfaceType.CreateAndBuild(new List<IMemberDefinition> { methodMemberForType2 });
 
-            Func<ITacObject, object> func = x =>
+            Func<ITacObject, int> func = x =>
             {
                 return x.GetSimpleMember<int>(1);
             };

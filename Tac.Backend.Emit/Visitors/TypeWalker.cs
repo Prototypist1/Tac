@@ -72,6 +72,7 @@ namespace Tac.Backend.Emit.Walkers
             }
             if (verifiableType is IBlockType)
             {
+                throw new NotImplementedException();
                 // ??
                 return typeof(Action);
             }

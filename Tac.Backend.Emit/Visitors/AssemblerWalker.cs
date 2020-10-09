@@ -1213,32 +1213,28 @@ namespace Tac.Backend.Emit.Walkers
 
 
             // TODO lazy all this reflection
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<,>).MakeGenericType(new System.Type[] { typeCache[method.InputType], typeCache[method.OutputType] }).GetConstructors().First());
+            GetVerifyableType(method.Returns());
+
             if (typeCache[method.InputType] == typeof(ITacObject))
             {
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, ITacObject>).GetConstructors().First());
-                    GetVerifyableType(method.Returns());
+
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Complex_ComplexConstructor.Value);
                 }
                 else
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<ITacObject, object>).GetConstructors().First());
-                    GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Complex_SimpleConstructor.Value);
                 }
             }
             else {
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, ITacObject>).GetConstructors().First());
-                    GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_ComplexConstructor.Value);
                 }
                 else
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(System.Reflection.Emit.OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
-                    GetVerifyableType(method.Returns());
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacMethod_Simple_SimpleConstructor.Value);
                 }
             }

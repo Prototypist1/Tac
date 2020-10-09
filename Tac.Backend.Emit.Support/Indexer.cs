@@ -120,10 +120,9 @@ namespace Tac.Backend.Emit.Support
 
         public IVerifiableType TacType() => type;
     }
-
     public class TacMethod_Simple_Complex: ITacObject
     {
-        Func<object, ITacObject> backing;
+        public object backing;
         private readonly IVerifiableType type;
 
         public TacMethod_Simple_Complex(Func<object, ITacObject> backing, IVerifiableType type)
@@ -178,7 +177,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public ITacObject Call_Simple_Complex<Tin>(Tin input) => backing(input);
+        public ITacObject Call_Simple_Complex<Tin>(Tin input) => ((Func<Tin, ITacObject>)backing)(input);
         public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
         {
             SetComplexMemberReturn(tacCastObject, position);
@@ -201,10 +200,10 @@ namespace Tac.Backend.Emit.Support
     public class TacMethod_Complex_Simple: ITacObject
     {
 
-        public Func<ITacObject, object> backing;
+        public object backing;
         private readonly IVerifiableType type;
 
-        public TacMethod_Complex_Simple(Func<ITacObject, object> backing, IVerifiableType type)
+        public TacMethod_Complex_Simple(object backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -255,7 +254,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public Tout Call_Complex_Simple<Tout>(ITacObject input) => (Tout)backing(input);
+        public Tout Call_Complex_Simple<Tout>(ITacObject input) => ((Func<ITacObject,Tout>)backing)(input);
         public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
         {
             SetComplexMemberReturn(tacCastObject, position);
@@ -275,13 +274,12 @@ namespace Tac.Backend.Emit.Support
         }
         public IVerifiableType TacType() => type;
     }
-
     public class TacMethod_Simple_Simple: ITacObject
     {
-        Func<object, object> backing;
+        public object backing;
         private readonly IVerifiableType type;
 
-        public TacMethod_Simple_Simple(Func<object, object> backing, IVerifiableType type)
+        public TacMethod_Simple_Simple(object backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
@@ -331,7 +329,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public Tout Call_Simple_Simple<Tin,Tout>(Tin input) => (Tout)backing(input);
+        public Tout Call_Simple_Simple<Tin,Tout>(Tin input) => ((Func<Tin, Tout>)backing)(input);
         public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
         {
             SetComplexMemberReturn(tacCastObject, position);
