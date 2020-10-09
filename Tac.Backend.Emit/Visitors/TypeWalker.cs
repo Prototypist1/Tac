@@ -168,10 +168,10 @@ namespace Tac.Backend.Emit.Walkers
         }
 
 
-        public Nothing ConstantBool(IConstantBool constantBool) =>new Nothing();
-        public Nothing ConstantNumber(IConstantNumber codeElement) => new Nothing();
-        public Nothing ConstantString(IConstantString co) => new Nothing();
-        public Nothing EmptyInstance(IEmptyInstance co) => new Nothing();
+        public Nothing ConstantBool(IConstantBool constantBool) { HandleType(constantBool.Returns()); return new Nothing(); }
+        public Nothing ConstantNumber(IConstantNumber codeElement) { HandleType(codeElement.Returns()); return new Nothing(); }
+        public Nothing ConstantString(IConstantString co) { HandleType(co.Returns()); return new Nothing(); }
+        public Nothing EmptyInstance(IEmptyInstance co) { HandleType(co.Returns()); return new Nothing(); }
 
 
         public Nothing EntryPoint(IEntryPointDefinition entryPointDefinition)

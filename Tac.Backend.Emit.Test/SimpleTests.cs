@@ -166,6 +166,26 @@ namespace Tac.Backend.Emit.Test
         }
 
         [Fact]
+        public void AssignMemberReferenceAnyType()
+        {
+
+            var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), Model.Elements.Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(memberDefinition, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>())
+            });
+        }
+
+        [Fact]
         public void AssignMemberAndAddReference()
         {
 
@@ -184,6 +204,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>())
             });
         }
+
 
         [Fact]
         public void PassThroughFunc()

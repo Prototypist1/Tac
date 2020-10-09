@@ -303,6 +303,21 @@ namespace Tac.Backend.Emit.Walkers
 
         private void PossiblyConvert(IVerifiableType fromType, IVerifiableType toType)
         {
+            // handle "any"
+            if (toType.SafeIs(out IAnyType _)) {
+                if (fromType.SafeIs(out IAnyType _))
+                {
+                    return;
+                }
+                else {
+                    var toCSharpeType = typeCache[fromType];
+                    if (new [] { typeof(bool), typeof(double)}.Contains(toCSharpeType) ) {
+                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, toCSharpeType);
+                    }
+                    return;
+                }
+            }
+
             // we create the indexer now
             // and we put it in a big array
             // this is kind of a hack
@@ -1450,9 +1465,20 @@ namespace Tac.Backend.Emit.Walkers
 
             if (memberKindLookup.IsLocal(memberDef, out var orTypeLocal))
             {
-                // I think I need to do the conversion in C#
-                GetVerifyableType(memberDef.Type);
-                generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblerVisitor).GetMethod(nameof(AssemblerVisitor.TryAssignOperationHelper_Cast)), new System.Type[] { });
+                if (typeCache[memberDef.Type] == typeof(bool))
+                {
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(bool));
+                }
+                else
+                if (typeCache[memberDef.Type] == typeof(double))
+                {
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(bool));
+                }
+                else
+                {
+                    GetVerifyableType(memberDef.Type);
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblerVisitor).GetMethod(nameof(AssemblerVisitor.TryAssignOperationHelper_Cast)), new System.Type[] { });
+                }
 
                 orTypeLocal.SwitchReturns(
                     entryPoint =>
