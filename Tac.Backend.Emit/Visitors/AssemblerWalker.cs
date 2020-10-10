@@ -576,6 +576,48 @@ namespace Tac.Backend.Emit.Walkers
                         },
                         obj =>
                         {
+
+                            // object would usally need to be part of a path
+                            // how else would you know what where to look for the field
+                            // but there is one excpetion
+                            // object initiation
+                            if (!stack.Last().SafeIs(out IObjectDefiniton _)) {
+                                throw new Exception("this should only happen in object init");
+                            }
+
+                            // we count on having a reference to the object already on the stack
+
+                            // 1st parm, the new value
+                            co.Left.Convert(this.Push(co));
+                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
+                            // second parm, the index
+                            var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
+                            LoadInt(index);
+
+                            if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
+                            {
+                                switch (memberReference.MemberDefinition.Access)
+                                {
+                                    case Access.ReadOnly:
+                                        throw new Exception("this should have benn handled inside assignment");
+                                    case Access.ReadWrite:
+                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
+                                        return new Nothing();
+                                    case Access.WriteOnly:
+                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
+                                        return new Nothing();
+                                    default:
+                                        throw new Exception("that is unexpected");
+                                }
+                            }
+                            else
+                            {
+                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value), new[] { typeof(int) });
+                                return new Nothing();
+                            }
+
+
                             throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
                         });
@@ -648,7 +690,7 @@ namespace Tac.Backend.Emit.Walkers
                                         case Access.ReadOnly:
                                             throw new Exception("this should have benn handled inside assignment");
                                         case Access.ReadWrite:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2:-3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
+                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
                                             return new Nothing();
                                         case Access.WriteOnly:
                                             generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
@@ -1405,11 +1447,6 @@ namespace Tac.Backend.Emit.Walkers
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Newobj, tacObjectConstructor.Value);
 
 
-            // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-            if (this.stack.Last().SafeIs(out IOperation _))
-            {
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
-            }
 
             // itit field
             {
@@ -1428,7 +1465,22 @@ namespace Tac.Backend.Emit.Walkers
                 generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
             }
 
-            Walk(@object.Assignments, @object);
+            // init members
+            var next = this.Push(@object);
+            foreach (var assignment in @object.Assignments)
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+                assignment.Convert(next);
+            }
+
+            // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+            // TODO
+            // this is a little ugly 
+            // it would be better to dup one less time instead of poping
+            if (!this.stack.Last().SafeIs(out IOperation _))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
+            }
 
             return new Nothing(); 
         }
@@ -1529,14 +1581,6 @@ namespace Tac.Backend.Emit.Walkers
                 orTypeLocal.SwitchReturns(
                     entryPoint =>
                     {
-                        // you are here
-                        // the local my not be directly under the entry point
-                        // the locals on the entrypoint is really a composit list
-                        // I would probably be better off getting this from
-                        // generatorHolder
-                        // and storing the index as part of 
-                        // generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal
-
                         StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
                         return new Nothing();
                     },

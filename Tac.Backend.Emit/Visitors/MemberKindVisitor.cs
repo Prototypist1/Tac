@@ -241,10 +241,10 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing ObjectDefinition(IObjectDefiniton codeElement)
         {
-            if (codeElement.Scope.Members.Values.Any(x => !x.Static))
+            if (codeElement.Scope.Members.Values.Any(x => x.Static))
             {
                 // atleast not right now
-                throw new Exception("a modules can't be static");
+                throw new Exception("a member can't be static");
             }
 
             foreach (var member in codeElement.Scope.Members.Values.Select(x => x.Value))

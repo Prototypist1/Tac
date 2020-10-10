@@ -162,7 +162,10 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> ObjectDefinition(IObjectDefiniton @object)
         {
-            return Walk(@object.Assignments, extensionLookup);
+            var membersReferenced= Walk(@object.Assignments, extensionLookup);
+
+            return membersReferenced
+            .Except(@object.Scope.Members.Select(x => x.Value.Value)).ToArray();
         }
 
         public IReadOnlyList<IMemberDefinition> PathOperation(IPathOperation path)

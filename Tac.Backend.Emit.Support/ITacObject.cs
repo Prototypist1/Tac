@@ -9,10 +9,12 @@ namespace Tac.Backend.Emit.Support
         ITacObject GetComplexReadonlyMember(int position);
 
         void SetComplexMember(ITacObject tacCastObject, int position);
+        // ugh, this totally needs to be generic 
         void SetSimpleMember(object value,int position);
         void SetComplexWriteonlyMember(ITacObject tacCastObject,int position);
 
         ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position);
+        // ugh, this totally needs to be generic 
         object SetSimpleMemberReturn(object value, int position);
         ITacObject SetComplexWriteonlyMemberReturn(ITacObject tacCastObject, int position);
 

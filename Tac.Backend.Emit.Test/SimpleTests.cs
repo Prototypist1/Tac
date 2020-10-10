@@ -5,6 +5,7 @@ using System.Text;
 using Tac.Model;
 using Tac.Model.Instantiated;
 using Tac.Model.Instantiated.Elements;
+using Tac.Model.Operations;
 using Xunit;
 
 namespace Tac.Backend.Emit.Test
@@ -269,10 +270,6 @@ namespace Tac.Backend.Emit.Test
         }
 
 
-        // TODO boxing unboxing and any!
-        // I don't think I should need boxing tho
-        // Func should be <double, double>
-
         [Fact]
         public void ClosureFunc()
         {
@@ -307,7 +304,39 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                }); ; ;
+                });
+        }
+
+
+        [Fact]
+        public void CreateObject() {
+
+            var xDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
+            var yDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{ }),
+                        new List<ICodeElement> {
+                            ObjectDefiniton.CreateAndBuild( 
+                                Scope.CreateAndBuild(
+                                    new List<IsStatic>{
+                                        new IsStatic(xDefinition,false),
+                                        new IsStatic(yDefinition,false)
+                                    }
+                                ),
+                                new List<IAssignOperation>{ 
+                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(0),Model.Instantiated.MemberReference.CreateAndBuild(xDefinition) ),
+                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),Model.Instantiated.MemberReference.CreateAndBuild(yDefinition))
+                                }
+                            ),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>()
+                    )
+                }
+           );
         }
     }
 }
