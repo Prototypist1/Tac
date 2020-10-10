@@ -93,7 +93,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public void SetSimpleMember(object value,int position)
+        public void SetSimpleMember<Tin>(Tin value,int position)
         {
             throw new NotImplementedException("not supported");
         }
@@ -106,7 +106,7 @@ namespace Tac.Backend.Emit.Support
             return tacCastObject;
         }
 
-        public object SetSimpleMemberReturn(object value, int position)
+        public Tin SetSimpleMemberReturn<Tin>(Tin value, int position)
         {
             SetSimpleMemberReturn(value, position);
             return value;
@@ -172,7 +172,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public void SetSimpleMember(object value,int position)
+        public void SetSimpleMember<Tin>(Tin value,int position)
         {
             throw new NotImplementedException("not supported");
         }
@@ -184,7 +184,7 @@ namespace Tac.Backend.Emit.Support
             return tacCastObject;
         }
 
-        public object SetSimpleMemberReturn(object value, int position)
+        public Tin SetSimpleMemberReturn<Tin>(Tin value, int position)
         {
             SetSimpleMemberReturn(value, position);
             return value;
@@ -249,7 +249,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public void SetSimpleMember(object value,int position)
+        public void SetSimpleMember<Tin>(Tin value,int position)
         {
             throw new NotImplementedException("not supported");
         }
@@ -261,7 +261,7 @@ namespace Tac.Backend.Emit.Support
             return tacCastObject;
         }
 
-        public object SetSimpleMemberReturn(object value, int position)
+        public Tin SetSimpleMemberReturn<Tin>(Tin value, int position)
         {
             SetSimpleMemberReturn(value, position);
             return value;
@@ -324,7 +324,7 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public void SetSimpleMember(object value,int position)
+        public void SetSimpleMember<Tin>(Tin value,int position)
         {
             throw new NotImplementedException("not supported");
         }
@@ -336,7 +336,7 @@ namespace Tac.Backend.Emit.Support
             return tacCastObject;
         }
 
-        public object SetSimpleMemberReturn(object value, int position)
+        public Tin SetSimpleMemberReturn<Tin>(Tin value, int position)
         {
             SetSimpleMemberReturn(value, position);
             return value;
@@ -385,7 +385,7 @@ namespace Tac.Backend.Emit.Support
             return @object.GetSimpleMember<T>(indexer.indexOffsets[position]);
         }
 
-        public void SetSimpleMember(object o,int position)
+        public void SetSimpleMember<Tin>(Tin o,int position)
         {
             @object.SetSimpleMember(o,indexer.indexOffsets[position]);
         }
@@ -451,7 +451,7 @@ namespace Tac.Backend.Emit.Support
             return tacCastObject;
         }
 
-        public object SetSimpleMemberReturn(object value, int position)
+        public Tin SetSimpleMemberReturn<Tin>(Tin value, int position)
         {
             SetSimpleMemberReturn(value, position);
             return value;
@@ -492,7 +492,7 @@ namespace Tac.Backend.Emit.Support
             return (T)members[position];
         }
 
-        public void SetSimpleMember(object value,int position)
+        public void SetSimpleMember<Tin>(Tin value,int position)
         {
             members[position] = value;
         }
@@ -529,7 +529,7 @@ namespace Tac.Backend.Emit.Support
             return tacCastObject;
         }
 
-        public object SetSimpleMemberReturn(object value, int position)
+        public Tin SetSimpleMemberReturn<Tin>(Tin value, int position)
         {
             SetSimpleMemberReturn(value, position);
             return value;

@@ -66,6 +66,7 @@ namespace Tac.Backend.Emit.Walkers
 
     public class DebuggableILGenerator
     {
+        public int EvaluationStackDepth { get; set; } = 0;
         List<IOrType<Guid, IMemberDefinition>> locals = new List<IOrType<Guid, IMemberDefinition>>();
 
         ILGenerator backing;
@@ -73,7 +74,7 @@ namespace Tac.Backend.Emit.Walkers
 
         public DebuggableILGenerator(ILGenerator backing, string name)
         {
-            debugString += name +": "+ Environment.NewLine;
+            debugString += name + ": "+ Environment.NewLine;
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
@@ -85,42 +86,42 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void Emit(OpCode code, MethodInfo method)
         {
-            debugString += code.ToString() + ", " + method.Name + /*"(" + string.Join<string>(',', method.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + method.Name + /*"(" + string.Join<string>(',', method.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
             backing.Emit(code, method);
         }
 
         internal void Emit(OpCode code, double dub)
         {
-            debugString += code.ToString() + ", " + dub + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + dub + Environment.NewLine;
             backing.Emit(code, dub);
         }
 
         internal void Emit(OpCode code, Label label)
         {
-            debugString += code.ToString() + ", " + label + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + label + Environment.NewLine;
             backing.Emit(code, label);
         }
 
 
         internal void Emit(OpCode code, System.Type type)
         {
-            debugString += code.ToString() + ", " + type.Name + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + type.Name + Environment.NewLine;
             backing.Emit(code, type);
         }
         internal void Emit(OpCode code, FieldInfo field)
         {
-            debugString += code.ToString() + ", " + field.Name + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + field.Name + Environment.NewLine;
             backing.Emit(code, field);
         }
 
         internal void Emit(OpCode code)
         {
-            debugString += code.ToString() + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + code.ToString() + Environment.NewLine;
             backing.Emit(code);
         }
         internal void Emit(OpCode code, ConstructorInfo rootSelfField)
         {
-            debugString += code.ToString() + ", " + rootSelfField.DeclaringType.FullName + /*"(" + string.Join<string>(',', rootSelfField.GetParameters().Select(x=>x.ParameterType.Name)) + ")"+*/ Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + rootSelfField.DeclaringType.FullName + /*"(" + string.Join<string>(',', rootSelfField.GetParameters().Select(x=>x.ParameterType.Name)) + ")"+*/ Environment.NewLine;
             backing.Emit(code, rootSelfField);
         }
 
@@ -132,7 +133,7 @@ namespace Tac.Backend.Emit.Walkers
             }
 
             locals.Add(or);
-            debugString += "local, " + type.Name + ", " + member.Key + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + "local, " + type.Name + ", " + member.Key + Environment.NewLine;
             return backing.DeclareLocal(type);
         }
 
@@ -147,7 +148,7 @@ namespace Tac.Backend.Emit.Walkers
 
             locals.Add(or);
 
-            debugString += "local, " + type.Name + ", " +  id + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + "local, " + type.Name + ", " +  id + Environment.NewLine;
             return backing.DeclareLocal(type);
         }
 
@@ -174,13 +175,13 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void EmitCall(OpCode code, MethodInfo methodInfo, System.Type[] type)
         {
-            debugString += code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
             backing.EmitCall(code,methodInfo,type);
         }
 
         internal void MarkLabel(Label topOfElseLabel)
         {
-            debugString += topOfElseLabel.ToString() + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + topOfElseLabel.ToString() + Environment.NewLine;
             backing.MarkLabel(topOfElseLabel);
         }
 
@@ -196,8 +197,8 @@ namespace Tac.Backend.Emit.Walkers
 
     class GeneratorHolder {
 
-        
-        public int EvaluationStackDepth { get; private set; } = 0;
+
+        public int EvaluationStackDepth => generator.GetOrThrow().EvaluationStackDepth;
         private IIsPossibly<DebuggableILGenerator> generator;
 
         public GeneratorHolder(IIsPossibly<DebuggableILGenerator> generator)
@@ -207,8 +208,9 @@ namespace Tac.Backend.Emit.Walkers
 
         public DebuggableILGenerator GetGeneratorAndUpdateStack(int stackChange)
         {
-            EvaluationStackDepth += stackChange;
-            return generator.GetOrThrow();
+            var res = generator.GetOrThrow();
+            res.EvaluationStackDepth += stackChange;
+            return res;
         }
 
         public string DebugString() {
@@ -613,7 +615,7 @@ namespace Tac.Backend.Emit.Walkers
                             }
                             else
                             {
-                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value), new[] { typeof(int) });
+                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
                                 return new Nothing();
                             }
 
@@ -1453,16 +1455,16 @@ namespace Tac.Backend.Emit.Walkers
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 GetVerifyableType(@object.Returns());
                 var field = typeof(TacObject).GetField(nameof(TacObject.type)) ?? throw new NullReferenceException("that field better exist");
-                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
             }
 
             // init member
             {
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 LoadInt(@object.Scope.Members.Count);
-                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newarr, typeof(object[]));
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newarr, typeof(object));
                 var field = typeof(TacObject).GetField(nameof(TacObject.members)) ?? throw new NullReferenceException("that field better exist");
-                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
             }
 
             // init members
