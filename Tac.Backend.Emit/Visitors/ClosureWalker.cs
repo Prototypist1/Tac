@@ -38,6 +38,17 @@ namespace Tac.Backend.Emit.Walkers
             return Walk(co.Operands, extensionLookup);
         }
 
+
+        public IReadOnlyList<IMemberDefinition> TryAssignOperation(ITryAssignOperation tryAssignOperation)
+        {
+
+            var implementationClosure = Walk(tryAssignOperation.Operands, extensionLookup);
+
+            return implementationClosure
+            .Except(tryAssignOperation.Scope.Members.Select(x => x.Value.Value)).ToArray();
+
+        }
+
         public IReadOnlyList<IMemberDefinition> BlockDefinition(IBlockDefinition codeElement)
         {
 
@@ -170,10 +181,6 @@ namespace Tac.Backend.Emit.Walkers
             return Walk(co.Operands, extensionLookup);
         }
 
-        public IReadOnlyList<IMemberDefinition> TryAssignOperation(ITryAssignOperation tryAssignOperation)
-        {
-            return Walk(tryAssignOperation.Operands, extensionLookup);
-        }
 
 
         private IReadOnlyList<IMemberDefinition> Walk(IEnumerable<ICodeElement> elements, ExtensionLookup extensionLookup)

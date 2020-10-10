@@ -68,6 +68,30 @@ namespace Tac.Backend.Emit.Visitors
         }
         public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation)
         {
+
+            var owner = stack.Reverse().SelectMany(x => {
+                if (x.SafeIs(out IInternalMethodDefinition method))
+                {
+                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(method) };
+                }
+                if (x.SafeIs(out IImplementationDefinition implementation))
+                {
+                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(implementation) };
+                }
+                if (x.SafeIs(out IEntryPointDefinition entry))
+                {
+                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(entry) };
+                }
+                return new IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>[] { };
+            }).First();
+
+
+            foreach (var entry in tryAssignOperation.Scope.Members.Values.Select(x => x.Value))
+            {
+                lookup.AddLocal(owner, entry);
+            }
+
+
             Push(tryAssignOperation).Walk(tryAssignOperation.Operands);
             return new Nothing();
         }

@@ -186,6 +186,40 @@ namespace Tac.Backend.Emit.Test
         }
 
         [Fact]
+        public void AnyIsNumber()
+        {
+
+            var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), Model.Elements.Access.ReadWrite);
+
+
+            var innerMemberDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(memberDefinition, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),
+                            TryAssignOperation.CreateAndBuild(
+                                Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition),
+                                Tac.Model.Instantiated.MemberReference.CreateAndBuild(innerMemberDefinition),
+                                BlockDefinition.CreateAndBuild(
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                    }),
+                                    new List<ICodeElement>{
+                                    },
+                                    Array.Empty<ICodeElement>()),
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(innerMemberDefinition, false)})),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>())
+            });
+        }
+
+        [Fact]
         public void AssignMemberAndAddReference()
         {
 
