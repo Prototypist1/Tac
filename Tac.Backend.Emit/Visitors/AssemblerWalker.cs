@@ -66,7 +66,8 @@ namespace Tac.Backend.Emit.Walkers
 
     public class DebuggableILGenerator
     {
-        
+        List<IOrType<Guid, IMemberDefinition>> locals = new List<IOrType<Guid, IMemberDefinition>>();
+
         ILGenerator backing;
         string debugString = "";
 
@@ -123,10 +124,52 @@ namespace Tac.Backend.Emit.Walkers
             backing.Emit(code, rootSelfField);
         }
 
-        internal LocalBuilder DeclareLocal(System.Type type)
+        internal LocalBuilder DeclareLocal(System.Type type, IMemberDefinition member)
         {
-            debugString += "local, " + type.Name + Environment.NewLine;
+            var or = OrType.Make<Guid,IMemberDefinition>(member);
+            if (locals.Contains(or)) {
+                throw new Exception("already added");
+            }
+
+            locals.Add(or);
+            debugString += "local, " + type.Name + ", " + member.Key + Environment.NewLine;
             return backing.DeclareLocal(type);
+        }
+
+        internal LocalBuilder DeclareLocal(System.Type type, Guid id)
+        {
+
+            var or = OrType.Make<Guid, IMemberDefinition>(id);
+            if (locals.Contains(or))
+            {
+                throw new Exception("already added");
+            }
+
+            locals.Add(or);
+
+            debugString += "local, " + type.Name + ", " +  id + Environment.NewLine;
+            return backing.DeclareLocal(type);
+        }
+
+        internal int GetLocalIndex(Guid id) {
+
+            var or = OrType.Make<Guid, IMemberDefinition>(id);
+            var index = locals.IndexOf(or);
+            if (index == -1) {
+                throw new Exception("local was never defined");
+            }
+            return index;
+        }
+
+        internal int GetLocalIndex(IMemberDefinition member)
+        {
+            var or = OrType.Make<Guid, IMemberDefinition>(member);
+            var index = locals.IndexOf(or);
+            if (index == -1)
+            {
+                throw new Exception("local was never defined");
+            }
+            return index;
         }
 
         internal void EmitCall(OpCode code, MethodInfo methodInfo, System.Type[] type)
@@ -434,7 +477,7 @@ namespace Tac.Backend.Emit.Walkers
 
                                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
 
-                                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
+                                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
                                 StoreLocal(loc.LocalIndex);
 
                                 generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
@@ -476,20 +519,17 @@ namespace Tac.Backend.Emit.Walkers
                     return orTypeLocal.SwitchReturns(
                         entryPoint =>
                         {
-                            var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
-                            StoreLocal(index);
+                            StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
                             return new Nothing();
                         },
                         imp =>
                         {
-                            var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
-                            StoreLocal(index);
+                            StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
                             return new Nothing();
                         },
                         method =>
                         {
-                            var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
-                            StoreLocal(index);
+                            StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
                             return new Nothing();
                         });
                 }
@@ -521,7 +561,7 @@ namespace Tac.Backend.Emit.Walkers
 
                                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
 
-                                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
+                                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
                                 StoreLocal(loc.LocalIndex);
 
                                 generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, field);
@@ -558,7 +598,7 @@ namespace Tac.Backend.Emit.Walkers
 
                         generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
 
-                        var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type]);
+                        var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
                         StoreLocal(loc.LocalIndex);
 
                         generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(System.Reflection.Emit.OpCodes.Stfld, fieldInfo);
@@ -642,6 +682,11 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing BlockDefinition(IBlockDefinition codeElement)
         {
+            foreach (var local in codeElement.Scope.Members)
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[local.Value.Value.Type],local.Value.Value);
+            }
+
             // this is nothing to MSIL
             return Walk(codeElement.Body, codeElement);
         }
@@ -748,7 +793,7 @@ namespace Tac.Backend.Emit.Walkers
             // I need to declare the locals
             foreach (var local in entryPointDefinition.Scope.Members)
             {
-                gen.DeclareLocal(typeCache[ local.Value.Value.Type]);
+                gen.DeclareLocal(typeCache[ local.Value.Value.Type], local.Value.Value);
             }
 
             var inner = this.Push(entryPointDefinition, gen);
@@ -921,21 +966,17 @@ namespace Tac.Backend.Emit.Walkers
                 return orTypeLocal.SwitchReturns(
                     entryPoint =>
                     {
-
-                        var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDefinition);
-                        LoadLocal(index);
+                        LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
                         return new Nothing();
                     },
                     imp =>
                     {
-                        var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDefinition);
-                        LoadLocal(index);
+                        LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
                         return new Nothing();
                     },
                     method =>
                     {
-                        var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDefinition);
-                        LoadLocal(index);
+                        LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
                         return new Nothing();
                     });
             }
@@ -1114,6 +1155,8 @@ namespace Tac.Backend.Emit.Walkers
         {
             switch (index)
             {
+                case -1:
+                    throw new Exception("that is not a good index");
                 case 0:
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_0);
                     return;
@@ -1177,7 +1220,7 @@ namespace Tac.Backend.Emit.Walkers
             {
                 if (local.Value.Value != method.ParameterDefinition)
                 {
-                    gen.DeclareLocal(typeCache[local.Value.Value.Type]);
+                    gen.DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
                 }
             }
 
@@ -1301,7 +1344,7 @@ namespace Tac.Backend.Emit.Walkers
             // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
 
             co.Left.Convert(this.Push(co));
-            var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(inType);
+            var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(inType, Guid.NewGuid());
             StoreLocal(loc.LocalIndex);
 
             co.Right.Convert(this.Push(co));
@@ -1445,7 +1488,10 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation)
         {
-
+            foreach (var local in tryAssignOperation.Scope.Members)
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+            }
 
             var topOfElseLabel = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
             var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
@@ -1459,7 +1505,7 @@ namespace Tac.Backend.Emit.Walkers
             GetVerifyableType(memberDef.Type);
 
             // I am just going to write this staticly in C#
-            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblerVisitor).GetMethod(nameof(AssemblerVisitor.TryAssignOperationHelper_Is)), new System.Type[] { });
+            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Is)), new System.Type[] { });
 
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
 
@@ -1472,31 +1518,36 @@ namespace Tac.Backend.Emit.Walkers
                 else
                 if (typeCache[memberDef.Type] == typeof(double))
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(bool));
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(double));
                 }
                 else
                 {
                     GetVerifyableType(memberDef.Type);
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblerVisitor).GetMethod(nameof(AssemblerVisitor.TryAssignOperationHelper_Cast)), new System.Type[] { });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)), new System.Type[] { });
                 }
 
                 orTypeLocal.SwitchReturns(
                     entryPoint =>
                     {
-                        var index = Array.IndexOf(entryPoint.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDef);
-                        StoreLocal(index);
+                        // you are here
+                        // the local my not be directly under the entry point
+                        // the locals on the entrypoint is really a composit list
+                        // I would probably be better off getting this from
+                        // generatorHolder
+                        // and storing the index as part of 
+                        // generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal
+
+                        StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
                         return new Nothing();
                     },
                     imp =>
                     {
-                        var index = Array.IndexOf(imp.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDef);
-                        StoreLocal(index);
+                        StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
                         return new Nothing();
                     },
                     method =>
                     {
-                        var index = Array.IndexOf(method.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDef);
-                        StoreLocal(index);
+                        StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
                         return new Nothing();
                     });
             }
@@ -1515,11 +1566,28 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
+        private Nothing Walk(IEnumerable<ICodeElement> elements, ICodeElement element)
+        {
+            var inner = this.Push(element);
+            foreach (var line in elements)
+            {
+                line.Convert(inner);
+            }
+
+            return new Nothing();
+        }
+    }
+
+
+    public static class AssemblyWalkerHelp {
+
+
         public static object TryAssignOperationHelper_Cast(object o, IVerifiableType targetType)
         {
             if (o.SafeIs(out ITacObject tacObject))
             {
-                if (tacObject.TacType() == targetType) {
+                if (tacObject.TacType() == targetType)
+                {
                     return o;
                 }
                 return new TacCastObject(tacObject, Indexer.Create(tacObject.TacType(), targetType), targetType);
@@ -1560,15 +1628,5 @@ namespace Tac.Backend.Emit.Walkers
             throw new NotImplementedException();
         }
 
-        private Nothing Walk(IEnumerable<ICodeElement> elements, ICodeElement element)
-        {
-            var inner = this.Push(element);
-            foreach (var line in elements)
-            {
-                line.Convert(inner);
-            }
-
-            return new Nothing();
-        }
     }
 }
