@@ -338,5 +338,56 @@ namespace Tac.Backend.Emit.Test
                 }
            );
         }
+
+        // (object{ number x = 0, number y = 1} =: type{ number x , number y} obj).x =: number z;
+        [Fact]
+        public void CreateObjectAndReadMember()
+        {
+            var xDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
+            var yDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            var objectDefiniton = ObjectDefiniton.CreateAndBuild(
+                                Scope.CreateAndBuild(
+                                    new List<IsStatic>{
+                                        new IsStatic(xDefinition,false),
+                                        new IsStatic(yDefinition,false)
+                                    }
+                                ),
+                                new List<IAssignOperation>{
+                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(0),Model.Instantiated.MemberReference.CreateAndBuild(xDefinition) ),
+                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),Model.Instantiated.MemberReference.CreateAndBuild(yDefinition))
+                                }
+                            );
+
+            var objectType = objectDefiniton.Returns();
+
+            var objectMember = MemberDefinition.CreateAndBuild(new NameKey("obj"), objectType, Model.Elements.Access.ReadWrite);
+            var zMember = MemberDefinition.CreateAndBuild(new NameKey("z"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(objectMember,false),
+                            new IsStatic(zMember,false),
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(
+                                PathOperation.CreateAndBuild(
+                                    AssignOperation.CreateAndBuild( 
+                                        objectDefiniton,
+                                        Model.Instantiated.MemberReference.CreateAndBuild(objectMember)
+                                    ),
+                                    Model.Instantiated.MemberReference.CreateAndBuild(xDefinition)
+                                 ),
+                                 Model.Instantiated.MemberReference.CreateAndBuild(zMember)
+                            ),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>()
+                    )
+                }
+           );
+        }
     }
 }

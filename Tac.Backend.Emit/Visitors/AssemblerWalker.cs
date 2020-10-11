@@ -74,7 +74,7 @@ namespace Tac.Backend.Emit.Walkers
 
         public DebuggableILGenerator(ILGenerator backing, string name)
         {
-            debugString += name + ": "+ Environment.NewLine;
+            debugString += name + ": " + Tabs() + Environment.NewLine;
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
 
@@ -86,42 +86,42 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void Emit(OpCode code, MethodInfo method)
         {
-            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + method.Name + /*"(" + string.Join<string>(',', method.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + method.Name + /*"(" + string.Join<string>(',', method.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
             backing.Emit(code, method);
         }
 
         internal void Emit(OpCode code, double dub)
         {
-            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + dub + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + dub + Environment.NewLine;
             backing.Emit(code, dub);
         }
 
         internal void Emit(OpCode code, Label label)
         {
-            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + label + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + label + Environment.NewLine;
             backing.Emit(code, label);
         }
 
 
         internal void Emit(OpCode code, System.Type type)
         {
-            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + type.Name + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + type.Name + Environment.NewLine;
             backing.Emit(code, type);
         }
         internal void Emit(OpCode code, FieldInfo field)
         {
-            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + field.Name + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + field.Name + Environment.NewLine;
             backing.Emit(code, field);
         }
 
         internal void Emit(OpCode code)
         {
-            debugString += EvaluationStackDepth + ": " + code.ToString() + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + Environment.NewLine;
             backing.Emit(code);
         }
         internal void Emit(OpCode code, ConstructorInfo rootSelfField)
         {
-            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + rootSelfField.DeclaringType.FullName + /*"(" + string.Join<string>(',', rootSelfField.GetParameters().Select(x=>x.ParameterType.Name)) + ")"+*/ Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + rootSelfField.DeclaringType.FullName + /*"(" + string.Join<string>(',', rootSelfField.GetParameters().Select(x=>x.ParameterType.Name)) + ")"+*/ Environment.NewLine;
             backing.Emit(code, rootSelfField);
         }
 
@@ -133,7 +133,7 @@ namespace Tac.Backend.Emit.Walkers
             }
 
             locals.Add(or);
-            debugString += EvaluationStackDepth + ": " + "local, " + type.Name + ", " + member.Key + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + "local, " + type.Name + ", " + member.Key + Environment.NewLine;
             return backing.DeclareLocal(type);
         }
 
@@ -148,7 +148,7 @@ namespace Tac.Backend.Emit.Walkers
 
             locals.Add(or);
 
-            debugString += EvaluationStackDepth + ": " + "local, " + type.Name + ", " +  id + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + "local, " + type.Name + ", " +  id + Environment.NewLine;
             return backing.DeclareLocal(type);
         }
 
@@ -173,15 +173,24 @@ namespace Tac.Backend.Emit.Walkers
             return index;
         }
 
-        internal void EmitCall(OpCode code, MethodInfo methodInfo, System.Type[] type)
+        private string Tabs() {
+            var res = "";
+            for (int i = 0; i < EvaluationStackDepth; i++)
+            {
+                res += '\t';
+            }
+            return res;
+        }
+
+        internal void EmitCall(OpCode code, MethodInfo methodInfo, System.Type[]? optionalTypes)
         {
-            debugString += EvaluationStackDepth + ": " + code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
-            backing.EmitCall(code,methodInfo,type);
+            debugString += EvaluationStackDepth + ": " +Tabs() + code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            backing.EmitCall(code,methodInfo,optionalTypes);
         }
 
         internal void MarkLabel(Label topOfElseLabel)
         {
-            debugString += EvaluationStackDepth + ": " + topOfElseLabel.ToString() + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + topOfElseLabel.ToString() + Environment.NewLine;
             backing.MarkLabel(topOfElseLabel);
         }
 
@@ -604,10 +613,10 @@ namespace Tac.Backend.Emit.Walkers
                                     case Access.ReadOnly:
                                         throw new Exception("this should have benn handled inside assignment");
                                     case Access.ReadWrite:
-                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
+                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
                                         return new Nothing();
                                     case Access.WriteOnly:
-                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
+                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
                                         return new Nothing();
                                     default:
                                         throw new Exception("that is unexpected");
@@ -615,7 +624,7 @@ namespace Tac.Backend.Emit.Walkers
                             }
                             else
                             {
-                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new System.Type[] { });
                                 return new Nothing();
                             }
 
@@ -692,10 +701,10 @@ namespace Tac.Backend.Emit.Walkers
                                         case Access.ReadOnly:
                                             throw new Exception("this should have benn handled inside assignment");
                                         case Access.ReadWrite:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new[] { typeof(int) });
+                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
                                             return new Nothing();
                                         case Access.WriteOnly:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new[] { typeof(int) });
+                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
                                             return new Nothing();
                                         default:
                                             throw new Exception("that is unexpected");
@@ -703,7 +712,7 @@ namespace Tac.Backend.Emit.Walkers
                                 }
                                 else
                                 {
-                                    generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new[] { typeof(int) });
+                                    generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new System.Type[] { });
                                     return new Nothing();
                                 }
                             });
@@ -1058,10 +1067,10 @@ namespace Tac.Backend.Emit.Walkers
                             switch (memberDefinition.Access)
                             {
                                 case Access.ReadOnly:
-                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new[] { typeof(int) });
+                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new System.Type[] { });
                                     return new Nothing();
                                 case Access.ReadWrite:
-                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new[] { typeof(int) });
+                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new System.Type[] {  });
                                     return new Nothing();
                                 case Access.WriteOnly:
                                     throw new Exception("this should have benn handled inside assignment");
@@ -1071,7 +1080,7 @@ namespace Tac.Backend.Emit.Walkers
                         }
                         else
                         {
-                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new[] { typeof(int) });
+                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new System.Type[] { });
                             return new Nothing();
                         }
                     });
@@ -1105,7 +1114,6 @@ namespace Tac.Backend.Emit.Walkers
         {
             return typeof(ITacObject).GetMethod(nameof(ITacObject.GetSimpleMember)) ?? throw new NullReferenceException("should not be null!");
         });
-
 
         private readonly Lazy<MethodInfo> setComplexWriteonlyMember = new Lazy<MethodInfo>(() =>
         {
@@ -1399,7 +1407,7 @@ namespace Tac.Backend.Emit.Walkers
                 if (outType == typeof(ITacObject))
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new[] { typeof(int) });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new System.Type[] {  });
                     // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                     if (!this.stack.Last().SafeIs(out IOperation _))
                     {
@@ -1409,7 +1417,7 @@ namespace Tac.Backend.Emit.Walkers
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new[] { typeof(int) });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new System.Type[] { });
                     // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                     if (!this.stack.Last().SafeIs(out IOperation _))
                     {
@@ -1421,7 +1429,7 @@ namespace Tac.Backend.Emit.Walkers
                 if (outType == typeof(ITacObject))
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new[] { typeof(int) });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new System.Type[] { });
                     // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                     if (!this.stack.Last().SafeIs(out IOperation _))
                     {
@@ -1431,7 +1439,7 @@ namespace Tac.Backend.Emit.Walkers
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new[] { typeof(int) });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new System.Type[] { });
                     // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                     if (!this.stack.Last().SafeIs(out IOperation _))
                     {

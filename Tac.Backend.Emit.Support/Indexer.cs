@@ -350,11 +350,13 @@ namespace Tac.Backend.Emit.Support
         public IVerifiableType TacType() => type;
     }
 
-    public struct TacCastObject : ITacObject
+    public class TacCastObject : ITacObject
     {
         public ITacObject @object;
         public Indexer indexer;
         private readonly IVerifiableType type;
+
+        // TODO I don't need type, the indexer knows it
         public TacCastObject(ITacObject @object, Indexer indexer, IVerifiableType type)
         {
             this.@object = @object ?? throw new ArgumentNullException(nameof(@object));
@@ -392,23 +394,17 @@ namespace Tac.Backend.Emit.Support
 
         public ITacObject GetComplexReadonlyMember(int position)
         {
-            return new TacCastObject()
-            {
-                @object = @object.GetComplexReadonlyMember(indexer.indexOffsets[position]),
-                indexer = indexer.nextIndexers[position]
-            };
+            var returnedIndexer = indexer.nextIndexers[position];
+            return new TacCastObject(@object.GetComplexReadonlyMember(indexer.indexOffsets[position]), returnedIndexer, returnedIndexer.looksLike);
         }
 
         public void SetComplexWriteonlyMember(ITacObject tacCastObject,int position)
         {
             // tacCastObject has to be converted to the type our TacObject wants 
             // we trust our index to convert that way
+            var setIndexer = indexer.nextIndexers[position];
             @object.SetComplexWriteonlyMember(
-                new TacCastObject()
-                {
-                    @object = tacCastObject,
-                    indexer = indexer.nextIndexers[position]
-                },
+                new TacCastObject(tacCastObject, setIndexer, setIndexer.looksLike),
                 indexer.indexOffsets[position]);
         }
 
@@ -418,29 +414,21 @@ namespace Tac.Backend.Emit.Support
         // nextIndexers can be null if the input or output is primitive     
 
         public ITacObject Call_Complex_Complex(ITacObject input) {
-            return new TacCastObject()
-            {
-                @object = @object.Call_Complex_Complex(new TacCastObject()
-                {
-                    indexer = indexer.nextIndexers[0],
-                    @object = input
-                }),
-                indexer = indexer.nextIndexers[1]
-            };
+            var inputIndexer = indexer.nextIndexers[0];
+            var outputIndexer = indexer.nextIndexers[1];
+
+
+            return new TacCastObject(@object.Call_Complex_Complex(new TacCastObject(input, inputIndexer, inputIndexer.looksLike)), outputIndexer, outputIndexer.looksLike);
         }
         public ITacObject Call_Simple_Complex<Tin>(Tin input) {
-            return new TacCastObject()
-            {
-                @object = @object.Call_Simple_Complex(input),
-                indexer = indexer.nextIndexers[1]
-            };
+
+            var outputIndexer = indexer.nextIndexers[1];
+            return new TacCastObject(@object.Call_Simple_Complex(input), outputIndexer, outputIndexer.looksLike);
         }
         public Tout Call_Complex_Simple<Tout>(ITacObject input) {
-            return @object.Call_Complex_Simple<Tout>(new TacCastObject()
-            {
-                indexer = indexer.nextIndexers[0],
-                @object = input
-            });
+
+            var inputIndexer = indexer.nextIndexers[0];
+            return @object.Call_Complex_Simple<Tout>(new TacCastObject(input, inputIndexer, inputIndexer.looksLike));
         }
         public Tout Call_Simple_Simple<Tin, Tout>(Tin input) {
             return @object.Call_Simple_Simple<Tin, Tout>(input);
@@ -573,6 +561,7 @@ namespace Tac.Backend.Emit.Support
     {
         public Indexer[] nextIndexers;
         public int[] indexOffsets;
+        public IVerifiableType looksLike;
 
         // for assignment to work we need two layers of overlay
         // this index is from one interface to another. say i1 to i2
@@ -664,7 +653,8 @@ namespace Tac.Backend.Emit.Support
                                         nextIndexers = new[] {
                                                 Create(innerToMethod.InputType,innerFromMethod.InputType),
                                                 Create(innerFromMethod.OutputType,innerToMethod.OutputType)
-                                            }
+                                            },
+                                        looksLike = innerToMethod
                                     };
                                 }
                                 if (fromMember.Type.SafeIs(out IInterfaceModuleType innerFromInterface) && toMember.Type.SafeIs(out IInterfaceType innerToInterface))
@@ -678,10 +668,10 @@ namespace Tac.Backend.Emit.Support
                     }
                     toAdd.nextIndexers = nextIndexers;
                     toAdd.indexOffsets = indexOffsets;
+                    toAdd.looksLike = to;
                     return toAdd;
                 }
                 else {
-
                     return map[(from, to)];
                 }
             }
@@ -695,6 +685,7 @@ namespace Tac.Backend.Emit.Support
                         Create(toMethod.InputType,fromMethod.InputType),
                         Create(fromMethod.OutputType,toMethod.OutputType)
                     };
+                    toAdd.looksLike = to;
                     return toAdd;
                 }
                 else {
