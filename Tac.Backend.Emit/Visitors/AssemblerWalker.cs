@@ -364,9 +364,12 @@ namespace Tac.Backend.Emit.Walkers
                     return;
                 }
                 else {
-                    var toCSharpeType = typeCache[fromType];
-                    if (new [] { typeof(bool), typeof(double)}.Contains(toCSharpeType) ) {
-                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, toCSharpeType);
+                    if (typeCache.TryGetValue(fromType, out var toCSharpeType))
+                    {
+                        if (new[] { typeof(bool), typeof(double) }.Contains(toCSharpeType))
+                        {
+                            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, toCSharpeType);
+                        }
                     }
                     return;
                 }
@@ -631,6 +634,53 @@ namespace Tac.Backend.Emit.Walkers
 
                             throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
+                        },
+                        typ => {
+
+                            // object would usally need to be part of a path
+                            // how else would you know what where to look for the field
+                            // but there is one excpetion
+                            // object initiation
+                            if (!stack.Last().SafeIs(out IObjectDefiniton _))
+                            {
+                                throw new Exception("this should only happen in object init");
+                            }
+
+                            // we count on having a reference to the object already on the stack
+
+                            // 1st parm, the new value
+                            co.Left.Convert(this.Push(co));
+                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
+                            // second parm, the index
+                            var index = Array.IndexOf(typ.Members.ToArray(), memberReference.MemberDefinition);
+                            LoadInt(index);
+
+                            if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
+                            {
+                                switch (memberReference.MemberDefinition.Access)
+                                {
+                                    case Access.ReadOnly:
+                                        throw new Exception("this should have benn handled inside assignment");
+                                    case Access.ReadWrite:
+                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
+                                        return new Nothing();
+                                    case Access.WriteOnly:
+                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
+                                        return new Nothing();
+                                    default:
+                                        throw new Exception("that is unexpected");
+                                }
+                            }
+                            else
+                            {
+                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new System.Type[] { });
+                                return new Nothing();
+                            }
+
+
+                            throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
+
                         });
                 }
 
@@ -692,6 +742,38 @@ namespace Tac.Backend.Emit.Walkers
 
                                 // second parm, the index
                                 var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), pathMemberReference.MemberDefinition);
+                                LoadInt(index);
+
+                                if (typeCache[pathMemberReference.MemberDefinition.Type] == typeof(ITacObject))
+                                {
+                                    switch (pathMemberReference.MemberDefinition.Access)
+                                    {
+                                        case Access.ReadOnly:
+                                            throw new Exception("this should have benn handled inside assignment");
+                                        case Access.ReadWrite:
+                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
+                                            return new Nothing();
+                                        case Access.WriteOnly:
+                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
+                                            return new Nothing();
+                                        default:
+                                            throw new Exception("that is unexpected");
+                                    }
+                                }
+                                else
+                                {
+                                    generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new System.Type[] { });
+                                    return new Nothing();
+                                }
+                            },
+                            typ => {
+
+                                // 1st parm, the new value
+                                co.Left.Convert(this.Push(co));
+                                PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
+                                // second parm, the index
+                                var index = Array.IndexOf(typ.Members.ToArray(), pathMemberReference.MemberDefinition);
                                 LoadInt(index);
 
                                 if (typeCache[pathMemberReference.MemberDefinition.Type] == typeof(ITacObject))
@@ -1071,6 +1153,36 @@ namespace Tac.Backend.Emit.Walkers
                                     return new Nothing();
                                 case Access.ReadWrite:
                                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new System.Type[] {  });
+                                    return new Nothing();
+                                case Access.WriteOnly:
+                                    throw new Exception("this should have benn handled inside assignment");
+                                default:
+                                    throw new Exception("that is unexpected");
+                            }
+                        }
+                        else
+                        {
+                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new System.Type[] { });
+                            return new Nothing();
+                        }
+                    },
+                    typ => {
+
+                        // this "b" inside a path like: a.b
+                        // we count on "a" to have already been load
+
+                        var index = Array.IndexOf(typ.Members.ToArray(), memberDefinition);
+                        LoadInt(index);
+
+                        if (typeCache[memberDefinition.Type] == typeof(ITacObject))
+                        {
+                            switch (memberDefinition.Access)
+                            {
+                                case Access.ReadOnly:
+                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new System.Type[] { });
+                                    return new Nothing();
+                                case Access.ReadWrite:
+                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new System.Type[] { });
                                     return new Nothing();
                                 case Access.WriteOnly:
                                     throw new Exception("this should have benn handled inside assignment");

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Text;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.Model.Instantiated;
 using Tac.Model.Instantiated.Elements;
 using Tac.Model.Operations;
@@ -389,5 +390,179 @@ namespace Tac.Backend.Emit.Test
                 }
            );
         }
+
+        [Fact]
+        public void ObjectIsType()
+        {
+            var xDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
+            var yDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            var objectDefiniton = ObjectDefiniton.CreateAndBuild(
+                                Scope.CreateAndBuild(
+                                    new List<IsStatic>{
+                                        new IsStatic(xDefinition,false),
+                                        new IsStatic(yDefinition,false)
+                                    }
+                                ),
+                                new List<IAssignOperation>{
+                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(0),Model.Instantiated.MemberReference.CreateAndBuild(xDefinition) ),
+                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),Model.Instantiated.MemberReference.CreateAndBuild(yDefinition))
+                                }
+                            );
+
+            var objectMemberX =
+                MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            var objectType = InterfaceType.CreateAndBuild(new List<Tac.Model.Elements.IMemberDefinition> {
+                objectMemberX
+            });
+
+            var isMember = MemberDefinition.CreateAndBuild(new NameKey("is-type"), objectType, Model.Elements.Access.ReadWrite);
+
+            var objectMember = MemberDefinition.CreateAndBuild(new NameKey("obj"), new AnyType(), Model.Elements.Access.ReadWrite);
+            var zMember = MemberDefinition.CreateAndBuild(new NameKey("z"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(objectMember,false),
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(
+                                objectDefiniton,
+                                Model.Instantiated.MemberReference.CreateAndBuild(objectMember)
+                            ),
+                            TryAssignOperation.CreateAndBuild(
+                                Model.Instantiated.MemberReference.CreateAndBuild(objectMember),
+                                Model.Instantiated.MemberReference.CreateAndBuild(isMember),
+                                BlockDefinition.CreateAndBuild(
+                                    Scope.CreateAndBuild(
+                                        new List<IsStatic>{
+                                            new IsStatic(zMember,false)
+                                        }
+                                    ),
+                                    new List<ICodeElement>{
+                                        AssignOperation.CreateAndBuild(
+                                            PathOperation.CreateAndBuild(
+                                                Model.Instantiated.MemberReference.CreateAndBuild(isMember),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(objectMemberX)
+                                                ),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(zMember))
+                                    },
+                                    Array.Empty<ICodeElement>()
+                                    ),
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(isMember, false),
+                                    })
+                                ),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>()
+                    )
+                }
+           );
+        }
+
+        // any func = Method[abc-type,ab-type] input { input return;  };
+        // func is method [abcd-type, a-type] cast {
+        //  obj { 1=: a; 2 =: b; 3 =: c 4=:d } > cast;
+        //}
+        //
+
+        [Fact]
+        public void FunctionIsType() {
+
+            var abcdType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("b"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("c"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("d"),new NumberType(),Access.ReadWrite)
+            });
+
+            var abcType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("b"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("c"),new NumberType(),Access.ReadWrite)
+            });
+
+            var abType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("b"),new NumberType(),Access.ReadWrite)
+            });
+
+            var aType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite)
+            });
+
+            var input = MemberDefinition.CreateAndBuild(new NameKey("input"), abcType, Access.ReadWrite);
+            var func = MemberDefinition.CreateAndBuild(new NameKey("func"), new AnyType(), Access.ReadWrite);
+            var cast = MemberDefinition.CreateAndBuild(new NameKey("cast"), MethodType.CreateAndBuild(abcdType, aType), Access.ReadWrite);
+
+
+            var objectA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var objectB = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+            var objectC = MemberDefinition.CreateAndBuild(new NameKey("c"), new NumberType(), Access.ReadWrite);
+            var objectD = MemberDefinition.CreateAndBuild(new NameKey("d"), new NumberType(), Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(func,false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(
+                                Model.Instantiated.MethodDefinition.CreateAndBuild(
+                                    new NumberType(),
+                                    new NumberType(),
+                                    input,
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic( input,false)
+                                    }),
+                                    new List<ICodeElement>{
+                                        ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(input))
+                                    },
+                                    Array.Empty<ICodeElement>()),
+                                Model.Instantiated.MemberReference.CreateAndBuild(func)),
+
+                            TryAssignOperation.CreateAndBuild(
+                                    Model.Instantiated.MemberReference.CreateAndBuild(func),
+                                    Model.Instantiated.MemberReference.CreateAndBuild(cast),
+                                    BlockDefinition.CreateAndBuild(
+                                        Scope.CreateAndBuild(new List<IsStatic>{}),
+                                        new List<ICodeElement>{ 
+                                            NextCallOperation.CreateAndBuild(
+                                            ObjectDefiniton.CreateAndBuild(
+                                                Scope.CreateAndBuild(new List<IsStatic>{
+                                                    new IsStatic( objectA,false),
+                                                    new IsStatic( objectB,false),
+                                                    new IsStatic( objectC,false),
+                                                    new IsStatic( objectD,false)
+                                                }),
+                                                new List<IAssignOperation>{ 
+                                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1), Model.Instantiated.MemberReference.CreateAndBuild(objectA)),
+                                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2), Model.Instantiated.MemberReference.CreateAndBuild(objectB)),
+                                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(3), Model.Instantiated.MemberReference.CreateAndBuild(objectC)),
+                                                    AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(4), Model.Instantiated.MemberReference.CreateAndBuild(objectD)),
+                                                }) ,
+                                                Model.Instantiated.MemberReference.CreateAndBuild(cast))
+                                        },
+                                        Array.Empty<ICodeElement>()
+                                        ),
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(cast, false),
+                                    })
+                                ),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
+                    Array.Empty<ICodeElement>())
+                });
+        }
+
+        // I should test a return from inside a try assign
     }
 }

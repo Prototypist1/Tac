@@ -13,7 +13,7 @@ namespace Tac.Backend.Emit.Lookup
     {
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>> locals = new ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>();
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>> arguments = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>>();
-        private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton>> fields = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton>>();
+        private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType>> fields = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType>>();
         private readonly ConcurrentIndexed<IMemberDefinition, FieldInfo> staticFields = new ConcurrentIndexed<IMemberDefinition, FieldInfo>();
 
         internal void AddLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition> owner, IMemberDefinition value)
@@ -26,9 +26,14 @@ namespace Tac.Backend.Emit.Lookup
             arguments.AddOrThrow(parameterDefinition, codeElement);
         }
 
-        internal void AddField(IOrType<IImplementationDefinition, IObjectDefiniton> codeElement, IMemberDefinition contextDefinition)
+        internal void AddField(IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType> codeElement, IMemberDefinition contextDefinition)
         {
             fields.AddOrThrow(contextDefinition, codeElement);
+        }
+
+        internal void TryAddField(IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType> codeElement, IMemberDefinition contextDefinition)
+        {
+            fields.TryAdd(contextDefinition, codeElement);
         }
 
         internal void AddStaticField(FieldInfo fieldInfo, IMemberDefinition member)
@@ -45,7 +50,7 @@ namespace Tac.Backend.Emit.Lookup
         {
             return arguments.TryGetValue(member, out orType);
         }
-        internal bool IsField(IMemberDefinition member, out IOrType<IImplementationDefinition, IObjectDefiniton> orType)
+        internal bool IsField(IMemberDefinition member, out IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType> orType)
         {
             return fields.TryGetValue(member, out orType);
         }

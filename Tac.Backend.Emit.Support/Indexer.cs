@@ -282,6 +282,7 @@ namespace Tac.Backend.Emit.Support
         public TacMethod_Simple_Simple(object backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public ITacObject Call_Complex_Complex(ITacObject input)

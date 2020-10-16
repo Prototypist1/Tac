@@ -44,6 +44,8 @@ namespace Tac.Model
 
     }
 
+    // was this a mistake??
+    // do static things always live in root
     public struct IsStatic
     {
         public IsStatic(IMemberDefinition value, bool @static)

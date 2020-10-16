@@ -52,7 +52,13 @@ namespace Tac.Backend.Emit.Walkers
         }
         private System.Type HandleType(IVerifiableType verifiableType)
         {
-            return typeCache.GetOrAdd(verifiableType, () => InnerMapType(verifiableType));
+            var res = typeCache.GetOrAdd(verifiableType, () => InnerMapType(verifiableType));
+            if (verifiableType is IMethodType method)
+            {
+                typeCache.GetOrAdd(method.InputType, () => InnerMapType(method.InputType));
+                typeCache.GetOrAdd(method.OutputType, () => InnerMapType(method.OutputType));
+            }
+            return res;
         }
 
 
@@ -157,7 +163,9 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing PathOperation(IPathOperation co) => HandleOp(co);
         public Nothing ReturnOperation(IReturnOperation co) => HandleOp(co);
         public Nothing SubtractOperation(ISubtractOperation co) => HandleOp(co);
-        public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation) => HandleOp(tryAssignOperation);
+        public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation) {
+            return HandleOp(tryAssignOperation);
+        }
 
         public Nothing BlockDefinition(IBlockDefinition codeElement)
         {
@@ -217,11 +225,13 @@ namespace Tac.Backend.Emit.Walkers
             co.ParameterDefinition.Convert(this);
             HandleType(co.InputType);
             HandleType(co.OutputType);
+            HandleType(co.Returns());
             return new Nothing();
         }
 
         public Nothing ModuleDefinition(IModuleDefinition codeElement)
         {
+            throw new NotImplementedException();
             HandleScope(codeElement.Scope);
             codeElement.EntryPoint.Convert(this);
             HandleLines(codeElement.StaticInitialization);
@@ -232,6 +242,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             HandleLines(codeElement.Assignments);
             HandleScope(codeElement.Scope);
+            HandleType(codeElement.Returns());
             return new Nothing();
         }
 

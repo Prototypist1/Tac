@@ -11,6 +11,7 @@ namespace Tac.Model.Instantiated
     {
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
         private readonly Buildable<IReadOnlyList<IAssignOperation>> buildableAssignments = new Buildable<IReadOnlyList<IAssignOperation>>();
+        private IVerifiableType type;
 
         private ObjectDefiniton() { }
 
@@ -25,24 +26,24 @@ namespace Tac.Model.Instantiated
         {
             buildableScope.Set(scope);
             buildableAssignments.Set(assignments);
+            type = InterfaceType.CreateAndBuild(scope.Members.Values.Select(x => MemberDefinition.CreateAndBuild(x.Value.Key, x.Value.Type, x.Value.Access)).ToList());
         }
-        
+
         public static (IObjectDefiniton, IObjectDefinitonBuilder) Create()
         {
             var res = new ObjectDefiniton();
             return (res, res);
         }
 
-        public static IObjectDefiniton CreateAndBuild(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments) {
+        public static IObjectDefiniton CreateAndBuild(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments)
+        {
             var (x, y) = Create();
             y.Build(scope, assignments);
             return x;
         }
 
-        public IVerifiableType Returns()
-        {
-            return InterfaceType.CreateAndBuild(Scope.Members.Values.Select(x => x.Value).ToList());
-        }
+        public IVerifiableType Returns() => type;
+
     }
 
     public interface IObjectDefinitonBuilder

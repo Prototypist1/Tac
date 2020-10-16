@@ -132,12 +132,29 @@ namespace Tac.Backend.Emit.Visitors
         public Nothing ConstantNumber(IConstantNumber codeElement) => new Nothing();
         public Nothing ConstantString(IConstantString co) => new Nothing();
         public Nothing EmptyInstance(IEmptyInstance co) => new Nothing();
-        public Nothing MemberReferance(IMemberReference codeElement) => new Nothing();
-        public Nothing MemberDefinition(IMemberDefinition codeElement) => new Nothing();
-        public Nothing TypeDefinition(IInterfaceType codeElement) => new Nothing();
+        public Nothing MemberReferance(IMemberReference codeElement) {
+            codeElement.MemberDefinition.Convert(Push(codeElement));
+            return new Nothing(); 
+        }
+        public Nothing MemberDefinition(IMemberDefinition codeElement)
+        {
+            if (codeElement.Type is IInterfaceType interfaceType)
+            {
+                // I guess member definition is not a code elemeht 
+                interfaceType.Convert(this);
+            }
+            return new Nothing();
+        }
 
+        public Nothing TypeDefinition(IInterfaceType codeElement)
+        {
+            foreach (var member in codeElement.Members)
+            {
+                lookup.TryAddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType>(codeElement), member);
+            }
 
-
+            return new Nothing();
+        }
 
         public Nothing EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
@@ -191,13 +208,19 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing MethodDefinition(IInternalMethodDefinition co)
         {
+            var next = Push(co);
+
+            co.ParameterDefinition.Convert(next);
+            if (co.OutputType.SafeIs(out IInterfaceType type)) {
+                type.Convert(next);
+            }
+
             foreach (var entry in co.Scope.Members.Values.Select(x => x.Value).Except(new[] { co.ParameterDefinition }))
             {
                 lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(co), entry);
             }
             lookup.AddArgument(OrType.Make<IImplementationDefinition, IInternalMethodDefinition>(co), co.ParameterDefinition);
 
-            var next = Push(co);
             next.Walk(co.Body);
 
             return new Nothing();
@@ -205,15 +228,23 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing ImplementationDefinition(IImplementationDefinition codeElement)
         {
+            var next = Push(codeElement);
+
+            codeElement.ParameterDefinition.Convert(next);
+            codeElement.ContextDefinition.Convert(next);
+            if (codeElement.OutputType.SafeIs(out IInterfaceType type))
+            {
+                type.Convert(next);
+            }
+
             foreach (var entry in codeElement.Scope.Members.Values.Select(x => x.Value).Except(new[] { codeElement.ParameterDefinition }))
             {
                 lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(codeElement), entry);
             }
 
             lookup.AddArgument(OrType.Make < IImplementationDefinition, IInternalMethodDefinition > (codeElement),codeElement.ParameterDefinition);
-            lookup.AddField(OrType .Make< IImplementationDefinition, IObjectDefiniton >( codeElement), codeElement.ContextDefinition);
+            lookup.AddField(OrType .Make< IImplementationDefinition, IObjectDefiniton, IInterfaceType >( codeElement), codeElement.ContextDefinition);
 
-            var next = Push(codeElement);
             next.Walk(codeElement.MethodBody);
 
             return new Nothing();
@@ -249,7 +280,7 @@ namespace Tac.Backend.Emit.Visitors
 
             foreach (var member in codeElement.Scope.Members.Values.Select(x => x.Value))
             {
-                lookup.AddField(OrType.Make<IImplementationDefinition, IObjectDefiniton>(codeElement), member);
+                lookup.AddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType>(codeElement), member);
             }
 
             var next = Push(codeElement);
