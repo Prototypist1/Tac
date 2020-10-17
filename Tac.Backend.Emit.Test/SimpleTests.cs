@@ -742,7 +742,98 @@ namespace Tac.Backend.Emit.Test
             });
         }
 
-        // maybe a simpler circular reference 
+
+        // a long path of fields
+        [Fact]
+        public void LongPath()
+        {
+
+            var object4next = MemberDefinition.CreateAndBuild(new NameKey("next"), new NumberType(), Access.ReadWrite);
+            var object4 = ObjectDefiniton.CreateAndBuild(
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(object4next, false)
+                                    }),
+                                    new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(5),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(object4next))
+                                    });
+
+            var object3next = MemberDefinition.CreateAndBuild(new NameKey("next"), object4.Returns(), Access.ReadWrite);
+            var object3 = ObjectDefiniton.CreateAndBuild(
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(object3next, false)
+                                    }),
+                                    new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            object4,
+                                            Model.Instantiated.MemberReference.CreateAndBuild(object3next))
+                                    });
+
+            var object2next = MemberDefinition.CreateAndBuild(new NameKey("next"), object3.Returns(), Access.ReadWrite);
+            var object2 = ObjectDefiniton.CreateAndBuild(
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(object2next, false)
+                                    }),
+                                    new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            object3,
+                                            Model.Instantiated.MemberReference.CreateAndBuild(object2next))
+                                    });
+
+            var object1next = MemberDefinition.CreateAndBuild(new NameKey("next"), object2.Returns(), Access.ReadWrite);
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(object1next, false)
+                                    }),
+                                    new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            object2,
+                                            Model.Instantiated.MemberReference.CreateAndBuild(object1next))
+                                    });
+
+
+            var member = MemberDefinition.CreateAndBuild(new NameKey("root"), object1.Returns(), Access.ReadWrite);
+
+
+            Compiler.BuildAndRun(
+               new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(member, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(
+                                object1,
+                                Model.Instantiated.MemberReference.CreateAndBuild(member)),
+                            AssignOperation.CreateAndBuild(
+                                ConstantNumber.CreateAndBuild(10),
+                                PathOperation.CreateAndBuild(
+                                    PathOperation.CreateAndBuild(
+                                        PathOperation.CreateAndBuild(
+                                            PathOperation.CreateAndBuild(
+                                                Model.Instantiated.MemberReference.CreateAndBuild(member),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(object1next)),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(object2next)),
+                                        Model.Instantiated.MemberReference.CreateAndBuild(object3next)),
+                                    Model.Instantiated.MemberReference.CreateAndBuild(object4next))),
+                            PathOperation.CreateAndBuild(
+                                PathOperation.CreateAndBuild(
+                                    PathOperation.CreateAndBuild(
+                                        PathOperation.CreateAndBuild(
+                                            Model.Instantiated.MemberReference.CreateAndBuild(member),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(object1next)),
+                                        Model.Instantiated.MemberReference.CreateAndBuild(object2next)),
+                                    Model.Instantiated.MemberReference.CreateAndBuild(object3next)),
+                                Model.Instantiated.MemberReference.CreateAndBuild(object4next)),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>())
+            });
+
+        }
+
+        // test something outside of the entry point?
 
     }
 }

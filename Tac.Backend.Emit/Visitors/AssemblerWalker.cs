@@ -739,7 +739,7 @@ namespace Tac.Backend.Emit.Walkers
 
                     // this "b" inside a path like: a.b
                     // we count on "a" to have already been load
-                    if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField))
+                    if (memberKindLookup.IsField(pathMemberReference.MemberDefinition, out var orTypeField))
                     {
                         return orTypeField.SwitchReturns(
                             imp =>
