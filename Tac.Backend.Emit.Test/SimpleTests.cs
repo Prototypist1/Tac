@@ -187,12 +187,15 @@ namespace Tac.Backend.Emit.Test
             });
         }
 
+        // 2=: any x
+        // x is any y {
+        //}
+        // empty return
         [Fact]
         public void AnyIsNumber()
         {
 
             var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), Model.Elements.Access.ReadWrite);
-
 
             var innerMemberDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
 
@@ -469,7 +472,6 @@ namespace Tac.Backend.Emit.Test
         //  obj { 1=: a; 2 =: b; 3 =: c 4=:d } > cast;
         //}
         //
-
         [Fact]
         public void FunctionIsType() {
 
@@ -564,5 +566,56 @@ namespace Tac.Backend.Emit.Test
         }
 
         // I should test a return from inside a try assign
+
+        // any x := 2
+        // x is number num {
+        //      num < 10 then {
+        //          empty return;
+        //      }
+        //}
+        // empty return
+        [Fact]
+        public void ReturnInsideBlocks() {
+            var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), Model.Elements.Access.ReadWrite);
+
+            var innerMemberDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(memberDefinition, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),
+                            TryAssignOperation.CreateAndBuild(
+                                Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition),
+                                Model.Instantiated.MemberReference.CreateAndBuild(innerMemberDefinition),
+                                BlockDefinition.CreateAndBuild(
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                    }),
+                                    new List<ICodeElement>{
+                                        IfOperation.CreateAndBuild(
+                                            LessThanOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(innerMemberDefinition), ConstantNumber.CreateAndBuild(10)),
+                                            BlockDefinition.CreateAndBuild(
+                                                Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                                new List<ICodeElement> {
+                                                    ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                                                },
+                                                Array.Empty<ICodeElement>()
+                                            )),
+                                    },
+                                    Array.Empty<ICodeElement>()),
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(innerMemberDefinition, false)})),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>())
+            });
+        }
+
+        // long path test
+        // something with an object that is a circlar reference 
+
     }
 }
