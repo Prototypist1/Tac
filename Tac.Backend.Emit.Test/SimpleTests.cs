@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Text;
@@ -616,6 +617,132 @@ namespace Tac.Backend.Emit.Test
 
         // long path test
         // something with an object that is a circlar reference 
+        // something with an or type
+        // type T { T | empty next }
+        // T t := object { T | empty next := object { T | empty next := object { T | empty next :=  object{ T | empty next := empty }}}}
+        // t.next is T t-next { t-next.next is T t-next-next { t-next-next.next is T t-next-next-next { t-next-next.next is empty t-next-next-next-empty {  t-next-next-next-empty return } } } }
+        // empty return 
+        [Fact]
+        public void LinkedList() {
+            var (node, nodeBuilder) = InterfaceType.Create();
+
+            var nodeOrNull= TypeOr.CreateAndBuild(node, new EmptyType());
+
+            var next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Model.Elements.Access.ReadWrite);
+
+            nodeBuilder.Build(new List<IMemberDefinition>
+            {
+                next
+            });
+
+            var t = MemberDefinition.CreateAndBuild(new NameKey("t"), node, Access.ReadWrite);
+            var tnext = MemberDefinition.CreateAndBuild(new NameKey("t-next"), node, Access.ReadWrite);
+            var tnextnext = MemberDefinition.CreateAndBuild(new NameKey("t-next-next"), node, Access.ReadWrite);
+            var tnextnextnext = MemberDefinition.CreateAndBuild(new NameKey("t-next-next-next"), node, Access.ReadWrite);
+            var tnextnextnextempty = MemberDefinition.CreateAndBuild(new NameKey("t-next-next-next-empty"), new EmptyType(), Access.ReadWrite);
+
+            var object1next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Access.ReadWrite);
+            var object2next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Access.ReadWrite);
+            var object3next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Access.ReadWrite);
+            var object4next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Access.ReadWrite);
+
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(t, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(
+                                ObjectDefiniton.CreateAndBuild(
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(object1next, false)
+                                }),
+                                new List<IAssignOperation>{
+                                    AssignOperation.CreateAndBuild(
+                                        ObjectDefiniton.CreateAndBuild(
+                                        Scope.CreateAndBuild(new List<IsStatic>{
+                                            new IsStatic(object2next, false)
+                                        }),
+                                        new List<IAssignOperation>{
+                                            AssignOperation.CreateAndBuild(
+                                                ObjectDefiniton.CreateAndBuild(
+                                                Scope.CreateAndBuild(new List<IsStatic>{
+                                                    new IsStatic(object3next, false)
+                                                }),
+                                                new List<IAssignOperation>{
+                                                    AssignOperation.CreateAndBuild(
+                                                        ObjectDefiniton.CreateAndBuild(
+                                                        Scope.CreateAndBuild(new List<IsStatic>{
+                                                            new IsStatic(object4next, false)
+                                                        }),
+                                                        new List<IAssignOperation>{
+                                                            AssignOperation.CreateAndBuild(
+                                                                EmptyInstance.CreateAndBuild(),
+                                                                Model.Instantiated.MemberReference.CreateAndBuild(object4next))
+                                                        }),
+                                                        Model.Instantiated.MemberReference.CreateAndBuild(object3next))
+                                                }),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(object2next))
+                                        }),
+                                        Model.Instantiated.MemberReference.CreateAndBuild(object1next))
+                                }),
+                                Model.Instantiated.MemberReference.CreateAndBuild(t)),
+                                TryAssignOperation.CreateAndBuild(
+                                    PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(t), Model.Instantiated.MemberReference.CreateAndBuild(next)),
+                                    Model.Instantiated.MemberReference.CreateAndBuild(tnext),
+                                    BlockDefinition.CreateAndBuild(
+                                        Scope.CreateAndBuild(new List<IsStatic>{
+                                        }),
+                                        new List<ICodeElement>{
+                                            TryAssignOperation.CreateAndBuild(
+                                                PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(tnext), Model.Instantiated.MemberReference.CreateAndBuild(next)),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(tnextnext),
+                                                BlockDefinition.CreateAndBuild(
+                                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                                    }),
+                                                    new List<ICodeElement>{
+
+
+                                                        TryAssignOperation.CreateAndBuild(
+                                                            PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(tnextnext), Model.Instantiated.MemberReference.CreateAndBuild(next)),
+                                                            Model.Instantiated.MemberReference.CreateAndBuild(tnextnextnext),
+                                                            BlockDefinition.CreateAndBuild(
+                                                                Scope.CreateAndBuild(new List<IsStatic>{
+                                                                }),
+                                                                new List<ICodeElement>{
+                                                                    TryAssignOperation.CreateAndBuild(
+                                                                        PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(tnextnextnext), Model.Instantiated.MemberReference.CreateAndBuild(next)),
+                                                                        Model.Instantiated.MemberReference.CreateAndBuild(tnextnextnextempty),
+                                                                        BlockDefinition.CreateAndBuild(
+                                                                            Scope.CreateAndBuild(new List<IsStatic>{
+                                                                            }),
+                                                                            new List<ICodeElement>{
+                                                                                ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(tnextnextnextempty))
+                                                                            },
+                                                                            Array.Empty<ICodeElement>()),
+                                                                        Scope.CreateAndBuild(new List<IsStatic>{
+                                                                            new IsStatic(tnextnextnextempty, false)})),
+                                                                },
+                                                                Array.Empty<ICodeElement>()),
+                                                            Scope.CreateAndBuild(new List<IsStatic>{
+                                                                new IsStatic(tnextnextnext, false)})),
+                                                    },
+                                                    Array.Empty<ICodeElement>()),
+                                                Scope.CreateAndBuild(new List<IsStatic>{
+                                                    new IsStatic(tnextnext, false)})),
+                                        },
+                                        Array.Empty<ICodeElement>()),
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(tnext, false)})),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>())
+            });
+        }
+
+        // maybe a simpler circular reference 
 
     }
 }

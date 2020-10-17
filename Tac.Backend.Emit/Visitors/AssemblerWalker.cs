@@ -96,6 +96,18 @@ namespace Tac.Backend.Emit.Walkers
             backing.Emit(code, dub);
         }
 
+        internal void Emit(OpCode code, byte dub)
+        {
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + dub + Environment.NewLine;
+            backing.Emit(code, dub);
+        }
+
+        internal void Emit(OpCode code, short dub)
+        {
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + dub + Environment.NewLine;
+            backing.Emit(code, dub);
+        }
+
         internal void Emit(OpCode code, Label label)
         {
             debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + label + Environment.NewLine;
@@ -518,7 +530,7 @@ namespace Tac.Backend.Emit.Walkers
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Dup);
                     }
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Starg, 1);
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Starg, (short)1);
                     return new Nothing();
                 }
 
@@ -557,7 +569,7 @@ namespace Tac.Backend.Emit.Walkers
                             // this is the closure
 
                             // I need a reference to this
-                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg, 0);
+                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldarg, (short)0);
 
                             co.Left.Convert(this.Push(co));
                             PossiblyConvert(co.Left.Returns(), co.Right.Returns());
@@ -1334,7 +1346,7 @@ namespace Tac.Backend.Emit.Walkers
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_3);
                     return;
                 default:
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_S, index);
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(System.Reflection.Emit.OpCodes.Stloc_S, (byte)index);
                     return;
             }
         }
@@ -1357,7 +1369,7 @@ namespace Tac.Backend.Emit.Walkers
                     generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldloc_3);
                     return;
                 default:
-                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldloc_S, index);
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(System.Reflection.Emit.OpCodes.Ldloc_S, (byte)index);
                     return;
             }
         }
@@ -1750,6 +1762,10 @@ namespace Tac.Backend.Emit.Walkers
 
         public static object TryAssignOperationHelper_Cast(object o, IVerifiableType targetType)
         {
+            if (o == null)
+            {
+                return o;
+            }
             if (o.SafeIs(out ITacObject tacObject))
             {
                 if (tacObject.TacType() == targetType)
@@ -1775,6 +1791,9 @@ namespace Tac.Backend.Emit.Walkers
 
         public static bool TryAssignOperationHelper_Is(object o, IVerifiableType targetType)
         {
+            if (o == null && targetType.SafeIs(out IEmptyType _)) {
+                return true;
+            }
             if (o.SafeIs(out ITacObject verifiableType))
             {
                 return targetType.TheyAreUs(verifiableType.TacType(), new List<(IVerifiableType, IVerifiableType)>());

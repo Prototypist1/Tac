@@ -16,7 +16,7 @@ using Tac.Type;
 
 namespace Tac.Backend.Emit.Walkers
 {
-    class Empty { }
+    public class Empty { }
     class Nothing { }
     class TypeVisitor : IOpenBoxesContext<Nothing>
     {
@@ -130,7 +130,7 @@ namespace Tac.Backend.Emit.Walkers
             // if either is a primitive type... return empty?
             if (left.SafeIs(out IPrimitiveType _) || right.SafeIs(out IPrimitiveType _))
             {
-                return typeof(Empty);
+                return typeof(object);
             }
 
             // if they are both methods 
@@ -149,7 +149,7 @@ namespace Tac.Backend.Emit.Walkers
                 return typeof(ITacObject);
             }
 
-            return typeof(Empty);
+            return typeof(object);
         }
 
         public Nothing AddOperation(IAddOperation co) =>HandleOp(co);
