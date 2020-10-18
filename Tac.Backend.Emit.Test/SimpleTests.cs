@@ -913,6 +913,10 @@ namespace Tac.Backend.Emit.Test
         }
 
 
+        // I really need to exercise type ors
+        // as is so often so, they are a huge challenge
+
+
         // test something outside of the entry point?
         // something that does not go in to an IS
 

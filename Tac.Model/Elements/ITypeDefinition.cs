@@ -31,6 +31,7 @@ namespace Tac.Model.Elements
     public interface ITypeOr : IVerifiableType {
         IVerifiableType Left { get; }
         IVerifiableType Right { get; }
+        IReadOnlyList<IMemberDefinition> Members { get; }
     }
 
     public interface ITypeAnd : IVerifiableType {

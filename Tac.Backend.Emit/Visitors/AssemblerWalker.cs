@@ -1796,6 +1796,12 @@ namespace Tac.Backend.Emit.Walkers
             }
             if (o.SafeIs(out ITacObject verifiableType))
             {
+
+
+                // for a cast type verifiableType.TacType() will return the type it was cast to
+                // it needs to return the base type!
+                throw new Exception("this is a bug!");
+                
                 return targetType.TheyAreUs(verifiableType.TacType(), new List<(IVerifiableType, IVerifiableType)>());
             }
             if (o.SafeIs(out double _))

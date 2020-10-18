@@ -113,11 +113,13 @@ namespace Tac.Model.Instantiated
 
         private readonly Buildable<IVerifiableType> left = new Buildable<IVerifiableType>();
         private readonly Buildable<IVerifiableType> right = new Buildable<IVerifiableType>();
-        private List<IMemberDefinition> members;
+        private Buildable<Lazy<List<IMemberDefinition>>> members = new Buildable<Lazy<List<IMemberDefinition>>>();
 
         public IVerifiableType Left => left.Get();
 
         public IVerifiableType Right => right.Get();
+
+        public IReadOnlyList<IMemberDefinition> Members => members.Get().Value;
 
         public static (ITypeOr, ITypeOrBuilder) Create()
         {
@@ -129,6 +131,7 @@ namespace Tac.Model.Instantiated
         {
             var res = new TypeOr();
             res.Build(left, right);
+
             return res;
         }
 
@@ -147,6 +150,32 @@ namespace Tac.Model.Instantiated
 
             this.left.Set(left);
             this.right.Set(right);
+
+
+            members.Set(new Lazy<List<IMemberDefinition>> (() => {
+                var list = new List<IMemberDefinition>();
+                if (left.SafeIs(out IInterfaceType @interface))
+                {
+                    foreach (var member in @interface.Members)
+                    {
+                        right.TryGetMember(member.Key, new List<(IVerifiableType, IVerifiableType)>()).If(x =>
+                        {
+                            list.Add(MemberDefinition.CreateAndBuild(member.Key, x.Item1, x.Item2));
+                        });
+                    }
+                }
+                else if (left.SafeIs(out ITypeOr typeOr))
+                {
+                    foreach (var member in typeOr.Members)
+                    {
+                        right.TryGetMember(member.Key, new List<(IVerifiableType, IVerifiableType)>()).If(x =>
+                        {
+                            list.Add(MemberDefinition.CreateAndBuild(member.Key, x.Item1, x.Item2));
+                        });
+                    }
+                }
+                return list;
+            }));
         }
 
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)

@@ -1,4 +1,5 @@
 ﻿using Prototypist.TaskChain;
+using Prototypist.Toolbox;
 using Prototypist.Toolbox.IEnumerable;
 using Prototypist.Toolbox.Object;
 using System;
@@ -625,70 +626,80 @@ namespace Tac.Backend.Emit.Support
         private static ConcurrentIndexed<(IVerifiableType, IVerifiableType), Indexer> map = new ConcurrentIndexed<(IVerifiableType, IVerifiableType), Indexer>();
 
         public static Indexer Create(IVerifiableType from, IVerifiableType to) {
-
-
-            if (from.SafeIs(out IInterfaceType fromInterface) && to.SafeIs(out IInterfaceType toInterface))
+            var toAdd = new Indexer();
+            if (map.TryAdd((from, to), toAdd))
             {
-                var toAdd = new Indexer();
-                if (map.TryAdd((from, to), toAdd))
+
+                List<IMemberDefinition> toMembers = null, fromMembers = null;
+            
+                if (from.SafeIs(out IInterfaceType fromInterface)){
+                    fromMembers = fromInterface.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
+                }
+                if (from.SafeIs(out ITypeOr fromOr))
                 {
-                    var toMembers = toInterface.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
-                    var fromMembers = fromInterface.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
+                    fromMembers = fromOr.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
+                }
+                if (to.SafeIs(out IInterfaceType toInterface))
+                {
+                    toMembers = toInterface.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
+                }
+                if (to.SafeIs(out ITypeOr toOr))
+                {
+                    toMembers = toOr.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
+                }
+
+                if (toMembers != null && fromMembers != null)
+                {
                     return HasMembers(to, toAdd, toMembers, fromMembers);
                 }
-                else {
-                    return map[(from, to)];
-                }
-            }
 
-            if (from.SafeIs(out IMethodType fromMethod) && to.SafeIs(out IMethodType toMethod))
-            {
-                var toAdd = new Indexer();
-                if (map.TryAdd((from, to), toAdd))
-                {
-                    toAdd.nextIndexers = new[] {
-                        Create(toMethod.InputType,fromMethod.InputType),
-                        Create(fromMethod.OutputType,toMethod.OutputType)
-                    };
-                    toAdd.looksLike = to;
+                from.TryGetInput().IfIs(fromInput =>
+                    from.TryGetReturn().IfIs(fromOutput =>
+                        to.TryGetInput().IfIs(toInput =>
+                             to.TryGetReturn().IfIs(toOutput =>
+                             {
+                                 toAdd.nextIndexers = new[] {
+                                        Create(toInput,fromInput),
+                                        Create(fromOutput,toOutput)
+                                     };
+                                 toAdd.looksLike = to;
+                             }))));
+
+                if (toAdd.nextIndexers != null) {
                     return toAdd;
                 }
-                else {
-                    return map[(from, to)];
-                }
-            }
-
-            if (to.SafeIs(out IPrimitiveType toPrimitive))
-            {
-                var toAdd = new Indexer();
-                if (map.TryAdd((from, to), toAdd))
-                {
-                    toAdd.nextIndexers = new Indexer [] {};
-                    toAdd.looksLike = to;
-                    return toAdd;
-                }
-                else
-                {
-                    return map[(from, to)];
-                }
-            }
-
-            if (to.SafeIs(out IAnyType toAny))
-            {
-                var toAdd = new Indexer();
-                if (map.TryAdd((from, to), toAdd))
+                
+                // this has to be from an Or
+                // but in that case I shouldn't be using CastTacType
+                // I should be unrapping in some way 
+                if (to.SafeIs(out IPrimitiveType _))
                 {
                     toAdd.nextIndexers = new Indexer[] { };
                     toAdd.looksLike = to;
                     return toAdd;
                 }
-                else
+
+                if (to.SafeIs(out IAnyType toAny))
                 {
-                    return map[(from, to)];
+                    toAdd.nextIndexers = new Indexer[] { };
+                    toAdd.looksLike = to;
+                    return toAdd;
                 }
+
+                if (to.SafeIs(out ITypeOr _))
+                {
+                    toAdd.nextIndexers = new Indexer[] { };
+                    toAdd.looksLike = to;
+                    return toAdd;
+                }
+
+                throw new NotImplementedException();
+            }
+            else
+            {
+                return map[(from, to)];
             }
 
-            throw new NotImplementedException();
         }
 
         private static Indexer HasMembers(IVerifiableType to, Indexer toAdd, List<IMemberDefinition> toMembers, List<IMemberDefinition> fromMembers)
