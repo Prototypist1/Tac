@@ -70,20 +70,21 @@ namespace Tac.Model.Instantiated
              return Tac.Type.HasMembersLibrary.CanAssign(
                 they,
                 this,
-                Members.Select(x => (x.Key, (IOrType<IVerifiableType, IError>)OrType.Make<IVerifiableType, IError>(x.Type))).ToList(),
-                (type, key) => type.TryGetMember(key).IfElseReturn(
-                        x => OrType.Make<IOrType<IVerifiableType, IError>, Tac.Type.No, IError>(OrType.Make<IVerifiableType, IError>(x)),
-                        () => OrType.Make<IOrType<IVerifiableType, IError>, Tac.Type.No, IError>(new Tac.Type.No())),
-                (target, input, assumeTrue) => OrType.Make<bool, IError>(target.TheyAreUs(input, assumeTrue)), assumeTrue).Is1OrThrow();
+                Members.Select(x => (x.Key, (IOrType<(IVerifiableType,Access), IError>)OrType.Make<(IVerifiableType,Access), IError>((x.Type, x.Access)))).ToList(),
+                (type, key) => type.TryGetMember(key, assumeTrue).IfElseReturn(
+                        x => OrType.Make<IOrType<(IVerifiableType,Access), IError>, Tac.Type.No, IError>(OrType.Make<(IVerifiableType, Access), IError>(x)),
+                        () => OrType.Make<IOrType<(IVerifiableType, Access), IError>, Tac.Type.No, IError>(new Tac.Type.No())),
+                (target, input, assumeTrue) => OrType.Make<bool, IError>(target.TheyAreUs(input, assumeTrue)), 
+                assumeTrue).Is1OrThrow();
         }
 
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key)
+        public IIsPossibly<(IVerifiableType,Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue)
         {
 
-            var res = Tac.Type.HasMembersLibrary.TryGetMember(key, Members.Select(x => (x.Key, (IOrType<IVerifiableType, IError>)OrType.Make<IVerifiableType, IError>(x.Type))).ToList());
+            var res = Tac.Type.HasMembersLibrary.TryGetMember(key, Members.Select(x => (x.Key, (IOrType<(IVerifiableType, Access), IError>)OrType.Make<(IVerifiableType, Access), IError>((x.Type,x.Access)))).ToList());
 
             if (res.Is2(out var _)) {
-                return Possibly.IsNot<IVerifiableType>();
+                return Possibly.IsNot<(IVerifiableType, Access)>();
             }
 
             return Possibly.Is(res.Is1OrThrow().Is1OrThrow());
@@ -112,6 +113,7 @@ namespace Tac.Model.Instantiated
 
         private readonly Buildable<IVerifiableType> left = new Buildable<IVerifiableType>();
         private readonly Buildable<IVerifiableType> right = new Buildable<IVerifiableType>();
+        private List<IMemberDefinition> members;
 
         public IVerifiableType Left => left.Get();
 
@@ -166,22 +168,24 @@ namespace Tac.Model.Instantiated
                 assumeTrue).Is1OrThrow();
         }
 
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key)
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assume)
         {
             var res = OrTypeLibrary.GetMember(
                 key,
                 OrType.Make<IVerifiableType, IError>(this.Left),
                 OrType.Make<IVerifiableType, IError>(this.Right),
-                (target, key) => target.TryGetMember(key).IfElseReturn(
-                    x => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(OrType.Make<IVerifiableType, IError>(x)),
-                    () => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(new No())
+                (target, key,list) => target.TryGetMember(key,list).IfElseReturn(
+                    x => OrType.Make<IOrType<(IVerifiableType, Access), IError>, No, IError>(OrType.Make<(IVerifiableType, Access), IError>(x)),
+                    () => OrType.Make<IOrType<(IVerifiableType, Access), IError>, No, IError>(new No())
                 ),
-                (left, right) => CreateAndBuild(left.Is1OrThrow(), right.Is1OrThrow())
+                (left, right) => CreateAndBuild(left, right),
+                (us,them,assume) => OrType.Make<bool, IError>(us.TheyAreUs(them,assume)),
+                assume
                 );
 
             if (res.Is2(out var _))
             {
-                return Possibly.IsNot<IVerifiableType>();
+                return Possibly.IsNot<(IVerifiableType, Access)>();
             }
 
             return Possibly.Is(res.Is1OrThrow().Is1OrThrow());
@@ -255,7 +259,7 @@ namespace Tac.Model.Instantiated
             throw new NotImplementedException();
         }
 
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key)
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue)
         {
             throw new NotImplementedException();
         }
@@ -268,7 +272,7 @@ namespace Tac.Model.Instantiated
 
     public struct ReferanceType : IReferanceType
     {
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
 
@@ -289,7 +293,7 @@ namespace Tac.Model.Instantiated
             throw new NotImplementedException();
         }
 
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
 
         public IIsPossibly<IVerifiableType> TryGetReturn()
         {
@@ -300,7 +304,7 @@ namespace Tac.Model.Instantiated
     public struct NumberType : INumberType
     {
 
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
 
@@ -312,7 +316,7 @@ namespace Tac.Model.Instantiated
 
     public struct EmptyType : IEmptyType
     {
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
@@ -323,7 +327,7 @@ namespace Tac.Model.Instantiated
 
     public struct BooleanType : IBooleanType
     {
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
@@ -336,7 +340,7 @@ namespace Tac.Model.Instantiated
     // it is just an empty type right?
     public struct BlockType : IBlockType
     {
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
@@ -347,7 +351,7 @@ namespace Tac.Model.Instantiated
 
     public struct StringType : IStringType
     {
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
@@ -358,7 +362,7 @@ namespace Tac.Model.Instantiated
 
     public struct AnyType : IAnyType
     {
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
@@ -403,7 +407,7 @@ namespace Tac.Model.Instantiated
         }
 
 
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
 
@@ -455,7 +459,7 @@ namespace Tac.Model.Instantiated
         public IVerifiableType OutputType { get => outputType ?? throw new NullReferenceException(nameof(outputType)); private set => outputType = value; }
 
 
-        public IIsPossibly<IVerifiableType> TryGetMember(IKey key) => Possibly.IsNot<IVerifiableType>();
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
 
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
         {
@@ -490,85 +494,6 @@ namespace Tac.Model.Instantiated
     {
         void Build(IVerifiableType inputType, IVerifiableType outputType);
     }
-
-    // TODO struct?
-    // no, anything that is built can not be a struct
-    //
-    // TODO TODO ok so I need this not to exist it is just a method ...
-    // definately
-    //public class ImplementationType : IImplementationType, IMethodType, IImplementationTypeBuilder
-    //{
-    //    private ImplementationType() { }
-
-    //    public void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
-    //    {
-    //        ImplementationInputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
-    //        ImplementationOutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
-    //        ContextType = contextType ?? throw new ArgumentNullException(nameof(contextType));
-    //        MethodInputType = contextType ?? throw new ArgumentNullException(nameof(contextType));
-    //        var (outputMethod, outputMethodBuilder) = MethodType.Create();
-    //        outputMethodBuilder.Build(inputType, outputType);
-    //        MethodOutputType =  outputMethod;
-
-    //    }
-        
-    //    public static (IImplementationType, IImplementationTypeBuilder) Create()
-    //    {
-    //        var res = new ImplementationType();
-    //        return (res, res);
-    //    }
-
-    //    public static IImplementationType CreateAndBuild(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType)
-    //    {
-    //        var (res, builder) = Create();
-    //        builder.Build(inputType, outputType, contextType);
-    //        return res;
-    //    }
-
-    //    public bool TheyAreUs(IVerifiableType they, bool noTagBacks)
-    //    {
-    //        throw new NotImplementedException("how does it work when these could be errors");
-    //        //if (they is IMethodType method)
-    //        //{
-    //        //    return (this as IMethodType).InputType.TheyAreUs(method.InputType, false) && (this as IMethodType).OutputType.WeAreThem(method.OutputType, false);
-    //        //}
-
-    //        //if (noTagBacks)
-    //        //{
-    //        //    return false;
-    //        //}
-
-    //        //return this.WeAreThem(this, true);
-    //    }
-
-    //    public bool WeAreThem(IVerifiableType them, bool noTagBacks)
-    //    {
-    //        throw new NotImplementedException("how does it work when these could be errors");
-    //        //if (them is IMethodType method)
-    //        //{
-    //        //    return (this as IMethodType).InputType.WeAreThem(method.InputType, false) && (this as IMethodType).OutputType.TheyAreUs(method.OutputType, false);
-    //        //}
-
-    //        //if (noTagBacks)
-    //        //{
-    //        //    return false;
-    //        //}
-
-    //        //return this.WeAreThem(this, true);
-    //    }
-
-    //    private IVerifiableType? ImplementationInputType;
-    //    private IVerifiableType? ImplementationOutputType;
-    //    private IVerifiableType? MethodInputType;
-    //    private IVerifiableType? MethodOutputType;
-
-    //    IVerifiableType IImplementationType.InputType => ImplementationInputType ?? throw new NullReferenceException(nameof(ImplementationInputType));
-    //    IVerifiableType IImplementationType.OutputType => ImplementationOutputType ?? throw new NullReferenceException(nameof(ImplementationOutputType));
-    //    IVerifiableType IMethodType.InputType => MethodInputType ?? throw new NullReferenceException(nameof(MethodInputType));
-    //    IVerifiableType IMethodType.OutputType => MethodOutputType ?? throw new NullReferenceException(nameof(MethodOutputType));
-    //    private IVerifiableType? contextType;
-    //    public IVerifiableType ContextType { get => contextType ?? throw new NullReferenceException(nameof(contextType)); private set => contextType = value ?? throw new NullReferenceException(nameof(value)); }
-    //}
 
     public interface IGenericImplementationBuilder
     {

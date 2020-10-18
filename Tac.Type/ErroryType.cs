@@ -86,30 +86,131 @@ namespace Tac.Type
             });
         }
 
-        public static IOrType<IOrType<T, IError>, No, IError> GetMember<T>(
+        public static IOrType<IOrType<(T,Access), IError>, No, IError> GetMember<T>(
             IKey key, 
             IOrType<T, IError> left, 
             IOrType<T, IError> right,
-            Func<T, IKey, IOrType<IOrType<T, IError>, No, IError>> tryGetMember,
-            Func<IOrType<T, IError>, IOrType<T, IError>, T> make)
+            Func<T, IKey, List<(T, T)>, IOrType<IOrType<(T,Access), IError>, No, IError>> tryGetMember,
+            Func<T, T, T> make,
+            Func<T,T, List<(T, T)>, IOrType<bool, IError>> theyAreUs, 
+            List<(T,T)> assumeTrue
+            )
         {
             return left.SwitchReturns(
                     leftType => right.SwitchReturns(
                         rightType =>
                         {
-                            var leftMember = tryGetMember(leftType,key);
-                            var rightMember = tryGetMember(rightType,key);
+                            var leftMember = tryGetMember(leftType,key, assumeTrue);
+                            var rightMember = tryGetMember(rightType,key, assumeTrue);
 
-                            if (leftMember is IIsDefinately<IOrType<T, IError>> definateLeft && rightMember is IIsDefinately<IOrType<T, IError>> definateRight)
+                            if (leftMember.Is1(out IOrType<(T,Access), IError> definateLeft) && rightMember.Is1(out IOrType <(T, Access), IError> definateRight))
                             {
-                                return OrType.Make<IOrType<T, IError>, No, IError>(OrType.Make<T, IError>(make(definateLeft.Value, definateRight.Value)));
+                                return definateLeft.SwitchReturns(
+                                    valueLeft => definateRight.SwitchReturns(
+                                        valueRight => {
+                                            if (valueLeft.Item2 == Access.ReadOnly && valueRight.Item2 == Access.WriteOnly)
+                                            {
+                                                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(new No());
+                                            }
+                                            if (valueLeft.Item2 == Access.ReadOnly && valueRight.Item2 == Access.ReadWrite)
+                                            {
+                                                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(OrType.Make<(T, Access), IError>((make(valueLeft.Item1, valueRight.Item1), Access.ReadOnly)));
+                                            }
+                                            if (valueLeft.Item2 == Access.ReadOnly && valueRight.Item2 == Access.ReadOnly)
+                                            {
+                                                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(OrType.Make<(T, Access), IError>((make(valueLeft.Item1, valueRight.Item1), Access.ReadOnly)));
+                                            }
+
+                                            if (valueLeft.Item2 == Access.WriteOnly && valueRight.Item2 == Access.ReadOnly)
+                                            {
+                                                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(new No());
+                                            }
+                                            if (valueLeft.Item2 == Access.WriteOnly && valueRight.Item2 == Access.ReadWrite)
+                                            {
+                                                return theyAreUs(valueLeft.Item1, valueRight.Item1, assumeTrue).TransformInner(_ => theyAreUs(valueRight.Item1, valueLeft.Item1, assumeTrue)).SwitchReturns(same =>
+                                                {
+                                                    if (same)
+                                                    {
+                                                        return OrType.Make<IOrType<(T, Access), IError>, No, IError>(OrType.Make<(T, Access), IError>((make(valueLeft.Item1, valueRight.Item1), Access.WriteOnly)));
+                                                    }
+                                                    else
+                                                    {
+                                                        return OrType.Make<IOrType<(T, Access), IError>, No, IError>(new No());
+                                                    }
+                                                },
+                                                error => OrType.Make<IOrType<(T, Access), IError>, No, IError>(error));
+                                            }
+                                            if (valueLeft.Item2 == Access.WriteOnly && valueRight.Item2 == Access.WriteOnly)
+                                            {
+                                                return theyAreUs(valueLeft.Item1, valueRight.Item1, assumeTrue).TransformInner(_ => theyAreUs(valueRight.Item1, valueLeft.Item1, assumeTrue)).SwitchReturns(same =>
+                                                {
+                                                    if (same)
+                                                    {
+                                                        return OrType.Make<IOrType<(T, Access), IError>, No, IError>(OrType.Make<(T, Access), IError>((make(valueLeft.Item1, valueRight.Item1), Access.WriteOnly)));
+                                                    }
+                                                    else
+                                                    {
+                                                        return OrType.Make<IOrType<(T, Access), IError>, No, IError>(new No());
+                                                    }
+                                                },
+                                                error => OrType.Make<IOrType<(T, Access), IError>, No, IError>(error));
+                                            }
+
+                                            if (valueLeft.Item2 == Access.ReadWrite && valueRight.Item2 == Access.ReadOnly)
+                                            {
+                                                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(OrType.Make<(T, Access), IError>((make(valueLeft.Item1, valueRight.Item1), Access.ReadOnly)));
+                                            }
+                                            if (valueLeft.Item2 == Access.ReadWrite && valueRight.Item2 == Access.ReadWrite)
+                                            {
+                                                return theyAreUs(valueLeft.Item1, valueRight.Item1, assumeTrue).TransformInner(_ => theyAreUs(valueRight.Item1, valueLeft.Item1, assumeTrue)).SwitchReturns(same =>
+                                                {
+                                                    if (same)
+                                                    {
+                                                        return OrType.Make<IOrType<(T, Access), IError>, No, IError>(OrType.Make<(T, Access), IError>((make(valueLeft.Item1, valueRight.Item1), Access.ReadWrite)));
+                                                    }
+                                                    else
+                                                    {
+                                                        return OrType.Make<IOrType<(T, Access), IError>, No, IError>(OrType.Make<(T, Access), IError>((make(valueLeft.Item1, valueRight.Item1), Access.ReadOnly)));
+                                                    }
+                                                },
+                                                error => OrType.Make<IOrType<(T, Access), IError>, No, IError>(error));
+                                            }
+                                            if (valueLeft.Item2 == Access.ReadWrite && valueRight.Item2 == Access.WriteOnly)
+                                            {
+                                                return theyAreUs(valueLeft.Item1, valueRight.Item1, assumeTrue).TransformInner(_ => theyAreUs(valueRight.Item1, valueLeft.Item1, assumeTrue)).SwitchReturns(same =>
+                                                {
+                                                    if (same)
+                                                    {
+                                                        return OrType.Make<IOrType<(T, Access), IError>, No, IError>(OrType.Make<(T, Access), IError>((make(valueLeft.Item1, valueRight.Item1), Access.WriteOnly)));
+                                                    }
+                                                    else
+                                                    {
+                                                        return OrType.Make<IOrType<(T, Access), IError>, No, IError>(new No());
+                                                    }
+
+                                                },
+                                                error => OrType.Make<IOrType<(T, Access), IError>, No, IError>(error));
+                                            }
+                                            throw new NotImplementedException("what cast is this?!");
+
+
+
+
+                                        },
+                                        errorRight => OrType.Make<IOrType<(T, Access), IError>, No, IError>(errorRight)
+                                        ),
+                                    errorLeft => definateRight.SwitchReturns(
+                                        valueRight => OrType.Make<IOrType<(T, Access), IError>, No, IError>(errorLeft),
+                                        errorRight => OrType.Make<IOrType<(T, Access), IError>, No, IError>(Error.Cascaded("",new[] { errorLeft, errorRight }))
+                                        )
+                                    );
                             }
-                            return OrType.Make<IOrType<T, IError>, No, IError>(new No());
+                            return OrType.Make<IOrType<(T, Access), IError>, No, IError>(new No());
                         },
-                        rightError => OrType.Make<IOrType<T, IError>, No, IError>(rightError)),
+                        rightError => OrType.Make<IOrType<(T, Access), IError>, No, IError>(rightError)),
                     leftError => right.SwitchReturns(
-                        rightType => OrType.Make<IOrType<T, IError>, No, IError>(leftError),
-                        rightError => OrType.Make<IOrType<T, IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
+                        rightType => OrType.Make<IOrType<(T, Access), IError>, No, IError>(leftError),
+                        rightError => OrType.Make<IOrType<(T, Access), IError>, No, IError>(Error.Cascaded("", new[] { leftError, rightError }))));
         }
 
         public static IOrType<IOrType<T, IError>, No, IError> TryGetReturn<T>(
@@ -181,7 +282,7 @@ namespace Tac.Type
 
         // this is going to be more interesting when things can be read-only 
         // I think readonly means: you never get to changes this but it can change
-        // I probably need another work for: this never changes
+        // I probably need another word for: this never changes
 
         // if B is { readonly Animal thing; } then
         // B := A
@@ -190,9 +291,9 @@ namespace Tac.Type
         public static IOrType<bool, IError> CanAssign<T>(
             T from, 
             T to, 
-            IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers,
-            Func<T, IKey, IOrType<IOrType<T, IError>, No, IError>> tryGetMember,
-            Func<T, T, List<(T, T)>, IOrType<bool, IError>> theyAreUs,
+            IReadOnlyList<(IKey key, IOrType<(T,Access), IError> type)> ourMembers,
+            Func<T, IKey, IOrType<IOrType<(T,Access), IError>, No, IError>> tryGetMember,
+            Func<T, T, List<(T, T)>, IOrType<bool, IError>> theyAreUs, // us, them, output
             List<(T, T)> assumeTrue)
         {
 
@@ -215,13 +316,47 @@ namespace Tac.Type
                 list.Add(theirMember.SwitchReturns(
                     or => or.SwitchReturns(
                         theirType => ourMemberType.SwitchReturns(
-                            ourType => theyAreUs(ourType,theirType, assumeTrue).SwitchReturns(
-                                boolean1 => theyAreUs(theirType,ourType, assumeTrue).SwitchReturns(
-                                    boolean2 => boolean1 && boolean2 ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()), // if they are us and we are them the types are the same
-                                    error2 => OrType.Make<IError[], No, Yes>(new[] { error2 })),
-                                error1 => theyAreUs(theirType,ourType, assumeTrue).SwitchReturns(
-                                    boolean2 => OrType.Make<IError[], No, Yes>(new[] { error1 }),
-                                    error2 => OrType.Make<IError[], No, Yes>(new[] { error1, error2 }))),
+                            ourType => {
+                                if (ourType.Item2 == Access.ReadOnly && theirType.Item2 != Access.ReadOnly) {
+                                    return OrType.Make<IError[], No, Yes>(new No());
+                                }
+                                if (ourType.Item2 == Access.ReadOnly && theirType.Item2 == Access.ReadOnly) {
+                                    return theyAreUs(theirType.Item1, ourType.Item1, assumeTrue).SwitchReturns(
+                                        boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
+                                        error => OrType.Make<IError[], No, Yes>(new[] { error }));
+                                }
+                                if (ourType.Item2 == Access.WriteOnly && theirType.Item2 != Access.WriteOnly)
+                                {
+                                    return OrType.Make<IError[], No, Yes>(new No());
+                                }
+                                if (ourType.Item2 == Access.WriteOnly && theirType.Item2 == Access.WriteOnly)
+                                {
+                                    return theyAreUs(ourType.Item1, theirType.Item1, assumeTrue).SwitchReturns(
+                                        boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
+                                        error => OrType.Make<IError[], No, Yes>(new[] { error }));
+                                }
+                                if (ourType.Item2 == Access.ReadWrite && theirType.Item2 == Access.ReadWrite) {
+                                    return theyAreUs(ourType.Item1, theirType.Item1, assumeTrue).SwitchReturns(
+                                         boolean1 => theyAreUs(theirType.Item1, ourType.Item1, assumeTrue).SwitchReturns(
+                                             boolean2 => boolean1 && boolean2 ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()), // if they are us and we are them the types are the same
+                                             error2 => OrType.Make<IError[], No, Yes>(new[] { error2 })),
+                                         error1 => theyAreUs(theirType.Item1, ourType.Item1, assumeTrue).SwitchReturns(
+                                             boolean2 => OrType.Make<IError[], No, Yes>(new[] { error1 }),
+                                             error2 => OrType.Make<IError[], No, Yes>(new[] { error1, error2 })));
+                                }
+                                if (ourType.Item2 == Access.ReadWrite && theirType.Item2 == Access.WriteOnly) {
+                                    return theyAreUs(ourType.Item1, theirType.Item1, assumeTrue).SwitchReturns(
+                                        boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
+                                        error => OrType.Make<IError[], No, Yes>(new[] { error }));
+                                }
+                                if (ourType.Item2 == Access.ReadWrite && theirType.Item2 == Access.ReadOnly)
+                                {
+                                    return theyAreUs(theirType.Item1, ourType.Item1, assumeTrue).SwitchReturns(
+                                        boolean => boolean ? OrType.Make<IError[], No, Yes>(new Yes()) : OrType.Make<IError[], No, Yes>(new No()),
+                                        error => OrType.Make<IError[], No, Yes>(new[] { error }));
+                                }
+                                throw new NotImplementedException("what case is this");
+                            },
                             ourError => OrType.Make<IError[], No, Yes>(new[] { ourError })),
                         error => ourMemberType.SwitchReturns(
                             ourType => OrType.Make<IError[], No, Yes>(new[] { error }),
@@ -247,19 +382,19 @@ namespace Tac.Type
 
 
 
-        public static IOrType<IOrType<T, IError>, No, IError> TryGetMember<T>(
+        public static IOrType<IOrType<(T,Access), IError>, No, IError> TryGetMember<T>(
             IKey key, 
-            IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers)
+            IReadOnlyList<(IKey key, IOrType<(T,Access), IError> type)> ourMembers)
         {
             var matches = ourMembers.Where(x =>
                 x.key.Equals(key));
             if (matches.Count() == 1)
             {
-                return OrType.Make<IOrType<T, IError>, No, IError>(matches.First().type);
+                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(matches.First().type);
             }
             else
             {
-                return OrType.Make<IOrType<T, IError>, No, IError>(new No());
+                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(new No());
             }
         }
 

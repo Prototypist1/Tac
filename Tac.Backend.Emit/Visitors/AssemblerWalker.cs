@@ -1530,7 +1530,7 @@ namespace Tac.Backend.Emit.Walkers
             {
                 if (outType == typeof(ITacObject))
                 {
-                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    PossiblyConvert(co.Left.Returns(), method.InputType);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new System.Type[] {  });
                     // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                     if (!this.stack.Last().SafeIs(out IOperation _))
@@ -1540,7 +1540,7 @@ namespace Tac.Backend.Emit.Walkers
                 }
                 else
                 {
-                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    PossiblyConvert(co.Left.Returns(), method.InputType);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new System.Type[] { });
                     // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                     if (!this.stack.Last().SafeIs(out IOperation _))
@@ -1552,7 +1552,7 @@ namespace Tac.Backend.Emit.Walkers
             else {
                 if (outType == typeof(ITacObject))
                 {
-                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    PossiblyConvert(co.Left.Returns(), method.InputType);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new System.Type[] { });
                     // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                     if (!this.stack.Last().SafeIs(out IOperation _))
@@ -1562,7 +1562,7 @@ namespace Tac.Backend.Emit.Walkers
                 }
                 else
                 {
-                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    PossiblyConvert(co.Left.Returns(), method.InputType);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new System.Type[] { });
                     // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                     if (!this.stack.Last().SafeIs(out IOperation _))

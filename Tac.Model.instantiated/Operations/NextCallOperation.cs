@@ -1,4 +1,5 @@
 ﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using Tac.Model.Elements;
@@ -36,7 +37,7 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-            return Right.Returns();
+            return Right.Returns().SafeCastTo(out IMethodType _).OutputType;
         }
 
         public static INextCallOperation CreateAndBuild(ICodeElement left, ICodeElement right)

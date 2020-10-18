@@ -11,8 +11,8 @@ namespace Tac.Model.Elements
     }
 
     public enum Access { 
-        ReadOnly,
-        ReadWrite,
-        WriteOnly
+        ReadOnly=1,
+        ReadWrite=3,
+        WriteOnly=2
     }
 }

@@ -20,7 +20,7 @@ namespace Tac.Model.Elements
         //bool WeAreThem(IVerifiableType them, bool noTagBacks);
 
         bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue);
-        IIsPossibly<IVerifiableType> TryGetMember(IKey key);
+        IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue);
         IIsPossibly<IVerifiableType> TryGetReturn();
         IIsPossibly<IVerifiableType> TryGetInput();
     }

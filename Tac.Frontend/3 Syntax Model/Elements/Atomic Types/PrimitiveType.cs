@@ -69,9 +69,17 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return OrTypeLibrary.CanAssign(they, IsOrType, this, left, right, (x, y,list) => x.TheyAreUs(y, list), assumeTrue);
         }
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key)
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue)
         {
-            return OrTypeLibrary.GetMember(key, left, right, (x, y) => x.TryGetMember(y), (x, y) => new FrontEndOrType(x, y));
+            return OrTypeLibrary.GetMember(
+                key,
+                left,
+                right,
+                (x, key, list) => x.TryGetMember(key,list),
+                (x, y) => new FrontEndOrType(OrType.Make<IFrontendType, IError>(x), OrType.Make<IFrontendType, IError>(y)),
+                (us, them, list) => us.TheyAreUs(them, list),
+                assumeTrue
+                );
         }
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn()
@@ -105,8 +113,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return HasMembersLibrary.CanAssign(
                 they,
                 this,
-                weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.GetValue().TransformInner(x=>x))).ToList(),
-                (target,key) => target.TryGetMember(key),
+                weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.GetValue().TransformInner(y=>(y,x.GetValue().Access)))).ToList(),
+                (target,key) => target.TryGetMember(key, assumeTrue),
                 (target,other,assumes)=> target.TheyAreUs(other,assumes),
                 assumeTrue
                 );
@@ -114,9 +122,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         
         public IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.GetValue().Type.GetValue().Possibly1()).OfType<IIsDefinately<IFrontendType>>().SelectMany(x => x.Value.Validate());
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key)
+        public IOrType<IOrType<(IFrontendType,Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue)
         {
-            return HasMembersLibrary.TryGetMember(key, weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.GetValue().TransformInner(x => x))).ToList());
+            return HasMembersLibrary.TryGetMember(key, weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.GetValue().TransformInner(y => (y, x.GetValue().Access)))).ToList());
         }
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
@@ -159,7 +167,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IEnumerable<IError> Validate() => inner.SwitchReturns(x=>x.Validate(), x=>Array.Empty<IError>());
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
 
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
         {
@@ -219,7 +227,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError> (they is BlockType);
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
 
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -234,7 +242,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
 
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is StringType);
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -247,7 +255,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<IEmptyType>(new Model.Instantiated.EmptyType(), () => { });
         }
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is EmptyType);
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -260,7 +268,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return new BuildIntention<INumberType>(new Model.Instantiated.NumberType(), () => { });
         }
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is NumberType);
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
@@ -319,7 +327,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(true);
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
@@ -334,7 +342,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is BooleanType);
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
     }
@@ -406,7 +414,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 (target, other, list) => target.TheyAreUs(other, list),
                 assumeTrue);
         }
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
 
 
         public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OutputType);

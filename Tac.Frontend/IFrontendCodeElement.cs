@@ -65,7 +65,7 @@ namespace Tac.Frontend
         // another case A { B x },  B { C x },  C { A x }
         // these are the same as well
         IOrType<bool,IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue);
-        IOrType<IOrType<IFrontendType, IError>, No,IError> TryGetMember(IKey key);
+        IOrType<IOrType<(IFrontendType, Access), IError>, No,IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue);
         IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn();
         IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput();
     }

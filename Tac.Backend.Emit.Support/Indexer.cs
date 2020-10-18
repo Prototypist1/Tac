@@ -634,43 +634,7 @@ namespace Tac.Backend.Emit.Support
                 {
                     var toMembers = toInterface.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
                     var fromMembers = fromInterface.Members.OrderBy(x => ((NameKey)x.Key).Name).ToList();
-
-                    var indexOffsets = new int[toMembers.Count];
-                    var nextIndexers = new Indexer[toMembers.Count];
-
-                    for (int toIndex = 0; toIndex < toMembers.Count; toIndex++)
-                    {
-                        var toMember = toMembers[toIndex];
-                        for (int fromIndex = 0; fromIndex < fromMembers.Count; fromIndex++)
-                        {
-                            var fromMember = fromMembers[fromIndex];
-                            if (fromMember.Key.Equals(toMember.Key))
-                            {
-                                indexOffsets[toIndex] = fromIndex;
-                                if (fromMember.Type.SafeIs(out IMethodType innerFromMethod) && toMember.Type.SafeIs(out IMethodType innerToMethod))
-                                {
-                                    nextIndexers[toIndex] = new Indexer()
-                                    {
-                                        nextIndexers = new[] {
-                                                Create(innerToMethod.InputType,innerFromMethod.InputType),
-                                                Create(innerFromMethod.OutputType,innerToMethod.OutputType)
-                                            },
-                                        looksLike = innerToMethod
-                                    };
-                                }
-                                if (fromMember.Type.SafeIs(out IInterfaceModuleType innerFromInterface) && toMember.Type.SafeIs(out IInterfaceType innerToInterface))
-                                {
-                                    nextIndexers[toIndex] = GetIndexer(toMember.Access, innerFromInterface, innerToInterface);
-                                }
-                                goto matched;
-                            }
-                        }
-                    matched:;
-                    }
-                    toAdd.nextIndexers = nextIndexers;
-                    toAdd.indexOffsets = indexOffsets;
-                    toAdd.looksLike = to;
-                    return toAdd;
+                    return HasMembers(to, toAdd, toMembers, fromMembers);
                 }
                 else {
                     return map[(from, to)];
@@ -694,7 +658,77 @@ namespace Tac.Backend.Emit.Support
                 }
             }
 
-            return null;
+            if (to.SafeIs(out IPrimitiveType toPrimitive))
+            {
+                var toAdd = new Indexer();
+                if (map.TryAdd((from, to), toAdd))
+                {
+                    toAdd.nextIndexers = new Indexer [] {};
+                    toAdd.looksLike = to;
+                    return toAdd;
+                }
+                else
+                {
+                    return map[(from, to)];
+                }
+            }
+
+            if (to.SafeIs(out IAnyType toAny))
+            {
+                var toAdd = new Indexer();
+                if (map.TryAdd((from, to), toAdd))
+                {
+                    toAdd.nextIndexers = new Indexer[] { };
+                    toAdd.looksLike = to;
+                    return toAdd;
+                }
+                else
+                {
+                    return map[(from, to)];
+                }
+            }
+
+            throw new NotImplementedException();
+        }
+
+        private static Indexer HasMembers(IVerifiableType to, Indexer toAdd, List<IMemberDefinition> toMembers, List<IMemberDefinition> fromMembers)
+        {
+            var indexOffsets = new int[toMembers.Count];
+            var nextIndexers = new Indexer[toMembers.Count];
+
+            for (int toIndex = 0; toIndex < toMembers.Count; toIndex++)
+            {
+                var toMember = toMembers[toIndex];
+                for (int fromIndex = 0; fromIndex < fromMembers.Count; fromIndex++)
+                {
+                    var fromMember = fromMembers[fromIndex];
+                    if (fromMember.Key.Equals(toMember.Key))
+                    {
+                        indexOffsets[toIndex] = fromIndex;
+                        if (fromMember.Type.SafeIs(out IMethodType innerFromMethod) && toMember.Type.SafeIs(out IMethodType innerToMethod))
+                        {
+                            nextIndexers[toIndex] = new Indexer()
+                            {
+                                nextIndexers = new[] {
+                                                Create(innerToMethod.InputType,innerFromMethod.InputType),
+                                                Create(innerFromMethod.OutputType,innerToMethod.OutputType)
+                                            },
+                                looksLike = innerToMethod
+                            };
+                        }
+                        if (fromMember.Type.SafeIs(out IInterfaceModuleType innerFromInterface) && toMember.Type.SafeIs(out IInterfaceType innerToInterface))
+                        {
+                            nextIndexers[toIndex] = GetIndexer(toMember.Access, innerFromInterface, innerToInterface);
+                        }
+                        goto matched;
+                    }
+                }
+            matched:;
+            }
+            toAdd.nextIndexers = nextIndexers;
+            toAdd.indexOffsets = indexOffsets;
+            toAdd.looksLike = to;
+            return toAdd;
         }
 
         public static Indexer GetIndexer(Access access, IInterfaceModuleType from, IInterfaceModuleType to) {

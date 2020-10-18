@@ -36,12 +36,12 @@ namespace Tac.Frontend.TypeProblem.Test
 
         private static IFrontendType HasMember(IFrontendType result, IKey key)
         {
-            return result.TryGetMember(key).Is1OrThrow().Is1OrThrow();
+            return result.TryGetMember(key, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
         }
 
         private static void DoesNotHaveMember(IFrontendType result, IKey key)
         {
-            result.TryGetMember(key).Is2OrThrow();
+            result.TryGetMember(key, new List<(IFrontendType, IFrontendType)>()).Is2OrThrow();
         }
 
         private static IFrontendType MemberToType(WeakMemberDefinition member)
@@ -1077,8 +1077,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var cType = solution.GetType(cFlowNode);
 
             var hasMembers = Assert.IsType<HasMembersType>(cType.GetValue().Is1OrThrow());
-            hasMembers.TryGetMember(new NameKey("x")).Is1OrThrow().Is2OrThrow();
-
+            hasMembers.TryGetMember(new NameKey("x"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is2OrThrow();
         }
     }
 }

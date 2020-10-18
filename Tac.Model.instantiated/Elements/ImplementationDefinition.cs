@@ -15,6 +15,7 @@ namespace Tac.Model.Instantiated
         private readonly Buildable<IEnumerable<ICodeElement>> buildableMethodBody = new Buildable<IEnumerable<ICodeElement>>();
         private readonly Buildable<IEnumerable<ICodeElement>> buildableStaticInitialzers = new Buildable<IEnumerable<ICodeElement>>();
         private readonly Buildable<IFinalizedScope> intermediateScope = new Buildable<IFinalizedScope>();
+        private IVerifiableType type;
 
         private ImplementationDefinition()
         {
@@ -35,14 +36,10 @@ namespace Tac.Model.Instantiated
             return context.ImplementationDefinition(this);
         }
 
-        public IVerifiableType Returns()
-        {
-            return MethodType.CreateAndBuild(ContextDefinition.Type,
-                MethodType.CreateAndBuild(ParameterDefinition.Type, OutputType));
-        }
+        public IVerifiableType Returns() => type;
 
         #endregion
-        
+
         public void Build(
             IVerifiableType outputType, 
             IMemberDefinition contextDefinition, 
@@ -58,6 +55,8 @@ namespace Tac.Model.Instantiated
             buildableMethodBody.Set(methodBody);
             buildableStaticInitialzers.Set(staticInitialzers);
             buildableScope.Set(scope);
+            type =   MethodType.CreateAndBuild(ContextDefinition.Type,
+                MethodType.CreateAndBuild(ParameterDefinition.Type, OutputType)); ;
         }
         
         public static (IImplementationDefinition, IImplementationDefinitionBuilder) Create()

@@ -833,7 +833,88 @@ namespace Tac.Backend.Emit.Test
 
         }
 
+        // a method that consumes a method and returns method
+        // var m = method [method [number; number]; method [number; number];  ] input { 
+        //      method [number;number] inner-input { 
+        //          (inner-input > input) + inner-input return;
+        //      } return;
+        //}
+        // 2 > ( method [number;number] input { input return } > m) 
+        [Fact]
+        public void MethodsOnMethods() {
+
+
+            var input = MemberDefinition.CreateAndBuild(new NameKey("input"), MethodType.CreateAndBuild(new NumberType (), new NumberType()), Access.ReadWrite);
+            var innerInput = MemberDefinition.CreateAndBuild(new NameKey("inner-input"), new NumberType (),Access.ReadWrite);
+
+            var methodMethod = Model.Instantiated.MethodDefinition.CreateAndBuild(
+                                    MethodType.CreateAndBuild(new NumberType(), new NumberType()),
+                                    MethodType.CreateAndBuild(new NumberType(), new NumberType()),
+                                    input,
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic( input,false)
+                                    }),
+                                    new List<ICodeElement>{
+                                        ReturnOperation.CreateAndBuild(
+                                            Model.Instantiated.MethodDefinition.CreateAndBuild(
+                                                new NumberType(),
+                                                new NumberType(),
+                                                innerInput,
+                                                Scope.CreateAndBuild(new List<IsStatic>{
+                                                    new IsStatic( innerInput,false)
+                                                }),
+                                                new List<ICodeElement>{
+                                                    ReturnOperation.CreateAndBuild(
+                                                        AddOperation.CreateAndBuild(
+                                                            NextCallOperation.CreateAndBuild(
+                                                                Model.Instantiated.MemberReference.CreateAndBuild(innerInput),
+                                                                Model.Instantiated.MemberReference.CreateAndBuild(input)),
+                                                            Model.Instantiated.MemberReference.CreateAndBuild(innerInput)))
+                                                },
+                                                Array.Empty<ICodeElement>())
+                                            )
+                                    },
+                                    Array.Empty<ICodeElement>());
+
+
+            var m = MemberDefinition.CreateAndBuild(new NameKey("m"), methodMethod.Returns(), Access.ReadWrite);
+
+
+            var input2 = MemberDefinition.CreateAndBuild(new NameKey("input"), new NumberType(), Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+               new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(m, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(methodMethod,Model.Instantiated.MemberReference.CreateAndBuild(m)),
+                            NextCallOperation.CreateAndBuild(
+                                ConstantNumber.CreateAndBuild(2),
+                                NextCallOperation.CreateAndBuild(
+                                    Model.Instantiated.MethodDefinition.CreateAndBuild(
+                                            new NumberType(),
+                                            new NumberType(),
+                                            input2,
+                                            Scope.CreateAndBuild(new List<IsStatic>{
+                                                new IsStatic( input2,false)
+                                            }),
+                                            new List<ICodeElement>{
+                                                ReturnOperation.CreateAndBuild(
+                                                            Model.Instantiated.MemberReference.CreateAndBuild(input2))
+                                            },
+                                            Array.Empty<ICodeElement>()),
+                                    Model.Instantiated.MemberReference.CreateAndBuild(m))),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>())
+            });
+        }
+
+
         // test something outside of the entry point?
+        // something that does not go in to an IS
 
     }
 }
