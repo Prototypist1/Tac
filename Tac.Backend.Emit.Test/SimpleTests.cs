@@ -225,6 +225,8 @@ namespace Tac.Backend.Emit.Test
             });
         }
 
+
+        // 2 + (2=:x)
         [Fact]
         public void AssignMemberAndAddReference()
         {

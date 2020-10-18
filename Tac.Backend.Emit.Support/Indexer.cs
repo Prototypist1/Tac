@@ -356,14 +356,12 @@ namespace Tac.Backend.Emit.Support
     {
         public ITacObject @object;
         public Indexer indexer;
-        private readonly IVerifiableType type;
 
         // TODO I don't need type, the indexer knows it
-        public TacCastObject(ITacObject @object, Indexer indexer, IVerifiableType type)
+        public TacCastObject(ITacObject @object, Indexer indexer)
         {
             this.@object = @object ?? throw new ArgumentNullException(nameof(@object));
             this.indexer = indexer ?? throw new ArgumentNullException(nameof(indexer));
-            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         //public IVerifiableType memberType;
@@ -397,7 +395,7 @@ namespace Tac.Backend.Emit.Support
         public ITacObject GetComplexReadonlyMember(int position)
         {
             var returnedIndexer = indexer.nextIndexers[position];
-            return new TacCastObject(@object.GetComplexReadonlyMember(indexer.indexOffsets[position]), returnedIndexer, returnedIndexer.looksLike);
+            return new TacCastObject(@object.GetComplexReadonlyMember(indexer.indexOffsets[position]), returnedIndexer);
         }
 
         public void SetComplexWriteonlyMember(ITacObject tacCastObject,int position)
@@ -406,7 +404,7 @@ namespace Tac.Backend.Emit.Support
             // we trust our index to convert that way
             var setIndexer = indexer.nextIndexers[position];
             @object.SetComplexWriteonlyMember(
-                new TacCastObject(tacCastObject, setIndexer, setIndexer.looksLike),
+                new TacCastObject(tacCastObject, setIndexer),
                 indexer.indexOffsets[position]);
         }
 
@@ -420,17 +418,17 @@ namespace Tac.Backend.Emit.Support
             var outputIndexer = indexer.nextIndexers[1];
 
 
-            return new TacCastObject(@object.Call_Complex_Complex(new TacCastObject(input, inputIndexer, inputIndexer.looksLike)), outputIndexer, outputIndexer.looksLike);
+            return new TacCastObject(@object.Call_Complex_Complex(new TacCastObject(input, inputIndexer)), outputIndexer);
         }
         public ITacObject Call_Simple_Complex<Tin>(Tin input) {
 
             var outputIndexer = indexer.nextIndexers[1];
-            return new TacCastObject(@object.Call_Simple_Complex(input), outputIndexer, outputIndexer.looksLike);
+            return new TacCastObject(@object.Call_Simple_Complex(input), outputIndexer);
         }
         public Tout Call_Complex_Simple<Tout>(ITacObject input) {
 
             var inputIndexer = indexer.nextIndexers[0];
-            return @object.Call_Complex_Simple<Tout>(new TacCastObject(input, inputIndexer, inputIndexer.looksLike));
+            return @object.Call_Complex_Simple<Tout>(new TacCastObject(input, inputIndexer));
         }
         public Tout Call_Simple_Simple<Tin, Tout>(Tin input) {
             return @object.Call_Simple_Simple<Tin, Tout>(input);
@@ -452,7 +450,7 @@ namespace Tac.Backend.Emit.Support
             SetComplexWriteonlyMemberReturn(tacCastObject, position);
             return tacCastObject;
         }
-        public IVerifiableType TacType() => type;
+        public IVerifiableType TacType() => @object.TacType();
     }
 
 
@@ -563,7 +561,6 @@ namespace Tac.Backend.Emit.Support
     {
         public Indexer[] nextIndexers;
         public int[] indexOffsets;
-        public IVerifiableType looksLike;
 
         // for assignment to work we need two layers of overlay
         // this index is from one interface to another. say i1 to i2
@@ -662,7 +659,6 @@ namespace Tac.Backend.Emit.Support
                                         Create(toInput,fromInput),
                                         Create(fromOutput,toOutput)
                                      };
-                                 toAdd.looksLike = to;
                              }))));
 
                 if (toAdd.nextIndexers != null) {
@@ -675,21 +671,18 @@ namespace Tac.Backend.Emit.Support
                 if (to.SafeIs(out IPrimitiveType _))
                 {
                     toAdd.nextIndexers = new Indexer[] { };
-                    toAdd.looksLike = to;
                     return toAdd;
                 }
 
                 if (to.SafeIs(out IAnyType toAny))
                 {
                     toAdd.nextIndexers = new Indexer[] { };
-                    toAdd.looksLike = to;
                     return toAdd;
                 }
 
                 if (to.SafeIs(out ITypeOr _))
                 {
                     toAdd.nextIndexers = new Indexer[] { };
-                    toAdd.looksLike = to;
                     return toAdd;
                 }
 
@@ -724,7 +717,6 @@ namespace Tac.Backend.Emit.Support
                                                 Create(innerToMethod.InputType,innerFromMethod.InputType),
                                                 Create(innerFromMethod.OutputType,innerToMethod.OutputType)
                                             },
-                                looksLike = innerToMethod
                             };
                         }
                         if (fromMember.Type.SafeIs(out IInterfaceModuleType innerFromInterface) && toMember.Type.SafeIs(out IInterfaceType innerToInterface))
@@ -738,7 +730,6 @@ namespace Tac.Backend.Emit.Support
             }
             toAdd.nextIndexers = nextIndexers;
             toAdd.indexOffsets = indexOffsets;
-            toAdd.looksLike = to;
             return toAdd;
         }
 

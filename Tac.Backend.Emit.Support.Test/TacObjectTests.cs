@@ -20,8 +20,7 @@ namespace Tac.Backend.Emit.Support.Test
                 30,
                 new TacCastObject(
                     friend2,
-                    Indexer.Create(Types.Value.person, Types.Value.person),
-                    Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.person, Types.Value.person)
                 )
             };
 
@@ -29,8 +28,7 @@ namespace Tac.Backend.Emit.Support.Test
                 29,
                 new TacCastObject(
                     friend1,
-                    Indexer.Create(Types.Value.person, Types.Value.person),
-                    Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.person, Types.Value.person)
                 )
             };
 
@@ -44,8 +42,7 @@ namespace Tac.Backend.Emit.Support.Test
             var friend1AsHasFriends = new TacCastObject(
             
                 friend1,
-                Indexer.Create(Types.Value.person, Types.Value.hasFriend),
-                Indexer.Create(Types.Value.person, Types.Value.hasFriend).looksLike
+                Indexer.Create(Types.Value.person, Types.Value.hasFriend)
             );
 
             Assert.Equal(29, friend1AsHasFriends.GetComplexMember(0).GetSimpleMember<int>(0));
@@ -53,8 +50,7 @@ namespace Tac.Backend.Emit.Support.Test
             var friend1AsHasAge = new TacCastObject
             (
                 friend1,
-                Indexer.Create(Types.Value.person, Types.Value.hasAge),
-                Indexer.Create(Types.Value.person, Types.Value.hasAge).looksLike
+                Indexer.Create(Types.Value.person, Types.Value.hasAge)
             );
 
             Assert.Equal(30, friend1AsHasAge.GetSimpleMember<int>(0));
@@ -62,8 +58,7 @@ namespace Tac.Backend.Emit.Support.Test
             // all these friend1AsPerson are pointless they are an artifact of an older time
             var friend1AsPerson = new TacCastObject(
                 friend1,
-                Indexer.Create(Types.Value.person, Types.Value.person),
-                Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                Indexer.Create(Types.Value.person, Types.Value.person)
             );
 
             Assert.Equal(30, friend1AsPerson.GetSimpleMember<int>(0));
@@ -81,8 +76,7 @@ namespace Tac.Backend.Emit.Support.Test
                 1,
                 new TacCastObject(
                     friend1,
-                    Indexer.Create(Types.Value.person, Types.Value.person),
-                    Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.person, Types.Value.person)
                 )
             };
 
@@ -90,8 +84,7 @@ namespace Tac.Backend.Emit.Support.Test
                 2,
                 new TacCastObject(
                     friend2,
-                    Indexer.Create(Types.Value.person, Types.Value.person),
-                    Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.person, Types.Value.person)
                 )
             };
 
@@ -100,8 +93,7 @@ namespace Tac.Backend.Emit.Support.Test
             var friend2AsPerson = new TacCastObject
             (
                 friend2,
-                Indexer.Create(Types.Value.person, Types.Value.person),
-                Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                Indexer.Create(Types.Value.person, Types.Value.person)
             );
 
             friend1.SetComplexMember(friend2AsPerson,1);
@@ -115,15 +107,13 @@ namespace Tac.Backend.Emit.Support.Test
             var friend1AsHasFriends = new TacCastObject
             (
                 friend1,
-                Indexer.Create(Types.Value.person, Types.Value.hasFriend),
-                Indexer.Create(Types.Value.person, Types.Value.hasFriend).looksLike
+                Indexer.Create(Types.Value.person, Types.Value.hasFriend)
             );
 
             var friend1AsPerson = new TacCastObject
             (
                 friend1,
-                Indexer.Create(Types.Value.person, Types.Value.person),
-                Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                Indexer.Create(Types.Value.person, Types.Value.person)
             );
 
             friend1AsHasFriends.SetComplexMember(friend1AsPerson,0);
@@ -147,8 +137,7 @@ namespace Tac.Backend.Emit.Support.Test
                 30,
                 new TacCastObject(
                     friend2,
-                    Indexer.Create(Types.Value.person, Types.Value.person),
-                    Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.person, Types.Value.person)
                 )
             };
 
@@ -156,16 +145,14 @@ namespace Tac.Backend.Emit.Support.Test
                 29,
                 new TacCastObject(
                     friend1,
-                    Indexer.Create(Types.Value.person, Types.Value.person),
-                    Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.person, Types.Value.person)
                 )
             };
 
             var friend1AsHasHasAge = new TacCastObject
             (
                 friend1,
-                Indexer.Create(Types.Value.person, Types.Value.hasHasAge),
-                Indexer.Create(Types.Value.person, Types.Value.hasHasAge).looksLike
+                Indexer.Create(Types.Value.person, Types.Value.hasHasAge)
             );
 
             Assert.Equal(29, friend1AsHasHasAge.GetComplexReadonlyMember(0).GetSimpleMember<int>(0));
@@ -173,8 +160,7 @@ namespace Tac.Backend.Emit.Support.Test
             var friend1AsPerson = new TacCastObject
             (
                 friend1,
-                Indexer.Create(Types.Value.person, Types.Value.person),
-                Indexer.Create(Types.Value.person, Types.Value.person).looksLike
+                Indexer.Create(Types.Value.person, Types.Value.person)
             );
 
             friend1.SetComplexMember(friend1AsPerson,1);
@@ -192,8 +178,7 @@ namespace Tac.Backend.Emit.Support.Test
                 30,
                 new TacCastObject(
                     colin,
-                    Indexer.Create(Types.Value.namedPerson, Types.Value.person),
-                    Indexer.Create(Types.Value.namedPerson, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.namedPerson, Types.Value.person)
                 ),
                 "Colin"
             };
@@ -201,16 +186,13 @@ namespace Tac.Backend.Emit.Support.Test
             var colinAsPerson = new TacCastObject
             (
                 colin,
-                Indexer.Create(Types.Value.namedPerson, Types.Value.person),
-
-                Indexer.Create(Types.Value.namedPerson, Types.Value.person).looksLike
+                Indexer.Create(Types.Value.namedPerson, Types.Value.person)
             );
 
             var colinAsHasNamedPersonFriend = new TacCastObject
             (
                 colin,
-                Indexer.Create(Types.Value.namedPerson, Types.Value.hasWriteOnlyNamedPersonFriend),
-                Indexer.Create(Types.Value.namedPerson, Types.Value.hasWriteOnlyNamedPersonFriend).looksLike
+                Indexer.Create(Types.Value.namedPerson, Types.Value.hasWriteOnlyNamedPersonFriend)
             );
 
 
@@ -218,8 +200,7 @@ namespace Tac.Backend.Emit.Support.Test
                 29,
                 new TacCastObject(
                     emily,
-                    Indexer.Create(Types.Value.namedPerson, Types.Value.person),
-                    Indexer.Create(Types.Value.namedPerson, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.namedPerson, Types.Value.person)
                 ),
                 "Emily"
             };
@@ -228,8 +209,7 @@ namespace Tac.Backend.Emit.Support.Test
                 new TacCastObject
                 (
                     emily,
-                    Indexer.Create(Types.Value.hasWriteOnlyNamedPersonFriend, Types.Value.hasWriteOnlyNamedPersonFriend),
-                    Indexer.Create(Types.Value.hasWriteOnlyNamedPersonFriend, Types.Value.hasWriteOnlyNamedPersonFriend).looksLike
+                    Indexer.Create(Types.Value.hasWriteOnlyNamedPersonFriend, Types.Value.hasWriteOnlyNamedPersonFriend)
                 ),0);
 
             Assert.Equal(29, colinAsPerson.GetComplexMember(1).GetSimpleMember<int>(0));
@@ -245,8 +225,7 @@ namespace Tac.Backend.Emit.Support.Test
                 30,
                 new TacCastObject(
                     emily,
-                    Indexer.Create(Types.Value.namedPerson, Types.Value.person),
-                    Indexer.Create(Types.Value.namedPerson, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.namedPerson, Types.Value.person)
                 ),
                 "Colin"
             };
@@ -255,9 +234,7 @@ namespace Tac.Backend.Emit.Support.Test
                 29,
                 new TacCastObject(
                     emily,
-                    Indexer.Create(Types.Value.namedPerson, Types.Value.person),
-
-                    Indexer.Create(Types.Value.namedPerson, Types.Value.person).looksLike
+                    Indexer.Create(Types.Value.namedPerson, Types.Value.person)
                 ),
                 "Emily"
             };
@@ -265,29 +242,25 @@ namespace Tac.Backend.Emit.Support.Test
             var colinAsHasNamedPersonFriendAndAge = new TacCastObject
             (
                 colin,
-                Indexer.Create(Types.Value.hasNamedPersonFriendAndAge, Types.Value.hasNamedPersonFriendAndAge),
-                Indexer.Create(Types.Value.hasNamedPersonFriendAndAge, Types.Value.hasNamedPersonFriendAndAge).looksLike
+                Indexer.Create(Types.Value.hasNamedPersonFriendAndAge, Types.Value.hasNamedPersonFriendAndAge)
             );
 
             var colinAsHasNamedPersonFriend = new TacCastObject
             (
                 colinAsHasNamedPersonFriendAndAge,
-                Indexer.Create(Types.Value.hasNamedPersonFriendAndAge, Types.Value.hasNamedPersonFriend),
-                Indexer.Create(Types.Value.hasNamedPersonFriendAndAge, Types.Value.hasNamedPersonFriend).looksLike
+                Indexer.Create(Types.Value.hasNamedPersonFriendAndAge, Types.Value.hasNamedPersonFriend)
             );
 
             var colinAsHasReadOnlyFriend = new TacCastObject
             (
                 colinAsHasNamedPersonFriend,
-                Indexer.Create(Types.Value.hasNamedPersonFriend, Types.Value.hasReadOnlyFriend),
-                Indexer.Create(Types.Value.hasNamedPersonFriend, Types.Value.hasReadOnlyFriend).looksLike
+                Indexer.Create(Types.Value.hasNamedPersonFriend, Types.Value.hasReadOnlyFriend)
             );
 
             var colinAsHasHasAge = new TacCastObject
             (
                 colinAsHasReadOnlyFriend,
-                Indexer.Create(Types.Value.hasReadOnlyFriend, Types.Value.hasHasAge),
-                Indexer.Create(Types.Value.hasReadOnlyFriend, Types.Value.hasHasAge).looksLike
+                Indexer.Create(Types.Value.hasReadOnlyFriend, Types.Value.hasHasAge)
             );
 
             Assert.Equal(29, colinAsHasHasAge.GetComplexMember(0).GetSimpleMember<int>(0));
@@ -319,16 +292,14 @@ namespace Tac.Backend.Emit.Support.Test
             Func<ITacObject, ITacObject> func = x => new TacCastObject
             (
                 x,
-                Indexer.Create(abcType, abType),
-                Indexer.Create(abcType, abType).looksLike
+                Indexer.Create(abcType, abType)
             );
 
             var method = new TacMethod_Complex_Complex(func, method1Type);
 
             var castMethod = new TacCastObject(
                 method,
-                Indexer.Create(method1Type, method2Type),
-                Indexer.Create(method1Type, method2Type).looksLike
+                Indexer.Create(method1Type, method2Type)
             );
 
             var @object = new TacObject
@@ -340,15 +311,13 @@ namespace Tac.Backend.Emit.Support.Test
             var objectAsABCD = new TacCastObject
             (
                 @object,
-                Indexer.Create(abcdeType, abcdType),
-                Indexer.Create(abcdeType, abcdType).looksLike
+                Indexer.Create(abcdeType, abcdType)
             );
 
             var objectAsABC = new TacCastObject
             (
                 @object,
-                Indexer.Create(abcdeType, abcType),
-                Indexer.Create(abcdeType, abcdType).looksLike
+                Indexer.Create(abcdeType, abcType)
             );
 
             var objectAsAB = method.Call_Complex_Complex(objectAsABC);
@@ -406,8 +375,7 @@ namespace Tac.Backend.Emit.Support.Test
             var castObject = new TacCastObject
             (
                 @object,
-                Indexer.Create(type1, type2),
-                Indexer.Create(type1, type2).looksLike
+                Indexer.Create(type1, type2)
             );
 
 
@@ -420,8 +388,7 @@ namespace Tac.Backend.Emit.Support.Test
             var inputObjectAsABCD = new TacCastObject
             (
                 inputObject,
-                Indexer.Create(abcdeType, abcdType),
-                Indexer.Create(abcdeType, abcdType).looksLike
+                Indexer.Create(abcdeType, abcdType)
             );
 
             Assert.Equal(5, castObject.GetComplexReadonlyMember(0).Call_Complex_Simple<int>(inputObjectAsABCD));

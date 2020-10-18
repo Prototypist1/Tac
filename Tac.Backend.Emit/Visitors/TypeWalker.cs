@@ -3,6 +3,7 @@ using Prototypist.Toolbox.Dictionary;
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -52,12 +53,18 @@ namespace Tac.Backend.Emit.Walkers
         }
         private System.Type HandleType(IVerifiableType verifiableType)
         {
-            var res = typeCache.GetOrAdd(verifiableType, () => InnerMapType(verifiableType));
             if (verifiableType is IMethodType method)
             {
                 typeCache.GetOrAdd(method.InputType, () => InnerMapType(method.InputType));
                 typeCache.GetOrAdd(method.OutputType, () => InnerMapType(method.OutputType));
             }
+            if (verifiableType.SafeIs(out ITypeOr or))
+            {
+                typeCache.GetOrAdd(or.Left, () => InnerMapType(or.Left));
+                typeCache.GetOrAdd(or.Right, () => InnerMapType(or.Right));
+            }
+            var res = typeCache.GetOrAdd(verifiableType, () => InnerMapType(verifiableType));
+
             return res;
         }
 
@@ -80,7 +87,7 @@ namespace Tac.Backend.Emit.Walkers
             {
                 throw new NotImplementedException();
                 // ??
-                return typeof(Action);
+                //return typeof(Action);
             }
             if (verifiableType is IEmptyType)
             {
@@ -98,33 +105,40 @@ namespace Tac.Backend.Emit.Walkers
             {
                 return typeof(ITacObject);
             }
-            if (verifiableType is IMemberReference memberReferance)
+            if (verifiableType.SafeIs(out IReferanceType memberReferance))
             {
+                throw new NotImplementedException();
                 // I have to fresh up on what this means....
                 // I think it is ref<T> 
                 // used on the target of assignment 
-                return HandleType(memberReferance.MemberDefinition.Type);
+                //return HandleType(memberReferance.MemberDefinition.Type);
             }
             if (verifiableType is ITypeOr typeOr)
             {
                 // we try to find the intersection of the types
-                return MergeTypes(typeOr.Left, typeOr.Right);
+                return MergeTypes(typeOr.Left, typeOr.Right, typeOr);
             }
 
             throw new NotImplementedException();
         }
 
         
-        private System.Type MergeTypes(IVerifiableType left, IVerifiableType right)
+        private System.Type MergeTypes(IVerifiableType left, IVerifiableType right,ITypeOr typeOr)
         {
 
-            var leftType = InnerMapType(left); ;
-            var rightType = InnerMapType(right);
+            //var leftType = InnerMapType(left); ;
+            //var rightType = InnerMapType(right);
 
-            // if they are the same we are happy'
-            if (leftType == rightType)
+            //// if they are the same we are happy
+            //if (leftType == rightType)
+            //{
+            //    return leftType;
+            //}
+
+            // if either is an any... then the or can't be anythign interesting
+            if (left.SafeIs(out IAnyType _) || right.SafeIs(out IAnyType _))
             {
-                return leftType;
+                return typeof(object);
             }
 
             // if either is a primitive type... return empty?
@@ -135,21 +149,45 @@ namespace Tac.Backend.Emit.Walkers
 
             // if they are both methods 
             // we have re merge the method io
-            if (left.TryGetInput().Is(out var leftInput) &&
-                right.TryGetInput().Is(out var rightInput) &&
-                left.TryGetReturn().Is(out var leftReturn) &&
-                right.TryGetReturn().Is(out var rightReturn))
+            if (left.TryGetInput().Is(out var _) &&
+                right.TryGetInput().Is(out var _) &&
+                left.TryGetReturn().Is(out var _) &&
+                right.TryGetReturn().Is(out var _))
             {
 
                 return typeof(ITacObject);
             }
 
             if (left.SafeIs(out IInterfaceModuleType _) && right.SafeIs(out IInterfaceModuleType _)) {
-
                 return typeof(ITacObject);
             }
 
-            return typeof(object);
+            if (typeOr.Members.Any())
+            {
+                return typeof(ITacObject);
+            }
+
+            // if it is a metohd and something with members...
+            if (HasMember(left) && right.TryGetInput().Is(out var _) && right.TryGetReturn().Is(out var _))
+            {
+                return typeof(ITacObject);
+            }
+            if (HasMember(right) && left.TryGetInput().Is(out var _) && left.TryGetReturn().Is(out var _))
+            {
+                return typeof(ITacObject);
+            }
+
+            throw new Exception("what case did I miis");
+        }
+
+        private static bool HasMember(IVerifiableType type) {
+            if (type.SafeIs(out IInterfaceModuleType interfaceModuleType) && interfaceModuleType.Members.Any()) {
+                return true;
+            }
+            if (type.SafeIs(out ITypeOr typeOr) && typeOr.Members.Any()) {
+                return true;
+            }
+            return false;
         }
 
         public Nothing AddOperation(IAddOperation co) =>HandleOp(co);
