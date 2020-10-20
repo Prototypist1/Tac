@@ -1,6 +1,8 @@
 ﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using Tac.Model;
@@ -17,7 +19,7 @@ namespace Tac.Backend.Emit.Test
         [Fact]
         public void Simplist() {
             Compiler.BuildAndRun(
-                new List<ICodeElement>{ 
+                new List<ICodeElement>{
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         new List<ICodeElement> {
@@ -251,7 +253,7 @@ namespace Tac.Backend.Emit.Test
         [Fact]
         public void PassThroughFunc()
         {
-            var input = MemberDefinition.CreateAndBuild(new NameKey("test"), new NumberType(),Model.Elements.Access.ReadWrite);
+            var input = MemberDefinition.CreateAndBuild(new NameKey("test"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
@@ -272,7 +274,7 @@ namespace Tac.Backend.Emit.Test
                                     },
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
-                    Array.Empty<ICodeElement>()) 
+                    Array.Empty<ICodeElement>())
                 });
         }
 
@@ -326,14 +328,14 @@ namespace Tac.Backend.Emit.Test
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{ }),
                         new List<ICodeElement> {
-                            ObjectDefiniton.CreateAndBuild( 
+                            ObjectDefiniton.CreateAndBuild(
                                 Scope.CreateAndBuild(
                                     new List<IsStatic>{
                                         new IsStatic(xDefinition,false),
                                         new IsStatic(yDefinition,false)
                                     }
                                 ),
-                                new List<IAssignOperation>{ 
+                                new List<IAssignOperation>{
                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(0),Model.Instantiated.MemberReference.CreateAndBuild(xDefinition) ),
                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),Model.Instantiated.MemberReference.CreateAndBuild(yDefinition))
                                 }
@@ -381,7 +383,7 @@ namespace Tac.Backend.Emit.Test
                         new List<ICodeElement> {
                             AssignOperation.CreateAndBuild(
                                 PathOperation.CreateAndBuild(
-                                    AssignOperation.CreateAndBuild( 
+                                    AssignOperation.CreateAndBuild(
                                         objectDefiniton,
                                         Model.Instantiated.MemberReference.CreateAndBuild(objectMember)
                                     ),
@@ -523,8 +525,8 @@ namespace Tac.Backend.Emit.Test
                         new List<ICodeElement> {
                             AssignOperation.CreateAndBuild(
                                 Model.Instantiated.MethodDefinition.CreateAndBuild(
-                                    new NumberType(),
-                                    new NumberType(),
+                                    abcType,
+                                    abType,
                                     input,
                                     Scope.CreateAndBuild(new List<IsStatic>{
                                         new IsStatic( input,false)
@@ -540,7 +542,7 @@ namespace Tac.Backend.Emit.Test
                                     Model.Instantiated.MemberReference.CreateAndBuild(cast),
                                     BlockDefinition.CreateAndBuild(
                                         Scope.CreateAndBuild(new List<IsStatic>{}),
-                                        new List<ICodeElement>{ 
+                                        new List<ICodeElement>{
                                             NextCallOperation.CreateAndBuild(
                                             ObjectDefiniton.CreateAndBuild(
                                                 Scope.CreateAndBuild(new List<IsStatic>{
@@ -549,7 +551,7 @@ namespace Tac.Backend.Emit.Test
                                                     new IsStatic( objectC,false),
                                                     new IsStatic( objectD,false)
                                                 }),
-                                                new List<IAssignOperation>{ 
+                                                new List<IAssignOperation>{
                                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1), Model.Instantiated.MemberReference.CreateAndBuild(objectA)),
                                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2), Model.Instantiated.MemberReference.CreateAndBuild(objectB)),
                                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(3), Model.Instantiated.MemberReference.CreateAndBuild(objectC)),
@@ -628,7 +630,7 @@ namespace Tac.Backend.Emit.Test
         public void LinkedList() {
             var (node, nodeBuilder) = InterfaceType.Create();
 
-            var nodeOrNull= TypeOr.CreateAndBuild(node, new EmptyType());
+            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType());
 
             var next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Model.Elements.Access.ReadWrite);
 
@@ -846,8 +848,8 @@ namespace Tac.Backend.Emit.Test
         public void MethodsOnMethods() {
 
 
-            var input = MemberDefinition.CreateAndBuild(new NameKey("input"), MethodType.CreateAndBuild(new NumberType (), new NumberType()), Access.ReadWrite);
-            var innerInput = MemberDefinition.CreateAndBuild(new NameKey("inner-input"), new NumberType (),Access.ReadWrite);
+            var input = MemberDefinition.CreateAndBuild(new NameKey("input"), MethodType.CreateAndBuild(new NumberType(), new NumberType()), Access.ReadWrite);
+            var innerInput = MemberDefinition.CreateAndBuild(new NameKey("inner-input"), new NumberType(), Access.ReadWrite);
 
             var methodMethod = Model.Instantiated.MethodDefinition.CreateAndBuild(
                                     MethodType.CreateAndBuild(new NumberType(), new NumberType()),
@@ -914,9 +916,176 @@ namespace Tac.Backend.Emit.Test
             });
         }
 
+        //   1 =: number | bool n-b =: any a is number n {}
+        [Fact]
+        public void NumberOrAnyNumber() {
+
+            var nb = MemberDefinition.CreateAndBuild(new NameKey("n-b"), TypeOr.CreateAndBuild(new NumberType(), new BooleanType()), Access.ReadWrite);
+            var a = MemberDefinition.CreateAndBuild(new NameKey("a"), new AnyType(), Access.ReadWrite);
+            var n = MemberDefinition.CreateAndBuild(new NameKey("n"), new NumberType(), Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+             new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(nb, false),
+                            new IsStatic(a, false)
+                        }),
+                        new List<ICodeElement> {
+                            TryAssignOperation.CreateAndBuild(
+                                AssignOperation.CreateAndBuild(
+                                    AssignOperation.CreateAndBuild(
+                                        ConstantNumber.CreateAndBuild(1),
+                                        Model.Instantiated.MemberReference.CreateAndBuild(nb)),
+                                    Model.Instantiated.MemberReference.CreateAndBuild(a)),
+                                Model.Instantiated.MemberReference.CreateAndBuild(n),
+                                BlockDefinition.CreateAndBuild(
+                                    Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                    Array.Empty<ICodeElement>(),
+                                    Array.Empty<ICodeElement>()
+                                ),
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(n, false)
+                                })
+                            ),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>())
+          });
+        }
+
+
+        //   1 =: number | some-type n-t =: any a is some-type t {}
+        [Fact]
+        public void NumberOrAnyType()
+        {
+
+            var (node, nodeBuilder) = InterfaceType.Create();
+
+            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType());
+
+            var next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Model.Elements.Access.ReadWrite);
+
+            nodeBuilder.Build(new List<IMemberDefinition>
+            {
+                next
+            });
+
+            var nb = MemberDefinition.CreateAndBuild(new NameKey("n-t"), TypeOr.CreateAndBuild(new NumberType(), node), Access.ReadWrite);
+            var a = MemberDefinition.CreateAndBuild(new NameKey("a"), new AnyType(), Access.ReadWrite);
+            var n = MemberDefinition.CreateAndBuild(new NameKey("t"), node, Access.ReadWrite);
+
+            Compiler.BuildAndRun(
+             new List<ICodeElement>{
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(nb, false),
+                            new IsStatic(a, false)
+                        }),
+                        new List<ICodeElement> {
+                            TryAssignOperation.CreateAndBuild(
+                                AssignOperation.CreateAndBuild(
+                                    AssignOperation.CreateAndBuild(
+                                        ConstantNumber.CreateAndBuild(1),
+                                        Model.Instantiated.MemberReference.CreateAndBuild(nb)),
+                                    Model.Instantiated.MemberReference.CreateAndBuild(a)),
+                                Model.Instantiated.MemberReference.CreateAndBuild(n),
+                                BlockDefinition.CreateAndBuild(
+                                    Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                    Array.Empty<ICodeElement>(),
+                                    Array.Empty<ICodeElement>()
+                                ),
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(n, false)
+                                })
+                            ),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>())
+          });
+        }
+
+        // maybe a member on an or type
+        //  object {number a := 1; number b := 2; number c := 3} is type { number a } | type {number b} a-or-b { a-or-b.a =: a-or-b.a }
+        [Fact]
+        public void MemberOnOrType() {
+            var abType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("b"),new NumberType(),Access.ReadWrite)
+            });
+
+            var aType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite)
+            });
+
+            var orType = TypeOr.CreateAndBuild(aType, abType);
+
+            var orType_a = orType.Members.Where(x => x.Key.SafeIs(out NameKey nameKey) && nameKey.Name == "a").Single();
+
+            var a_or_ab = MemberDefinition.CreateAndBuild(new NameKey("a-or-ab"), orType, Access.ReadWrite);
+
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var memB = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+            var memC = MemberDefinition.CreateAndBuild(new NameKey("c"), new NumberType(), Access.ReadWrite);
+
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(memA, false),
+                                        new IsStatic(memB, false),
+                                        new IsStatic(memC, false)
+                        }),
+                        new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(1),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(2),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memB)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(3),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memC))
+                        });
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                        EntryPointDefinition.CreateAndBuild(
+                            Scope.CreateAndBuild(new List<IsStatic>{
+                            }),
+                            new List<ICodeElement> {
+                                TryAssignOperation.CreateAndBuild(
+                                    object1,
+                                    Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
+                                    BlockDefinition.CreateAndBuild(
+                                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                        new List<ICodeElement>{ 
+                                            AssignOperation.CreateAndBuild(
+                                                PathOperation.CreateAndBuild(
+                                                Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(orType_a)),
+                                            PathOperation.CreateAndBuild(
+                                                Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(orType_a)))
+                                        },
+                                        Array.Empty<ICodeElement>()
+                                    ),
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(a_or_ab, false),
+                                    })
+                                ),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            },
+                            Array.Empty<ICodeElement>())
+             });
+        } 
+
 
         // I really need to exercise type ors
         // as is so often so, they are a huge challenge
+
+
+
 
 
         // test something outside of the entry point?

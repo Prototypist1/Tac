@@ -91,8 +91,8 @@ namespace Tac.Backend.Emit.Visitors
                 lookup.AddLocal(owner, entry);
             }
 
-
             Push(tryAssignOperation).Walk(tryAssignOperation.Operands);
+
             return new Nothing();
         }
         public Nothing NextCallOperation(INextCallOperation co)
@@ -143,6 +143,26 @@ namespace Tac.Backend.Emit.Visitors
                 // I guess member definition is not a code elemeht 
                 interfaceType.Convert(this);
             }
+            if (codeElement.Type is ITypeOr typeOr)
+            {
+                // I guess member definition is not a code elemeht 
+                TypeOr(typeOr);
+            }
+            return new Nothing();
+        }
+
+        // TODO these two method (TypeDefinition and TypeOr) don't make me feel good about the design
+        // one is on the interface the other is not
+        // I am using this weird switch (in MemberDefinition) to get to them
+        // everywhere else I use polymorphism to get there 
+
+        public Nothing TypeOr(ITypeOr typeOr)
+        {
+            foreach (var member in typeOr.Members)
+            {
+                lookup.TryAddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>(typeOr), member);
+            }
+
             return new Nothing();
         }
 
@@ -150,7 +170,7 @@ namespace Tac.Backend.Emit.Visitors
         {
             foreach (var member in codeElement.Members)
             {
-                lookup.TryAddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType>(codeElement), member);
+                lookup.TryAddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>(codeElement), member);
             }
 
             return new Nothing();
@@ -243,7 +263,7 @@ namespace Tac.Backend.Emit.Visitors
             }
 
             lookup.AddArgument(OrType.Make < IImplementationDefinition, IInternalMethodDefinition > (codeElement),codeElement.ParameterDefinition);
-            lookup.AddField(OrType .Make< IImplementationDefinition, IObjectDefiniton, IInterfaceType >( codeElement), codeElement.ContextDefinition);
+            lookup.AddField(OrType .Make< IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>( codeElement), codeElement.ContextDefinition);
 
             next.Walk(codeElement.MethodBody);
 
@@ -280,7 +300,7 @@ namespace Tac.Backend.Emit.Visitors
 
             foreach (var member in codeElement.Scope.Members.Values.Select(x => x.Value))
             {
-                lookup.AddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType>(codeElement), member);
+                lookup.AddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>(codeElement), member);
             }
 
             var next = Push(codeElement);
