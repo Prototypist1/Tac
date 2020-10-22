@@ -368,7 +368,7 @@ namespace Tac.Backend.Emit.Support.Test
 
             var @object = new TacObject
             {
-                members = new object[] { new TacMethod_Complex_Simple ( func , method1Type) },
+                members = new object[] { new TacMethod_Complex_Simple<int> ( func , method1Type) },
                 type = type1
             };
 

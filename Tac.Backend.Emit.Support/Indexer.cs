@@ -121,12 +121,12 @@ namespace Tac.Backend.Emit.Support
 
         public IVerifiableType TacType() => type;
     }
-    public class TacMethod_Simple_Complex: ITacObject
+    public class TacMethod_Simple_Complex<T1>: ITacObject
     {
-        public object backing;
+        public Func<T1, ITacObject> backing;
         private readonly IVerifiableType type;
 
-        public TacMethod_Simple_Complex(Func<object, ITacObject> backing, IVerifiableType type)
+        public TacMethod_Simple_Complex(Func<T1, ITacObject> backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -178,7 +178,15 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public ITacObject Call_Simple_Complex<Tin>(Tin input) => ((Func<Tin, ITacObject>)backing)(input);
+        public ITacObject Call_Simple_Complex<Tin>(Tin input)
+        {
+            if (input is T1 t1)
+            {
+                return backing(t1);
+            }
+            throw new Exception("types are not right");
+        }
+
         public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
         {
             SetComplexMemberReturn(tacCastObject, position);
@@ -198,13 +206,13 @@ namespace Tac.Backend.Emit.Support
         }
         public IVerifiableType TacType() => type;
     }
-    public class TacMethod_Complex_Simple: ITacObject
+    public class TacMethod_Complex_Simple<T2>: ITacObject
     {
 
-        public object backing;
+        public Func<ITacObject, T2> backing;
         private readonly IVerifiableType type;
 
-        public TacMethod_Complex_Simple(object backing, IVerifiableType type)
+        public TacMethod_Complex_Simple(Func<ITacObject,T2> backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -255,7 +263,15 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public Tout Call_Complex_Simple<Tout>(ITacObject input) => ((Func<ITacObject,Tout>)backing)(input);
+        public Tout Call_Complex_Simple<Tout>(ITacObject input)
+        {
+            var res = backing(input);
+            if (res is Tout oout)
+            {
+                return oout;
+            }
+            throw new Exception("types are not right");
+        }
         public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
         {
             SetComplexMemberReturn(tacCastObject, position);
@@ -275,12 +291,12 @@ namespace Tac.Backend.Emit.Support
         }
         public IVerifiableType TacType() => type;
     }
-    public class TacMethod_Simple_Simple: ITacObject
+    public class TacMethod_Simple_Simple<T1,T2>: ITacObject
     {
-        public object backing;
+        public Func<T1,T2> backing;
         private readonly IVerifiableType type;
 
-        public TacMethod_Simple_Simple(object backing, IVerifiableType type)
+        public TacMethod_Simple_Simple(Func<T1, T2> backing, IVerifiableType type)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
             this.type = type ?? throw new ArgumentNullException(nameof(type));
@@ -331,7 +347,16 @@ namespace Tac.Backend.Emit.Support
             throw new NotImplementedException("not supported");
         }
 
-        public Tout Call_Simple_Simple<Tin,Tout>(Tin input) => ((Func<Tin, Tout>)backing)(input);
+        public Tout Call_Simple_Simple<Tin, Tout>(Tin input)
+        {
+            if (input is T1 t1) {
+                var res = backing(t1);
+                if (res is Tout oout) {
+                    return oout;
+                }
+            }
+            throw new Exception("types are not right");
+        }
         public ITacObject SetComplexMemberReturn(ITacObject tacCastObject, int position)
         {
             SetComplexMemberReturn(tacCastObject, position);

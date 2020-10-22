@@ -460,20 +460,20 @@ namespace Tac.Backend.Emit.Walkers
             return typeof(TacMethod_Complex_Complex).GetConstructor(new[] { typeof(Func<ITacObject, ITacObject>), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
         });
 
-        private readonly Lazy<ConstructorInfo> tacMethod_Complex_SimpleConstructor = new Lazy<ConstructorInfo>(() =>
+        private ConstructorInfo tacMethod_Complex_SimpleConstructor (System.Type output)
         {
-            return typeof(TacMethod_Complex_Simple).GetConstructor(new[] { typeof(Func<ITacObject, object>), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
-        });
+            return typeof(TacMethod_Complex_Simple<>).MakeGenericType(output).GetConstructor(new[] { typeof(Func<,>).MakeGenericType(typeof(ITacObject),output), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
+        }
 
-        private readonly Lazy<ConstructorInfo> tacMethod_Simple_ComplexConstructor = new Lazy<ConstructorInfo>(() =>
+        private ConstructorInfo tacMethod_Simple_ComplexConstructor(System.Type input)
         {
-            return typeof(TacMethod_Simple_Complex).GetConstructor(new[] { typeof(Func<object, ITacObject>), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
-        });
+            return typeof(TacMethod_Simple_Complex<>).MakeGenericType(input).GetConstructor(new[] { typeof(Func<,>).MakeGenericType(input,typeof(ITacObject)), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
+        }
 
-        private readonly Lazy<ConstructorInfo> tacMethod_Simple_SimpleConstructor = new Lazy<ConstructorInfo>(() =>
+        private ConstructorInfo tacMethod_Simple_SimpleConstructor (System.Type input, System.Type output)
         {
-            return typeof(TacMethod_Simple_Simple).GetConstructor(new[] { typeof(Func<object, object>) ,typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
-        });
+            return typeof(TacMethod_Simple_Simple<,>).MakeGenericType(input,output).GetConstructor(new[] { typeof(Func<,>).MakeGenericType(input, output), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
+        }
 
         public Nothing AssignOperation(IAssignOperation co)
         {
@@ -1589,17 +1589,17 @@ namespace Tac.Backend.Emit.Walkers
                 }
                 else
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, tacMethod_Complex_SimpleConstructor.Value);
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, tacMethod_Complex_SimpleConstructor(typeCache[method.OutputType]));
                 }
             }
             else {
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, tacMethod_Simple_ComplexConstructor.Value);
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, tacMethod_Simple_ComplexConstructor(typeCache[method.InputType]));
                 }
                 else
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, tacMethod_Simple_SimpleConstructor.Value);
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, tacMethod_Simple_SimpleConstructor(typeCache[method.InputType], typeCache[method.OutputType]));
                 }
             }
 

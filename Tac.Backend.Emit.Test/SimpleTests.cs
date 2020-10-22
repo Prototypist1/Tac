@@ -1078,16 +1078,57 @@ namespace Tac.Backend.Emit.Test
                             },
                             Array.Empty<ICodeElement>())
              });
-        } 
+        }
 
 
         // I really need to exercise type ors
         // as is so often so, they are a huge challenge
 
+        // an or with methods 
+        // method[num,num|bool] x = method[bool|num,bool] { true return; }
+        // 5 > x
 
 
+        [Fact]
+        public void MethodOfOr()
+        {
+            var numOrBool = TypeOr.CreateAndBuild(new BooleanType(), new NumberType());
+            var input = MemberDefinition.CreateAndBuild(new NameKey("input"), numOrBool, Access.ReadWrite);
+
+            var methodDef = Model.Instantiated.MethodDefinition.CreateAndBuild(
+                numOrBool,
+                new BooleanType(),
+                input,
+                Scope.CreateAndBuild(new List<IsStatic>
+                {
+                      new IsStatic(input, false),
+                }),
+                new List<ICodeElement>
+                {
+                    ReturnOperation.CreateAndBuild(ConstantBool.CreateAndBuild(true))
+                },
+                Array.Empty<ICodeElement>());
+
+            var x = MemberDefinition.CreateAndBuild(new NameKey("x"), MethodType.CreateAndBuild(new NumberType(), numOrBool), Access.ReadWrite);
 
 
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                        EntryPointDefinition.CreateAndBuild(
+                            Scope.CreateAndBuild(new List<IsStatic>{
+                                new IsStatic(x, false),
+                            }),
+                            new List<ICodeElement> {
+                                AssignOperation.CreateAndBuild(
+                                    methodDef,
+                                    Model.Instantiated.MemberReference.CreateAndBuild(x)),
+                                NextCallOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(4), Model.Instantiated.MemberReference.CreateAndBuild(x)),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            },
+                            Array.Empty<ICodeElement>())
+                });
+
+        }
         // test something outside of the entry point?
         // something that does not go in to an IS
 
