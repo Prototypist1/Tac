@@ -48,30 +48,32 @@ namespace Tac.Backend.Emit.Test
         [Fact]
         public void Multiply()
         {
-            Compiler.BuildAndRun(
+            var res = Compiler.BuildAndRun(
                 new List<ICodeElement>{
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         new List<ICodeElement> {
-                            MultiplyOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)),
-                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            ReturnOperation.CreateAndBuild(MultiplyOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                         },
                         Array.Empty<ICodeElement>())
                 }, null);
+
+            Assert.Equal(4.0, res);
         }
 
         [Fact]
         public void LessThen() {
-            Compiler.BuildAndRun(
+            var res = Compiler.BuildAndRun(
                 new List<ICodeElement>{
                             EntryPointDefinition.CreateAndBuild(
                                 Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                                 new List<ICodeElement> {
-                                    LessThanOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)),
-                                    ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                                    ReturnOperation.CreateAndBuild(LessThanOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                                 },
                                 Array.Empty<ICodeElement>())
                 }, null);
+
+            Assert.False((bool)res);
         }
 
 

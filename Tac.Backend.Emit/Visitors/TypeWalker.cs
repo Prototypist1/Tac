@@ -42,6 +42,8 @@ namespace Tac.Backend.Emit.Walkers
             {
                 line.Convert(this);
             }
+
+            HandleType(operation.Returns());
             return new Nothing();
         }
 
