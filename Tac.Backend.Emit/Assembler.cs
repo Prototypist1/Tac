@@ -38,9 +38,15 @@ namespace Tac.Backend.Emit
             return Assembly.Value.DefineDynamicModule(GenerateName());
         });
 
-        public static void BuildAndRun(IReadOnlyList<ICodeElement> lines)
+        public static object BuildAndRun(IReadOnlyList<ICodeElement> lines, object input)
         {
+            var complitation = Build(lines);
+            return complitation.main(input);
 
+        }
+
+        private static TacCompilation Build(IReadOnlyList<ICodeElement> lines)
+        {
             // I think we are actually not making an assembly,
             // just a type 
 
@@ -72,7 +78,7 @@ namespace Tac.Backend.Emit
                 line.Convert(methodMakerVisitor);
             }
 
-            var (assemblerVisitor,after) = AssemblerVisitor.Create(
+            var (assemblerVisitor, after) = AssemblerVisitor.Create(
                 memberKindLookup,
                 extensionLookup,
                 typeCache,
@@ -92,16 +98,15 @@ namespace Tac.Backend.Emit
             realizedMethodLookup.CreateTypes();
             assemblerVisitor.rootType.CreateType();
 
-            var yo = String.Join(Environment.NewLine, assemblerVisitor.gens.Select(x=>x.GetDeubbingSting()));
+            var yo = String.Join(Environment.NewLine, assemblerVisitor.gens.Select(x => x.GetDeubbingSting()));
 
             // now I need to reflexively find my type and call main
-            var complitation =(TacCompilation)Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name);
+            var complitation = (TacCompilation)Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name);
 
             complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();
             complitation.verifyableTypesArray = assemblerVisitor.verifyableTypesList.types.ToArray();
             complitation.Init();
-            var result = complitation.main(null);
-
+            return complitation;
         }
     }
 }

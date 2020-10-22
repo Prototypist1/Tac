@@ -1784,6 +1784,13 @@ namespace Tac.Backend.Emit.Walkers
                     PossiblyConvert(co.Result.Returns(), method.OutputType);
                     goto end;
                 }
+
+
+                if (frame.SafeIs(out IEntryPointDefinition entryPoint))
+                {
+                    PossiblyConvert(co.Result.Returns(), new Tac.Model.Instantiated.AnyType());
+                    goto end;
+                }
             }
             end:
 

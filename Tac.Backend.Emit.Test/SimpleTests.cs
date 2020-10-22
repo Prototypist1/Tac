@@ -26,22 +26,23 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
         [Fact]
         public void Add()
         {
-            Compiler.BuildAndRun(
+            var res = Compiler.BuildAndRun(
                 new List<ICodeElement>{
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         new List<ICodeElement> {
-                            AddOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),ConstantNumber.CreateAndBuild(1)),
-                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            ReturnOperation.CreateAndBuild(AddOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),ConstantNumber.CreateAndBuild(1)))
                         },
                         Array.Empty<ICodeElement>())
-                });
+                }, null);
+
+            Assert.Equal(2.0, res);
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
         [Fact]
@@ -70,7 +71,7 @@ namespace Tac.Backend.Emit.Test
                                     ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                                 },
                                 Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
 
@@ -94,7 +95,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
         [Fact]
@@ -117,7 +118,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
         [Fact]
@@ -148,7 +149,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
         [Fact]
@@ -167,7 +168,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            });
+            }, null);
         }
 
         [Fact]
@@ -187,7 +188,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            });
+            }, null);
         }
 
         // 2=: any x
@@ -224,7 +225,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            });
+            }, null);
         }
 
 
@@ -246,7 +247,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            });
+            }, null);
         }
 
 
@@ -275,7 +276,7 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
 
@@ -313,7 +314,7 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
 
@@ -345,7 +346,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           );
+           , null);
         }
 
         // (object{ number x = 0, number y = 1} =: type{ number x , number y} obj).x =: number z;
@@ -396,7 +397,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           );
+           , null);
         }
 
         [Fact]
@@ -469,7 +470,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           );
+           , null);
         }
 
         // any func = Method[abc-type,ab-type] input { input return;  };
@@ -567,7 +568,7 @@ namespace Tac.Backend.Emit.Test
                                 ),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                });
+                }, null);
         }
 
         // I should test a return from inside a try assign
@@ -616,7 +617,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            });
+            }, null);
         }
 
         // long path test
@@ -743,7 +744,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            });
+            }, null);
         }
 
 
@@ -833,7 +834,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            });
+            }, null);
 
         }
 
@@ -913,7 +914,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            });
+            }, null);
         }
 
         //   1 =: number | bool n-b =: any a is number n {}
@@ -951,7 +952,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-          });
+          }, null);
         }
 
 
@@ -1002,7 +1003,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-          });
+          }, null);
         }
 
         // maybe a member on an or type
@@ -1077,7 +1078,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-             });
+             }, null);
         }
 
 
@@ -1126,7 +1127,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-                });
+                }, null);
 
         }
         // test something outside of the entry point?
