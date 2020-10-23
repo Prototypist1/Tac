@@ -2,6 +2,7 @@
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -1083,15 +1084,9 @@ namespace Tac.Backend.Emit.Test
              }, null);
         }
 
-
-        // I really need to exercise type ors
-        // as is so often so, they are a huge challenge
-
         // an or with methods 
         // method[num,num|bool] x = method[bool|num,bool] { true return; }
         // 5 > x
-
-
         [Fact]
         public void MethodOfOr()
         {
@@ -1132,6 +1127,85 @@ namespace Tac.Backend.Emit.Test
                 }, null);
 
         }
+
+
+        // object { number a := 1; number b := 2} is  bool | type {number a} input {
+        //      input is type {number a} has-a {
+        //          has-a.a return;
+        //      }
+        //}
+        [Fact]
+        public void IsOr() {
+            var aTypeAMember =  MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+
+            var aType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                aTypeAMember
+            });
+
+            var aOrBool = TypeOr.CreateAndBuild(aType, new BooleanType());
+            var input = MemberDefinition.CreateAndBuild(new NameKey("input"), aOrBool, Access.ReadWrite);
+            var hasA = MemberDefinition.CreateAndBuild(new NameKey("has-a"), aType, Access.ReadWrite);
+
+
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var memB = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                      Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(memA, false),
+                                        new IsStatic(memB, false),
+                      }),
+                      new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(1),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(2),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memB))
+                      });
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                        EntryPointDefinition.CreateAndBuild(
+                            Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                            new List<ICodeElement> {
+                                TryAssignOperation.CreateAndBuild(
+                                    object1,
+                                    Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                    BlockDefinition.CreateAndBuild(
+                                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                        new List<ICodeElement>{
+                                            TryAssignOperation.CreateAndBuild(
+                                                Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(hasA),
+                                                BlockDefinition.CreateAndBuild(
+                                                    Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                                    new List<ICodeElement>{
+                                                        ReturnOperation.CreateAndBuild(
+                                                            PathOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(hasA), 
+                                                            Model.Instantiated.MemberReference.CreateAndBuild(aTypeAMember)))
+                                                    },
+                                                    Array.Empty<ICodeElement>()),
+                                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                                        new IsStatic(hasA, false),
+                                                    }))
+                                        },
+                                        Array.Empty<ICodeElement>()
+                                    ),
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(input, false),
+                                    })),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            },
+                            Array.Empty<ICodeElement>())
+                }, null);
+
+        }
+
+
+
+
         // test something outside of the entry point?
         // something that does not go in to an IS
 

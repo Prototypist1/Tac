@@ -1909,6 +1909,11 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     return o;
                 }
+                // we need to unroll all the casts and work with the root object
+                while (tacObject is TacCastObject cast)
+                {
+                    tacObject = cast.@object;
+                }
                 return new TacCastObject(tacObject, Indexer.Create(tacObject.TacType(), targetType));
             }
             if (o.SafeIs(out double _))
