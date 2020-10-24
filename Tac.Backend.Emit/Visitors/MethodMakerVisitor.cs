@@ -157,15 +157,15 @@ namespace Tac.Backend.Emit.Visitors
             var map = new Dictionary<IMemberDefinition, FieldInfo>();
 
 
-            //if (extensionLookup.entryPointLookup.TryGetValue(entryPointDefinition, out var closure))
-            //{
+            if (extensionLookup.entryPointLookup.TryGetValue(entryPointDefinition, out var closure))
+            {
 
-            //    foreach (var member in closure.closureMember)
-            //    {
-            //        var field = typeBuilder.DefineField(TranslateName(member.Key.SafeCastTo(out NameKey _).Name), TranslateType(member.Type), FieldAttributes.Public);
-            //        map[member] = field;
-            //    }
-            //}
+                foreach (var member in closure.closureMember)
+                {
+                    var field = typeBuilder.DefineField(TranslateName(member.Key.SafeCastTo(out NameKey _).Name), TranslateType(member.Type), FieldAttributes.Public);
+                    map[member] = field;
+                }
+            }
 
             realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPointDefinition), new RealizedMethod(map, typeBuilder, constructor));
 

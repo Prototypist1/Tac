@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using Tac.Backend.Emit.Visitors;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -27,7 +28,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -41,7 +42,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(AddOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),ConstantNumber.CreateAndBuild(1)))
                         },
                         Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
             Assert.Equal(2.0, res);
         }
@@ -57,7 +58,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(MultiplyOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                         },
                         Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
             Assert.Equal(4.0, res);
         }
@@ -72,7 +73,7 @@ namespace Tac.Backend.Emit.Test
                                     ReturnOperation.CreateAndBuild(LessThanOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                                 },
                                 Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
             Assert.False((bool)res);
         }
@@ -98,7 +99,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -121,7 +122,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -152,7 +153,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -171,7 +172,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null);
+            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -191,7 +192,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null);
+            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // 2=: any x
@@ -228,7 +229,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null);
+            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -250,7 +251,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null);
+            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -279,7 +280,7 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -317,7 +318,7 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -349,7 +350,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           , null);
+           , null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // (object{ number x = 0, number y = 1} =: type{ number x , number y} obj).x =: number z;
@@ -400,7 +401,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           , null);
+           , null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -473,7 +474,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           , null);
+           , null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // any func = Method[abc-type,ab-type] input { input return;  };
@@ -571,7 +572,7 @@ namespace Tac.Backend.Emit.Test
                                 ),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // I should test a return from inside a try assign
@@ -620,7 +621,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null);
+            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // long path test
@@ -747,7 +748,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null);
+            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -837,7 +838,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null);
+            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
         }
 
@@ -917,7 +918,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null);
+            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         //   1 =: number | bool n-b =: any a is number n {}
@@ -955,7 +956,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-          }, null);
+          }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -1006,7 +1007,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-          }, null);
+          }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // maybe a member on an or type
@@ -1081,7 +1082,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-             }, null);
+             }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // an or with methods 
@@ -1124,7 +1125,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
         }
 
@@ -1199,15 +1200,174 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-                }, null);
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
         }
 
+        // an or type with an any in it 
+        // object { number a := 1; number b := 2} is  bool | any input {
+        //      input is type {number a} has-a {
+        //          has-a.a return;
+        //      }
+        //}
+        [Fact]
+        public void IsBoolOrAny()
+        {
+            var aTypeAMember = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+
+            var aType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                aTypeAMember
+            });
+
+            var anyOrBool = TypeOr.CreateAndBuild(new AnyType(), new BooleanType());
+            var input = MemberDefinition.CreateAndBuild(new NameKey("input"), anyOrBool, Access.ReadWrite);
+            var hasA = MemberDefinition.CreateAndBuild(new NameKey("has-a"), aType, Access.ReadWrite);
 
 
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var memB = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
 
-        // test something outside of the entry point?
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                      Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(memA, false),
+                                        new IsStatic(memB, false),
+                      }),
+                      new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(1),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(2),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memB))
+                      });
+
+            Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                        EntryPointDefinition.CreateAndBuild(
+                            Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                            new List<ICodeElement> {
+                                TryAssignOperation.CreateAndBuild(
+                                    object1,
+                                    Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                    BlockDefinition.CreateAndBuild(
+                                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                        new List<ICodeElement>{
+                                            TryAssignOperation.CreateAndBuild(
+                                                Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                                Model.Instantiated.MemberReference.CreateAndBuild(hasA),
+                                                BlockDefinition.CreateAndBuild(
+                                                    Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                                    new List<ICodeElement>{
+                                                        ReturnOperation.CreateAndBuild(
+                                                            PathOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(hasA),
+                                                            Model.Instantiated.MemberReference.CreateAndBuild(aTypeAMember)))
+                                                    },
+                                                    Array.Empty<ICodeElement>()),
+                                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                                        new IsStatic(hasA, false),
+                                                    }))
+                                        },
+                                        Array.Empty<ICodeElement>()
+                                    ),
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(input, false),
+                                    })),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            },
+                            Array.Empty<ICodeElement>())
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+
+        }
+
         // something that does not go in to an IS
+
+        // an or type with an any in it 
+        // object { number a := 1; number b := 2} is  bool | number input {  
+        //      0 return;
+        //  }
+        //  1 return;
+        [Fact]
+        public void DoesNotGoInTheOr()
+        {
+            var numberOrBool = TypeOr.CreateAndBuild(new NumberType(), new BooleanType());
+            var input = MemberDefinition.CreateAndBuild(new NameKey("input"), numberOrBool, Access.ReadWrite);
+
+
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var memB = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                      Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(memA, false),
+                                        new IsStatic(memB, false),
+                      }),
+                      new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(1),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(2),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memB))
+                      });
+
+            var res = Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                        EntryPointDefinition.CreateAndBuild(
+                            Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                            new List<ICodeElement> {
+                                TryAssignOperation.CreateAndBuild(
+                                    object1,
+                                    Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                    BlockDefinition.CreateAndBuild(
+                                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                        new List<ICodeElement>{
+                                            ReturnOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(0))
+                                        },
+                                        Array.Empty<ICodeElement>()
+                                    ),
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(input, false),
+                                    })),
+                                ReturnOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1))
+                            },
+                            Array.Empty<ICodeElement>())
+                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+
+
+            Assert.Equal(1.0, res);
+        }
+
+
+        // test something outside of the entry point
+        // x := 2
+        // entrypoint {
+        //  x return;
+        //}
+        [Fact]
+        public void SomethingOutsideEntryPoint() {
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+
+
+            var res = Compiler.BuildAndRun(
+                new List<ICodeElement>{
+                        AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                        EntryPointDefinition.CreateAndBuild(
+                            Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                            new List<ICodeElement> {
+                                ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(memA))
+                            },
+                            Array.Empty<ICodeElement>())
+                }, 
+                null, 
+                new RootScope(Scope.CreateAndBuild(new List<IsStatic>{
+                    new IsStatic(memA, false),
+                })));
+
+
+            Assert.Equal(2.0, res);
+        }
+
 
     }
 }

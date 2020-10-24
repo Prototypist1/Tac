@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Tac.Backend.Emit.Lookup;
 using Tac.Backend.Emit.Support;
+using Tac.Backend.Emit.Visitors;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -314,7 +315,8 @@ namespace Tac.Backend.Emit.Walkers
             ExtensionLookup extensionLookup,
             Dictionary<IVerifiableType, System.Type> typeCache,
              ModuleBuilder moduleBuilder,
-             RealizedMethodLookup realizedMethodLookup)
+             RealizedMethodLookup realizedMethodLookup,
+             RootScope rootScope)
         {
             var typebuilder = moduleBuilder.DefineType(GenerateName(), TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation));
             var selfField = typebuilder.DefineField(GenerateName() + "_self", typebuilder, FieldAttributes.Static | FieldAttributes.Public);
@@ -327,6 +329,11 @@ namespace Tac.Backend.Emit.Walkers
 
             var gens = new List<DebuggableILGenerator> { gen };
             var generatorHolder = new GeneratorHolder(Possibly.Is(gen));
+
+            foreach (var local in rootScope.scope.Members)
+            {
+                gen.DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+            }
 
             // set the self field
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
@@ -482,7 +489,7 @@ namespace Tac.Backend.Emit.Walkers
             // be careful this does not leave anything on the stack
             // =: in tac returns returns the value just saved
             // we need it not to do that if nothing is going to consume that
-            var leaveOnStack = this.stack.Last().SafeIs(out IOperation _);
+            var leaveOnStack = this.stack.Any() && this.stack.Last().SafeIs(out IOperation _);
 
 
             // {870866D9-D3EC-47B1-B7D3-6966EE651F5F}
@@ -556,22 +563,7 @@ namespace Tac.Backend.Emit.Walkers
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                     }
-                    return orTypeLocal.SwitchReturns(
-                        entryPoint =>
-                        {
-                            StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
-                            return new Nothing();
-                        },
-                        imp =>
-                        {
-                            StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
-                            return new Nothing();
-                        },
-                        method =>
-                        {
-                            StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
-                            return new Nothing();
-                        });
+                    return storeLocal(memberReference.MemberDefinition, orTypeLocal);
                 }
 
                 if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField))
@@ -979,7 +971,7 @@ namespace Tac.Backend.Emit.Walkers
                 var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
                 myIf.Operands[0].Convert(nextNext);
                 // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-                if (this.stack.Last().SafeIs(out IOperation _))
+                if (this.stack.Any() && this.stack.Last().SafeIs(out IOperation _))
                 {
                     // we dup so that we return
                     // else in tac returns false if it ran, true otherwise
@@ -1003,8 +995,8 @@ namespace Tac.Backend.Emit.Walkers
             }
             else {
                 co.Left.Convert(next);
-                // duplicate code { 9EAD95C4 - 6FAD - 4911 - 94EE - 106528B7A3B2}
-                if (this.stack.Last().SafeIs(out IOperation _))
+                // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+                if (this.stack.Any() && this.stack.Last().SafeIs(out IOperation _))
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 }
@@ -1053,14 +1045,38 @@ namespace Tac.Backend.Emit.Walkers
 
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, realizedMethod.defaultConstructor);
 
+
+            // pass stuff in to the closure
+            // this is similar to the code in methdo
+            if (extensionLookup.TryGetClosure(entryPointDefinition, out var ourClosure))
+            {
+                // find our parent
+                
+
+                foreach (var member in ourClosure.closureMember)
+                {
+                    if (realizedMethod.fields.TryGetValue(member, out var fieldInfo))
+                    {
+
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+
+                        // it's a local
+                        EmitMemberReference(member);
+                        
+                        // now we need to push the new value on to out closure 
+                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, fieldInfo);
+                    }
+                }
+            }
+
             // now I need to make a TacMethod or whatever
 
             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldftn, myMethod);
             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());           // TODO lazy this reflection
 
-            var field = typeof(TacCompilation).GetField(nameof(TacCompilation.main)) ?? throw new NullReferenceException("that field better exist");
+            var mainField = typeof(TacCompilation).GetField(nameof(TacCompilation.main)) ?? throw new NullReferenceException("that field better exist");
 
-            generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
+            generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, mainField);
 
             return new Nothing();
         }
@@ -1072,7 +1088,7 @@ namespace Tac.Backend.Emit.Walkers
             var label = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
             co.Operands[0].Convert(next);
             // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-            if (this.stack.Last().SafeIs(out IOperation _))
+            if (this.stack.Any() && this.stack.Last().SafeIs(out IOperation _))
             {
                 // we dup so that we return
                 // if in tac returns true if it ran, false otherwise
@@ -1220,6 +1236,11 @@ namespace Tac.Backend.Emit.Walkers
                         return new Nothing();
                     },
                     method =>
+                    {
+                        LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
+                        return new Nothing();
+                    },
+                    rootScope =>
                     {
                         LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
                         return new Nothing();
@@ -1656,14 +1677,16 @@ namespace Tac.Backend.Emit.Walkers
             co.Right.Convert(this.Push(co));
             LoadLocal(loc.LocalIndex);
 
+            // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
+            var leaveOnStack = this.stack.Any() && this.stack.Last().SafeIs(out IOperation _);
+
             if (inType == typeof(ITacObject))
             {
                 if (outType == typeof(ITacObject))
                 {
                     PossiblyConvert(co.Left.Returns(), method.InputType);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new System.Type[] {  });
-                    // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-                    if (!this.stack.Last().SafeIs(out IOperation _))
+                    if (!leaveOnStack)
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
                     }
@@ -1672,8 +1695,7 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     PossiblyConvert(co.Left.Returns(), method.InputType);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new System.Type[] { });
-                    // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-                    if (!this.stack.Last().SafeIs(out IOperation _))
+                    if (!leaveOnStack)
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
                     }
@@ -1684,8 +1706,7 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     PossiblyConvert(co.Left.Returns(), method.InputType);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new System.Type[] { });
-                    // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-                    if (!this.stack.Last().SafeIs(out IOperation _))
+                    if (!leaveOnStack)
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
                     }
@@ -1694,8 +1715,8 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     PossiblyConvert(co.Left.Returns(), method.InputType);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new System.Type[] { });
-                    // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-                    if (!this.stack.Last().SafeIs(out IOperation _))
+                   
+                    if (!leaveOnStack)
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
                     }
@@ -1741,7 +1762,8 @@ namespace Tac.Backend.Emit.Walkers
             // TODO
             // this is a little ugly 
             // it would be better to dup one less time instead of poping
-            if (!this.stack.Last().SafeIs(out IOperation _))
+            var leaveOnStack = this.stack.Any() && this.stack.Last().SafeIs(out IOperation _);
+            if (!leaveOnStack)
             {
                 generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
             }
@@ -1848,23 +1870,7 @@ namespace Tac.Backend.Emit.Walkers
                     GetVerifyableType(memberDef.Type);
                     generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)), new System.Type[] { });
                 }
-
-                orTypeLocal.SwitchReturns(
-                    entryPoint =>
-                    {
-                        StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
-                        return new Nothing();
-                    },
-                    imp =>
-                    {
-                        StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
-                        return new Nothing();
-                    },
-                    method =>
-                    {
-                        StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
-                        return new Nothing();
-                    });
+                storeLocal(memberDef, orTypeLocal);
             }
             else {
                 throw new Exception("should always be a local");
@@ -1879,6 +1885,31 @@ namespace Tac.Backend.Emit.Walkers
             generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(bottomOfElse);
 
             return new Nothing();
+        }
+
+        private Nothing storeLocal(IMemberDefinition memberDef, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope> orTypeLocal)
+        {
+            return orTypeLocal.SwitchReturns(
+                entryPoint =>
+                {
+                    StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
+                    return new Nothing();
+                },
+                imp =>
+                {
+                    StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
+                    return new Nothing();
+                },
+                method =>
+                {
+                    StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
+                    return new Nothing();
+                },
+                rootScope =>
+                {
+                    StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
+                    return new Nothing();
+                });
         }
 
         private Nothing Walk(IEnumerable<ICodeElement> elements, ICodeElement element)
@@ -1960,6 +1991,5 @@ namespace Tac.Backend.Emit.Walkers
             }
             throw new NotImplementedException();
         }
-
     }
 }

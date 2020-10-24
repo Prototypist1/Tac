@@ -38,14 +38,14 @@ namespace Tac.Backend.Emit
             return Assembly.Value.DefineDynamicModule(GenerateName());
         });
 
-        public static object BuildAndRun(IReadOnlyList<ICodeElement> lines, object input)
+        public static object BuildAndRun(IReadOnlyList<ICodeElement> lines, object input, RootScope rootScope)
         {
-            var complitation = Build(lines);
+            var complitation = Build(lines, rootScope);
             return complitation.main(input);
 
         }
 
-        private static TacCompilation Build(IReadOnlyList<ICodeElement> lines)
+        private static TacCompilation Build(IReadOnlyList<ICodeElement> lines, RootScope rootScope)
         {
             // I think we are actually not making an assembly,
             // just a type 
@@ -58,7 +58,7 @@ namespace Tac.Backend.Emit
             }
 
             var memberKindLookup = new MemberKindLookup();
-            var memberKindVisitor = new MemberKindVisitor(new List<ICodeElement>(), memberKindLookup);
+            var memberKindVisitor = MemberKindVisitor.Make(memberKindLookup, rootScope);
             foreach (var line in lines)
             {
                 line.Convert(memberKindVisitor);
@@ -83,7 +83,8 @@ namespace Tac.Backend.Emit
                 extensionLookup,
                 typeCache,
                 module.Value,
-                realizedMethodLookup
+                realizedMethodLookup,
+                rootScope
                 );
             foreach (var line in lines)
             {

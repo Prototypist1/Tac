@@ -82,8 +82,11 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
-            // {BA693CBB-0A22-45DA-9C94-146E72D8C0A4}
-            // TODO I don't think an entyr point can have a closure
+            // an entry point totally has a closure:
+            // x := 2;
+            // entrypoint {
+            //      x + 1 > some-method;
+            // }
             return extensionLookup.entryPointLookup.GetOrAdd(entryPointDefinition, () => {
                 var implementationClosure = Walk(entryPointDefinition.Body, extensionLookup);
 
