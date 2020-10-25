@@ -13,6 +13,7 @@ using Tac.SemanticModel;
 using Tac.SemanticModel.Operations;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Parser;
+using Tac.Frontend._3_Syntax_Model.Elements;
 
 namespace Tac.Frontend
 {
@@ -84,9 +85,9 @@ namespace Tac.Frontend
 
     internal class UnWrappingObjectBox : IBox<IOrType<IFrontendType,IError>>
     {
-        private readonly IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> box;
+        private readonly IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>> box;
 
-        public UnWrappingObjectBox(IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> box)
+        public UnWrappingObjectBox(IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>> box)
         {
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
@@ -94,18 +95,7 @@ namespace Tac.Frontend
         public IOrType<IFrontendType, IError> GetValue()
         {
             var inner = box.GetValue();
-            if (inner.Is1(out var inner1))
-            {
-                return inner1.Returns();
-            }
-            else if (inner.Is2(out var inner2))
-            {
-                return inner2.Returns();
-            }
-            else
-            {
-                throw new Exception("blarg");
-            }
+            return inner.SwitchReturns(x => x.Returns(), x => x.Returns(), x => x.Returns());
         }
     }
 

@@ -6,6 +6,7 @@ using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Model;
 using Tac.SemanticModel;
@@ -228,9 +229,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
             }
-            public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>>, IExplicitType, IHavePossibleMembers
+            public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>, IExplicitType, IHavePossibleMembers
             {
-                public Object(Builder problem, string debugName, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>> converter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter) : base(problem, debugName, converter)
+                public Object(Builder problem, string debugName, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition,WeakRootScope>> converter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter) : base(problem, debugName, converter)
                 {
                     InitizationScope = new Scope(problem, debugName, innerConverter)
                     {

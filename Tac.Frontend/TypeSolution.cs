@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Model;
 using Tac.SemanticModel;
@@ -123,12 +124,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheMethod[method];
             }
 
-            private readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>>>();
-            public IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition>> GetObject(TypeProblem2.Object @object)
+            private readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>>();
+            public IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>> GetObject(TypeProblem2.Object @object)
             {
                 if (!cacheObject.ContainsKey(@object))
                 {
-                    var box = new Box<IOrType<WeakObjectDefinition, WeakModuleDefinition>>();
+                    var box = new Box<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>();
                     cacheObject[@object] = box;
                     box.Fill(@object.Converter.Convert(this, @object));
                 }

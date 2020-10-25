@@ -1047,11 +1047,9 @@ namespace Tac.Backend.Emit.Walkers
 
 
             // pass stuff in to the closure
-            // this is similar to the code in methdo
+            // this is similar to the code in method but not quite the same
             if (extensionLookup.TryGetClosure(entryPointDefinition, out var ourClosure))
             {
-                // find our parent
-                
 
                 foreach (var member in ourClosure.closureMember)
                 {

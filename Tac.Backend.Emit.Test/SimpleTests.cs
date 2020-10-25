@@ -28,7 +28,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(AddOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),ConstantNumber.CreateAndBuild(1)))
                         },
                         Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
             Assert.Equal(2.0, res);
         }
@@ -58,7 +58,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(MultiplyOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                         },
                         Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
             Assert.Equal(4.0, res);
         }
@@ -73,7 +73,7 @@ namespace Tac.Backend.Emit.Test
                                     ReturnOperation.CreateAndBuild(LessThanOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                                 },
                                 Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
             Assert.False((bool)res);
         }
@@ -99,7 +99,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -122,7 +122,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -153,7 +153,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -172,7 +172,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -192,7 +192,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // 2=: any x
@@ -229,7 +229,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -251,7 +251,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -280,7 +280,7 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -318,7 +318,7 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -350,7 +350,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           , null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+           , null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // (object{ number x = 0, number y = 1} =: type{ number x , number y} obj).x =: number z;
@@ -401,7 +401,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           , null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+           , null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         [Fact]
@@ -474,7 +474,7 @@ namespace Tac.Backend.Emit.Test
                         Array.Empty<ICodeElement>()
                     )
                 }
-           , null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+           , null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // any func = Method[abc-type,ab-type] input { input return;  };
@@ -572,7 +572,7 @@ namespace Tac.Backend.Emit.Test
                                 ),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // I should test a return from inside a try assign
@@ -621,7 +621,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // long path test
@@ -748,7 +748,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -838,7 +838,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
         }
 
@@ -918,7 +918,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-            }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         //   1 =: number | bool n-b =: any a is number n {}
@@ -956,7 +956,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-          }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+          }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
 
@@ -1007,7 +1007,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>())
-          }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+          }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // maybe a member on an or type
@@ -1082,7 +1082,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-             }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+             }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
         }
 
         // an or with methods 
@@ -1125,7 +1125,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
         }
 
@@ -1200,7 +1200,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
         }
 
@@ -1276,7 +1276,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
         }
 
@@ -1332,7 +1332,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1))
                             },
                             Array.Empty<ICodeElement>())
-                }, null, new RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
 
 
             Assert.Equal(1.0, res);
@@ -1360,7 +1360,7 @@ namespace Tac.Backend.Emit.Test
                             Array.Empty<ICodeElement>())
                 }, 
                 null, 
-                new RootScope(Scope.CreateAndBuild(new List<IsStatic>{
+                new Visitors.RootScope(Scope.CreateAndBuild(new List<IsStatic>{
                     new IsStatic(memA, false),
                 })));
 
