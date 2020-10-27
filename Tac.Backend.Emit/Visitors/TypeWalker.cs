@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using Tac.Backend.Emit.Support;
-//using Tac.Backend.Emit.SyntaxModel;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -289,6 +288,14 @@ namespace Tac.Backend.Emit.Walkers
         public Nothing TypeDefinition(IInterfaceType codeElement)
         {
             HandleType(codeElement);
+            return new Nothing();
+        }
+
+        public Nothing RootScope(IRootScope co)
+        {
+            HandleLines(co.Assignments);
+            HandleScope(co.Scope);
+            co.EntryPoint.Convert(this);
             return new Nothing();
         }
     }

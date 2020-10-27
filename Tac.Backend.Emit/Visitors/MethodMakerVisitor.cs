@@ -268,5 +268,15 @@ namespace Tac.Backend.Emit.Visitors
         {
             return new Nothing();
         }
+
+        public Nothing RootScope(IRootScope co)
+        {
+            foreach (var assignment in co.Assignments)
+            {
+                assignment.Convert(this);
+            }
+            co.EntryPoint.Convert(this);
+            return new Nothing();
+        }
     }
 }

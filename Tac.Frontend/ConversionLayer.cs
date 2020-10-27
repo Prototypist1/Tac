@@ -532,7 +532,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakObjectConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>>
+    internal class WeakObjectConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>
     {
         private readonly Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> box;
 
@@ -541,9 +541,9 @@ namespace Tac.Frontend
             this.box = box;
         }
 
-        public IOrType<WeakObjectDefinition, WeakModuleDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
+        public IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
-            return OrType.Make<WeakObjectDefinition, WeakModuleDefinition>(new WeakObjectDefinition(
+            return OrType.Make<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>(new WeakObjectDefinition(
                 Help.GetScope(typeSolution, typeSolution.GetFlowNode(from)).TransformInner(x => new Box<WeakScope>(x)),
                 box.GetValue().Select(x => x.SwitchReturns<IOrType<IBox<WeakAssignOperation>, IError>>(
                     y=> { 
@@ -560,7 +560,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakModuleConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition>>
+    internal class WeakModuleConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>
     {
         private readonly Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>> box;
         private readonly IKey key;
@@ -571,7 +571,7 @@ namespace Tac.Frontend
             this.key = key;
         }
 
-        public IOrType<WeakObjectDefinition, WeakModuleDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
+        public IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
             WeakEntryPointDefinition weakEntryPoint;
             if (typeSolution.GetEntryPoint(from) is IIsDefinately<Tpn.TypeProblem2.Scope> scope)
@@ -586,7 +586,7 @@ namespace Tac.Frontend
             }
 
 
-            return OrType.Make<WeakObjectDefinition, WeakModuleDefinition>(new WeakModuleDefinition(
+            return OrType.Make<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>(new WeakModuleDefinition(
                 Help.GetScope(typeSolution, typeSolution.GetFlowNode(from)).TransformInner(x=> new Box<WeakScope>(x)),
                 box.GetValue().Select(x => x.TransformInner(y=> y.Run(typeSolution))).ToArray(), 
                 key,

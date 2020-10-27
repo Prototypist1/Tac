@@ -463,6 +463,12 @@ namespace Tac.Backend.Interpreted.SyntazModelInterpeter
             }
         }
 
+        public IInterpetedOperation RootScope(IRootScope co)
+        {
+            // you do need to do this
+            throw new NotImplementedException();
+        }
+
 
         #region Help
 

@@ -19,8 +19,9 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
     {
         public IOrType<IBox<WeakScope>, IError> Scope { get; }
         public IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>> Assignments { get; }
+        public IOrType<IBox<WeakEntryPointDefinition>, IError> EntryPoint { get; }
 
-        public WeakRootScope(IOrType<IBox<WeakScope>, IError> scope, IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>> assigns)
+        public WeakRootScope(IOrType<IBox<WeakScope>, IError> scope, IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>> assigns, IOrType<IBox<WeakEntryPointDefinition>, IError> EntryPoint)
         {
             if (assigns == null)
             {
@@ -28,6 +29,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             }
 
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.EntryPoint = EntryPoint ?? throw new ArgumentNullException(nameof(EntryPoint));
             Assignments = assigns.ToArray();
 
 
@@ -46,7 +48,9 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             {
                 maker.Build(
                     Scope.Is1OrThrow().GetValue().Convert(context),
-                    Assignments.Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray());
+                    Assignments.Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray(),
+                    EntryPoint.Is1OrThrow().GetValue().Convert(context)
+                    );
             });
         }
 

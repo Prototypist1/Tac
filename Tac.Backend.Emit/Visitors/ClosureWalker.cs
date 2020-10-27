@@ -30,19 +30,19 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> AddOperation(IAddOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
         public IReadOnlyList<IMemberDefinition> AssignOperation(IAssignOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
 
         public IReadOnlyList<IMemberDefinition> TryAssignOperation(ITryAssignOperation tryAssignOperation)
         {
 
-            var implementationClosure = Walk(tryAssignOperation.Operands, extensionLookup);
+            var implementationClosure = Walk(tryAssignOperation.Operands);
 
             return implementationClosure
             .Except(tryAssignOperation.Scope.Members.Select(x => x.Value.Value)).ToArray();
@@ -52,7 +52,7 @@ namespace Tac.Backend.Emit.Walkers
         public IReadOnlyList<IMemberDefinition> BlockDefinition(IBlockDefinition codeElement)
         {
 
-            var implementationClosure = Walk(codeElement.Body, extensionLookup);
+            var implementationClosure = Walk(codeElement.Body);
 
             return implementationClosure
             .Except(codeElement.Scope.Members.Select(x => x.Value.Value)).ToArray();
@@ -76,7 +76,7 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> ElseOperation(IElseOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
 
@@ -88,7 +88,7 @@ namespace Tac.Backend.Emit.Walkers
             //      x + 1 > some-method;
             // }
             return extensionLookup.entryPointLookup.GetOrAdd(entryPointDefinition, () => {
-                var implementationClosure = Walk(entryPointDefinition.Body, extensionLookup);
+                var implementationClosure = Walk(entryPointDefinition.Body);
 
                 return new ClosureLookup(implementationClosure
                     .Except(entryPointDefinition.Scope.Members.Select(x => x.Value.Value))
@@ -99,13 +99,13 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> IfTrueOperation(IIfOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
         public IReadOnlyList<IMemberDefinition> ImplementationDefinition(IImplementationDefinition implementation)
         {
             return extensionLookup.implementationLookup.GetOrAdd(implementation, () => {
-                var implementationClosure = Walk(implementation.MethodBody, extensionLookup);
+                var implementationClosure = Walk(implementation.MethodBody);
 
                 return new ClosureLookup(implementationClosure
                     .Except(implementation.IntermediateScope.Members.Select(x => x.Value.Value))
@@ -116,12 +116,12 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> LastCallOperation(ILastCallOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
         public IReadOnlyList<IMemberDefinition> LessThanOperation(ILessThanOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
         public IReadOnlyList<IMemberDefinition> MemberDefinition(IMemberDefinition codeElement)
@@ -139,7 +139,7 @@ namespace Tac.Backend.Emit.Walkers
         public IReadOnlyList<IMemberDefinition> MethodDefinition(IInternalMethodDefinition method)
         {
             return extensionLookup.methodLookup.GetOrAdd(method, () => {
-                var implementationClosure = Walk(method.Body, extensionLookup);
+                var implementationClosure = Walk(method.Body);
 
                 return new ClosureLookup(implementationClosure
                 .Except(method.Scope.Members.Select(x => x.Value.Value))
@@ -150,22 +150,22 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> ModuleDefinition(IModuleDefinition module)
         {
-            return Walk(module.StaticInitialization, extensionLookup).ToList();
+            return Walk(module.StaticInitialization).ToList();
         }
 
         public IReadOnlyList<IMemberDefinition> MultiplyOperation(IMultiplyOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
         public IReadOnlyList<IMemberDefinition> NextCallOperation(INextCallOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
         public IReadOnlyList<IMemberDefinition> ObjectDefinition(IObjectDefiniton @object)
         {
-            var membersReferenced= Walk(@object.Assignments, extensionLookup);
+            var membersReferenced= Walk(@object.Assignments);
 
             return membersReferenced
             .Except(@object.Scope.Members.Select(x => x.Value.Value)).ToArray();
@@ -184,12 +184,12 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> SubtractOperation(ISubtractOperation co)
         {
-            return Walk(co.Operands, extensionLookup);
+            return Walk(co.Operands);
         }
 
 
 
-        private IReadOnlyList<IMemberDefinition> Walk(IEnumerable<ICodeElement> elements, ExtensionLookup extensionLookup)
+        private IReadOnlyList<IMemberDefinition> Walk(IEnumerable<ICodeElement> elements)
         {
 
             var closure = new List<IMemberDefinition>();
@@ -200,6 +200,18 @@ namespace Tac.Backend.Emit.Walkers
             }
 
             return closure;
+        }
+
+        public IReadOnlyList<IMemberDefinition> RootScope(IRootScope co)
+        {
+            foreach (var item in co.Assignments)
+            {
+                item.Convert(this);
+            }
+            co.EntryPoint.Convert(this);
+
+            // this can't have a closure 
+            return Array.Empty<IMemberDefinition>();
         }
     }
 }

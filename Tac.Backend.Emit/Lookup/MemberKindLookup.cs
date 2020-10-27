@@ -12,12 +12,12 @@ namespace Tac.Backend.Emit.Lookup
 {
     class MemberKindLookup
     {
-        private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>> locals = new ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>>();
+        private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>> locals = new ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>>();
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>> arguments = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>>();
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>> fields = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>>();
         private readonly ConcurrentIndexed<IMemberDefinition, FieldInfo> staticFields = new ConcurrentIndexed<IMemberDefinition, FieldInfo>();
 
-        internal void AddLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope> owner, IMemberDefinition value)
+        internal void AddLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> owner, IMemberDefinition value)
         {
             locals.AddOrThrow(value, owner);
         }
@@ -42,7 +42,7 @@ namespace Tac.Backend.Emit.Lookup
             staticFields.AddOrThrow(member, fieldInfo);
         }
 
-        internal bool IsLocal(IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope> orType)
+        internal bool IsLocal(IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> orType)
         {
             return locals.TryGetValue(member, out orType);
         }

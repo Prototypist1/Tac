@@ -22,13 +22,16 @@ namespace Tac.Backend.Emit.Test
         public void Simplist() {
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
-                    EntryPointDefinition.CreateAndBuild(
+                    Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
+                        EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         new List<ICodeElement> {
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+                }, null);
         }
 
         [Fact]
@@ -36,13 +39,16 @@ namespace Tac.Backend.Emit.Test
         {
             var res = Compiler.BuildAndRun(
                 new List<ICodeElement>{
-                    EntryPointDefinition.CreateAndBuild(
+                    Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
-                        new List<ICodeElement> {
-                            ReturnOperation.CreateAndBuild(AddOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),ConstantNumber.CreateAndBuild(1)))
-                        },
-                        Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<IAssignOperation>(),
+                            EntryPointDefinition.CreateAndBuild(
+                                Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                                new List<ICodeElement> {
+                                    ReturnOperation.CreateAndBuild(AddOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),ConstantNumber.CreateAndBuild(1)))
+                                },
+                                Array.Empty<ICodeElement>()))
+                }, null);
 
             Assert.Equal(2.0, res);
         }
@@ -52,13 +58,16 @@ namespace Tac.Backend.Emit.Test
         {
             var res = Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         new List<ICodeElement> {
                             ReturnOperation.CreateAndBuild(MultiplyOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                         },
-                        Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+                }, null);
 
             Assert.Equal(4.0, res);
         }
@@ -67,13 +76,16 @@ namespace Tac.Backend.Emit.Test
         public void LessThen() {
             var res = Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                             EntryPointDefinition.CreateAndBuild(
                                 Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                                 new List<ICodeElement> {
                                     ReturnOperation.CreateAndBuild(LessThanOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                                 },
-                                Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                                Array.Empty<ICodeElement>()))
+                }, null);
 
             Assert.False((bool)res);
         }
@@ -84,6 +96,9 @@ namespace Tac.Backend.Emit.Test
         {
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         new List<ICodeElement> {
@@ -98,8 +113,8 @@ namespace Tac.Backend.Emit.Test
                                 )),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+                }, null);
         }
 
         [Fact]
@@ -107,6 +122,9 @@ namespace Tac.Backend.Emit.Test
         {
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         new List<ICodeElement> {
@@ -121,8 +139,8 @@ namespace Tac.Backend.Emit.Test
                                 )),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+                }, null);
         }
 
         [Fact]
@@ -130,6 +148,9 @@ namespace Tac.Backend.Emit.Test
         {
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         new List<ICodeElement> {
@@ -152,8 +173,8 @@ namespace Tac.Backend.Emit.Test
                                 )),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+                }, null);
         }
 
         [Fact]
@@ -163,6 +184,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(memberDefinition, false)
@@ -171,8 +195,8 @@ namespace Tac.Backend.Emit.Test
                             AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+            }, null);
         }
 
         [Fact]
@@ -183,6 +207,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(memberDefinition, false)
@@ -191,8 +218,8 @@ namespace Tac.Backend.Emit.Test
                             AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+            }, null);
         }
 
         // 2=: any x
@@ -209,6 +236,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(memberDefinition, false)
@@ -228,8 +258,8 @@ namespace Tac.Backend.Emit.Test
                                     new IsStatic(innerMemberDefinition, false)})),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+            }, null);
         }
 
 
@@ -242,6 +272,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(memberDefinition, false)
@@ -250,8 +283,8 @@ namespace Tac.Backend.Emit.Test
                             AddOperation.CreateAndBuild(AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),ConstantNumber.CreateAndBuild(3)),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+            }, null);
         }
 
 
@@ -262,6 +295,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                         }),
@@ -279,8 +315,8 @@ namespace Tac.Backend.Emit.Test
                                     },
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
-                    Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                    Array.Empty<ICodeElement>()))
+                }, null);
         }
 
 
@@ -294,6 +330,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(memberDefinition, false)
@@ -317,8 +356,8 @@ namespace Tac.Backend.Emit.Test
                                     },
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
-                    Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                    Array.Empty<ICodeElement>()))
+                }, null);
         }
 
 
@@ -330,6 +369,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{ }),
                         new List<ICodeElement> {
@@ -348,9 +390,9 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()
-                    )
+                    ))
                 }
-           , null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+           , null);
         }
 
         // (object{ number x = 0, number y = 1} =: type{ number x , number y} obj).x =: number z;
@@ -380,6 +422,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(objectMember,false),
@@ -399,9 +444,9 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()
-                    )
+                    ))
                 }
-           , null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+           , null);
         }
 
         [Fact]
@@ -437,6 +482,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(objectMember,false),
@@ -472,9 +520,9 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()
-                    )
+                    ))
                 }
-           , null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+           , null);
         }
 
         // any func = Method[abc-type,ab-type] input { input return;  };
@@ -523,6 +571,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(func,false)
@@ -571,8 +622,8 @@ namespace Tac.Backend.Emit.Test
                                     })
                                 ),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
-                    Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                    Array.Empty<ICodeElement>()))
+                }, null);
         }
 
         // I should test a return from inside a try assign
@@ -592,6 +643,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(memberDefinition, false)
@@ -620,8 +674,8 @@ namespace Tac.Backend.Emit.Test
                                     new IsStatic(innerMemberDefinition, false)})),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+            }, null);
         }
 
         // long path test
@@ -658,6 +712,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(t, false)
@@ -747,8 +804,8 @@ namespace Tac.Backend.Emit.Test
                                         new IsStatic(tnext, false)})),
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+            }, null);
         }
 
 
@@ -807,6 +864,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                new List<ICodeElement>{
+                      Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(member, false)
@@ -837,8 +897,8 @@ namespace Tac.Backend.Emit.Test
                                 Model.Instantiated.MemberReference.CreateAndBuild(object4next)),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+            }, null);
 
         }
 
@@ -893,6 +953,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                new List<ICodeElement>{
+                      Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(m, false)
@@ -917,8 +980,8 @@ namespace Tac.Backend.Emit.Test
                                     Model.Instantiated.MemberReference.CreateAndBuild(m))),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-            }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+            }, null);
         }
 
         //   1 =: number | bool n-b =: any a is number n {}
@@ -931,6 +994,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
              new List<ICodeElement>{
+                    Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(nb, false),
@@ -955,8 +1021,8 @@ namespace Tac.Backend.Emit.Test
                             ),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-          }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+          }, null);
         }
 
 
@@ -982,6 +1048,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
              new List<ICodeElement>{
+                    Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(nb, false),
@@ -1006,8 +1075,8 @@ namespace Tac.Backend.Emit.Test
                             ),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
-                        Array.Empty<ICodeElement>())
-          }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                        Array.Empty<ICodeElement>()))
+          }, null);
         }
 
         // maybe a member on an or type
@@ -1055,6 +1124,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                         EntryPointDefinition.CreateAndBuild(
                             Scope.CreateAndBuild(new List<IsStatic>{
                             }),
@@ -1081,8 +1153,8 @@ namespace Tac.Backend.Emit.Test
                                 ),
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
-                            Array.Empty<ICodeElement>())
-             }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                            Array.Empty<ICodeElement>()))
+             }, null);
         }
 
         // an or with methods 
@@ -1113,6 +1185,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                         EntryPointDefinition.CreateAndBuild(
                             Scope.CreateAndBuild(new List<IsStatic>{
                                 new IsStatic(x, false),
@@ -1124,8 +1199,8 @@ namespace Tac.Backend.Emit.Test
                                 NextCallOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(4), Model.Instantiated.MemberReference.CreateAndBuild(x)),
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
-                            Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                            Array.Empty<ICodeElement>()))
+                }, null);
 
         }
 
@@ -1168,6 +1243,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                         EntryPointDefinition.CreateAndBuild(
                             Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                             new List<ICodeElement> {
@@ -1199,8 +1277,8 @@ namespace Tac.Backend.Emit.Test
                                     })),
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
-                            Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                            Array.Empty<ICodeElement>()))
+                }, null);
 
         }
 
@@ -1244,6 +1322,9 @@ namespace Tac.Backend.Emit.Test
 
             Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                         EntryPointDefinition.CreateAndBuild(
                             Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                             new List<ICodeElement> {
@@ -1275,8 +1356,8 @@ namespace Tac.Backend.Emit.Test
                                     })),
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
-                            Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                            Array.Empty<ICodeElement>()))
+                }, null);
 
         }
 
@@ -1313,6 +1394,9 @@ namespace Tac.Backend.Emit.Test
 
             var res = Compiler.BuildAndRun(
                 new List<ICodeElement>{
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
                         EntryPointDefinition.CreateAndBuild(
                             Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                             new List<ICodeElement> {
@@ -1331,8 +1415,8 @@ namespace Tac.Backend.Emit.Test
                                     })),
                                 ReturnOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1))
                             },
-                            Array.Empty<ICodeElement>())
-                }, null, new Visitors.RootScope(Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+                            Array.Empty<ICodeElement>()))
+                }, null);
 
 
             Assert.Equal(1.0, res);
@@ -1351,18 +1435,21 @@ namespace Tac.Backend.Emit.Test
 
             var res = Compiler.BuildAndRun(
                 new List<ICodeElement>{
-                        AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(memA, false),
+                        }),
+                        new List<IAssignOperation>{
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Model.Instantiated.MemberReference.CreateAndBuild(memA)) 
+                        },
                         EntryPointDefinition.CreateAndBuild(
                             Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                             new List<ICodeElement> {
                                 ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(memA))
                             },
-                            Array.Empty<ICodeElement>())
+                            Array.Empty<ICodeElement>()))
                 }, 
-                null, 
-                new Visitors.RootScope(Scope.CreateAndBuild(new List<IsStatic>{
-                    new IsStatic(memA, false),
-                })));
+                null);
 
 
             Assert.Equal(2.0, res);

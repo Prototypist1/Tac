@@ -15,12 +15,31 @@ namespace Tac.Backend.Emit.Visitors
 {
     // this is wrapped just to give a nicer name
     // is that a silly reason?
-    public class RootScope {
+
+        // TODO remove
+    public class RootScope : IEquatable<RootScope?>
+    {
         public readonly IFinalizedScope scope;
 
         public RootScope(IFinalizedScope scope)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as RootScope);
+        }
+
+        public bool Equals(RootScope? other)
+        {
+            return other != null &&
+                   EqualityComparer<IFinalizedScope>.Default.Equals(scope, other.scope);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(scope);
         }
     }
 
@@ -29,34 +48,32 @@ namespace Tac.Backend.Emit.Visitors
 
         private IReadOnlyList<ICodeElement> stack;
         private readonly MemberKindLookup lookup;
-        private readonly RootScope rootScope;
 
-        private MemberKindVisitor(IReadOnlyList<ICodeElement> stack, MemberKindLookup lookup, RootScope rootScope)
+        private MemberKindVisitor(IReadOnlyList<ICodeElement> stack, MemberKindLookup lookup)
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
             this.lookup = lookup ?? throw new ArgumentNullException(nameof(lookup));
-            this.rootScope = rootScope;
         }
 
-        public static MemberKindVisitor Make(MemberKindLookup lookup, RootScope rootScope) {
-            var res = new MemberKindVisitor(new List<ICodeElement>(), lookup, rootScope);
-            res.Init();
+        public static MemberKindVisitor Make(MemberKindLookup lookup) {
+            var res = new MemberKindVisitor(new List<ICodeElement>(), lookup);
+            //res.Init();
             return res;
         }
 
-        private MemberKindVisitor Init() {
-            foreach (var entry in rootScope.scope.Members.Values.Select(x => x.Value))
-            {
-                lookup.AddLocal(OrType.Make< IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope > (rootScope), entry);
-            }
-            return this;
-        }
+        //private MemberKindVisitor Init() {
+        //    foreach (var entry in rootScope.scope.Members.Values.Select(x => x.Value))
+        //    {
+        //        lookup.AddLocal(OrType.Make< IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope > (rootScope), entry);
+        //    }
+        //    return this;
+        //}
 
         public MemberKindVisitor Push(ICodeElement another)
         {
             var list = stack.ToList();
             list.Add(another);
-            return new MemberKindVisitor(list, lookup, rootScope);
+            return new MemberKindVisitor(list, lookup);
         }
 
         private void Walk(IEnumerable<ICodeElement> codeElements) {
@@ -106,27 +123,28 @@ namespace Tac.Backend.Emit.Visitors
             return new Nothing();
         }
 
-        private IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope> GetOwner()
+        private IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> GetOwner()
         {
-            if (!stack.Any()) {
-                return OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>(rootScope);
-            }
             // climb the stack until you find a method or implementation or entry point
             return stack.Reverse().SelectMany(x =>
             {
                 if (x.SafeIs(out IInternalMethodDefinition method))
                 {
-                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>(method) };
+                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(method) };
                 }
                 if (x.SafeIs(out IImplementationDefinition implementation))
                 {
-                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>(implementation) };
+                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(implementation) };
                 }
                 if (x.SafeIs(out IEntryPointDefinition entry))
                 {
-                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>(entry) };
+                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entry) };
                 }
-                return new IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>[] { };
+                if (x.SafeIs(out IRootScope root))
+                {
+                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(root) };
+                }
+                return new IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>[] { };
             }).First();
         }
 
@@ -221,7 +239,7 @@ namespace Tac.Backend.Emit.Visitors
 
             foreach (var entry in entryPointDefinition.Scope.Members.Values.Select(x => x.Value))
             {
-                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>(entryPointDefinition), entry);
+                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entryPointDefinition), entry);
             }
 
             var next = Push(entryPointDefinition);
@@ -256,7 +274,7 @@ namespace Tac.Backend.Emit.Visitors
 
             foreach (var entry in co.Scope.Members.Values.Select(x => x.Value).Except(new[] { co.ParameterDefinition }))
             {
-                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>(co), entry);
+                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(co), entry);
             }
             lookup.AddArgument(OrType.Make<IImplementationDefinition, IInternalMethodDefinition>(co), co.ParameterDefinition);
 
@@ -278,7 +296,7 @@ namespace Tac.Backend.Emit.Visitors
 
             foreach (var entry in codeElement.Scope.Members.Values.Select(x => x.Value).Except(new[] { codeElement.ParameterDefinition }))
             {
-                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope>(codeElement), entry);
+                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(codeElement), entry);
             }
 
             lookup.AddArgument(OrType.Make < IImplementationDefinition, IInternalMethodDefinition > (codeElement),codeElement.ParameterDefinition);
@@ -328,5 +346,17 @@ namespace Tac.Backend.Emit.Visitors
             return new Nothing();
         }
 
+        public Nothing RootScope(IRootScope co)
+        {
+            foreach (var entry in co.Scope.Members.Values.Select(x => x.Value))
+            {
+                lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(co), entry);
+            }
+            var next = Push(co);
+            next.Walk(co.Assignments);
+            co.EntryPoint.Convert(next);
+
+            return new Nothing();
+        }
     }
 }

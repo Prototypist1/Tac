@@ -315,8 +315,7 @@ namespace Tac.Backend.Emit.Walkers
             ExtensionLookup extensionLookup,
             Dictionary<IVerifiableType, System.Type> typeCache,
              ModuleBuilder moduleBuilder,
-             RealizedMethodLookup realizedMethodLookup,
-             RootScope rootScope)
+             RealizedMethodLookup realizedMethodLookup)
         {
             var typebuilder = moduleBuilder.DefineType(GenerateName(), TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation));
             var selfField = typebuilder.DefineField(GenerateName() + "_self", typebuilder, FieldAttributes.Static | FieldAttributes.Public);
@@ -329,11 +328,6 @@ namespace Tac.Backend.Emit.Walkers
 
             var gens = new List<DebuggableILGenerator> { gen };
             var generatorHolder = new GeneratorHolder(Possibly.Is(gen));
-
-            foreach (var local in rootScope.scope.Members)
-            {
-                gen.DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
-            }
 
             // set the self field
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
@@ -1885,7 +1879,7 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        private Nothing storeLocal(IMemberDefinition memberDef, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, RootScope> orTypeLocal)
+        private Nothing storeLocal(IMemberDefinition memberDef, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> orTypeLocal)
         {
             return orTypeLocal.SwitchReturns(
                 entryPoint =>
@@ -1917,6 +1911,19 @@ namespace Tac.Backend.Emit.Walkers
             {
                 line.Convert(inner);
             }
+
+            return new Nothing();
+        }
+
+        public Nothing RootScope(IRootScope rootScope)
+        {
+            foreach (var local in rootScope.Scope.Members)
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+            }
+
+            Walk( rootScope.Assignments,rootScope);
+            rootScope.EntryPoint.Convert(this.Push(rootScope));
 
             return new Nothing();
         }

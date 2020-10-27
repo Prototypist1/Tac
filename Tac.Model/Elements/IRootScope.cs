@@ -7,6 +7,7 @@ namespace Tac.Model.Elements
     {
 
         IFinalizedScope Scope { get; }
+        IEntryPointDefinition EntryPoint { get; }
         IReadOnlyList<IAssignOperation> Assignments { get; }
     }
 }
